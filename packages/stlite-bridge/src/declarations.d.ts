@@ -23,3 +23,4 @@ declare module '!!raw-loader!*' {
 declare let indexURL: string;
 declare let pyodide: any;
 declare let loadPyodide: any;
+declare let _tornadoWheelUrl: string;

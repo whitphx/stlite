@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "name": "stlite",
+  "workspaces": [
+    "packages/*"
+  ]
+}

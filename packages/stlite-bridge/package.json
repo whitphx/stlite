@@ -8,6 +8,7 @@
     "dist/"
   ],
   "scripts": {
+    "start": "tsc -w",
     "build": "tsc"
   },
   "devDependencies": {

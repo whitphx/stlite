@@ -1,8 +1,19 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import { StliteKernel } from "stlite-bridge";
 
 function App() {
+  useEffect(() => {
+    const kernel = new StliteKernel({
+      pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js",
+    });
+
+    return () => {
+      kernel.dispose();
+    };
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">

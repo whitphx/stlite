@@ -6,6 +6,8 @@
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl"  // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
+import BLINKER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl"
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl"
 
 import worker from '!!raw-loader!./worker';
 
@@ -34,6 +36,8 @@ export class StliteKernel {
     const { pyodideUrl } = options;
 
     const tornadoWheelUrl = window.location.origin + TORNADO_WHEEL;
+    const blinkerWheelUrl = window.location.origin + BLINKER_WHEEL;
+    const streamlitWheelUrl = window.location.origin + STREAMLIT_WHEEL;
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf('/') + 1);
 
@@ -43,6 +47,8 @@ export class StliteKernel {
       // ...we also need the location of the index of pyodide-built js/WASM...
       `var indexURL = "${indexUrl}";`,
       `var _tornadoWheelUrl = "${tornadoWheelUrl}"`,
+      `var _blinkerWheelUrl = "${blinkerWheelUrl}"`,
+      `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];

@@ -16,7 +16,11 @@ async function loadPyodideAndPackages() {
     import micropip
     await micropip.install([
       '${_tornadoWheelUrl}',
+      '${_blinkerWheelUrl}',
     ])
+    await micropip.install([
+      '${_streamlitWheelUrl}'
+    ], keep_going=True);
   `);
 
   console.log("Loaded")

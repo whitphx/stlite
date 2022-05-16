@@ -1,3 +1,6 @@
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/whitphx/streamlit.git
+[submodule "packages/stlite-bridge/thirdparty/blinker"]
+	path = packages/stlite-bridge/thirdparty/blinker
+	url = https://github.com/pallets-eco/blinker.git

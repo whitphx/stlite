@@ -9,7 +9,23 @@
  */
 async function loadPyodideAndPackages() {
   // as of 0.17.0 indexURL must be provided
-  pyodide = await loadPyodide({ indexURL });
+  pyodide = await loadPyodide({
+    indexURL,
+    stdout: (log: string) => {
+      if (log.startsWith("CRITICAL") || log.startsWith("ERROR")) {
+        console.error(log)
+      } else if (log.startsWith("WARNING")) {
+        console.warn(log);
+      } else if (log.startsWith("INFO")) {
+        console.info(log);
+      } else if (log.startsWith("DEBUG")) {
+        console.debug(log);
+      } else {
+        console.log(log);
+      }
+    },
+    stderr: console.error,
+  });
 
   await pyodide.loadPackage(['micropip']);
   await pyodide.runPythonAsync(`
@@ -23,6 +39,27 @@ async function loadPyodideAndPackages() {
       '${_streamlitWheelUrl}'
     ], keep_going=True);
   `);
+
+  // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
+  // See https://github.com/streamlit/streamlit/issues/4742
+  await pyodide.runPythonAsync(`
+      import logging
+      import streamlit.logger
+
+      streamlit.logger.get_logger = logging.getLogger
+      streamlit.logger.setup_formatter = None
+      streamlit.logger.update_formatter = lambda *a, **k: None
+      streamlit.logger.set_log_level = lambda *a, **k: None
+  `)
+  // Then configure the logger.
+  await pyodide.runPythonAsync(`
+      import sys
+
+      logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, force=True)
+
+      streamlit_handler = logging.getLogger("streamlit")
+      streamlit_handler.setLevel(logging.DEBUG)
+  `)
 
   // Emulate the process in streamlit/cli.py
   await pyodide.runPythonAsync(`

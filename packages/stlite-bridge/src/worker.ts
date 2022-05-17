@@ -24,9 +24,44 @@ async function loadPyodideAndPackages() {
     ], keep_going=True);
   `);
 
+  // Emulate the process in streamlit/cli.py
   await pyodide.runPythonAsync(`
     import streamlit
+    import streamlit.bootstrap as bootstrap
+
+
+    def _get_command_line_as_string():
+        return ""  # TODO
+
+
+    def _main_run(file, args=None, flag_options=None):
+        if args is None:
+            args = []
+
+        if flag_options is None:
+            flag_options = {}
+
+        command_line = _get_command_line_as_string()
+
+        # Set a global flag indicating that we're "within" streamlit.
+        streamlit._is_running_with_streamlit = True
+
+        # check_credentials()  # Disable credential check on Pyodide
+
+        bootstrap.run(file, command_line, args, flag_options)
+
+
+    def main_hello(**kwargs):
+        from streamlit.hello import hello
+
+        bootstrap.load_config_options(flag_options=kwargs)
+        filename = hello.__file__
+        _main_run(filename, flag_options=kwargs)
+
+
+    main_hello()
   `)
+
   console.log("Loaded")
 }
 

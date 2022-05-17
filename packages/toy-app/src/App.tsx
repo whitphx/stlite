@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { StliteKernel } from "stlite-bridge";
+import { StliteKernel } from "stlite-kernel";
 
 function App() {
   useEffect(() => {

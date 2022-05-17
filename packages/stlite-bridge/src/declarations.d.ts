@@ -24,5 +24,6 @@ declare let indexURL: string;
 declare let pyodide: any;
 declare let loadPyodide: any;
 declare let _tornadoWheelUrl: string;
+declare let _pyarrowWheelUrl: string;
 declare let _blinkerWheelUrl: string;
 declare let _streamlitWheelUrl: string;

@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "stlite-pyarrow"
+version = "0.1.0"
+description = ""
+authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]
+license = "Apache-2.0"
+packages = [
+    { include = "pyarrow" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

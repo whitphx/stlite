@@ -1,12 +1,26 @@
 import React, { useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { StliteKernel } from "stlite-kernel";
+import { StliteKernel, ConnectionManager } from "stlite-kernel";
 
 function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js",
+    });
+
+    const connectionManager = new ConnectionManager({
+      kernel,
+      connectionStateChanged: (connectionState) => {
+        console.log("connectionStateChanged", connectionState);
+      },
+
+      onMessage: (message) => {
+        console.log("onMessage", message);
+      },
+      onConnectionError: (errNode) => {
+        console.error("onConnectionError", errNode);
+      },
     });
 
     return () => {

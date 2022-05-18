@@ -99,7 +99,9 @@ async function loadPyodideAndPackages() {
     main_hello()
   `)
 
-  console.log("Loaded")
+  postMessage({
+    type: "LOADED"
+  });
 }
 
 const pyodideReadyPromise = loadPyodideAndPackages();
@@ -111,10 +113,26 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  */
 self.onmessage = async (event: MessageEvent): Promise<void> => {
   await pyodideReadyPromise;
+  const data = event.data;
+  let results;
+  const messageType = data.type;
+  const messageContent = data.data;
+  switch (messageType) {
+    case "websocket:connect": {
+      console.log("websocket:connect", messageContent)
+      // TODO: Implement
+      break;
+    }
+    case "websocket:send": {
+      console.log("websocket:send", messageContent)
+      // TODO: Implement
+      break;
+    }
+  }
 
-  // TODO: Implement the handler
   const reply = {
-    message: "pong"
+    type: "reply",
+    results,
   }
 
   postMessage(reply);

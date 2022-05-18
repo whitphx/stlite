@@ -1,5 +1,7 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
+import { PromiseDelegate } from '@lumino/coreutils';
+
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
 // About this change on Pyodide, see the links below:
@@ -16,6 +18,8 @@ export class StliteKernel {
   private _isDisposed = false;
 
   private _worker: Worker;
+
+  private _loaded = new PromiseDelegate<void>();
 
   constructor(options: StliteKernel.IOptions) {
     const blob = new Blob([this.buildWorkerScript(options).join("\n")]);
@@ -57,13 +61,42 @@ export class StliteKernel {
     ];
   }
 
+  get loaded(): Promise<void> {
+    return this._loaded.promise;
+  }
+
+  public connectWebSocket(path: string): Promise<void> {
+    this._worker.postMessage({
+      type: "websocket:connect",
+      data: {
+        path,
+      }
+    })
+
+    return Promise.resolve() // TODO: Communicate the worker to confirm the connection
+  }
+
+  public sendWebSocketMessage(payload: any) {
+    this._worker.postMessage({
+      type: "websocket:send",
+      data: {
+        payload,
+      }
+    })
+  }
+
   /**
    * Process a message coming from the pyodide web worker.
    *
    * @param msg The worker message to process.
    */
   private _processWorkerMessage(msg: any): void {
-    /* TODO: Implement the handler */
+    switch (msg.type) {
+      case "LOADED": {
+        this._loaded.resolve()
+        break;
+      }
+    }
   }
 
   /**

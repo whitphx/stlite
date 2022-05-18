@@ -61,6 +61,11 @@ async function loadPyodideAndPackages() {
       streamlit_handler.setLevel(logging.DEBUG)
   `)
 
+  await pyodide.runPythonAsync(`
+      import os
+      os.environ["IS_RUNNING_IN_STREAMLIT_EDITOR_PLUGIN"] = "1"  # To make the "server.headless" config True for Streamlit not to open the browser after launching
+  `)
+
   // Emulate the process in streamlit/cli.py
   await pyodide.runPythonAsync(`
     import streamlit

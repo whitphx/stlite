@@ -26,6 +26,14 @@ function App() {
               rerunScript: { queryString: "" },
             })
           );
+
+          setTimeout(() => {
+            console.log("Set a new script");
+            kernel.setMainScriptData(`import streamlit as st
+
+st.write("Hello, a new script")
+`);
+          }, 1000);
         }
       },
 

@@ -31,6 +31,10 @@ export class StliteKernel {
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
+
+    if (options.mainScriptData) {
+      this.setMainScriptData(options.mainScriptData)
+    }
   }
 
   /**
@@ -97,6 +101,18 @@ export class StliteKernel {
   }
 
   /**
+   * Set a new main script.
+   */
+  public setMainScriptData(mainScriptData: string) {
+    this._worker.postMessage({
+      type: "mainscript:set",
+      data: {
+        mainScriptData
+      }
+    })
+  }
+
+  /**
    * Process a message coming from the pyodide web worker.
    *
    * @param msg The worker message to process.
@@ -157,5 +173,10 @@ export namespace StliteKernel {
      * The file path on the Pyodide File System (Emscripten FS) to mount the main script.
      */
     mainScriptPath?: string;
+
+    /**
+     * The content of the main script.
+     */
+    mainScriptData?: string;
   }
 }

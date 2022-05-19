@@ -1,5 +1,7 @@
 let httpServer: any;
 
+let mainScriptData: string = "";
+
 /**
  * Load Pyodided and initialize the interpreter.
  *
@@ -150,24 +152,19 @@ async function loadPyodideAndPackages() {
             _main_run(target, args, flag_options=kwargs)
   `)
 
+  // Bootstrap
   if (_command === "hello") {
     await pyodide.runPythonAsync(`main_hello()`)
   } else if (_command === "run") {
-    const mainScriptData = `import streamlit as st
-
-name = st.text_input("name")
-
-st.write(f"Hello {name}")
-`  // TODO: Inject from outside
     pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
 
     await pyodide.runPythonAsync(`main_run("${_mainScriptPath}")`)
   }
 
+  // Pull the http server instance from Python world to JS world and set up it.
   await pyodide.runPythonAsync(`
     from tornado.httpserver import HTTP_SERVER
   `)  // HTTP_SERVER is set AFTER the streamlit module is loaded.
-
   httpServer = pyodide.globals.get('HTTP_SERVER').copy();
 
   // Set the callback method to receive websocket message from the Streamlit server
@@ -229,6 +226,12 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       const { payload } = messageContent
 
       httpServer.receive_websocket_from_js(payload)
+      break;
+    }
+    case "mainscript:set": {
+      const { mainScriptData: newMainScriptData } = messageContent;
+      mainScriptData = newMainScriptData
+      pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
       break;
     }
   }

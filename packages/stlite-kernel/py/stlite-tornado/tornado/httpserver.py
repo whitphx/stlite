@@ -41,13 +41,6 @@ class HTTPServer:
     # The signature of __init__() is different from the original.
     # In this package, we handle only the case where an Application instance is passed here.
     def __init__(self, application: Application, *args: Any, **kwargs: Any) -> None:
-        # Ignore args to __init__; real initialization belongs in
-        # initialize since we're Configurable. (there's something
-        # weird in initialization order between this class,
-        # Configurable, and TCPServer so we can't leave __init__ out
-        # completely)
-        print("HTTPServer.__init__()", args, kwargs)
-
         self.application = application
 
         global HTTP_SERVER
@@ -105,12 +98,5 @@ class HTTPServer:
             return result
 
     def listen(self, port: int, address: str = "") -> None:
-        """Starts accepting connections on the given port.
-
-        This method may be called more than once to listen on multiple ports.
-        `listen` takes effect immediately; it is not necessary to call
-        `TCPServer.start` afterwards.  It is, however, necessary to start
-        the `.IOLoop`.
-        """
-        # Originally defined as TCPServer.listen()
-        print("HTTPServer.listen()", port, address)
+        # Original implementation is on TCPServer.listen()
+        pass  # Stlite: Do nothing

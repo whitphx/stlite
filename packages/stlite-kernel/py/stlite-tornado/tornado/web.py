@@ -29,15 +29,6 @@ from typing import (
 )
 
 class RequestHandler:
-    # def __init__(
-    #     self,
-    #     application: "Application",
-    #     request: httputil.HTTPServerRequest,
-    #     **kwargs: Any
-    # ) -> None:
-    #     print("RequestHandler.__init__", application, request, kwargs)
-    #     pass
-
     @property
     def xsrf_token(self) -> bytes:
         return os.urandom(16)  # XXX: Dummy implementation
@@ -54,14 +45,11 @@ class Application:
         transforms: Optional[List[Type["OutputTransform"]]] = None,
         **settings: Any
     ) -> None:
-        print("Application.__init__", handlers, default_host, transforms, settings)
         self.handlers = handlers
 
     def add_handlers(self, host_pattern: str, host_handlers: _RuleList) -> None:
-        print("Application.add_handlers", host_pattern, host_handlers)
         pass
 
 
 def addslash(fn):
-    print("addslash", fn)
     return fn

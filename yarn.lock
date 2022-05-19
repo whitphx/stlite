@@ -1803,6 +1803,19 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
+"@jupyterlab/coreutils@^5.4.2":
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/@jupyterlab/coreutils/-/coreutils-5.4.2.tgz#ab9966d0b981aa915cd1a09e099473f85735d850"
+  integrity sha512-1PknPzlwVLSvKDjx2933G62vP+Fzm5HoaAp+Q3i0sPNos7FtKFXJSltORynjICHIO8MGKUWt+0UFRkB2HZ8JVg==
+  dependencies:
+    "@lumino/coreutils" "^1.11.0"
+    "@lumino/disposable" "^1.10.0"
+    "@lumino/signaling" "^1.10.0"
+    minimist "~1.2.0"
+    moment "^2.24.0"
+    path-browserify "^1.0.0"
+    url-parse "~1.5.1"
+
 "@loaders.gl/3d-tiles@^2.3.0":
   version "2.3.9"
   resolved "https://registry.yarnpkg.com/@loaders.gl/3d-tiles/-/3d-tiles-2.3.9.tgz#f4e4c5edd5e4189457b082d5c554025bd3639b24"
@@ -2035,10 +2048,30 @@
     "@luma.gl/gltools" "8.3.3"
     probe.gl "^3.2.1"
 
-"@lumino/coreutils@^1.12.0":
+"@lumino/algorithm@^1.9.1":
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/@lumino/algorithm/-/algorithm-1.9.1.tgz#a870598e031f5ee85e20e77ce7bfffbb0dffd7f5"
+  integrity sha512-d0rj7IYRzYj6WbWSrbJbKvrfO4H0NUnXT2yjSWS/sCklpTpSp0IGmndK/X4r6gG+ev5lb5+wBg9ofUDBvoAlAw==
+
+"@lumino/coreutils@^1.11.0", "@lumino/coreutils@^1.12.0":
   version "1.12.0"
   resolved "https://registry.yarnpkg.com/@lumino/coreutils/-/coreutils-1.12.0.tgz#fbdef760f736eaf2bd396a5c6fc3a68a4b449b15"
   integrity sha512-DSglh4ylmLi820CNx9soJmDJCpUgymckdWeGWuN0Ash5g60oQvrQDfosVxEhzmNvtvXv45WZEqSBzDP6E5SEmQ==
+
+"@lumino/disposable@^1.10.0":
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/@lumino/disposable/-/disposable-1.10.1.tgz#58fddc619cf89335802d168564b76ff5315d5a84"
+  integrity sha512-mZQILc8sVGZC7mJNOGVmehDRO9/u3sIRdjZ+pCYjDgXKcINLd6HoPhZDquKCWiRBfHTL1B3tOHjnBhahBc2N/Q==
+  dependencies:
+    "@lumino/algorithm" "^1.9.1"
+    "@lumino/signaling" "^1.10.1"
+
+"@lumino/signaling@^1.10.0", "@lumino/signaling@^1.10.1":
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/@lumino/signaling/-/signaling-1.10.1.tgz#c8a1cb5b661b6744ea817c99c758fdc897847c26"
+  integrity sha512-GZVbX4cfk/ZqLwkemPD/NwqToaTL/6q7qdLpEhgkiPlaH1S5/V7fDpP7N1uFy4n3BDITId8cpYgH/Ds32Mdp3A==
+  dependencies:
+    "@lumino/algorithm" "^1.9.1"
 
 "@mapbox/geojson-rewind@^0.5.0":
   version "0.5.0"
@@ -12166,7 +12199,7 @@ minimatch@^3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5:
+minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5, minimist@~1.2.0:
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
   integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
@@ -12300,7 +12333,7 @@ moment-timezone@^0.5.33:
   dependencies:
     moment ">= 2.9.0"
 
-"moment@>= 2.9.0", moment@>=2.14.0, moment@^2.29.1, moment@^2.29.3:
+"moment@>= 2.9.0", moment@>=2.14.0, moment@^2.24.0, moment@^2.29.1, moment@^2.29.3:
   version "2.29.3"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.3.tgz#edd47411c322413999f7a5940d526de183c031f3"
   integrity sha512-c6YRvhEo//6T2Jz/vVtYzqBzwvPT95JBQ+smCytzf7c50oMZRsR/a4w88aD34I+/QVSfnoAnSBFPJHItlOMJVw==
@@ -13241,6 +13274,11 @@ path-browserify@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-0.0.1.tgz#e6c4ddd7ed3aa27c68a20cc4e50e1a4ee83bbc4a"
   integrity sha512-BapA40NHICOS+USX9SN4tyhq+A2RrN/Ws5F0Z5aMHDp98Fl86lX8Oti8B7uN93L4Ifv4fHOEA+pQw87gmMO/lQ==
+
+path-browserify@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-1.0.1.tgz#d98454a9c3753d5790860f16f68867b9e46be1fd"
+  integrity sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==
 
 path-dirname@^1.0.0:
   version "1.0.2"
@@ -17700,7 +17738,7 @@ url-loader@4.1.1:
     mime-types "^2.1.27"
     schema-utils "^3.0.0"
 
-url-parse@^1.4.3, url-parse@^1.4.4, url-parse@^1.4.7:
+url-parse@^1.4.3, url-parse@^1.4.4, url-parse@^1.4.7, url-parse@~1.5.1:
   version "1.5.10"
   resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.10.tgz#9d3c2f736c1d75dd3bd2be507dcc111f1e2ea9c1"
   integrity sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==

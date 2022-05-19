@@ -1,5 +1,7 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
+import { URLExt } from '@jupyterlab/coreutils';
+
 import { PromiseDelegate } from '@lumino/coreutils';
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
@@ -40,10 +42,10 @@ export class StliteKernel {
   protected buildWorkerScript(options: StliteKernel.IOptions): string[] {
     const { pyodideUrl } = options;
 
-    const tornadoWheelUrl = window.location.origin + TORNADO_WHEEL;
-    const pyarrowWheelUrl = window.location.origin + PYARROW_WHEEL;
-    const blinkerWheelUrl = window.location.origin + BLINKER_WHEEL;
-    const streamlitWheelUrl = window.location.origin + STREAMLIT_WHEEL;
+    const tornadoWheelUrl = URLExt.join(window.location.origin, TORNADO_WHEEL as unknown as string);
+    const pyarrowWheelUrl = URLExt.join(window.location.origin, PYARROW_WHEEL as unknown as string);
+    const blinkerWheelUrl = URLExt.join(window.location.origin, BLINKER_WHEEL as unknown as string);
+    const streamlitWheelUrl = URLExt.join(window.location.origin, STREAMLIT_WHEEL as unknown as string);
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf('/') + 1);
 

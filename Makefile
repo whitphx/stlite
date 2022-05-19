@@ -3,6 +3,12 @@ all: playground
 .PHONY: playground
 playground: packages/playground/build
 
+.PHONY: serve
+serve:
+	. ./.venv/bin/activate && \
+	cd packages/playground/build && \
+	python -m http.server 5001
+
 packages/playground/build: packages/playground/src/**/*.ts packages/playground/public/* packages/stlite-kernel/dist streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
 	cd packages/playground; \
 	yarn build

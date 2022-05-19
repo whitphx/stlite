@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-import Editor from "./Editor";
+import EditorModal from "./EditorModal";
 
 import ThemedApp from "streamlit-browser/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
@@ -13,7 +13,7 @@ function App() {
 
   return (
     <>
-      <Editor defaultValue={mainScriptData} onChange={setMainScriptData} />
+      <EditorModal defaultValue={mainScriptData} onChange={setMainScriptData} />
       <StyletronProvider value={engine}>
         <ThemedApp stliteMainScriptData={mainScriptData} />
       </StyletronProvider>

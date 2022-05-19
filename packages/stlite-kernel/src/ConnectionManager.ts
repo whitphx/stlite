@@ -47,6 +47,14 @@ export class ConnectionManager {
   constructor(props: Props) {
     this.props = props
 
+    this.props.kernel.onWebSocketMessage((payload) => {
+      if (typeof payload === "string") {
+        console.error("Unexpected payload type.")
+        return;
+      }
+      props.onMessage(ForwardMsg.decode(payload))
+    })
+
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
       this.connect();
@@ -70,7 +78,7 @@ export class ConnectionManager {
 
   public sendMessage(obj: BackMsg): void {
     if (this.isConnected()) {
-      // TODO: Implement
+      this.props.kernel.sendWebSocketMessage(BackMsg.encode(BackMsg.create(obj)).finish())
     } else {
       // Don't need to make a big deal out of this. Just print to console.
       console.error(`Cannot send message when server is disconnected: ${obj}`)

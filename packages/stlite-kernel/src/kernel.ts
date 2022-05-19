@@ -76,13 +76,18 @@ export class StliteKernel {
     return Promise.resolve() // TODO: Communicate the worker to confirm the connection
   }
 
-  public sendWebSocketMessage(payload: any) {
+  public sendWebSocketMessage(payload: Uint8Array) {
     this._worker.postMessage({
       type: "websocket:send",
       data: {
         payload,
       }
     })
+  }
+
+  private handleWebSocketMessage: ((payload: Uint8Array | string) => void) | null = null;
+  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+    this.handleWebSocketMessage = handler;
   }
 
   /**
@@ -94,6 +99,11 @@ export class StliteKernel {
     switch (msg.type) {
       case "LOADED": {
         this._loaded.resolve()
+        break;
+      }
+      case "WEBSOCKET_MESSAGE": {
+        const { payload } = msg.data;
+        this.handleWebSocketMessage && this.handleWebSocketMessage(payload)
         break;
       }
     }

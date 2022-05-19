@@ -1,7 +1,12 @@
 import React, { useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { StliteKernel, ConnectionManager } from "stlite-kernel";
+import {
+  StliteKernel,
+  ConnectionManager,
+  ConnectionState,
+} from "stlite-kernel";
+import { BackMsg } from "streamlit-browser/src/autogen/proto";
 
 function App() {
   useEffect(() => {
@@ -13,6 +18,14 @@ function App() {
       kernel,
       connectionStateChanged: (connectionState) => {
         console.log("connectionStateChanged", connectionState);
+
+        if (connectionState === ConnectionState.CONNECTED) {
+          connectionManager.sendMessage(
+            new BackMsg({
+              rerunScript: { queryString: "" },
+            })
+          );
+        }
       },
 
       onMessage: (message) => {

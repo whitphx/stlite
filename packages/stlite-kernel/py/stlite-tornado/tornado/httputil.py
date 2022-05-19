@@ -1,0 +1,2 @@
+class HTTPServerRequest(object):
+    pass

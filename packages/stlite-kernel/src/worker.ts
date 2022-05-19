@@ -1,3 +1,5 @@
+let httpServer: any;
+
 /**
  * Load Pyodided and initialize the interpreter.
  *
@@ -102,7 +104,39 @@ async function loadPyodideAndPackages() {
 
 
     main_hello()
+
+    from tornado.httpserver import HTTP_SERVER
   `)
+
+  httpServer = pyodide.globals.get('HTTP_SERVER').copy();
+
+  // Set the callback method to receive websocket message from the Streamlit server
+  httpServer.set_websocket_sender_fn((messageProxy: any, binary: boolean) => {
+    // XXX: Now there is no session mechanism
+
+    if (binary) {
+      const buffer = messageProxy.getBuffer("u8");
+      messageProxy.destroy();
+      const payload = new Uint8ClampedArray(
+        buffer.data.buffer,
+        buffer.data.byteOffset,
+        buffer.data.byteLength
+      )
+      postMessage({
+        type: "WEBSOCKET_MESSAGE",
+        data: {
+          payload: new Uint8Array(payload)
+        }
+      });
+    } else {
+      postMessage({
+        type: "WEBSOCKET_MESSAGE",
+        data: {
+          payload: messageProxy,
+        }
+      });
+    }
+  })
 
   postMessage({
     type: "LOADED"
@@ -125,12 +159,16 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
   switch (messageType) {
     case "websocket:connect": {
       console.log("websocket:connect", messageContent)
-      // TODO: Implement
+
+      httpServer.start_websocket("/stream")
       break;
     }
     case "websocket:send": {
       console.log("websocket:send", messageContent)
-      // TODO: Implement
+
+      const { payload } = messageContent
+
+      httpServer.receive_websocket_from_js(payload)
       break;
     }
   }

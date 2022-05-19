@@ -1,4 +1,9 @@
-playground: packages/playground/src/**/*.ts packages/playground/public/* packages/stlite-kernel/dist streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
+all: playground
+
+.PHONY: playground
+playground: packages/playground/build
+
+packages/playground/build: packages/playground/src/**/*.ts packages/playground/public/* packages/stlite-kernel/dist streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
 	cd packages/playground; \
 	yarn build
 

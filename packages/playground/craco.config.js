@@ -1,6 +1,12 @@
 const path = require('path');
 
 module.exports = {
+  babel: {
+    plugins: ["@emotion"],
+    loaderOptions: {
+      cacheDirectory: true,
+    },
+  },
   webpack: {
     configure: (webpackConfig, { env, paths }) => {
       // Let Babel compile outside of src/.

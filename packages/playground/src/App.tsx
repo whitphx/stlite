@@ -1,25 +1,36 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useRef, useState, useCallback } from "react";
+import "./App.css";
+
+import ThemedApp from "streamlit-browser/src/ThemedApp";
+import { Client as Styletron } from "styletron-engine-atomic";
+import { Provider as StyletronProvider } from "styletron-react";
+const engine = new Styletron({ prefix: "st-" });
 
 function App() {
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const [mainScriptData, setMainScriptData] = useState("");
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <>
+      <div className="editor-container">
+        {/* TODO: Make the editor floating and draggable */}
+        <textarea defaultValue={mainScriptData} ref={editorRef} />
+        <button
+          onClick={useCallback(() => {
+            const editorElem = editorRef.current;
+            if (editorElem == null) {
+              return;
+            }
+            setMainScriptData(editorElem.value);
+          }, [])}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          Save
+        </button>
+      </div>
+      <StyletronProvider value={engine}>
+        <ThemedApp stliteMainScriptData={mainScriptData} />
+      </StyletronProvider>
+    </>
   );
 }
 

@@ -16,6 +16,8 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import worker from '!!raw-loader!./worker';
 
+const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py"
+
 export class StliteKernel {
   private _isDisposed = false;
 
@@ -40,7 +42,7 @@ export class StliteKernel {
    * @param options The instantiation options for a new StliteKernel
    */
   protected buildWorkerScript(options: StliteKernel.IOptions): string[] {
-    const { pyodideUrl } = options;
+    const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
 
     const tornadoWheelUrl = URLExt.join(window.location.origin, TORNADO_WHEEL as unknown as string);
     const pyarrowWheelUrl = URLExt.join(window.location.origin, PYARROW_WHEEL as unknown as string);
@@ -58,6 +60,8 @@ export class StliteKernel {
       `var _pyarrowWheelUrl = "${pyarrowWheelUrl}"`,
       `var _blinkerWheelUrl = "${blinkerWheelUrl}"`,
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
+      `var _command = "${options.command}"`,
+      `var _mainScriptPath = "${mainScriptPath}"`,
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];
@@ -143,5 +147,15 @@ export namespace StliteKernel {
      * The URL to fetch Pyodide.
      */
     pyodideUrl: string;
+
+    /**
+     * The Streamlit subcommand to run.
+     */
+    command: "hello" | "run";
+
+    /**
+     * The file path on the Pyodide File System (Emscripten FS) to mount the main script.
+     */
+    mainScriptPath?: string;
   }
 }

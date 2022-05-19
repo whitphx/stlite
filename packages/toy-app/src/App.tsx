@@ -12,6 +12,7 @@ function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js",
+      command: "run",
     });
 
     const connectionManager = new ConnectionManager({

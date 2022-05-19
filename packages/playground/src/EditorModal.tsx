@@ -2,6 +2,9 @@ import { useRef, useCallback } from "react";
 import { Rnd } from "react-rnd";
 import Editor, { OnMount } from "@monaco-editor/react";
 
+const DEFAULT_WIDTH = 600;
+const DEFAULT_HEIGHT = 400;
+
 export interface EditorModalProps {
   defaultValue: string;
   onChange: (value: string) => void;
@@ -13,7 +16,12 @@ function EditorModal(props: EditorModalProps) {
 
   return (
     <Rnd
-      default={{ x: 100, y: 200, width: 600, height: 400 }}
+      default={{
+        x: (window.innerWidth - DEFAULT_WIDTH) / 2,
+        y: window.innerHeight - DEFAULT_HEIGHT - 50,
+        width: DEFAULT_WIDTH,
+        height: DEFAULT_HEIGHT,
+      }}
       style={{ zIndex: 99999999 }}
       enableResizing={{
         left: true,

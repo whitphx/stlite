@@ -44,7 +44,7 @@ $(blinker_wheel): packages/stlite-kernel/thirdparty/blinker/blinker/*.py
 $(streamlit_proto): streamlit/proto/streamlit/proto/*.proto
 	. ./.venv/bin/activate && \
 	cd streamlit; \
-	$(MAKE) protobuf
+	$(MAKE) mini-init
 
 $(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. ./.venv/bin/activate && \

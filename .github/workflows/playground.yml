@@ -79,6 +79,8 @@ jobs:
       run: make init
     - name: Build
       run: make
+      env:
+        PUBLIC_URL: "/stlite"  # Base path setting for GitHub Pages
 
     ## Deploy
     - name: Upload the built files as an artifact

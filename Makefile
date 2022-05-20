@@ -3,7 +3,7 @@ stlite_kernel := packages/stlite-kernel/dist
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl
 blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl
-streamlit_proto := streamlit/frontend/src/autogen/*
+streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
 
 all: playground

@@ -1,44 +1,52 @@
+playground := packages/playground/build
+stlite_kernel := packages/stlite-kernel/dist
+pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
+tornado_wheel := packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl
+blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl
+streamlit_proto := streamlit/frontend/src/autogen/*
+streamlit_wheel := streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
+
 all: playground
 
 .PHONY: playground
-playground: packages/playground/build
+playground: $(playground)
 
 .PHONY: serve
 serve:
 	. ./.venv/bin/activate && \
-	cd packages/playground/build && \
+	cd $(playground) && \
 	python -m http.server 5001
 
-packages/playground/build: packages/playground/src/**/*.ts packages/playground/public/* packages/stlite-kernel/dist streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl
+$(playground): packages/playground/src/**/*.ts packages/playground/public/* $(stlite_kernel) $(streamlit_wheel)
 	cd packages/playground; \
 	yarn build
 
-packages/stlite-kernel/dist: packages/stlite-kernel/src/**/*.ts packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl streamlit/frontend/src/autogen/*
+$(stlite_kernel): packages/stlite-kernel/src/**/*.ts $(pyarrow_wheel) $(tornado_wheel) $(blinker_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
 
-packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl: packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
+$(pyarrow_wheel): packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
 	. ./.venv/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-pyarrow && \
 	poetry build
 
-packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl: packages/stlite-kernel/py/stlite-tornado/tornado/**/*.py
+$(tornado_wheel): packages/stlite-kernel/py/stlite-tornado/tornado/**/*.py
 	. ./.venv/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-tornado && \
 	poetry build
 
-packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl: packages/stlite-kernel/thirdparty/blinker/blinker/*.py
+$(blinker_wheel): packages/stlite-kernel/thirdparty/blinker/blinker/*.py
 	. ./.venv/bin/activate && \
 	cd packages/stlite-kernel/thirdparty/blinker && \
 	python -m build; \
 	rm -rf *.egg-info
 
-streamlit/frontend/src/autogen/*:
+$(streamlit_proto):
 	. ./.venv/bin/activate && \
 	cd streamlit; \
 	make mini-devel
 
-streamlit/lib/dist/streamlit-1.9.0rc1-py2.py3-none-any.whl: streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. ./.venv/bin/activate && \
 	cd streamlit && \
 	make distribution

@@ -58,6 +58,10 @@ jobs:
         node-version: ${{ env.node-version }}
         cache: 'yarn'
 
+    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
+    - name: Install Streamlit build dependencies
+      run: sudo apt install protobuf-compiler
+
     ## Build
     - name: Set up
       run: make init

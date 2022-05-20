@@ -41,10 +41,10 @@ $(blinker_wheel): packages/stlite-kernel/thirdparty/blinker/blinker/*.py
 	python -m build; \
 	rm -rf *.egg-info
 
-$(streamlit_proto):
+$(streamlit_proto): streamlit/proto/streamlit/proto/*.proto
 	. ./.venv/bin/activate && \
 	cd streamlit; \
-	make mini-devel
+	$(MAKE) protobuf
 
 $(streamlit_wheel): streamlit/lib/streamlit/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. ./.venv/bin/activate && \

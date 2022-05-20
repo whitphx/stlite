@@ -73,5 +73,5 @@ jobs:
     - name: Upload the built files as an artifact
       uses: actions/upload-artifact@v2
       with:
-        name: playground
+        name: stlite-playground
         path: packages/playground/build

@@ -57,4 +57,4 @@ init:
 	yarn
 	[ -d .venv ] || python -m venv .venv
 	. ./.venv/bin/activate && python -m pip install build
-	echo "Python virtualenv has been set up. Run\n. ./.venv/bin/activate"
+	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. ./.venv/bin/activate"

@@ -1,5 +1,5 @@
-playground := packages/playground/build
-stlite_kernel := packages/stlite-kernel/dist
+playground := $(wildcard packages/playground/build/*)
+stlite_kernel := $(wildcard packages/stlite-kernel/dist/*)
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl
 blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl
@@ -14,14 +14,14 @@ playground: $(playground)
 .PHONY: serve
 serve:
 	. ./.venv/bin/activate && \
-	cd $(playground) && \
+	cd packages/playground/build && \
 	python -m http.server 5001
 
-$(playground): packages/playground/src/**/*.ts packages/playground/public/* $(stlite_kernel) $(streamlit_wheel)
+$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(stlite_kernel) $(streamlit_wheel)
 	cd packages/playground; \
 	yarn build
 
-$(stlite_kernel): packages/stlite-kernel/src/**/*.ts $(pyarrow_wheel) $(tornado_wheel) $(blinker_wheel) $(streamlit_proto)
+$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(blinker_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
 
@@ -30,7 +30,7 @@ $(pyarrow_wheel): packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
 	cd packages/stlite-kernel/py/stlite-pyarrow && \
 	poetry build
 
-$(tornado_wheel): packages/stlite-kernel/py/stlite-tornado/tornado/**/*.py
+$(tornado_wheel): packages/stlite-kernel/py/stlite-tornado/tornado/*.py
 	. ./.venv/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-tornado && \
 	poetry build
@@ -46,7 +46,7 @@ $(streamlit_proto):
 	cd streamlit; \
 	make mini-devel
 
-$(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): streamlit/lib/streamlit/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. ./.venv/bin/activate && \
 	cd streamlit && \
 	make distribution

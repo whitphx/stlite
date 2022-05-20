@@ -13,7 +13,7 @@ packages/playground/build: packages/playground/src/**/*.ts packages/playground/p
 	cd packages/playground; \
 	yarn build
 
-packages/stlite-kernel/dist: packages/stlite-kernel/src/**/*.ts packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl streamlit-browser/src/autogen/*
+packages/stlite-kernel/dist: packages/stlite-kernel/src/**/*.ts packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl streamlit/frontend/src/autogen/*
 	cd packages/stlite-kernel; \
 	yarn build
 
@@ -33,7 +33,7 @@ packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl: pac
 	python -m build; \
 	rm -rf *.egg-info
 
-streamlit-browser/src/autogen/*:
+streamlit/frontend/src/autogen/*:
 	. ./.venv/bin/activate && \
 	cd streamlit; \
 	make mini-devel

@@ -31,6 +31,9 @@
     "workbox-strategies": "^6.5.3",
     "workbox-streams": "^6.5.3"
   },
+  "devDependencies": {
+    "raw-loader": "^4.0.2"
+  },
   "scripts": {
     "start": "craco start",
     "build": "craco build",

@@ -16,9 +16,11 @@
 .editor-container {
   box-sizing: border-box;
   flex-grow: 1;
+  cursor: initial;
 }
 
 .editor-modal-footer {
   background: #888;
   padding: 2px;
+  cursor: initial;
 }

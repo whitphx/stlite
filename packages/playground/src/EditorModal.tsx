@@ -27,7 +27,7 @@ function EditorModal(props: EditorModalProps) {
         left: true,
         right: true,
       }}
-      cancel=".editor-container"
+      cancel=".editor-container,.editor-modal-footer"
     >
       <div className="editor-modal">
         <div className="editor-modal-header">Code Editor</div>

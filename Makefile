@@ -46,7 +46,7 @@ $(streamlit_proto): streamlit/proto/streamlit/proto/*.proto
 	cd streamlit; \
 	$(MAKE) protobuf
 
-$(streamlit_wheel): streamlit/lib/streamlit/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. ./.venv/bin/activate && \
 	cd streamlit && \
 	make distribution

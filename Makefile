@@ -54,7 +54,7 @@ $(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile stream
 .PHONY: init
 init:
 	git submodule update --init
-	yarn
+	yarn install --frozen-lockfile
 	[ -d .venv ] || python -m venv .venv
 	. ./.venv/bin/activate && python -m pip install build
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. ./.venv/bin/activate"

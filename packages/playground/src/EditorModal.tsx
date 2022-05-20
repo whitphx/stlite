@@ -17,7 +17,7 @@ function EditorModal(props: EditorModalProps) {
   return (
     <Rnd
       default={{
-        x: (window.innerWidth - DEFAULT_WIDTH) / 2,
+        x: 50,
         y: window.innerHeight - DEFAULT_HEIGHT - 50,
         width: DEFAULT_WIDTH,
         height: DEFAULT_HEIGHT,

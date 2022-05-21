@@ -5,7 +5,7 @@ import {
   StliteKernel,
   ConnectionManager,
   ConnectionState,
-} from "stlite-kernel";
+} from "@stlite/stlite-kernel";
 import { BackMsg } from "streamlit-browser/src/autogen/proto";
 
 function App() {

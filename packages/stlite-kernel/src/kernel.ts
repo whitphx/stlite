@@ -64,8 +64,8 @@ export class StliteKernel {
       `var _pyarrowWheelUrl = "${pyarrowWheelUrl}"`,
       `var _blinkerWheelUrl = "${blinkerWheelUrl}"`,
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
-      `var _command = "${options.command}"`,
-      `var _mainScriptPath = "${mainScriptPath}"`,
+      `var _command = "${options.command}"`,  // TODO: Check no special characters are included like \n or ".
+      `var _mainScriptPath = "${mainScriptPath}"`,  // TODO: Check no special characters are included like \n or ".
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];

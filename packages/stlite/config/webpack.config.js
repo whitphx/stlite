@@ -328,6 +328,8 @@ module.exports = function (webpackEnv) {
         // Support React Native Web
         // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
         'react-native': 'react-native-web',
+        // Stlite: To resolve the alias streamlit/frontend uses
+        "src": path.resolve(__dirname, "../../../streamlit/frontend/src"),
         // Allows for better profiling with ReactDevTools
         ...(isEnvProductionProfile && {
           'react-dom$': 'react-dom/profiling',
@@ -393,7 +395,10 @@ module.exports = function (webpackEnv) {
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {
               test: /\.(js|mjs|jsx|ts|tsx)$/,
-              include: paths.appSrc,
+              // Stlite: Let Babel compile outside of src/.
+              // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
+              include: undefined,
+              exclude: /node_modules/,
               loader: require.resolve('babel-loader'),
               options: {
                 customize: require.resolve(
@@ -407,7 +412,7 @@ module.exports = function (webpackEnv) {
                     },
                   ],
                 ],
-                
+
                 plugins: [
                   [
                     require.resolve('babel-plugin-named-asset-import'),
@@ -452,7 +457,7 @@ module.exports = function (webpackEnv) {
                 cacheDirectory: true,
                 // See #6846 for context on why cacheCompression is disabled
                 cacheCompression: false,
-                
+
                 // Babel sourcemaps are needed for debugging into node_modules
                 // code.  Without the options below, debuggers like VSCode
                 // show incorrect code and set breakpoints on the wrong lines.
@@ -554,6 +559,12 @@ module.exports = function (webpackEnv) {
             // Make sure to add the new loader(s) before the "file" loader.
           ],
         },
+        // Stlite: Apache Arrow uses .mjs
+        {
+          include: /node_modules/,
+          test: /\.mjs$/,
+          type: "javascript/auto",
+        }
       ],
     },
     plugins: [

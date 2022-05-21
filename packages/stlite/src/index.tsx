@@ -15,3 +15,9 @@ export function mount(code: string, options?: MountOptions) {
     container
   );
 }
+
+if (process.env.NODE_ENV === "development") {
+  mount(`import streamlit as st
+
+st.write("Hello World")`);
+}

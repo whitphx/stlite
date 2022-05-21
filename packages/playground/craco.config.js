@@ -40,15 +40,17 @@ module.exports = {
       // then we don't obtain the expected result.
       // So we turn off Asset Modules here by setting `type: 'javascript/auto'`.
       // See https://webpack.js.org/guides/asset-modules/
-      webpackConfig.module.rules.push({
-        test: /\.whl$/i,
-        use: [
-          {
-            loader: 'file-loader',
-          }
-        ],
-        type: 'javascript/auto'
-      })
+      // TODO: Enable when using Webpack 5.
+      // webpackConfig.module.rules.push({
+      //   test: /\.whl$/i,
+      //   use: [
+      //     {
+      //       loader: 'file-loader',
+      //     }
+      //   ],
+      //   type: 'javascript/auto'
+      // })
+
       return webpackConfig;
     }
   }

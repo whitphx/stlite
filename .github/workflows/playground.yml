@@ -77,8 +77,6 @@ jobs:
     ## Set PUBLIC_URL env var for frontend build
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-    - name: Show PUBLIC_URL
-      run: echo $PUBLIC_URL
 
     ## Build
     - name: Set up

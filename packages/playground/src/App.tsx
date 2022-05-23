@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 import EditorModal from "./EditorModal";
+
+import { StliteKernel, StliteKernelProvider } from "@stlite/stlite-kernel";
 
 import ThemedApp from "streamlit-browser/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
@@ -16,12 +18,39 @@ st.write("Hello ", name or "world")`;
 function App() {
   const [mainScriptData, setMainScriptData] = useState(DEFAULT_VALUE);
 
+  const [kernel, setKernel] = useState<StliteKernel>();
+  useEffect(() => {
+    const kernel = new StliteKernel({
+      pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js",
+      command: "run",
+      mainScriptData,
+    });
+    setKernel(kernel);
+
+    return () => {
+      kernel.dispose();
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (kernel == null) {
+      return;
+    }
+
+    kernel.setMainScriptData(mainScriptData);
+  }, [kernel, mainScriptData]);
+
   return (
     <>
       <EditorModal defaultValue={mainScriptData} onChange={setMainScriptData} />
-      <StyletronProvider value={engine}>
-        <ThemedApp stliteMainScriptData={mainScriptData} />
-      </StyletronProvider>
+      {kernel && (
+        <StliteKernelProvider kernel={kernel}>
+          <StyletronProvider value={engine}>
+            <ThemedApp />
+          </StyletronProvider>
+        </StliteKernelProvider>
+      )}
     </>
   );
 }

@@ -5,6 +5,7 @@
   "dependencies": {
     "@craco/craco": "^6.1.2",
     "@monaco-editor/react": "^4.4.5",
+    "@stlite/stlite-kernel": "^0.0.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",
@@ -15,7 +16,6 @@
     "react-dom": "^17.0.2",
     "react-rnd": "^10.3.7",
     "react-scripts": "4.0.3",
-    "@stlite/stlite-kernel": "^0.0.1",
     "typescript": "^4.6.3",
     "web-vitals": "^2.1.4",
     "workbox-background-sync": "^6.5.3",

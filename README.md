@@ -1,14 +1,14 @@
 # stlite
 
-A port of [Streamlit](https://streamlit.io/) to WASM, powered by [Pyodide](https://pyodide.org/)
+A port of [Streamlit](https://streamlit.io/) to WASM, powered by [Pyodide](https://pyodide.org/).
 
 ## Try it out
 
-Visit [the playground demo](https://whitphx.github.io/stlite/) (https://whitphx.github.io/stlite/).
+Visit the [playground demo](https://whitphx.github.io/stlite/).
 
 ## Use it on your web page
 
-Here is a sample HTML.
+Here is a sample HTML page.
 ```html
 <!DOCTYPE html>
 <html>
@@ -36,14 +36,16 @@ st.write("Hello, ", name or "world")
 
 In this sample,
 * Stlite library is imported with the first script tag, then the global `stlite` object becomes available.
-* `stlite.mount()` mounts Streamlit frontend on `<body />` element and runs the Python script passed through the `mainScriptData` option.
+* `stlite.mount()` mounts Streamlit frontend on the `<body />` element and runs the Python script passed through the `mainScriptData` option.
 
 > **Warning**
-> Stlite is at the very beginning phase and the API can drastically change without any notice.
-Moreover, the hosted JS runtime is not versioned now, so after such API changes, old API can be lost and apps using the old versions can be broken.
+> Stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
+Moreover, the hosted JS runtime is not versioned now, so future API changes may cause problems with backward compatibility.
 
 ## Development
-### Build the packages
+### Building the packages
+
+In the root directory,
 ```shell
 make init
 make

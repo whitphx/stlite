@@ -84,7 +84,7 @@ jobs:
     - name: Set up
       run: make init
     - name: Build
-      run: make
+      run: make playground
 
     ## Deploy
     - name: Upload the built files as an artifact

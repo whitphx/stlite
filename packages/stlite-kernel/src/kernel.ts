@@ -16,6 +16,10 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import worker from '!!raw-loader!./worker';
 
+function isRelativeURL(url: string): boolean {
+  return URLExt.parse(url).host === ""
+}
+
 const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py"
 
 export class StliteKernel {
@@ -48,11 +52,19 @@ export class StliteKernel {
   protected buildWorkerScript(options: StliteKernel.IOptions): string[] {
     const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
 
-    const wheelsBaseUrl = options.wheelsBaseUrl || window.location.origin
-    const tornadoWheelUrl = URLExt.join(wheelsBaseUrl, TORNADO_WHEEL as unknown as string);
-    const pyarrowWheelUrl = URLExt.join(wheelsBaseUrl, PYARROW_WHEEL as unknown as string);
-    const blinkerWheelUrl = URLExt.join(wheelsBaseUrl, BLINKER_WHEEL as unknown as string);
-    const streamlitWheelUrl = URLExt.join(wheelsBaseUrl, STREAMLIT_WHEEL as unknown as string);
+    function makeAbsoluteWheelURL(url: string): string {
+      return isRelativeURL(url) ? URLExt.join(window.location.origin, url) : url;
+    }
+    const tornadoWheelUrl = makeAbsoluteWheelURL(TORNADO_WHEEL as unknown as string);
+    const pyarrowWheelUrl = makeAbsoluteWheelURL(PYARROW_WHEEL as unknown as string);
+    const blinkerWheelUrl = makeAbsoluteWheelURL(BLINKER_WHEEL as unknown as string);
+    const streamlitWheelUrl = makeAbsoluteWheelURL(STREAMLIT_WHEEL as unknown as string);
+    console.debug("Custom wheel URLs:", {
+      tornadoWheelUrl,
+      pyarrowWheelUrl,
+      blinkerWheelUrl,
+      streamlitWheelUrl,
+    })
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf('/') + 1);
 
@@ -179,10 +191,5 @@ export namespace StliteKernel {
      * The content of the main script.
      */
     mainScriptData?: string;
-
-    /**
-     * The base URL of the site where the wheels are hosted.
-     */
-    wheelsBaseUrl?: string;
   }
 }

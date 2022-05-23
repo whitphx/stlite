@@ -48,10 +48,11 @@ export class StliteKernel {
   protected buildWorkerScript(options: StliteKernel.IOptions): string[] {
     const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
 
-    const tornadoWheelUrl = URLExt.join(window.location.origin, TORNADO_WHEEL as unknown as string);
-    const pyarrowWheelUrl = URLExt.join(window.location.origin, PYARROW_WHEEL as unknown as string);
-    const blinkerWheelUrl = URLExt.join(window.location.origin, BLINKER_WHEEL as unknown as string);
-    const streamlitWheelUrl = URLExt.join(window.location.origin, STREAMLIT_WHEEL as unknown as string);
+    const wheelsBaseUrl = options.wheelsBaseUrl || window.location.origin
+    const tornadoWheelUrl = URLExt.join(wheelsBaseUrl, TORNADO_WHEEL as unknown as string);
+    const pyarrowWheelUrl = URLExt.join(wheelsBaseUrl, PYARROW_WHEEL as unknown as string);
+    const blinkerWheelUrl = URLExt.join(wheelsBaseUrl, BLINKER_WHEEL as unknown as string);
+    const streamlitWheelUrl = URLExt.join(wheelsBaseUrl, STREAMLIT_WHEEL as unknown as string);
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf('/') + 1);
 
@@ -178,5 +179,10 @@ export namespace StliteKernel {
      * The content of the main script.
      */
     mainScriptData?: string;
+
+    /**
+     * The base URL of the site where the wheels are hosted.
+     */
+    wheelsBaseUrl?: string;
   }
 }

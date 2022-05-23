@@ -1,4 +1,4 @@
-# `@stlite/stlite`
+# `@stlite/application`
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and its TypeScript template. The CRA version was v4.0.3, which is compatible with the Streamlit frontend.
 

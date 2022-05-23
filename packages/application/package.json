@@ -1,5 +1,5 @@
 {
-  "name": "@stlite/stlite",
+  "name": "@stlite/application",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

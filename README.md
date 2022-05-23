@@ -35,11 +35,11 @@ st.write("Hello, ", name or "world")
 ```
 
 In this sample,
-* Stlite library is imported with the first script tag, then the global `stlite` object becomes available.
+* stlite library is imported with the first script tag, then the global `stlite` object becomes available.
 * `stlite.mount()` mounts Streamlit frontend on the `<body />` element and runs the Python script passed through the `mainScriptData` option.
 
 > **Warning**
-> Stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
+> stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
 Moreover, the hosted JS runtime is not versioned now, so future API changes may cause problems with backward compatibility.
 
 ## Development

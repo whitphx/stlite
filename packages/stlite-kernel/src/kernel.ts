@@ -16,8 +16,13 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import worker from '!!raw-loader!./worker';
 
-function isRelativeURL(url: string): boolean {
-  return URLExt.parse(url).host === ""
+function isAbsoluteURL(url: string): boolean {
+  try {
+    new URL(url);  // Fails if `url` is relative and the second argument `base` is not given.
+    return true;
+  } catch {
+    return false
+  }
 }
 
 const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py"
@@ -53,7 +58,7 @@ export class StliteKernel {
     const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
 
     function makeAbsoluteWheelURL(url: string): string {
-      return isRelativeURL(url) ? URLExt.join(window.location.origin, url) : url;
+      return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
     }
     const tornadoWheelUrl = makeAbsoluteWheelURL(TORNADO_WHEEL as unknown as string);
     const pyarrowWheelUrl = makeAbsoluteWheelURL(PYARROW_WHEEL as unknown as string);

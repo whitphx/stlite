@@ -1,6 +1,6 @@
 # stlite
 
-A port of [Streamlit](https://streamlit.io/) to WASM, powered by [Pyodide](https://pyodide.org/).
+A port of [Streamlit](https://streamlit.io/) to Wasm, powered by [Pyodide](https://pyodide.org/).
 
 ## Try it out
 

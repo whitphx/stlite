@@ -75,17 +75,15 @@ jobs:
     - name: Install Streamlit build dependencies
       run: sudo apt install protobuf-compiler
 
-    ## Set PUBLIC_URL env var the playground page
-    - name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-
-    ## Build
     - name: Set up
       run: make init
-    - name: Build
+
+    ## Build and deploy the playground app
+    - name: Set PUBLIC_URL
+      run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+    - name: Build @stlite/playground
       run: make playground
 
-    ## Deploy
     - name: Upload the built files as an artifact
       uses: actions/upload-artifact@v2
       with:
@@ -99,21 +97,17 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./packages/playground/build
 
-    ## Set PUBLIC_URL for the application package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_APPLICATION}.
+    ## Build and deploy @stlite/application
+    # Set PUBLIC_URL for the application package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_APPLICATION}.
     # An absolute URL must be set to PUBLIC_URL when the bundled file will be imported from other origins
     # because it will load files such as JS chunks and Python wheels at runtime
     # and these dynamic loading will be based on the PUBLIC_URL.
     # If PUBLIC_URL is relative, it will be resolved based on window.location.origin and leads to loading failure.
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=https://${GITHUB_REPOSITORY%/*}.github.io/${GITHUB_REPOSITORY#*/}/${GITHUB_PAGES_SUBDIR_APPLICATION}" >> $GITHUB_ENV
-
-    ## Build
-    - name: Set up
-      run: make init
-    - name: Build
+    - name: Build @stlite/application
       run: make application
 
-    ## Deploy
     - name: Upload the built files as an artifact
       uses: actions/upload-artifact@v2
       with:

@@ -1,4 +1,4 @@
-name: Build and Deploy the Playground
+name: Build and Deploy @stlite/playground and @stlite/application to GitHub Pages
 
 on:
   push:
@@ -23,6 +23,7 @@ jobs:
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
       # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
       NODE_OPTIONS: "--max-old-space-size=6656"
+      GITHUB_PAGES_SUBDIR_APPLICATION: lib/application
 
     runs-on: ubuntu-latest
 
@@ -74,17 +75,15 @@ jobs:
     - name: Install Streamlit build dependencies
       run: sudo apt install protobuf-compiler
 
-    ## Set PUBLIC_URL env var for frontend build
-    - name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-
-    ## Build
     - name: Set up
       run: make init
-    - name: Build
+
+    ## Build and deploy the playground app
+    - name: Set PUBLIC_URL
+      run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+    - name: Build @stlite/playground
       run: make playground
 
-    ## Deploy
     - name: Upload the built files as an artifact
       uses: actions/upload-artifact@v2
       with:
@@ -97,3 +96,28 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./packages/playground/build
+
+    ## Build and deploy @stlite/application
+    # Set PUBLIC_URL for the application package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_APPLICATION}.
+    # An absolute URL must be set to PUBLIC_URL when the bundled file will be imported from other origins
+    # because it will load files such as JS chunks and Python wheels at runtime
+    # and these dynamic loading will be based on the PUBLIC_URL.
+    # If PUBLIC_URL is relative, it will be resolved based on window.location.origin and leads to loading failure.
+    - name: Set PUBLIC_URL
+      run: echo "PUBLIC_URL=https://${GITHUB_REPOSITORY%/*}.github.io/${GITHUB_REPOSITORY#*/}/${GITHUB_PAGES_SUBDIR_APPLICATION}" >> $GITHUB_ENV
+    - name: Build @stlite/application
+      run: make application
+
+    - name: Upload the built files as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: stlite-application
+        path: packages/application/build
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./packages/application/build
+        destination_dir: ${{ env.GITHUB_PAGES_SUBDIR_APPLICATION }}

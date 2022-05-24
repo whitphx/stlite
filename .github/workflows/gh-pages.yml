@@ -90,13 +90,6 @@ jobs:
         name: stlite-playground
         path: packages/playground/build
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./packages/playground/build
-
     ## Build and deploy @stlite/application
     # Set PUBLIC_URL for the application package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_APPLICATION}.
     # An absolute URL must be set to PUBLIC_URL when the bundled file will be imported from other origins
@@ -114,10 +107,16 @@ jobs:
         name: stlite-application
         path: packages/application/build
 
+    - name: Merge the build artifacts
+      run: |
+        mkdir /tmp/website
+        cp -r ./packages/playground/build/* /tmp/website/.
+        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_APPLICATION}
+        cp -r ./packages/application/build/* /tmp/website/${GITHUB_PAGES_SUBDIR_APPLICATION}/.
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref == 'refs/heads/main' }}
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./packages/application/build
-        destination_dir: ${{ env.GITHUB_PAGES_SUBDIR_APPLICATION }}
+        publish_dir: /tmp/website

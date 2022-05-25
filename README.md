@@ -19,7 +19,7 @@ Here is a sample HTML page.
   <title>Stlite App</title>
 </head>
 <body>
-  <script src="https://whitphx.github.io/stlite/lib/application/stlite.js" ></script>
+  <script src="https://whitphx.github.io/stlite/lib/application/@0.1.0/stlite.js" ></script>
   <script>
     stlite.mount({
       mainScriptData: `
@@ -40,7 +40,7 @@ In this sample,
 
 > **Warning**
 > stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
-Moreover, the hosted JS runtime is not versioned now, so future API changes may cause problems with backward compatibility.
+Moreover, the hosted files including the JS runtime used in the example above are not well-managed or -versioned now so they can be broken or lost.
 
 ## Development
 ### Building the packages

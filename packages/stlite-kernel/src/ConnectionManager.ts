@@ -73,7 +73,19 @@ export class ConnectionManager {
    * if we are connected to a server.
    */
   public getBaseUriParts(): BaseUriParts | undefined {
-    return // TODO: Implement
+    if (this.connectionState === ConnectionState.CONNECTED) {
+      // The existence of this property became necessary for multi-page apps: https://github.com/streamlit/streamlit/pull/4698/files#diff-e56cb91573ddb6a97ecd071925fe26504bb5a65f921dc64c63e534162950e1ebR967-R975
+      // so here a dummy BaseUriParts object is returned though it may not be compatible with multi-page functionality.
+      // For multi-page app compatibility,
+      // See https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/UriUtil.ts#L60-L72
+      // or its caller https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/ConnectionManager.ts#L142
+      return {
+        host: "xxx",
+        port: 99999,
+        basePath: ""
+      }
+    }
+    return undefined
   }
 
   public sendMessage(obj: BackMsg): void {

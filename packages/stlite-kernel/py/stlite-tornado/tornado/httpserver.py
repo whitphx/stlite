@@ -20,6 +20,7 @@ import logging
 from typing import Any, Callable, Optional
 
 from tornado import gen
+from tornado import httputil
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 from tornado.websocket import WebSocketHandler
@@ -64,8 +65,14 @@ class HTTPServer:
             logger.info("WebSocket connection for path %s has been requested, but no handler found", path)
             return
 
+        # Streamlit's server.py checks the header for `st.user`: https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/lib/streamlit/server/server.py#L687
+        # so set the headers here although the content is empty, which leads to a dummy local user identity.
+        request = httputil.HTTPServerRequest(
+            headers=httputil.HTTPHeaders()
+        )
+
         logger.debug("Start WebSocket connection for %s using the handler %s", path, websocket_handler_class)
-        websocket_handler = websocket_handler_class()
+        websocket_handler = websocket_handler_class(request=request)
         websocket_handler.initialize(**kwargs)
         websocket_handler.set_websocket_sender_fn(self._send_websocket_to_js)
 

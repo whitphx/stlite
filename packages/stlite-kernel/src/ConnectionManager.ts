@@ -82,7 +82,10 @@ export class ConnectionManager {
       return {
         host: "xxx",
         port: 99999,
-        basePath: ""
+        // When a new session starts, `window.history.pushState` is called based on this `basePath`,
+        // so here process.env.PUBLIC_URL must be set.
+        // Ref: https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665
+        basePath: (process.env.PUBLIC_URL || "").replace(/^\//, "")
       }
     }
     return undefined

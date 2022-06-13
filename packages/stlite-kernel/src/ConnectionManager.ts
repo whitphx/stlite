@@ -82,10 +82,13 @@ export class ConnectionManager {
       return {
         host: "xxx",
         port: 99999,
-        // When a new session starts, `window.history.pushState` is called based on this `basePath` (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665),
-        // so here process.env.PUBLIC_URL must be set.
+        // When a new session starts, a page name for multi-page apps (a relative path to the app root url) is calculated based on this `basePath`
+        // then a `rerunScript` BackMsg is sent to the server with `pageName` (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L1064)
+        // and `window.history.pushState` is called (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665),
+        // so here `window.location.pathname` must be set here as `basePath` representing the app root url path.
+        // With this implementation, multi-page apps are not supported on stlite.
         // See https://github.com/whitphx/stlite/issues/41
-        basePath: (process.env.PUBLIC_URL || "").replace(/^\//, "")
+        basePath: (window.location.pathname || "").replace(/^\//, "")
       }
     }
     return undefined

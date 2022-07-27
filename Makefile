@@ -7,7 +7,7 @@ blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-
 streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl
 
-all: application playground
+all: init application playground
 
 .PHONY: application
 application: $(application)
@@ -59,10 +59,25 @@ $(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile stream
 	cd streamlit && \
 	make distribution
 
+
 .PHONY: init
-init:
-	git submodule update --init
-	yarn install --frozen-lockfile
+init: git_submodules venv node_modules
+
+venv_dir := .venv
+node_modules_dir := ./node_modules
+
+.PHONY: venv
+venv: $(venv_dir)
+$(venv_dir):
 	[ -d .venv ] || python -m venv .venv
-	. ./.venv/bin/activate && python -m pip install build
+	. ./.venv/bin/activate && python -m pip install -U pip && python -m pip install build poetry
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. ./.venv/bin/activate"
+
+.PHONY: yarn_install
+yarn_install: $(node_modules_dir)
+$(node_modules_dir):
+	yarn install --frozen-lockfile
+
+.PHONY: git_submodules
+git_submodules:
+	git submodule update --init

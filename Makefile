@@ -63,19 +63,19 @@ $(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile stream
 .PHONY: init
 init: git_submodules venv node_modules
 
-venv_dir := .venv
-node_modules_dir := ./node_modules
+VENV := .venv
+NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: $(venv_dir)
-$(venv_dir):
+venv: $(VENV)
+$(VENV):
 	[ -d .venv ] || python -m venv .venv
 	. ./.venv/bin/activate && python -m pip install -U pip && python -m pip install build poetry
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. ./.venv/bin/activate"
 
 .PHONY: yarn_install
-yarn_install: $(node_modules_dir)
-$(node_modules_dir):
+yarn_install: $(NODE_MODULES)
+$(NODE_MODULES):
 	yarn install --frozen-lockfile
 
 # https://gist.github.com/enil/e4af160c745057809053329df4ba1dc2

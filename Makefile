@@ -63,15 +63,15 @@ $(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile stream
 .PHONY: init
 init: git_submodules venv node_modules
 
-VENV := .venv
+VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
 venv: $(VENV)
 $(VENV):
-	[ -d .venv ] || python -m venv .venv
-	. ./.venv/bin/activate && python -m pip install -U pip && python -m pip install build poetry
-	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. ./.venv/bin/activate"
+	[ -d $(VENV) ] || python -m venv $(VENV)
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install build poetry
+	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
 yarn_install: $(NODE_MODULES)

@@ -47,7 +47,6 @@ Moreover, the hosted JS runtime is not versioned now, so future API changes may 
 
 In the root directory,
 ```shell
-make init
 make
 ```
 

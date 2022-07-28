@@ -78,11 +78,13 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
 	cd streamlit; \
 	$(MAKE) mini-init
+	@touch $@
 
 $(streamlit_wheel): $(VENV) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	cd streamlit && \
 	make distribution
+	@touch $@
 
 
 .PHONY: serve

@@ -7,6 +7,7 @@ blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-
 streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl
 
+.PHONY: all
 all: init application playground
 
 .PHONY: application

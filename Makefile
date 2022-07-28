@@ -16,8 +16,8 @@ application: $(application)
 playground: $(playground)
 
 .PHONY: serve
-serve:
-	. ./.venv/bin/activate && \
+serve: $(VENV)
+	. $(VENV)/bin/activate && \
 	cd packages/playground/build && \
 	python -m http.server 5001
 
@@ -33,29 +33,29 @@ $(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_whe
 	cd packages/stlite-kernel; \
 	yarn build
 
-$(pyarrow_wheel): packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
-	. ./.venv/bin/activate && \
+$(pyarrow_wheel): $(VENV) packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
+	. $(VENV)/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-pyarrow && \
 	poetry build
 
-$(tornado_wheel): packages/stlite-kernel/py/stlite-tornado/tornado/*.py
-	. ./.venv/bin/activate && \
+$(tornado_wheel): $(VENV) packages/stlite-kernel/py/stlite-tornado/tornado/*.py
+	. $(VENV)/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-tornado && \
 	poetry build
 
-$(blinker_wheel): packages/stlite-kernel/thirdparty/blinker/blinker/*.py
-	. ./.venv/bin/activate && \
+$(blinker_wheel): $(VENV) packages/stlite-kernel/thirdparty/blinker/blinker/*.py
+	. $(VENV)/bin/activate && \
 	cd packages/stlite-kernel/thirdparty/blinker && \
 	python -m build; \
 	rm -rf *.egg-info
 
-$(streamlit_proto): streamlit/proto/streamlit/proto/*.proto
-	. ./.venv/bin/activate && \
+$(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
+	. $(VENV)/bin/activate && \
 	cd streamlit; \
 	$(MAKE) mini-init
 
-$(streamlit_wheel): streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
-	. ./.venv/bin/activate && \
+$(streamlit_wheel): $(VENV) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+	. $(VENV)/bin/activate && \
 	cd streamlit && \
 	make distribution
 

@@ -32,6 +32,7 @@ $(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packag
 $(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(blinker_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
+	@touch $@
 
 $(pyarrow_wheel): $(VENV) packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
 	. $(VENV)/bin/activate && \

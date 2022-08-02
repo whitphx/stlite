@@ -25,7 +25,6 @@ declare let pyodide: any;
 declare let loadPyodide: any;
 declare let _tornadoWheelUrl: string;
 declare let _pyarrowWheelUrl: string;
-declare let _blinkerWheelUrl: string;
 declare let _streamlitWheelUrl: string;
 declare let _command: "hello" | "run";
 declare let _mainScriptPath: string;

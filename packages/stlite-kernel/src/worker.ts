@@ -153,12 +153,17 @@ async function loadPyodideAndPackages() {
   `)
 
   // Bootstrap
+  await pyodide.runPythonAsync(`
+  command_kwargs = {
+      "global.dataFrameSerialization": "legacy",
+  }
+  `)
   if (_command === "hello") {
-    await pyodide.runPythonAsync(`main_hello()`)
+    await pyodide.runPythonAsync(`main_hello(**command_kwargs)`)
   } else if (_command === "run") {
     pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
 
-    await pyodide.runPythonAsync(`main_run("${_mainScriptPath}")`)
+    await pyodide.runPythonAsync(`main_run("${_mainScriptPath}", **command_kwargs)`)
   }
 
   // Pull the http server instance from Python world to JS world and set up it.

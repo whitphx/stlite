@@ -1,4 +1,4 @@
-name: Build and Deploy @stlite/playground and @stlite/application to GitHub Pages
+name: Build and Deploy GitHub Pages
 
 on:
   push:

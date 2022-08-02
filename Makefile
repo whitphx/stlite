@@ -3,7 +3,6 @@ application := packages/application/build/*
 stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl
-blinker_wheel := packages/stlite-kernel/thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl
 
@@ -53,7 +52,7 @@ $(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packag
 	cd packages/playground; \
 	yarn build
 
-$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(blinker_wheel) $(streamlit_proto)
+$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
 	@touch $@
@@ -67,12 +66,6 @@ $(tornado_wheel): $(VENV) packages/stlite-kernel/py/stlite-tornado/tornado/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/stlite-kernel/py/stlite-tornado && \
 	poetry build
-
-$(blinker_wheel): $(VENV) packages/stlite-kernel/thirdparty/blinker/blinker/*.py
-	. $(VENV)/bin/activate && \
-	cd packages/stlite-kernel/thirdparty/blinker && \
-	python -m build; \
-	rm -rf *.egg-info
 
 $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \

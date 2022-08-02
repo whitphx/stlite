@@ -11,7 +11,6 @@ import { PromiseDelegate } from '@lumino/coreutils';
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl"  // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
 import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
-import BLINKER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../thirdparty/blinker/dist/blinker-1.4-py3-none-any.whl"
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl"
 
 import worker from '!!raw-loader!./worker';
@@ -62,12 +61,10 @@ export class StliteKernel {
     }
     const tornadoWheelUrl = makeAbsoluteWheelURL(TORNADO_WHEEL as unknown as string);
     const pyarrowWheelUrl = makeAbsoluteWheelURL(PYARROW_WHEEL as unknown as string);
-    const blinkerWheelUrl = makeAbsoluteWheelURL(BLINKER_WHEEL as unknown as string);
     const streamlitWheelUrl = makeAbsoluteWheelURL(STREAMLIT_WHEEL as unknown as string);
     console.debug("Custom wheel URLs:", {
       tornadoWheelUrl,
       pyarrowWheelUrl,
-      blinkerWheelUrl,
       streamlitWheelUrl,
     })
 
@@ -80,7 +77,6 @@ export class StliteKernel {
       `var indexURL = "${indexUrl}";`,
       `var _tornadoWheelUrl = "${tornadoWheelUrl}"`,
       `var _pyarrowWheelUrl = "${pyarrowWheelUrl}"`,
-      `var _blinkerWheelUrl = "${blinkerWheelUrl}"`,
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
       `var _command = "${options.command}"`,  // TODO: Check no special characters are included like \n or ".
       `var _mainScriptPath = "${mainScriptPath}"`,  // TODO: Check no special characters are included like \n or ".

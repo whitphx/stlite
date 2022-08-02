@@ -2,7 +2,10 @@
   "name": "@stlite/application",
   "version": "0.1.0",
   "description": "Stlite application",
-  "keywords": ["stlite", "streamlit"],
+  "keywords": [
+    "stlite",
+    "streamlit"
+  ],
   "homepage": "https://github.com/whitphx/stlite",
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
@@ -22,7 +25,6 @@
   },
   "dependencies": {
     "@babel/core": "7.12.3",
-    "@craco/craco": "^6.1.2",
     "@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
     "@stlite/stlite-kernel": "^0.0.1",
     "@svgr/webpack": "5.5.0",
@@ -166,10 +168,5 @@
       "jest-watch-typeahead/testname"
     ],
     "resetMocks": true
-  },
-  "babel": {
-    "presets": [
-      "react-app"
-    ]
   }
 }

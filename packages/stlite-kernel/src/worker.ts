@@ -97,10 +97,11 @@ async function loadPyodideAndPackages() {
 
 
     def main_hello(**kwargs):
-        from streamlit.hello import hello
+        """Runs the Hello World script."""
+        from streamlit.hello import Hello
 
         bootstrap.load_config_options(flag_options=kwargs)
-        filename = hello.__file__
+        filename = Hello.__file__
         _main_run(filename, flag_options=kwargs)
 
 

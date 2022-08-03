@@ -118,3 +118,5 @@ dist
 .pnp.*
 
 
+## Override the root .gitignore
+!lib

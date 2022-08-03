@@ -3,19 +3,11 @@
 import { BackMsg, ForwardMsg } from "streamlit-browser/src/autogen/proto"
 import { ReactNode } from "react"
 
-import { StliteKernel } from "./kernel"
+import { StliteKernel } from "../../kernel"
 import { ConnectionState } from "./ConnectionState"
 import { ensureError } from "./ErrorHandling"
 
-// import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
-/**
- * host:port tuple
- */
-export interface BaseUriParts {
-  host: string
-  port: number
-  basePath: string
-}
+import { BaseUriParts } from "./UriUtil"
 
 interface Props {
   /**

@@ -29,11 +29,15 @@ from typing import (
 )
 
 class RequestHandler:
+    def __init__(self, request: httputil.HTTPServerRequest, **kwargs):
+        self.request = request
+        self.initialize(**kwargs)  # type: ignore
+
     @property
     def xsrf_token(self) -> bytes:
         return os.urandom(16)  # XXX: Dummy implementation
 
-class StaticFileHandler:
+class StaticFileHandler(RequestHandler):
     pass
 
 

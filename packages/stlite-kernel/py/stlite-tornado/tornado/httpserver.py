@@ -21,7 +21,6 @@ from typing import Any, Callable, Optional
 
 from tornado import gen
 from tornado import httputil
-import tornado
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 from tornado.websocket import WebSocketHandler

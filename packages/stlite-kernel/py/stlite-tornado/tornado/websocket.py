@@ -6,7 +6,8 @@ from typing import Callable, Union, Dict, Any
 
 
 class WebSocketHandler(tornado.web.RequestHandler):
-    def __init__(self, request: httputil.HTTPServerRequest):
+    def __init__(self, request: httputil.HTTPServerRequest, **kwargs):
+        super().__init__(request, **kwargs)
         self.request = request
 
     def set_websocket_sender_fn(self, send_websocket_to_js: Callable):

@@ -21,6 +21,7 @@ from typing import Any, Callable, Optional
 
 from tornado import gen
 from tornado import httputil
+import tornado
 from tornado.ioloop import IOLoop
 from tornado.web import Application
 from tornado.websocket import WebSocketHandler
@@ -72,8 +73,7 @@ class HTTPServer:
         )
 
         logger.debug("Start WebSocket connection for %s using the handler %s", path, websocket_handler_class)
-        websocket_handler = websocket_handler_class(request=request)
-        websocket_handler.initialize(**kwargs)
+        websocket_handler = websocket_handler_class(request=request, **kwargs)
         websocket_handler.set_websocket_sender_fn(self._send_websocket_to_js)
 
         websocket_handler.open()

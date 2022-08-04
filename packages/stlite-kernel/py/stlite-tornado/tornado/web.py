@@ -15,6 +15,7 @@
 # under the License.
 
 import os
+from typing import Union, Tuple
 
 from tornado import httputil
 from tornado.routing import (
@@ -31,11 +32,42 @@ from typing import (
 class RequestHandler:
     def __init__(self, request: httputil.HTTPServerRequest, **kwargs):
         self.request = request
+        self._finished = False
+        self.clear()
         self.initialize(**kwargs)  # type: ignore
+
+    def _initialize(self) -> None:
+        pass
+
+    initialize = _initialize
+
+    def clear(self) -> None:
+        self._write_buffer = []  # type: List[bytes]
+        self._status_code = 200
+
+    def add_header(self, name: str, value) -> None:
+        pass
 
     @property
     def xsrf_token(self) -> bytes:
         return os.urandom(16)  # XXX: Dummy implementation
+
+    def write(self, chunk: Union[str, bytes]) -> None:
+        if self._finished:
+            raise RuntimeError("Cannot write() after finish()")
+
+        chunk = chunk.encode("utf8") if isinstance(chunk, str) else chunk
+        self._write_buffer.append(chunk)
+
+    def compile_result(self) -> Tuple[int, bytes]:
+        """ stlite specific method.
+        """
+        if self._finished:
+            raise RuntimeError("finish() called twice")
+
+        self._finished = True
+        return self._status_code, b"".join(self._write_buffer)
+
 
 class StaticFileHandler(RequestHandler):
     pass

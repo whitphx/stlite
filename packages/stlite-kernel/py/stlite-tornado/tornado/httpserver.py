@@ -22,7 +22,7 @@ from typing import Any, Callable, Optional
 from tornado import gen
 from tornado import httputil
 from tornado.ioloop import IOLoop
-from tornado.web import Application
+from tornado.web import Application, RequestHandler
 from tornado.websocket import WebSocketHandler
 
 import pyodide
@@ -105,6 +105,41 @@ class HTTPServer:
                 result = gen.convert_yielded(result)
                 IOLoop.current().add_future(result, lambda f: f.result())
             return result
+
+    def receive_http_from_js(self, request_from_js: pyodide.JsProxy):
+        request_obj = request_from_js.to_py()
+        method = request_obj["method"].lower()
+        path = request_obj["path"]
+        body = request_obj["body"]
+
+        logger.debug("HTTP request (%s %s %s)", method, path, body)
+
+        request_handler_class = None
+        kwargs = None
+        for path_regex, handler_class, *rest in self.application.handlers:
+            if issubclass(handler_class, RequestHandler) and re.match(path_regex, path):
+                request_handler_class = handler_class
+                if len(rest) > 0:
+                    kwargs = rest[0]
+                break
+        if request_handler_class is None:
+            logger.info("HTTP request for path %s has been sent, but no handler found", path)
+            return
+
+        request = httputil.HTTPServerRequest(
+            headers=httputil.HTTPHeaders()
+        )
+
+        request_handler = request_handler_class(request=request, **kwargs)
+
+        if method == "get":
+            request_handler.get()
+        elif method == "post":
+            request_handler.post()
+        else:
+            raise Exception(f"Unsupported method {method}")
+
+        return request_handler.compile_result()
 
     def listen(self, port: int, address: str = "") -> None:
         # Original implementation is on TCPServer.listen()

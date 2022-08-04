@@ -133,11 +133,11 @@ export class StliteKernel {
    */
   private _processWorkerMessage(msg: any): void {
     switch (msg.type) {
-      case "LOADED": {
+      case "event:loaded": {
         this._loaded.resolve()
         break;
       }
-      case "WEBSOCKET_MESSAGE": {
+      case "websocket:message": {
         const { payload } = msg.data;
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload)
         break;

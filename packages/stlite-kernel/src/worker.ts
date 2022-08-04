@@ -182,14 +182,14 @@ async function loadPyodideAndPackages() {
         buffer.data.byteLength
       )
       postMessage({
-        type: "WEBSOCKET_MESSAGE",
+        type: "websocket:message",
         data: {
           payload: new Uint8Array(payload)
         }
       });
     } else {
       postMessage({
-        type: "WEBSOCKET_MESSAGE",
+        type: "websocket:message",
         data: {
           payload: messageProxy,
         }
@@ -198,7 +198,7 @@ async function loadPyodideAndPackages() {
   })
 
   postMessage({
-    type: "LOADED"
+    type: "event:loaded"
   });
 }
 

@@ -230,6 +230,20 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       httpServer.receive_websocket_from_js(payload)
       break;
     }
+    case "http:request": {
+      console.log("http:request", messageContent)
+      const { request, httpCommId } = messageContent;
+
+      const response_pyproxy = httpServer.receive_http_from_js(request)
+      const [statusCode, body] = response_pyproxy.toJs()
+
+      postMessage({
+        type: "http:response",
+        data: {
+          httpCommId, statusCode, body
+        }
+      });
+    }
     case "mainscript:set": {
       const { mainScriptData: newMainScriptData } = messageContent;
       mainScriptData = newMainScriptData

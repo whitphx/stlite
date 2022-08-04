@@ -15,6 +15,18 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import worker from '!!raw-loader!./worker';
 
+interface HttpRequest {
+  method: "GET" | "POST";
+  path: string;
+  body: string;
+}
+interface HttpResponse {
+  statusCode: number;
+  body: string;
+}
+
+let httpCommId = 0;
+
 function isAbsoluteURL(url: string): boolean {
   try {
     new URL(url);  // Fails if `url` is relative and the second argument `base` is not given.
@@ -114,6 +126,24 @@ export class StliteKernel {
     this.handleWebSocketMessage = handler;
   }
 
+  private httpRequestPromises: { [httpCommId: number]: PromiseDelegate<any> } = {};
+  public sendHttpRequest(request: HttpRequest): Promise<HttpResponse> {
+    httpCommId += 1;
+
+    const executeDelegate = new PromiseDelegate<HttpResponse>();
+    this.httpRequestPromises[httpCommId] = executeDelegate;
+
+    this._worker.postMessage({
+      type: "http:request",
+      data: {
+        httpCommId,
+        request,
+      }
+    })
+
+    return executeDelegate.promise;
+  }
+
   /**
    * Set a new main script.
    */
@@ -141,6 +171,14 @@ export class StliteKernel {
         const { payload } = msg.data;
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload)
         break;
+      }
+      case "http:response": {
+        const { httpCommId, statusCode, body } = msg.data;
+
+        const executeDelegate = this.httpRequestPromises[httpCommId];
+        delete this.httpRequestPromises[httpCommId];
+
+        executeDelegate.resolve({ statusCode, body });
       }
     }
   }

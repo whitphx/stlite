@@ -15,6 +15,14 @@ function App() {
       command: "run",
     });
 
+    kernel
+      .sendHttpRequest({
+        path: "/healthz",
+        method: "GET",
+        body: "test",
+      })
+      .then((data) => console.log("HTTP Response", data));
+
     const connectionManager = new ConnectionManager({
       kernel,
       connectionStateChanged: (connectionState) => {

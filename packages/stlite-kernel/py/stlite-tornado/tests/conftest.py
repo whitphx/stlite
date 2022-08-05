@@ -8,7 +8,7 @@ REPO_ROOT = HERE.parent.parent.parent.parent.parent
 STREAMLIT_SUBMODULE = REPO_ROOT / "streamlit"
 STREAMLIT_PYTHONPATH = STREAMLIT_SUBMODULE / "lib"
 
-sys.path.append(str(STREAMLIT_PYTHONPATH))
+sys.path.insert(0, str(STREAMLIT_PYTHONPATH))
 
 
 pyodide = Mock()

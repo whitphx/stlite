@@ -22,9 +22,11 @@ def run_streamlit_background():
     server_evloop = asyncio.new_event_loop()
     event = threading.Event()
 
+    data_from_thread = { "server": None,  "exception": None }
     async def init_server():
         """Mimic streamlit.bootstrap.run() """
         def on_start(server: Server):
+            data_from_thread["server"] = server
             event.set()
 
         ioloop = tornado.ioloop.IOLoop.current()
@@ -32,21 +34,37 @@ def run_streamlit_background():
         server.start(on_start)
 
     def start():
-        server_evloop.run_until_complete(init_server())
+        try:
+            server_evloop.run_until_complete(init_server())
+        except Exception as e:
+            data_from_thread["exception"] = e
+            event.set()
 
     thread = threading.Thread(target=start)
     thread.start()
 
     event.wait()
-    server = Server.get_current()
+
+    exception = data_from_thread["exception"]
+    if exception:
+        raise exception
+    server = data_from_thread["server"]
 
     yield
 
     server.stop()
     thread.join()
+    Server._singleton = None
 
 
 def test_http_server_is_set(run_streamlit_background):
     from tornado.httpserver import HTTP_SERVER
 
     assert HTTP_SERVER is not None
+
+
+def test_http_server_websocket(run_streamlit_background):
+    from tornado.httpserver import HTTP_SERVER
+
+    HTTP_SERVER.start_websocket("/websocket")
+    HTTP_SERVER.receive_websocket(b"")

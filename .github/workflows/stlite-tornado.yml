@@ -15,7 +15,7 @@ defaults:
     working-directory: packages/stlite-kernel/py/stlite-tornado
 
 jobs:
-  build:
+  tests:
 
     runs-on: ubuntu-latest
     strategy:

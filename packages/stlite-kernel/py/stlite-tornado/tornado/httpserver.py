@@ -90,6 +90,9 @@ class HTTPServer:
             logger.warning("The WebSocket payload is not of type bytes, but %s", type(payload))
             return
 
+        self.receive_websocket(payload)
+
+    def receive_websocket(self, payload: bytes):
         # Mimic https://github.com/tornadoweb/tornado/blob/43ae5839a56e445dd2d10539718f1e0c8053d995/tornado/websocket.py#L626-L645
         try:
             result = self.websocket_handler.on_message(payload)

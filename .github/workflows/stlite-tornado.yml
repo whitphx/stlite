@@ -64,6 +64,14 @@ jobs:
       shell: bash
       run: python -m poetry install
 
+    # Set up the /streamlit submodule
+    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
+    - name: Install Streamlit build dependencies
+      run: sudo apt install protobuf-compiler
+    - name: Build proto
+      working-directory: streamlit
+      run: make mini-init
+
     - name: Run pytest
       shell: bash
       run: python -m poetry run python -m pytest -v tests

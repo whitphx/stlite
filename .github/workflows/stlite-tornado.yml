@@ -28,21 +28,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/1.1.14/.github/workflows/main.yml
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/601dc7896c812d39b75f2358b17a9460561d3866/.github/workflows/main.yml#L51-L79
     - name: Get full Python version
       id: full-python-version
-      shell: bash
       run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
 
     - name: Bootstrap poetry
-      shell: bash
       run: |
-        python -m ensurepip
-        python -m pip install --upgrade pip
-        python -m pip install poetry
+        curl -sL https://install.python-poetry.org | python - -y
+
+    - name: Update PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
     - name: Configure poetry
-      shell: bash
-      run: python -m poetry config virtualenvs.in-project true
+      run: poetry config virtualenvs.in-project true
 
     - name: Set up cache
       uses: actions/cache@v2
@@ -53,8 +52,7 @@ jobs:
 
     - name: Ensure cache is healthy
       if: steps.cache.outputs.cache-hit == 'true'
-      shell: bash
-      run: timeout 10s python -m poetry run pip --version || rm -rf .venv
+      run: timeout 10s poetry run pip --version || rm -rf .venv
 
     # Set up the /streamlit submodule
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -66,10 +64,10 @@ jobs:
 
     - name: Install dependencies
       shell: bash
-      run: python -m poetry install
+      run: poetry install
       working-directory: packages/stlite-kernel/py/stlite-tornado
 
     - name: Run pytest
       shell: bash
-      run: python -m poetry run python -m pytest -v tests
+      run: poetry run python -m pytest -v tests
       working-directory: packages/stlite-kernel/py/stlite-tornado

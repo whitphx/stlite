@@ -22,7 +22,8 @@ interface HttpRequest {
 }
 interface HttpResponse {
   statusCode: number;
-  body: string;
+  headers: Map<string, string>;
+  body: Uint8Array;
 }
 
 let httpCommId = 0;
@@ -173,12 +174,12 @@ export class StliteKernel {
         break;
       }
       case "http:response": {
-        const { httpCommId, statusCode, body } = msg.data;
+        const { httpCommId, response } = msg.data;
 
         const executeDelegate = this.httpRequestPromises[httpCommId];
         delete this.httpRequestPromises[httpCommId];
 
-        executeDelegate.resolve({ statusCode, body });
+        executeDelegate.resolve(response);
       }
     }
   }

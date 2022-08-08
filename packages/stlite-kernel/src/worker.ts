@@ -231,18 +231,28 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       break;
     }
     case "http:request": {
-      console.log("http:request", messageContent)
+      console.debug("http:request", messageContent)
+
       const { request, httpCommId } = messageContent;
 
-      const response_pyproxy = httpServer.receive_http_from_js(request)
-      const [statusCode, body] = response_pyproxy.toJs()
+      const onResponse = (statusCode: number, _headers: any, _body: any) => {
+        const headers = _headers.toJs();
+        const body = _body.toJs()
+        console.debug({ httpCommId, statusCode, headers, body })
 
-      postMessage({
-        type: "http:response",
-        data: {
-          httpCommId, statusCode, body
-        }
-      });
+        postMessage({
+          type: "http:response",
+          data: {
+            httpCommId,
+            response: {
+              statusCode, headers, body
+            }
+          }
+        });
+      }
+
+      httpServer.receive_http(request.method, request.path, request.body, onResponse)
+      break;
     }
     case "mainscript:set": {
       const { mainScriptData: newMainScriptData } = messageContent;

@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import pytest
 
@@ -89,3 +89,16 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
     HTTP_SERVER.receive_websocket(backMsg.SerializeToString())
 
     session.handle_stop_script_request.assert_called()
+
+
+def test_http_get(run_streamlit_background):
+    from tornado.httpserver import HTTP_SERVER
+
+    on_response = Mock()
+
+    task = HTTP_SERVER.receive_http("GET", "/healthz", "", on_response)
+
+    loop = task.get_loop()
+    loop.run_until_complete(task)
+
+    on_response.assert_called_with(200, { "Content-Type": "text/html; charset=UTF-8"}, b"ok")

@@ -19,9 +19,16 @@ function App() {
       .sendHttpRequest({
         path: "/healthz",
         method: "GET",
-        body: "test",
+        body: "",
       })
-      .then((data) => console.log("HTTP Response", data));
+      .then(({ statusCode, headers, body }) => {
+        if (headers.get("Content-Type")?.startsWith("text/")) {
+          const text = new TextDecoder().decode(body);
+          console.log("HTTP Response", { statusCode, headers, text })
+        } else {
+          console.log("HTTP Response", { statusCode, headers, body})
+        }
+      });
 
     const connectionManager = new ConnectionManager({
       kernel,

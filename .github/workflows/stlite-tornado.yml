@@ -61,7 +61,7 @@ jobs:
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies
       run: sudo apt install protobuf-compiler
-    - name: Build proto
+    - name: Set up Streamlit and build proto
       run: |
         . .venv/bin/activate
         cd streamlit

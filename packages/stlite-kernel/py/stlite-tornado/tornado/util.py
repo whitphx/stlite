@@ -13,6 +13,12 @@ from typing import (
     Sequence,
 )
 
+# Aliases for types that are spelled differently in different Python
+# versions. bytes_type is deprecated and no longer used in Tornado
+# itself but is left in case anyone outside Tornado is using it.
+bytes_type = bytes
+unicode_type = str
+basestring_type = str
 
 # versionchanged:: 6.2
 # no longer our own TimeoutError, use standard asyncio class

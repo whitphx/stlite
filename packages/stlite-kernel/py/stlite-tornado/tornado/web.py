@@ -13,7 +13,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-import logging
 
 import os
 import datetime
@@ -24,6 +23,8 @@ from tornado import httputil
 from tornado.routing import (
     _RuleList,
 )
+from tornado.escape import utf8, _unicode
+from tornado.log import app_log
 
 from typing import (
     Any,
@@ -31,10 +32,6 @@ from typing import (
     List,
     Type,
 )
-
-logger = logging.getLogger(__name__)
-
-app_log = logger
 
 
 class RequestHandler:
@@ -80,6 +77,26 @@ class RequestHandler:
     ) -> None:
         pass
 
+    def decode_argument(self, value: bytes, name: Optional[str] = None) -> str:
+        """Decodes an argument from the request.
+
+        The argument has been percent-decoded and is now a byte string.
+        By default, this method decodes the argument as utf-8 and returns
+        a unicode string, but this may be overridden in subclasses.
+
+        This method is used as a filter for both `get_argument()` and for
+        values extracted from the url and passed to `get()`/`post()`/etc.
+
+        The name of the argument is provided if known, but may be None
+        (e.g. for unnamed groups in the url regex).
+        """
+        try:
+            return _unicode(value)
+        except UnicodeDecodeError:
+            raise HTTPError(
+                400, "Invalid unicode in %s: %r" % (name or "url", value[:40])
+            )
+
     @property
     def xsrf_token(self) -> bytes:
         return os.urandom(16)  # XXX: Dummy implementation
@@ -88,7 +105,7 @@ class RequestHandler:
         if self._finished:
             raise RuntimeError("Cannot write() after finish()")
 
-        chunk = chunk.encode("utf8") if isinstance(chunk, str) else chunk
+        chunk = utf8(chunk)
         self._write_buffer.append(chunk)
 
     def _handle_request_exception(self, e: BaseException) -> None:

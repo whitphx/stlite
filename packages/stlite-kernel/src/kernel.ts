@@ -18,6 +18,7 @@ import worker from '!!raw-loader!./worker';
 interface HttpRequest {
   method: "GET" | "POST";
   path: string;
+  headers: { [key: string]: string };
   body: string;
 }
 interface HttpResponse {

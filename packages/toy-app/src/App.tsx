@@ -19,6 +19,7 @@ function App() {
       .sendHttpRequest({
         path: "/healthz",
         method: "GET",
+        headers: {},
         body: "",
       })
       .then(({ statusCode, headers, body }) => {

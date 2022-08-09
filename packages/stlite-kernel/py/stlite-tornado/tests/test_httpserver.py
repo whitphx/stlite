@@ -4,6 +4,7 @@ from unittest.mock import patch, Mock
 
 import pytest
 
+import requests
 import tornado
 import streamlit
 from streamlit.hello import Hello
@@ -96,9 +97,36 @@ def test_http_get(run_streamlit_background):
 
     on_response = Mock()
 
-    task = HTTP_SERVER.receive_http("GET", "/healthz", "", on_response)
+    task = HTTP_SERVER.receive_http("GET", "/healthz", {}, "", on_response)
 
     loop = task.get_loop()
     loop.run_until_complete(task)
 
     on_response.assert_called_with(200, { "Content-Type": "text/html; charset=UTF-8"}, b"ok")
+
+def test_http_file_upload(run_streamlit_background):
+    from tornado.httpserver import HTTP_SERVER
+
+    # Initiate the session
+    receive_websocket = Mock()
+    HTTP_SERVER.set_websocket_sender_fn(receive_websocket)
+    HTTP_SERVER.start_websocket("/stream")
+
+    server = Server.get_current()
+    session_ids = server._session_info_by_id.keys()
+    session_id = list(session_ids)[0]
+
+    req = requests.Request(
+        "POST", "http://example.com:55555/upload_file",
+        files={'file': ('foo.txt', 'Foo\nBar\nBaz')},
+        data={"sessionId": session_id, "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None"})
+    r = req.prepare()
+
+    on_response = Mock()
+
+    task = HTTP_SERVER.receive_http("POST", "/upload_file", r.headers, r.body, on_response)
+
+    loop = task.get_loop()
+    loop.run_until_complete(task)
+
+    on_response.assert_called_with(200, { "Content-Type": "text/html; charset=UTF-8"}, b"1")  # Returns 1, which is the ID of the first file.

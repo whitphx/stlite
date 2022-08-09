@@ -48,7 +48,7 @@ class JsConnection:
         headers: httputil.HTTPHeaders,
         chunk: Optional[bytes] = None,
     ) -> "Future[None]":
-        logger.debug("JsConnection.write_headers(), %s, %s, %s", start_line, headers, chunk)
+        logger.debug("JsConnection.write_headers(), %s, %s, %s", start_line, str(headers), chunk)
         self._start_line = start_line
         self._headers = headers
         self._write_buffer += chunk
@@ -63,7 +63,7 @@ class JsConnection:
             raise Exception("start line is not set")
         if self._headers is None:
             raise Exception("headers are not set")
-        self._callback(self._start_line.code, self._headers, self._write_buffer)
+        self._callback(self._start_line.code, dict(self._headers), self._write_buffer)
 
 
 # HACK: Escape hatch to access the server instance from outside, e.g. Java Script world through Pyodide
@@ -142,8 +142,8 @@ class HTTPServer:
                 IOLoop.current().add_future(result, lambda f: f.result())
             return result
 
-    def receive_http(self, method: str, path: str, body: Union[str, bytes], on_response: Callable[[int, dict, bytes], None]):
-        logger.debug("HTTP request (%s %s %s)", method, path, body)
+    def receive_http(self, method: str, path: str, headers: dict, body: Union[str, bytes], on_response: Callable[[int, dict, bytes], None]):
+        logger.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
 
         request_handler_class = None
         kwargs = None
@@ -159,7 +159,8 @@ class HTTPServer:
 
         request = httputil.HTTPServerRequest(
             method=method,
-            headers=httputil.HTTPHeaders(),
+            headers=headers,
+            body=body if isinstance(body, bytes) else body.encode("utf8"),
             connection=JsConnection(on_response),
         )
 
@@ -168,8 +169,8 @@ class HTTPServer:
         # Mimic tornado.web._HandlerDelegate.execute()
         # Ref: https://github.com/tornadoweb/tornado/blob/v6.2.0/tornado/web.py#L2330
         transforms = []
-        path_args = []
-        path_kwargs = {}
+        path_args = []  # TODO
+        path_kwargs = {}  # TODO
         fut = gen.convert_yielded(
             handler._execute(transforms, *path_args, **path_kwargs)
         )

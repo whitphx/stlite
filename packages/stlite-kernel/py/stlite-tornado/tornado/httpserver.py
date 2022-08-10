@@ -17,17 +17,53 @@
 import sys
 import re
 import logging
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from tornado import gen
 from tornado import httputil
 from tornado.ioloop import IOLoop
-from tornado.web import Application
+from tornado.web import Application, RequestHandler
 from tornado.websocket import WebSocketHandler
 
 import pyodide
 
 logger = logging.getLogger(__name__)
+
+
+class JsConnection:
+    """ Implementation of `httputil.HTTPConnection` (https://github.com/tornadoweb/tornado/blob/v6.2.0/tornado/httputil.py#L563)
+    for communication with the stlite JavaScript code
+    that replaces `HTTP1Connection` (https://github.com/tornadoweb/tornado/blob/v6.2.0/tornado/http1connection.py#L104)
+    in the original Tornado code.
+    """
+    def __init__(self, callback) -> None:
+        self._write_buffer = b""
+        self._start_line = None
+        self._headers = None
+        self._callback = callback
+
+    def write_headers(
+        self,
+        start_line: httputil.ResponseStartLine,
+        headers: httputil.HTTPHeaders,
+        chunk: Optional[bytes] = None,
+    ) -> "Future[None]":
+        logger.debug("JsConnection.write_headers(), %s, %s, %s", start_line, str(headers), chunk)
+        self._start_line = start_line
+        self._headers = headers
+        self._write_buffer += chunk
+
+    def write(self, chunk: bytes) -> "Future[None]":
+        logger.debug("JsConnection.write(), %s", chunk)
+        self._write_buffer += chunk
+
+    def finish(self) -> None:
+        logger.debug("JsConnection.flush()")
+        if self._start_line is None:
+            raise Exception("start line is not set")
+        if self._headers is None:
+            raise Exception("headers are not set")
+        self._callback(self._start_line.code, dict(self._headers), self._write_buffer)
 
 
 # HACK: Escape hatch to access the server instance from outside, e.g. Java Script world through Pyodide
@@ -105,6 +141,43 @@ class HTTPServer:
                 result = gen.convert_yielded(result)
                 IOLoop.current().add_future(result, lambda f: f.result())
             return result
+
+    def receive_http_from_js(self, method: str, path: str, headers: pyodide.JsProxy, body: pyodide.JsProxy, on_response: Callable[[int, dict, bytes], None]):
+        return self.receive_http(method=method, path=path, headers=headers.to_py(), body=body.to_bytes(), on_response=on_response)
+
+    def receive_http(self, method: str, path: str, headers: dict, body: Union[str, bytes], on_response: Callable[[int, dict, bytes], None]):
+        logger.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
+
+        request_handler_class = None
+        kwargs = None
+        for path_regex, handler_class, *rest in self.application.handlers:
+            if issubclass(handler_class, RequestHandler) and re.match(path_regex, path):
+                request_handler_class = handler_class
+                if len(rest) > 0:
+                    kwargs = rest[0]
+                break
+        if request_handler_class is None:
+            logger.info("HTTP request for path %s has been sent, but no handler found", path)
+            return
+
+        request = httputil.HTTPServerRequest(
+            method=method,
+            headers=headers,
+            body=body if isinstance(body, bytes) else body.encode("utf8"),
+            connection=JsConnection(on_response),
+        )
+
+        handler = request_handler_class(request=request, **kwargs)
+
+        # Mimic tornado.web._HandlerDelegate.execute()
+        # Ref: https://github.com/tornadoweb/tornado/blob/v6.2.0/tornado/web.py#L2330
+        transforms = []
+        path_args = []  # TODO
+        path_kwargs = {}  # TODO
+        fut = gen.convert_yielded(
+            handler._execute(transforms, *path_args, **path_kwargs)
+        )
+        return fut
 
     def listen(self, port: int, address: str = "") -> None:
         # Original implementation is on TCPServer.listen()

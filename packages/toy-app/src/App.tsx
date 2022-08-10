@@ -15,6 +15,22 @@ function App() {
       command: "run",
     });
 
+    kernel
+      .sendHttpRequest({
+        path: "/healthz",
+        method: "GET",
+        headers: {},
+        body: new Uint8Array(),
+      })
+      .then(({ statusCode, headers, body }) => {
+        if (headers.get("Content-Type")?.startsWith("text/")) {
+          const text = new TextDecoder().decode(body);
+          console.log("HTTP Response", { statusCode, headers, text });
+        } else {
+          console.log("HTTP Response", { statusCode, headers, body });
+        }
+      });
+
     const connectionManager = new ConnectionManager({
       kernel,
       connectionStateChanged: (connectionState) => {

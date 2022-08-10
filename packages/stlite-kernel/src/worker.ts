@@ -230,6 +230,30 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       httpServer.receive_websocket_from_js(payload)
       break;
     }
+    case "http:request": {
+      console.debug("http:request", messageContent)
+
+      const { request, httpCommId } = messageContent;
+
+      const onResponse = (statusCode: number, _headers: any, _body: any) => {
+        const headers = _headers.toJs();
+        const body = _body.toJs()
+        console.debug({ httpCommId, statusCode, headers, body })
+
+        postMessage({
+          type: "http:response",
+          data: {
+            httpCommId,
+            response: {
+              statusCode, headers, body
+            }
+          }
+        });
+      }
+
+      httpServer.receive_http_from_js(request.method, request.path, request.headers, request.body, onResponse)
+      break;
+    }
     case "mainscript:set": {
       const { mainScriptData: newMainScriptData } = messageContent;
       mainScriptData = newMainScriptData

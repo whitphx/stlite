@@ -13,10 +13,29 @@ from typing import (
     Sequence,
 )
 
+# Aliases for types that are spelled differently in different Python
+# versions. bytes_type is deprecated and no longer used in Tornado
+# itself but is left in case anyone outside Tornado is using it.
+bytes_type = bytes
+unicode_type = str
+basestring_type = str
 
 # versionchanged:: 6.2
 # no longer our own TimeoutError, use standard asyncio class
 TimeoutError = asyncio.TimeoutError
+
+
+class ObjectDict(Dict[str, Any]):
+    """Makes a dictionary behave like an object, with attribute-style access."""
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
 
 
 def import_object(name: str) -> Any:

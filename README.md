@@ -19,6 +19,7 @@ Here is a sample HTML page.
   <title>Stlite App</title>
 </head>
 <body>
+  <div id="root"></div>
   <script src="https://whitphx.github.io/stlite/lib/application/stlite.js" ></script>
   <script>
     stlite.mount({
@@ -27,7 +28,8 @@ import streamlit as st
 
 name = st.text_input("Name")
 st.write("Hello, ", name or "world")
-`
+`,
+      container: document.getElementById("root")
     })
   </script>
 </body>

@@ -17,12 +17,12 @@
  */
 
 import { CancelToken } from "axios"
+import _ from "lodash"
 import { FormDataEncoder } from "form-data-encoder"
 import { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
-import _ from "lodash"
-import { StliteKernel } from "../../kernel"
+import { isValidFormId } from "streamlit-browser/src/lib/utils"
 import { BaseUriParts } from "./UriUtil"
-import { isValidFormId } from "./utils"
+import { StliteKernel } from "../../kernel"
 
 /** Common widget protobuf fields that are used by the FileUploadClient. */
 interface WidgetInfo {

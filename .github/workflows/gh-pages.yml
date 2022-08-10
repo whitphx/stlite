@@ -58,11 +58,6 @@ jobs:
       shell: bash
       run: timeout 10s poetry run pip --version || rm -rf .venv
 
-    - name: Install poetry
-      run: |
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-
     ## Set up Node environment
     - name: Use Node.js ${{ env.node-version }}
       uses: actions/setup-node@v3

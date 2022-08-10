@@ -1,13 +1,12 @@
 // Mimic https://github.com/streamlit/streamlit/blob/1.9.0/frontend/src/lib/ConnectionManager.ts
 
 import { BackMsg, ForwardMsg } from "streamlit-browser/src/autogen/proto"
+import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
 import { ReactNode } from "react"
 
 import { StliteKernel } from "../../kernel"
 import { ConnectionState } from "./ConnectionState"
-import { ensureError } from "./ErrorHandling"
-
-import { BaseUriParts } from "./UriUtil"
+import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
 
 interface Props {
   /**

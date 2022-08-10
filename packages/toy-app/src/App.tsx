@@ -20,14 +20,14 @@ function App() {
         path: "/healthz",
         method: "GET",
         headers: {},
-        body: "",
+        body: new Uint8Array(),
       })
       .then(({ statusCode, headers, body }) => {
         if (headers.get("Content-Type")?.startsWith("text/")) {
           const text = new TextDecoder().decode(body);
-          console.log("HTTP Response", { statusCode, headers, text })
+          console.log("HTTP Response", { statusCode, headers, text });
         } else {
-          console.log("HTTP Response", { statusCode, headers, body})
+          console.log("HTTP Response", { statusCode, headers, body });
         }
       });
 

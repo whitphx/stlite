@@ -251,7 +251,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
         });
       }
 
-      httpServer.receive_http(request.method, request.path, request.headers, request.body, onResponse)
+      httpServer.receive_http_from_js(request.method, request.path, request.headers, request.body, onResponse)
       break;
     }
     case "mainscript:set": {

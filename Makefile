@@ -45,12 +45,14 @@ application: $(application)
 $(application): packages/application/src/*.ts packages/application/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
 	cd packages/application; \
 	yarn build
+	@touch $@
 
 .PHONY: playground
 playground: $(playground)
 $(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(stlite_kernel) $(streamlit_wheel)
 	cd packages/playground; \
 	yarn build
+	@touch $@
 
 $(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \

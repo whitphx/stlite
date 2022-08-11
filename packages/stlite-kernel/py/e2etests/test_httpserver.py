@@ -80,16 +80,15 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
 
-    def receive_websocket(payload):
-        pass
+    on_websocket_message = Mock()
 
-    HTTP_SERVER.set_websocket_sender_fn(receive_websocket)
-
-    HTTP_SERVER.start_websocket("/stream")
+    HTTP_SERVER.start_websocket("/stream", on_websocket_message)
 
     HTTP_SERVER.receive_websocket(backMsg.SerializeToString())
-
     session.handle_stop_script_request.assert_called()
+
+    HTTP_SERVER.websocket_handler.write_message(b"foobar", binary=True)
+    on_websocket_message.assert_called_with(b"foobar", binary=True)
 
 
 def test_http_get(run_streamlit_background):

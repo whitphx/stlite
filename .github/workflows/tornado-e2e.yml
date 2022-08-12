@@ -2,13 +2,6 @@ name: Integration tests with streamlit and tornado
 
 on:
   push:
-    branches: [ "main" ]
-    paths:
-      - 'packages/stlite-kernel/py/tornado'
-      - 'packages/stlite-kernel/py/e2etests/**/*'
-      - 'streamlit/**/*'
-  pull_request:
-    branches: [ "main" ]
     paths:
       - 'packages/stlite-kernel/py/tornado'
       - 'packages/stlite-kernel/py/e2etests/**/*'

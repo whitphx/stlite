@@ -3,6 +3,15 @@ let httpServer: any;
 let mainScriptData = "";
 
 /**
+ * A promise waiting for the initial data to be sent from the main thread.
+ */
+let setInitData: ((initData: WorkerInitialData) => void) | undefined =
+  undefined;
+const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
+  setInitData = resolve;
+});
+
+/**
  * Load Pyodided and initialize the interpreter.
  *
  * NOTE: This implementation is based on JupyterLite@v0.1.0a16.
@@ -12,6 +21,8 @@ let mainScriptData = "";
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
+  const { requirements } = await initDataPromise;
+
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
     indexURL,
@@ -44,8 +55,8 @@ async function loadPyodideAndPackages() {
     ], keep_going=True)
   `);
 
-  console.debug("Requirements:", _requirements);
-  for (const req of _requirements) {
+  console.debug("Requirements:", requirements);
+  for (const req of requirements) {
     await pyodide.runPythonAsync(
       `await micropip.install("${req}", keep_going=True)`
     );
@@ -199,11 +210,22 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  * @param event The message event to process
  */
 self.onmessage = async (event: MessageEvent): Promise<void> => {
-  await pyodideReadyPromise;
   const data = event.data;
   let results;
   const messageType = data.type;
   const messageContent = data.data;
+
+  // Special case for transmitting the initial data
+  if (messageType === "initData") {
+    if (setInitData == null) {
+      throw new Error("Unexpectedly failed to pass the initial data");
+    }
+    setInitData(messageContent);
+    return;
+  }
+
+  await pyodideReadyPromise;
+
   switch (messageType) {
     case "websocket:connect": {
       console.debug("websocket:connect", messageContent);
@@ -296,3 +318,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
 
   postMessage(reply);
 };
+
+postMessage({
+  type: "event:start",
+});

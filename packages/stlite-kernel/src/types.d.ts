@@ -1,0 +1,3 @@
+interface WorkerInitialData {
+  requirements: string[];
+}

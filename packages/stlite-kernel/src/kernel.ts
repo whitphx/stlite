@@ -47,13 +47,17 @@ export class StliteKernel {
 
   private _loaded = new PromiseDelegate<void>();
 
+  private _workerInitData: WorkerInitialData;
+
   constructor(options: StliteKernel.IOptions) {
     const blob = new Blob([this.buildWorkerScript(options).join("\n")]);
     this._worker = new Worker(window.URL.createObjectURL(blob));
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
-
+    this._workerInitData = {
+      requirements: options.requirements || [],
+    };
     if (options.mainScriptData) {
       this.setMainScriptData(options.mainScriptData);
     }
@@ -92,8 +96,6 @@ export class StliteKernel {
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
 
-    const requirements = options.requirements || [];
-
     return [
       // first we need the pyodide initialization scripts...
       `importScripts("${options.pyodideUrl}");`,
@@ -104,9 +106,6 @@ export class StliteKernel {
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
       `var _command = "${options.command}"`, // TODO: Check no special characters are included like \n or ".
       `var _mainScriptPath = "${mainScriptPath}"`, // TODO: Check no special characters are included like \n or ".
-      `var _requirements = [${requirements
-        .map((req) => `"${req}"`)
-        .join(",")}]`,
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];
@@ -181,6 +180,13 @@ export class StliteKernel {
    */
   private _processWorkerMessage(msg: any): void {
     switch (msg.type) {
+      case "event:start": {
+        this._worker.postMessage({
+          type: "initData",
+          data: this._workerInitData,
+        });
+        break;
+      }
       case "event:loaded": {
         this._loaded.resolve();
         break;

@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 from unittest.mock import Mock
 
-
 HERE = Path(__file__).parent.resolve()
 REPO_ROOT = HERE / "../../../.."
 

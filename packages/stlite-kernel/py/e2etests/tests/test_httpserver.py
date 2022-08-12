@@ -1,37 +1,40 @@
 import asyncio
 import threading
-from unittest.mock import patch, Mock, ANY
+from unittest.mock import ANY, Mock, patch
 
 import pytest
-
 import requests
-import tornado
 import streamlit
-from streamlit.hello import Hello
+import tornado
 from streamlit import config
+from streamlit.hello import Hello
 from streamlit.server.server import Server
 
 
 @pytest.fixture
 def run_streamlit_background():
-    """Mimic streamlit.cli.main_hello() """
+    """Mimic streamlit.cli.main_hello()"""
     filename = Hello.__file__
     streamlit._is_running_with_streamlit = True
 
-    config.set_option("server.fileWatcherType", "none", "<test>")  # Disable a file watcher
+    config.set_option(
+        "server.fileWatcherType", "none", "<test>"
+    )  # Disable a file watcher
     config.set_option("server.enableXsrfProtection", False, "<test>")
 
     # This setup and teardown code is based on `tornado.test.httpclient_test.torand`.
-    # Ref: https://github.com/tornadoweb/tornado/blob/e72cc5769265abf0a279a293fa9cb383cff84db8/tornado/test/httpclient_test.py#L772-L792
+    # Ref: https://github.com/tornadoweb/tornado/blob/e72cc5769265abf0a279a293fa9cb383cff84db8/tornado/test/httpclient_test.py#L772-L792  # noqa: E501
 
     # Set up another thread where the Streamlit server will run
     server_evloop = asyncio.new_event_loop()
     asyncio.set_event_loop(server_evloop)
     event = threading.Event()
 
-    data_from_thread = { "server": None,  "exception": None }
+    data_from_thread = {"server": None, "exception": None}
+
     async def init_server():
-        """Mimic streamlit.bootstrap.run() """
+        """Mimic streamlit.bootstrap.run()"""
+
         def on_start(server: Server):
             data_from_thread["server"] = server
             event.set()
@@ -75,8 +78,8 @@ def test_http_server_is_set(run_streamlit_background):
 def test_http_server_websocket(AppSession, run_streamlit_background):
     session = AppSession()
 
-    from tornado.httpserver import HTTP_SERVER
     from streamlit.proto import BackMsg_pb2
+    from tornado.httpserver import HTTP_SERVER
 
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
@@ -104,6 +107,7 @@ def test_http_get(run_streamlit_background):
 
     on_response.assert_called_with(200, ANY, b"ok")
 
+
 def test_http_file_upload(run_streamlit_background):
     from tornado.httpserver import HTTP_SERVER
 
@@ -116,16 +120,25 @@ def test_http_file_upload(run_streamlit_background):
     session_id = list(session_ids)[0]
 
     req = requests.Request(
-        "POST", "http://example.com:55555/upload_file",
-        files={'file': ('foo.txt', 'Foo\nBar\nBaz')},
-        data={"sessionId": session_id, "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None"})
+        "POST",
+        "http://example.com:55555/upload_file",
+        files={"file": ("foo.txt", "Foo\nBar\nBaz")},
+        data={
+            "sessionId": session_id,
+            "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None",
+        },
+    )
     r = req.prepare()
 
     on_response = Mock()
 
-    task = HTTP_SERVER.receive_http("POST", "/upload_file", r.headers, r.body, on_response)
+    task = HTTP_SERVER.receive_http(
+        "POST", "/upload_file", r.headers, r.body, on_response
+    )
 
     loop = task.get_loop()
     loop.run_until_complete(task)
 
-    on_response.assert_called_with(200, ANY, b"1")  # Returns 1, which is the ID of the first file.
+    on_response.assert_called_with(
+        200, ANY, b"1"
+    )  # Returns 1, which is the ID of the first file.

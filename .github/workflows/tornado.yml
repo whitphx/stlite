@@ -76,6 +76,13 @@ jobs:
       run: poetry install
       working-directory: packages/stlite-kernel/py/e2etests
 
+    - name: Run linter and code formatter to the test code module
+      working-directory: packages/stlite-kernel/py/e2etests
+      run: |
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8
+
     - name: Run pytest
       shell: bash
       run: poetry run python -m pytest -v tests

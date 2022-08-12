@@ -34,6 +34,7 @@ async function loadPyodideAndPackages() {
   await pyodide.loadPackage(['micropip']);
   await pyodide.runPythonAsync(`
     import micropip
+    await micropip.install(["ssl"])  # TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
     await micropip.install([
       '${_tornadoWheelUrl}',
       '${_pyarrowWheelUrl}',
@@ -153,6 +154,7 @@ async function loadPyodideAndPackages() {
   command_kwargs = {
       "server.headless": True,  # Not to open the browser after launching
       "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
+      "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
   }
   `)
   if (_command === "hello") {
@@ -168,34 +170,6 @@ async function loadPyodideAndPackages() {
     from tornado.httpserver import HTTP_SERVER
   `)  // HTTP_SERVER is set AFTER the streamlit module is loaded.
   httpServer = pyodide.globals.get('HTTP_SERVER').copy();
-
-  // Set the callback method to receive websocket message from the Streamlit server
-  httpServer.set_websocket_sender_fn((messageProxy: any, binary: boolean) => {
-    // XXX: Now there is no session mechanism
-
-    if (binary) {
-      const buffer = messageProxy.getBuffer("u8");
-      messageProxy.destroy();
-      const payload = new Uint8ClampedArray(
-        buffer.data.buffer,
-        buffer.data.byteOffset,
-        buffer.data.byteLength
-      )
-      postMessage({
-        type: "websocket:message",
-        data: {
-          payload: new Uint8Array(payload)
-        }
-      });
-    } else {
-      postMessage({
-        type: "websocket:message",
-        data: {
-          payload: messageProxy,
-        }
-      });
-    }
-  })
 
   postMessage({
     type: "event:loaded"
@@ -219,7 +193,32 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
     case "websocket:connect": {
       console.log("websocket:connect", messageContent)
 
-      httpServer.start_websocket("/stream")
+      httpServer.start_websocket("/stream", (messageProxy: any, binary: boolean) => {
+        // XXX: Now there is no session mechanism
+
+        if (binary) {
+          const buffer = messageProxy.getBuffer("u8");
+          messageProxy.destroy();
+          const payload = new Uint8ClampedArray(
+            buffer.data.buffer,
+            buffer.data.byteOffset,
+            buffer.data.byteLength
+          )
+          postMessage({
+            type: "websocket:message",
+            data: {
+              payload: new Uint8Array(payload)
+            }
+          });
+        } else {
+          postMessage({
+            type: "websocket:message",
+            data: {
+              payload: messageProxy,
+            }
+          });
+        }
+      })
       break;
     }
     case "websocket:send": {

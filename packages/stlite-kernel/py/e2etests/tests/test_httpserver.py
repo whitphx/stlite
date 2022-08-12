@@ -1,6 +1,6 @@
 import asyncio
 import threading
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, ANY
 
 import pytest
 
@@ -19,6 +19,7 @@ def run_streamlit_background():
     streamlit._is_running_with_streamlit = True
 
     config.set_option("server.fileWatcherType", "none", "<test>")  # Disable a file watcher
+    config.set_option("server.enableXsrfProtection", False, "<test>")
 
     # This setup and teardown code is based on `tornado.test.httpclient_test.torand`.
     # Ref: https://github.com/tornadoweb/tornado/blob/e72cc5769265abf0a279a293fa9cb383cff84db8/tornado/test/httpclient_test.py#L772-L792
@@ -80,16 +81,15 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
 
-    def receive_websocket(payload):
-        pass
+    on_websocket_message = Mock()
 
-    HTTP_SERVER.set_websocket_sender_fn(receive_websocket)
-
-    HTTP_SERVER.start_websocket("/stream")
+    HTTP_SERVER.start_websocket("/stream", on_websocket_message)
 
     HTTP_SERVER.receive_websocket(backMsg.SerializeToString())
-
     session.handle_stop_script_request.assert_called()
+
+    HTTP_SERVER.websocket_handler.write_message(b"foobar", binary=True)
+    on_websocket_message.assert_called_with(b"foobar", binary=True)
 
 
 def test_http_get(run_streamlit_background):
@@ -102,15 +102,14 @@ def test_http_get(run_streamlit_background):
     loop = task.get_loop()
     loop.run_until_complete(task)
 
-    on_response.assert_called_with(200, { "Content-Type": "text/html; charset=UTF-8"}, b"ok")
+    on_response.assert_called_with(200, ANY, b"ok")
 
 def test_http_file_upload(run_streamlit_background):
     from tornado.httpserver import HTTP_SERVER
 
     # Initiate the session
     receive_websocket = Mock()
-    HTTP_SERVER.set_websocket_sender_fn(receive_websocket)
-    HTTP_SERVER.start_websocket("/stream")
+    HTTP_SERVER.start_websocket("/stream", receive_websocket)
 
     server = Server.get_current()
     session_ids = server._session_info_by_id.keys()
@@ -129,4 +128,4 @@ def test_http_file_upload(run_streamlit_background):
     loop = task.get_loop()
     loop.run_until_complete(task)
 
-    on_response.assert_called_with(200, { "Content-Type": "text/html; charset=UTF-8"}, b"1")  # Returns 1, which is the ID of the first file.
+    on_response.assert_called_with(200, ANY, b"1")  # Returns 1, which is the ID of the first file.

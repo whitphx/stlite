@@ -2,7 +2,7 @@ playground := packages/playground/build/*
 application := packages/application/build/*
 stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
-tornado_wheel := packages/stlite-kernel/py/stlite-tornado/dist/stlite_tornado-0.1.0-py3-none-any.whl
+tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl
 
@@ -64,10 +64,11 @@ $(pyarrow_wheel): $(VENV) packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
 	cd packages/stlite-kernel/py/stlite-pyarrow && \
 	poetry build
 
-$(tornado_wheel): $(VENV) packages/stlite-kernel/py/stlite-tornado/tornado/*.py
+$(tornado_wheel): $(VENV) packages/stlite-kernel/py/tornado/tornado/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/stlite-kernel/py/stlite-tornado && \
-	poetry build
+	cd packages/stlite-kernel/py/tornado && \
+	TORNADO_EXTENSION=0 python -m build --wheel
+	@touch $@
 
 $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \

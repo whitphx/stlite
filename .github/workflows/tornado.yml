@@ -1,14 +1,18 @@
-name: stlite-tornado
+name: Integration tests with streamlit and tornado
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - 'packages/stlite-kernel/py/stlite-tornado/**/*'
+      - 'packages/stlite-kernel/py/tornado/**/*'
+      - 'packages/stlite-kernel/py/e2etests/**/*'
+      - 'streamlit/**/*'
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'packages/stlite-kernel/py/stlite-tornado/**/*'
+      - 'packages/stlite-kernel/py/tornado/**/*'
+      - 'packages/stlite-kernel/py/e2etests/**/*'
+      - 'streamlit/**/*'
 
 jobs:
   tests:
@@ -70,9 +74,9 @@ jobs:
     - name: Install dependencies
       shell: bash
       run: poetry install
-      working-directory: packages/stlite-kernel/py/stlite-tornado
+      working-directory: packages/stlite-kernel/py/e2etests
 
     - name: Run pytest
       shell: bash
       run: poetry run python -m pytest -v tests
-      working-directory: packages/stlite-kernel/py/stlite-tornado
+      working-directory: packages/stlite-kernel/py/e2etests

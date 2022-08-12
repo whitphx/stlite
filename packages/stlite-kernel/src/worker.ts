@@ -191,7 +191,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
   const messageContent = data.data;
   switch (messageType) {
     case "websocket:connect": {
-      console.log("websocket:connect", messageContent)
+      console.debug("websocket:connect", messageContent)
 
       httpServer.start_websocket("/stream", (messageProxy: any, binary: boolean) => {
         // XXX: Now there is no session mechanism
@@ -222,7 +222,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       break;
     }
     case "websocket:send": {
-      console.log("websocket:send", messageContent)
+      console.debug("websocket:send", messageContent)
 
       const { payload } = messageContent
 

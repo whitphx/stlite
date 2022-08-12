@@ -45,7 +45,7 @@ jobs:
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Configure poetry
-      run: poetry config virtualenvs.in-project true
+      run: poetry config virtualenvs.in-project false
 
     - name: Set up cache
       uses: actions/cache@v2
@@ -75,6 +75,13 @@ jobs:
       shell: bash
       run: poetry install
       working-directory: packages/stlite-kernel/py/e2etests
+
+    - name: Run linter and code formatter to the test code module
+      working-directory: packages/stlite-kernel/py/e2etests
+      run: |
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8
 
     - name: Run pytest
       shell: bash

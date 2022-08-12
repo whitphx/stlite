@@ -5,10 +5,12 @@ on:
     branches: [ "main" ]
     paths:
       - 'packages/stlite-kernel/**/*'
+      - '!packages/stlite-kernel/py/**/*'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'packages/stlite-kernel/**/*'
+      - '!packages/stlite-kernel/py/**/*'
 
 defaults:
   run:

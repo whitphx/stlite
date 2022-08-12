@@ -2,12 +2,6 @@ name: stlite-kernel
 
 on:
   push:
-    branches: [ "main" ]
-    paths:
-      - 'packages/stlite-kernel/**/*'
-      - '!packages/stlite-kernel/py/**/*'
-  pull_request:
-    branches: [ "main" ]
     paths:
       - 'packages/stlite-kernel/**/*'
       - '!packages/stlite-kernel/py/**/*'

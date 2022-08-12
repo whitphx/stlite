@@ -1,6 +1,6 @@
 let httpServer: any;
 
-let mainScriptData: string = "";
+let mainScriptData = "";
 
 /**
  * Load Pyodided and initialize the interpreter.
@@ -17,7 +17,7 @@ async function loadPyodideAndPackages() {
     indexURL,
     stdout: (log: string) => {
       if (log.startsWith("CRITICAL") || log.startsWith("ERROR")) {
-        console.error(log)
+        console.error(log);
       } else if (log.startsWith("WARNING")) {
         console.warn(log);
       } else if (log.startsWith("INFO")) {
@@ -31,7 +31,7 @@ async function loadPyodideAndPackages() {
     stderr: console.error,
   });
 
-  await pyodide.loadPackage(['micropip']);
+  await pyodide.loadPackage(["micropip"]);
   await pyodide.runPythonAsync(`
     import micropip
     await micropip.install(["ssl"])  # TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
@@ -54,7 +54,7 @@ async function loadPyodideAndPackages() {
       streamlit.logger.setup_formatter = None
       streamlit.logger.update_formatter = lambda *a, **k: None
       streamlit.logger.set_log_level = lambda *a, **k: None
-  `)
+  `);
   // Then configure the logger.
   await pyodide.runPythonAsync(`
       import sys
@@ -63,7 +63,7 @@ async function loadPyodideAndPackages() {
 
       streamlit_handler = logging.getLogger("streamlit")
       streamlit_handler.setLevel(logging.DEBUG)
-  `)
+  `);
 
   // Emulate the process in streamlit/cli.py
   await pyodide.runPythonAsync(`
@@ -147,7 +147,7 @@ async function loadPyodideAndPackages() {
             if not os.path.exists(target):
                 raise click.BadParameter("File does not exist: {}".format(target))
             _main_run(target, args, flag_options=kwargs)
-  `)
+  `);
 
   // Bootstrap
   await pyodide.runPythonAsync(`
@@ -156,23 +156,25 @@ async function loadPyodideAndPackages() {
       "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
       "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
   }
-  `)
+  `);
   if (_command === "hello") {
-    await pyodide.runPythonAsync(`main_hello(**command_kwargs)`)
+    await pyodide.runPythonAsync(`main_hello(**command_kwargs)`);
   } else if (_command === "run") {
     pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
 
-    await pyodide.runPythonAsync(`main_run("${_mainScriptPath}", **command_kwargs)`)
+    await pyodide.runPythonAsync(
+      `main_run("${_mainScriptPath}", **command_kwargs)`
+    );
   }
 
   // Pull the http server instance from Python world to JS world and set up it.
   await pyodide.runPythonAsync(`
     from tornado.httpserver import HTTP_SERVER
-  `)  // HTTP_SERVER is set AFTER the streamlit module is loaded.
-  httpServer = pyodide.globals.get('HTTP_SERVER').copy();
+  `); // HTTP_SERVER is set AFTER the streamlit module is loaded.
+  httpServer = pyodide.globals.get("HTTP_SERVER").copy();
 
   postMessage({
-    type: "event:loaded"
+    type: "event:loaded",
   });
 }
 
@@ -191,72 +193,85 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
   const messageContent = data.data;
   switch (messageType) {
     case "websocket:connect": {
-      console.debug("websocket:connect", messageContent)
+      console.debug("websocket:connect", messageContent);
 
-      httpServer.start_websocket("/stream", (messageProxy: any, binary: boolean) => {
-        // XXX: Now there is no session mechanism
+      httpServer.start_websocket(
+        "/stream",
+        (messageProxy: any, binary: boolean) => {
+          // XXX: Now there is no session mechanism
 
-        if (binary) {
-          const buffer = messageProxy.getBuffer("u8");
-          messageProxy.destroy();
-          const payload = new Uint8ClampedArray(
-            buffer.data.buffer,
-            buffer.data.byteOffset,
-            buffer.data.byteLength
-          )
-          postMessage({
-            type: "websocket:message",
-            data: {
-              payload: new Uint8Array(payload)
-            }
-          });
-        } else {
-          postMessage({
-            type: "websocket:message",
-            data: {
-              payload: messageProxy,
-            }
-          });
+          if (binary) {
+            const buffer = messageProxy.getBuffer("u8");
+            messageProxy.destroy();
+            const payload = new Uint8ClampedArray(
+              buffer.data.buffer,
+              buffer.data.byteOffset,
+              buffer.data.byteLength
+            );
+            postMessage({
+              type: "websocket:message",
+              data: {
+                payload: new Uint8Array(payload),
+              },
+            });
+          } else {
+            postMessage({
+              type: "websocket:message",
+              data: {
+                payload: messageProxy,
+              },
+            });
+          }
         }
-      })
+      );
       break;
     }
     case "websocket:send": {
-      console.debug("websocket:send", messageContent)
+      console.debug("websocket:send", messageContent);
 
-      const { payload } = messageContent
+      const { payload } = messageContent;
 
-      httpServer.receive_websocket_from_js(payload)
+      httpServer.receive_websocket_from_js(payload);
       break;
     }
     case "http:request": {
-      console.debug("http:request", messageContent)
+      console.debug("http:request", messageContent);
 
       const { request, httpCommId } = messageContent;
 
       const onResponse = (statusCode: number, _headers: any, _body: any) => {
         const headers = _headers.toJs();
-        const body = _body.toJs()
-        console.debug({ httpCommId, statusCode, headers, body })
+        const body = _body.toJs();
+        console.debug({ httpCommId, statusCode, headers, body });
 
         postMessage({
           type: "http:response",
           data: {
             httpCommId,
             response: {
-              statusCode, headers, body
-            }
-          }
+              statusCode,
+              headers,
+              body,
+            },
+          },
         });
-      }
+      };
 
-      httpServer.receive_http_from_js(request.method, request.path, request.headers, request.body, onResponse)
+      httpServer.receive_http_from_js(
+        request.method,
+        request.path,
+        request.headers,
+        request.body,
+        onResponse
+      );
       break;
     }
     case "mainscript:set": {
       const { mainScriptData: newMainScriptData } = messageContent;
-      mainScriptData = newMainScriptData
-      pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
+      mainScriptData = newMainScriptData;
+      pyodide.FS.writeFile(_mainScriptPath, mainScriptData, {
+        encoding: "utf8",
+      });
       break;
     }
   }
@@ -264,7 +279,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
   const reply = {
     type: "reply",
     results,
-  }
+  };
 
   postMessage(reply);
 };

@@ -1,19 +1,19 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
-import { URLExt } from '@jupyterlab/coreutils';
+import { URLExt } from "@jupyterlab/coreutils";
 
-import { PromiseDelegate } from '@lumino/coreutils';
+import { PromiseDelegate } from "@lumino/coreutils";
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
 // About this change on Pyodide, see the links below:
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
-import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/tornado/dist/tornado-6.2-py3-none-any.whl"  // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl"
+import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/tornado/dist/tornado-6.2-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
+import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl";
 
-import worker from '!!raw-loader!./worker';
+import worker from "!!raw-loader!./worker";
 
 interface HttpRequest {
   method: "GET" | "POST";
@@ -31,14 +31,14 @@ let httpCommId = 0;
 
 function isAbsoluteURL(url: string): boolean {
   try {
-    new URL(url);  // Fails if `url` is relative and the second argument `base` is not given.
+    new URL(url); // Fails if `url` is relative and the second argument `base` is not given.
     return true;
   } catch {
-    return false
+    return false;
   }
 }
 
-const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py"
+const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
 
 export class StliteKernel {
   private _isDisposed = false;
@@ -55,7 +55,7 @@ export class StliteKernel {
     };
 
     if (options.mainScriptData) {
-      this.setMainScriptData(options.mainScriptData)
+      this.setMainScriptData(options.mainScriptData);
     }
   }
 
@@ -71,18 +71,26 @@ export class StliteKernel {
     const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
 
     function makeAbsoluteWheelURL(url: string): string {
-      return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
+      return isAbsoluteURL(url)
+        ? url
+        : URLExt.join(window.location.origin, url);
     }
-    const tornadoWheelUrl = makeAbsoluteWheelURL(TORNADO_WHEEL as unknown as string);
-    const pyarrowWheelUrl = makeAbsoluteWheelURL(PYARROW_WHEEL as unknown as string);
-    const streamlitWheelUrl = makeAbsoluteWheelURL(STREAMLIT_WHEEL as unknown as string);
+    const tornadoWheelUrl = makeAbsoluteWheelURL(
+      TORNADO_WHEEL as unknown as string
+    );
+    const pyarrowWheelUrl = makeAbsoluteWheelURL(
+      PYARROW_WHEEL as unknown as string
+    );
+    const streamlitWheelUrl = makeAbsoluteWheelURL(
+      STREAMLIT_WHEEL as unknown as string
+    );
     console.debug("Custom wheel URLs:", {
       tornadoWheelUrl,
       pyarrowWheelUrl,
       streamlitWheelUrl,
-    })
+    });
 
-    const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf('/') + 1);
+    const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
 
     return [
       // first we need the pyodide initialization scripts...
@@ -92,8 +100,8 @@ export class StliteKernel {
       `var _tornadoWheelUrl = "${tornadoWheelUrl}"`,
       `var _pyarrowWheelUrl = "${pyarrowWheelUrl}"`,
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
-      `var _command = "${options.command}"`,  // TODO: Check no special characters are included like \n or ".
-      `var _mainScriptPath = "${mainScriptPath}"`,  // TODO: Check no special characters are included like \n or ".
+      `var _command = "${options.command}"`, // TODO: Check no special characters are included like \n or ".
+      `var _mainScriptPath = "${mainScriptPath}"`, // TODO: Check no special characters are included like \n or ".
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];
@@ -108,10 +116,10 @@ export class StliteKernel {
       type: "websocket:connect",
       data: {
         path,
-      }
-    })
+      },
+    });
 
-    return Promise.resolve() // TODO: Communicate the worker to confirm the connection
+    return Promise.resolve(); // TODO: Communicate the worker to confirm the connection
   }
 
   public sendWebSocketMessage(payload: Uint8Array) {
@@ -119,16 +127,19 @@ export class StliteKernel {
       type: "websocket:send",
       data: {
         payload,
-      }
-    })
+      },
+    });
   }
 
-  private handleWebSocketMessage: ((payload: Uint8Array | string) => void) | null = null;
+  private handleWebSocketMessage:
+    | ((payload: Uint8Array | string) => void)
+    | null = null;
   public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
     this.handleWebSocketMessage = handler;
   }
 
-  private httpRequestPromises: { [httpCommId: number]: PromiseDelegate<any> } = {};
+  private httpRequestPromises: { [httpCommId: number]: PromiseDelegate<any> } =
+    {};
   public sendHttpRequest(request: HttpRequest): Promise<HttpResponse> {
     httpCommId += 1;
 
@@ -140,8 +151,8 @@ export class StliteKernel {
       data: {
         httpCommId,
         request,
-      }
-    })
+      },
+    });
 
     return executeDelegate.promise;
   }
@@ -153,9 +164,9 @@ export class StliteKernel {
     this._worker.postMessage({
       type: "mainscript:set",
       data: {
-        mainScriptData
-      }
-    })
+        mainScriptData,
+      },
+    });
   }
 
   /**
@@ -166,12 +177,12 @@ export class StliteKernel {
   private _processWorkerMessage(msg: any): void {
     switch (msg.type) {
       case "event:loaded": {
-        this._loaded.resolve()
+        this._loaded.resolve();
         break;
       }
       case "websocket:message": {
         const { payload } = msg.data;
-        this.handleWebSocketMessage && this.handleWebSocketMessage(payload)
+        this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
       case "http:response": {
@@ -208,6 +219,7 @@ export class StliteKernel {
 /**
  * A namespace for StliteKernel statics.
  */
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace StliteKernel {
   /**
    * The instantiation options for a Pyodide kernel

@@ -1,0 +1,12 @@
+{
+  "overrides": [
+    {
+      "files": "src/streamlit-replacements/**/*",
+      "options": {
+        "endOfLine": "lf",
+        "semi": false,
+        "trailingComma": "es5"
+      }
+    }
+  ]
+}

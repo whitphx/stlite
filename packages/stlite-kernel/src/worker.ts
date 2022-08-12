@@ -1,6 +1,6 @@
 let httpServer: any;
 
-let mainScriptData: string = "";
+let mainScriptData = "";
 
 /**
  * Load Pyodided and initialize the interpreter.

@@ -208,7 +208,7 @@ export class StliteKernel {
 /**
  * A namespace for StliteKernel statics.
  */
-export namespace StliteKernel {
+export namespace StliteKernel { // eslint-disable-line @typescript-eslint/no-namespace
   /**
    * The instantiation options for a Pyodide kernel
    */

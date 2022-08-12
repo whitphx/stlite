@@ -20,7 +20,7 @@ import { CancelToken } from "axios"
 import { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
 import _ from "lodash"
 import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
-import { FormDataEncoder } from "form-data-encoder"
+import { FormDataEncoder, FormDataLike } from "form-data-encoder"
 import { isValidFormId } from "streamlit-browser/src/lib/utils"
 import { StliteKernel } from "../../kernel"
 
@@ -83,10 +83,8 @@ export class FileUploadClient {
 
     this.offsetPendingRequestCount(widget.formId, 1)
 
-    // @ts-ignore
-    const encoder = new FormDataEncoder(form)
-    // @ts-ignore
-    const bodyBlob = new Blob(encoder, { type: encoder.contentType })
+    const encoder = new FormDataEncoder(form as unknown as FormDataLike)
+    const bodyBlob = new Blob(encoder as unknown as BufferSource[], { type: encoder.contentType })
 
     return bodyBlob.arrayBuffer().then((body) => {
       if (this.kernel == null) {

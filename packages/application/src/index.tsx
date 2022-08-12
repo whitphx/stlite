@@ -5,6 +5,7 @@ import { StliteKernel } from "@stlite/stlite-kernel";
 
 export interface MountOptions extends Partial<StliteKernel.IOptions> {
   container?: HTMLElement;
+  requirements?: string[];
 }
 
 const DEFAULT_PYODIDE_URL =
@@ -39,10 +40,12 @@ export function mount(options?: MountOptions) {
 
 if (process.env.NODE_ENV === "development") {
   mount({
+    requirements: ["opencv-python"],
     command: "run",
     mainScriptData: `import streamlit as st
 import pandas as pd
 import numpy as np
+import cv2
 
 st.write("Hello world")
 
@@ -52,6 +55,15 @@ chart_data = pd.DataFrame(
 st.write(chart_data)
 st.line_chart(chart_data)
 
+img_file_buffer = st.camera_input("Take a picture")
+
+if img_file_buffer is not None:
+    bytes_data = img_file_buffer.getvalue()
+    cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
+
+    cv2_img = cv2.Canny(cv2_img, 100, 200)
+
+    st.image(cv2_img)
 `,
   });
 }

@@ -10,6 +10,7 @@
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
+    "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
@@ -22,7 +23,8 @@
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "2.7.1",
-    "typescript": "^4.6.4"
+    "typescript": "^4.6.4",
+    "vitest": "^0.21.1"
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",

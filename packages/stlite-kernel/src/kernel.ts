@@ -92,6 +92,8 @@ export class StliteKernel {
 
     const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
 
+    const requirements = options.requirements || [];
+
     return [
       // first we need the pyodide initialization scripts...
       `importScripts("${options.pyodideUrl}");`,
@@ -102,6 +104,9 @@ export class StliteKernel {
       `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
       `var _command = "${options.command}"`, // TODO: Check no special characters are included like \n or ".
       `var _mainScriptPath = "${mainScriptPath}"`, // TODO: Check no special characters are included like \n or ".
+      `var _requirements = [${requirements
+        .map((req) => `"${req}"`)
+        .join(",")}]`,
       // ...finally, the worker... which _must_ appear last!
       worker.toString(),
     ];
@@ -244,5 +249,10 @@ export namespace StliteKernel {
      * The content of the main script.
      */
     mainScriptData?: string;
+
+    /**
+     * A list of package names to be install at the booting-up phase.
+     */
+    requirements?: string[];
   }
 }

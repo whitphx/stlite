@@ -28,3 +28,4 @@ declare let _pyarrowWheelUrl: string;
 declare let _streamlitWheelUrl: string;
 declare let _command: "hello" | "run";
 declare let _mainScriptPath: string;
+declare let _requirements: string[];

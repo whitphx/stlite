@@ -41,7 +41,20 @@ async function loadPyodideAndPackages() {
     ])
     await micropip.install([
       '${_streamlitWheelUrl}'
-    ], keep_going=True);
+    ], keep_going=True)
+  `);
+
+  console.debug("Requirements:", _requirements);
+  for (const req of _requirements) {
+    await pyodide.runPythonAsync(
+      `await micropip.install("${req}", keep_going=True)`
+    );
+  }
+  // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
+  // at importing installed packages.
+  await pyodide.runPythonAsync(`
+    import importlib
+    importlib.invalidate_caches()
   `);
 
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.

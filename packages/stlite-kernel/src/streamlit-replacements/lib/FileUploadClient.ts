@@ -55,9 +55,9 @@ export class FileUploadClient {
     this.pendingFormUploadsChanged = props.formsWithPendingRequestsChanged
   }
 
-  private kernel: StliteKernel | undefined;
+  private kernel: StliteKernel | undefined
   public setKernel(kernel: StliteKernel) {
-    this.kernel = kernel;
+    this.kernel = kernel
   }
 
   /**
@@ -73,8 +73,8 @@ export class FileUploadClient {
   public async uploadFile(
     widget: WidgetInfo,
     file: File,
-    onUploadProgress?: (progressEvent: any) => void,  // TODO
-    cancelToken?: CancelToken  // TODO
+    onUploadProgress?: (progressEvent: any) => void, // TODO
+    cancelToken?: CancelToken // TODO
   ): Promise<number> {
     const form = new FormData()
     form.append("sessionId", SessionInfo.current.sessionId)
@@ -84,34 +84,38 @@ export class FileUploadClient {
     this.offsetPendingRequestCount(widget.formId, 1)
 
     const encoder = new FormDataEncoder(form as unknown as FormDataLike)
-    const bodyBlob = new Blob(encoder as unknown as BufferSource[], { type: encoder.contentType })
+    const bodyBlob = new Blob(encoder as unknown as BufferSource[], {
+      type: encoder.contentType,
+    })
 
     return bodyBlob.arrayBuffer().then((body) => {
       if (this.kernel == null) {
         throw new Error("Kernel not ready")
       }
 
-      return this.kernel.sendHttpRequest({
-        method: "POST",
-        path: "/upload_file",
-        body,
-        headers: { ...encoder.headers },
-      }).then((response) => {
-        const text = new TextDecoder().decode(response.body)
-        if (typeof text === "number") {
-          return text
-        }
-        if (typeof text === "string") {
-          const parsed = parseInt(text, 10);
-          if (!Number.isNaN(parsed)) {
-            return parsed;
+      return this.kernel
+        .sendHttpRequest({
+          method: "POST",
+          path: "/upload_file",
+          body,
+          headers: { ...encoder.headers },
+        })
+        .then((response) => {
+          const text = new TextDecoder().decode(response.body)
+          if (typeof text === "number") {
+            return text
           }
-        }
+          if (typeof text === "string") {
+            const parsed = parseInt(text, 10)
+            if (!Number.isNaN(parsed)) {
+              return parsed
+            }
+          }
 
-        throw new Error(
-          `Bad uploadFile response: expected a number but got '${text}'`
-        )
-      })
+          throw new Error(
+            `Bad uploadFile response: expected a number but got '${text}'`
+          )
+        })
         .finally(() => this.offsetPendingRequestCount(widget.formId, -1))
     })
   }

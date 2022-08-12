@@ -12,7 +12,7 @@ interface Props {
   /**
    * Kernel object to connect to.
    */
-  kernel: StliteKernel;
+  kernel: StliteKernel
 
   /**
    * Function to be called when we receive a message from the server.
@@ -41,14 +41,14 @@ export class ConnectionManager {
     this.props.kernel.onWebSocketMessage((payload) => {
       if (typeof payload === "string") {
         console.error("Unexpected payload type.")
-        return;
+        return
       }
       props.onMessage(ForwardMsg.decode(payload))
     })
 
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
-      this.connect();
+      this.connect()
     })
   }
 
@@ -79,7 +79,7 @@ export class ConnectionManager {
         // so here `window.location.pathname` must be set here as `basePath` representing the app root url path.
         // With this implementation, multi-page apps are not supported on stlite.
         // See https://github.com/whitphx/stlite/issues/41
-        basePath: (window.location.pathname || "").replace(/^\//, "")
+        basePath: (window.location.pathname || "").replace(/^\//, ""),
       }
     }
     return undefined
@@ -87,7 +87,9 @@ export class ConnectionManager {
 
   public sendMessage(obj: BackMsg): void {
     if (this.isConnected()) {
-      this.props.kernel.sendWebSocketMessage(BackMsg.encode(BackMsg.create(obj)).finish())
+      this.props.kernel.sendWebSocketMessage(
+        BackMsg.encode(BackMsg.create(obj)).finish()
+      )
     } else {
       // Don't need to make a big deal out of this. Just print to console.
       console.error(`Cannot send message when server is disconnected: ${obj}`)
@@ -103,18 +105,15 @@ export class ConnectionManager {
   }
 
   private async connect(): Promise<void> {
-    const WEBSOCKET_STREAM_PATH = "stream"  // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
+    const WEBSOCKET_STREAM_PATH = "stream" // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
 
     try {
       await this.props.kernel.connectWebSocket(WEBSOCKET_STREAM_PATH)
       this.setConnectionState(ConnectionState.CONNECTED)
     } catch (e) {
-      const err = ensureError(e);
+      const err = ensureError(e)
       console.error(err.message)
-      this.setConnectionState(
-        ConnectionState.DISCONNECTED_FOREVER,
-        err.message
-      )
+      this.setConnectionState(ConnectionState.DISCONNECTED_FOREVER, err.message)
     }
   }
 

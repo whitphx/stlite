@@ -14,5 +14,5 @@ TORNADO_PYTHONPATH = TORNADO_SUBMODULE
 sys.path.insert(0, str(TORNADO_PYTHONPATH))
 
 
-pyodide = Mock()
-sys.modules["pyodide"] = pyodide
+sys.modules["pyodide"] = Mock()
+sys.modules["pyodide.ffi"] = Mock()

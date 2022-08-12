@@ -19,7 +19,7 @@ interface HttpRequest {
   method: "GET" | "POST";
   path: string;
   headers: { [key: string]: string };
-  body: ArrayBuffer;
+  body: ArrayBuffer | string;
 }
 interface HttpResponse {
   statusCode: number;

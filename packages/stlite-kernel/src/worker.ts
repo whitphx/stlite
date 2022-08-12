@@ -55,12 +55,13 @@ async function loadPyodideAndPackages() {
     ], keep_going=True)
   `);
 
-  console.debug("Requirements:", requirements);
-  for (const req of requirements) {
-    await pyodide.runPythonAsync(
-      `await micropip.install("${req}", keep_going=True)`
-    );
-  }
+  console.debug("Install the requirements:", requirements);
+  self.__requirements__ = requirements;
+  await pyodide.runPythonAsync(`
+    from js import __requirements__
+    await micropip.install(__requirements__, keep_going=True)
+  `);
+
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`

@@ -3,6 +3,15 @@ let httpServer: any;
 let mainScriptData = "";
 
 /**
+ * A promise waiting for the initial data to be sent from the main thread.
+ */
+let setInitData: ((initData: WorkerInitialData) => void) | undefined =
+  undefined;
+const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
+  setInitData = resolve;
+});
+
+/**
  * Load Pyodided and initialize the interpreter.
  *
  * NOTE: This implementation is based on JupyterLite@v0.1.0a16.
@@ -12,6 +21,8 @@ let mainScriptData = "";
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
+  const { requirements } = await initDataPromise;
+
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
     indexURL,
@@ -41,7 +52,21 @@ async function loadPyodideAndPackages() {
     ])
     await micropip.install([
       '${_streamlitWheelUrl}'
-    ], keep_going=True);
+    ], keep_going=True)
+  `);
+
+  console.debug("Install the requirements:", requirements);
+  self.__requirements__ = requirements;
+  await pyodide.runPythonAsync(`
+    from js import __requirements__
+    await micropip.install(__requirements__, keep_going=True)
+  `);
+
+  // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
+  // at importing installed packages.
+  await pyodide.runPythonAsync(`
+    import importlib
+    importlib.invalidate_caches()
   `);
 
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
@@ -186,11 +211,22 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  * @param event The message event to process
  */
 self.onmessage = async (event: MessageEvent): Promise<void> => {
-  await pyodideReadyPromise;
   const data = event.data;
   let results;
   const messageType = data.type;
   const messageContent = data.data;
+
+  // Special case for transmitting the initial data
+  if (messageType === "initData") {
+    if (setInitData == null) {
+      throw new Error("Unexpectedly failed to pass the initial data");
+    }
+    setInitData(messageContent);
+    return;
+  }
+
+  await pyodideReadyPromise;
+
   switch (messageType) {
     case "websocket:connect": {
       console.debug("websocket:connect", messageContent);
@@ -283,3 +319,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
 
   postMessage(reply);
 };
+
+postMessage({
+  type: "event:start",
+});

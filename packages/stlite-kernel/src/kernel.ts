@@ -47,13 +47,17 @@ export class StliteKernel {
 
   private _loaded = new PromiseDelegate<void>();
 
+  private _workerInitData: WorkerInitialData;
+
   constructor(options: StliteKernel.IOptions) {
     const blob = new Blob([this.buildWorkerScript(options).join("\n")]);
     this._worker = new Worker(window.URL.createObjectURL(blob));
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
-
+    this._workerInitData = {
+      requirements: options.requirements || [],
+    };
     if (options.mainScriptData) {
       this.setMainScriptData(options.mainScriptData);
     }
@@ -176,6 +180,13 @@ export class StliteKernel {
    */
   private _processWorkerMessage(msg: any): void {
     switch (msg.type) {
+      case "event:start": {
+        this._worker.postMessage({
+          type: "initData",
+          data: this._workerInitData,
+        });
+        break;
+      }
       case "event:loaded": {
         this._loaded.resolve();
         break;
@@ -244,5 +255,10 @@ export namespace StliteKernel {
      * The content of the main script.
      */
     mainScriptData?: string;
+
+    /**
+     * A list of package names to be install at the booting-up phase.
+     */
+    requirements?: string[];
   }
 }

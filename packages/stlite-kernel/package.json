@@ -20,6 +20,7 @@
     "@typescript-eslint/parser": "^5.33.0",
     "eslint": "^8.21.0",
     "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "2.7.1",
     "typescript": "^4.6.4"
   },

@@ -26,3 +26,6 @@ target-version = ['py310']
 
 [tool.isort]
 profile = "black"
+
+[tool.mypy]
+check_untyped_defs = true

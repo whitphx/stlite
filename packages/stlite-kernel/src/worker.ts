@@ -90,11 +90,11 @@ async function loadPyodideAndPackages() {
       streamlit_handler.setLevel(logging.DEBUG)
   `);
 
-  // Emulate the process in streamlit/cli.py
+  // Emulate the process in streamlit/web/cli.py
   await pyodide.runPythonAsync(`
     import os
     import streamlit
-    import streamlit.bootstrap as bootstrap
+    import streamlit.web.bootstrap as bootstrap
 
 
     def _get_command_line_as_string():

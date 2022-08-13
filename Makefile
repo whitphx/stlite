@@ -4,7 +4,7 @@ stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := streamlit/lib/dist/streamlit-1.9.2-py2.py3-none-any.whl
+streamlit_wheel := streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
 
 .PHONY: all
 all: init application playground

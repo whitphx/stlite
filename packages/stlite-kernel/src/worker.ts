@@ -1,7 +1,5 @@
 let httpServer: any;
 
-let mainScriptData = "";
-
 /**
  * A promise waiting for the initial data to be sent from the main thread.
  */
@@ -21,7 +19,7 @@ const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  const { requirements } = await initDataPromise;
+  const { requirements, mainScriptData } = await initDataPromise;
 
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
@@ -303,8 +301,7 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       break;
     }
     case "mainscript:set": {
-      const { mainScriptData: newMainScriptData } = messageContent;
-      mainScriptData = newMainScriptData;
+      const { mainScriptData } = messageContent;
       pyodide.FS.writeFile(_mainScriptPath, mainScriptData, {
         encoding: "utf8",
       });

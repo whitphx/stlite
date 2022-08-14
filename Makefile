@@ -1,5 +1,5 @@
 playground := packages/playground/build/*
-application := packages/application/build/*
+mountable := packages/mountable/build/*
 stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
@@ -7,7 +7,7 @@ streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
 
 .PHONY: all
-all: init application playground
+all: init mountable playground
 
 
 .PHONY: init
@@ -40,10 +40,10 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 	@touch $@
 
 
-.PHONY: application
-application: $(application)
-$(application): packages/application/src/*.ts packages/application/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
-	cd packages/application; \
+.PHONY: mountable
+mountable: $(mountable)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
+	cd packages/mountable; \
 	yarn build
 	@touch $@
 

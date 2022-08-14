@@ -1,7 +1,7 @@
 {
-  "name": "@stlite/application",
+  "name": "@stlite/mountable",
   "version": "0.1.0",
-  "description": "Stlite application",
+  "description": "Stlite application to mount",
   "keywords": [
     "stlite",
     "streamlit"

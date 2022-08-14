@@ -65,5 +65,6 @@ if img_file_buffer is not None:
 
     st.image(cv2_img)
 `,
+    container: document.getElementById("root") as HTMLElement,
   });
 }

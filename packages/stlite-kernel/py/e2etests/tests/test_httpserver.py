@@ -1,5 +1,6 @@
 import asyncio
 import threading
+from typing import Any
 from unittest.mock import ANY, Mock, patch
 
 import pytest
@@ -30,7 +31,7 @@ def run_streamlit_background():
     asyncio.set_event_loop(server_evloop)
     event = threading.Event()
 
-    data_from_thread = {"server": None, "exception": None}
+    data_from_thread: dict[str, Any] = {"server": None, "exception": None}
 
     async def init_server():
         """Mimic streamlit.bootstrap.run()"""
@@ -40,7 +41,7 @@ def run_streamlit_background():
             event.set()
 
         ioloop = tornado.ioloop.IOLoop.current()
-        server = Server(ioloop, filename, [])
+        server = Server(ioloop, filename, None)
         server.start(on_start)
 
     def start():
@@ -69,7 +70,7 @@ def run_streamlit_background():
 
 
 def test_http_server_is_set(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER
+    from tornado.httpserver import HTTP_SERVER  # type: ignore
 
     assert HTTP_SERVER is not None
 
@@ -79,7 +80,7 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
     session = AppSession()
 
     from streamlit.proto import BackMsg_pb2
-    from tornado.httpserver import HTTP_SERVER
+    from tornado.httpserver import HTTP_SERVER  # type: ignore
 
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
@@ -96,7 +97,7 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
 
 
 def test_http_get(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER
+    from tornado.httpserver import HTTP_SERVER  # type: ignore
 
     on_response = Mock()
 
@@ -109,7 +110,7 @@ def test_http_get(run_streamlit_background):
 
 
 def test_http_file_upload(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER
+    from tornado.httpserver import HTTP_SERVER  # type: ignore
 
     # Initiate the session
     receive_websocket = Mock()

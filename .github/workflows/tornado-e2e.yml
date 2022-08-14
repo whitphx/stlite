@@ -76,6 +76,10 @@ jobs:
         poetry run isort . --check
         poetry run flake8
 
+    - name: Run mypy
+      working-directory: packages/stlite-kernel/py/e2etests
+      run: poetry run mypy .
+
     - name: Run pytest
       shell: bash
       run: poetry run python -m pytest -v tests

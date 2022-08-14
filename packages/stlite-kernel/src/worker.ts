@@ -40,10 +40,12 @@ async function loadPyodideAndPackages() {
     stderr: console.error,
   });
 
-  await pyodide.loadPackage(["micropip"]);
+  await pyodide.loadPackage([
+    "micropip",
+    "ssl", // TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
+  ]);
   await pyodide.runPythonAsync(`
     import micropip
-    await micropip.install(["ssl"])  # TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
     await micropip.install([
       '${_tornadoWheelUrl}',
       '${_pyarrowWheelUrl}',

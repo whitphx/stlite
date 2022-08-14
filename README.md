@@ -26,7 +26,7 @@ Here is a sample HTML page.
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://whitphx.github.io/stlite/lib/application/stlite.js" ></script>
+  <script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js" ></script>
   <script>
     stlite.mount({
       mainScriptData: `

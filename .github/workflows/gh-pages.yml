@@ -7,13 +7,13 @@ on:
     branches: [ main ]
 
 env:
-  GITHUB_PAGES_SUBDIR_APPLICATION: lib/application
+  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
 
 jobs:
   build:
     strategy:
       matrix:
-        target: ["application", "playground"]
+        target: ["mountable", "playground"]
 
     env:
       python-version: "3.10.2"
@@ -87,25 +87,25 @@ jobs:
         name: stlite-playground
         path: packages/playground/build
 
-    ## Build and deploy @stlite/application
-    # Set PUBLIC_URL for the application package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_APPLICATION}.
+    ## Build and deploy @stlite/mountable
+    # Set PUBLIC_URL for the mountable package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_MOUNTABLE}.
     # An absolute URL must be set to PUBLIC_URL when the bundled file will be imported from other origins
     # because it will load files such as JS chunks and Python wheels at runtime
     # and these dynamic loading will be based on the PUBLIC_URL.
     # If PUBLIC_URL is relative, it will be resolved based on window.location.origin and leads to loading failure.
-    - if: matrix.target == 'application'
+    - if: matrix.target == 'mountable'
       name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=https://${GITHUB_REPOSITORY%/*}.github.io/${GITHUB_REPOSITORY#*/}/${GITHUB_PAGES_SUBDIR_APPLICATION}" >> $GITHUB_ENV
-    - if: matrix.target == 'application'
-      name: Build @stlite/application
-      run: make application
+      run: echo "PUBLIC_URL=https://${GITHUB_REPOSITORY%/*}.github.io/${GITHUB_REPOSITORY#*/}/${GITHUB_PAGES_SUBDIR_MOUNTABLE}" >> $GITHUB_ENV
+    - if: matrix.target == 'mountable'
+      name: Build @stlite/mountable
+      run: make mountable
 
-    - if: matrix.target == 'application'
+    - if: matrix.target == 'mountable'
       name: Upload the built files as an artifact
       uses: actions/upload-artifact@v2
       with:
-        name: stlite-application
-        path: packages/application/build
+        name: stlite-mountable
+        path: packages/mountable/build
 
   deploy:
     needs: build
@@ -125,16 +125,16 @@ jobs:
         path: playground
     - uses: actions/download-artifact@v3
       with:
-        name: stlite-application
-        path: application
+        name: stlite-mountable
+        path: mountable
 
 
     - name: Merge the build artifacts
       run: |
         mkdir /tmp/website
         cp -r ./playground/* /tmp/website/.
-        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_APPLICATION}
-        cp -r ./application/* /tmp/website/${GITHUB_PAGES_SUBDIR_APPLICATION}/.
+        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}
+        cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
 
     - name: Upload the website files as an artifact
       uses: actions/upload-artifact@v2

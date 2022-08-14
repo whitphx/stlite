@@ -57,10 +57,8 @@ export class StliteKernel {
     };
     this._workerInitData = {
       requirements: options.requirements || [],
+      mainScriptData: options.mainScriptData,
     };
-    if (options.mainScriptData) {
-      this.setMainScriptData(options.mainScriptData);
-    }
   }
 
   /**

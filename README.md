@@ -58,7 +58,7 @@ st.pyplot(fig)
 
 In this sample,
 * stlite library is imported with the first script tag, then the global `stlite` object becomes available.
-* `stlite.mount()` mounts Streamlit frontend on the `<body />` element and runs the Python script passed through the `mainScriptData` option.
+* `stlite.mount()` mounts the Streamlit app to the `<div id="root" />` element as specified via the `container` option and runs the Python script passed through the `mainScriptData` option.
 
 > **Warning**
 > stlite is at the very beginning of its development and the API can drastically change without any notice in the future.

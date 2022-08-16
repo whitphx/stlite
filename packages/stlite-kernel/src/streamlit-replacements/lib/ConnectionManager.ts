@@ -7,6 +7,7 @@ import { ReactNode } from "react"
 import { StliteKernel } from "../../kernel"
 import { ConnectionState } from "./ConnectionState"
 import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
+import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 
 interface Props {
   /**
@@ -71,8 +72,8 @@ export class ConnectionManager {
       // See https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/UriUtil.ts#L60-L72
       // or its caller https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/ConnectionManager.ts#L142
       return {
-        host: "xxx",
-        port: 99999,
+        host: DUMMY_BASE_HOSTNAME,
+        port: DUMMY_BASE_PORT,
         // When a new session starts, a page name for multi-page apps (a relative path to the app root url) is calculated based on this `basePath`
         // then a `rerunScript` BackMsg is sent to the server with `pageName` (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L1064)
         // and `window.history.pushState` is called (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665),

@@ -7,8 +7,9 @@ export function manipulateIFrameDocument(
   document: Document,
   basePath: string
 ): Promise<void> {
-  const scriptTags = document.getElementsByTagName("script");
   const promises = [];
+
+  const scriptTags = document.getElementsByTagName("script");
   for (const scriptTag of scriptTags) {
     if (scriptTag.src === "") {
       continue;

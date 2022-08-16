@@ -12,11 +12,9 @@ const mockIframeSrcDoc = `
 <head>
   <meta charset="UTF-8">
   <title>Streamlit Custom Component</title>
-  <script src="./static/js/foo.49ba281c.js"></script>
 </head>
 <body>
-  <script>"This is an embedded script"</script>
-  <script src="./static/js/bar.8a1fef02.js"></script>
+  <div>Body</div>
 </body>
 </html>
 `;
@@ -25,14 +23,6 @@ const mockHtmlResponses = {
   "/component/foo.bar/index.html": {
     contentType: "text/html",
     body: mockIframeSrcDoc,
-  },
-  "/component/package.component/static/js/foo.49ba281c.js": {
-    contentType: "text/javascript",
-    body: `"This is foo.js"`,
-  },
-  "/component/package.component/static/js/bar.8a1fef02.js": {
-    contentType: "text/javascript",
-    body: `"This is bar.js"`,
   },
 };
 
@@ -69,12 +59,12 @@ vi.mock("./path", () => {
   return { extractCustomComponentPath };
 });
 
-describe("CustomComponentIFrame", () => {
+describe("<CustomComponentIFrame />", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it("sets iframe with a srcdoc loaded from the stlite kernel and calls manipulateIFrameDocument() after the iframe loaded", async () => {
+  it("mounts an iframe with a srcdoc loaded from the stlite kernel and calls manipulateIFrameDocument() after the iframe loaded", async () => {
     const src = ""; // `extractCustomComponentPath` is mocked, so src does not matter.
     const kernel = new StliteKernel({
       pyodideUrl: "",

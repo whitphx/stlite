@@ -8,7 +8,7 @@ interface CustomComponentIFrameProps extends IFrameProps {
   src: string;
 }
 
-const InnerIframe = React.forwardRef<
+const InnerIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >(({ src, ...props }, ref) => {
@@ -81,21 +81,18 @@ const InnerIframe = React.forwardRef<
     <iframe {...props} srcDoc={srcdoc} onLoad={handleIFrameLoaded} ref={ref} />
   );
 });
-InnerIframe.displayName = "InnerIframe";
+InnerIFrame.displayName = "InnerIframe";
 
 const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >((props, ref) => {
-  const path = extractCustomComponentPath(
-    window.location.pathname, // TODO: Copied from the implementation of `ConnectionManager.getBaseUriParts`. This value should be got by calling the method.
-    props.src
-  );
+  const path = extractCustomComponentPath(window.location.pathname, props.src);
 
   if (path == null) {
     return <iframe {...props} ref={ref} />;
   }
-  return <InnerIframe {...props} src={path} ref={ref} />;
+  return <InnerIFrame {...props} src={path} ref={ref} />;
 });
 CustomComponentIFrame.displayName = "StliteCustomComponentIFrame";
 

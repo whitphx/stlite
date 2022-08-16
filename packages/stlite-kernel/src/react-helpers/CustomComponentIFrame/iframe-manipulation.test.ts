@@ -2,7 +2,6 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import { StliteKernel } from "../../kernel";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
-// TODO: Share the mock implementation with index.test.ts
 const mockIframeSrcDoc = `
 <!DOCTYPE html>
 <html>
@@ -76,13 +75,13 @@ describe("manipulateIFrameDocument", () => {
     iframe.contentWindow?.document.write(mockIframeSrcDoc);
     iframe.contentWindow?.document.close();
 
+    const iframeDocument = iframe.contentWindow?.document as Document;
+    expect(iframeDocument).not.toBeUndefined();
+
     const kernel = new StliteKernel({
       pyodideUrl: "",
       command: "run",
     });
-
-    const iframeDocument = iframe.contentWindow?.document as Document;
-    expect(iframeDocument).not.toBeUndefined();
 
     await manipulateIFrameDocument(
       kernel,
@@ -90,6 +89,8 @@ describe("manipulateIFrameDocument", () => {
       "/component/package.component"
     );
 
+    // Expect that the <script> tags with src attr have been replaced
+    // with new <script> tags whose contents were loaded from the stlite kernel.
     const scriptTags = iframeDocument.getElementsByTagName("script");
     expect(scriptTags.length).toBe(3);
 
@@ -105,8 +106,11 @@ describe("manipulateIFrameDocument", () => {
       ])
     );
 
+    // Expect that stylesheets specified with the <link> tags
+    // have been loaded and embedded as <style> tags.
     const styleTags = iframeDocument.getElementsByTagName("style");
     expect(styleTags.length).toBe(1);
+
     const styleTagHtmls: (string | null)[] = [];
     for (const styleTag of styleTags) {
       styleTagHtmls.push(styleTag.innerHTML);

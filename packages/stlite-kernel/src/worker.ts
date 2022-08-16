@@ -24,19 +24,7 @@ async function loadPyodideAndPackages() {
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
     indexURL,
-    stdout: (log: string) => {
-      if (log.startsWith("CRITICAL") || log.startsWith("ERROR")) {
-        console.error(log);
-      } else if (log.startsWith("WARNING")) {
-        console.warn(log);
-      } else if (log.startsWith("INFO")) {
-        console.info(log);
-      } else if (log.startsWith("DEBUG")) {
-        console.debug(log);
-      } else {
-        console.log(log);
-      }
-    },
+    stdout: console.log,
     stderr: console.error,
   });
 
@@ -81,10 +69,39 @@ async function loadPyodideAndPackages() {
       streamlit.logger.set_log_level = lambda *a, **k: None
   `);
   // Then configure the logger.
+  const logCallback = (msg: string) => {
+    if (msg.startsWith("CRITICAL") || msg.startsWith("ERROR")) {
+      console.error(msg);
+    } else if (msg.startsWith("WARNING")) {
+      console.warn(msg);
+    } else if (msg.startsWith("INFO")) {
+      console.info(msg);
+    } else if (msg.startsWith("DEBUG")) {
+      console.debug(msg);
+    } else {
+      console.log(msg);
+    }
+  };
+  self.__logCallback__ = logCallback;
   await pyodide.runPythonAsync(`
-      import sys
+      from js import __logCallback__
 
-      logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, force=True)
+
+      class JsHandler(logging.Handler):
+          def emit(self, record):
+              msg = self.format(record)
+              __logCallback__(msg)
+
+
+      main_formatter = logging.Formatter("%(levelname)s:%(name)s:%(message)s")
+
+      js_handler = JsHandler()
+      js_handler.setFormatter(main_formatter)
+
+      root_logger = logging.getLogger()
+      root_logger.handlers.clear()
+      root_logger.addHandler(js_handler)
+      root_logger.setLevel(logging.DEBUG)
 
       streamlit_handler = logging.getLogger("streamlit")
       streamlit_handler.setLevel(logging.DEBUG)

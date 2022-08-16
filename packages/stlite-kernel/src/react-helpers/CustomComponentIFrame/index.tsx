@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useStliteKernel } from "../StliteKernelProvider";
-import { extractCustomComponentPath } from "./path";
+import { extractCustomComponentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
 type IFrameProps = JSX.IntrinsicElements["iframe"];

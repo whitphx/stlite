@@ -52,7 +52,7 @@ vi.mock("../../kernel", () => {
 });
 
 vi.mock("./iframe-manipulation");
-vi.mock("./path", () => {
+vi.mock("./url", () => {
   const extractCustomComponentPath = vi.fn();
   extractCustomComponentPath.mockReturnValue("/component/foo.bar/index.html");
 

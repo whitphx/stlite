@@ -1,4 +1,6 @@
+import { URLExt } from "@jupyterlab/coreutils";
 import { StliteKernel } from "../../kernel";
+import { getRelativePath } from "./url";
 
 export function manipulateIFrameDocument(
   kernel: StliteKernel,
@@ -12,8 +14,18 @@ export function manipulateIFrameDocument(
     if (scriptTag.src === "") {
       continue;
     }
-    const url = new URL(scriptTag.src); // TODO: Check if src is relative or same origin
-    const path = basePath + url.pathname;
+
+    const relPath = getRelativePath(
+      window.location.host,
+      window.location.pathname,
+      new URL(scriptTag.src)
+    );
+    if (relPath == null) {
+      continue;
+    }
+
+    const path = URLExt.join(basePath, relPath);
+
     const promise = kernel
       .sendHttpRequest({
         method: "GET",

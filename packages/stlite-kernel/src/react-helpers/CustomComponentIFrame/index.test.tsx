@@ -22,7 +22,7 @@ const mockIframeSrcDoc = `
 `;
 
 const mockHtmlResponses = {
-  "/component/package.component/index.html": {
+  "/component/foo.bar/index.html": {
     contentType: "text/html",
     body: mockIframeSrcDoc,
   },
@@ -62,6 +62,12 @@ vi.mock("../../kernel", () => {
 });
 
 vi.mock("./iframe-manipulation");
+vi.mock("./path", () => {
+  const extractCustomComponentPath = vi.fn();
+  extractCustomComponentPath.mockReturnValue("/component/foo.bar/index.html");
+
+  return { extractCustomComponentPath };
+});
 
 describe("CustomComponentIFrame", () => {
   afterEach(() => {
@@ -69,8 +75,7 @@ describe("CustomComponentIFrame", () => {
   });
 
   it("sets iframe with a srcdoc loaded from the stlite kernel and calls manipulateIFrameDocument() after the iframe loaded", async () => {
-    const src =
-      "http://xxx:99999/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F";
+    const src = ""; // `extractCustomComponentPath` is mocked, so src does not matter.
     const kernel = new StliteKernel({
       pyodideUrl: "",
       command: "run",
@@ -90,7 +95,7 @@ describe("CustomComponentIFrame", () => {
     expect(manipulateIFrameDocument).toBeCalledWith(
       kernel,
       expect.anything(),
-      "/component/package.component"
+      "/component/foo.bar"
     );
   });
 });

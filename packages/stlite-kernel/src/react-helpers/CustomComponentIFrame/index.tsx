@@ -87,7 +87,10 @@ const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >((props, ref) => {
-  const path = extractCustomComponentPath(props.src);
+  const path = extractCustomComponentPath(
+    window.location.pathname, // TODO: Copied from the implementation of `ConnectionManager.getBaseUriParts`. This value should be got by calling the method.
+    props.src
+  );
 
   if (path == null) {
     return <iframe {...props} ref={ref} />;

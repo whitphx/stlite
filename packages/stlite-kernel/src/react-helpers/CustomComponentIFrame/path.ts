@@ -1,5 +1,13 @@
-export function extractCustomComponentPath(url: string): string | null {
-  const matches = url.match(/https?:\/\/xxx:99999(\/.*?)\?.*/);
+export function extractCustomComponentPath(
+  basePathname: string,
+  url: string
+): string | null {
+  const basePath = basePathname.replace(/^\//, "");
+  const baseHostAndPath =
+    basePath === "" ? "xxx:99999" : "xxx:99999/" + basePath;
+  const regex = new RegExp(`https?://${baseHostAndPath}(/.*?$)`);
+
+  const matches = url.match(regex);
   if (matches == null) {
     return null;
   }

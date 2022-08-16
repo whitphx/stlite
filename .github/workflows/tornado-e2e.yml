@@ -49,7 +49,7 @@ jobs:
 
     - name: Ensure cache is healthy
       if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s poetry run pip --version || rm -rf .venv
+      run: timeout 10s pip --version || rm -rf .venv
 
     - name: Create virtualenv
       run: python -m venv .venv

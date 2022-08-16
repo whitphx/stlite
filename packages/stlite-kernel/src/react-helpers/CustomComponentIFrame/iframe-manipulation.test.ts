@@ -9,11 +9,13 @@ const mockIframeSrcDoc = `
 <head>
   <meta charset="UTF-8">
   <title>Streamlit Custom Component</title>
-  <script src="./static/js/foo.49ba281c.js"></script>
+  <link href="./static/css/main.870b2c18.chunk.css" rel="stylesheet">
+  <script src="./346f82515df6a4f2eb7f15393fdcea08.js"></script>
 </head>
 <body>
+  <div id="root"></div>
   <script>"This is an embedded script"</script>
-  <script src="./static/js/bar.8a1fef02.js"></script>
+  <script src="./static/js/2.55bd8404.chunk.js"></script>
 </body>
 </html>
 `;
@@ -23,13 +25,17 @@ const mockHtmlResponses = {
     contentType: "text/html",
     body: mockIframeSrcDoc,
   },
-  "/component/package.component/static/js/foo.49ba281c.js": {
+  "/component/package.component/346f82515df6a4f2eb7f15393fdcea08.js": {
     contentType: "text/javascript",
     body: `"This is foo.js"`,
   },
-  "/component/package.component/static/js/bar.8a1fef02.js": {
+  "/component/package.component/static/js/2.55bd8404.chunk.js": {
     contentType: "text/javascript",
     body: `"This is bar.js"`,
+  },
+  "/component/package.component/static/css/main.870b2c18.chunk.css": {
+    contentType: "text/css; charset=utf-8",
+    body: `// This is a CSS file`,
   },
 };
 
@@ -97,6 +103,16 @@ describe("manipulateIFrameDocument", () => {
         `"This is foo.js"`,
         `"This is bar.js"`,
       ])
+    );
+
+    const styleTags = iframeDocument.getElementsByTagName("style");
+    expect(styleTags.length).toBe(1);
+    const styleTagHtmls: (string | null)[] = [];
+    for (const styleTag of styleTags) {
+      styleTagHtmls.push(styleTag.innerHTML);
+    }
+    expect(styleTagHtmls).toEqual(
+      expect.arrayContaining([`// This is a CSS file`])
     );
   });
 });

@@ -40,7 +40,7 @@ export function useStliteImageList(inputImages: IImage[]) {
             return image;
           }
 
-          const blob = new Blob([body], { type: headers.get("ContentType") });
+          const blob = new Blob([body], { type: headers.get("Content-Type") });
           const objectUrl = URL.createObjectURL(blob);
           generatedObjectUrls.push(objectUrl);
           return new ImageProto({

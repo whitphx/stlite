@@ -36,7 +36,7 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
           return;
         }
 
-        const blob = new Blob([body], { type: headers.get("ContentType") });
+        const blob = new Blob([body], { type: headers.get("Content-Type") });
         objectUrl = URL.createObjectURL(blob);
         setUrl(objectUrl);
       });

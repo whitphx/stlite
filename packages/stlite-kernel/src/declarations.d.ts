@@ -32,4 +32,5 @@ declare let _mainScriptPath: string;
 // Declarations for the `self` object in worker.ts some of whose properties are used to share values with the Python environment.
 interface Window {
   __requirements__: string[];
+  __logCallback__: (msg: string) => void;
 }

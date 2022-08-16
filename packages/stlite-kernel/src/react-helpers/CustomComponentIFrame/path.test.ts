@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractCustomComponentPath } from "./custom-component";
+import { extractCustomComponentPath } from "./path";
 
 describe("extractCustomComponentPath", () => {
   it("extracts URL path from full URL", () => {

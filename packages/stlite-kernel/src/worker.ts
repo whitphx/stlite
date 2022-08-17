@@ -229,7 +229,6 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  */
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const data = event.data;
-  let results;
 
   // Special case for transmitting the initial data
   if (data.type === "initData") {
@@ -325,13 +324,6 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       break;
     }
   }
-
-  const reply = {
-    type: "reply",
-    results,
-  };
-
-  postMessage(reply);
 };
 
 postMessage({

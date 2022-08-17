@@ -23,4 +23,29 @@
   background: #888;
   padding: 2px;
   cursor: initial;
+
+  display: flex;
+  justify-content: space-between;
+}
+
+.requirements-textarea {
+  width: 100%;
+  height: 100%;
+}
+
+.radio-label {
+  text-transform: capitalize;
+  margin-left: 0.5rem;
+}
+
+.radio-radio {
+  margin-right: 0.2rem;
+}
+
+.footnote {
+  display: inline-block;
+  text-align: right;
+}
+.footnote a,.footnote a:visited {
+  color: #ddf
 }

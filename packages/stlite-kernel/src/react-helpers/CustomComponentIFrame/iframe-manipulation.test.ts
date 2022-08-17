@@ -68,7 +68,7 @@ describe("manipulateIFrameDocument", () => {
     vi.clearAllMocks();
   });
 
-  it("replaces the script tags in the document whose sources are external with scripts loaded from the stlite kernel", async () => {
+  it("replaces the script tags with src attr in the document with the script tags with bodies loaded from the stlite kernel", async () => {
     const iframe = window.document.createElement("iframe");
     window.document.body.appendChild(iframe);
     iframe.contentWindow?.document.open();

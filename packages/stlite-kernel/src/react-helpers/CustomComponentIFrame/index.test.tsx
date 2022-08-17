@@ -72,7 +72,7 @@ describe("<CustomComponentIFrame />", () => {
     });
     const { container } = render(
       <StliteKernelProvider kernel={kernel}>
-        <CustomComponentIFrame src={src} />{" "}
+        <CustomComponentIFrame src={src} />
       </StliteKernelProvider>
     );
 

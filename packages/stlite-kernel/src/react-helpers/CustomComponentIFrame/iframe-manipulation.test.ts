@@ -90,7 +90,7 @@ describe("manipulateIFrameDocument", () => {
     );
 
     // Expect that the <script> tags with src attr have been replaced
-    // with new <script> tags whose contents were loaded from the stlite kernel.
+    // with new <script> tags whose bodies were loaded from the stlite kernel.
     const scriptTags = iframeDocument.getElementsByTagName("script");
     expect(scriptTags.length).toBe(3);
 
@@ -106,7 +106,7 @@ describe("manipulateIFrameDocument", () => {
       ])
     );
 
-    // Expect that stylesheets specified with the <link> tags
+    // Expect that the stylesheets specified via <link> tags
     // have been loaded and embedded as <style> tags.
     const styleTags = iframeDocument.getElementsByTagName("style");
     expect(styleTags.length).toBe(1);

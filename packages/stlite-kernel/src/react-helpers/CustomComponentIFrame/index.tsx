@@ -11,9 +11,8 @@ interface CustomComponentIFrameProps extends IFrameProps {
 const InnerIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
->(({ src, ...props }, ref) => {
+>(({ src: path, ...props }, ref) => {
   const kernel = useStliteKernel();
-  const rawUrl = src;
 
   const [srcdoc, setSrcdoc] = useState<string>();
 
@@ -22,7 +21,7 @@ const InnerIFrame = React.forwardRef<
       return;
     }
 
-    if (!rawUrl.startsWith("/component")) {
+    if (!path.startsWith("/component")) {
       return;
     }
 
@@ -30,7 +29,7 @@ const InnerIFrame = React.forwardRef<
     kernel
       .sendHttpRequest({
         method: "GET",
-        path: rawUrl,
+        path: path,
         headers: {},
         body: "",
       })
@@ -55,9 +54,9 @@ const InnerIFrame = React.forwardRef<
     return () => {
       released = true;
     };
-  }, [kernel, rawUrl]);
+  }, [kernel, path]);
 
-  const handleIFrameLoaded = useCallback<
+  const handleIFrameLoad = useCallback<
     React.ReactEventHandler<HTMLIFrameElement>
   >(
     (ev) => {
@@ -71,17 +70,17 @@ const InnerIFrame = React.forwardRef<
       manipulateIFrameDocument(
         kernel,
         document,
-        rawUrl.split("/").slice(0, -1).join("/")
+        path.split("/").slice(0, -1).join("/")
       );
     },
-    [kernel, rawUrl]
+    [kernel, path]
   );
 
   return (
-    <iframe {...props} srcDoc={srcdoc} onLoad={handleIFrameLoaded} ref={ref} />
+    <iframe {...props} srcDoc={srcdoc} onLoad={handleIFrameLoad} ref={ref} />
   );
 });
-InnerIFrame.displayName = "InnerIframe";
+InnerIFrame.displayName = "InnerIFrame";
 
 const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,

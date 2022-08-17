@@ -23,6 +23,9 @@
   background: #888;
   padding: 2px;
   cursor: initial;
+
+  display: flex;
+  justify-content: space-between;
 }
 
 .requirements-textarea {
@@ -37,4 +40,12 @@
 
 .radio-radio {
   margin-right: 0.2rem;
+}
+
+.footnote {
+  display: inline-block;
+  text-align: right;
+}
+.footnote a,.footnote a:visited {
+  color: #ddf
 }

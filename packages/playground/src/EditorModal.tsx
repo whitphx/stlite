@@ -123,6 +123,18 @@ function EditorModal(props: EditorModalProps) {
           >
             Install
           </button>
+
+          <span className="footnote">
+            See{" "}
+            <a
+              href="https://docs.streamlit.io/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              the Streamlit documentation
+            </a>{" "}
+            for the usage of it.
+          </span>
         </div>
       </div>
     </Rnd>

@@ -68,6 +68,12 @@ In this sample,
 > stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
 Moreover, the hosted JS runtime is not versioned now, so future API changes may cause problems with backward compatibility.
 
+## Resources
+* [📖 Streamlit Community, "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide"](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
+  The stlite thread at the Streamlit online forum.
+* [📺 YouTube, "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder](https://youtu.be/VQdktxgbmmg):
+  A quick tutorial with local app development and GitHub Pages deployment.
+
 ## Development
 ### Building the packages
 

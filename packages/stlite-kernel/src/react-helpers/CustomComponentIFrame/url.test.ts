@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { extractCustomComponentPath, getRelativePath } from "./url";
+import {
+  extractCustomComponentPath,
+  getParentPath,
+  getRelativePath,
+} from "./url";
 
 describe("extractCustomComponentPath", () => {
   const testCases: {
@@ -36,6 +40,39 @@ describe("extractCustomComponentPath", () => {
   testCases.forEach(({ basePathname, url, expected }) => {
     it(`extracts ${expected} from ${url} under the base path ${basePathname}`, () => {
       expect(extractCustomComponentPath(basePathname, url)).toEqual(expected);
+    });
+  });
+});
+
+describe("getParentPath", () => {
+  const testCases: {
+    input: string;
+    expected: string;
+  }[] = [
+    {
+      input: "",
+      expected: "/",
+    },
+    {
+      input: "/index.html",
+      expected: "/",
+    },
+    {
+      input: "/stlite/index.html",
+      expected: "/stlite",
+    },
+    {
+      input: "/stlite",
+      expected: "/",
+    },
+    {
+      input: "/stlite/",
+      expected: "/stlite",
+    },
+  ];
+  testCases.forEach(({ input, expected }) => {
+    it(`extracts the parent path (${expected}) from ${input}`, () => {
+      expect(getParentPath(input)).toEqual(expected);
     });
   });
 });

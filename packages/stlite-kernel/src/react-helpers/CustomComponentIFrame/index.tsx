@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useStliteKernel } from "../StliteKernelProvider";
-import { extractCustomComponentPath } from "./url";
+import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
 type IFrameProps = JSX.IntrinsicElements["iframe"];
@@ -67,11 +67,7 @@ const InnerIFrame = React.forwardRef<
         return;
       }
 
-      manipulateIFrameDocument(
-        kernel,
-        document,
-        path.split("/").slice(0, -1).join("/")
-      );
+      manipulateIFrameDocument(kernel, document, getParentPath(path));
     },
     [kernel, path]
   );

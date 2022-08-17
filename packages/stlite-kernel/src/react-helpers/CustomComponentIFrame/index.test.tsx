@@ -52,11 +52,13 @@ vi.mock("../../kernel", () => {
 });
 
 vi.mock("./iframe-manipulation");
-vi.mock("./url", () => {
+vi.mock("./url", async () => {
+  const originalModule = await vi.importActual<typeof import("./url")>("./url");
+
   const extractCustomComponentPath = vi.fn();
   extractCustomComponentPath.mockReturnValue("/component/foo.bar/index.html");
 
-  return { extractCustomComponentPath };
+  return { ...originalModule, extractCustomComponentPath };
 });
 
 describe("<CustomComponentIFrame />", () => {

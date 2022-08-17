@@ -4,9 +4,7 @@ export function extractCustomComponentPath(
   basePathname: string,
   url: string
 ): string | null {
-  const basePath = basePathname.replace(/^\//, "");
-  const baseHostAndPath =
-    basePath === "" ? DUMMY_BASE_HOST : DUMMY_BASE_HOST + "/" + basePath;
+  const baseHostAndPath = (DUMMY_BASE_HOST + basePathname).replace(/\/$/, "");
   const regex = new RegExp(`https?://${baseHostAndPath}(/.*?$)`);
 
   const matches = url.match(regex);
@@ -17,12 +15,17 @@ export function extractCustomComponentPath(
   return matches[1];
 }
 
+export function getParentPath(pathname: string): string {
+  const dirPath = pathname.split("/").slice(0, -1).join("/");
+  return dirPath.startsWith("/") ? dirPath : "/" + dirPath;
+}
+
 export function getRelativePath(
   baseHost: string,
   basePathname: string,
   url: URL
 ): string | null {
-  const baseDirPathname = basePathname.split("/").slice(0, -1).join("/");
+  const baseDirPathname = getParentPath(basePathname);
   const isSubUrl =
     url.host === baseHost && url.pathname.startsWith(baseDirPathname);
   if (!isSubUrl) {

@@ -50,15 +50,23 @@ interface MainScriptSetMessage extends InMessageBase {
     mainScriptData: string;
   };
 }
+interface InstallMessage extends InMessageBase {
+  type: "install";
+  data: {
+    requirements: string[];
+  };
+}
 type InMessage =
   | InitDataMessage
   | WebSocketConnectMessage
   | WebSocketSendMessage
   | HttpRequestMessage
-  | MainScriptSetMessage;
+  | MainScriptSetMessage
+  | InstallMessage;
 
 interface StliteWorker extends Worker {
-  postMessage(message: InMessage);
+  postMessage(message: InMessage, transfer: Transferable[]): void;
+  postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
 }
 
 /**
@@ -92,3 +100,11 @@ type OutMessage =
   | LoadedEventMessage
   | WebSocketBackMessage
   | HttpResponseMessage;
+
+/**
+ * Reply message
+ */
+interface ReplyMessage {
+  type: "reply";
+  error?: any;
+}

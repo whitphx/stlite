@@ -315,6 +315,29 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       });
       break;
     }
+    case "install": {
+      const messagePort = event.ports[0];
+      const { requirements } = data.data;
+
+      const micropip = pyodide.pyimport("micropip");
+
+      console.debug("Install the requirements:", requirements);
+      micropip.install
+        .callKwargs(requirements, { keep_going: true })
+        .then(() => {
+          console.debug("Successfully installed");
+          messagePort.postMessage({
+            type: "reply",
+          });
+        })
+        .catch((error: Error) => {
+          console.error("Failed to install", error);
+          messagePort.postMessage({
+            type: "reply",
+            error,
+          });
+        });
+    }
   }
 };
 

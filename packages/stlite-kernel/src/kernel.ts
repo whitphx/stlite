@@ -159,6 +159,30 @@ export class StliteKernel {
     });
   }
 
+  public install(requirements: string[]): Promise<void> {
+    const channel = new MessageChannel();
+
+    return new Promise((resolve, reject) => {
+      channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
+        channel.port1.close();
+        const msg = e.data;
+        if (msg.error) {
+          reject(msg.error);
+        } else {
+          resolve();
+        }
+      };
+
+      const msg: InstallMessage = {
+        type: "install",
+        data: {
+          requirements,
+        },
+      };
+      this._worker.postMessage(msg, [channel.port2]);
+    });
+  }
+
   /**
    * Process a message coming from the pyodide web worker.
    *

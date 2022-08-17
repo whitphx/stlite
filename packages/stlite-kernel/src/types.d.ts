@@ -15,42 +15,42 @@ interface WorkerInitialData {
 }
 
 /**
- * Messages to worker from kernel
+ * Input messages from kernel to worker
  */
-interface MessageToWorkerBase {
+interface InMessageBase {
   type: string;
   data?: unknown;
 }
-interface InitDataMessage extends MessageToWorkerBase {
+interface InitDataMessage extends InMessageBase {
   type: "initData";
   data: WorkerInitialData;
 }
-interface WebSocketConnectMessage extends MessageToWorkerBase {
+interface WebSocketConnectMessage extends InMessageBase {
   type: "websocket:connect";
   data: {
     path: string;
   };
 }
-interface WebSocketSendMessage extends MessageToWorkerBase {
+interface WebSocketSendMessage extends InMessageBase {
   type: "websocket:send";
   data: {
     payload: Uint8Array;
   };
 }
-interface HttpRequestMessage extends MessageToWorkerBase {
+interface HttpRequestMessage extends InMessageBase {
   type: "http:request";
   data: {
     httpCommId: number;
     request: HttpRequest;
   };
 }
-interface MainScriptSetMessage extends MessageToWorkerBase {
+interface MainScriptSetMessage extends InMessageBase {
   type: "mainscript:set";
   data: {
     mainScriptData: string;
   };
 }
-type MessageToWorker =
+type InMessage =
   | InitDataMessage
   | WebSocketConnectMessage
   | WebSocketSendMessage
@@ -58,36 +58,36 @@ type MessageToWorker =
   | MainScriptSetMessage;
 
 interface StliteWorker extends Worker {
-  postMessage(message: MessageToWorker);
+  postMessage(message: InMessage);
 }
 
 /**
- * Messages from worker to kernel
+ * Output messages from worker to kernel
  */
-interface MessageFromWorkerBase {
+interface OutMessageBase {
   type: string;
   data?: unknown;
 }
-interface StartEventMessage extends MessageFromWorkerBase {
+interface StartEventMessage extends OutMessageBase {
   type: "event:start";
 }
-interface LoadedEventMessage extends MessageFromWorkerBase {
+interface LoadedEventMessage extends OutMessageBase {
   type: "event:loaded";
 }
-interface WebSocketBackMessage extends MessageFromWorkerBase {
+interface WebSocketBackMessage extends OutMessageBase {
   type: "websocket:message";
   data: {
     payload: Uint8Array;
   };
 }
-interface HttpResponseMessage extends MessageFromWorkerBase {
+interface HttpResponseMessage extends OutMessageBase {
   type: "http:response";
   data: {
     httpCommId: number;
     response: HttpResponse;
   };
 }
-type MessageFromWorker =
+type OutMessage =
   | StartEventMessage
   | LoadedEventMessage
   | WebSocketBackMessage

@@ -164,7 +164,7 @@ export class StliteKernel {
    *
    * @param msg The worker message to process.
    */
-  private _processWorkerMessage(msg: MessageFromWorker): void {
+  private _processWorkerMessage(msg: OutMessage): void {
     switch (msg.type) {
       case "event:start": {
         this._worker.postMessage({

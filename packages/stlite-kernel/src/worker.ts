@@ -227,9 +227,7 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  *
  * @param event The message event to process
  */
-self.onmessage = async (
-  event: MessageEvent<MessageToWorker>
-): Promise<void> => {
+self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const data = event.data;
   let results;
 

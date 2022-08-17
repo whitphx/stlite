@@ -55,7 +55,7 @@ const InnerIFrame = React.forwardRef<
     return () => {
       released = true;
     };
-  });
+  }, [kernel, rawUrl]);
 
   const handleIFrameLoaded = useCallback<
     React.ReactEventHandler<HTMLIFrameElement>

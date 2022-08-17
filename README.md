@@ -1,16 +1,14 @@
 # stlite: Serverless Streamlit
 
-A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide](https://pyodide.org/).
-
-Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely run on web browsers.
-
 [![stlite-kernel](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml)
 [![Integration tests with streamlit and tornado](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
-<a href="https://www.buymeacoffee.com/whitphx" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" ></a>
+<img src="./docs/images/logo.svg" style="background: white;" >
 
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/whitphx?label=Sponsor%20me%20on%20GitHub%20Sponsors&style=social)](https://github.com/sponsors/whitphx)
+A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide](https://pyodide.org/).
+
+Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely run on web browsers.
 
 ## Try it out
 

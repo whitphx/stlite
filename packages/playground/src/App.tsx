@@ -11,9 +11,18 @@ import { Provider as StyletronProvider } from "styletron-react";
 const engine = new Styletron({ prefix: "st-" });
 
 const DEFAULT_VALUE = `import streamlit as st
+import matplotlib.pyplot as plt
+import numpy as np
 
-name = st.text_input("Name")
-st.write("Hello ", name or "world")`;
+size = st.slider("Sample size", 100, 1000)
+
+arr = np.random.normal(1, 1, size=size)
+fig, ax = plt.subplots()
+ax.hist(arr, bins=20)
+
+st.pyplot(fig)`;
+
+const DEFAULT_REQUIREMENTS = ["matplotlib"];
 
 function App() {
   const [mainScriptData, setMainScriptData] = useState(DEFAULT_VALUE);
@@ -23,6 +32,7 @@ function App() {
     const kernel = new StliteKernel({
       pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js",
       command: "run",
+      requirements: DEFAULT_REQUIREMENTS,
       mainScriptData,
     });
     setKernel(kernel);
@@ -43,7 +53,16 @@ function App() {
 
   return (
     <>
-      <EditorModal defaultValue={mainScriptData} onChange={setMainScriptData} />
+      <EditorModal
+        defaultValue={mainScriptData}
+        onChange={setMainScriptData}
+        defaultRequirementsValue={DEFAULT_REQUIREMENTS.join("\n")}
+        onInstallRequired={(requirements) => {
+          kernel?.install(requirements).then(() => {
+            console.log("Installed");
+          });
+        }}
+      />
       {kernel && (
         <StliteKernelProvider kernel={kernel}>
           <StyletronProvider value={engine}>

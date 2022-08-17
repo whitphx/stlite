@@ -227,26 +227,23 @@ const pyodideReadyPromise = loadPyodideAndPackages();
  *
  * @param event The message event to process
  */
-self.onmessage = async (event: MessageEvent): Promise<void> => {
+self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const data = event.data;
-  let results;
-  const messageType = data.type;
-  const messageContent = data.data;
 
   // Special case for transmitting the initial data
-  if (messageType === "initData") {
+  if (data.type === "initData") {
     if (setInitData == null) {
       throw new Error("Unexpectedly failed to pass the initial data");
     }
-    setInitData(messageContent);
+    setInitData(data.data);
     return;
   }
 
   await pyodideReadyPromise;
 
-  switch (messageType) {
+  switch (data.type) {
     case "websocket:connect": {
-      console.debug("websocket:connect", messageContent);
+      console.debug("websocket:connect", data.data);
 
       httpServer.start_websocket(
         "/stream",
@@ -280,17 +277,17 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       break;
     }
     case "websocket:send": {
-      console.debug("websocket:send", messageContent);
+      console.debug("websocket:send", data.data);
 
-      const { payload } = messageContent;
+      const { payload } = data.data;
 
       httpServer.receive_websocket_from_js(payload);
       break;
     }
     case "http:request": {
-      console.debug("http:request", messageContent);
+      console.debug("http:request", data.data);
 
-      const { request, httpCommId } = messageContent;
+      const { request, httpCommId } = data.data;
 
       const onResponse = (statusCode: number, _headers: any, _body: any) => {
         const headers = _headers.toJs();
@@ -320,20 +317,13 @@ self.onmessage = async (event: MessageEvent): Promise<void> => {
       break;
     }
     case "mainscript:set": {
-      const { mainScriptData } = messageContent;
+      const { mainScriptData } = data.data;
       pyodide.FS.writeFile(_mainScriptPath, mainScriptData, {
         encoding: "utf8",
       });
       break;
     }
   }
-
-  const reply = {
-    type: "reply",
-    results,
-  };
-
-  postMessage(reply);
 };
 
 postMessage({

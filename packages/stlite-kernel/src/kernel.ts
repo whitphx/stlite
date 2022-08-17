@@ -15,18 +15,6 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import worker from "!!raw-loader!./worker";
 
-interface HttpRequest {
-  method: "GET" | "POST";
-  path: string;
-  headers: { [key: string]: string };
-  body: ArrayBuffer | string;
-}
-interface HttpResponse {
-  statusCode: number;
-  headers: Map<string, string>;
-  body: Uint8Array;
-}
-
 let httpCommId = 0;
 
 function isAbsoluteURL(url: string): boolean {
@@ -43,7 +31,7 @@ const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
 export class StliteKernel {
   private _isDisposed = false;
 
-  private _worker: Worker;
+  private _worker: StliteWorker;
 
   private _loaded = new PromiseDelegate<void>();
 
@@ -176,7 +164,7 @@ export class StliteKernel {
    *
    * @param msg The worker message to process.
    */
-  private _processWorkerMessage(msg: any): void {
+  private _processWorkerMessage(msg: OutMessage): void {
     switch (msg.type) {
       case "event:start": {
         this._worker.postMessage({

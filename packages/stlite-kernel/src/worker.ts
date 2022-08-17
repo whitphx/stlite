@@ -32,23 +32,15 @@ async function loadPyodideAndPackages() {
     "micropip",
     "ssl", // TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
   ]);
-  await pyodide.runPythonAsync(`
-    import micropip
-    await micropip.install([
-      '${_tornadoWheelUrl}',
-      '${_pyarrowWheelUrl}',
-    ])
-    await micropip.install([
-      '${_streamlitWheelUrl}'
-    ], keep_going=True)
-  `);
+
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install.callKwargs([_tornadoWheelUrl, _pyarrowWheelUrl], {
+    keep_going: true,
+  });
+  await micropip.install.callKwargs([_streamlitWheelUrl], { keep_going: true });
 
   console.debug("Install the requirements:", requirements);
-  self.__requirements__ = requirements;
-  await pyodide.runPythonAsync(`
-    from js import __requirements__
-    await micropip.install(__requirements__, keep_going=True)
-  `);
+  await micropip.install.callKwargs(requirements, { keep_going: true });
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
   // at importing installed packages.

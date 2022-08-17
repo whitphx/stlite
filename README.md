@@ -1,6 +1,8 @@
 # stlite: Serverless Streamlit
 
-A port of [Streamlit](https://streamlit.io/) to Wasm, powered by [Pyodide](https://pyodide.org/).
+A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide](https://pyodide.org/).
+
+Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely run on web browsers.
 
 [![stlite-kernel](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml)
 [![Integration tests with streamlit and tornado](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml)

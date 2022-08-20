@@ -32,7 +32,8 @@
     "workbox-streams": "^6.5.3"
   },
   "devDependencies": {
-    "raw-loader": "^4.0.2"
+    "raw-loader": "^4.0.2",
+    "worker-loader": "^3.0.8"
   },
   "scripts": {
     "start": "craco start",

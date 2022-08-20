@@ -19,15 +19,20 @@ declare module "!!raw-loader!*" {
   export default res;
 }
 
-// Declarations for worker.ts where some variables are injected from the main thread.
-declare let indexURL: string;
-declare let pyodide: any;
+// Ref: https://v4.webpack.js.org/loaders/worker-loader/
+declare module "!!worker-loader!*" {
+  // You need to change `Worker`, if you specified a different value for the `workerType` option
+  class WebpackWorker extends Worker {
+    constructor();
+  }
+
+  // Uncomment this if you set the `esModule` option to `false`
+  // export = WebpackWorker;
+  export default WebpackWorker;
+}
+
+// Declarations for worker.ts where some variables are dynamically loaded through importScript.
 declare let loadPyodide: any;
-declare let _tornadoWheelUrl: string;
-declare let _pyarrowWheelUrl: string;
-declare let _streamlitWheelUrl: string;
-declare let _command: "hello" | "run";
-declare let _mainScriptPath: string;
 
 // Declarations for the `self` object in worker.ts some of whose properties are used to share values with the Python environment.
 interface Window {

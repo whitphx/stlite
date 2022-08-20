@@ -1,3 +1,9 @@
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
+
+let pyodide: any;
+
+let _mainScriptPath: string;
+
 let httpServer: any;
 
 /**
@@ -19,11 +25,13 @@ const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  const { requirements, mainScriptData } = await initDataPromise;
+  const { requirements, command, mainScriptData, mainScriptPath, wheels } =
+    await initDataPromise;
+
+  _mainScriptPath = mainScriptPath;
 
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
-    indexURL,
     stdout: console.log,
     stderr: console.error,
   });
@@ -34,10 +42,10 @@ async function loadPyodideAndPackages() {
   ]);
 
   const micropip = pyodide.pyimport("micropip");
-  await micropip.install.callKwargs([_tornadoWheelUrl, _pyarrowWheelUrl], {
+  await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
     keep_going: true,
   });
-  await micropip.install.callKwargs([_streamlitWheelUrl], { keep_going: true });
+  await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
 
   console.debug("Install the requirements:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
@@ -191,13 +199,13 @@ async function loadPyodideAndPackages() {
       "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
   }
   `);
-  if (_command === "hello") {
+  if (command === "hello") {
     await pyodide.runPythonAsync(`main_hello(**command_kwargs)`);
-  } else if (_command === "run") {
-    pyodide.FS.writeFile(_mainScriptPath, mainScriptData, { encoding: "utf8" });
+  } else if (command === "run") {
+    pyodide.FS.writeFile(mainScriptPath, mainScriptData, { encoding: "utf8" });
 
     await pyodide.runPythonAsync(
-      `main_run("${_mainScriptPath}", **command_kwargs)`
+      `main_run("${mainScriptPath}", **command_kwargs)`
     );
   }
 

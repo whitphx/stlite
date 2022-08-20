@@ -8,14 +8,10 @@ export interface MountOptions extends Partial<StliteKernel.IOptions> {
   requirements?: string[];
 }
 
-const DEFAULT_PYODIDE_URL =
-  "https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js";
-
 export function mount(options?: MountOptions) {
   const container = options?.container || document.body;
 
   const kernel = new StliteKernel({
-    pyodideUrl: options?.pyodideUrl || DEFAULT_PYODIDE_URL,
     command: options?.command || (options?.mainScriptData ? "run" : "hello"),
     ...options,
   });

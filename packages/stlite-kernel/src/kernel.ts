@@ -13,7 +13,7 @@ import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/
 import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl";
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl";
 
-import worker from "!!raw-loader!./worker";
+import Worker from "!!worker-loader!./worker";
 
 let httpCommId = 0;
 
@@ -24,6 +24,10 @@ function isAbsoluteURL(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+function makeAbsoluteWheelURL(url: string): string {
+  return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
 }
 
 const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
@@ -38,33 +42,11 @@ export class StliteKernel {
   private _workerInitData: WorkerInitialData;
 
   constructor(options: StliteKernel.IOptions) {
-    const blob = new Blob([this.buildWorkerScript(options).join("\n")]);
-    this._worker = new Worker(window.URL.createObjectURL(blob));
+    this._worker = new Worker();
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
-    this._workerInitData = {
-      requirements: options.requirements || [],
-      mainScriptData: options.mainScriptData,
-    };
-  }
 
-  /**
-   * Build a list of literal strings to use in the worker
-   *
-   * Subclasses could use overload this to customize pre-loaded behavior, replace
-   * the worker, or any number of other tricks.
-   *
-   * @param options The instantiation options for a new StliteKernel
-   */
-  protected buildWorkerScript(options: StliteKernel.IOptions): string[] {
-    const { pyodideUrl, mainScriptPath = DEFAULT_MAIN_SCRIPT_PATH } = options;
-
-    function makeAbsoluteWheelURL(url: string): string {
-      return isAbsoluteURL(url)
-        ? url
-        : URLExt.join(window.location.origin, url);
-    }
     const tornadoWheelUrl = makeAbsoluteWheelURL(
       TORNADO_WHEEL as unknown as string
     );
@@ -79,22 +61,17 @@ export class StliteKernel {
       pyarrowWheelUrl,
       streamlitWheelUrl,
     });
-
-    const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
-
-    return [
-      // first we need the pyodide initialization scripts...
-      `importScripts("${options.pyodideUrl}");`,
-      // ...we also need the location of the index of pyodide-built js/WASM...
-      `var indexURL = "${indexUrl}";`,
-      `var _tornadoWheelUrl = "${tornadoWheelUrl}"`,
-      `var _pyarrowWheelUrl = "${pyarrowWheelUrl}"`,
-      `var _streamlitWheelUrl = "${streamlitWheelUrl}"`,
-      `var _command = "${options.command}"`, // TODO: Check no special characters are included like \n or ".
-      `var _mainScriptPath = "${mainScriptPath}"`, // TODO: Check no special characters are included like \n or ".
-      // ...finally, the worker... which _must_ appear last!
-      worker.toString(),
-    ];
+    this._workerInitData = {
+      requirements: options.requirements || [],
+      mainScriptData: options.mainScriptData,
+      mainScriptPath: options.mainScriptPath || DEFAULT_MAIN_SCRIPT_PATH,
+      command: options.command,
+      wheels: {
+        tornado: tornadoWheelUrl,
+        pyarrow: pyarrowWheelUrl,
+        streamlit: streamlitWheelUrl,
+      },
+    };
   }
 
   get loaded(): Promise<void> {
@@ -246,11 +223,6 @@ export namespace StliteKernel {
    * The instantiation options for a Pyodide kernel
    */
   export interface IOptions {
-    /**
-     * The URL to fetch Pyodide.
-     */
-    pyodideUrl: string;
-
     /**
      * The Streamlit subcommand to run.
      */

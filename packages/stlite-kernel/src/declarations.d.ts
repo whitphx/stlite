@@ -20,7 +20,7 @@ declare module "!!raw-loader!*" {
 }
 
 // Ref: https://v4.webpack.js.org/loaders/worker-loader/
-declare module "!!worker-loader!*" {
+declare module "!!worker-loader?*" {
   // You need to change `Worker`, if you specified a different value for the `workerType` option
   class WebpackWorker extends Worker {
     constructor();

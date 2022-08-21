@@ -13,7 +13,7 @@ import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/
 import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl";
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl";
 
-import Worker from "!!worker-loader!./worker";
+import Worker from "!!worker-loader?inline=no-fallback!./worker";
 
 let httpCommId = 0;
 

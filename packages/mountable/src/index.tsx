@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { StliteKernel } from "@stlite/stlite-kernel";
+import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
 
-export interface MountOptions extends Partial<StliteKernel.IOptions> {
+export interface MountOptions extends Partial<StliteKernelOptions> {
   container?: HTMLElement;
   requirements?: string[];
 }

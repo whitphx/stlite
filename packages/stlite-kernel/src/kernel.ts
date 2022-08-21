@@ -32,6 +32,28 @@ function makeAbsoluteWheelURL(url: string): string {
 
 const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
 
+export interface StliteKernelOptions {
+  /**
+   * The Streamlit subcommand to run.
+   */
+  command: "hello" | "run";
+
+  /**
+   * The file path on the Pyodide File System (Emscripten FS) to mount the main script.
+   */
+  mainScriptPath?: string;
+
+  /**
+   * The content of the main script.
+   */
+  mainScriptData?: string;
+
+  /**
+   * A list of package names to be install at the booting-up phase.
+   */
+  requirements?: string[];
+}
+
 export class StliteKernel {
   private _isDisposed = false;
 
@@ -41,7 +63,7 @@ export class StliteKernel {
 
   private _workerInitData: WorkerInitialData;
 
-  constructor(options: StliteKernel.IOptions) {
+  constructor(options: StliteKernelOptions) {
     this._worker = new Worker();
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
@@ -211,36 +233,5 @@ export class StliteKernel {
     this._worker.terminate();
 
     this._isDisposed = true;
-  }
-}
-
-/**
- * A namespace for StliteKernel statics.
- */
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace StliteKernel {
-  /**
-   * The instantiation options for a Pyodide kernel
-   */
-  export interface IOptions {
-    /**
-     * The Streamlit subcommand to run.
-     */
-    command: "hello" | "run";
-
-    /**
-     * The file path on the Pyodide File System (Emscripten FS) to mount the main script.
-     */
-    mainScriptPath?: string;
-
-    /**
-     * The content of the main script.
-     */
-    mainScriptData?: string;
-
-    /**
-     * A list of package names to be install at the booting-up phase.
-     */
-    requirements?: string[];
   }
 }

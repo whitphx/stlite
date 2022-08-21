@@ -52,6 +52,11 @@ export interface StliteKernelOptions {
    * A list of package names to be install at the booting-up phase.
    */
   requirements?: string[];
+
+  /**
+   * Files to mount.
+   */
+  files?: Record<string, EmscriptenFile>;
 }
 
 export class StliteKernel {
@@ -93,6 +98,7 @@ export class StliteKernel {
         pyarrow: pyarrowWheelUrl,
         streamlit: streamlitWheelUrl,
       },
+      files: options.files || {},
     };
   }
 

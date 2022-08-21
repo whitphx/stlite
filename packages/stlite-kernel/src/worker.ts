@@ -1,3 +1,5 @@
+import { writeFileWithParents } from "./file";
+
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
 
 let pyodide: any;
@@ -33,8 +35,14 @@ const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  const { requirements, command, mainScriptData, mainScriptPath, wheels } =
-    await initDataPromise;
+  const {
+    requirements,
+    command,
+    mainScriptData,
+    mainScriptPath,
+    wheels,
+    files,
+  } = await initDataPromise;
 
   _mainScriptPath = mainScriptPath;
 
@@ -42,6 +50,14 @@ async function loadPyodideAndPackages() {
   pyodide = await loadPyodide({
     stdout: console.log,
     stderr: console.error,
+  });
+
+  // Mount files
+  Object.keys(files).forEach((path) => {
+    const { data, opts } = files[path];
+
+    console.debug(`Write a file "${path}"`);
+    writeFileWithParents(pyodide, path, data, opts);
   });
 
   await pyodide.loadPackage([

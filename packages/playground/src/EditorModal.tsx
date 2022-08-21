@@ -29,7 +29,7 @@ function RadioGroup<T extends string = string>({
   return (
     <>
       {options.map((value) => (
-        <label className="radio-label">
+        <label key={value} className="radio-label">
           <input
             type="radio"
             className="radio-radio"

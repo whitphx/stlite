@@ -205,6 +205,7 @@ async function loadPyodideAndPackages() {
       "server.headless": True,  # Not to open the browser after launching
       "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
       "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
+      "browser.gatherUsageStats": False,
   }
   `);
   if (command === "hello") {

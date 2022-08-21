@@ -12,6 +12,13 @@ interface HttpResponse {
 interface WorkerInitialData {
   requirements: string[];
   mainScriptData?: string;
+  mainScriptPath: string;
+  command: "run" | "hello";
+  wheels: {
+    tornado: string;
+    pyarrow: string;
+    streamlit: string;
+  };
 }
 
 /**

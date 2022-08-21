@@ -33,5 +33,8 @@
     "@lumino/coreutils": "^1.12.0",
     "form-data-encoder": "^2.0.1",
     "streamlit-browser": "^1.9.0-rc.1"
+  },
+  "peerDependencies": {
+    "worker-loader": "^3.0.8"
   }
 }

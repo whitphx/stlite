@@ -51,7 +51,6 @@ function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
     const kernel = new StliteKernel({
-      pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js",
       command: "run",
       requirements: DEFAULT_REQUIREMENTS,
       mainScriptData,

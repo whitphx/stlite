@@ -9,6 +9,10 @@ interface HttpResponse {
   headers: Map<string, string>;
   body: Uint8Array;
 }
+interface EmscriptenFile {
+  data: string | ArrayBufferView;
+  opts?: Record<string, string>;
+}
 interface WorkerInitialData {
   requirements: string[];
   mainScriptData?: string;
@@ -19,6 +23,7 @@ interface WorkerInitialData {
     pyarrow: string;
     streamlit: string;
   };
+  files: Record<string, EmscriptenFile>;
 }
 
 /**

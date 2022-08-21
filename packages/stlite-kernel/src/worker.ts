@@ -6,6 +6,14 @@ let _mainScriptPath: string;
 
 let httpServer: any;
 
+interface StliteWorkerContext extends Worker {
+  postMessage(message: OutMessage, transfer: Transferable[]): void;
+  postMessage(message: OutMessage, options?: StructuredSerializeOptions): void;
+}
+
+// Ref: https://v4.webpack.js.org/loaders/worker-loader/#loading-with-worker-loader
+const ctx: StliteWorkerContext = self as any;
+
 /**
  * A promise waiting for the initial data to be sent from the main thread.
  */
@@ -215,7 +223,7 @@ async function loadPyodideAndPackages() {
   `); // HTTP_SERVER is set AFTER the streamlit module is loaded.
   httpServer = pyodide.globals.get("HTTP_SERVER").copy();
 
-  postMessage({
+  ctx.postMessage({
     type: "event:loaded",
   });
 }
@@ -258,14 +266,14 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
               buffer.data.byteOffset,
               buffer.data.byteLength
             );
-            postMessage({
+            ctx.postMessage({
               type: "websocket:message",
               data: {
                 payload: new Uint8Array(payload),
               },
             });
           } else {
-            postMessage({
+            ctx.postMessage({
               type: "websocket:message",
               data: {
                 payload: messageProxy,
@@ -294,7 +302,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         const body = _body.toJs();
         console.debug({ httpCommId, statusCode, headers, body });
 
-        postMessage({
+        ctx.postMessage({
           type: "http:response",
           data: {
             httpCommId,
@@ -349,6 +357,6 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   }
 };
 
-postMessage({
+ctx.postMessage({
   type: "event:start",
 });

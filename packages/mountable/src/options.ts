@@ -36,12 +36,11 @@ export type MountOptions = string | SimplifiedStliteKernelOptions;
 export function canonicalizeOptions(options: string | SimplifiedStliteKernelOptions): StliteKernelOptions {
   if (typeof options === "string") {
     const mainScript = options;
-    const entrypoint = "streamlit_app.py";
     return {
       command: "run",
-      entrypoint,
+      entrypoint: DEFAULT_ENTRYPOINT,
       files: {
-        [entrypoint]: {
+        [DEFAULT_ENTRYPOINT]: {
           data: mainScript,
         },
       },

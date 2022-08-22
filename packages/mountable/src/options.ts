@@ -1,8 +1,7 @@
 import { StliteKernelOptions } from "@stlite/stlite-kernel";
 
 type SimplifiedFiles = Record<string, string | ArrayBufferView>;
-export interface SimplifiedStliteKernelOptions
-  extends Omit<StliteKernelOptions, "command" | "entrypoint" | "files"> {
+export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
   files?: StliteKernelOptions["files"] | SimplifiedFiles;
@@ -44,15 +43,16 @@ export function canonicalizeOptions(options: string | SimplifiedStliteKernelOpti
           data: mainScript,
         },
       },
+      requirements: [],
     }
   }
 
   const files = canonicalizeFiles(options.files);
 
   return {
-    ...options,
     command: "run",
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,
+    requirements: options.requirements || [],
   };
 }

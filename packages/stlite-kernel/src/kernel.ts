@@ -44,12 +44,12 @@ export interface StliteKernelOptions {
   /**
    * A list of package names to be install at the booting-up phase.
    */
-  requirements?: string[];
+  requirements: string[];
 
   /**
    * Files to mount.
    */
-  files?: Record<
+  files: Record<
     string,
     { data: string | ArrayBufferView; opts?: Record<string, any> }
   >;
@@ -87,8 +87,8 @@ export class StliteKernel {
     this._workerInitData = {
       command: options.command,
       entrypoint: options.entrypoint,
-      files: options.files || {},
-      requirements: options.requirements || [],
+      files: options.files,
+      requirements: options.requirements,
       wheels: {
         tornado: tornadoWheelUrl,
         pyarrow: pyarrowWheelUrl,

@@ -21,6 +21,7 @@ st.write("Hello World")
 `,
         },
       },
+      requirements: [],
     });
 
     kernel

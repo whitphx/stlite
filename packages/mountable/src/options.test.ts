@@ -9,7 +9,8 @@ describe("canonicalizeOptions()", () => {
         "streamlit_app.py": {
           data: "foo"
         }
-      }
+      },
+      requirements: [],
     })
   })
 
@@ -25,7 +26,8 @@ describe("canonicalizeOptions()", () => {
         "streamlit_app.py": {
           data: "foo"
         }
-      }
+      },
+      requirements: [],
     })
   })
 
@@ -42,7 +44,8 @@ describe("canonicalizeOptions()", () => {
         "streamlit_app.py": {
           data: "foo"
         }
-      }
+      },
+      requirements: [],
     })
   });
 

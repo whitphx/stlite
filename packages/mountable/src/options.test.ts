@@ -45,4 +45,15 @@ describe("canonicalizeOptions()", () => {
       }
     })
   });
+
+  it("preserves the `requirements` option if specified", () => {
+    expect(canonicalizeOptions({
+      requirements: ["matplotlib"]
+    })).toEqual({
+      command: "run",
+      requirements: ["matplotlib"],
+      entrypoint: "streamlit_app.py",
+      files: {}
+    })
+  })
 })

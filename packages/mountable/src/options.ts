@@ -6,7 +6,6 @@ export interface SimplifiedStliteKernelOptions
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
   files?: StliteKernelOptions["files"] | SimplifiedFiles;
-  hello?: boolean;
 }
 
 function canonicalizeFiles(
@@ -52,7 +51,7 @@ export function canonicalizeOptions(options: string | SimplifiedStliteKernelOpti
   const files = canonicalizeFiles(options.files);
 
   return {
-    command: options.hello ? "hello" : "run",
+    command: "run",
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,
   };

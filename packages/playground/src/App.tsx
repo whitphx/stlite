@@ -54,6 +54,7 @@ function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       command: "run",
+      entrypoint: ENTRYPOINT,
       requirements: DEFAULT_REQUIREMENTS,
       files: {
         [ENTRYPOINT]: {

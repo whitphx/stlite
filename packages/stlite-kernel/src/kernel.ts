@@ -49,7 +49,10 @@ export interface StliteKernelOptions {
   /**
    * Files to mount.
    */
-  files?: Record<string, { data: string | ArrayBufferView, opts?: Record<string, any> }>;
+  files?: Record<
+    string,
+    { data: string | ArrayBufferView; opts?: Record<string, any> }
+  >;
 }
 
 export class StliteKernel {

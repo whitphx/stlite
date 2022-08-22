@@ -38,7 +38,9 @@ Here is a sample HTML file.
   <script>
     stlite.mount({
       requirements: ["matplotlib"],  // Packages to install
-      mainScriptData: `
+      entrypoint: "streamlit_app.py",
+      files: {
+        "streamlit_app.py": `
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,9 +52,10 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`,
-      container: document.getElementById("root")
-    })
+`
+      }
+    },
+    document.getElementById("root"))
   </script>
 </body>
 </html>
@@ -60,7 +63,11 @@ st.pyplot(fig)
 
 In this sample,
 * stlite library is imported with the first script tag, then the global `stlite` object becomes available.
-* `stlite.mount()` mounts the Streamlit app to the `<div id="root" />` element as specified via the `container` option and runs the Python script passed through the `mainScriptData` option.
+* `stlite.mount()` mounts and launches the Streamlit app with the `streamlit run` command.
+  * The packages specified at the `requirements` option will be installed at the initialization phase.
+  * The `files` option contains the files to mount on the virtual file system. The object key is a file path and the value is the file content.
+  * The `entrypoint` option is passed to the `streamlit run` command.
+  * The Streamlit app is mounted on the `<div id="root" />` element as specified via the second argument.
 
 > **Warning**
 > stlite is at the very beginning of its development and the API can drastically change without any notice in the future.

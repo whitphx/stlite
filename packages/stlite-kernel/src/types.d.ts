@@ -62,6 +62,14 @@ interface MainScriptSetMessage extends InMessageBase {
     mainScriptData: string;
   };
 }
+interface WriteFileMessage extends InMessageBase {
+  type: "file:write";
+  data: {
+    path: string;
+    data: string | ArrayBufferView;
+    opts?: Record<string, any>;
+  };
+}
 interface InstallMessage extends InMessageBase {
   type: "install";
   data: {
@@ -74,6 +82,7 @@ type InMessage =
   | WebSocketSendMessage
   | HttpRequestMessage
   | MainScriptSetMessage
+  | WriteFileMessage
   | InstallMessage;
 
 interface StliteWorker extends Worker {

@@ -38,7 +38,7 @@ async function loadPyodideAndPackages() {
   const {
     requirements,
     command,
-    mainScriptData,
+    mainScriptData = "",
     mainScriptPath,
     wheels,
     files,
@@ -346,6 +346,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       pyodide.FS.writeFile(_mainScriptPath, mainScriptData, {
         encoding: "utf8",
       });
+      break;
+    }
+    case "file:write": {
+      const messagePort = event.ports[0];
+      const { path, data: fileData, opts } = data.data;
+
+      try {
+        console.debug(`Write a file "${path}"`);
+        writeFileWithParents(pyodide, path, fileData, opts);
+        messagePort.postMessage({
+          type: "reply",
+        });
+      } catch (error) {
+        messagePort.postMessage({
+          type: "reply",
+          error,
+        });
+      }
       break;
     }
     case "install": {

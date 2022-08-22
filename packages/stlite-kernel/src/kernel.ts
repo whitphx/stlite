@@ -30,7 +30,7 @@ function makeAbsoluteWheelURL(url: string): string {
   return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
 }
 
-const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
+const DEFAULT_MAIN_SCRIPT_PATH = "streamlit_app.py";
 
 export interface StliteKernelOptions {
   /**
@@ -164,10 +164,34 @@ export class StliteKernel {
     });
   }
 
-  public install(requirements: string[]): Promise<void> {
-    const channel = new MessageChannel();
+  public writeFile(
+    path: string,
+    data: string | ArrayBufferView,
+    opts?: Record<string, any>
+  ): Promise<void> {
+    return this._asyncPostMessage({
+      type: "file:write",
+      data: {
+        path,
+        data,
+        opts,
+      },
+    });
+  }
 
+  public install(requirements: string[]): Promise<void> {
+    return this._asyncPostMessage({
+      type: "install",
+      data: {
+        requirements,
+      },
+    });
+  }
+
+  private _asyncPostMessage(message: InMessage): Promise<void> {
     return new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+
       channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
         channel.port1.close();
         const msg = e.data;
@@ -178,13 +202,7 @@ export class StliteKernel {
         }
       };
 
-      const msg: InstallMessage = {
-        type: "install",
-        data: {
-          requirements,
-        },
-      };
-      this._worker.postMessage(msg, [channel.port2]);
+      this._worker.postMessage(message, [channel.port2]);
     });
   }
 

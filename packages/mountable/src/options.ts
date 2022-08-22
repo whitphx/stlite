@@ -52,7 +52,6 @@ export function canonicalizeOptions(options: string | SimplifiedStliteKernelOpti
   const files = canonicalizeFiles(options.files);
 
   return {
-    ...options,
     command: options.hello ? "hello" : "run",
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,

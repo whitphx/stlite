@@ -45,4 +45,15 @@ describe("canonicalizeOptions()", () => {
       }
     })
   });
+
+  it(`sets \`command="hello"\` if .hello=true`, () => {
+
+    expect(canonicalizeOptions({
+      hello: true,
+    })).toEqual({
+      command: "hello",
+      entrypoint: "streamlit_app.py",
+      files: {}
+    })
+  })
 })

@@ -29,7 +29,7 @@ export function mount(
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, any>
-    ): Promise<void> => {
+    ) => {
       return kernel.writeFile(path, data, opts);
     },
   };

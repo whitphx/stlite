@@ -1,10 +1,13 @@
 {
   "name": "@stlite/mountable",
-  "version": "0.1.0-rc1",
+  "version": "0.1.0-rc2",
   "description": "Mountable stlite application",
   "keywords": [
     "stlite",
-    "streamlit"
+    "streamlit",
+    "pyodide",
+    "webassembly",
+    "wasm"
   ],
   "homepage": "https://github.com/whitphx/stlite",
   "bugs": {

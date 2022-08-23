@@ -98,7 +98,11 @@
   "scripts": {
     "start": "node ./scripts/start.js",
     "build": "node ./scripts/build.js",
-    "test": "node ./scripts/test.js"
+    "test": "node ./scripts/test.js",
+    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
   },
   "eslintConfig": {
     "extends": [

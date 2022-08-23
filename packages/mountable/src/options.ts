@@ -32,7 +32,9 @@ const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
 export type MountOptions = string | SimplifiedStliteKernelOptions;
 
-export function canonicalizeMountOptions(options: string | SimplifiedStliteKernelOptions): StliteKernelOptions {
+export function canonicalizeMountOptions(
+  options: string | SimplifiedStliteKernelOptions
+): StliteKernelOptions {
   if (typeof options === "string") {
     const mainScript = options;
     return {
@@ -44,7 +46,7 @@ export function canonicalizeMountOptions(options: string | SimplifiedStliteKerne
         },
       },
       requirements: [],
-    }
+    };
   }
 
   const files = canonicalizeFiles(options.files);

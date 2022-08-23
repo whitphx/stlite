@@ -88,14 +88,10 @@ jobs:
         path: packages/playground/build
 
     ## Build and deploy @stlite/mountable
-    # Set PUBLIC_URL for the mountable package, which will be deployed to the sub directory ${GITHUB_PAGES_SUBDIR_MOUNTABLE}.
-    # An absolute URL must be set to PUBLIC_URL when the bundled file will be imported from other origins
-    # because it will load files such as JS chunks and Python wheels at runtime
-    # and these dynamic loading will be based on the PUBLIC_URL.
-    # If PUBLIC_URL is relative, it will be resolved based on window.location.origin and leads to loading failure.
+    # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - if: matrix.target == 'mountable'
       name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=https://${GITHUB_REPOSITORY%/*}.github.io/${GITHUB_REPOSITORY#*/}/${GITHUB_PAGES_SUBDIR_MOUNTABLE}" >> $GITHUB_ENV
+      run: echo "PUBLIC_URL=." >> $GITHUB_ENV
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
       run: make mountable

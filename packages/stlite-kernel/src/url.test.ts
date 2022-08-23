@@ -3,7 +3,11 @@ import { makeAbsoluteWheelURL } from "./url";
 
 describe("makeAbsoluteWheelURL", () => {
   beforeEach(() => {
-    vi.stubGlobal("window.location.origin", "https://localhost:3000");
+    const originalLocation = window.location;
+    vi.spyOn(window, "location", "get").mockImplementation(() => ({
+      ...originalLocation,
+      origin: "https://example.com:3000",
+    }));
   });
   afterEach(() => {
     vi.resetAllMocks();
@@ -15,7 +19,7 @@ describe("makeAbsoluteWheelURL", () => {
         // Absolute path is resolved based on window.location.origin
         wheelUrl: "/whitphx/stlite/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
         expected:
-          "http://localhost:3000/whitphx/stlite/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
+          "https://example.com:3000/whitphx/stlite/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
       },
       {
         // Absolute path with baseURL is resolved based on the baseURL's origin.
@@ -34,9 +38,9 @@ describe("makeAbsoluteWheelURL", () => {
       {
         // Relative path is resolved based on the baseURL.
         wheelUrl: "./pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
-        baseUrl: "http://localhost:3000/build/",
+        baseUrl: "http://example.com:3000/build/",
         expected:
-          "http://localhost:3000/build/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
+          "http://example.com:3000/build/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
       },
     ];
   testCases.forEach(({ wheelUrl, baseUrl, expected }) => {

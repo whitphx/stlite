@@ -15,11 +15,13 @@ if (
   typeof __webpack_public_path__ === "string" &&
   (__webpack_public_path__ === "." || __webpack_public_path__.startsWith("./"))
 ) {
-  const selfScriptUrl = (document.currentScript as HTMLScriptElement).src;
-  const selfScriptBaseUrl = getParentUrl(selfScriptUrl);
+  if (document.currentScript && "src" in document.currentScript) {
+    const selfScriptUrl = document.currentScript.src;
+    const selfScriptBaseUrl = getParentUrl(selfScriptUrl);
 
-  __webpack_public_path__ = selfScriptBaseUrl; // For webpack dynamic imports
-  wheelBaseUrl = selfScriptBaseUrl;
+    __webpack_public_path__ = selfScriptBaseUrl; // For webpack dynamic imports
+    wheelBaseUrl = selfScriptBaseUrl;
+  }
 }
 
 export function mount(

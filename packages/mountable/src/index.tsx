@@ -2,13 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import { StliteKernel } from "@stlite/stlite-kernel";
-import { canonicalizeOptions, MountOptions } from "./options";
+import { canonicalizeMountOptions, MountOptions } from "./options";
 
 export function mount(
   options: MountOptions,
   container: HTMLElement = document.body
 ) {
-  const kernel = new StliteKernel(canonicalizeOptions(options));
+  const kernel = new StliteKernel(canonicalizeMountOptions(options));
 
   ReactDOM.render(
     <React.StrictMode>

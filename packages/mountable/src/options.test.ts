@@ -1,8 +1,8 @@
-import { canonicalizeOptions } from "./options"
+import { canonicalizeMountOptions } from "./options"
 
-describe("canonicalizeOptions()", () => {
+describe("canonicalizeMountOptions()", () => {
   it("translates a string input into StliteKernelOptions", () => {
-    expect(canonicalizeOptions("foo")).toEqual({
+    expect(canonicalizeMountOptions("foo")).toEqual({
       command: "run",
       entrypoint: "streamlit_app.py",
       files: {
@@ -15,7 +15,7 @@ describe("canonicalizeOptions()", () => {
   })
 
   it("fills `command`, `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
-    expect(canonicalizeOptions({
+    expect(canonicalizeMountOptions({
       files: {
         "streamlit_app.py": "foo"
       }
@@ -32,7 +32,7 @@ describe("canonicalizeOptions()", () => {
   })
 
   it("preserves the `entrypoint` field if specified", () => {
-    expect(canonicalizeOptions({
+    expect(canonicalizeMountOptions({
       entrypoint: "foo.py",
       files: {
         "streamlit_app.py": "foo"
@@ -50,7 +50,7 @@ describe("canonicalizeOptions()", () => {
   });
 
   it("preserves the `requirements` option if specified", () => {
-    expect(canonicalizeOptions({
+    expect(canonicalizeMountOptions({
       requirements: ["matplotlib"]
     })).toEqual({
       command: "run",

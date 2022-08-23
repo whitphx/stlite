@@ -6,9 +6,9 @@ import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
 
 /**
- * If PUBLIC_PATH which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)
- * is set as a relative URL, resolve it based on the URL of this script itself,
- * which will transpiled into `stlite.js` at the root of the output directory.
+ * If `PUBLIC_PATH` which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)
+ * is set as a relative URL, resolve and override it based on the URL of this script itself,
+ * which will be transpiled into `stlite.js` at the root of the output directory.
  */
 let wheelBaseUrl: string | undefined = undefined;
 if (

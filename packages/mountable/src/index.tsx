@@ -2,13 +2,36 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import { StliteKernel } from "@stlite/stlite-kernel";
+import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
+
+/**
+ * If `PUBLIC_PATH` which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)
+ * is set as a relative URL, resolve and override it based on the URL of this script itself,
+ * which will be transpiled into `stlite.js` at the root of the output directory.
+ */
+let wheelBaseUrl: string | undefined = undefined;
+if (
+  typeof __webpack_public_path__ === "string" &&
+  (__webpack_public_path__ === "." || __webpack_public_path__.startsWith("./"))
+) {
+  if (document.currentScript && "src" in document.currentScript) {
+    const selfScriptUrl = document.currentScript.src;
+    const selfScriptBaseUrl = getParentUrl(selfScriptUrl);
+
+    __webpack_public_path__ = selfScriptBaseUrl; // For webpack dynamic imports
+    wheelBaseUrl = selfScriptBaseUrl;
+  }
+}
 
 export function mount(
   options: MountOptions,
   container: HTMLElement = document.body
 ) {
-  const kernel = new StliteKernel(canonicalizeMountOptions(options));
+  const kernel = new StliteKernel({
+    ...canonicalizeMountOptions(options),
+    wheelBaseUrl,
+  });
 
   ReactDOM.render(
     <React.StrictMode>

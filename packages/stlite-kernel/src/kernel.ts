@@ -1,8 +1,8 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
-import { URLExt } from "@jupyterlab/coreutils";
-
 import { PromiseDelegate } from "@lumino/coreutils";
+
+import { makeAbsoluteWheelURL } from "./url";
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
@@ -16,19 +16,6 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 import Worker from "!!worker-loader?inline=no-fallback!./worker";
 
 let httpCommId = 0;
-
-function isAbsoluteURL(url: string): boolean {
-  try {
-    new URL(url); // Fails if `url` is relative and the second argument `base` is not given.
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function makeAbsoluteWheelURL(url: string): string {
-  return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
-}
 
 export interface StliteKernelOptions {
   /**
@@ -53,6 +40,11 @@ export interface StliteKernelOptions {
     string,
     { data: string | ArrayBufferView; opts?: Record<string, any> }
   >;
+
+  /**
+   *
+   */
+  wheelBaseUrl?: string;
 }
 
 export class StliteKernel {
@@ -70,16 +62,24 @@ export class StliteKernel {
       this._processWorkerMessage(e.data);
     };
 
+    console.debug("Custom wheel URLs:", {
+      TORNADO_WHEEL,
+      PYARROW_WHEEL,
+      STREAMLIT_WHEEL,
+    });
     const tornadoWheelUrl = makeAbsoluteWheelURL(
-      TORNADO_WHEEL as unknown as string
+      TORNADO_WHEEL as unknown as string,
+      options.wheelBaseUrl
     );
     const pyarrowWheelUrl = makeAbsoluteWheelURL(
-      PYARROW_WHEEL as unknown as string
+      PYARROW_WHEEL as unknown as string,
+      options.wheelBaseUrl
     );
     const streamlitWheelUrl = makeAbsoluteWheelURL(
-      STREAMLIT_WHEEL as unknown as string
+      STREAMLIT_WHEEL as unknown as string,
+      options.wheelBaseUrl
     );
-    console.debug("Custom wheel URLs:", {
+    console.debug("Custom wheel resolved URLs:", {
       tornadoWheelUrl,
       pyarrowWheelUrl,
       streamlitWheelUrl,

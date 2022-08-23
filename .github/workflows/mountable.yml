@@ -1,9 +1,9 @@
 name: "@stlite/mountable"
 
-on: ["push"]
-  # push:
-  #   paths:
-  #     - 'packages/mountable/**/*'
+on:
+  push:
+    paths:
+      - 'packages/mountable/**/*'
 
 defaults:
   run:

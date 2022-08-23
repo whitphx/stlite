@@ -1,7 +1,7 @@
 import { canonicalizeOptions } from "./options"
 
 describe("canonicalizeOptions()", () => {
-  it("translates a string input into StliteKernelOption", () => {
+  it("translates a string input into StliteKernelOptions", () => {
     expect(canonicalizeOptions("foo")).toEqual({
       command: "run",
       entrypoint: "streamlit_app.py",
@@ -14,7 +14,7 @@ describe("canonicalizeOptions()", () => {
     })
   })
 
-  it("fills `entrypoint` and `command` fields and converts the `files` into the canonical form", () => {
+  it("fills `command`, `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
     expect(canonicalizeOptions({
       files: {
         "streamlit_app.py": "foo"
@@ -22,12 +22,12 @@ describe("canonicalizeOptions()", () => {
     })).toEqual({
       command: "run",
       entrypoint: "streamlit_app.py",
+      requirements: [],
       files: {
         "streamlit_app.py": {
           data: "foo"
         }
       },
-      requirements: [],
     })
   })
 
@@ -40,12 +40,12 @@ describe("canonicalizeOptions()", () => {
     })).toEqual({
       command: "run",
       entrypoint: "foo.py",
+      requirements: [],
       files: {
         "streamlit_app.py": {
           data: "foo"
         }
       },
-      requirements: [],
     })
   });
 

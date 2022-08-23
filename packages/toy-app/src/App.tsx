@@ -12,6 +12,16 @@ function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       command: "run",
+      entrypoint: "streamlit_app.py",
+      files: {
+        "streamlit_app.py": {
+          data: `import streamlit as st
+
+st.write("Hello World")
+`,
+        },
+      },
+      requirements: [],
     });
 
     kernel
@@ -44,10 +54,13 @@ function App() {
 
           setTimeout(() => {
             console.log("Set a new script");
-            kernel.setMainScriptData(`import streamlit as st
+            kernel.writeFile(
+              "streamlit_app.py",
+              `import streamlit as st
 
 st.write("Hello, a new script")
-`);
+`
+            );
           }, 1000);
         }
       },

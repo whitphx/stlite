@@ -30,8 +30,6 @@ function makeAbsoluteWheelURL(url: string): string {
   return isAbsoluteURL(url) ? url : URLExt.join(window.location.origin, url);
 }
 
-const DEFAULT_MAIN_SCRIPT_PATH = "/streamlit_app.py";
-
 export interface StliteKernelOptions {
   /**
    * The Streamlit subcommand to run.
@@ -39,24 +37,22 @@ export interface StliteKernelOptions {
   command: "hello" | "run";
 
   /**
-   * The file path on the Pyodide File System (Emscripten FS) to mount the main script.
+   * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
    */
-  mainScriptPath?: string;
-
-  /**
-   * The content of the main script.
-   */
-  mainScriptData?: string;
+  entrypoint: string;
 
   /**
    * A list of package names to be install at the booting-up phase.
    */
-  requirements?: string[];
+  requirements: string[];
 
   /**
    * Files to mount.
    */
-  files?: Record<string, EmscriptenFile>;
+  files: Record<
+    string,
+    { data: string | ArrayBufferView; opts?: Record<string, any> }
+  >;
 }
 
 export class StliteKernel {
@@ -89,16 +85,15 @@ export class StliteKernel {
       streamlitWheelUrl,
     });
     this._workerInitData = {
-      requirements: options.requirements || [],
-      mainScriptData: options.mainScriptData,
-      mainScriptPath: options.mainScriptPath || DEFAULT_MAIN_SCRIPT_PATH,
       command: options.command,
+      entrypoint: options.entrypoint,
+      files: options.files,
+      requirements: options.requirements,
       wheels: {
         tornado: tornadoWheelUrl,
         pyarrow: pyarrowWheelUrl,
         streamlit: streamlitWheelUrl,
       },
-      files: options.files || {},
     };
   }
 
@@ -152,22 +147,34 @@ export class StliteKernel {
     return executeDelegate.promise;
   }
 
-  /**
-   * Set a new main script.
-   */
-  public setMainScriptData(mainScriptData: string) {
-    this._worker.postMessage({
-      type: "mainscript:set",
+  public writeFile(
+    path: string,
+    data: string | ArrayBufferView,
+    opts?: Record<string, any>
+  ): Promise<void> {
+    return this._asyncPostMessage({
+      type: "file:write",
       data: {
-        mainScriptData,
+        path,
+        data,
+        opts,
       },
     });
   }
 
   public install(requirements: string[]): Promise<void> {
-    const channel = new MessageChannel();
+    return this._asyncPostMessage({
+      type: "install",
+      data: {
+        requirements,
+      },
+    });
+  }
 
+  private _asyncPostMessage(message: InMessage): Promise<void> {
     return new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+
       channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
         channel.port1.close();
         const msg = e.data;
@@ -178,13 +185,7 @@ export class StliteKernel {
         }
       };
 
-      const msg: InstallMessage = {
-        type: "install",
-        data: {
-          requirements,
-        },
-      };
-      this._worker.postMessage(msg, [channel.port2]);
+      this._worker.postMessage(message, [channel.port2]);
     });
   }
 

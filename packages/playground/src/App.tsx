@@ -45,6 +45,8 @@ st.markdown("hiplot returned " + json.dumps(ret_val))
 
 const DEFAULT_REQUIREMENTS = ["matplotlib", "hiplot"];
 
+const ENTRYPOINT = "streamlit_app.py";
+
 function App() {
   const [mainScriptData, setMainScriptData] = useState(DEFAULT_VALUE);
 
@@ -52,8 +54,13 @@ function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       command: "run",
+      entrypoint: ENTRYPOINT,
       requirements: DEFAULT_REQUIREMENTS,
-      mainScriptData,
+      files: {
+        [ENTRYPOINT]: {
+          data: mainScriptData,
+        },
+      },
     });
     setKernel(kernel);
 
@@ -68,7 +75,7 @@ function App() {
       return;
     }
 
-    kernel.setMainScriptData(mainScriptData);
+    kernel.writeFile(ENTRYPOINT, mainScriptData);
   }, [kernel, mainScriptData]);
 
   return (

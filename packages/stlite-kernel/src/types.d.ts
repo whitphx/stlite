@@ -14,16 +14,15 @@ interface EmscriptenFile {
   opts?: Record<string, string>;
 }
 interface WorkerInitialData {
-  requirements: string[];
-  mainScriptData?: string;
-  mainScriptPath: string;
   command: "run" | "hello";
+  entrypoint: string;
+  files: Record<string, EmscriptenFile>;
+  requirements: string[];
   wheels: {
     tornado: string;
     pyarrow: string;
     streamlit: string;
   };
-  files: Record<string, EmscriptenFile>;
 }
 
 /**
@@ -56,10 +55,12 @@ interface HttpRequestMessage extends InMessageBase {
     request: HttpRequest;
   };
 }
-interface MainScriptSetMessage extends InMessageBase {
-  type: "mainscript:set";
+interface WriteFileMessage extends InMessageBase {
+  type: "file:write";
   data: {
-    mainScriptData: string;
+    path: string;
+    data: string | ArrayBufferView;
+    opts?: Record<string, any>;
   };
 }
 interface InstallMessage extends InMessageBase {
@@ -73,7 +74,7 @@ type InMessage =
   | WebSocketConnectMessage
   | WebSocketSendMessage
   | HttpRequestMessage
-  | MainScriptSetMessage
+  | WriteFileMessage
   | InstallMessage;
 
 interface StliteWorker extends Worker {

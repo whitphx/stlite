@@ -4,8 +4,6 @@ importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
 
 let pyodide: any;
 
-let _mainScriptPath: string;
-
 let httpServer: any;
 
 interface StliteWorkerContext extends Worker {
@@ -35,16 +33,8 @@ const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  const {
-    requirements,
-    command,
-    mainScriptData,
-    mainScriptPath,
-    wheels,
-    files,
-  } = await initDataPromise;
-
-  _mainScriptPath = mainScriptPath;
+  const { command, entrypoint, files, requirements, wheels } =
+    await initDataPromise;
 
   // as of 0.17.0 indexURL must be provided
   pyodide = await loadPyodide({
@@ -227,11 +217,7 @@ async function loadPyodideAndPackages() {
   if (command === "hello") {
     await pyodide.runPythonAsync(`main_hello(**command_kwargs)`);
   } else if (command === "run") {
-    pyodide.FS.writeFile(mainScriptPath, mainScriptData, { encoding: "utf8" });
-
-    await pyodide.runPythonAsync(
-      `main_run("${mainScriptPath}", **command_kwargs)`
-    );
+    await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   }
 
   // Pull the http server instance from Python world to JS world and set up it.
@@ -341,11 +327,22 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       );
       break;
     }
-    case "mainscript:set": {
-      const { mainScriptData } = data.data;
-      pyodide.FS.writeFile(_mainScriptPath, mainScriptData, {
-        encoding: "utf8",
-      });
+    case "file:write": {
+      const messagePort = event.ports[0];
+      const { path, data: fileData, opts } = data.data;
+
+      try {
+        console.debug(`Write a file "${path}"`);
+        writeFileWithParents(pyodide, path, fileData, opts);
+        messagePort.postMessage({
+          type: "reply",
+        });
+      } catch (error) {
+        messagePort.postMessage({
+          type: "reply",
+          error,
+        });
+      }
       break;
     }
     case "install": {

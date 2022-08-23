@@ -36,9 +36,32 @@ Here is a sample HTML file.
   <div id="root"></div>
   <script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js" ></script>
   <script>
+    stlite.mount(`
+import streamlit as st
+
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+`,
+    document.getElementById("root"))
+  </script>
+</body>
+</html>
+```
+
+In this sample,
+* stlite library is imported with the first script tag, then the global `stlite` object becomes available.
+* `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
+
+### More controls
+
+If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.
+
+```js
     stlite.mount({
       requirements: ["matplotlib"],  // Packages to install
-      mainScriptData: `
+      entrypoint: "streamlit_app.py",  // The target file of the `streamlit run` command
+      files: {
+        "streamlit_app.py": `
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,17 +73,11 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`,
-      container: document.getElementById("root")
-    })
-  </script>
-</body>
-</html>
+`
+      }
+    },
+    document.getElementById("root"))
 ```
-
-In this sample,
-* stlite library is imported with the first script tag, then the global `stlite` object becomes available.
-* `stlite.mount()` mounts the Streamlit app to the `<div id="root" />` element as specified via the `container` option and runs the Python script passed through the `mainScriptData` option.
 
 > **Warning**
 > stlite is at the very beginning of its development and the API can drastically change without any notice in the future.

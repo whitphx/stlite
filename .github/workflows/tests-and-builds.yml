@@ -260,4 +260,4 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         draft: true
-        files: stlite-mountable-${{ github.ref_name }}.tgz
+        files: packages/mountable/stlite-mountable-${{ github.ref_name }}.tgz

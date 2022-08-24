@@ -17,7 +17,7 @@ jobs:
         filters: |
           stlite-kernel:
             - 'packages/stlite-kernel/**/*'
-            # - '!packages/stlite-kernel/py/**/*'
+            # - '!packages/stlite-kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
           tornado-e2e:
             - 'packages/stlite-kernel/py/tornado'
             - 'packages/stlite-kernel/py/e2etests/**/*'
@@ -32,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x]
 
@@ -248,7 +249,7 @@ jobs:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.sha }}.tgz
 
-    - name: Upload the built tar ball as an artifact (when pushed with a tag)
+    - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v2
       if: startsWith(github.ref, 'refs/tags/v')
       with:

@@ -279,7 +279,7 @@ jobs:
       with:
         name: stlite-mountable-${{ github.ref_name }}.tgz
 
-    - run: yarn publish --access public ${{steps.download-mountable.outputs.download-path}}
+    - run: yarn publish --access public stlite-mountable-v*.tgz
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -287,4 +287,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/v')
       with:
-        files: ${{steps.download-mountable.outputs.download-path}}
+        files: stlite-mountable-v*.tgz

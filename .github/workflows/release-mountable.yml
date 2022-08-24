@@ -83,6 +83,6 @@ jobs:
         path: packages/mountable/stlite-mountable-v*.tgz
 
     - name: Publish
-      run: yarn publish packages/mountable/stlite-mountable-v*.tgz
+      run: yarn publish packages/mountable/stlite-mountable-v*.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

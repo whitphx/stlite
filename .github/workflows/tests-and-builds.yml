@@ -241,5 +241,4 @@ jobs:
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v2
       with:
-        name: stlite-mountable-npm-package
         path: packages/mountable/stlite-mountable-v*.tgz

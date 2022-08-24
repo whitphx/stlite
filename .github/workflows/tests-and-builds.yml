@@ -1,6 +1,9 @@
 name: Tests and Builds
 
-on: [push]
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
 
 jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples

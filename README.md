@@ -1,7 +1,6 @@
 # stlite: Serverless Streamlit
 
-[![stlite-kernel](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/stlite-kernel.yml)
-[![Integration tests with streamlit and tornado](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/tornado-e2e.yml)
+[![Tests and Builds](https://github.com/whitphx/stlite/actions/workflows/tests-and-builds.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/tests-and-builds.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 [![npm (@stlite/mountable)](https://img.shields.io/npm/v/@stlite/mountable?label=npm%20%28%40stlite%2Fmountable%29)](https://www.npmjs.com/package/@stlite/mountable)
 

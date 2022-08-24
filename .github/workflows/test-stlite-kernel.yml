@@ -1,4 +1,4 @@
-name: stlite-kernel
+name: Test @stlite/stlite-kernel
 
 on:
   push:

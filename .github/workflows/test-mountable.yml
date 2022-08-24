@@ -1,4 +1,4 @@
-name: "@stlite/mountable"
+name: Test @stlite/mountable
 
 on:
   push:

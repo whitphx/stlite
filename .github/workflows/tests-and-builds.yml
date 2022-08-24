@@ -240,5 +240,14 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v2
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
+        name: stlite-mountable-${{ github.sha }}.tgz
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        path: packages/mountable/stlite-mountable-v*.tgz
+        name: stlite-mountable-${{ github.ref_name }}.tgz

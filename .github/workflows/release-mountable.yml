@@ -1,0 +1,91 @@
+name: Release @stlite/mountable
+
+on:
+  release:
+    types: [created]
+
+jobs:
+
+  build:
+
+    env:
+      python-version: "3.10.2"
+      node-version: "16.x"
+      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+      NODE_OPTIONS: "--max-old-space-size=6656"
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    ## Set up Python and Poetry environment
+    - name: Set up Python ${{ env.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.python-version }}
+
+    - name: Install poetry
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+    # Ref: https://github.com/python-poetry/poetry/blob/de0b32c245c72568cf546090600d4626917cd3a4/.github/workflows/main.yml#L46-L60
+    - name: Get full Python version
+      id: full-python-version
+      shell: bash
+      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+    - name: Configure poetry
+      run: poetry config virtualenvs.in-project true
+    - name: Set up cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: timeout 10s pip --version || rm -rf .venv
+
+    ## Set up Node environment
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node-version }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
+    - name: Install Streamlit build dependencies
+      run: sudo apt install protobuf-compiler
+
+    - name: Set up
+      run: make init
+
+    ## Build and deploy @stlite/mountable
+    # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
+    - name: Set PUBLIC_URL
+      run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+    - name: Build @stlite/mountable
+      run: make mountable
+
+    - name: Package
+      working-directory: packages/mountable
+      run: yarn pack
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: stlite-mountable-npm-package
+        path: packages/mountable/stlite-mountable-v*.tgz
+
+    - name: Publish
+      working-directory: packages/mountable
+      run: yarn publish stlite-mountable-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

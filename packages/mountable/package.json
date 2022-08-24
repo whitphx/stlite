@@ -1,12 +1,14 @@
 {
   "name": "@stlite/mountable",
-  "version": "0.1.0",
-  "description": "Stlite application to mount",
+  "version": "0.0.1-alpha.0",
+  "description": "Mountable stlite application",
   "keywords": [
     "stlite",
-    "streamlit"
+    "streamlit",
+    "pyodide",
+    "webassembly",
+    "wasm"
   ],
-  "homepage": "https://github.com/whitphx/stlite",
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
   },
@@ -23,7 +25,7 @@
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git"
   },
-  "dependencies": {
+  "devDependencies": {
     "@babel/core": "7.12.3",
     "@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
     "@stlite/stlite-kernel": "^0.0.1",

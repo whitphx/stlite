@@ -165,6 +165,7 @@ jobs:
     - run: yarn test
 
   build-mountable:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-stlite-kernel, test-tornado-e2e, test-mountable]
 
     env:

@@ -17,7 +17,7 @@ jobs:
         filters: |
           stlite-kernel:
             - 'packages/stlite-kernel/**/*'
-            - '!packages/stlite-kernel/py/**/*'
+            # - '!packages/stlite-kernel/py/**/*'
           tornado-e2e:
             - 'packages/stlite-kernel/py/tornado'
             - 'packages/stlite-kernel/py/e2etests/**/*'

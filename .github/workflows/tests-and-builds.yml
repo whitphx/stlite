@@ -168,6 +168,9 @@ jobs:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-stlite-kernel, test-tornado-e2e, test-mountable]
 
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
     env:
       python-version: "3.10.2"
       node-version: "16.x"

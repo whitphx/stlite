@@ -1,6 +1,6 @@
 {
   "name": "@stlite/mountable",
-  "version": "0.1.0-rc4",
+  "version": "0.0.1-alpha.0",
   "description": "Mountable stlite application",
   "keywords": [
     "stlite",

@@ -278,10 +278,12 @@ jobs:
       id: download-mountable
       with:
         name: stlite-mountable-${{ github.ref_name }}.tgz
+        path: packages/mountable
 
     - run: yarn publish stlite-mountable-v*.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/mountable
 
     - name: Create a new release
       uses: softprops/action-gh-release@v1

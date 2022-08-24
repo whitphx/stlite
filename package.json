@@ -5,7 +5,12 @@
     "packages/*",
     "streamlit/frontend"
   ],
+  "scripts": {
+    "new-version": "lerna version",
+    "new-publish": "lerna publish from-package"
+  },
   "devDependencies": {
+    "@lerna-lite/cli": "^1.11.0",
     "prettier": "2.7.1"
   }
 }

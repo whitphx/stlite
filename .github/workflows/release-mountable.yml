@@ -1,8 +1,10 @@
 name: Release @stlite/mountable
 
 on:
-  release:
-    types: [created]
+  push:
+# on:
+#   release:
+#     types: [created]
 
 jobs:
 

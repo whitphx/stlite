@@ -255,9 +255,8 @@ jobs:
 
 
   publish:
-    needs: [build-mountable]
-
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: [build-mountable]
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions

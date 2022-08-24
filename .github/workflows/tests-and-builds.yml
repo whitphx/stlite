@@ -279,7 +279,7 @@ jobs:
       with:
         name: stlite-mountable-${{ github.ref_name }}.tgz
 
-    - run: yarn publish --access public stlite-mountable-v*.tgz
+    - run: yarn publish stlite-mountable-v*.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

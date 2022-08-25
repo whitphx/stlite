@@ -1,4 +1,4 @@
-name: Tests and Builds
+name: Test, Build, and Publish
 
 on: [push]
 
@@ -169,9 +169,6 @@ jobs:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-stlite-kernel, test-tornado-e2e, test-mountable]
 
-    permissions:
-      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
-
     env:
       python-version: "3.10.2"
       node-version: "16.x"
@@ -256,9 +253,37 @@ jobs:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.ref_name }}.tgz
 
-    - name: Draft a new release
+  publish:
+    if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
+    needs: [build-mountable]
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v3
+      id: download-mountable
+      with:
+        name: stlite-mountable-${{ github.ref_name }}.tgz
+        path: packages/mountable
+
+    - run: yarn publish stlite-mountable-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/mountable
+
+    - name: Create a new release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/v')
       with:
-        draft: true
-        files: packages/mountable/stlite-mountable-${{ github.ref_name }}.tgz
+        files: packages/mountable/stlite-mountable-v*.tgz

@@ -1,6 +1,6 @@
 # stlite: Serverless Streamlit
 
-[![Tests and Builds](https://github.com/whitphx/stlite/actions/workflows/tests-and-builds.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/tests-and-builds.yml)
+[![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 [![npm (@stlite/mountable)](https://img.shields.io/npm/v/@stlite/mountable?label=npm%20%28%40stlite%2Fmountable%29)](https://www.npmjs.com/package/@stlite/mountable)
 

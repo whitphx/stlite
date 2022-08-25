@@ -34,7 +34,7 @@ Here is a sample HTML file.
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js" ></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.0.1/build/stlite.js"></script>
   <script>
     stlite.mount(`
 import streamlit as st
@@ -79,9 +79,23 @@ st.pyplot(fig)
     document.getElementById("root"))
 ```
 
-> **Warning**
-> stlite is at the very beginning of its development and the API can drastically change without any notice in the future.
-Moreover, the hosted JS runtime is not versioned now, so future API changes may cause problems with backward compatibility.
+### Other stlite versions
+In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
+You can use another version by changing the version number in the URL.
+
+The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
+
+#### The latest release
+```html
+<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+```
+You can use the latest version of the published stlite package with this URL.
+
+#### The head of the main branch
+```html
+<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+```
+This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
 
 ## Resources
 * [📖 Streamlit Community, "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide"](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):

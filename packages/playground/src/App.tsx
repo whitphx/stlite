@@ -3,12 +3,8 @@ import "./App.css";
 
 import EditorModal from "./EditorModal";
 
-import { StliteKernel, StliteKernelProvider } from "@stlite/stlite-kernel";
-
-import ThemedApp from "streamlit-browser/src/ThemedApp";
-import { Client as Styletron } from "styletron-engine-atomic";
-import { Provider as StyletronProvider } from "styletron-react";
-const engine = new Styletron({ prefix: "st-" });
+import { StliteKernel } from "@stlite/stlite-kernel";
+import StliteIFrame from "./StliteIFrame";
 
 const DEFAULT_VALUE = `### Sample code copied from https://docs.streamlit.io/library/api-reference/charts/st.pyplot ###
 import streamlit as st
@@ -90,12 +86,12 @@ function App() {
           });
         }}
       />
+
       {kernel && (
-        <StliteKernelProvider kernel={kernel}>
-          <StyletronProvider value={engine}>
-            <ThemedApp />
-          </StyletronProvider>
-        </StliteKernelProvider>
+        <StliteIFrame
+          kernel={kernel}
+          style={{ width: "800px", height: "800px" }}
+        />
       )}
     </>
   );

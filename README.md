@@ -34,7 +34,7 @@ Here is a sample HTML file.
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.0.1/build/stlite.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.1.0/build/stlite.js"></script>
   <script>
     stlite.mount(`
 import streamlit as st

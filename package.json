@@ -6,8 +6,7 @@
     "streamlit/frontend"
   ],
   "scripts": {
-    "new-version": "lerna version",
-    "new-publish": "lerna publish from-package"
+    "new-version": "lerna version"
   },
   "devDependencies": {
     "@lerna-lite/cli": "^1.11.0",

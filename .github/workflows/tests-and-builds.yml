@@ -289,4 +289,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/v')
       with:
-        files: stlite-mountable-v*.tgz
+        files: packages/mountable/stlite-mountable-v*.tgz

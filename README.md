@@ -23,6 +23,15 @@ Image processing with OpenCV works on the client-side.
 - Repository📌: https://github.com/whitphx/stlite-image-processing-app
 - Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
 
+<details>
+  <summary>See the tutorial video</summary>
+
+[![Serverless Streamlit + OpenCV Python Web App Tutorial](https://img.youtube.com/vi/7Qja9ZAWcfw/0.jpg)](https://youtu.be/7Qja9ZAWcfw)
+
+[Serverless Streamlit + OpenCV Python Web App Tutorial](https://youtu.be/7Qja9ZAWcfw), crafted by [1littlecoder](https://www.youtube.com/c/1littlecoder).
+
+</details>
+
 ## Use stlite on your web page
 
 You can use _stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
@@ -121,9 +130,10 @@ This URL points to the head of the main branch which is usually ahead of the rel
 
 ## Resources
 
-- [📖 Streamlit Community, "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide"](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
+- [📺 "Serverless Streamlit + OpenCV Python Web App Tutorial", by 1littlecoder, YouTube, ](https://youtu.be/7Qja9ZAWcfw)
+- [📖 "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide", Streamlit Community](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
   The stlite thread at the Streamlit online forum.
-- [📺 YouTube, "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder](https://youtu.be/VQdktxgbmmg):
+- [📺 "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder, YouTube](https://youtu.be/VQdktxgbmmg):
   A quick tutorial with local app development and GitHub Pages deployment.
 
 ## Development

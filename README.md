@@ -15,53 +15,69 @@ Streamlit is a Python web app framework for the fast development of data apps. T
 Visit the [playground demo](https://whitphx.github.io/stlite/).
 
 ## Samples
+
 ### ⚡️Serverless Image Processing App
+
 Image processing with OpenCV works on the client-side.
-* Repository📌: https://github.com/whitphx/stlite-image-processing-app
-* Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
+
+- Repository📌: https://github.com/whitphx/stlite-image-processing-app
+- Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
 
 ## Use stlite on your web page
-You can use _stlite_ on your web page loading the script via a `<script>` tag.
+
+You can use _stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
 Here is a sample HTML file.
+
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>stlite app</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.1.0/build/stlite.js"></script>
-  <script>
-    stlite.mount(`
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.2.0/build/main.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.2.0/build/stlite.js"></script>
+    <script>
+      stlite.mount(
+        `
 import streamlit as st
 
 name = st.text_input('Your name')
 st.write("Hello,", name or "world")
 `,
-    document.getElementById("root"))
-  </script>
-</body>
+        document.getElementById("root")
+      );
+    </script>
+  </body>
 </html>
 ```
 
 In this sample,
-* stlite library is imported with the first script tag, then the global `stlite` object becomes available.
-* `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
+
+- stlite library is imported with the first script tag, then the global `stlite` object becomes available.
+- `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
 ### More controls
 
 If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.
 
 ```js
-    stlite.mount({
-      requirements: ["matplotlib"],  // Packages to install
-      entrypoint: "streamlit_app.py",  // The target file of the `streamlit run` command
-      files: {
-        "streamlit_app.py": `
+stlite.mount(
+  {
+    requirements: ["matplotlib"], // Packages to install
+    entrypoint: "streamlit_app.py", // The target file of the `streamlit run` command
+    files: {
+      "streamlit_app.py": `
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
@@ -73,45 +89,55 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`
-      }
+`,
     },
-    document.getElementById("root"))
+  },
+  document.getElementById("root")
+);
 ```
 
 ### Other stlite versions
+
 In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
 You can use another version by changing the version number in the URL.
 
 The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
 
 #### The latest release
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
 ```
+
 You can use the latest version of the published stlite package with this URL.
 
 #### The head of the main branch
+
 ```html
 <script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
 ```
+
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
 
 ## Resources
-* [📖 Streamlit Community, "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide"](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
+
+- [📖 Streamlit Community, "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide"](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
   The stlite thread at the Streamlit online forum.
-* [📺 YouTube, "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder](https://youtu.be/VQdktxgbmmg):
+- [📺 YouTube, "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder](https://youtu.be/VQdktxgbmmg):
   A quick tutorial with local app development and GitHub Pages deployment.
 
 ## Development
+
 ### Building the packages
 
 In the root directory,
+
 ```shell
 make
 ```
 
 After building, you can run the playground app by running the command below. Access http://localhost:5001/
+
 ```shell
 make serve
 ```

@@ -84,6 +84,15 @@ st.latex(r'''
      \\sum_{k=0}^{n-1} ar^k =
      a \\left(\\frac{1-r^{n}}{1-r}\\right)
      ''')
+
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame(
+     np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
+     columns=['lat', 'lon'])
+
+st.map(df)
     `,
       },
       requirements: ["matplotlib"],

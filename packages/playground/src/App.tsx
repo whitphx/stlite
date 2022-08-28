@@ -1,16 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 
-import EditorModal from "./EditorModal";
+import EditorModal, { EditorFiles } from "./EditorModal";
 
-import { StliteKernel, StliteKernelProvider } from "@stlite/stlite-kernel";
+import {
+  StliteKernel,
+  StliteKernelOptions,
+  StliteKernelProvider,
+} from "@stlite/stlite-kernel";
 
 import ThemedApp from "streamlit-browser/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";
 const engine = new Styletron({ prefix: "st-" });
 
-const DEFAULT_VALUE = `### Sample code copied from https://docs.streamlit.io/library/api-reference/charts/st.pyplot ###
+const ENTRYPOINT = "streamlit_app.py";
+
+const REQUIREMENTS_PATH = "requirements";
+
+const DEFAULT_REQUIREMENTS = ["matplotlib", "hiplot"];
+
+const DEFAULT_FILES: EditorFiles = {
+  [ENTRYPOINT]: {
+    language: "python",
+    value: `### Sample code copied from https://docs.streamlit.io/library/api-reference/charts/st.pyplot ###
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,26 +54,39 @@ xp = hip.Experiment.from_iterable(data)
 ret_val = xp.to_streamlit(ret="selected_uids", key="hip").display()
 
 st.markdown("hiplot returned " + json.dumps(ret_val))
-`;
+`,
+  },
+  "pages/page_1.py": {
+    language: "python",
+    value: `import streamlit as st
 
-const DEFAULT_REQUIREMENTS = ["matplotlib", "hiplot"];
+st.write("Page1")`,
+  },
+  [REQUIREMENTS_PATH]: {
+    language: "text",
+    value: DEFAULT_REQUIREMENTS.join("\n"),
+  },
+};
 
-const ENTRYPOINT = "streamlit_app.py";
+const DEFAULT_KERNEL_FILES: StliteKernelOptions["files"] = {};
+Object.keys(DEFAULT_FILES).forEach((key) => {
+  if (key === REQUIREMENTS_PATH) {
+    return;
+  }
+
+  DEFAULT_KERNEL_FILES[key] = {
+    data: DEFAULT_FILES[key].value,
+  };
+});
 
 function App() {
-  const [mainScriptData, setMainScriptData] = useState(DEFAULT_VALUE);
-
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
     const kernel = new StliteKernel({
       command: "run",
       entrypoint: ENTRYPOINT,
       requirements: DEFAULT_REQUIREMENTS,
-      files: {
-        [ENTRYPOINT]: {
-          data: mainScriptData,
-        },
-      },
+      files: DEFAULT_KERNEL_FILES,
     });
     setKernel(kernel);
 
@@ -70,25 +96,28 @@ function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => {
-    if (kernel == null) {
-      return;
-    }
-
-    kernel.writeFile(ENTRYPOINT, mainScriptData);
-  }, [kernel, mainScriptData]);
 
   return (
     <>
       <EditorModal
-        defaultValue={mainScriptData}
-        onChange={setMainScriptData}
-        defaultRequirementsValue={DEFAULT_REQUIREMENTS.join("\n")}
-        onInstallRequired={(requirements) => {
-          kernel?.install(requirements).then(() => {
-            console.log("Installed");
-          });
-        }}
+        defaultFiles={DEFAULT_FILES}
+        onFileChange={useCallback(
+          (path: string, value: string) => {
+            if (path === REQUIREMENTS_PATH) {
+              const requirements = value
+                .split("\n")
+                .map((r) => r.trim())
+                .filter((r) => r !== "");
+              kernel?.install(requirements).then(() => {
+                console.log("Installed");
+              });
+              return;
+            }
+
+            kernel?.writeFile(path, value);
+          },
+          [kernel]
+        )}
       />
       {kernel && (
         <StliteKernelProvider kernel={kernel}>

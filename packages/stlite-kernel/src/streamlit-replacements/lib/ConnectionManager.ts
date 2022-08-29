@@ -61,6 +61,29 @@ export class ConnectionManager {
   }
 
   /**
+   * In MPA, `pathname` changes over the pages,
+   * so here the first obtained `pathname` is cached to be used
+   * as a consistent `basePath` over the all page accesses,
+   * assuming that the first time when this method is called is
+   * when the main page is accessed whose `pathname` is the `basePath`.
+   *
+   * This assumption is supported because the time when this frontend script is loaded and executed
+   * is when the user accessed the main page, and it is when this method is called for the first time.
+   *
+   * Sometimes unfortunately this assumption is broken, for example,
+   * when the server is configured to return the main page even if the URL is pointing to the subpath.
+   * It can happen because, on stlite, the MPA system works only on the frontend
+   * and the static HTTP server does not know about the page structure of the MPA.
+   */
+  private basePathCache: string | null = null
+  private getBasePath(): string {
+    if (this.basePathCache == null) {
+      this.basePathCache = (window.location.pathname || "").replace(/^\//, "")
+    }
+    return this.basePathCache
+  }
+
+  /**
    * Return the BaseUriParts for the server we're connected to,
    * if we are connected to a server.
    */
@@ -80,7 +103,7 @@ export class ConnectionManager {
         // so here `window.location.pathname` must be set here as `basePath` representing the app root url path.
         // With this implementation, multi-page apps are not supported on stlite.
         // See https://github.com/whitphx/stlite/issues/41
-        basePath: (window.location.pathname || "").replace(/^\//, ""),
+        basePath: this.getBasePath(),
       }
     }
     return undefined

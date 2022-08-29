@@ -6,59 +6,24 @@ const DEFAULT_WIDTH = Math.min(600, window.innerWidth);
 const DEFAULT_X = Math.min(50, (window.innerWidth - DEFAULT_WIDTH) / 2);
 const DEFAULT_HEIGHT = Math.min(400, window.innerHeight - 400);
 
-const TABS = ["code", "requirements"] as const;
-
-interface RadioGroupProps<T extends string = string> {
-  name: string;
-  options: readonly T[];
-  value: T;
-  onChange: (value: T) => void;
+export interface FileModel {
+  value: string;
+  language: string;
 }
-function RadioGroup<T extends string = string>({
-  name,
-  onChange,
-  value: currentValue,
-  options,
-}: RadioGroupProps<T>) {
-  const onClick = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
-    (e) => {
-      onChange(e.target.value as T);
-    },
-    [onChange]
-  );
-  return (
-    <>
-      {options.map((value) => (
-        <label key={value} className="radio-label">
-          <input
-            type="radio"
-            className="radio-radio"
-            name={name}
-            value={value}
-            checked={value === currentValue}
-            onChange={onClick}
-          />
-          {value}
-        </label>
-      ))}
-    </>
-  );
-}
+export type EditorFiles = { [path: string]: FileModel };
 
 export interface EditorModalProps {
-  defaultValue: string;
-  onChange: (value: string) => void;
-  defaultRequirementsValue: string;
-  onInstallRequired: (requirements: string[]) => void;
+  defaultFiles: EditorFiles;
+  onFileChange: (path: string, value: string) => void;
 }
 function EditorModal(props: EditorModalProps) {
-  const [tab, setTab] = useState<typeof TABS[number]>("code");
-
   const editorRef = useRef<Parameters<OnMount>[0]>(null);
 
-  const { defaultValue, onChange, onInstallRequired } = props;
+  const { defaultFiles, onFileChange } = props;
 
-  const requirementsTextRef = useRef<HTMLTextAreaElement>(null);
+  const [currentPath, setCurrentPath] = useState(Object.keys(defaultFiles)[0]);
+
+  const currentFile = defaultFiles[currentPath];
 
   return (
     <Rnd
@@ -77,51 +42,40 @@ function EditorModal(props: EditorModalProps) {
     >
       <div className="editor-modal">
         <div className="editor-modal-header">
-          <RadioGroup name="tab" value={tab} options={TABS} onChange={setTab} />
+          {Object.keys(defaultFiles).map((path) => (
+            <button
+              key={path}
+              disabled={currentPath === path}
+              onClick={() => setCurrentPath(path)}
+              className="file-selector-button"
+            >
+              {path}
+            </button>
+          ))}
         </div>
-        <div className="editor-container" hidden={tab !== "code"}>
+        <div className="editor-container">
           <Editor
-            defaultValue={defaultValue}
-            defaultLanguage="python"
+            // Multi-model API. See https://github.com/suren-atoyan/monaco-react#multi-model-editor
+            path={currentPath}
+            defaultValue={currentFile.value}
+            defaultLanguage={currentFile.language}
             onMount={useCallback<OnMount>((editor) => {
               (editorRef as React.MutableRefObject<unknown>).current = editor;
             }, [])}
           />
         </div>
 
-        <div className="editor-container" hidden={tab !== "requirements"}>
-          <textarea
-            className="requirements-textarea"
-            defaultValue={props.defaultRequirementsValue}
-            ref={requirementsTextRef}
-          />
-        </div>
-
         <div className="editor-modal-footer">
           <button
-            hidden={tab !== "code"}
             onClick={useCallback(() => {
               const editor = editorRef.current;
               if (editor == null) {
                 return;
               }
-              onChange(editor.getValue());
-            }, [onChange])}
+              onFileChange(currentPath, editor.getValue());
+            }, [currentPath, onFileChange])}
           >
             Save
-          </button>
-          <button
-            hidden={tab !== "requirements"}
-            onClick={useCallback(() => {
-              const value = requirementsTextRef.current?.value || "";
-              const requirements = value
-                .split("\n")
-                .map((r) => r.trim())
-                .filter((r) => r !== "");
-              onInstallRequired(requirements);
-            }, [onInstallRequired])}
-          >
-            Install
           </button>
 
           <span className="footnote">

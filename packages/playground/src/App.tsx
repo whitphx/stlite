@@ -47,7 +47,7 @@ function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
       command: "run",
-      entrypoint: "streamlit_app.py",
+      entrypoint: "Hello.py",
       requirements: DEFAULT_REQUIREMENTS,
       files: DEFAULT_KERNEL_FILES,
     });

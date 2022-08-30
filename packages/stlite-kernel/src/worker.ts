@@ -37,10 +37,12 @@ async function loadPyodideAndPackages() {
     await initDataPromise;
 
   // as of 0.17.0 indexURL must be provided
+  console.debug("Loading Pyodide");
   pyodide = await loadPyodide({
     stdout: console.log,
     stderr: console.error,
   });
+  console.debug("Loaded Pyodide");
 
   // Mount files
   Object.keys(files).forEach((path) => {
@@ -50,27 +52,32 @@ async function loadPyodideAndPackages() {
     writeFileWithParents(pyodide, path, data, opts);
   });
 
+  console.debug("Loading the initially necessary packages");
   await pyodide.loadPackage([
     "micropip",
     "ssl", // TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
   ]);
+  console.debug("Loaded the initially necessary packages");
 
+  console.debug("Loading tornado, pyarrow, and streamlit");
   const micropip = pyodide.pyimport("micropip");
   await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
     keep_going: true,
   });
   await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
+  console.debug("Loaded tornado, pyarrow, and streamlit");
 
-  console.debug("Install the requirements:", requirements);
+  console.debug("Installing the requirements:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
-
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`
     import importlib
     importlib.invalidate_caches()
   `);
+  console.debug("Installed the requirements:", requirements);
 
+  console.debug("Setting the loggers");
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
   // See https://github.com/streamlit/streamlit/issues/4742
   await pyodide.runPythonAsync(`
@@ -120,7 +127,9 @@ async function loadPyodideAndPackages() {
       streamlit_handler = logging.getLogger("streamlit")
       streamlit_handler.setLevel(logging.DEBUG)
   `);
+  console.debug("Set the loggers");
 
+  console.debug("Defining the bootstrap functions");
   // Emulate the process in streamlit/web/cli.py
   await pyodide.runPythonAsync(`
     import os
@@ -204,7 +213,9 @@ async function loadPyodideAndPackages() {
                 raise click.BadParameter("File does not exist: {}".format(target))
             _main_run(target, args, flag_options=kwargs)
   `);
+  console.debug("Defined the bootstrap functions");
 
+  console.debug("Booting up the Streamlit server");
   // Bootstrap
   await pyodide.runPythonAsync(`
   command_kwargs = {
@@ -219,12 +230,15 @@ async function loadPyodideAndPackages() {
   } else if (command === "run") {
     await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   }
+  console.debug("Booted up the Streamlit server");
 
+  console.debug("Setting up the HTTP server");
   // Pull the http server instance from Python world to JS world and set up it.
   await pyodide.runPythonAsync(`
     from tornado.httpserver import HTTP_SERVER
   `); // HTTP_SERVER is set AFTER the streamlit module is loaded.
   httpServer = pyodide.globals.get("HTTP_SERVER").copy();
+  console.debug("Set up the HTTP server");
 
   ctx.postMessage({
     type: "event:loaded",

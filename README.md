@@ -98,8 +98,8 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`
-    }
+`,
+    },
   },
   document.getElementById("root")
 );
@@ -137,22 +137,27 @@ Read [the Streamlit official document](https://docs.streamlit.io/library/get-sta
 ```js
 stlite.mount(
   {
-    entrypoint: "streamlit_app.py",
+    entrypoint: "👋_Hello.py",
     files: {
-      "streamlit_app.py": `
+      "👋_Hello.py": `
 import streamlit as st
 
-st.title("Main page")`,
-      "pages/page1.py": `
+st.set_page_config(page_title="Hello")
+st.title("Main page")
+`,
+      "pages/1_⭐️_Page1.py": `
 import streamlit as st
 
-st.title("Sub page 1")
-      `,
-      "pages/page2.py": `
+st.set_page_config(page_title="Page1")
+st.title("Page 1")
+`,
+      "pages/2_🎈_Page2.py": `
 import streamlit as st
 
-st.title("Sub page 2")`
-    }
+st.set_page_config(page_title="Page2")
+st.title("Page 2")
+`,
+    },
   },
   document.getElementById("root")
 );

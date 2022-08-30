@@ -17,6 +17,10 @@ import Worker from "!!worker-loader?inline=no-fallback!./worker";
 
 let httpCommId = 0;
 
+// Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
+const FINAL_SLASH_RE = /\/+$/;
+const INITIAL_SLASH_RE = /^\/+/;
+
 export interface StliteKernelOptions {
   /**
    * The Streamlit subcommand to run.
@@ -45,6 +49,19 @@ export interface StliteKernelOptions {
    *
    */
   wheelBaseUrl?: string;
+
+  /**
+   * The `pathname` that will be used as both
+   * a base path of the custom component URLs
+   * ana the path of the main page in MPA.
+   *
+   * If not specified, the value of `window.location.pathname` at the time of the class initialization is used.
+   * This default is good enough for most cases, however,
+   * it may be a problem if the server is configured to return the main page even if the URL is pointing to the subpath.
+   * In such a setting, problems like https://github.com/whitphx/stlite/issues/171 may happen,
+   * so explicitly setting `basePath` is recommended.
+   */
+  basePath?: string;
 }
 
 export class StliteKernel {
@@ -56,7 +73,13 @@ export class StliteKernel {
 
   private _workerInitData: WorkerInitialData;
 
+  public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
+
   constructor(options: StliteKernelOptions) {
+    this.basePath = (options.basePath ?? window.location.pathname)
+      .replace(FINAL_SLASH_RE, "")
+      .replace(INITIAL_SLASH_RE, "");
+
     this._worker = new Worker();
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);

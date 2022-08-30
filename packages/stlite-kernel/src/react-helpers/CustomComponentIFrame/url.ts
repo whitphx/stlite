@@ -1,10 +1,10 @@
 import { DUMMY_BASE_HOST } from "../../consts";
 
 export function extractCustomComponentPath(
-  basePathname: string,
+  basePath: string, // basePath without leading and trailing slashes.
   url: string
 ): string | null {
-  const baseHostAndPath = (DUMMY_BASE_HOST + basePathname).replace(/\/$/, "");
+  const baseHostAndPath = (DUMMY_BASE_HOST + "/" + basePath).replace(/\/$/, "");
   const regex = new RegExp(`https?://${baseHostAndPath}(/.*?$)`);
 
   const matches = url.match(regex);

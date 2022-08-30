@@ -61,49 +61,23 @@ export class ConnectionManager {
   }
 
   /**
-   * In MPA, `pathname` changes over the pages,
-   * so here the first obtained `pathname` is cached to be used
-   * as a consistent `basePath` over the all page accesses,
-   * assuming that the first time when this method is called is
-   * when the main page is accessed whose `pathname` is the `basePath`.
-   *
-   * This assumption is supported because the time when this frontend script is loaded and executed
-   * is when the user accessed the main page, and it is when this method is called for the first time.
-   *
-   * Sometimes unfortunately this assumption is broken, for example,
-   * when the server is configured to return the main page even if the URL is pointing to the subpath.
-   * It can happen because, on stlite, the MPA system works only on the frontend
-   * and the static HTTP server does not know about the page structure of the MPA.
-   */
-  private basePathCache: string | null = null
-  private getBasePath(): string {
-    if (this.basePathCache == null) {
-      this.basePathCache = (window.location.pathname || "").replace(/^\//, "")
-    }
-    return this.basePathCache
-  }
-
-  /**
    * Return the BaseUriParts for the server we're connected to,
    * if we are connected to a server.
    */
   public getBaseUriParts(): BaseUriParts | undefined {
     if (this.connectionState === ConnectionState.CONNECTED) {
       // The existence of this property became necessary for multi-page apps: https://github.com/streamlit/streamlit/pull/4698/files#diff-e56cb91573ddb6a97ecd071925fe26504bb5a65f921dc64c63e534162950e1ebR967-R975
-      // so here a dummy BaseUriParts object is returned though it may not be compatible with multi-page functionality.
-      // For multi-page app compatibility,
-      // See https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/UriUtil.ts#L60-L72
-      // or its caller https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/lib/ConnectionManager.ts#L142
+      // so here a dummy BaseUriParts object is returned.
+      // The host and port are set as dummy values that are invalid as a URL
+      // in order to avoid unexpected accesses to external resources,
+      // while the basePath is representing the actual info.
       return {
         host: DUMMY_BASE_HOSTNAME,
         port: DUMMY_BASE_PORT,
         // When a new session starts, a page name for multi-page apps (a relative path to the app root url) is calculated based on this `basePath`
         // then a `rerunScript` BackMsg is sent to the server with `pageName` (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L1064)
-        // and `window.history.pushState` is called (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665),
-        // so here `window.location.pathname` must be set here as `basePath` representing the app root url path.
-        // With this implementation, multi-page apps are not supported on stlite.
-        // See https://github.com/whitphx/stlite/issues/41
-        basePath: this.getBasePath(),
+        // and `window.history.pushState` is called (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665).
+        basePath: this.props.kernel.basePath,
       }
     }
     return undefined

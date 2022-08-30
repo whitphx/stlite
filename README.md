@@ -98,8 +98,8 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`,
-    },
+`
+    }
   },
   document.getElementById("root")
 );
@@ -127,6 +127,36 @@ You can use the latest version of the published stlite package with this URL.
 ```
 
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
+
+### Multipage apps
+
+You can pass the multiple files to the `files` option as below to construct the multipage app structure, the entry point file and `pages/*.py` files.
+
+Read [the Streamlit official document](https://docs.streamlit.io/library/get-started/multipage-apps) about the multipage apps.
+
+```js
+stlite.mount(
+  {
+    entrypoint: "streamlit_app.py",
+    files: {
+      "streamlit_app.py": `
+import streamlit as st
+
+st.title("Main page")`,
+      "pages/page1.py": `
+import streamlit as st
+
+st.title("Sub page 1")
+      `,
+      "pages/page2.py": `
+import streamlit as st
+
+st.title("Sub page 2")`
+    }
+  },
+  document.getElementById("root")
+);
+```
 
 ## Resources
 

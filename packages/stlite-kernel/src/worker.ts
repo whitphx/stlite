@@ -67,6 +67,12 @@ async function loadPyodideAndPackages() {
   await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
   console.debug("Loaded tornado, pyarrow, and streamlit");
 
+  console.debug("Importing streamlit module");
+  await pyodide.runPythonAsync(`
+    import streamlit
+  `);
+  console.debug("Imported streamlit module");
+
   console.debug("Installing the requirements:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`

@@ -9,7 +9,7 @@
     <rect rx="20" ry="20" fill="rgb(255, 127, 127)" x="50" width="250" y="200" height="200" />
   </g>
 
-  <g transform="translate(600, -20) scale(6, 6)">
+  <g transform="translate(600, 0) scale(6, 6)">
     <!-- Font: https://fonts.google.com/specimen/Edu+TAS+Beginner, bold -->
     <path
       fill-rule="nonzero"

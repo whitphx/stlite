@@ -82,7 +82,8 @@ const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >((props, ref) => {
-  const path = extractCustomComponentPath(window.location.pathname, props.src);
+  const kernel = useStliteKernel();
+  const path = extractCustomComponentPath(kernel.basePath, props.src);
 
   if (path == null) {
     return <iframe {...props} ref={ref} />;

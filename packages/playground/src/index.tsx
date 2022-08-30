@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 ReactDOM.render(
   <React.StrictMode>
     <App />
-    <ToastContainer />
+    <ToastContainer style={{ zIndex: 999999 }} />
   </React.StrictMode>,
   document.getElementById("root") as HTMLElement
 );

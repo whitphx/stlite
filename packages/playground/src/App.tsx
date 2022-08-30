@@ -50,6 +50,7 @@ function App() {
       entrypoint: "Hello.py",
       requirements: DEFAULT_REQUIREMENTS,
       files: DEFAULT_KERNEL_FILES,
+      basePath: __webpack_public_path__,
     });
     setKernel(kernel);
 

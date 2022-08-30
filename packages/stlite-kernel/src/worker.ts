@@ -77,18 +77,30 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Installed the requirements:", requirements);
 
-  console.debug("Setting the loggers");
+  console.debug("Importing logging module");
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
   // See https://github.com/streamlit/streamlit/issues/4742
   await pyodide.runPythonAsync(`
       import logging
-      import streamlit.logger
+  `);
+  console.debug("Imported logging module");
 
+  console.debug("Importing streamlit.logger");
+  await pyodide.runPythonAsync(`
+      import streamlit.logger
+  `);
+  console.debug("Imported streamlit.logger");
+
+  console.debug("Overriding the streamlit loggers");
+  await pyodide.runPythonAsync(`
       streamlit.logger.get_logger = logging.getLogger
       streamlit.logger.setup_formatter = None
       streamlit.logger.update_formatter = lambda *a, **k: None
       streamlit.logger.set_log_level = lambda *a, **k: None
   `);
+  console.debug("Overrode the streamlit loggers");
+
+  console.debug("Defining the log callback");
   // Then configure the logger.
   const logCallback = (msg: string) => {
     if (msg.startsWith("CRITICAL") || msg.startsWith("ERROR")) {
@@ -104,6 +116,9 @@ async function loadPyodideAndPackages() {
     }
   };
   self.__logCallback__ = logCallback;
+  console.debug("Defined the log callback");
+
+  console.debug("Setting up the loggers");
   await pyodide.runPythonAsync(`
       from js import __logCallback__
 

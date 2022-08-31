@@ -34,6 +34,12 @@ of what stlite can do!
 
 **👇 Edit the source code** in the editor to run any code you like!
 
+To install additional packages, edit and save the `requirements` tab in the editor.
+
+Tips: Only pure Python packages and C-extensions built for Pyodide can be installed.
+For more information, read [this document](https://pyodide.org/en/stable/usage/loading-packages.html).
+stlite uses [`micropip.install()`](https://pyodide.org/en/stable/usage/api/micropip-api.html#micropip.install) in its internals for installing packages.
+
 ### Want to learn more about stlite?
 - Visit [the GitHub repository and its README](https://github.com/whitphx/stlite)
 ### Want to learn more about Streamlit?

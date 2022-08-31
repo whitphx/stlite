@@ -92,18 +92,32 @@ function App() {
         defaultFiles={DEFAULT_EDITOR_FILES}
         onFileChange={useCallback(
           (path: string, value: string) => {
+            if (kernel == null) {
+              return;
+            }
+
             if (path === REQUIREMENTS_PATH) {
               const requirements = value
                 .split("\n")
                 .map((r) => r.trim())
                 .filter((r) => r !== "");
-              kernel?.install(requirements).then(() => {
-                console.log("Installed");
-              });
+
+              toast.promise(
+                kernel.install(requirements),
+                {
+                  pending: "Installing",
+                  success: "Successfully installed",
+                  error: "Failed to install",
+                },
+                {
+                  hideProgressBar: true,
+                  position: toast.POSITION.BOTTOM_RIGHT,
+                }
+              );
               return;
             }
 
-            kernel?.writeFile(path, value);
+            kernel.writeFile(path, value);
           },
           [kernel]
         )}

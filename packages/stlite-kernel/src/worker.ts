@@ -1,4 +1,5 @@
 import { writeFileWithParents } from "./file";
+import { getHostname } from "./url";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
 
@@ -223,6 +224,9 @@ async function loadPyodideAndPackages() {
       "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
       "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
       "browser.gatherUsageStats": False,
+      "browser.serverAddress": "${
+        getHostname(self.location.origin) ?? "localhost"
+      }",
   }
   `);
   if (command === "hello") {

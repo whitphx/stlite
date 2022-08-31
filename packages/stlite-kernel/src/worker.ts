@@ -151,6 +151,7 @@ async function loadPyodideAndPackages() {
         flag_options,
     ) -> None:
         bootstrap._fix_sys_path(main_script_path)
+        bootstrap._fix_matplotlib_crash()
         bootstrap._fix_sys_argv(main_script_path, args)
         bootstrap._fix_pydeck_mapbox_api_warning()
         bootstrap._install_pages_watcher(main_script_path)

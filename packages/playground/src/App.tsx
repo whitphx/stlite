@@ -61,6 +61,7 @@ function App() {
           transition: Slide,
           isLoading: true,
           hideProgressBar: true,
+          closeButton: false,
         });
         toastIds.push(id);
 

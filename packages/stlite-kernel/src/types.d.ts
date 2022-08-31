@@ -92,6 +92,12 @@ interface OutMessageBase {
 interface StartEventMessage extends OutMessageBase {
   type: "event:start";
 }
+interface ProgressEventMessage extends OutMessageBase {
+  type: "event:progress";
+  data: {
+    message: string;
+  };
+}
 interface LoadedEventMessage extends OutMessageBase {
   type: "event:loaded";
 }
@@ -110,6 +116,7 @@ interface HttpResponseMessage extends OutMessageBase {
 }
 type OutMessage =
   | StartEventMessage
+  | ProgressEventMessage
   | LoadedEventMessage
   | WebSocketBackMessage
   | HttpResponseMessage;

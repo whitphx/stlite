@@ -62,6 +62,10 @@ export interface StliteKernelOptions {
    * so explicitly setting `basePath` is recommended.
    */
   basePath?: string;
+
+  onProgress?: (message: string) => void;
+
+  onLoad?: () => void;
 }
 
 export class StliteKernel {
@@ -75,10 +79,16 @@ export class StliteKernel {
 
   public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
 
+  private onProgress: StliteKernelOptions["onProgress"];
+
+  private onLoad: StliteKernelOptions["onLoad"];
+
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
       .replace(FINAL_SLASH_RE, "")
       .replace(INITIAL_SLASH_RE, "");
+    this.onProgress = options.onProgress;
+    this.onLoad = options.onLoad;
 
     this._worker = new Worker();
     this._worker.onmessage = (e) => {
@@ -226,8 +236,13 @@ export class StliteKernel {
         });
         break;
       }
+      case "event:progress": {
+        this.onProgress && this.onProgress(msg.data.message);
+        break;
+      }
       case "event:loaded": {
         this._loaded.resolve();
+        this.onLoad && this.onLoad();
         break;
       }
       case "websocket:message": {

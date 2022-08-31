@@ -10,6 +10,8 @@ import {
   StliteKernelProvider,
 } from "@stlite/stlite-kernel";
 
+import { Id as ToastId, Slide, toast } from "react-toastify";
+
 import ThemedApp from "streamlit-browser/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";
@@ -45,12 +47,34 @@ Object.keys(sampleAppFiles).forEach((key) => {
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
+    let prevToastId: ToastId | null = null;
+    const toastIds: ToastId[] = [];
     const kernel = new StliteKernel({
       command: "run",
       entrypoint: "Hello.py",
       requirements: DEFAULT_REQUIREMENTS,
       files: DEFAULT_KERNEL_FILES,
       basePath: __webpack_public_path__,
+      onProgress: (message) => {
+        const id = toast(message, {
+          position: toast.POSITION.BOTTOM_RIGHT,
+          transition: Slide,
+          isLoading: true,
+          hideProgressBar: true,
+        });
+        toastIds.push(id);
+
+        if (prevToastId) {
+          toast.update(prevToastId, {
+            isLoading: false,
+            autoClose: 3000,
+          });
+        }
+        prevToastId = id;
+      },
+      onLoad: () => {
+        toastIds.forEach((id) => toast.dismiss(id));
+      },
     });
     setKernel(kernel);
 

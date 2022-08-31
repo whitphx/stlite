@@ -11,7 +11,7 @@ const files: { [path: string]: string } = {
   "pages/1_Plotting_Demo.py": plotting_demo_py,
   "pages/Matplotlib_Demo.py": matplotlib_demo_py,
   "pages/Map_Demo.py": map_demo_py,
-  "pages/Custom_Component_Demo_(HiPlot).py.py": custom_component_demo_py,
+  "pages/Custom_Component_Demo_(HiPlot).py": custom_component_demo_py,
 }
 
 export default files;

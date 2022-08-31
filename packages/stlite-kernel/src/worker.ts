@@ -132,9 +132,34 @@ async function loadPyodideAndPackages() {
   console.debug("Defining the bootstrap functions");
   // Emulate the process in streamlit/web/cli.py
   await pyodide.runPythonAsync(`
+    import asyncio
     import os
     import streamlit
     import streamlit.web.bootstrap as bootstrap
+    from streamlit.web.server import Server
+
+
+    def _on_server_start(server):
+        print("Streamlit server started")
+
+
+    # Mimic streamlit.web.bootstrap.run() but exclude some code unnecessary for stlite environment
+    def run(
+        main_script_path,
+        command_line,
+        args,
+        flag_options,
+    ) -> None:
+        bootstrap._fix_sys_path(main_script_path)
+        bootstrap._fix_sys_argv(main_script_path, args)
+        bootstrap._fix_pydeck_mapbox_api_warning()
+        bootstrap._install_pages_watcher(main_script_path)
+
+        # Create the server. It won't start running yet.
+        server = Server(main_script_path, command_line)
+
+        # Run the server.
+        asyncio.get_event_loop().create_task(server.start(_on_server_start))
 
 
     def _get_command_line_as_string():
@@ -155,7 +180,7 @@ async function loadPyodideAndPackages() {
 
         # check_credentials()  # Disable credential check on Pyodide
 
-        bootstrap.run(file, command_line, args, flag_options)
+        run(file, command_line, args, flag_options)  # Call this customized run function instead of the original bootstrap.run.
 
 
     def main_hello(**kwargs):

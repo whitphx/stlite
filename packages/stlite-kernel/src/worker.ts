@@ -23,6 +23,15 @@ const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
   setInitData = resolve;
 });
 
+function postProgressMessage(message: string): void {
+  ctx.postMessage({
+    type: "event:progress",
+    data: {
+      message,
+    },
+  });
+}
+
 /**
  * Load Pyodided and initialize the interpreter.
  *
@@ -37,12 +46,7 @@ async function loadPyodideAndPackages() {
     await initDataPromise;
 
   // as of 0.17.0 indexURL must be provided
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Loading Pyodide.",
-    },
-  });
+  postProgressMessage("Loading Pyodide.");
   console.debug("Loading Pyodide");
   pyodide = await loadPyodide({
     stdout: console.log,
@@ -51,12 +55,7 @@ async function loadPyodideAndPackages() {
   console.debug("Loaded Pyodide");
 
   // Mount files
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Mounting files.",
-    },
-  });
+  postProgressMessage("Mounting files.");
   Object.keys(files).forEach((path) => {
     const { data, opts } = files[path];
 
@@ -64,12 +63,7 @@ async function loadPyodideAndPackages() {
     writeFileWithParents(pyodide, path, data, opts);
   });
 
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Loading the initially required packages.",
-    },
-  });
+  postProgressMessage("Loading the initially required packages.");
   console.debug("Loading the initially necessary packages");
   await pyodide.loadPackage([
     "micropip",
@@ -77,12 +71,7 @@ async function loadPyodideAndPackages() {
   ]);
   console.debug("Loaded the initially necessary packages");
 
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Installing streamlit and its dependencies.",
-    },
-  });
+  postProgressMessage("Installing streamlit and its dependencies.");
   console.debug("Loading tornado, pyarrow, and streamlit");
   const micropip = pyodide.pyimport("micropip");
   await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
@@ -91,12 +80,7 @@ async function loadPyodideAndPackages() {
   await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
   console.debug("Loaded tornado, pyarrow, and streamlit");
 
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Installing the requirements.",
-    },
-  });
+  postProgressMessage("Installing the requirements.");
   console.debug("Installing the requirements:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
@@ -107,12 +91,7 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Installed the requirements:", requirements);
 
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Loading streamlit package and setting up the loggers.",
-    },
-  });
+  postProgressMessage("Loading streamlit package and setting up the loggers.");
   console.debug("Setting the loggers");
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
   // See https://github.com/streamlit/streamlit/issues/4742
@@ -165,12 +144,7 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Set the loggers");
 
-  ctx.postMessage({
-    type: "event:progress",
-    data: {
-      message: "Booting up the Streamlit server.",
-    },
-  });
+  postProgressMessage("Booting up the Streamlit server.");
   console.debug("Defining the bootstrap functions");
   // Emulate the process in streamlit/web/cli.py
   await pyodide.runPythonAsync(`

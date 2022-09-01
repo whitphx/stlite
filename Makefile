@@ -44,7 +44,7 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 mountable: $(mountable)
 $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
 	cd packages/mountable; \
-	yarn build
+	PUBLIC_URL=. yarn build
 	@touch $@
 
 .PHONY: playground

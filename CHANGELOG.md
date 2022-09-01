@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2022-09-01
+
+### `@stlite/stlite-kernel`
+
+#### Changed
+
+- Use a customized bootstrapping function to avoid unnecessary network access and to be more efficient, [#181](https://github.com/whitphx/stlite/pull/181).
+
+#### Added
+
+- Detailed logs, [#182](https://github.com/whitphx/stlite/pull/182).
+- `onProgress` and `onLoad` callbacks, [#189](https://github.com/whitphx/stlite/pull/189).
+
+### `@stlite/playground`
+
+#### Added
+
+- Show the progress of the booting-up process, [#189](https://github.com/whitphx/stlite/pull/189).
+- More demo pages, [#190](https://github.com/whitphx/stlite/pull/190).
+
 ## [0.5.0] - 2022-08-30
 
 ### `@stlite/mountable`

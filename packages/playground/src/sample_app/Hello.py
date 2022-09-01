@@ -27,7 +27,7 @@ st.markdown("""
 _A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide](https://pyodide.org/)_.
 
 Streamlit is a Python web app framework for the fast development of data apps.
-**stlite** project is to make it run completely on web browsers.
+**stlite** project is to make it run **completely on web browsers**.
 
 **👈 Select a demo from the sidebar** to see some examples
 of what stlite can do!

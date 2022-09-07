@@ -14,16 +14,16 @@ export interface AppData {
 
 /**
  * To reduce the string length after JSON.stringify(),
- * use single-length character as the map keys.
+ * use single-length characters as the map keys.
  */
 export const K_TYPE = "t"
 export const K_DATA = "d"
 export const K_BYTELENGTH = "l"
 export type LZStringCompressableFile = {
-  [K_TYPE]: "text";
+  [K_TYPE]: "t";  // text
   [K_DATA]: string;
 } | {
-  [K_TYPE]: "arraybuffer",
+  [K_TYPE]: "a", // arraybuffer
   [K_DATA]: string,
   [K_BYTELENGTH]: number,
 }

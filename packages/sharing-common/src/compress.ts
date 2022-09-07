@@ -8,13 +8,13 @@ function stringifyFiles(files: TypedFiles): LZStringCompressableFiles {
     const value = files[key];
     if (value.type === "text") {
       stringifiedFiles[key] = {
-        [K_TYPE]: "text",
+        [K_TYPE]: "t",
         [K_DATA]: value.data,
       };
     } else if (value.type === "arraybuffer") {
       const stringified = ab2str(value.data);
       stringifiedFiles[key] = {
-        [K_TYPE]: "arraybuffer",
+        [K_TYPE]: "a",
         [K_DATA]: stringified.str,
         [K_BYTELENGTH]: stringified.byteLength,
       };
@@ -40,7 +40,7 @@ function isLZStringCompressableFile(maybe: any): maybe is LZStringCompressableFi
     return false;
   }
 
-  if (maybe[K_TYPE] !== "text" && maybe[K_TYPE] !== "arraybuffer") {
+  if (maybe[K_TYPE] !== "t" /* text */ && maybe[K_TYPE] !== "a" /* arraybuffer */) {
     return false;
   }
 
@@ -48,7 +48,7 @@ function isLZStringCompressableFile(maybe: any): maybe is LZStringCompressableFi
     return false;
   }
 
-  if (maybe[K_TYPE] === "arraybuffer" && typeof maybe[K_BYTELENGTH] !== "number") {
+  if (maybe[K_TYPE] === "a" /* arraybuffer */ && typeof maybe[K_BYTELENGTH] !== "number") {
     return false;
   }
 
@@ -86,12 +86,12 @@ function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
   const encodableFiles: TypedFiles = {};
   Object.keys(files).forEach((key) => {
     const value = files[key];
-    if (value[K_TYPE] === "text") {
+    if (value[K_TYPE] === "t") { // text
       encodableFiles[key] = {
         type: "text",
         data: value[K_DATA],
       };
-    } else if (value[K_TYPE] === "arraybuffer") {
+    } else if (value[K_TYPE] === "a") { // arraybuffer
       encodableFiles[key] = {
         type: "arraybuffer",
         data: str2ab({ str: value[K_DATA], byteLength: value[K_BYTELENGTH] }),

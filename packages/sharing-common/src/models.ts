@@ -16,33 +16,23 @@ export interface AppData {
  * To reduce the string length after JSON.stringify(),
  * use single-length character as the map keys.
  */
-export const ALIAS_TYPE = "t"
-export const ALIAS_DATA = "d"
-export const ALIAS_BYTELENGTH = "l"
+export const K_TYPE = "t"
+export const K_DATA = "d"
+export const K_BYTELENGTH = "l"
 export type LZStringCompressableFile = {
-  /**
-   * type
-   */
-  [ALIAS_TYPE]: "text";
-  /**
-   * data
-   */
-  [ALIAS_DATA]: string;
+  [K_TYPE]: "text";
+  [K_DATA]: string;
 } | {
-  /**
-   * type
-   */
-  [ALIAS_TYPE]: "arraybuffer",
-  /**
-   * data
-   */
-  [ALIAS_DATA]: string,
-  /**
-   * byteLength
-   */
-  [ALIAS_BYTELENGTH]: number,
+  [K_TYPE]: "arraybuffer",
+  [K_DATA]: string,
+  [K_BYTELENGTH]: number,
 }
 export type LZStringCompressableFiles = Record<string, LZStringCompressableFile>
-export interface LZStringCompressableAppData extends Omit<AppData, "files"> {
-  files: LZStringCompressableFiles;
+export const K_ENTRYPOINT = "e"
+export const K_FILES = "f"
+export const K_REQUIREMENTS = "r"
+export interface LZStringCompressableAppData {
+  [K_ENTRYPOINT]: AppData["entrypoint"];
+  [K_FILES]: LZStringCompressableFiles;
+  [K_REQUIREMENTS]: AppData["requirements"];
 }

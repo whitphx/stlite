@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^6.1.2",
     "@stlite/stlite-kernel": "^0.6.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",

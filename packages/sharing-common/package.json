@@ -6,13 +6,15 @@
   "private": true,
   "scripts": {
     "start": "tsc -w",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest"
   },
   "dependencies": {
     "lz-string": "^1.4.4"
   },
   "devDependencies": {
     "@types/lz-string": "^1.3.34",
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.3",
+    "vitest": "^0.21.1"
   }
 }

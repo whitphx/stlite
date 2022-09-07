@@ -27,13 +27,13 @@ st.write("Hello World")`,
     }
 
     let files: StliteKernelOptions["files"];
-      files = {};
-      Object.keys(appData.files).forEach((key) => {
-        const value = appData.files[key];
-        files[key] = {
-          data: value.type === "text" ? value.data : new Uint8Array(value.data),
-        };
-      });
+    files = {};
+    Object.keys(appData.files).forEach((key) => {
+      const value = appData.files[key];
+      files[key] = {
+        data: value.type === "text" ? value.data : new Uint8Array(value.data),
+      };
+    });
 
     const kernel = new StliteKernel({
       command: "run",

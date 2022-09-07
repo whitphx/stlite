@@ -1,68 +1,120 @@
 import LZString from "lz-string"
-import { EncodableAppData, EncodableFiles, EncodableFile } from "./models"
+import { AppData, TypedFiles, LZStringCompressableAppData, LZStringCompressableFiles, LZStringCompressableFile, ALIAS_TYPE, ALIAS_DATA, ALIAS_BYTELENGTH } from "./models"
+import { ab2str, str2ab } from "./buffer"
 
-export function encodeAppData(appdata: EncodableAppData): string {
-  // TODO: Encoder for Uint8Array
-  return LZString.compressToEncodedURIComponent(JSON.stringify(appdata))
+function stringifyFiles(files: TypedFiles): LZStringCompressableFiles {
+  const stringifiedFiles: LZStringCompressableFiles = {}
+  Object.keys(files).forEach((key) => {
+    const value = files[key];
+    if (value.type === "text") {
+      stringifiedFiles[key] = {
+        [ALIAS_TYPE]: "text",
+        [ALIAS_DATA]: value.data,
+      };
+    } else if (value.type === "arraybuffer") {
+      const stringified = ab2str(value.data);
+      stringifiedFiles[key] = {
+        [ALIAS_TYPE]: "arraybuffer",
+        [ALIAS_DATA]: stringified.str,
+        [ALIAS_BYTELENGTH]: stringified.byteLength,
+      };
+    } else {
+      throw new Error(`Unexpected file type: "${value['type']}"`)
+    }
+  })
+
+  return stringifiedFiles
 }
 
-function isEncodableFile(maybeEncodableFile: any): maybeEncodableFile is EncodableFile {
-  if (maybeEncodableFile == null) {
-    return false;
+export function encodeAppData(appdata: AppData): string {
+  const jsonableData = {
+    ...appdata,
+    files: stringifyFiles(appdata.files),
   }
-  if (!("type" in maybeEncodableFile) || !("data" in maybeEncodableFile)) {
+  return LZString.compressToEncodedURIComponent(JSON.stringify(jsonableData))
+}
+
+function isLZStringCompressableFile(maybe: any): maybe is LZStringCompressableFile {
+  if (maybe == null) {
     return false;
   }
 
-  if (maybeEncodableFile["type"] === "text") {
-    if (typeof maybeEncodableFile["data"] !== "string") {
-      return false;
-    }
-  } else if (maybeEncodableFile["type"] === "uint8array") {
-    if (!(maybeEncodableFile["data"] as unknown instanceof Uint8Array)) {
-      return false;
-    }
+  if (maybe[ALIAS_TYPE] !== "text" && maybe[ALIAS_TYPE] !== "arraybuffer") {
+    return false;
+  }
+
+  if (typeof maybe[ALIAS_DATA] !== "string") {
+    return false;
+  }
+
+  if (maybe[ALIAS_TYPE] === "arraybuffer" && typeof maybe[ALIAS_BYTELENGTH] !== "number") {
+    return false;
   }
 
   return true;
 }
 
-function isEncodableFiles(maybeEncodableFiles: any): maybeEncodableFiles is EncodableFiles {
-  if (maybeEncodableFiles == null) {
+function isLZStringCompressableFiles(maybe: any): maybe is LZStringCompressableFiles {
+  if (maybe == null) {
     return false;
   }
-  return Object.keys(maybeEncodableFiles).every(key => (key in maybeEncodableFiles) && isEncodableFile((maybeEncodableFiles as any)[key]))
+  return Object.keys(maybe).every(key => (key in maybe) && isLZStringCompressableFile((maybe as any)[key]))
 }
 
-function isEncodableAppData(maybeAppData: any): maybeAppData is EncodableAppData {
-  if (maybeAppData == null) {
+function isLZStringCompressableAppData(maybe: any): maybe is LZStringCompressableAppData {
+  if (maybe == null) {
     return false;
   }
-  if (!("entrypoint" in maybeAppData) || typeof maybeAppData["entrypoint"] !== "string") {
+  if (!("entrypoint" in maybe) || typeof maybe["entrypoint"] !== "string") {
     return false;
   }
-  if (!("files" in maybeAppData) || typeof maybeAppData["files"] !== "object") {
+  if (!("files" in maybe) || typeof maybe["files"] !== "object") {
     return false;
   }
-  if (!isEncodableFiles(maybeAppData["files"])) {
+  if (!isLZStringCompressableFiles(maybe["files"])) {
     return false;
   }
-  if (!("requirements" in maybeAppData) || !Array.isArray(maybeAppData["requirements"])) {
+  if (!("requirements" in maybe) || !Array.isArray(maybe["requirements"])) {
     return false;
   }
 
   return true;
 }
 
-export function decodeAppData(encoded: string): EncodableAppData {
+function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
+  const encodableFiles: TypedFiles = {};
+  Object.keys(files).forEach((key) => {
+    const value = files[key];
+    if (value[ALIAS_TYPE] === "text") {
+      encodableFiles[key] = {
+        type: "text",
+        data: value[ALIAS_DATA],
+      };
+    } else if (value[ALIAS_TYPE] === "arraybuffer") {
+      encodableFiles[key] = {
+        type: "arraybuffer",
+        data: str2ab({ str: value[ALIAS_DATA], byteLength: value[ALIAS_BYTELENGTH] }),
+      };
+    } else {
+      throw new Error(`Unexpected file type: "${value[ALIAS_TYPE]}"`)
+    }
+  })
+
+  return encodableFiles;
+}
+
+export function decodeAppData(encoded: string): AppData {
   const decompressed = LZString.decompressFromEncodedURIComponent(encoded)
   if (decompressed == null) {
     throw new Error("Failed to decompress")
   }
   const decoded = JSON.parse(decompressed)
-  if (!isEncodableAppData(decoded)) {
+  if (!isLZStringCompressableAppData(decoded)) {
     throw new Error(`Invalid data`)
   }
 
-  return decoded;
+  return {
+    ...decoded,
+    files: unstringifyFiles(decoded.files)
+  };
 }

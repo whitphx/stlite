@@ -1,46 +1,64 @@
-import LZString from "lz-string"
-import { AppData, TypedFiles, LZStringCompressableAppData, LZStringCompressableFiles, LZStringCompressableFile, K_TYPE, K_DATA, K_BYTELENGTH, K_FILES, K_ENTRYPOINT, K_REQUIREMENTS } from "./models"
-import { ab2str, str2ab } from "./buffer"
+import LZString from "lz-string";
+import {
+  AppData,
+  TypedFiles,
+  LZStringCompressableAppData,
+  LZStringCompressableFiles,
+  LZStringCompressableFile,
+  K_TYPE,
+  K_DATA,
+  K_BYTELENGTH,
+  K_FILES,
+  K_ENTRYPOINT,
+  K_REQUIREMENTS,
+  LZStringCompressableFileArrayBuffer
+} from "./models";
+import { ab2str, str2ab } from "./buffer";
 
 function stringifyFiles(files: TypedFiles): LZStringCompressableFiles {
-  const stringifiedFiles: LZStringCompressableFiles = {}
-  Object.keys(files).forEach((key) => {
+  const stringifiedFiles: LZStringCompressableFiles = {};
+  Object.keys(files).forEach(key => {
     const value = files[key];
     if (value.type === "text") {
       stringifiedFiles[key] = {
         [K_TYPE]: "t",
-        [K_DATA]: value.data,
+        [K_DATA]: value.data
       };
     } else if (value.type === "arraybuffer") {
       const stringified = ab2str(value.data);
       stringifiedFiles[key] = {
         [K_TYPE]: "a",
         [K_DATA]: stringified.str,
-        [K_BYTELENGTH]: stringified.byteLength,
+        [K_BYTELENGTH]: stringified.byteLength
       };
     } else {
-      throw new Error(`Unexpected file type: "${value['type']}"`)
+      throw new Error(`Unexpected file type: "${value["type"]}"`);
     }
-  })
+  });
 
-  return stringifiedFiles
+  return stringifiedFiles;
 }
 
 export function encodeAppData(appdata: AppData): string {
   const jsonableData: LZStringCompressableAppData = {
     [K_ENTRYPOINT]: appdata.entrypoint,
     [K_REQUIREMENTS]: appdata.requirements,
-    [K_FILES]: stringifyFiles(appdata.files),
-  }
-  return LZString.compressToEncodedURIComponent(JSON.stringify(jsonableData))
+    [K_FILES]: stringifyFiles(appdata.files)
+  };
+  return LZString.compressToEncodedURIComponent(JSON.stringify(jsonableData));
 }
 
-function isLZStringCompressableFile(maybe: any): maybe is LZStringCompressableFile {
+function isLZStringCompressableFile(
+  maybe: any
+): maybe is LZStringCompressableFile {
   if (maybe == null) {
     return false;
   }
 
-  if (maybe[K_TYPE] !== "t" /* text */ && maybe[K_TYPE] !== "a" /* arraybuffer */) {
+  if (
+    maybe[K_TYPE] !== "t" /* text */ &&
+    maybe[K_TYPE] !== "a" /* arraybuffer */
+  ) {
     return false;
   }
 
@@ -48,21 +66,30 @@ function isLZStringCompressableFile(maybe: any): maybe is LZStringCompressableFi
     return false;
   }
 
-  if (maybe[K_TYPE] === "a" /* arraybuffer */ && typeof maybe[K_BYTELENGTH] !== "number") {
+  if (
+    maybe[K_TYPE] === "a" /* arraybuffer */ &&
+    typeof maybe[K_BYTELENGTH] !== "number"
+  ) {
     return false;
   }
 
   return true;
 }
 
-function isLZStringCompressableFiles(maybe: any): maybe is LZStringCompressableFiles {
+function isLZStringCompressableFiles(
+  maybe: any
+): maybe is LZStringCompressableFiles {
   if (maybe == null) {
     return false;
   }
-  return Object.keys(maybe).every(key => (key in maybe) && isLZStringCompressableFile((maybe as any)[key]))
+  return Object.keys(maybe).every(
+    key => key in maybe && isLZStringCompressableFile((maybe as any)[key])
+  );
 }
 
-function isLZStringCompressableAppData(maybe: any): maybe is LZStringCompressableAppData {
+function isLZStringCompressableAppData(
+  maybe: any
+): maybe is LZStringCompressableAppData {
   if (maybe == null) {
     return false;
   }
@@ -84,34 +111,41 @@ function isLZStringCompressableAppData(maybe: any): maybe is LZStringCompressabl
 
 function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
   const encodableFiles: TypedFiles = {};
-  Object.keys(files).forEach((key) => {
+  Object.keys(files).forEach(key => {
     const value = files[key];
-    if (value[K_TYPE] === "t") { // text
+    if (value[K_TYPE] === "t") {
+      // text
       encodableFiles[key] = {
         type: "text",
-        data: value[K_DATA],
+        data: value[K_DATA]
       };
-    } else if (value[K_TYPE] === "a") { // arraybuffer
+    } else if (value[K_TYPE] === "a") {
+      // arraybuffer
       encodableFiles[key] = {
         type: "arraybuffer",
-        data: str2ab({ str: value[K_DATA], byteLength: value[K_BYTELENGTH] }),
+        data: str2ab({
+          str: value[K_DATA],
+          byteLength: (value as LZStringCompressableFileArrayBuffer)[ // Casting here is required somehow.
+            K_BYTELENGTH
+          ]
+        })
       };
     } else {
-      throw new Error(`Unexpected file type: "${value[K_TYPE]}"`)
+      throw new Error(`Unexpected file type: "${value[K_TYPE]}"`);
     }
-  })
+  });
 
   return encodableFiles;
 }
 
 export function decodeAppData(encoded: string): AppData {
-  const decompressed = LZString.decompressFromEncodedURIComponent(encoded)
+  const decompressed = LZString.decompressFromEncodedURIComponent(encoded);
   if (decompressed == null) {
-    throw new Error("Failed to decompress")
+    throw new Error("Failed to decompress");
   }
-  const decoded = JSON.parse(decompressed)
+  const decoded = JSON.parse(decompressed);
   if (!isLZStringCompressableAppData(decoded)) {
-    throw new Error(`Invalid data`)
+    throw new Error(`Invalid data`);
   }
 
   return {

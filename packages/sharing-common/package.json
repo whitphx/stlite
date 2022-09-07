@@ -7,7 +7,11 @@
   "scripts": {
     "start": "tsc -w",
     "build": "tsc",
-    "test": "vitest"
+    "test": "vitest",
+    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
   },
   "dependencies": {
     "lz-string": "^1.4.4"

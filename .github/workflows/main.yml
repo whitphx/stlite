@@ -192,10 +192,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
-    # - name: Lint
-    #   run: |
-    #     yarn check:eslint
-    #     yarn check:prettier
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
     - run: yarn test
 
   build-mountable:

@@ -11,25 +11,25 @@ import {
   K_FILES,
   K_ENTRYPOINT,
   K_REQUIREMENTS,
-  LZStringCompressableFileArrayBuffer
+  LZStringCompressableFileArrayBuffer,
 } from "./models";
 import { ab2str, str2ab } from "./buffer";
 
 function stringifyFiles(files: TypedFiles): LZStringCompressableFiles {
   const stringifiedFiles: LZStringCompressableFiles = {};
-  Object.keys(files).forEach(key => {
+  Object.keys(files).forEach((key) => {
     const value = files[key];
     if (value.type === "text") {
       stringifiedFiles[key] = {
         [K_TYPE]: "t",
-        [K_DATA]: value.data
+        [K_DATA]: value.data,
       };
     } else if (value.type === "arraybuffer") {
       const stringified = ab2str(value.data);
       stringifiedFiles[key] = {
         [K_TYPE]: "a",
         [K_DATA]: stringified.str,
-        [K_BYTELENGTH]: stringified.byteLength
+        [K_BYTELENGTH]: stringified.byteLength,
       };
     } else {
       throw new Error(`Unexpected file type: "${value["type"]}"`);
@@ -43,7 +43,7 @@ export function encodeAppData(appdata: AppData): string {
   const jsonableData: LZStringCompressableAppData = {
     [K_ENTRYPOINT]: appdata.entrypoint,
     [K_REQUIREMENTS]: appdata.requirements,
-    [K_FILES]: stringifyFiles(appdata.files)
+    [K_FILES]: stringifyFiles(appdata.files),
   };
   return LZString.compressToEncodedURIComponent(JSON.stringify(jsonableData));
 }
@@ -83,7 +83,7 @@ function isLZStringCompressableFiles(
     return false;
   }
   return Object.keys(maybe).every(
-    key => key in maybe && isLZStringCompressableFile((maybe as any)[key])
+    (key) => key in maybe && isLZStringCompressableFile((maybe as any)[key])
   );
 }
 
@@ -111,13 +111,13 @@ function isLZStringCompressableAppData(
 
 function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
   const encodableFiles: TypedFiles = {};
-  Object.keys(files).forEach(key => {
+  Object.keys(files).forEach((key) => {
     const value = files[key];
     if (value[K_TYPE] === "t") {
       // text
       encodableFiles[key] = {
         type: "text",
-        data: value[K_DATA]
+        data: value[K_DATA],
       };
     } else if (value[K_TYPE] === "a") {
       // arraybuffer
@@ -127,8 +127,8 @@ function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
           str: value[K_DATA],
           byteLength: (value as LZStringCompressableFileArrayBuffer)[ // Casting here is required somehow.
             K_BYTELENGTH
-          ]
-        })
+          ],
+        }),
       };
     } else {
       throw new Error(`Unexpected file type: "${value[K_TYPE]}"`);
@@ -151,6 +151,6 @@ export function decodeAppData(encoded: string): AppData {
   return {
     entrypoint: decoded[K_ENTRYPOINT],
     requirements: decoded[K_REQUIREMENTS],
-    files: unstringifyFiles(decoded[K_FILES])
+    files: unstringifyFiles(decoded[K_FILES]),
   };
 }

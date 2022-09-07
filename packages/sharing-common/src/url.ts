@@ -1,6 +1,6 @@
-import { AppData } from "./models"
-import { URL_HASH_KEY } from "./consts"
-import { decodeAppData } from "./compress"
+import { AppData } from "./models";
+import { URL_HASH_KEY } from "./consts";
+import { decodeAppData } from "./compress";
 
 export function getAppDataFromUrl(): AppData | null {
   const hashContent = window.location.hash.replace(/^#/, "");

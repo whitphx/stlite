@@ -6,10 +6,15 @@ import {
   URL_HASH_KEY,
 } from "@stlite/sharing-common";
 
-const SHARING_URL =
+const DEFAULT_SHARING_URL =
   process.env.NODE_ENV === "production"
     ? "/" // Assuming this editor app is hosted at "/editor" and the main app is at "/" with the same host name.
     : "http://localhost:3000/";
+
+// NOTE: This is only for the very beginning phase of the development.
+// TODO: Remove this feature because it can be used for phishing.
+const SHARING_URL =
+  new URLSearchParams(window.location.search).get("app") ?? DEFAULT_SHARING_URL;
 
 // A sample data for dev
 const appData: EncodableAppData = {

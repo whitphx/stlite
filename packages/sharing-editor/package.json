@@ -2,7 +2,9 @@
   "name": "@stlite/sharing-editor",
   "version": "0.0.1",
   "private": true,
+  "homepage": "https://share.stlite.net/edit/",
   "dependencies": {
+    "@stlite/sharing-common": "0.1.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",
@@ -16,7 +18,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=3030 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

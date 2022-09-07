@@ -1,0 +1,18 @@
+{
+  "name": "@stlite/sharing-common",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "start": "tsc -w",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "lz-string": "^1.4.4"
+  },
+  "devDependencies": {
+    "@types/lz-string": "^1.3.34",
+    "typescript": "^4.6.3"
+  }
+}

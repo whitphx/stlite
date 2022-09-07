@@ -14,11 +14,12 @@ function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
 [
   1,
   2,
-  3,
+  3, // Not a multiple of 2: A special care is needed for Uint16Array.
   4,
+  5, // A number exceeding a minimum byteLength of Uint32Array is also tested tentatively.
   1000000, // Calling `String.fromCharCode.apply()` with a long buffer throws a RangeError.
 ].forEach((byteLength) => {
-  test("encode and decode", () => {
+  test(`encode and decode an array buffer whose length is ${byteLength}`, () => {
     const data = createDummyArrayBuffer(byteLength);
 
     expect(str2ab(ab2str(data))).toEqual(data);
@@ -26,7 +27,7 @@ function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
 });
 
 [100, 1000000].forEach((byteLength) => {
-  test("This design using .byteLength field is more efficient than using a boolean flag indicating padding", () => {
+  test("The current design using .byteLength is more efficient than using a boolean flag indicating padding", () => {
     const data = createDummyArrayBuffer(byteLength);
 
     const stringified = ab2str(data);

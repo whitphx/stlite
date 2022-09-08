@@ -10,9 +10,12 @@ interface StringifiedArrayBuffer {
  * Ad-hoc value that works at least for NodeJS v16.13.0 (arm64).
  * Decrease this if `RangeError: Maximum call stack size exceeded` is reported.
  */
-const APPLY_MAX = 2 ** 18;
+const DEFAULT_APPLY_MAX = 2 ** 18;
 
-export function ab2str(buf: ArrayBuffer): StringifiedArrayBuffer {
+export function ab2str(
+  buf: ArrayBuffer,
+  applyMax?: number
+): StringifiedArrayBuffer {
   if (buf.byteLength % 2 !== 0) {
     // Uint16Array only accepts ArrayBuffer whose length is a multiple of 2,
     // so pad zero at the last 1 byte if the buffer does not meet this requirement.
@@ -43,13 +46,11 @@ export function ab2str(buf: ArrayBuffer): StringifiedArrayBuffer {
   // throws `RangeError: Maximum call stack size exceeded`,
   // so we split the buffer into chunks and process them one by one.
   let str = "";
-  const nChunks = bufView.length / APPLY_MAX;
+  const nChunks = Math.ceil(bufView.length / (applyMax ?? DEFAULT_APPLY_MAX));
   for (let i = 0; i < nChunks; ++i) {
-    const offset = APPLY_MAX * i;
-    str += String.fromCharCode.apply(
-      null,
-      bufView.slice(offset, offset + APPLY_MAX) as unknown as number[]
-    );
+    const offset = DEFAULT_APPLY_MAX * i;
+    const chunk = bufView.slice(offset, offset + DEFAULT_APPLY_MAX);
+    str += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   return {
     str,

@@ -26,6 +26,14 @@ function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
   });
 });
 
+[3, 4].forEach((byteLength) => {
+  const applyMax = 3;
+  test(`encoder with an input longer than or equal (${byteLength}) applyMax (${applyMax})`, () => {
+    const data = createDummyArrayBuffer(byteLength);
+    expect(str2ab(ab2str(data, applyMax))).toEqual(data);
+  });
+});
+
 [100, 1000000].forEach((byteLength) => {
   test("The current design using .byteLength is more efficient than using a boolean flag indicating padding", () => {
     const data = createDummyArrayBuffer(byteLength);

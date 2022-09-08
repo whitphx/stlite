@@ -1,0 +1,27 @@
+{
+  "name": "@stlite/sharing-common",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "start": "tsc -w",
+    "build": "tsc",
+    "test": "vitest",
+    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
+  },
+  "dependencies": {
+    "lz-string": "^1.4.4"
+  },
+  "devDependencies": {
+    "@types/lz-string": "^1.3.34",
+    "@typescript-eslint/eslint-plugin": "^5.36.2",
+    "@typescript-eslint/parser": "^5.36.2",
+    "eslint": "^8.21.0",
+    "typescript": "^4.6.3",
+    "vitest": "^0.21.1"
+  }
+}

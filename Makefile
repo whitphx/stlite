@@ -1,5 +1,8 @@
 playground := packages/playground/build/*
 mountable := packages/mountable/build/*
+sharing := packages/sharing/build/*
+sharing-common := packages/sharing-common/dist/*
+sharing-editor := packages/sharing-editor/build/*
 stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
@@ -7,7 +10,7 @@ streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
 
 .PHONY: all
-all: init mountable playground
+all: init mountable playground sharing sharing-editor
 
 
 .PHONY: init
@@ -44,6 +47,25 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 mountable: $(mountable)
 $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
 	cd packages/mountable; \
+	yarn build
+	@touch $@
+
+.PHONY: sharing
+sharing: $(sharing)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(stlite_kernel) $(streamlit_wheel) $(sharing-common)
+	cd packages/sharing; \
+	yarn build
+	@touch $@
+
+$(sharing-common): packages/sharing-common/src/*.ts
+	cd packages/sharing-common; \
+	yarn build
+	@touch $@
+
+.PHONY: sharing-editor
+sharing-editor: $(sharing-editor)
+$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(sharing-common)
+	cd packages/sharing-editor; \
 	yarn build
 	@touch $@
 

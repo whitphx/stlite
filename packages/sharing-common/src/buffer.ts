@@ -32,14 +32,15 @@ export function ab2str(
     // which are usually longer and less compression-efficient than string expressions of numbers such as "100".
     const padded = new ArrayBuffer(buf.byteLength + 1);
     const paddedBufView = new Uint8Array(padded);
-    paddedBufView.set(new Uint8Array(buf));
-    paddedBufView[buf.byteLength - 2] = 0; // Pad
+    paddedBufView.set(new Uint8Array(buf), 0);
 
     const stringified = ab2str(padded);
     stringified.byteLength = buf.byteLength;
     return stringified;
   }
 
+  // String is represented in UTF-16, so we use Uint16Array as an encoder.
+  // See https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
   const bufView = new Uint16Array(buf);
 
   // If `bufView` is too long, `String.fromCharCode.apply(null, bufView)`

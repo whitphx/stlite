@@ -5,13 +5,13 @@ import {
   LZStringCompressableAppData,
   LZStringCompressableFiles,
   LZStringCompressableFile,
+  LZStringCompressableFileArrayBuffer,
   K_TYPE,
   K_DATA,
   K_BYTELENGTH,
   K_FILES,
   K_ENTRYPOINT,
   K_REQUIREMENTS,
-  LZStringCompressableFileArrayBuffer,
 } from "./models";
 import { ab2str, str2ab } from "./buffer";
 
@@ -82,8 +82,8 @@ function isLZStringCompressableFiles(
   if (maybe == null) {
     return false;
   }
-  return Object.keys(maybe).every(
-    (key) => key in maybe && isLZStringCompressableFile((maybe as any)[key])
+  return Object.keys(maybe).every((key) =>
+    isLZStringCompressableFile(maybe[key])
   );
 }
 
@@ -102,7 +102,11 @@ function isLZStringCompressableAppData(
   if (!isLZStringCompressableFiles(maybe[K_FILES])) {
     return false;
   }
-  if (!(K_REQUIREMENTS in maybe) || !Array.isArray(maybe[K_REQUIREMENTS])) {
+  if (
+    !(K_REQUIREMENTS in maybe) ||
+    !Array.isArray(maybe[K_REQUIREMENTS]) ||
+    maybe[K_REQUIREMENTS].some((r: unknown) => typeof r !== "string")
+  ) {
     return false;
   }
 
@@ -110,18 +114,18 @@ function isLZStringCompressableAppData(
 }
 
 function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
-  const encodableFiles: TypedFiles = {};
+  const typedFiles: TypedFiles = {};
   Object.keys(files).forEach((key) => {
     const value = files[key];
     if (value[K_TYPE] === "t") {
       // text
-      encodableFiles[key] = {
+      typedFiles[key] = {
         type: "text",
         data: value[K_DATA],
       };
     } else if (value[K_TYPE] === "a") {
       // arraybuffer
-      encodableFiles[key] = {
+      typedFiles[key] = {
         type: "arraybuffer",
         data: str2ab({
           str: value[K_DATA],
@@ -135,7 +139,7 @@ function unstringifyFiles(files: LZStringCompressableFiles): TypedFiles {
     }
   });
 
-  return encodableFiles;
+  return typedFiles;
 }
 
 export function decodeAppData(encoded: string): AppData {
@@ -145,6 +149,7 @@ export function decodeAppData(encoded: string): AppData {
   }
   const decoded = JSON.parse(decompressed);
   if (!isLZStringCompressableAppData(decoded)) {
+    console.log("Invalid data", decoded);
     throw new Error(`Invalid data`);
   }
 

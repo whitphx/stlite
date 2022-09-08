@@ -191,15 +191,13 @@ make serve
 
 ### Databutton
 
-<a href="https://www.databutton.io/" target="_blank" rel="noreferrer">
-<img src="https://docs.databutton.com/_media/icon.svg" height="100" >
-</a>
+[<img src="https://docs.databutton.com/_media/icon.svg" height="100" >](https://www.databutton.io/)
 
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)
 
-<a href="https://www.buymeacoffee.com/whitphx" target="_blank" rel="noreferrer"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" ></a>
+[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" >](https://www.buymeacoffee.com/whitphx)
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/whitphx?label=Sponsor%20me%20on%20GitHub%20Sponsors&style=social)](https://github.com/sponsors/whitphx)
 

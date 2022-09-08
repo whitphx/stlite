@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import { encodeAppData, AppData, URL_HASH_KEY } from "@stlite/sharing-common";
+import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
 
 const DEFAULT_SHARING_URL =
   process.env.NODE_ENV === "production"
@@ -71,7 +71,7 @@ st.title("Sub page")`,
       <div className="preview-pane">
         {appData && (
           <iframe
-            src={`${SHARING_URL}#${URL_HASH_KEY}=${encodeAppData(appData)}`}
+            src={embedAppDataToUrl(SHARING_URL, appData)}
             frameBorder="0"
             title="stlite app"
             className="preview-iframe"

@@ -1,14 +1,17 @@
 import { AppData } from "./models";
-import { URL_HASH_KEY } from "./consts";
-import { decodeAppData } from "./compress";
+import { URL_HASH_PREFIX } from "./consts";
+import { encodeAppData, decodeAppData } from "./compress";
 
 export function getAppDataFromUrl(): AppData | null {
-  const hashContent = window.location.hash.replace(/^#/, "");
-  const hashParams = new URLSearchParams(hashContent);
-  const encoded = hashParams.get(URL_HASH_KEY);
-  if (encoded == null) {
+  const hashValue = window.location.hash.replace(/^#/, "");
+  if (!hashValue.startsWith(URL_HASH_PREFIX)) {
     return null;
   }
 
-  return decodeAppData(encoded);
+  const encodedAppData = hashValue.slice(1);
+  return decodeAppData(encodedAppData);
+}
+
+export function embedAppDataToUrl(url: string, appData: AppData): string {
+  return `${url}#${URL_HASH_PREFIX}${encodeAppData(appData)}`;
 }

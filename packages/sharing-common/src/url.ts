@@ -2,7 +2,7 @@ import { AppData } from "./models";
 import { URL_HASH_PREFIX } from "./consts";
 import { encodeAppData, decodeAppData } from "./compress";
 
-export function getAppDataFromUrl(): AppData | null {
+export function extractAppDataFromUrl(): AppData | null {
   const hashValue = window.location.hash.replace(/^#/, "");
   if (!hashValue.startsWith(URL_HASH_PREFIX)) {
     return null;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
-import { AppData, getAppDataFromUrl } from "@stlite/sharing-common";
+import { AppData, extractAppDataFromUrl } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 
 function convertFiles(
@@ -19,7 +19,7 @@ function convertFiles(
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
-    const appData = getAppDataFromUrl();
+    const appData = extractAppDataFromUrl();
 
     console.debug("Initialize with", appData);
 

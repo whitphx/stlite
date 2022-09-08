@@ -187,9 +187,20 @@ After building, you can run the playground app by running the command below. Acc
 make serve
 ```
 
+## Sponsors
+
+### Databutton
+
+<a href="https://www.databutton.io/" target="_blank" rel="noreferrer">
+<img src="https://docs.databutton.com/_media/icon.svg" height="100" >
+</a>
+
 ## Support the project
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)
 
-<a href="https://www.buymeacoffee.com/whitphx" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" ></a>
+<a href="https://www.buymeacoffee.com/whitphx" target="_blank" rel="noreferrer"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" ></a>
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/whitphx?label=Sponsor%20me%20on%20GitHub%20Sponsors&style=social)](https://github.com/sponsors/whitphx)
+
+Contact the author: [Twitter](https://twitter.com/whitphx) / [LinkedIn](https://www.linkedin.com/in/whitphx/).

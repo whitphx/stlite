@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
 
@@ -65,19 +65,29 @@ st.title("Sub page")`,
     return;
   }, []);
 
+  const url = useMemo(
+    () => (appData ? embedAppDataToUrl(SHARING_URL, appData) : null),
+    [appData]
+  );
+
   return (
     <div className="App">
       <div className="editor-pane"></div>
-      <div className="preview-pane">
-        {appData && (
+      {url && (
+        <div className="preview-pane">
+          <p>
+            <a href={url} target="_blank" rel="noreferrer">
+              Open App
+            </a>
+          </p>
           <iframe
-            src={embedAppDataToUrl(SHARING_URL, appData)}
+            src={url}
             frameBorder="0"
             title="stlite app"
             className="preview-iframe"
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

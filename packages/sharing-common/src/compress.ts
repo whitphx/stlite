@@ -45,6 +45,14 @@ export function encodeAppData(appdata: AppData): string {
     [K_REQUIREMENTS]: appdata.requirements,
     [K_FILES]: stringifyFiles(appdata.files),
   };
+
+  // NOTE: URL fragment allows more characters than the URL-safe characters
+  // (see https://stackoverflow.com/questions/26088849/url-fragment-allowed-characters)
+  // so theoretically we can improve the compression efficiency here
+  // as long as we use the compressed string in the URL fragments.
+  // However, LZString does not expose such an API through which we can inject
+  // a customized character set,
+  // so we use compressToEncodedURIComponent() as the second best.
   return LZString.compressToEncodedURIComponent(JSON.stringify(jsonableData));
 }
 

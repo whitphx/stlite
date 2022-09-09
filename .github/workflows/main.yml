@@ -408,7 +408,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    name: Deploy to Cloudflare Pages
+    name: Deploy @stlite/sharing to Cloudflare Pages
     outputs:
       url: ${{ steps.publish.outputs.url }}
     steps:
@@ -469,7 +469,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    name: Deploy to Cloudflare Pages
+    name: Deploy @stlite/sharing-editor to Cloudflare Pages
     steps:
       - name: Checkout
         uses: actions/checkout@v3

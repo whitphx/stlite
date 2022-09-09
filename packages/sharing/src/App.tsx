@@ -9,8 +9,14 @@ function convertFiles(
   let files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
     const value = appDataFiles[key];
+    if (value.content == null) {
+      return;
+    }
     files[key] = {
-      data: value.type === "text" ? value.data : new Uint8Array(value.data),
+      data:
+        value.content.$case === "text"
+          ? value.content.text
+          : value.content.data,
     };
   });
   return files;

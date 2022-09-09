@@ -35,8 +35,9 @@ function App() {
         entrypoint: "streamlit_app.py",
         files: {
           "streamlit_app.py": {
-            type: "text",
-            data: `
+            content: {
+              $case: "text",
+              text: `
 import streamlit as st
 from PIL import Image
 
@@ -44,18 +45,23 @@ st.title("Main page")
 
 image = Image.open('data/logo.png')
 st.image(image, caption='Sunrise by the mountains')
-              `,
+`,
+            },
           },
           "pages/page1.py": {
-            type: "text",
-            data: `
+            content: {
+              $case: "text",
+              text: `
 import streamlit as st
 
 st.title("Sub page")`,
+            },
           },
           "data/logo.png": {
-            type: "arraybuffer",
-            data: binary,
+            content: {
+              $case: "data",
+              data: new Uint8Array(binary),
+            },
           },
         },
         requirements: [],

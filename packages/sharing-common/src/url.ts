@@ -1,4 +1,4 @@
-import { AppData } from "./models";
+import { AppData } from "./proto/models";
 import { URL_HASH_PREFIX } from "./consts";
 import { encodeAppData, decodeAppData } from "./compress";
 

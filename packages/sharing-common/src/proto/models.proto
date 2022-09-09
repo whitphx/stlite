@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+message AppData {
+  string entrypoint = 1;
+  map<string, File> files = 2;
+  repeated string requirements = 3;
+}
+
+message File {
+  // NOTE: The `content` field should be required according to the semantics of this app,
+  // however, `oneof` is not designed so, and it is recommended to
+  // introduce an application-specific validation on the field.
+  // Ref: https://stackoverflow.com/a/42992898/13103190
+  oneof content {
+    string text = 1;
+    bytes data = 2;
+  }
+}

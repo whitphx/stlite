@@ -3,7 +3,7 @@
 
 interface StringifiedArrayBuffer {
   str: string;
-  byteLength: number;
+  padded: boolean;
 }
 
 /**
@@ -22,20 +22,13 @@ export function ab2str(
     // We can avoid this problem by using Uint8Array instead,
     // however, Uint16Array is DOUBLE efficient than Uint8Array,
     // so we prefer Uint16Array with this hack.
-    // Due to this padding, the additional info `.byteLength` is needed at the decoding time.
-    //
-    // NOTE: There is another option to tell the decoder the original buffer length
-    // that is passing a boolean flag indicating whether the padding has occurred.
-    // However, according to an experiment, using a number value of `.byteLength`
-    // is more efficient for the combination of `JSON.stringify` and `LZString.compressToEncodedURIComponent`.
-    // This is because a boolean value is encoded to a string such as "true" and "false"
-    // which are usually longer and less compression-efficient than string expressions of numbers such as "100".
+    // Due to this padding, the additional info `.padded` is needed at the decoding time.
     const padded = new ArrayBuffer(buf.byteLength + 1);
     const paddedBufView = new Uint8Array(padded);
     paddedBufView.set(new Uint8Array(buf), 0);
 
     const stringified = ab2str(padded);
-    stringified.byteLength = buf.byteLength;
+    stringified.padded = true;
     return stringified;
   }
 
@@ -55,7 +48,7 @@ export function ab2str(
   }
   return {
     str,
-    byteLength: buf.byteLength,
+    padded: false,
   };
 }
 
@@ -68,5 +61,9 @@ export function str2ab(stringified: StringifiedArrayBuffer) {
     bufView[i] = str.charCodeAt(i);
   }
 
-  return buf.slice(0, stringified.byteLength);
+  if (stringified.padded) {
+    return buf.slice(0, -1);
+  } else {
+    return buf;
+  }
 }

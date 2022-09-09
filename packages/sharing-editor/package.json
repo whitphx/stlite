@@ -2,7 +2,7 @@
   "name": "@stlite/sharing-editor",
   "version": "0.0.1",
   "private": true,
-  "homepage": "https://share.stlite.net/edit/",
+  "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
     "@stlite/sharing-common": "0.1.0",
     "@testing-library/react": "^11.2.7",

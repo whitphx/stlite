@@ -289,7 +289,7 @@ jobs:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.ref_name }}.tgz
 
-  publish:
+  publish-mountable:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
     needs: [build-mountable]
 
@@ -323,3 +323,165 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         files: packages/mountable/stlite-mountable-v*.tgz
+
+  build-sharing:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [test-stlite-kernel, test-tornado-e2e, test-sharing-common]
+
+    env:
+      python-version: "3.10.2"
+      node-version: "16.x"
+      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+      NODE_OPTIONS: "--max-old-space-size=6656"
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    ## Set up Python and Poetry environment
+    - name: Set up Python ${{ env.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.python-version }}
+
+    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    - name: Get full Python version
+      id: full-python-version
+      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+    - name: Bootstrap poetry
+      run: |
+        curl -sL https://install.python-poetry.org | python - -y
+
+    - name: Update PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Configure poetry
+      run: poetry config virtualenvs.in-project true
+
+    - name: Set up cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: timeout 10s pip --version || rm -rf .venv
+
+    ## Set up Node environment
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node-version }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
+    - name: Install Streamlit build dependencies
+      run: sudo apt install protobuf-compiler
+
+    - name: Set up
+      run: make init
+
+    ## Build and upload @stlite/sharing
+    - name: Build @stlite/sharing
+      run: make sharing
+
+    - name: Upload the built directory as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        path: packages/sharing/build
+        name: stlite-sharing
+
+  deploy-sharing:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [build-sharing]
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing to Cloudflare Pages
+    outputs:
+      url: ${{ steps.publish.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: stlite-sharing
+          path: website
+      - name: Publish
+        uses: cloudflare/pages-action@1
+        id: publish
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: stlite-sharing
+          directory: website
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  build-sharing-editor:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [test-stlite-kernel, test-tornado-e2e, test-sharing-common, deploy-sharing]
+
+    runs-on: ubuntu-latest
+
+    env:
+      node-version: "16.x"
+      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+      NODE_OPTIONS: "--max-old-space-size=6656"
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node-version }}
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - name: Set SHARING_APP_URL
+      run: echo "REACT_APP_SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
+    - run: make sharing-editor
+    - name: Upload the built directory as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        path: packages/sharing-editor/build
+        name: stlite-sharing-editor
+
+  deploy-sharing-editor:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [build-sharing-editor]
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing-editor to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: stlite-sharing-editor
+          path: website
+      - name: Publish
+        uses: cloudflare/pages-action@1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: stlite-sharing-editor
+          directory: website
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

@@ -2,14 +2,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
 
-const DEFAULT_SHARING_APP_URL =
+const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
-
-// NOTE: This is only for the very beginning phase of the development.
-// TODO: Remove this feature because it can be used for phishing.
-const SHARING_URL =
-  new URLSearchParams(window.location.search).get("app") ??
-  DEFAULT_SHARING_APP_URL;
 
 // NOTE: Only for dev and demo purpose
 const stliteLogoPngUrl = "https://whitphx.github.io/stlite/logo512.png";
@@ -71,7 +65,7 @@ st.title("Sub page")`,
   }, []);
 
   const url = useMemo(
-    () => (appData ? embedAppDataToUrl(SHARING_URL, appData) : null),
+    () => (appData ? embedAppDataToUrl(SHARING_APP_URL, appData) : null),
     [appData]
   );
 

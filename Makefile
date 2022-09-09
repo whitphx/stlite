@@ -27,7 +27,7 @@ $(VENV):
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
-yarn_install: $(NODE_MODULES)
+yarn_install: git_submodules $(NODE_MODULES)
 $(NODE_MODULES):
 	yarn install --frozen-lockfile
 
@@ -52,19 +52,19 @@ $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(stlite_
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(stlite_kernel) $(streamlit_wheel) $(sharing-common)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(stlite_kernel) $(streamlit_wheel) $(sharing-common) yarn_install
 	cd packages/sharing; \
 	yarn build
 	@touch $@
 
-$(sharing-common): packages/sharing-common/src/*.ts
+$(sharing-common): packages/sharing-common/src/*.ts yarn_install
 	cd packages/sharing-common; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(sharing-common)
+$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(sharing-common) yarn_install
 	cd packages/sharing-editor; \
 	yarn build
 	@touch $@

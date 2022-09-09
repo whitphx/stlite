@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message AppData {
+  string entrypoint = 1;
+  map<string, File> files = 2;
+  repeated string requirements = 3;
+}
+
+message File {
+  oneof content {
+    string text = 1;
+    bytes data = 2;
+  }
+}

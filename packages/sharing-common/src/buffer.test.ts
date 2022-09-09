@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import LZString from "lz-string";
 import { ab2str, str2ab } from "./buffer";
 
 function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
@@ -55,28 +54,5 @@ test("vitest matcher for ArrayBuffer", () => {
     const data = createDummyArrayBuffer(byteLength);
     const encDeced = str2ab(ab2str(data, applyMax));
     expect(new Uint8Array(encDeced)).toEqual(new Uint8Array(data));
-  });
-});
-
-[100, 1000000].forEach((byteLength) => {
-  test("The current design using .byteLength is more efficient than using a boolean flag indicating padding", () => {
-    const data = createDummyArrayBuffer(byteLength);
-
-    const stringified = ab2str(data);
-
-    const asis = LZString.compressToEncodedURIComponent(
-      JSON.stringify({
-        s: stringified.str,
-        p: stringified.byteLength,
-      })
-    );
-    const alternative = LZString.compressToEncodedURIComponent(
-      JSON.stringify({
-        s: stringified.str,
-        p: byteLength % 2 === 1, // Use a boolean flag instead of byteLength to keep the information about the padding.
-      })
-    );
-
-    expect(asis.length).toBeLessThan(alternative.length);
   });
 });

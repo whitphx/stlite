@@ -424,6 +424,8 @@ jobs:
         node-version: ${{ env.node-version }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
+    - name: Set SHARING_APP_URL
+      run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@v2

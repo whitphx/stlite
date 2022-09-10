@@ -9,7 +9,7 @@ export interface FileWriteMessage extends ForwardMessageBase {
   type: "file:write";
   data: {
     path: string;
-    content: string;
+    content: string | Uint8Array;
   };
 }
 export type ForwardMessage = FileWriteMessage;

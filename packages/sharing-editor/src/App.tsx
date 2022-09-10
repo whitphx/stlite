@@ -9,6 +9,7 @@ import "./App.css";
 import {
   embedAppDataToUrl,
   AppData,
+  File,
   ForwardMessage,
   ReplyMessage,
 } from "@stlite/sharing-common";
@@ -126,15 +127,23 @@ st.title("Sub page")`,
         console.log({ reply });
       });
 
+      const newFileContent: File["content"] =
+        typeof value === "string"
+          ? {
+              $case: "text",
+              text: value,
+            }
+          : {
+              $case: "data",
+              data: value,
+            };
+
       setAppData({
         ...appData,
         files: {
           ...appData?.files,
           [path]: {
-            content: {
-              $case: "text",
-              text: value,
-            },
+            content: newFileContent,
           },
         },
       });

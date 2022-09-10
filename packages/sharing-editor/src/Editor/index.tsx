@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
+import BinaryFileEditor from "./BinaryFileEditor";
 import styles from "./Editor.module.css";
 
 export interface EditorProps {
   appData: AppData;
-  onFileChange: (path: string, value: string) => void;
+  onFileChange: (path: string, value: string | Uint8Array) => void;
 }
 
 function Editor(props: EditorProps) {
@@ -38,10 +39,20 @@ function Editor(props: EditorProps) {
     onFileChange(currentFileName, editor.getValue());
   }, [onFileChange, currentFileName]);
 
+  const handleFileChange = useCallback(
+    (data: Uint8Array) => {
+      if (currentFileName == null) {
+        return;
+      }
+      onFileChange(currentFileName, data);
+    },
+    [onFileChange, currentFileName]
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.tabArea}>
-        {fileNames.map(fileName => (
+        {fileNames.map((fileName) => (
           <button key={fileName} onClick={() => setCurrentFileName(fileName)}>
             {fileName}
           </button>
@@ -54,6 +65,13 @@ function Editor(props: EditorProps) {
             defaultLanguage="python"
             defaultValue={currentFile.content.text}
             onMount={handleEditorDitMount}
+          />
+        )}
+        {currentFileName != null && currentFile?.content?.$case === "data" && (
+          <BinaryFileEditor
+            path={currentFileName}
+            data={currentFile.content.data}
+            onChange={handleFileChange}
           />
         )}
       </div>

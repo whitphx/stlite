@@ -1,8 +1,9 @@
+import { PyodideInterface } from "pyodide";
 import { writeFileWithParents, renameWithParents } from "./file";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
 
-let pyodide: any;
+let pyodide: PyodideInterface;
 
 let httpServer: any;
 

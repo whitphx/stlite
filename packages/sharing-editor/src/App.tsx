@@ -84,10 +84,6 @@ st.title("Sub page")`,
 
   const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
     (path, value) => {
-      if (appData == null) {
-        return;
-      }
-
       iframeRef.current?.postMessage({
         type: "file:write",
         data: {
@@ -107,17 +103,22 @@ st.title("Sub page")`,
               data: value,
             };
 
-      setAppData({
-        ...appData,
-        files: {
-          ...appData?.files,
-          [path]: {
-            content: newFileContent,
+      setAppData((cur) => {
+        if (cur == null) {
+          return undefined;
+        }
+        return {
+          ...cur,
+          files: {
+            ...cur?.files,
+            [path]: {
+              content: newFileContent,
+            },
           },
-        },
+        };
       });
     },
-    [appData]
+    []
   );
 
   if (appData == null) {

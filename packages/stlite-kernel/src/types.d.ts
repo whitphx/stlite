@@ -55,12 +55,19 @@ interface HttpRequestMessage extends InMessageBase {
     request: HttpRequest;
   };
 }
-interface WriteFileMessage extends InMessageBase {
+interface FileWriteMessage extends InMessageBase {
   type: "file:write";
   data: {
     path: string;
     data: string | ArrayBufferView;
     opts?: Record<string, any>;
+  };
+}
+interface FileRenameMessage extends InMessageBase {
+  type: "file:rename";
+  data: {
+    oldPath: string;
+    newPath: string;
   };
 }
 interface InstallMessage extends InMessageBase {
@@ -74,7 +81,8 @@ type InMessage =
   | WebSocketConnectMessage
   | WebSocketSendMessage
   | HttpRequestMessage
-  | WriteFileMessage
+  | FileWriteMessage
+  | FileRenameMessage
   | InstallMessage;
 
 interface StliteWorker extends Worker {

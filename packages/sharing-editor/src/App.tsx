@@ -1,9 +1,17 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
+import Editor, { EditorProps } from "./Editor";
 
 const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
+const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 // NOTE: Only for dev and demo purpose
 const stliteLogoPngUrl = "https://whitphx.github.io/stlite/logo512.png";
@@ -69,9 +77,67 @@ st.title("Sub page")`,
     [appData]
   );
 
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const postAsyncMessage = useCallback((message: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const targetWindow = iframeRef.current?.contentWindow;
+      if (targetWindow == null) {
+        throw new Error(`The target iframe window is not ready`);
+      }
+
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = (e: MessageEvent) => {
+        channel.port1.close();
+        const reply = e.data;
+        resolve(reply);
+        // TODO; Error case
+      };
+
+      targetWindow.postMessage(message, SHARING_APP_ORIGIN, [channel.port2]);
+    });
+  }, []);
+
+  const handleFileChange = useCallback<EditorProps["onFileChange"]>(
+    (path, value) => {
+      if (appData == null) {
+        return;
+      }
+
+      console.log("Change", path, value);
+      postAsyncMessage({
+        type: "changeFile",
+        path,
+        value,
+      }).then((reply) => {
+        console.log({ reply });
+      });
+
+      setAppData({
+        ...appData,
+        files: {
+          ...appData?.files,
+          [path]: {
+            content: {
+              $case: "text",
+              text: value,
+            },
+          },
+        },
+      });
+    },
+    [appData, postAsyncMessage]
+  );
+
+  if (appData == null) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="App">
-      <div className="editor-pane"></div>
+      <div className="editor-pane">
+        <Editor appData={appData} onFileChange={handleFileChange} />
+      </div>
       {url && (
         <div className="preview-pane">
           <p>
@@ -80,6 +146,7 @@ st.title("Sub page")`,
             </a>
           </p>
           <iframe
+            ref={iframeRef}
             src={url}
             frameBorder="0"
             title="stlite app"

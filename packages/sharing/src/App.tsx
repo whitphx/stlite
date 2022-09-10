@@ -51,7 +51,34 @@ st.write("Hello World")`,
     );
     setKernel(kernel);
 
+    // Handle messages from the editor
+    function onMessage(event: MessageEvent) {
+      if (event.origin !== process.env.REACT_APP_EDITOR_APP_ORIGIN) {
+        return;
+      }
+
+      const port2 = event.ports[0];
+
+      if (event.data.type === "changeFile") {
+        kernel
+          .writeFile(event.data.path, event.data.value)
+          .then(() => {
+            port2.postMessage({
+              type: "success",
+            });
+          })
+          .catch((error) => {
+            port2.postMessage({
+              type: "error",
+              error,
+            });
+          });
+      }
+    }
+    window.addEventListener("message", onMessage);
+
     return () => {
+      window.removeEventListener("message", onMessage);
       kernel.dispose();
     };
   }, []);

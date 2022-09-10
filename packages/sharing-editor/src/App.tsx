@@ -6,13 +6,10 @@ import React, {
   useRef,
 } from "react";
 import "./App.css";
-import {
-  embedAppDataToUrl,
-  AppData,
-  File,
-  ForwardMessage,
-  ReplyMessage,
-} from "@stlite/sharing-common";
+import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import StliteSharingIFrame, {
+  StliteSharingIFrameRef,
+} from "./StliteSharingIFrame";
 import Editor, { EditorProps } from "./Editor";
 
 const SHARING_APP_URL =
@@ -83,32 +80,7 @@ st.title("Sub page")`,
     [appData]
   );
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const postAsyncMessage = useCallback(
-    (message: ForwardMessage): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        const targetWindow = iframeRef.current?.contentWindow;
-        if (targetWindow == null) {
-          throw new Error(`The target iframe window is not ready`);
-        }
-
-        const channel = new MessageChannel();
-
-        channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
-          channel.port1.close();
-          const reply = e.data;
-          if (reply.error) {
-            reject(reply.error);
-          } else {
-            resolve();
-          }
-        };
-
-        targetWindow.postMessage(message, SHARING_APP_ORIGIN, [channel.port2]);
-      });
-    },
-    []
-  );
+  const iframeRef = useRef<StliteSharingIFrameRef>(null);
 
   const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
     (path, value) => {
@@ -116,7 +88,7 @@ st.title("Sub page")`,
         return;
       }
 
-      postAsyncMessage({
+      iframeRef.current?.postMessage({
         type: "file:write",
         data: {
           path,
@@ -145,7 +117,7 @@ st.title("Sub page")`,
         },
       });
     },
-    [appData, postAsyncMessage]
+    [appData]
   );
 
   if (appData == null) {
@@ -164,9 +136,10 @@ st.title("Sub page")`,
               Open App
             </a>
           </p>
-          <iframe
+          <StliteSharingIFrame
             ref={iframeRef}
             src={url}
+            messageTargetOrigin={SHARING_APP_ORIGIN}
             frameBorder="0"
             title="stlite app"
             className="preview-iframe"

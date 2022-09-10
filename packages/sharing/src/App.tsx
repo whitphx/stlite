@@ -79,21 +79,27 @@ st.write("Hello World")`,
       }
 
       const msg = event.data;
-      if (msg.type === "file:write") {
-        kernel
-          .writeFile(msg.data.path, msg.data.content)
-          .then(() => {
-            postReplyMessage({
-              type: "reply",
-            });
-          })
-          .catch((error) => {
-            postReplyMessage({
-              type: "reply",
-              error,
-            });
+      (() => {
+        switch (msg.type) {
+          case "file:write": {
+            return kernel.writeFile(msg.data.path, msg.data.content);
+          }
+          case "file:rename": {
+            return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
+          }
+        }
+      })()
+        .then(() => {
+          postReplyMessage({
+            type: "reply",
           });
-      }
+        })
+        .catch((error) => {
+          postReplyMessage({
+            type: "reply",
+            error,
+          });
+        });
     }
     window.addEventListener("message", onMessage);
 

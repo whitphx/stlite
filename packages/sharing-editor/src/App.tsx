@@ -121,6 +121,46 @@ st.title("Sub page")`,
     []
   );
 
+  const handleFileRename = useCallback<EditorProps["onFileRename"]>(
+    (oldPath, newPath) => {
+      if (oldPath === newPath) {
+        return;
+      }
+
+      iframeRef.current?.postMessage({
+        type: "file:rename",
+        data: {
+          oldPath,
+          newPath,
+        },
+      });
+
+      setAppData((cur) => {
+        if (cur == null) {
+          return undefined;
+        }
+
+        const curFiles = cur.files;
+        const targetFile = curFiles[oldPath];
+        if (targetFile == null) {
+          return cur;
+        }
+
+        const newFiles = {
+          ...curFiles,
+          [newPath]: targetFile,
+        };
+        delete newFiles[oldPath];
+
+        return {
+          ...cur,
+          files: newFiles,
+        };
+      });
+    },
+    []
+  );
+
   if (appData == null) {
     return <p>Loading...</p>;
   }
@@ -128,7 +168,11 @@ st.title("Sub page")`,
   return (
     <div className="App">
       <div className="editor-pane">
-        <Editor appData={appData} onFileWrite={handleFileWrite} />
+        <Editor
+          appData={appData}
+          onFileWrite={handleFileWrite}
+          onFileRename={handleFileRename}
+        />
       </div>
       {url && (
         <div className="preview-pane">

@@ -12,7 +12,14 @@ export interface FileWriteMessage extends ForwardMessageBase {
     content: string | Uint8Array;
   };
 }
-export type ForwardMessage = FileWriteMessage;
+export interface FileRenameMessage extends ForwardMessageBase {
+  type: "file:rename";
+  data: {
+    oldPath: string;
+    newPath: string;
+  };
+}
+export type ForwardMessage = FileWriteMessage | FileRenameMessage;
 
 /**
  * Reply message

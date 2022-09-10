@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
+import Tab from "./Tab";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import styles from "./Editor.module.css";
@@ -8,9 +9,10 @@ import styles from "./Editor.module.css";
 export interface EditorProps {
   appData: AppData;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
+  onFileRename: (oldPath: string, newPath: string) => void;
 }
 
-function Editor({ appData, onFileWrite }: EditorProps) {
+function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
   const fileNames = useMemo(() => Object.keys(appData.files), [appData]);
   const [currentFileName, setCurrentFileName] = useState<string | null>(
     fileNames.length > 0 ? fileNames[0] : null
@@ -64,9 +66,18 @@ function Editor({ appData, onFileWrite }: EditorProps) {
     <div className={styles.container}>
       <div className={styles.tabArea}>
         {fileNames.map((fileName) => (
-          <button key={fileName} onClick={() => setCurrentFileName(fileName)}>
-            {fileName}
-          </button>
+          <Tab
+            key={fileName}
+            selected={fileName === currentFileName}
+            fileName={fileName}
+            onSelect={() => setCurrentFileName(fileName)}
+            onFileNameChange={(newPath) => {
+              onFileRename(fileName, newPath);
+              if (fileName === currentFileName) {
+                setCurrentFileName(newPath);
+              }
+            }}
+          />
         ))}
         <FileUploader onUpload={handleFileUpload} />
       </div>

@@ -195,6 +195,16 @@ export class StliteKernel {
     });
   }
 
+  public renameFile(oldPath: string, newPath: string): Promise<void> {
+    return this._asyncPostMessage({
+      type: "file:rename",
+      data: {
+        oldPath,
+        newPath,
+      },
+    });
+  }
+
   public install(requirements: string[]): Promise<void> {
     return this._asyncPostMessage({
       type: "install",

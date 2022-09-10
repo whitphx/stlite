@@ -1,4 +1,4 @@
-import { writeFileWithParents } from "./file";
+import { writeFileWithParents, renameWithParents } from "./file";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
 
@@ -390,6 +390,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       try {
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, fileData, opts);
+        messagePort.postMessage({
+          type: "reply",
+        });
+      } catch (error) {
+        messagePort.postMessage({
+          type: "reply",
+          error,
+        });
+      }
+      break;
+    }
+    case "file:rename": {
+      const messagePort = event.ports[0];
+      const { oldPath, newPath } = data.data;
+
+      try {
+        console.debug(`Rename "${oldPath}" to ${newPath}`);
+        renameWithParents(pyodide, oldPath, newPath);
         messagePort.postMessage({
           type: "reply",
         });

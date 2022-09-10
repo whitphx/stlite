@@ -1,12 +1,7 @@
 import path from "path";
 import { PyodideInterface } from "pyodide";
 
-export function writeFileWithParents(
-  pyodide: PyodideInterface,
-  filePath: string,
-  data: string | ArrayBufferView,
-  opts?: Record<string, any>
-): void {
+function ensureParent(pyodide: PyodideInterface, filePath: string): void {
   const normalized = path.normalize(filePath);
 
   const dirPath = path.dirname(normalized);
@@ -32,6 +27,23 @@ export function writeFileWithParents(
       throw err;
     }
   }
+}
 
+export function writeFileWithParents(
+  pyodide: PyodideInterface,
+  filePath: string,
+  data: string | ArrayBufferView,
+  opts?: Record<string, any>
+): void {
+  ensureParent(pyodide, filePath);
   pyodide.FS.writeFile(filePath, data, opts);
+}
+
+export function renameWithParents(
+  pyodide: PyodideInterface,
+  oldPath: string,
+  newPath: string
+): void {
+  ensureParent(pyodide, newPath);
+  pyodide.FS.rename(oldPath, newPath);
 }

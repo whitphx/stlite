@@ -1,9 +1,20 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import "./App.css";
-import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
+import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import StliteSharingIFrame, {
+  StliteSharingIFrameRef,
+} from "./StliteSharingIFrame";
+import Editor, { EditorProps } from "./Editor";
 
 const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
+const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 // NOTE: Only for dev and demo purpose
 const stliteLogoPngUrl = "https://whitphx.github.io/stlite/logo512.png";
@@ -69,9 +80,56 @@ st.title("Sub page")`,
     [appData]
   );
 
+  const iframeRef = useRef<StliteSharingIFrameRef>(null);
+
+  const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
+    (path, value) => {
+      iframeRef.current?.postMessage({
+        type: "file:write",
+        data: {
+          path,
+          content: value,
+        },
+      });
+
+      const newFileContent: File["content"] =
+        typeof value === "string"
+          ? {
+              $case: "text",
+              text: value,
+            }
+          : {
+              $case: "data",
+              data: value,
+            };
+
+      setAppData((cur) => {
+        if (cur == null) {
+          return undefined;
+        }
+        return {
+          ...cur,
+          files: {
+            ...cur?.files,
+            [path]: {
+              content: newFileContent,
+            },
+          },
+        };
+      });
+    },
+    []
+  );
+
+  if (appData == null) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="App">
-      <div className="editor-pane"></div>
+      <div className="editor-pane">
+        <Editor appData={appData} onFileWrite={handleFileWrite} />
+      </div>
       {url && (
         <div className="preview-pane">
           <p>
@@ -79,8 +137,10 @@ st.title("Sub page")`,
               Open App
             </a>
           </p>
-          <iframe
+          <StliteSharingIFrame
+            ref={iframeRef}
             src={url}
+            messageTargetOrigin={SHARING_APP_ORIGIN}
             frameBorder="0"
             title="stlite app"
             className="preview-iframe"

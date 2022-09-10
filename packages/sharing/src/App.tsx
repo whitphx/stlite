@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
-import { AppData, extractAppDataFromUrl } from "@stlite/sharing-common";
+import {
+  AppData,
+  extractAppDataFromUrl,
+  ForwardMessage,
+  ReplyMessage,
+} from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
+
+const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
+  ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
+  : undefined;
+function isEditorOrigin(origin: string): boolean {
+  if (editorAppOriginRegex) {
+    return editorAppOriginRegex.test(origin);
+  }
+
+  return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
+}
 
 function convertFiles(
   appDataFiles: AppData["files"]
@@ -51,7 +67,38 @@ st.write("Hello World")`,
     );
     setKernel(kernel);
 
+    // Handle messages from the editor
+    function onMessage(event: MessageEvent<ForwardMessage>) {
+      if (!isEditorOrigin(event.origin)) {
+        return;
+      }
+
+      const port2 = event.ports[0];
+      function postReplyMessage(msg: ReplyMessage) {
+        port2.postMessage(msg);
+      }
+
+      const msg = event.data;
+      if (msg.type === "file:write") {
+        kernel
+          .writeFile(msg.data.path, msg.data.content)
+          .then(() => {
+            postReplyMessage({
+              type: "reply",
+            });
+          })
+          .catch((error) => {
+            postReplyMessage({
+              type: "reply",
+              error,
+            });
+          });
+      }
+    }
+    window.addEventListener("message", onMessage);
+
     return () => {
+      window.removeEventListener("message", onMessage);
       kernel.dispose();
     };
   }, []);

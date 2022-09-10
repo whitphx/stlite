@@ -391,6 +391,12 @@ jobs:
       run: make init
 
     ## Build and upload @stlite/sharing
+    - name: Set EDITOR_APP_ORIGIN (preview)
+      if: github.ref_name != github.event.repository.default_branch
+      run: echo "REACT_APP_EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
+    - name: Set EDITOR_APP_ORIGIN (main branch)
+      if: github.ref_name == github.event.repository.default_branch
+      run: echo "REACT_APP_EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
     - name: Build @stlite/sharing
       run: make sharing
 

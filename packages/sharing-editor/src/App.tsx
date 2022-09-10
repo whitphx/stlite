@@ -6,7 +6,12 @@ import React, {
   useRef,
 } from "react";
 import "./App.css";
-import { embedAppDataToUrl, AppData } from "@stlite/sharing-common";
+import {
+  embedAppDataToUrl,
+  AppData,
+  ForwardMessage,
+  ReplyMessage,
+} from "@stlite/sharing-common";
 import Editor, { EditorProps } from "./Editor";
 
 const SHARING_APP_URL =
@@ -78,25 +83,31 @@ st.title("Sub page")`,
   );
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const postAsyncMessage = useCallback((message: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const targetWindow = iframeRef.current?.contentWindow;
-      if (targetWindow == null) {
-        throw new Error(`The target iframe window is not ready`);
-      }
+  const postAsyncMessage = useCallback(
+    (message: ForwardMessage): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        const targetWindow = iframeRef.current?.contentWindow;
+        if (targetWindow == null) {
+          throw new Error(`The target iframe window is not ready`);
+        }
 
-      const channel = new MessageChannel();
+        const channel = new MessageChannel();
 
-      channel.port1.onmessage = (e: MessageEvent) => {
-        channel.port1.close();
-        const reply = e.data;
-        resolve(reply);
-        // TODO; Error case
-      };
+        channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
+          channel.port1.close();
+          const reply = e.data;
+          if (reply.error) {
+            reject(reply.error);
+          } else {
+            resolve();
+          }
+        };
 
-      targetWindow.postMessage(message, SHARING_APP_ORIGIN, [channel.port2]);
-    });
-  }, []);
+        targetWindow.postMessage(message, SHARING_APP_ORIGIN, [channel.port2]);
+      });
+    },
+    []
+  );
 
   const handleFileChange = useCallback<EditorProps["onFileChange"]>(
     (path, value) => {
@@ -106,9 +117,11 @@ st.title("Sub page")`,
 
       console.log("Change", path, value);
       postAsyncMessage({
-        type: "changeFile",
-        path,
-        value,
+        type: "file:write",
+        data: {
+          path,
+          content: value,
+        },
       }).then((reply) => {
         console.log({ reply });
       });

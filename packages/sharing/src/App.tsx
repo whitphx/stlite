@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
-import { AppData, extractAppDataFromUrl } from "@stlite/sharing-common";
+import {
+  AppData,
+  extractAppDataFromUrl,
+  ForwardMessage,
+  ReplyMessage,
+} from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 
 function convertFiles(
@@ -52,24 +57,28 @@ st.write("Hello World")`,
     setKernel(kernel);
 
     // Handle messages from the editor
-    function onMessage(event: MessageEvent) {
+    function onMessage(event: MessageEvent<ForwardMessage>) {
       if (event.origin !== process.env.REACT_APP_EDITOR_APP_ORIGIN) {
         return;
       }
 
       const port2 = event.ports[0];
+      function postReplyMessage(msg: ReplyMessage) {
+        port2.postMessage(msg);
+      }
 
-      if (event.data.type === "changeFile") {
+      const msg = event.data;
+      if (msg.type === "file:write") {
         kernel
-          .writeFile(event.data.path, event.data.value)
+          .writeFile(msg.data.path, msg.data.content)
           .then(() => {
-            port2.postMessage({
-              type: "success",
+            postReplyMessage({
+              type: "reply",
             });
           })
           .catch((error) => {
-            port2.postMessage({
-              type: "error",
+            postReplyMessage({
+              type: "reply",
               error,
             });
           });

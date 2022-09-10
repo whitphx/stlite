@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import styles from "./BinaryFileEditor.module.css";
+import { readArrayBuffer } from "./file";
 
 interface BinaryFileEditorProps {
   path: string;
@@ -21,18 +22,9 @@ function BinaryFileEditor(props: BinaryFileEditorProps) {
         return;
       }
       const file = e.target.files[0];
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const buf = e.target?.result;
-        if (!(buf instanceof ArrayBuffer)) {
-          console.warn(`Loaded file in an unexpected type: ${typeof buf}`);
-          return;
-        }
-
-        onChange(new Uint8Array(buf));
-      };
-      reader.readAsArrayBuffer(file);
+      readArrayBuffer(file).then((arrayBuffer) => {
+        onChange(new Uint8Array(arrayBuffer));
+      });
     },
     [onChange]
   );

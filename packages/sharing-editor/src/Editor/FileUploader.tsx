@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { readArrayBuffer } from "./file";
 
 interface ReadFile {
   name: string;
@@ -23,25 +24,11 @@ function FileUploader({ onUpload }: FileUploaderProps) {
         const file = e.target.files[idx];
 
         fileReadPromises.push(
-          new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const buf = e.target?.result;
-              if (!(buf instanceof ArrayBuffer)) {
-                console.warn(
-                  `Loaded file in an unexpected type: ${typeof buf}`
-                );
-                return;
-              }
-
-              resolve({
-                name: file.name,
-                type: file.type,
-                data: new Uint8Array(buf),
-              });
-            };
-            reader.readAsArrayBuffer(file);
-          })
+          readArrayBuffer(file).then((arrayBuffer) => ({
+            name: file.name,
+            type: file.type,
+            data: new Uint8Array(arrayBuffer),
+          }))
         );
       }
 

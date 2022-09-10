@@ -85,7 +85,6 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
         {currentFileName != null && currentFile?.content?.$case === "text" && (
           <MonacoEditor
             path={currentFileName}
-            defaultLanguage="python"
             defaultValue={currentFile.content.text}
             onMount={handleEditorDitMount}
           />

@@ -7,10 +7,10 @@ interface StringifiedArrayBuffer {
 }
 
 /**
- * Ad-hoc value that works at least for NodeJS v16.13.0 (arm64).
+ * Ad-hoc value that works at least on Chromium: 105.0.5195.102（Official Build） （arm64）.
  * Decrease this if `RangeError: Maximum call stack size exceeded` is reported.
  */
-const DEFAULT_APPLY_MAX = 2 ** 18;
+const DEFAULT_APPLY_MAX = 2 ** 16;
 
 export function ab2str(
   buf: ArrayBuffer,

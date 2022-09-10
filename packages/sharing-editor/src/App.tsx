@@ -116,15 +116,12 @@ st.title("Sub page")`,
         return;
       }
 
-      console.log("Change", path, value);
       postAsyncMessage({
         type: "file:write",
         data: {
           path,
           content: value,
         },
-      }).then((reply) => {
-        console.log({ reply });
       });
 
       const newFileContent: File["content"] =

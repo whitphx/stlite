@@ -8,6 +8,17 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 
+const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
+  ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
+  : undefined;
+function isEditorOrigin(origin: string): boolean {
+  if (editorAppOriginRegex) {
+    return editorAppOriginRegex.test(origin);
+  }
+
+  return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
+}
+
 function convertFiles(
   appDataFiles: AppData["files"]
 ): StliteKernelOptions["files"] {
@@ -58,7 +69,7 @@ st.write("Hello World")`,
 
     // Handle messages from the editor
     function onMessage(event: MessageEvent<ForwardMessage>) {
-      if (event.origin !== process.env.REACT_APP_EDITOR_APP_ORIGIN) {
+      if (!isEditorOrigin(event.origin)) {
         return;
       }
 

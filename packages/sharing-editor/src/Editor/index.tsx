@@ -6,6 +6,8 @@ import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import styles from "./Editor.module.css";
 
+let newFileCount = 1;
+
 export interface EditorProps {
   appData: AppData;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
@@ -62,6 +64,16 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
     [onFileWrite]
   );
 
+  const [addedFileName, setAddedFileName] = useState<string>();
+  const handleCreateFile = useCallback(() => {
+    const fileName = `file${newFileCount}.py`;
+    newFileCount += 1;
+
+    onFileWrite(fileName, "");
+    setCurrentFileName(fileName);
+    setAddedFileName(fileName);
+  }, [onFileWrite]);
+
   return (
     <div className={styles.container}>
       <div className={styles.tabArea}>
@@ -69,6 +81,7 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
           <Tab
             key={fileName}
             selected={fileName === currentFileName}
+            initInEditingModeIfSelected={fileName === addedFileName}
             fileName={fileName}
             onSelect={() => setCurrentFileName(fileName)}
             onFileNameChange={(newPath) => {
@@ -79,6 +92,7 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
             }}
           />
         ))}
+        <button onClick={handleCreateFile}>+</button>
         <FileUploader onUpload={handleFileUpload} />
       </div>
       <div className={styles.editorArea}>

@@ -1,3 +1,7 @@
 .fileNameForm {
   display: inline-block;
 }
+
+.fileNameInput {
+  display: inline-block;
+}

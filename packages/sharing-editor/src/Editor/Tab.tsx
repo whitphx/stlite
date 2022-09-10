@@ -42,6 +42,7 @@ function FileNameEditingTab({
           }
           input.focus();
         }}
+        className={styles.fileNameInput}
       />
     </form>
   );
@@ -49,10 +50,17 @@ function FileNameEditingTab({
 
 interface SelectedTabProps {
   fileName: string;
+  shouldBeEditingByDefault: boolean;
   onFileNameChange: (fileName: string) => void;
 }
-function SelectedTab({ fileName, onFileNameChange }: SelectedTabProps) {
-  const [fileNameEditing, setFileNameEditing] = useState(false);
+function SelectedTab({
+  fileName,
+  shouldBeEditingByDefault,
+  onFileNameChange,
+}: SelectedTabProps) {
+  const [fileNameEditing, setFileNameEditing] = useState(
+    shouldBeEditingByDefault
+  );
 
   if (fileNameEditing) {
     return (
@@ -73,14 +81,25 @@ function SelectedTab({ fileName, onFileNameChange }: SelectedTabProps) {
 interface TabProps {
   fileName: string;
   selected: boolean;
+  initInEditingModeIfSelected: boolean;
   onSelect: () => void;
   onFileNameChange: (fileName: string) => void;
 }
 
-function Tab({ fileName, selected, onSelect, onFileNameChange }: TabProps) {
+function Tab({
+  fileName,
+  selected,
+  initInEditingModeIfSelected,
+  onSelect,
+  onFileNameChange,
+}: TabProps) {
   if (selected) {
     return (
-      <SelectedTab fileName={fileName} onFileNameChange={onFileNameChange} />
+      <SelectedTab
+        fileName={fileName}
+        shouldBeEditingByDefault={initInEditingModeIfSelected}
+        onFileNameChange={onFileNameChange}
+      />
     );
   }
 

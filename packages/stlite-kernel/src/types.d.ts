@@ -70,6 +70,12 @@ interface FileRenameMessage extends InMessageBase {
     newPath: string;
   };
 }
+interface FileUnlinkMessage extends InMessage {
+  type: "file:unlink";
+  data: {
+    path: string;
+  };
+}
 interface InstallMessage extends InMessageBase {
   type: "install";
   data: {
@@ -83,6 +89,7 @@ type InMessage =
   | HttpRequestMessage
   | FileWriteMessage
   | FileRenameMessage
+  | FileUnlinkMessage
   | InstallMessage;
 
 interface StliteWorker extends Worker {

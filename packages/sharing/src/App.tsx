@@ -87,6 +87,9 @@ st.write("Hello World")`,
           case "file:rename": {
             return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
           }
+          case "file:unlink": {
+            return kernel.unlink(msg.data.path);
+          }
         }
       })()
         .then(() => {

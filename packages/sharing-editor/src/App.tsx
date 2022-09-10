@@ -161,6 +161,32 @@ st.title("Sub page")`,
     []
   );
 
+  const handleFileDelete = useCallback<EditorProps["onFileDelete"]>((path) => {
+    iframeRef.current?.postMessage({
+      type: "file:unlink",
+      data: {
+        path,
+      },
+    });
+
+    setAppData((cur) => {
+      if (cur == null) {
+        return undefined;
+      }
+
+      const curFiles = cur.files;
+      const newFiles = {
+        ...curFiles,
+      };
+      delete newFiles[path];
+
+      return {
+        ...cur,
+        files: newFiles,
+      };
+    });
+  }, []);
+
   if (appData == null) {
     return <p>Loading...</p>;
   }
@@ -172,6 +198,7 @@ st.title("Sub page")`,
           appData={appData}
           onFileWrite={handleFileWrite}
           onFileRename={handleFileRename}
+          onFileDelete={handleFileDelete}
         />
       </div>
       {url && (

@@ -19,7 +19,16 @@ export interface FileRenameMessage extends ForwardMessageBase {
     newPath: string;
   };
 }
-export type ForwardMessage = FileWriteMessage | FileRenameMessage;
+export interface FileUnlinkMessage extends ForwardMessageBase {
+  type: "file:unlink";
+  data: {
+    path: string;
+  };
+}
+export type ForwardMessage =
+  | FileWriteMessage
+  | FileRenameMessage
+  | FileUnlinkMessage;
 
 /**
  * Reply message

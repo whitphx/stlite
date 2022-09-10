@@ -2,24 +2,22 @@ import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
 import BinaryFileEditor from "./BinaryFileEditor";
+import FileUploader, { FileUploaderProps } from "./FileUploader";
 import styles from "./Editor.module.css";
 
 export interface EditorProps {
   appData: AppData;
-  onFileChange: (path: string, value: string | Uint8Array) => void;
+  onFileWrite: (path: string, value: string | Uint8Array) => void;
 }
 
-function Editor(props: EditorProps) {
-  const fileNames = useMemo(
-    () => Object.keys(props.appData.files),
-    [props.appData]
-  );
+function Editor({ appData, onFileWrite }: EditorProps) {
+  const fileNames = useMemo(() => Object.keys(appData.files), [appData]);
   const [currentFileName, setCurrentFileName] = useState<string | null>(
     fileNames.length > 0 ? fileNames[0] : null
   );
 
   const currentFile =
-    currentFileName != null ? props.appData.files[currentFileName] : null;
+    currentFileName != null ? appData.files[currentFileName] : null;
 
   const editorRef = useRef<Parameters<OnMount>[0]>(null);
 
@@ -27,7 +25,6 @@ function Editor(props: EditorProps) {
     editorRef.current = editor;
   }, []);
 
-  const onFileChange = props.onFileChange;
   const handleSave = useCallback(() => {
     if (currentFileName == null) {
       return;
@@ -36,17 +33,31 @@ function Editor(props: EditorProps) {
     if (editor == null) {
       return;
     }
-    onFileChange(currentFileName, editor.getValue());
-  }, [onFileChange, currentFileName]);
+    onFileWrite(currentFileName, editor.getValue());
+  }, [onFileWrite, currentFileName]);
 
-  const handleFileChange = useCallback(
+  const handleBinaryFileChange = useCallback(
     (data: Uint8Array) => {
       if (currentFileName == null) {
         return;
       }
-      onFileChange(currentFileName, data);
+      onFileWrite(currentFileName, data);
     },
-    [onFileChange, currentFileName]
+    [onFileWrite, currentFileName]
+  );
+
+  const handleFileUpload = useCallback<FileUploaderProps["onUpload"]>(
+    (files) => {
+      files.forEach((file) => {
+        if (file.type.startsWith("text")) {
+          const text = new TextDecoder().decode(file.data);
+          onFileWrite(file.name, text);
+        } else {
+          onFileWrite(file.name, file.data);
+        }
+      });
+    },
+    [onFileWrite]
   );
 
   return (
@@ -57,6 +68,7 @@ function Editor(props: EditorProps) {
             {fileName}
           </button>
         ))}
+        <FileUploader onUpload={handleFileUpload} />
       </div>
       <div className={styles.editorArea}>
         {currentFileName != null && currentFile?.content?.$case === "text" && (
@@ -71,7 +83,7 @@ function Editor(props: EditorProps) {
           <BinaryFileEditor
             path={currentFileName}
             data={currentFile.content.data}
-            onChange={handleFileChange}
+            onChange={handleBinaryFileChange}
           />
         )}
       </div>

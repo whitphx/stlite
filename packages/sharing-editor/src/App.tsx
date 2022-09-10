@@ -110,7 +110,7 @@ st.title("Sub page")`,
     []
   );
 
-  const handleFileChange = useCallback<EditorProps["onFileChange"]>(
+  const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
     (path, value) => {
       if (appData == null) {
         return;
@@ -158,7 +158,7 @@ st.title("Sub page")`,
   return (
     <div className="App">
       <div className="editor-pane">
-        <Editor appData={appData} onFileChange={handleFileChange} />
+        <Editor appData={appData} onFileWrite={handleFileWrite} />
       </div>
       {url && (
         <div className="preview-pane">

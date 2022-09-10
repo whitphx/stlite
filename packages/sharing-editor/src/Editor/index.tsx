@@ -5,6 +5,7 @@ import Tab from "./Tab";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import styles from "./Editor.module.css";
+import { isDarkMode } from "../color-mode";
 
 export interface EditorProps {
   appData: AppData;
@@ -87,6 +88,7 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
             path={currentFileName}
             defaultValue={currentFile.content.text}
             onMount={handleEditorDitMount}
+            theme={isDarkMode() ? "vs-dark" : "vs-light"}
           />
         )}
         {currentFileName != null && currentFile?.content?.$case === "data" && (

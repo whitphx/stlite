@@ -420,6 +420,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       }
       break;
     }
+    case "file:unlink": {
+      const messagePort = event.ports[0];
+      const { path } = data.data;
+
+      try {
+        console.debug(`Remove "${path}`);
+        pyodide.FS.unlink(path);
+        messagePort.postMessage({
+          type: "reply",
+        });
+      } catch (error) {
+        messagePort.postMessage({
+          type: "reply",
+          error,
+        });
+      }
+      break;
+    }
     case "install": {
       const messagePort = event.ports[0];
       const { requirements } = data.data;

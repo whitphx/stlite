@@ -205,6 +205,15 @@ export class StliteKernel {
     });
   }
 
+  public unlink(path: string): Promise<void> {
+    return this._asyncPostMessage({
+      type: "file:unlink",
+      data: {
+        path,
+      },
+    });
+  }
+
   public install(requirements: string[]): Promise<void> {
     return this._asyncPostMessage({
       type: "install",

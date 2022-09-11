@@ -83,6 +83,7 @@ interface TabProps {
   selected: boolean;
   initInEditingModeIfSelected: boolean;
   onSelect: () => void;
+  onDelete: () => void;
   onFileNameChange: (fileName: string) => void;
 }
 
@@ -91,19 +92,23 @@ function Tab({
   selected,
   initInEditingModeIfSelected,
   onSelect,
+  onDelete,
   onFileNameChange,
 }: TabProps) {
-  if (selected) {
-    return (
-      <SelectedTab
-        fileName={fileName}
-        shouldBeEditingByDefault={initInEditingModeIfSelected}
-        onFileNameChange={onFileNameChange}
-      />
-    );
-  }
-
-  return <button onClick={onSelect}>{fileName}</button>;
+  return (
+    <span>
+      {selected ? (
+        <SelectedTab
+          fileName={fileName}
+          shouldBeEditingByDefault={initInEditingModeIfSelected}
+          onFileNameChange={onFileNameChange}
+        />
+      ) : (
+        <button onClick={onSelect}>{fileName}</button>
+      )}
+      <button onClick={onDelete}>x</button>
+    </span>
+  );
 }
 
 export default Tab;

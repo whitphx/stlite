@@ -13,9 +13,15 @@ export interface EditorProps {
   appData: AppData;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
+  onFileDelete: (path: string) => void;
 }
 
-function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
+function Editor({
+  appData,
+  onFileWrite,
+  onFileRename,
+  onFileDelete,
+}: EditorProps) {
   const fileNames = useMemo(() => Object.keys(appData.files), [appData]);
   const [currentFileName, setCurrentFileName] = useState<string | null>(
     fileNames.length > 0 ? fileNames[0] : null
@@ -65,6 +71,13 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
     [onFileWrite]
   );
 
+  const handleFileDelete = useCallback(
+    (fileName) => {
+      onFileDelete(fileName);
+    },
+    [onFileDelete]
+  );
+
   const [addedFileName, setAddedFileName] = useState<string>();
   const handleCreateFile = useCallback(() => {
     const fileName = `file${newFileCount}.py`;
@@ -85,6 +98,7 @@ function Editor({ appData, onFileWrite, onFileRename }: EditorProps) {
             initInEditingModeIfSelected={fileName === addedFileName}
             fileName={fileName}
             onSelect={() => setCurrentFileName(fileName)}
+            onDelete={() => handleFileDelete(fileName)}
             onFileNameChange={(newPath) => {
               onFileRename(fileName, newPath);
               if (fileName === currentFileName) {

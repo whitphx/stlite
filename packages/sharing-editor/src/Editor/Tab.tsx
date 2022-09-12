@@ -131,7 +131,9 @@ function Tab({
   onFileNameChange,
 }: TabProps) {
   return (
-    <span className={`${styles.tab} ${selected && styles.tabSelected}`}>
+    <span
+      className={`${styles.tabFrame} ${selected && styles.tabFrameSelected}`}
+    >
       {selected ? (
         <SelectedTab
           fileName={fileName}

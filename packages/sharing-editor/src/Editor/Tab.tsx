@@ -127,7 +127,9 @@ function Tab({
           onFileNameChange={onFileNameChange}
         />
       ) : (
-        <button onClick={onSelect}>{fileName}</button>
+        <button onClick={onSelect} className={styles.tabButton}>
+          {fileName}
+        </button>
       )}
       <button onClick={onDelete} tabIndex={-1}>
         x

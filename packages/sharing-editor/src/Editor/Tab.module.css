@@ -1,3 +1,18 @@
+.tab {
+  display: inline-block;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.tabSelected {
+  border-top: #f44b4b 2px solid;
+  margin-top: -2px;
+}
+
 .tabButton {
   background: none;
   outline: none;

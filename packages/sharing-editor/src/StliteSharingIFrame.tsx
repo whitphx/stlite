@@ -1,52 +1,73 @@
-import React, { useRef, useImperativeHandle } from "react";
-import { ForwardMessage, ReplyMessage } from "@stlite/sharing-common";
+import React, { useRef, useMemo, useImperativeHandle } from "react";
+import {
+  AppData,
+  embedAppDataToUrl,
+  ForwardMessage,
+  ReplyMessage,
+} from "@stlite/sharing-common";
 
 export interface StliteSharingIFrameRef {
   postMessage: (msg: ForwardMessage) => Promise<void>;
 }
 type IFrameProps = JSX.IntrinsicElements["iframe"];
-export interface StliteSharingIFrameProps extends IFrameProps {
+export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
+  sharingAppSrc: string;
+  initialAppData: AppData;
   messageTargetOrigin: string;
 }
 const StliteSharingIFrame = React.forwardRef<
   StliteSharingIFrameRef,
   StliteSharingIFrameProps
->(({ messageTargetOrigin, ...iframeProps }, ref) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+>(
+  (
+    { sharingAppSrc, initialAppData, messageTargetOrigin, ...iframeProps },
+    ref
+  ) => {
+    const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      postMessage(message) {
-        return new Promise((resolve, reject) => {
-          const targetWindow = iframeRef.current?.contentWindow;
-          if (targetWindow == null) {
-            throw new Error(`The target iframe window is not ready`);
-          }
+    const iframeSrc = useMemo(
+      () => embedAppDataToUrl(sharingAppSrc, initialAppData),
+      // NOTE: `iframeSrc` should be calculated only for the initial `appData` and be persistent.
+      // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
+      // So `initialAppData` is excluded from the deps below.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [sharingAppSrc]
+    );
 
-          const channel = new MessageChannel();
-
-          channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
-            channel.port1.close();
-            const reply = e.data;
-            if (reply.error) {
-              reject(reply.error);
-            } else {
-              resolve();
+    useImperativeHandle(
+      ref,
+      () => ({
+        postMessage(message) {
+          return new Promise((resolve, reject) => {
+            const targetWindow = iframeRef.current?.contentWindow;
+            if (targetWindow == null) {
+              throw new Error(`The target iframe window is not ready`);
             }
-          };
 
-          targetWindow.postMessage(message, messageTargetOrigin, [
-            channel.port2,
-          ]);
-        });
-      },
-    }),
-    [messageTargetOrigin]
-  );
+            const channel = new MessageChannel();
 
-  // eslint-disable-next-line jsx-a11y/iframe-has-title
-  return <iframe {...iframeProps} ref={iframeRef} />;
-});
+            channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
+              channel.port1.close();
+              const reply = e.data;
+              if (reply.error) {
+                reject(reply.error);
+              } else {
+                resolve();
+              }
+            };
+
+            targetWindow.postMessage(message, messageTargetOrigin, [
+              channel.port2,
+            ]);
+          });
+        },
+      }),
+      [messageTargetOrigin]
+    );
+
+    // eslint-disable-next-line jsx-a11y/iframe-has-title
+    return <iframe {...iframeProps} src={iframeSrc} ref={iframeRef} />;
+  }
+);
 
 export default StliteSharingIFrame;

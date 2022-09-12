@@ -201,23 +201,26 @@ st.title("Sub page")`,
           onFileDelete={handleFileDelete}
         />
       </div>
-      {url && (
-        <div className="preview-pane">
-          <p>
+      <div className="preview-pane">
+        <p>
+          {url && (
             <a href={url} target="_blank" rel="noreferrer">
               Open App
             </a>
-          </p>
+          )}
+        </p>
+        {appData && (
           <StliteSharingIFrame
             ref={iframeRef}
-            src={url}
+            sharingAppSrc={SHARING_APP_URL}
+            initialAppData={appData}
             messageTargetOrigin={SHARING_APP_ORIGIN}
             frameBorder="0"
             title="stlite app"
             className="preview-iframe"
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

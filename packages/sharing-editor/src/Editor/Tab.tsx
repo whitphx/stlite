@@ -129,7 +129,9 @@ function Tab({
       ) : (
         <button onClick={onSelect}>{fileName}</button>
       )}
-      <button onClick={onDelete}>x</button>
+      <button onClick={onDelete} tabIndex={-1}>
+        x
+      </button>
     </span>
   );
 }

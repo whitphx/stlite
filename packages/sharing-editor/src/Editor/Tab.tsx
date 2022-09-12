@@ -1,52 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import styles from "./Tab.module.css";
-
-interface FileNameEditingTabProps {
-  defaultFileName: string;
-  onEditFinish: (fileName: string) => void;
-  onEditCancel: () => void;
-}
-function FileNameEditingTab({
-  defaultFileName,
-  onEditFinish,
-  onEditCancel,
-}: FileNameEditingTabProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const handleEditFinish = () => {
-    onEditFinish(inputRef.current?.value ?? defaultFileName);
-  };
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleEditFinish();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          onEditCancel();
-        }
-      }}
-      className={styles.fileNameForm}
-    >
-      <input
-        type="text"
-        defaultValue={defaultFileName}
-        onBlur={handleEditFinish}
-        ref={(input) => {
-          (
-            inputRef as React.MutableRefObject<HTMLInputElement | null>
-          ).current = input;
-          if (input == null) {
-            return;
-          }
-          input.focus();
-        }}
-        className={styles.fileNameInput}
-      />
-    </form>
-  );
-}
 
 interface SelectedTabProps {
   fileName: string;
@@ -61,21 +14,66 @@ function SelectedTab({
   const [fileNameEditing, setFileNameEditing] = useState(
     shouldBeEditingByDefault
   );
+  const [tmpFileName, setTmpFileName] = useState(fileName);
 
-  if (fileNameEditing) {
-    return (
-      <FileNameEditingTab
-        defaultFileName={fileName}
-        onEditFinish={(fileName) => {
-          onFileNameChange(fileName);
-          setFileNameEditing(false);
-        }}
-        onEditCancel={() => setFileNameEditing(false)}
-      />
-    );
-  }
+  const startFileNameEditing = useCallback(() => setFileNameEditing(true), []);
 
-  return <span onClick={() => setFileNameEditing(true)}>{fileName}</span>;
+  const handleInputChange = useCallback<
+    React.ChangeEventHandler<HTMLInputElement>
+  >((e) => {
+    setTmpFileName(e.target.value);
+  }, []);
+
+  const completeEditing = useCallback(() => {
+    if (tmpFileName.trim() === "") {
+      setFileNameEditing(false);
+      return;
+    }
+    setFileNameEditing(false);
+    onFileNameChange(tmpFileName);
+  }, [tmpFileName, onFileNameChange]);
+  const cancelEditing = useCallback(() => {
+    setTmpFileName(fileName);
+    setFileNameEditing(false);
+  }, [fileName]);
+
+  const onInputMount = useCallback<React.RefCallback<HTMLInputElement>>(
+    (input) => {
+      input?.focus();
+    },
+    []
+  );
+
+  return (
+    <span className={styles.selectedTab}>
+      <span onClick={startFileNameEditing}>
+        {fileNameEditing ? tmpFileName : fileName}
+      </span>
+      {fileNameEditing && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            completeEditing();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              cancelEditing();
+            }
+          }}
+          className={styles.fileNameForm}
+        >
+          <input
+            type="text"
+            value={tmpFileName}
+            onChange={handleInputChange}
+            onBlur={completeEditing}
+            ref={onInputMount}
+            className={styles.fileNameInput}
+          />
+        </form>
+      )}
+    </span>
+  );
 }
 
 interface TabProps {

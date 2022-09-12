@@ -8,6 +8,21 @@
   font-family: inherit;
 }
 
+.deleteButton {
+  background: none;
+  outline: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  font-family: inherit;
+
+  padding: 0.2rem;
+}
+.deleteButton:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
 .selectedTab {
   position: relative;
   display: inline-block;

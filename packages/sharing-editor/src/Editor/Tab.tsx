@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { RiDeleteBinLine } from "react-icons/ri";
 import styles from "./Tab.module.css";
 
 interface FileNameFormProps {
@@ -11,21 +12,21 @@ function FileNameForm({
   defaultFileName,
   onChange,
   onFinish,
-  onCancel,
+  onCancel
 }: FileNameFormProps) {
   const [tmpFileName, setTmpFileName] = useState(defaultFileName);
 
   return (
     <form
       onSubmit={useCallback(
-        (e) => {
+        e => {
           e.preventDefault();
           onFinish(tmpFileName);
         },
         [onFinish, tmpFileName]
       )}
       onKeyDown={useCallback(
-        (e) => {
+        e => {
           if (e.key === "Escape") {
             onCancel();
           }
@@ -38,14 +39,14 @@ function FileNameForm({
         type="text"
         value={tmpFileName}
         onChange={useCallback<React.ChangeEventHandler<HTMLInputElement>>(
-          (e) => {
+          e => {
             setTmpFileName(e.target.value);
             onChange(e.target.value);
           },
           [onChange]
         )}
         onBlur={onCancel}
-        ref={useCallback<React.RefCallback<HTMLInputElement>>((input) => {
+        ref={useCallback<React.RefCallback<HTMLInputElement>>(input => {
           input?.focus();
         }, [])}
         className={styles.fileNameInput}
@@ -62,7 +63,7 @@ interface SelectedTabProps {
 function SelectedTab({
   fileName,
   shouldBeEditingByDefault,
-  onFileNameChange,
+  onFileNameChange
 }: SelectedTabProps) {
   const [fileNameEditing, setFileNameEditing] = useState(
     shouldBeEditingByDefault
@@ -101,6 +102,17 @@ function SelectedTab({
   );
 }
 
+interface DeleteButtonProps {
+  onClick: () => void;
+}
+function DeleteButton(props: DeleteButtonProps) {
+  return (
+    <button tabIndex={-1} className={styles.deleteButton}>
+      <RiDeleteBinLine onClick={props.onClick} />
+    </button>
+  );
+}
+
 interface TabProps {
   fileName: string;
   selected: boolean;
@@ -116,7 +128,7 @@ function Tab({
   initInEditingModeIfSelected,
   onSelect,
   onDelete,
-  onFileNameChange,
+  onFileNameChange
 }: TabProps) {
   return (
     <span>
@@ -131,9 +143,7 @@ function Tab({
           {fileName}
         </button>
       )}
-      <button onClick={onDelete} tabIndex={-1}>
-        x
-      </button>
+      <DeleteButton onClick={onDelete} />
     </span>
   );
 }

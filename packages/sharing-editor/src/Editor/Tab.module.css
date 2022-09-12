@@ -2,6 +2,7 @@
   display: inline-block;
   box-sizing: border-box;
   margin-bottom: 4px;
+  font-size: 0.8rem;
 }
 
 .tab:hover {
@@ -28,8 +29,8 @@
   outline: none;
   border: 0;
   padding: 0;
-  margin: 0;
-  font-size: 0.8rem;
+  margin: 0.2rem;
+  font-size: 0.6rem;
   font-family: inherit;
 
   padding: 0.2rem;

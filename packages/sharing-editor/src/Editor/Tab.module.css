@@ -1,7 +1,24 @@
+.selectedTab {
+  position: relative;
+  display: inline-block;
+}
+
 .fileNameForm {
   display: inline-block;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 0;
 }
 
 .fileNameInput {
   display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-family: inherit;
 }

@@ -1,4 +1,5 @@
-@use "./variables.scss" as var;
+@use "./variables" as var;
+@use "mixins";
 
 .tabFrame {
   display: inline-block;
@@ -22,25 +23,16 @@
 }
 
 .tabButton {
-  box-sizing: border-box;
-  background: none;
-  outline: none;
-  border: 0;
-  padding: 0;
+  @include mixins.reset-button;
+
   padding-left: 0.5rem;
-  margin: 0;
-  font-size: inherit;
-  font-family: inherit;
 }
 
 .deleteButton {
-  background: none;
-  outline: none;
-  border: 0;
-  padding: 0;
+  @include mixins.reset-button;
+
   margin: 0.2rem;
   font-size: 0.6rem;
-  font-family: inherit;
 
   padding: 0.2rem;
 }
@@ -64,13 +56,8 @@
 }
 
 .fileNameInput {
+  @include mixins.reset-input;
+
   display: inline-block;
   width: 100%;
-  box-sizing: border-box;
-  outline: none;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  font-size: inherit;
-  font-family: inherit;
 }

@@ -1,11 +1,9 @@
+@use "mixins";
+
 .button {
-  background: none;
-  outline: none;
-  border: 0;
-  /* padding: 0; */
+  @include mixins.reset-button;
 
   height: 2rem;
-  box-sizing: border-box;
   border-radius: 0.2rem;
 
   display: inline-flex;

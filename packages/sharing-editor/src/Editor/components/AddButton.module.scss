@@ -1,13 +1,10 @@
 @use "variables" as var;
+@use "mixins";
 
 .button {
-  background: none;
-  outline: none;
-  border: 0;
-  /* padding: 0; */
+  @include mixins.reset-button;
 
   height: var.$tab-height;
-  box-sizing: border-box;
 
   display: inline-flex;
   align-items: center;

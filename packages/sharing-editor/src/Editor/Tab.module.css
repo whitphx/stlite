@@ -36,7 +36,7 @@
   padding: 0.2rem;
 }
 .deleteButton:hover {
-  background: rgba(0, 0, 0, 0.1);
+  color: #f44b4b;
 }
 
 .selectedTab {

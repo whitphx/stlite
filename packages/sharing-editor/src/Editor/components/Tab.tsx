@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { isValidFilePath } from "../../path";
 import styles from "./Tab.module.scss";
 
 interface FileNameFormProps {
@@ -15,15 +16,21 @@ function FileNameForm({
   onCancel,
 }: FileNameFormProps) {
   const [tmpFileName, setTmpFileName] = useState(defaultFileName);
+  const submittable = useMemo(
+    () => isValidFilePath(tmpFileName),
+    [tmpFileName]
+  );
 
   return (
     <form
       onSubmit={useCallback(
         (e) => {
           e.preventDefault();
-          onFinish(tmpFileName);
+          if (submittable) {
+            onFinish(tmpFileName);
+          }
         },
-        [onFinish, tmpFileName]
+        [submittable, onFinish, tmpFileName]
       )}
       onKeyDown={useCallback(
         (e) => {
@@ -49,12 +56,15 @@ function FileNameForm({
         ref={useCallback<React.RefCallback<HTMLInputElement>>((input) => {
           input?.focus();
         }, [])}
-        className={styles.fileNameInput}
+        className={`${styles.fileNameInput} ${
+          !submittable && styles.fileNameInputError
+        }`}
       />
     </form>
   );
 }
 
+const WHITESPACE = "\u00A0";
 interface SelectedTabProps {
   fileName: string;
   shouldBeEditingByDefault: boolean;
@@ -85,10 +95,13 @@ function SelectedTab({
     setTmpFileName(fileName);
   }, [fileName]);
 
+  const displayFileName = fileNameEditing ? tmpFileName : fileName;
+  const displayFileNameNoSpace =
+    displayFileName.length > 0 ? displayFileName : WHITESPACE;
   return (
     <span className={styles.selectedTab}>
-      <span onClick={startFileNameEditing}>
-        {fileNameEditing ? tmpFileName : fileName}
+      <span onClick={startFileNameEditing} style={{ minWidth: "5px" }}>
+        {displayFileNameNoSpace}
       </span>
       {fileNameEditing && (
         <FileNameForm

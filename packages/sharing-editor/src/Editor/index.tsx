@@ -5,7 +5,7 @@ import Tab from "./Tab";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import AddButton from "./AddButton";
-import styles from "./Editor.module.css";
+import styles from "./Editor.module.scss";
 import { isDarkMode } from "../color-mode";
 
 let newFileCount = 1;

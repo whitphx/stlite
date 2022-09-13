@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { readArrayBuffer } from "./file";
 import { RiUpload2Line } from "react-icons/ri";
-import styles from "./FileUploader.module.css";
+import styles from "./FileUploader.module.scss";
 
 interface ReadFile {
   name: string;

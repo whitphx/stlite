@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { RiDeleteBinLine } from "react-icons/ri";
-import styles from "./Tab.module.css";
+import styles from "./Tab.module.scss";
 
 interface FileNameFormProps {
   defaultFileName: string;

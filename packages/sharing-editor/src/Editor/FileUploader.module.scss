@@ -1,10 +1,12 @@
-.button {
-  background: none;
-  outline: none;
-  border: 0;
-  /* padding: 0; */
+@use "variables" as var;
 
-  height: 1.6rem;
+.fileInput {
+  display: none;
+}
+
+.label {
+  height: var.$tab-height;
+  box-sizing: border-box;
 
   display: inline-flex;
   align-items: center;
@@ -15,6 +17,6 @@
   border: rgba(0, 0, 0, 0.1) 1px solid;
 }
 
-.button:hover {
+.label:hover {
   background: initial;
 }

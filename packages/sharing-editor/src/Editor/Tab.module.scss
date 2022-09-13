@@ -16,8 +16,8 @@
 
 .tabFrameSelected {
   background: initial;
-  border-top: var(--c-primary) 2px solid;
-  margin-top: -2px;
+  border-top: var(--c-primary) var.$tab-highlight-height solid;
+  margin-top: -(var.$tab-highlight-height);
   border-bottom: none;
 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
+import TabBar from "./TabBar";
 import Tab from "./Tab";
 import Toolbar from "./Toolbar";
 import BinaryFileEditor from "./BinaryFileEditor";
@@ -93,7 +94,7 @@ function Editor({
 
   return (
     <div className={styles.container}>
-      <div className={styles.tabArea}>
+      <TabBar>
         {fileNames.map((fileName) => (
           <Tab
             key={fileName}
@@ -114,7 +115,7 @@ function Editor({
           <AddButton onClick={handleCreateFile} />
           <FileUploader onUpload={handleFileUpload} />
         </div>
-      </div>
+      </TabBar>
       <Toolbar>
         <SaveButton onClick={handleSave} />
       </Toolbar>

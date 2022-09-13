@@ -23,6 +23,7 @@
   outline: none;
   border: 0;
   padding: 0;
+  padding-left: 0.5rem;
   margin: 0;
   font-size: inherit;
   font-family: inherit;
@@ -46,6 +47,7 @@
 .selectedTab {
   position: relative;
   display: inline-block;
+  padding-left: 0.5rem;
 }
 
 .fileNameForm {
@@ -54,6 +56,7 @@
   width: 100%;
   left: 0;
   top: 0;
+  padding-left: 0.5rem;
 }
 
 .fileNameInput {

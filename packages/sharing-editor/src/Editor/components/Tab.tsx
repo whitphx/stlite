@@ -107,8 +107,12 @@ interface DeleteButtonProps {
 }
 function DeleteButton(props: DeleteButtonProps) {
   return (
-    <button tabIndex={-1} className={styles.deleteButton}>
-      <RiDeleteBinLine onClick={props.onClick} />
+    <button
+      onClick={props.onClick}
+      tabIndex={-1}
+      className={styles.deleteButton}
+    >
+      <RiDeleteBinLine />
     </button>
   );
 }

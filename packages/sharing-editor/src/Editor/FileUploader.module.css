@@ -1,0 +1,19 @@
+.fileInput {
+  display: none;
+}
+
+.label {
+  height: 1.6rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.3rem;
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+  border: rgba(0, 0, 0, 0.1) 1px solid;
+}
+
+.label:hover {
+  background: initial;
+}

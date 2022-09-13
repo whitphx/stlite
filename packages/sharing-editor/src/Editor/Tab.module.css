@@ -5,6 +5,7 @@
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.05);
   border: rgba(0, 0, 0, 0.1) 1px solid;
+  height: 1.6rem;
 }
 
 .tabFrame:hover {

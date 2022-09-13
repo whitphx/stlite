@@ -26,7 +26,16 @@ function Editor({
   onFileRename,
   onFileDelete,
 }: EditorProps) {
-  const fileNames = useMemo(() => Object.keys(appData.files), [appData]);
+  const [orderedFileNames, setOrderedFileNames] = useState<string[]>(
+    Object.keys(appData.files)
+  );
+  const fileNames = useMemo(
+    () =>
+      Object.keys(appData.files).sort(
+        (a, b) => orderedFileNames.indexOf(a) - orderedFileNames.indexOf(b)
+      ),
+    [appData, orderedFileNames]
+  );
   const [currentFileName, setCurrentFileName] = useState<string | null>(
     fileNames.length > 0 ? fileNames[0] : null
   );
@@ -86,6 +95,7 @@ function Editor({
   const handleFileDelete = useCallback(
     (fileName) => {
       onFileDelete(fileName);
+      setOrderedFileNames((cur) => cur.filter((f) => f !== fileName));
     },
     [onFileDelete]
   );
@@ -96,6 +106,7 @@ function Editor({
 
     onFileWrite(fileName, "");
     focusTabNext(fileName);
+    setOrderedFileNames((cur) => [...cur, fileName]);
   }, [onFileWrite, focusTabNext]);
 
   return (
@@ -112,6 +123,9 @@ function Editor({
             onDelete={() => handleFileDelete(fileName)}
             onFileNameChange={(newPath) => {
               onFileRename(fileName, newPath);
+              setOrderedFileNames((cur) =>
+                cur.map((f) => (f === fileName ? newPath : f))
+              );
               if (fileName === currentFileName) {
                 setCurrentFileName(newPath);
               }

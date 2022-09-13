@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import styles from "./BinaryFileEditor.module.css";
+import styles from "./BinaryFileEditor.module.scss";
 import { readArrayBuffer } from "./file";
 
 interface BinaryFileEditorProps {

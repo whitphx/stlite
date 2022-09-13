@@ -1,10 +1,14 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
-import Tab from "./Tab";
+import TabBar from "./components/TabBar";
+import Tab from "./components/Tab";
+import Toolbar from "./components/Toolbar";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
-import styles from "./Editor.module.css";
+import AddButton from "./components/AddButton";
+import SaveButton from "./components/SaveButton";
+import styles from "./Editor.module.scss";
 import { isDarkMode } from "../color-mode";
 
 let newFileCount = 1;
@@ -90,7 +94,7 @@ function Editor({
 
   return (
     <div className={styles.container}>
-      <div className={styles.tabArea}>
+      <TabBar>
         {fileNames.map((fileName) => (
           <Tab
             key={fileName}
@@ -107,9 +111,14 @@ function Editor({
             }}
           />
         ))}
-        <button onClick={handleCreateFile}>+</button>
-        <FileUploader onUpload={handleFileUpload} />
-      </div>
+        <div className={styles.controlButtonGroup}>
+          <AddButton onClick={handleCreateFile} />
+          <FileUploader onUpload={handleFileUpload} />
+        </div>
+      </TabBar>
+      <Toolbar>
+        <SaveButton onClick={handleSave} />
+      </Toolbar>
       <div className={styles.editorArea}>
         {currentFileName != null && currentFile?.content?.$case === "text" && (
           <MonacoEditor
@@ -127,7 +136,6 @@ function Editor({
           />
         )}
       </div>
-      <button onClick={handleSave}>Save</button>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import styles from "./Tab.module.css";
+import { RiDeleteBinLine } from "react-icons/ri";
+import styles from "./Tab.module.scss";
 
 interface FileNameFormProps {
   defaultFileName: string;
@@ -101,6 +102,17 @@ function SelectedTab({
   );
 }
 
+interface DeleteButtonProps {
+  onClick: () => void;
+}
+function DeleteButton(props: DeleteButtonProps) {
+  return (
+    <button tabIndex={-1} className={styles.deleteButton}>
+      <RiDeleteBinLine onClick={props.onClick} />
+    </button>
+  );
+}
+
 interface TabProps {
   fileName: string;
   selected: boolean;
@@ -119,7 +131,9 @@ function Tab({
   onFileNameChange,
 }: TabProps) {
   return (
-    <span>
+    <span
+      className={`${styles.tabFrame} ${selected && styles.tabFrameSelected}`}
+    >
       {selected ? (
         <SelectedTab
           fileName={fileName}
@@ -127,11 +141,11 @@ function Tab({
           onFileNameChange={onFileNameChange}
         />
       ) : (
-        <button onClick={onSelect}>{fileName}</button>
+        <button onClick={onSelect} className={styles.tabButton}>
+          {fileName}
+        </button>
       )}
-      <button onClick={onDelete} tabIndex={-1}>
-        x
-      </button>
+      <DeleteButton onClick={onDelete} />
     </span>
   );
 }

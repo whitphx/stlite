@@ -1,0 +1,20 @@
+@use "variables" as var;
+@use "mixins";
+
+.button {
+  @include mixins.reset-button;
+
+  height: var.$tab-height;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.3rem;
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+  border: rgba(0, 0, 0, 0.1) 1px solid;
+}
+
+.button:hover {
+  background: initial;
+}

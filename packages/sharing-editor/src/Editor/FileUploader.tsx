@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import FileUploaderComponent from "./components/FileUploader";
 import { readArrayBuffer } from "./file";
 
 interface ReadFile {
@@ -39,7 +40,7 @@ function FileUploader({ onUpload }: FileUploaderProps) {
     [onUpload]
   );
 
-  return <input type="file" multiple onChange={handleFileChange} />;
+  return <FileUploaderComponent onChange={handleFileChange} multiple />;
 }
 
 export default FileUploader;

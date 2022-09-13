@@ -1,0 +1,8 @@
+@use "variables" as var;
+
+.tabBar {
+  display: flex;
+  padding: var.$tab-highlight-height 4px 0;
+  width: 100%;
+  flex-wrap: wrap;
+}

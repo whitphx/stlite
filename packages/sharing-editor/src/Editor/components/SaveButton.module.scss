@@ -1,0 +1,24 @@
+@use "mixins";
+
+.button {
+  @include mixins.reset-button;
+
+  height: 2rem;
+  border-radius: 0.2rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.6rem;
+  color: #333;
+  background: rgba(0, 0, 0, 0.05);
+  border: rgba(0, 0, 0, 0.1) 1px solid;
+}
+
+.button:hover {
+  background: initial;
+}
+
+.icon {
+  margin-right: 0.3rem;
+}

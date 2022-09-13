@@ -1,0 +1,65 @@
+@use "variables" as var;
+@use "mixins";
+
+.tabFrame {
+  display: inline-block;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.05);
+  border: rgba(0, 0, 0, 0.1) 1px solid;
+  height: var.$tab-height;
+}
+
+.tabFrame:hover {
+  background: initial;
+}
+
+.tabFrameSelected {
+  background: initial;
+  border-top: var(--c-primary) var.$tab-highlight-height solid;
+  margin-top: -(var.$tab-highlight-height);
+  border-bottom: none;
+}
+
+$tabPaddingLeft: 0.5rem;
+
+.tabButton {
+  @include mixins.reset-button;
+
+  padding-left: $tabPaddingLeft;
+}
+
+.deleteButton {
+  @include mixins.reset-button;
+
+  margin: 0.2rem;
+  font-size: 0.6rem;
+
+  padding: 0.2rem;
+}
+.deleteButton:hover {
+  color: var(--c-primary);
+}
+
+.selectedTab {
+  position: relative;
+  display: inline-block;
+  padding-left: $tabPaddingLeft;
+}
+
+.fileNameForm {
+  display: inline-block;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 0;
+  padding-left: $tabPaddingLeft;
+}
+
+.fileNameInput {
+  @include mixins.reset-input;
+
+  display: inline-block;
+  width: 100%;
+}

@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
-import TabBar from "./TabBar";
-import Tab from "./Tab";
-import Toolbar from "./Toolbar";
+import TabBar from "./components/TabBar";
+import Tab from "./components/Tab";
+import Toolbar from "./components/Toolbar";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
-import AddButton from "./AddButton";
-import SaveButton from "./SaveButton";
+import AddButton from "./components/AddButton";
+import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 import { isDarkMode } from "../color-mode";
 

@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
+import FileUploaderComponent from "./components/FileUploader";
 import { readArrayBuffer } from "./file";
-import { RiUpload2Line } from "react-icons/ri";
-import styles from "./FileUploader.module.scss";
 
 interface ReadFile {
   name: string;
@@ -41,17 +40,7 @@ function FileUploader({ onUpload }: FileUploaderProps) {
     [onUpload]
   );
 
-  return (
-    <label className={styles.label}>
-      <RiUpload2Line />
-      <input
-        type="file"
-        multiple
-        onChange={handleFileChange}
-        className={styles.fileInput}
-      />
-    </label>
-  );
+  return <FileUploaderComponent onChange={handleFileChange} />;
 }
 
 export default FileUploader;

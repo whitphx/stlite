@@ -17,12 +17,12 @@ function BinaryFileEditor(props: BinaryFileEditorProps) {
   const handleFileChange = useCallback<
     React.ChangeEventHandler<HTMLInputElement>
   >(
-    e => {
+    (e) => {
       if (e.target.files == null) {
         return;
       }
       const file = e.target.files[0];
-      readArrayBuffer(file).then(arrayBuffer => {
+      readArrayBuffer(file).then((arrayBuffer) => {
         onChange(new Uint8Array(arrayBuffer));
       });
     },

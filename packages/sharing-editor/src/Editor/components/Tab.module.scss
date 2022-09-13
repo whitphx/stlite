@@ -22,10 +22,12 @@
   border-bottom: none;
 }
 
+$tabPaddingLeft: 0.5rem;
+
 .tabButton {
   @include mixins.reset-button;
 
-  padding-left: 0.5rem;
+  padding-left: $tabPaddingLeft;
 }
 
 .deleteButton {
@@ -43,7 +45,7 @@
 .selectedTab {
   position: relative;
   display: inline-block;
-  padding-left: 0.5rem;
+  padding-left: $tabPaddingLeft;
 }
 
 .fileNameForm {
@@ -52,7 +54,7 @@
   width: 100%;
   left: 0;
   top: 0;
-  padding-left: 0.5rem;
+  padding-left: $tabPaddingLeft;
 }
 
 .fileNameInput {

@@ -25,10 +25,17 @@ export interface FileUnlinkMessage extends ForwardMessageBase {
     path: string;
   };
 }
+export interface InstallMessage extends ForwardMessageBase {
+  type: "install";
+  data: {
+    requirements: string[];
+  };
+}
 export type ForwardMessage =
   | FileWriteMessage
   | FileRenameMessage
-  | FileUnlinkMessage;
+  | FileUnlinkMessage
+  | InstallMessage;
 
 /**
  * Reply message

@@ -90,6 +90,9 @@ st.write("Hello World")`,
           case "file:unlink": {
             return kernel.unlink(msg.data.path);
           }
+          case "install": {
+            return kernel.install(msg.data.requirements);
+          }
         }
       })()
         .then(() => {

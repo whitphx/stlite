@@ -4,6 +4,7 @@
   margin-bottom: 4px;
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.05);
+  border: rgba(0, 0, 0, 0.1) 1px solid;
 }
 
 .tabFrame:hover {
@@ -14,6 +15,7 @@
   background: initial;
   border-top: #f44b4b 2px solid;
   margin-top: -2px;
+  border-bottom: none;
 }
 
 .tabButton {

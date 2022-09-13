@@ -30,15 +30,17 @@ function BinaryFileEditor(props: BinaryFileEditorProps) {
   );
 
   return (
-    <div>
+    <div className={styles.container}>
       <p>
         {props.path} ({props.data.byteLength} bytes)
       </p>
-      <img
-        src={dataUrl}
-        alt={`Preview of ${props.path}`}
-        className={styles.image}
-      />
+      <div className={styles.mediaContainer}>
+        <img
+          src={dataUrl}
+          alt={`Preview of ${props.path}`}
+          className={styles.image}
+        />
+      </div>
       <input type="file" onChange={handleFileChange} />
     </div>
   );

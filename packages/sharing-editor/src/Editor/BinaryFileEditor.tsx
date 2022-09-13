@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import styles from "./BinaryFileEditor.module.css";
+import styles from "./BinaryFileEditor.module.scss";
 import { readArrayBuffer } from "./file";
 
 interface BinaryFileEditorProps {
@@ -17,12 +17,12 @@ function BinaryFileEditor(props: BinaryFileEditorProps) {
   const handleFileChange = useCallback<
     React.ChangeEventHandler<HTMLInputElement>
   >(
-    (e) => {
+    e => {
       if (e.target.files == null) {
         return;
       }
       const file = e.target.files[0];
-      readArrayBuffer(file).then((arrayBuffer) => {
+      readArrayBuffer(file).then(arrayBuffer => {
         onChange(new Uint8Array(arrayBuffer));
       });
     },

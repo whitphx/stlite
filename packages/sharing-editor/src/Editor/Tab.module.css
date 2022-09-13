@@ -3,13 +3,15 @@
   box-sizing: border-box;
   margin-bottom: 4px;
   font-size: 0.8rem;
-}
-
-.tabFrame:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
+.tabFrame:hover {
+  background: initial;
+}
+
 .tabFrameSelected {
+  background: initial;
   border-top: #f44b4b 2px solid;
   margin-top: -2px;
 }

@@ -14,7 +14,7 @@
 
 .tabFrameSelected {
   background: initial;
-  border-top: #f44b4b 2px solid;
+  border-top: var(--c-primary) 2px solid;
   margin-top: -2px;
   border-bottom: none;
 }
@@ -42,7 +42,7 @@
   padding: 0.2rem;
 }
 .deleteButton:hover {
-  color: #f44b4b;
+  color: var(--c-primary);
 }
 
 .selectedTab {

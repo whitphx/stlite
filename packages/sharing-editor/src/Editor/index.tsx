@@ -116,18 +116,24 @@ function Editor({
           <FileUploader onUpload={handleFileUpload} />
         </div>
       </TabBar>
-      <Toolbar>
-        <SaveButton onClick={handleSave} />
-      </Toolbar>
+      {currentFile?.content?.$case === "text" && (
+        <>
+          <Toolbar>
+            <SaveButton onClick={handleSave} />
+          </Toolbar>
+          <div className={styles.editorArea}>
+            {currentFileName != null && (
+              <MonacoEditor
+                path={currentFileName}
+                defaultValue={currentFile.content.text}
+                onMount={handleEditorDitMount}
+                theme={isDarkMode() ? "vs-dark" : "vs-light"}
+              />
+            )}
+          </div>
+        </>
+      )}
       <div className={styles.editorArea}>
-        {currentFileName != null && currentFile?.content?.$case === "text" && (
-          <MonacoEditor
-            path={currentFileName}
-            defaultValue={currentFile.content.text}
-            onMount={handleEditorDitMount}
-            theme={isDarkMode() ? "vs-dark" : "vs-light"}
-          />
-        )}
         {currentFileName != null && currentFile?.content?.$case === "data" && (
           <BinaryFileEditor
             path={currentFileName}

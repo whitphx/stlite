@@ -40,7 +40,7 @@ function FileUploader({ onUpload }: FileUploaderProps) {
     [onUpload]
   );
 
-  return <FileUploaderComponent onChange={handleFileChange} />;
+  return <FileUploaderComponent onChange={handleFileChange} multiple />;
 }
 
 export default FileUploader;

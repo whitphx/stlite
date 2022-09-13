@@ -108,8 +108,10 @@ function Editor({
             }}
           />
         ))}
-        <AddButton onClick={handleCreateFile} />
-        <FileUploader onUpload={handleFileUpload} />
+        <div className={styles.controlButtonGroup}>
+          <AddButton onClick={handleCreateFile} />
+          <FileUploader onUpload={handleFileUpload} />
+        </div>
       </div>
       <div className={styles.editorArea}>
         {currentFileName != null && currentFile?.content?.$case === "text" && (

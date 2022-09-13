@@ -4,6 +4,7 @@ import { AppData } from "@stlite/sharing-common";
 import Tab from "./Tab";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
+import AddButton from "./AddButton";
 import styles from "./Editor.module.css";
 import { isDarkMode } from "../color-mode";
 
@@ -107,7 +108,7 @@ function Editor({
             }}
           />
         ))}
-        <button onClick={handleCreateFile}>+</button>
+        <AddButton onClick={handleCreateFile} />
         <FileUploader onUpload={handleFileUpload} />
       </div>
       <div className={styles.editorArea}>

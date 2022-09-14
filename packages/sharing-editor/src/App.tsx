@@ -93,6 +93,28 @@ function App() {
       if (oldPath === newPath) {
         return;
       }
+      if (appData == null) {
+        return;
+      }
+      if (Object.keys(appData.files).includes(newPath)) {
+        return;
+      }
+
+      const curFiles = appData.files;
+      const targetFile = curFiles[oldPath];
+      if (targetFile == null) {
+        return;
+      }
+
+      const newFiles = {
+        ...curFiles,
+        [newPath]: targetFile,
+      };
+      delete newFiles[oldPath];
+      const newAppData = {
+        ...appData,
+        files: newFiles,
+      };
 
       iframeRef.current?.postMessage({
         type: "file:rename",
@@ -102,30 +124,9 @@ function App() {
         },
       });
 
-      setAppData((cur) => {
-        if (cur == null) {
-          return undefined;
-        }
-
-        const curFiles = cur.files;
-        const targetFile = curFiles[oldPath];
-        if (targetFile == null) {
-          return cur;
-        }
-
-        const newFiles = {
-          ...curFiles,
-          [newPath]: targetFile,
-        };
-        delete newFiles[oldPath];
-
-        return {
-          ...cur,
-          files: newFiles,
-        };
-      });
+      setAppData(newAppData);
     },
-    []
+    [appData]
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>((path) => {

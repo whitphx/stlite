@@ -150,7 +150,7 @@ function Tab({
   onFileNameChange,
 }: TabProps) {
   return (
-    <span
+    <div
       className={`${styles.tabFrame} ${selected && styles.tabFrameSelected}`}
     >
       {fileNameEditable && selected ? (
@@ -164,8 +164,10 @@ function Tab({
           {fileName}
         </button>
       )}
-      <DeleteButton onClick={onDelete} />
-    </span>
+      <div className={styles.deleteButtonContainer}>
+        <DeleteButton onClick={onDelete} />
+      </div>
+    </div>
   );
 }
 

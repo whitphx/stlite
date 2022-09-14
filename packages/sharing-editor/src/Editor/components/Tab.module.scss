@@ -22,6 +22,7 @@
   border-top: var(--c-primary) var.$tab-highlight-height solid;
   margin-top: -(var.$tab-highlight-height);
   border-bottom: none;
+  position: relative
 }
 
 $tabPaddingLeft: 0.5rem;
@@ -43,6 +44,7 @@ $deleteButtonSpaceWidth: 1.2rem;
   bottom: 0;
   display: flex;
   align-items: center;
+  padding-top: var.$tab-highlight-height;
   pointer-events: none;
 }
 

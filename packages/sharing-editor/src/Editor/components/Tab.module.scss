@@ -55,7 +55,7 @@ $deleteButtonSpaceWidth: 1.2rem;
 
   pointer-events: initial;
 }
-.deleteButton:hover {
+.deleteButton:not([disabled]):hover {
   color: var(--c-primary);
 }
 

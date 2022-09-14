@@ -117,11 +117,13 @@ function SelectedTab({
 
 interface DeleteButtonProps {
   onClick: () => void;
+  disabled: boolean;
 }
 function DeleteButton(props: DeleteButtonProps) {
   return (
     <button
       onClick={props.onClick}
+      disabled={props.disabled}
       tabIndex={-1}
       className={styles.deleteButton}
     >
@@ -165,7 +167,7 @@ function Tab({
         </button>
       )}
       <div className={styles.deleteButtonContainer}>
-        <DeleteButton onClick={onDelete} />
+        <DeleteButton onClick={onDelete} disabled={!fileNameEditable} />
       </div>
     </div>
   );

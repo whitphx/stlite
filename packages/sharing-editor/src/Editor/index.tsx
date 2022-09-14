@@ -61,18 +61,26 @@ function Editor({
     [onFileWrite, currentFileName]
   );
 
+  const [addedFileName, setAddedFileName] = useState<string>();
+  const focusTabNext = useCallback((fileName) => {
+    setCurrentFileName(fileName);
+    setAddedFileName(fileName);
+  }, []);
+
   const handleFileUpload = useCallback<FileUploaderProps["onUpload"]>(
     (files) => {
       files.forEach((file) => {
         if (file.type.startsWith("text")) {
           const text = new TextDecoder().decode(file.data);
           onFileWrite(file.name, text);
+          focusTabNext(file.name);
         } else {
           onFileWrite(file.name, file.data);
+          focusTabNext(file.name);
         }
       });
     },
-    [onFileWrite]
+    [onFileWrite, focusTabNext]
   );
 
   const handleFileDelete = useCallback(
@@ -82,15 +90,13 @@ function Editor({
     [onFileDelete]
   );
 
-  const [addedFileName, setAddedFileName] = useState<string>();
   const handleCreateFile = useCallback(() => {
     const fileName = `file${newFileCount}.py`;
     newFileCount += 1;
 
     onFileWrite(fileName, "");
-    setCurrentFileName(fileName);
-    setAddedFileName(fileName);
-  }, [onFileWrite]);
+    focusTabNext(fileName);
+  }, [onFileWrite, focusTabNext]);
 
   return (
     <div className={styles.container}>
@@ -116,18 +122,24 @@ function Editor({
           <FileUploader onUpload={handleFileUpload} />
         </div>
       </TabBar>
-      <Toolbar>
-        <SaveButton onClick={handleSave} />
-      </Toolbar>
+      {currentFile?.content?.$case === "text" && (
+        <>
+          <Toolbar>
+            <SaveButton onClick={handleSave} />
+          </Toolbar>
+          <div className={styles.editorArea}>
+            {currentFileName != null && (
+              <MonacoEditor
+                path={currentFileName}
+                defaultValue={currentFile.content.text}
+                onMount={handleEditorDitMount}
+                theme={isDarkMode() ? "vs-dark" : "vs-light"}
+              />
+            )}
+          </div>
+        </>
+      )}
       <div className={styles.editorArea}>
-        {currentFileName != null && currentFile?.content?.$case === "text" && (
-          <MonacoEditor
-            path={currentFileName}
-            defaultValue={currentFile.content.text}
-            onMount={handleEditorDitMount}
-            theme={isDarkMode() ? "vs-dark" : "vs-light"}
-          />
-        )}
         {currentFileName != null && currentFile?.content?.$case === "data" && (
           <BinaryFileEditor
             path={currentFileName}

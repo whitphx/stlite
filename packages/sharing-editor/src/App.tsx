@@ -11,6 +11,7 @@ import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
 import Editor, { EditorProps } from "./Editor";
+import PreviewToolBar from "./components/PreviewToolBar";
 import { loadDefaultAppData } from "./default-app-data";
 
 const SHARING_APP_URL =
@@ -170,13 +171,7 @@ function App() {
         />
       </div>
       <div className="preview-pane">
-        <p>
-          {url && (
-            <a href={url} target="_blank" rel="noreferrer">
-              Open App
-            </a>
-          )}
-        </p>
+        {url && <PreviewToolBar sharingUrl={url} />}
         {appData && (
           <StliteSharingIFrame
             ref={iframeRef}

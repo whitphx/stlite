@@ -130,11 +130,6 @@ function App() {
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>((path) => {
-    const confirmed = window.confirm(`Delete ${path}?`);
-    if (!confirmed) {
-      return;
-    }
-
     iframeRef.current?.postMessage({
       type: "file:unlink",
       data: {

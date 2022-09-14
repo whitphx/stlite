@@ -94,6 +94,11 @@ function Editor({
 
   const handleFileDelete = useCallback(
     (fileName) => {
+      const confirmed = window.confirm(`Delete ${fileName}?`);
+      if (!confirmed) {
+        return;
+      }
+
       onFileDelete(fileName);
       setOrderedFileNames((cur) => cur.filter((f) => f !== fileName));
     },

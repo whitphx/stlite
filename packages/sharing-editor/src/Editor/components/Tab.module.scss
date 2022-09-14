@@ -2,7 +2,9 @@
 @use "mixins";
 
 .tabFrame {
-  display: inline-block;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   box-sizing: border-box;
   margin-bottom: 4px;
   font-size: 0.8rem;
@@ -23,22 +25,37 @@
 }
 
 $tabPaddingLeft: 0.5rem;
+$deleteButtonSpaceWidth: 1.2rem;
 
 .tabButton {
   @include mixins.reset-button;
 
+  width: 100%;
+  height: 100%;
   padding-left: $tabPaddingLeft;
+  padding-right: $deleteButtonSpaceWidth;
+}
+
+.deleteButtonContainer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
 }
 
 .deleteButton {
   @include mixins.reset-button;
 
-  margin: 0.2rem;
   font-size: 0.6rem;
 
   padding: 0.2rem;
+
+  pointer-events: initial;
 }
-.deleteButton:hover {
+.deleteButton:not([disabled]):hover {
   color: var(--c-primary);
 }
 
@@ -46,6 +63,7 @@ $tabPaddingLeft: 0.5rem;
   position: relative;
   display: inline-block;
   padding-left: $tabPaddingLeft;
+  padding-right: $deleteButtonSpaceWidth;
 }
 
 .fileNameForm {

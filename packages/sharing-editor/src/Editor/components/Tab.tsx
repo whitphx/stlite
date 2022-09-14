@@ -100,17 +100,17 @@ function SelectedTab({
     displayFileName.length > 0 ? displayFileName : WHITESPACE;
   return (
     <span className={styles.selectedTab}>
-      <span onClick={startFileNameEditing} style={{ minWidth: "5px" }}>
-        {displayFileNameNoSpace}
+      <span className={styles.selectedTabInner}>
+        <span onClick={startFileNameEditing}>{displayFileNameNoSpace}</span>
+        {fileNameEditing && (
+          <FileNameForm
+            defaultFileName={fileName}
+            onChange={setTmpFileName}
+            onFinish={handleEditFinish}
+            onCancel={handleEditCancel}
+          />
+        )}
       </span>
-      {fileNameEditing && (
-        <FileNameForm
-          defaultFileName={fileName}
-          onChange={setTmpFileName}
-          onFinish={handleEditFinish}
-          onCancel={handleEditCancel}
-        />
-      )}
     </span>
   );
 }

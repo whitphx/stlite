@@ -62,10 +62,13 @@ $deleteButtonSpaceWidth: 1.2rem;
 }
 
 .selectedTab {
-  position: relative;
   display: inline-block;
   padding-left: $tabPaddingLeft;
   padding-right: $deleteButtonSpaceWidth;
+}
+
+.selectedTabInner {
+  position: relative;
 }
 
 .fileNameForm {
@@ -74,7 +77,6 @@ $deleteButtonSpaceWidth: 1.2rem;
   width: 100%;
   left: 0;
   top: 0;
-  padding-left: $tabPaddingLeft;
 }
 
 .fileNameInput {

@@ -1,0 +1,36 @@
+.container {
+  padding: 0.5rem 1rem;
+}
+
+.urlDisplay {
+  display: inline-block;
+  margin: 0 1rem;
+}
+
+.clipboardButtonContainer {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.clipboardButton {
+  padding: 0.2rem;
+  border: #ddd 1px solid;
+}
+
+.copiedToast {
+  position: absolute;
+  justify-content: space-between;
+  pointer-events: none;
+
+  display: inline-block;
+  text-align: center;
+  font-size: 10px;
+  color: var(--c-primary);
+  border-radius: 0.4rem;
+}
+
+.displayBytes {
+  margin-left: 0.4rem;
+  font-size: small;
+}

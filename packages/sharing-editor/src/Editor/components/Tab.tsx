@@ -120,6 +120,7 @@ function DeleteButton(props: DeleteButtonProps) {
 interface TabProps {
   fileName: string;
   selected: boolean;
+  fileNameEditable: boolean;
   initInEditingModeIfSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
@@ -129,6 +130,7 @@ interface TabProps {
 function Tab({
   fileName,
   selected,
+  fileNameEditable,
   initInEditingModeIfSelected,
   onSelect,
   onDelete,
@@ -138,7 +140,7 @@ function Tab({
     <span
       className={`${styles.tabFrame} ${selected && styles.tabFrameSelected}`}
     >
-      {selected ? (
+      {fileNameEditable && selected ? (
         <SelectedTab
           fileName={fileName}
           shouldBeEditingByDefault={initInEditingModeIfSelected}

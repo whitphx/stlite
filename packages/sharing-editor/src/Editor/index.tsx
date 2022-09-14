@@ -105,6 +105,7 @@ function Editor({
           <Tab
             key={fileName}
             selected={fileName === currentFileName}
+            fileNameEditable={fileName !== appData.entrypoint}
             initInEditingModeIfSelected={fileName === addedFileName}
             fileName={fileName}
             onSelect={() => setCurrentFileName(fileName)}

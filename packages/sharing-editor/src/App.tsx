@@ -18,8 +18,6 @@ const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
 const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
-const REQUIREMENTS_FILE_NAME = "requirements";
-
 function App() {
   const [appData, setAppData] = useState<AppData>();
   useEffect(() => {
@@ -68,23 +66,6 @@ function App() {
           },
         };
       });
-
-      if (
-        path === REQUIREMENTS_FILE_NAME &&
-        typeof value === "string" &&
-        iframeRef.current
-      ) {
-        const requirements = value
-          .split("\n")
-          .map((r) => r.trim())
-          .filter((r) => r !== "");
-        iframeRef.current.postMessage({
-          type: "install",
-          data: {
-            requirements,
-          },
-        });
-      }
     },
     []
   );
@@ -156,6 +137,27 @@ function App() {
     });
   }, []);
 
+  const handleRequirementsChange = useCallback<
+    EditorProps["onRequirementsChange"]
+  >((requirements) => {
+    iframeRef.current?.postMessage({
+      type: "install",
+      data: {
+        requirements,
+      },
+    });
+
+    setAppData((cur) => {
+      if (cur == null) {
+        return undefined;
+      }
+      return {
+        ...cur,
+        requirements,
+      };
+    });
+  }, []);
+
   if (appData == null) {
     return <p>Loading...</p>;
   }
@@ -168,6 +170,7 @@ function App() {
           onFileWrite={handleFileWrite}
           onFileRename={handleFileRename}
           onFileDelete={handleFileDelete}
+          onRequirementsChange={handleRequirementsChange}
         />
       </div>
       <div className="preview-pane">

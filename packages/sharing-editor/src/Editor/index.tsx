@@ -31,9 +31,17 @@ function Editor({
   );
   const fileNames = useMemo(
     () =>
-      Object.keys(appData.files).sort(
-        (a, b) => orderedFileNames.indexOf(a) - orderedFileNames.indexOf(b)
-      ),
+      Object.keys(appData.files).sort((a, b) => {
+        const aIdx = orderedFileNames.indexOf(a);
+        const bIdx = orderedFileNames.indexOf(b);
+        if (aIdx === -1) {
+          return 1;
+        }
+        if (bIdx === -1) {
+          return -1;
+        }
+        return aIdx - bIdx;
+      }),
     [appData, orderedFileNames]
   );
   const [currentFileName, setCurrentFileName] = useState<string | null>(

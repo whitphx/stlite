@@ -448,6 +448,13 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       micropip.install
         .callKwargs(requirements, { keep_going: true })
         .then(() => {
+          if (requirements.includes("matplotlib")) {
+            return pyodide.runPythonAsync(`
+              bootstrap._fix_matplotlib_crash()
+            `);
+          }
+        })
+        .then(() => {
           console.debug("Successfully installed");
           messagePort.postMessage({
             type: "reply",

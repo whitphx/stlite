@@ -13,11 +13,14 @@ import { isDarkMode } from "../color-mode";
 
 let newFileCount = 1;
 
+const REQUIREMENTS_FILENAME = "requirements";
+
 export interface EditorProps {
   appData: AppData;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
+  onRequirementsChange: (requirements: string[]) => void;
 }
 
 function Editor({
@@ -25,6 +28,7 @@ function Editor({
   onFileWrite,
   onFileRename,
   onFileDelete,
+  onRequirementsChange,
 }: EditorProps) {
   // Keep the tab order
   const [tabFileNames, setTabFileNames] = useState<string[]>(
@@ -55,7 +59,7 @@ function Editor({
   );
 
   const currentFile =
-    currentFileName != null ? appData.files[currentFileName] : null;
+    typeof currentFileName === "string" ? appData.files[currentFileName] : null;
 
   const editorRef = useRef<Parameters<OnMount>[0]>(null);
 
@@ -71,12 +75,26 @@ function Editor({
     if (editor == null) {
       return;
     }
-    onFileWrite(currentFileName, editor.getValue());
-  }, [onFileWrite, currentFileName]);
+
+    const value: string = editor.getValue();
+    if (currentFileName === REQUIREMENTS_FILENAME) {
+      const requirements = value
+        .split("\n")
+        .map((r) => r.trim())
+        .filter((r) => r !== "");
+      onRequirementsChange(requirements);
+      return;
+    }
+
+    onFileWrite(currentFileName, value);
+  }, [onFileWrite, onRequirementsChange, currentFileName]);
 
   const handleBinaryFileChange = useCallback(
     (data: Uint8Array) => {
       if (currentFileName == null) {
+        return;
+      }
+      if (typeof currentFileName !== "string") {
         return;
       }
       onFileWrite(currentFileName, data);
@@ -129,6 +147,10 @@ function Editor({
     setTabFileNames((cur) => [...cur, fileName]);
   }, [onFileWrite, focusTabNext]);
 
+  const showTextEditor =
+    currentFile?.content?.$case === "text" ||
+    currentFileName === REQUIREMENTS_FILENAME;
+
   return (
     <div className={styles.container}>
       <TabBar>
@@ -156,8 +178,20 @@ function Editor({
           <AddButton onClick={handleCreateFile} />
           <FileUploader onUpload={handleFileUpload} />
         </div>
+
+        <div className={styles.requirementsTabContainer}>
+          <Tab
+            selected={currentFileName === REQUIREMENTS_FILENAME}
+            fileNameEditable={false}
+            initInEditingModeIfSelected={false}
+            fileName={REQUIREMENTS_FILENAME}
+            onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
+            onDelete={() => null}
+            onFileNameChange={() => null}
+          />
+        </div>
       </TabBar>
-      {currentFile?.content?.$case === "text" && (
+      {showTextEditor && (
         <Toolbar>
           <SaveButton onClick={handleSave} />
         </Toolbar>
@@ -168,11 +202,13 @@ function Editor({
           // and control its visibility with the hidden attribute here
           // instead of mounting/unmounting the component according to the file type
           // because it leads to flickering.
-          hidden={currentFile?.content?.$case !== "text"}
+          hidden={!showTextEditor}
           style={{ height: "100%" }}
         >
           <MonacoEditor
-            path={currentFileName ?? undefined}
+            path={
+              typeof currentFileName === "string" ? currentFileName : undefined
+            }
             defaultValue={
               currentFile?.content?.$case === "text"
                 ? currentFile.content.text

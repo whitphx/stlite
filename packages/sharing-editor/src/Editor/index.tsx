@@ -26,15 +26,29 @@ function Editor({
   onFileRename,
   onFileDelete,
 }: EditorProps) {
-  const [orderedFileNames, setOrderedFileNames] = useState<string[]>(
+  // Keep the tab order
+  const [tabFileNames, setTabFileNames] = useState<string[]>(
     Object.keys(appData.files)
   );
+
   const fileNames = useMemo(
     () =>
-      Object.keys(appData.files).sort(
-        (a, b) => orderedFileNames.indexOf(a) - orderedFileNames.indexOf(b)
-      ),
-    [appData, orderedFileNames]
+      Object.keys(appData.files).sort((a, b) => {
+        const aIdx = tabFileNames.indexOf(a);
+        const bIdx = tabFileNames.indexOf(b);
+
+        // If the key is not found in `tabFileNames` unexpectedly, put its tab at the right most.
+        if (aIdx === -1) {
+          return 1;
+        }
+        if (bIdx === -1) {
+          return -1;
+        }
+
+        // Sort the keys of appData.files according to `tabFileNames`.
+        return aIdx - bIdx;
+      }),
+    [appData, tabFileNames]
   );
   const [currentFileName, setCurrentFileName] = useState<string | null>(
     fileNames.length > 0 ? fileNames[0] : null
@@ -87,6 +101,7 @@ function Editor({
           onFileWrite(file.name, file.data);
           focusTabNext(file.name);
         }
+        setTabFileNames((cur) => [...cur, file.name]);
       });
     },
     [onFileWrite, focusTabNext]
@@ -100,7 +115,7 @@ function Editor({
       }
 
       onFileDelete(fileName);
-      setOrderedFileNames((cur) => cur.filter((f) => f !== fileName));
+      setTabFileNames((cur) => cur.filter((f) => f !== fileName));
     },
     [onFileDelete]
   );
@@ -111,7 +126,7 @@ function Editor({
 
     onFileWrite(fileName, "");
     focusTabNext(fileName);
-    setOrderedFileNames((cur) => [...cur, fileName]);
+    setTabFileNames((cur) => [...cur, fileName]);
   }, [onFileWrite, focusTabNext]);
 
   return (
@@ -128,7 +143,7 @@ function Editor({
             onDelete={() => handleFileDelete(fileName)}
             onFileNameChange={(newPath) => {
               onFileRename(fileName, newPath);
-              setOrderedFileNames((cur) =>
+              setTabFileNames((cur) =>
                 cur.map((f) => (f === fileName ? newPath : f))
               );
               if (fileName === currentFileName) {

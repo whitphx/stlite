@@ -5,6 +5,7 @@ import {
   ForwardMessage,
   ReplyMessage,
 } from "@stlite/sharing-common";
+import { ALLOWED_FEATURE_POLICY } from "./policy";
 
 export interface StliteSharingIFrameRef {
   postMessage: (msg: ForwardMessage) => Promise<void>;
@@ -66,7 +67,14 @@ const StliteSharingIFrame = React.forwardRef<
     );
 
     // eslint-disable-next-line jsx-a11y/iframe-has-title
-    return <iframe {...iframeProps} src={iframeSrc} ref={iframeRef} />;
+    return (
+      <iframe
+        {...iframeProps}
+        src={iframeSrc}
+        ref={iframeRef}
+        allow={ALLOWED_FEATURE_POLICY}
+      />
+    );
   }
 );
 

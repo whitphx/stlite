@@ -1,13 +1,15 @@
 import { AppData } from "./proto/models";
 import { abTobase64, base64ToAb } from "./buffer";
 
-// Conversion between base64 and hash-safe string.
-// Ref: https://gist.github.com/tomfordweb/bcb36baaa6db538b28d2f9a155debe0f
-function base64ToHashSafe(base64: string): string {
+// Conversion between base64 and base64url
+// * https://gist.github.com/tomfordweb/bcb36baaa6db538b28d2f9a155debe0f
+// * https://en.wikipedia.org/wiki/Base64
+// * https://datatracker.ietf.org/doc/html/rfc4648#section-5
+function b64ToB64url(base64: string): string {
   return base64.replace("+", "-").replace("/", "_").replace("=", ",");
 }
 
-function hashSafeToBase64(hashSafe: string): string {
+function b64urlToB64(hashSafe: string): string {
   return hashSafe.replace("-", "+").replace("_", "/").replace(",", "=");
 }
 
@@ -25,11 +27,11 @@ export function encodeAppData(appData: AppData): string {
   // and the data read from the Uint8Array instance can differ from the one from the buffer.
   // So, we need to create a new array buffer with `Uint8Array.from()` sourced from the data read through the buffer interface here.
   const base64 = abTobase64(Uint8Array.from(encodedProto).buffer);
-  return base64ToHashSafe(base64);
+  return b64ToB64url(base64);
 }
 
-export function decodeAppData(urlString: string): AppData {
-  const base64 = hashSafeToBase64(urlString);
+export function decodeAppData(base64url: string): AppData {
+  const base64 = b64urlToB64(base64url);
   const buf = base64ToAb(base64);
   return AppData.decode(new Uint8Array(buf));
 }

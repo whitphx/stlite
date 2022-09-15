@@ -1,10 +1,19 @@
-import LZString from "lz-string";
 import { AppData } from "./proto/models";
-import { ab2str, str2ab } from "./buffer";
+import { abTobase64, base64ToAb } from "./buffer";
+
+// Conversion between base64 and hash-safe string.
+// Ref: https://gist.github.com/tomfordweb/bcb36baaa6db538b28d2f9a155debe0f
+function base64ToHashSafe(base64: string): string {
+  return base64.replace("+", "-").replace("/", "_").replace("=", ",");
+}
+
+function hashSafeToBase64(hashSafe: string): string {
+  return hashSafe.replace("-", "+").replace("_", "/").replace(",", "=");
+}
 
 export function encodeAppData(appData: AppData): string {
   const encodedProto = AppData.encode(appData).finish();
-  // NOTE: Both `ab2str(encodedProto)` and `ab2str(new Uint8Array(encodedProto))` causes an error: https://github.com/whitphx/stlite/issues/235
+  // NOTE: Both `abTobase64(encodedProto)` and `abTobase64(new Uint8Array(encodedProto))` causes an error: https://github.com/whitphx/stlite/issues/235
   //       Creating a new array buffer with `Uint8Array.from(encodedProto).buffer` and passing it as below is necessary.
   //
   // `encodedProto` is NOT Uint8Array but Buffer, although it is typed as Uint8Array (we can find it by printing it with `console.log(encodedProto)`).
@@ -15,26 +24,12 @@ export function encodeAppData(appData: AppData): string {
   // `new Uint8Array(buffer)` may provide the direct accessor to the underlying binary data in the original Buffer instance,
   // and the data read from the Uint8Array instance can differ from the one from the buffer.
   // So, we need to create a new array buffer with `Uint8Array.from()` sourced from the data read through the buffer interface here.
-  const { str, padded } = ab2str(Uint8Array.from(encodedProto).buffer);
-  const prefix = padded ? "1" : "0";
-  return prefix + LZString.compressToEncodedURIComponent(str);
+  const base64 = abTobase64(Uint8Array.from(encodedProto).buffer);
+  return base64ToHashSafe(base64);
 }
 
 export function decodeAppData(urlString: string): AppData {
-  const prefix = urlString.slice(0, 1);
-  const compressedString = urlString.slice(1);
-
-  if (prefix !== "0" && prefix !== "1") {
-    throw new Error(`Invalid prefix: "${prefix}"`);
-  }
-
-  const padded = prefix === "1" ? true : false;
-  const decompressed =
-    LZString.decompressFromEncodedURIComponent(compressedString);
-  if (decompressed == null) {
-    throw new Error("Failed to decompress");
-  }
-
-  const encodedProto = str2ab({ str: decompressed, padded });
-  return AppData.decode(new Uint8Array(encodedProto));
+  const base64 = hashSafeToBase64(urlString);
+  const buf = base64ToAb(base64);
+  return AppData.decode(new Uint8Array(buf));
 }

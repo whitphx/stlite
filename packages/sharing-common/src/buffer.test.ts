@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { ab2str, str2ab } from "./buffer";
+import { abTobase64, base64ToAb } from "./buffer";
 
 function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
   const arrayBuffer = new ArrayBuffer(byteLength);
@@ -31,19 +31,14 @@ test("vitest matcher for ArrayBuffer", () => {
 [
   1,
   2,
-  3, // Not a multiple of 2: A special care is needed for Uint16Array.
+  3,
   4,
-  5, // A number exceeding a minimum byteLength of Uint32Array is also tested tentatively.
-  0xffff - 1, // The last byte would be filled with 1 at almost every bit (0b1111111111111110)
-  0xffff - 2,
-  0xffff - 3,
-  0xffff - 4,
-  0xffff - 5,
+  5,
   1000000, // Calling `String.fromCharCode.apply()` with a long buffer throws a RangeError.
 ].forEach((byteLength) => {
   test(`encode and decode an array buffer whose length is ${byteLength}`, () => {
     const data = createDummyArrayBuffer(byteLength);
-    const encDeced = str2ab(ab2str(data));
+    const encDeced = base64ToAb(abTobase64(data));
     expect(new Uint8Array(encDeced)).toEqual(new Uint8Array(data));
   });
 });
@@ -52,7 +47,7 @@ test("vitest matcher for ArrayBuffer", () => {
   const applyMax = 3;
   test(`encoder with an input longer than or equal (${byteLength}) applyMax (${applyMax})`, () => {
     const data = createDummyArrayBuffer(byteLength);
-    const encDeced = str2ab(ab2str(data, applyMax));
+    const encDeced = base64ToAb(abTobase64(data, applyMax));
     expect(new Uint8Array(encDeced)).toEqual(new Uint8Array(data));
   });
 });

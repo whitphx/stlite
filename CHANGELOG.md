@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/stlite-kernel`
+
+#### Changed
+
+- Patch the Matplotlib backend after installing it at runtime, [#261](https://github.com/whitphx/stlite/pull/261).
+
 ## [0.6.0] - 2022-09-01
 
 ### `@stlite/stlite-kernel`

@@ -143,23 +143,30 @@ function Editor({
         </div>
       </TabBar>
       {currentFile?.content?.$case === "text" && (
-        <>
-          <Toolbar>
-            <SaveButton onClick={handleSave} />
-          </Toolbar>
-          <div className={styles.editorArea}>
-            {currentFileName != null && (
-              <MonacoEditor
-                path={currentFileName}
-                defaultValue={currentFile.content.text}
-                onMount={handleEditorDitMount}
-                theme={isDarkMode() ? "vs-dark" : "vs-light"}
-              />
-            )}
-          </div>
-        </>
+        <Toolbar>
+          <SaveButton onClick={handleSave} />
+        </Toolbar>
       )}
       <div className={styles.editorArea}>
+        <div
+          // NOTE: Keep the monaco-editor component being mounted
+          // and control its visibility with the hidden attribute here
+          // instead of mounting/unmounting the component according to the file type
+          // because it leads to flickering.
+          hidden={currentFile?.content?.$case !== "text"}
+          style={{ height: "100%" }}
+        >
+          <MonacoEditor
+            path={currentFileName ?? undefined}
+            defaultValue={
+              currentFile?.content?.$case === "text"
+                ? currentFile.content.text
+                : undefined
+            }
+            onMount={handleEditorDitMount}
+            theme={isDarkMode() ? "vs-dark" : "vs-light"}
+          />
+        </div>
         {currentFileName != null && currentFile?.content?.$case === "data" && (
           <BinaryFileEditor
             path={currentFileName}

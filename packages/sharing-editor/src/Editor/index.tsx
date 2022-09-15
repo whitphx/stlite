@@ -95,6 +95,7 @@ function Editor({
           onFileWrite(file.name, file.data);
           focusTabNext(file.name);
         }
+        setOrderedFileNames((cur) => [...cur, file.name]);
       });
     },
     [onFileWrite, focusTabNext]

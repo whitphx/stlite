@@ -17,6 +17,7 @@ export const ALLOWED_FEATURE_POLICY = [
   "camera",
 
   // Controls whether or not the current document is permitted to use the getDisplayMedia() method to capture screen contents. When this policy is disabled, the promise returned by getDisplayMedia() will reject with a NotAllowedError if permission is not obtained to capture the display's contents.
+  // Disabled as Streamlit does: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/lib/IFrameUtil.ts#L101
   // "display-capture",
 
   // Controls whether the current document is allowed to set document.domain. When this policy is disabled, attempting to set document.domain will fail and cause a SecurityError DOMException to be thrown.
@@ -26,9 +27,11 @@ export const ALLOWED_FEATURE_POLICY = [
   "encrypted-media", // Experimental
 
   // Controls whether tasks should execute in frames while they're not being rendered (e.g. if an iframe is hidden or display: none).
+  // Disabled as Streamlit does: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/lib/IFrameUtil.ts#L110
   // "execution-while-not-rendered",
 
   // Controls whether tasks should execute in frames while they're outside of the visible viewport.
+  // Disabled as Streamlit does: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/lib/IFrameUtil.ts#L113
   // "execution-while-out-of-viewport",
 
   // Controls whether the current document is allowed to use Element.requestFullscreen(). When this policy is disabled, the returned Promise rejects with a TypeError.
@@ -58,7 +61,8 @@ export const ALLOWED_FEATURE_POLICY = [
   // Controls whether the current document is allowed to use the Web MIDI API. When this policy is disabled, the Promise returned by Navigator.requestMIDIAccess() will reject with a DOMException.
   "midi", // Experimental
 
-  // // Controls the availability of mechanisms that enables the page author to take control over the behavior of spatial navigation, or to cancel it outright.
+  // Controls the availability of mechanisms that enables the page author to take control over the behavior of spatial navigation, or to cancel it outright.
+  // Disabled as Streamlit does: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/lib/IFrameUtil.ts#L140
   // "navigation-override",
 
   // Controls whether the current document is allowed to download and display large images.

@@ -66,8 +66,8 @@ const StliteSharingIFrame = React.forwardRef<
       [messageTargetOrigin]
     );
 
-    // eslint-disable-next-line jsx-a11y/iframe-has-title
     return (
+      // eslint-disable-next-line jsx-a11y/iframe-has-title
       <iframe
         {...iframeProps}
         src={iframeSrc}

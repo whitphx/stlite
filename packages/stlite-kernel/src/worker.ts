@@ -156,6 +156,14 @@ async function loadPyodideAndPackages() {
     from streamlit.web.server import Server
 
 
+    class BadParameter(Exception):
+        pass
+
+
+    class BadArgumentUsage(Exception):
+        pass
+
+
     def _on_server_start(server):
         print("Streamlit server started")
 
@@ -178,6 +186,18 @@ async function loadPyodideAndPackages() {
 
         # Run the server.
         asyncio.get_event_loop().create_task(server.start(_on_server_start))
+
+    # Modified to use pyodide.http instead of requests.
+    # Fetch remote file at url_path to main_script_path
+    def _download_remote(main_script_path, url_path):
+        import pyodide.http
+
+        with open(main_script_path, "wb") as fp:
+            try:
+                content = pyodide.http.open_url(url_path)
+                fp.write(content.getvalue().encode())
+            except Exception as e:
+                raise BadParameter(("Unable to fetch {}.\\n{}".format(url_path, e)))
 
 
     def _get_command_line_as_string():
@@ -227,33 +247,35 @@ async function loadPyodideAndPackages() {
         _, extension = os.path.splitext(target)
         if extension[1:] not in ACCEPTED_FILE_EXTENSIONS:
             if extension[1:] == "":
-                raise click.BadArgumentUsage(
+                raise BadArgumentUsage(
                     "Streamlit requires raw Python (.py) files, but the provided file has no extension.\\nFor more information, please see https://docs.streamlit.io"
                 )
             else:
-                raise click.BadArgumentUsage(
+                raise BadArgumentUsage(
                     "Streamlit requires raw Python (.py) files, not %s.\\nFor more information, please see https://docs.streamlit.io"
                     % extension
                 )
 
         if url(target):
-            from streamlit.temporary_directory import TemporaryDirectory
+            # NOTE: This block is modified from the original version not to use streamlit.temporary_directory.TemporaryDirectory
+            # because the temp dir and its contents managed by it will be removed when the server starts.
+            # It is because the Pyodide version of _main_run() is non-blocking so the server will run out of the temp dir context.
+            import tempfile
+            from urllib.parse import urlparse
+            from streamlit import url_util
 
-            with TemporaryDirectory() as temp_dir:
-                from urllib.parse import urlparse
-                from streamlit import url_util
-
-                path = urlparse(target).path
-                main_script_path = os.path.join(
-                    temp_dir, path.strip("/").rsplit("/", 1)[-1]
-                )
-                # if this is a GitHub/Gist blob url, convert to a raw URL first.
-                target = url_util.process_gitblob_url(target)
-                _download_remote(main_script_path, target)
-                _main_run(main_script_path, args, flag_options=kwargs)
+            temp_dir = tempfile.mkdtemp()
+            path = urlparse(target).path
+            main_script_path = os.path.join(
+                temp_dir, path.strip("/").rsplit("/", 1)[-1]
+            )
+            # if this is a GitHub/Gist blob url, convert to a raw URL first.
+            target = url_util.process_gitblob_url(target)
+            _download_remote(main_script_path, target)
+            _main_run(main_script_path, args, flag_options=kwargs)
         else:
             if not os.path.exists(target):
-                raise click.BadParameter("File does not exist: {}".format(target))
+                raise BadParameter("File does not exist: {}".format(target))
             _main_run(target, args, flag_options=kwargs)
   `);
   console.debug("Defined the bootstrap functions");

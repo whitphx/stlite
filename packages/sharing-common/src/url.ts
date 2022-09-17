@@ -8,7 +8,7 @@ import { encodeAppData, decodeAppData } from "./compress";
  */
 const GITBLOB_RE = new RegExp(
   "(?<base>https://?(gist.)?github.com/)" +
-    "(?<account>([\\w.]+/){1,2})" +
+    "(?<account>([\\w.-]+/){1,2})" +
     "(?<blob_or_raw>(blob|raw))?" +
     "(?<suffix>(.+)?)"
 );

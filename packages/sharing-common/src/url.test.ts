@@ -19,6 +19,10 @@ describe("processGitblobUrl", () => {
       "https://github.com/mekarpeles/math.mx/blob/master/README.md",
       "https://github.com/mekarpeles/math.mx/raw/master/README.md",
     ],
+    [
+      "https://github.com/foo-bar/baz-qux/blob/main/app.py",
+      "https://github.com/foo-bar/baz-qux/raw/main/app.py",
+    ],
   ];
   githubUrls.forEach(([target, processed]) => {
     test(`GitHub URL "${target}" is replaced to be "${processed}"`, () => {

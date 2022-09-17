@@ -7,9 +7,9 @@ import { encodeAppData, decodeAppData } from "./compress";
  * https://github.com/streamlit/streamlit/blob/9eb409e9deb44acbaff091f057a68050f0c69451/lib/streamlit/url_util.py#L28
  */
 const GITBLOB_RE = new RegExp(
-  "(?<base>https://?(gist.)?github.com/)" +
+  "(?<base>https://?(?<gist>gist.)?github.com/)" +
     "(?<account>([\\w.-]+/){1,2})" +
-    "(?<blob_or_raw>(blob|raw))?" +
+    "(?<blob_or_raw>(blob|raw))?/?" +
     "(?<suffix>(.+)?)"
 );
 export function processGitblobUrl(url: string): string {
@@ -18,14 +18,20 @@ export function processGitblobUrl(url: string): string {
     return url;
   }
 
-  const base = match.groups?.base as string;
+  const gist = match.groups?.gist as string;
   const account = match.groups?.account as string;
   const blobOrRaw = match.groups?.blob_or_raw as string;
   const suffix = match.groups?.suffix as string;
 
+  // Unlike the original Streamlit, stlite has a problem of CORS,
+  // so the URL must be directly replaced to the one pointing to the "githubusercontent.com" domain, which allows cross-origin access.
+  if (gist === "gist.") {
+    return `https://gist.githubusercontent.com/${account}${suffix}/raw`;
+  }
+
   if (blobOrRaw === "blob") {
     // If it has "blob" in the url, replace this with "raw" and we're done.
-    return `${base}${account}raw${suffix}`;
+    return `https://raw.githubusercontent.com/${account}${suffix}`;
   }
   if (blobOrRaw === "raw") {
     // If it is a "raw" url already, return untouched.
@@ -69,10 +75,13 @@ export function extractAppDataFromUrl(): Promise<AppData> {
     return fetch(url)
       .then((res) => res.text())
       .then((content) => {
-        const filename = new URL(url).pathname
+        const lastPathSegment = new URL(url).pathname
           .replace(/\/*$/, "")
           .split("/")
           .slice(-1)[0];
+        const filename = lastPathSegment.endsWith(".py")
+          ? lastPathSegment
+          : "streamlit_app.py";
         const temp_dir = "/tmp/stlite_download/"; // Ad-hoc dir name
         const main_script_path = temp_dir + filename;
 

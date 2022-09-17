@@ -41,77 +41,89 @@ function convertFiles(
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
-    const appData = extractAppDataFromUrl();
-
-    console.debug("Initialize with", appData);
-
-    const kernel = new StliteKernel(
-      appData
-        ? {
-            command: "run",
-            entrypoint: appData.entrypoint,
-            files: convertFiles(appData.files),
-            requirements: appData.requirements,
-          }
-        : {
-            command: "run",
-            entrypoint: "streamlit_app.py",
-            files: {
-              "streamlit_app.py": {
-                data: `import streamlit as st
+    let unmounted = false;
+    let kernel: StliteKernel | null = null;
+    let onMessage: ((e: MessageEvent<ForwardMessage>) => void) | null;
+    extractAppDataFromUrl()
+      .catch(() => {
+        const defaultAppData: AppData = {
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": {
+              content: {
+                $case: "text",
+                text: `import streamlit as st
 st.write("Hello World")`,
               },
             },
-            requirements: [],
-          }
-    );
-    setKernel(kernel);
-
-    // Handle messages from the editor
-    function onMessage(event: MessageEvent<ForwardMessage>) {
-      if (!isEditorOrigin(event.origin)) {
-        return;
-      }
-
-      const port2 = event.ports[0];
-      function postReplyMessage(msg: ReplyMessage) {
-        port2.postMessage(msg);
-      }
-
-      const msg = event.data;
-      (() => {
-        switch (msg.type) {
-          case "file:write": {
-            return kernel.writeFile(msg.data.path, msg.data.content);
-          }
-          case "file:rename": {
-            return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
-          }
-          case "file:unlink": {
-            return kernel.unlink(msg.data.path);
-          }
-          case "install": {
-            return kernel.install(msg.data.requirements);
-          }
+          },
+          requirements: [],
+        };
+        return defaultAppData;
+      })
+      .then((appData) => {
+        if (unmounted) {
+          return;
         }
-      })()
-        .then(() => {
-          postReplyMessage({
-            type: "reply",
-          });
-        })
-        .catch((error) => {
-          postReplyMessage({
-            type: "reply",
-            error,
-          });
+
+        console.debug("Initialize with", appData);
+
+        const kernel = new StliteKernel({
+          command: "run",
+          entrypoint: appData.entrypoint,
+          files: convertFiles(appData.files),
+          requirements: appData.requirements,
         });
-    }
-    window.addEventListener("message", onMessage);
+        setKernel(kernel);
+
+        // Handle messages from the editor
+        onMessage = (event) => {
+          if (!isEditorOrigin(event.origin)) {
+            return;
+          }
+
+          const port2 = event.ports[0];
+          function postReplyMessage(msg: ReplyMessage) {
+            port2.postMessage(msg);
+          }
+
+          const msg = event.data;
+          (() => {
+            switch (msg.type) {
+              case "file:write": {
+                return kernel.writeFile(msg.data.path, msg.data.content);
+              }
+              case "file:rename": {
+                return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
+              }
+              case "file:unlink": {
+                return kernel.unlink(msg.data.path);
+              }
+              case "install": {
+                return kernel.install(msg.data.requirements);
+              }
+            }
+          })()
+            .then(() => {
+              postReplyMessage({
+                type: "reply",
+              });
+            })
+            .catch((error) => {
+              postReplyMessage({
+                type: "reply",
+                error,
+              });
+            });
+        };
+        window.addEventListener("message", onMessage);
+      });
 
     return () => {
-      window.removeEventListener("message", onMessage);
-      kernel.dispose();
+      unmounted = true;
+
+      onMessage && window.removeEventListener("message", onMessage);
+      kernel && kernel.dispose();
     };
   }, []);
 

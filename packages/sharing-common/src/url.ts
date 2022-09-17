@@ -36,6 +36,24 @@ export function processGitblobUrl(url: string): string {
   return url + "/raw";
 }
 
+function extractScriptUrlAndRequirementsFromHash(
+  hashValue: string
+): { url: string; requirements: string[] } | null {
+  if (hashValue.startsWith("http")) {
+    return { url: processGitblobUrl(hashValue), requirements: [] };
+  }
+
+  const params = new URLSearchParams(hashValue);
+  const url = params.get("url");
+  if (url) {
+    const requirements = params.getAll("req");
+
+    return { url: processGitblobUrl(url), requirements };
+  }
+
+  return null;
+}
+
 export function extractAppDataFromUrl(): Promise<AppData> {
   const hashValue = window.location.hash.replace(/^#/, "");
   if (hashValue.startsWith(URL_HASH_PREFIX)) {
@@ -44,8 +62,10 @@ export function extractAppDataFromUrl(): Promise<AppData> {
     return Promise.resolve(appData);
   }
 
-  if (hashValue.startsWith("http")) {
-    const url = processGitblobUrl(hashValue);
+  const urlAndReqs = extractScriptUrlAndRequirementsFromHash(hashValue);
+  if (urlAndReqs) {
+    const { url, requirements } = urlAndReqs;
+
     return fetch(url)
       .then((res) => res.text())
       .then((content) => {
@@ -66,7 +86,7 @@ export function extractAppDataFromUrl(): Promise<AppData> {
               },
             },
           },
-          requirements: [],
+          requirements,
         };
         return appData;
       });

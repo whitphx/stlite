@@ -59,7 +59,8 @@ export const ALLOWED_FEATURE_POLICY = [
   "microphone",
 
   // Controls whether the current document is allowed to use the Web MIDI API. When this policy is disabled, the Promise returned by Navigator.requestMIDIAccess() will reject with a DOMException.
-  "midi", // Experimental
+  // Disabled following Mozilla's position ("under consideration"): https://mozilla.github.io/standards-positions/
+  // "midi", // Experimental
 
   // Controls the availability of mechanisms that enables the page author to take control over the behavior of spatial navigation, or to cancel it outright.
   // Disabled as Streamlit does: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/lib/IFrameUtil.ts#L140
@@ -72,7 +73,8 @@ export const ALLOWED_FEATURE_POLICY = [
   "payment", // Experimental
 
   // Controls whether the current document is allowed to play a video in a Picture-in-Picture mode via the corresponding API.
-  "picture-in-picture", // Experimental
+  // Disabled following Mozilla's position ("defer"): https://mozilla.github.io/standards-positions/
+  // "picture-in-picture", // Experimental
 
   // Controls whether the current document is allowed to use the Web Authentication API to retrieve already stored public-key credentials, i.e. via navigator.credentials.get({publicKey: ..., ...}).
   "publickey-credentials-get", // Experimental
@@ -90,7 +92,8 @@ export const ALLOWED_FEATURE_POLICY = [
   "unsized-media", // Experimental Non-standard
 
   // Controls whether the current document is allowed to use the WebUSB API.
-  "usb", // Experimental
+  // Disabled following Mozilla's position ("negative"): https://mozilla.github.io/standards-positions/
+  // "usb", // Experimental
 
   // Controls whether the current document is allowed to use Screen Wake Lock API to indicate that device should not turn off or dim the screen.
   "screen-wake-lock", // Experimental

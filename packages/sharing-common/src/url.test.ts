@@ -20,8 +20,20 @@ describe("processGitblobUrl", () => {
       "https://raw.githubusercontent.com/mekarpeles/math.mx/master/README.md",
     ],
     [
+      // Test with username and repository name which have hyphens.
       "https://github.com/foo-bar/baz-qux/blob/main/app.py",
       "https://raw.githubusercontent.com/foo-bar/baz-qux/main/app.py",
+    ],
+    [
+      "https://github.com/whitphx/stlite-sample/blob/main/opencv-image-processing.py",
+      "https://raw.githubusercontent.com/whitphx/stlite-sample/main/opencv-image-processing.py",
+    ],
+    [
+      // For stlite, which need to fetch the resource from the web browser,
+      // the "github.com" URL does not work even if its path points to "/raw" due to CORS problem.
+      // It must be converted to the "raw.githubusercontent.com" URL.
+      "https://github.com/whitphx/stlite-sample/raw/main/opencv-image-processing.py",
+      "https://raw.githubusercontent.com/whitphx/stlite-sample/main/opencv-image-processing.py",
     ],
   ];
   githubUrls.forEach(([target, processed]) => {

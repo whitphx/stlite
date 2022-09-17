@@ -28,14 +28,8 @@ export function processGitblobUrl(url: string): string {
   if (gist === "gist.") {
     return `https://gist.githubusercontent.com/${account}${suffix}/raw`;
   }
-
-  if (blobOrRaw === "blob") {
-    // If it has "blob" in the url, replace this with "raw" and we're done.
+  if (blobOrRaw) {
     return `https://raw.githubusercontent.com/${account}${suffix}`;
-  }
-  if (blobOrRaw === "raw") {
-    // If it is a "raw" url already, return untouched.
-    return url;
   }
 
   // It's a gist. Just tack "raw" on the end.

@@ -5,13 +5,15 @@ export const ALLOWED_FEATURE_POLICY = [
   "accelerometer", // Experimental
 
   // Controls whether the current document is allowed to gather information about the amount of light in the environment around the device through the AmbientLightSensor interface.
-  "ambient-light-sensor", // Experimental
+  // Disabled following Apple's position: https://www.zdnet.com/article/apple-declined-to-implement-16-web-apis-in-safari-due-to-privacy-concerns/
+  // "ambient-light-sensor", // Experimental
 
   // Controls whether the current document is allowed to autoplay media requested through the HTMLMediaElement interface. When this policy is disabled and there were no user gestures, the Promise returned by HTMLMediaElement.play() will reject with a DOMException. The autoplay attribute on <audio> and <video> elements will be ignored.
   "autoplay", // Experimental
 
   // Controls whether the use of the Battery Status API is allowed. When this policy is disabled, the Promise returned by Navigator.getBattery() will reject with a NotAllowedError DOMException.
-  "battery", // Experimental
+  // Disabled following Apple's position: https://www.zdnet.com/article/apple-declined-to-implement-16-web-apis-in-safari-due-to-privacy-concerns/
+  // "battery", // Experimental
 
   // Controls whether the current document is allowed to use video input devices. When this policy is disabled, the Promise returned by getUserMedia() will reject with a NotAllowedError DOMException.
   "camera",
@@ -53,13 +55,15 @@ export const ALLOWED_FEATURE_POLICY = [
   "legacy-image-formats", // Experimental Non-standard
 
   // Controls whether the current document is allowed to gather information about the orientation of the device through the Magnetometer interface.
-  "magnetometer", // Experimental
+  // Disabled following Apple's position: https://www.zdnet.com/article/apple-declined-to-implement-16-web-apis-in-safari-due-to-privacy-concerns/
+  // "magnetometer", // Experimental
 
   // Controls whether the current document is allowed to use audio input devices. When this policy is disabled, the Promise returned by MediaDevices.getUserMedia() will reject with a NotAllowedError DOMException.
   "microphone",
 
   // Controls whether the current document is allowed to use the Web MIDI API. When this policy is disabled, the Promise returned by Navigator.requestMIDIAccess() will reject with a DOMException.
   // Disabled following Mozilla's position ("under consideration"): https://mozilla.github.io/standards-positions/
+  // Disabled following Apple's position: https://www.zdnet.com/article/apple-declined-to-implement-16-web-apis-in-safari-due-to-privacy-concerns/
   // "midi", // Experimental
 
   // Controls the availability of mechanisms that enables the page author to take control over the behavior of spatial navigation, or to cancel it outright.

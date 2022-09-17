@@ -43,9 +43,6 @@ function postProgressMessage(message: string): void {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  const { command, entrypoint, files, requirements, wheels } =
-    await initDataPromise;
-
   // as of 0.17.0 indexURL must be provided
   postProgressMessage("Loading Pyodide.");
   console.debug("Loading Pyodide");
@@ -54,6 +51,9 @@ async function loadPyodideAndPackages() {
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
+
+  const { command, entrypoint, files, requirements, wheels } =
+    await initDataPromise;
 
   // Mount files
   postProgressMessage("Mounting files.");

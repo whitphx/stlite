@@ -12,6 +12,7 @@ import StliteSharingIFrame, {
 } from "./StliteSharingIFrame";
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
+import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadDefaultAppData } from "./default-app-data";
 
 const SHARING_APP_URL =
@@ -21,7 +22,7 @@ const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 function App() {
   const [appData, setAppData] = useState<AppData>();
   useEffect(() => {
-    loadDefaultAppData().then(setAppData);
+    extractAppDataFromUrl().catch(loadDefaultAppData).then(setAppData);
   }, []);
 
   const url = useMemo(

@@ -1,12 +1,7 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-} from "react";
+import React, { useEffect, useCallback, useMemo, useRef } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
@@ -20,10 +15,21 @@ const SHARING_APP_URL =
 const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 function App() {
-  const [appData, setAppData] = useState<AppData>();
-  useEffect(() => {
-    extractAppDataFromUrl().catch(loadDefaultAppData).then(setAppData);
+  const onAppDataUpdate = useCallback((appData: AppData) => {
+    const newUrl = embedAppDataToUrl(
+      window.location.origin +
+        window.location.pathname +
+        window.location.search,
+      appData
+    );
+    window.history.replaceState(null, "", newUrl);
   }, []);
+  const [appData, { initializeAppData, updateAppData }] =
+    useAppData(onAppDataUpdate);
+
+  useEffect(() => {
+    extractAppDataFromUrl().catch(loadDefaultAppData).then(initializeAppData);
+  }, [initializeAppData]);
 
   const url = useMemo(
     () => (appData ? embedAppDataToUrl(SHARING_APP_URL, appData) : null),
@@ -53,10 +59,7 @@ function App() {
               data: value,
             };
 
-      setAppData((cur) => {
-        if (cur == null) {
-          return undefined;
-        }
+      updateAppData((cur) => {
         return {
           ...cur,
           files: {
@@ -68,7 +71,7 @@ function App() {
         };
       });
     },
-    []
+    [updateAppData]
   );
 
   const handleFileRename = useCallback<EditorProps["onFileRename"]>(
@@ -83,22 +86,6 @@ function App() {
         return;
       }
 
-      const curFiles = appData.files;
-      const targetFile = curFiles[oldPath];
-      if (targetFile == null) {
-        return;
-      }
-
-      const newFiles = {
-        ...curFiles,
-        [newPath]: targetFile,
-      };
-      delete newFiles[oldPath];
-      const newAppData = {
-        ...appData,
-        files: newFiles,
-      };
-
       iframeRef.current?.postMessage({
         type: "file:rename",
         data: {
@@ -107,57 +94,73 @@ function App() {
         },
       });
 
-      setAppData(newAppData);
+      updateAppData((cur) => {
+        const curFiles = cur.files;
+        const targetFile = curFiles[oldPath];
+        if (targetFile == null) {
+          return cur;
+        }
+
+        const newFiles = {
+          ...curFiles,
+          [newPath]: targetFile,
+        };
+        delete newFiles[oldPath];
+
+        return {
+          ...cur,
+          files: newFiles,
+        };
+      });
     },
-    [appData]
+    [appData, updateAppData]
   );
 
-  const handleFileDelete = useCallback<EditorProps["onFileDelete"]>((path) => {
-    iframeRef.current?.postMessage({
-      type: "file:unlink",
-      data: {
-        path,
-      },
-    });
+  const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
+    (path) => {
+      iframeRef.current?.postMessage({
+        type: "file:unlink",
+        data: {
+          path,
+        },
+      });
 
-    setAppData((cur) => {
-      if (cur == null) {
-        return undefined;
-      }
+      updateAppData((cur) => {
+        const curFiles = cur.files;
+        const newFiles = {
+          ...curFiles,
+        };
+        delete newFiles[path];
 
-      const curFiles = cur.files;
-      const newFiles = {
-        ...curFiles,
-      };
-      delete newFiles[path];
-
-      return {
-        ...cur,
-        files: newFiles,
-      };
-    });
-  }, []);
+        return {
+          ...cur,
+          files: newFiles,
+        };
+      });
+    },
+    [updateAppData]
+  );
 
   const handleRequirementsChange = useCallback<
     EditorProps["onRequirementsChange"]
-  >((requirements) => {
-    iframeRef.current?.postMessage({
-      type: "install",
-      data: {
-        requirements,
-      },
-    });
+  >(
+    (requirements) => {
+      iframeRef.current?.postMessage({
+        type: "install",
+        data: {
+          requirements,
+        },
+      });
 
-    setAppData((cur) => {
-      if (cur == null) {
-        return undefined;
-      }
-      return {
-        ...cur,
-        requirements,
-      };
-    });
-  }, []);
+      updateAppData((cur) => {
+        return {
+          ...cur,
+          requirements,
+        };
+      });
+    },
+    [updateAppData]
+  );
 
   if (appData == null) {
     return <p>Loading...</p>;

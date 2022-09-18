@@ -76,8 +76,7 @@ export function extractAppDataFromUrl(): Promise<AppData> {
         const filename = lastPathSegment.endsWith(".py")
           ? lastPathSegment
           : "streamlit_app.py";
-        const tempDir = "/tmp/stlite_download/"; // Ad-hoc dir name
-        const mainScriptPath = tempDir + filename;
+        const mainScriptPath = filename;
 
         const appData: AppData = {
           entrypoint: mainScriptPath,

@@ -151,6 +151,11 @@ function Editor({
     currentFile?.content?.$case === "text" ||
     currentFileName === REQUIREMENTS_FILENAME;
 
+  const defaultRequirementsTextValue = useMemo(
+    () => appData.requirements.join("\n"),
+    [appData.requirements]
+  );
+
   return (
     <div className={styles.container}>
       <TabBar>
@@ -210,7 +215,9 @@ function Editor({
               typeof currentFileName === "string" ? currentFileName : undefined
             }
             defaultValue={
-              currentFile?.content?.$case === "text"
+              currentFileName === REQUIREMENTS_FILENAME
+                ? defaultRequirementsTextValue
+                : currentFile?.content?.$case === "text"
                 ? currentFile.content.text
                 : undefined
             }

@@ -7,6 +7,7 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
+import { toast, Slide, Id as ToastId } from "react-toastify";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
@@ -68,11 +69,37 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
+        let prevToastId: ToastId | null = null;
+        const toastIds: ToastId[] = [];
+        const onProgress: StliteKernelOptions["onProgress"] = (message) => {
+          const id = toast(message, {
+            position: toast.POSITION.BOTTOM_RIGHT,
+            transition: Slide,
+            isLoading: true,
+            hideProgressBar: true,
+            closeButton: false,
+          });
+          toastIds.push(id);
+
+          if (prevToastId) {
+            toast.update(prevToastId, {
+              isLoading: false,
+              autoClose: 3000,
+            });
+          }
+          prevToastId = id;
+        };
+        const onLoad: StliteKernelOptions["onLoad"] = () => {
+          toastIds.forEach((id) => toast.dismiss(id));
+        };
+
         const kernel = new StliteKernel({
           command: "run",
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
           requirements: appData.requirements,
+          onProgress,
+          onLoad,
         });
         setKernel(kernel);
 
@@ -91,16 +118,54 @@ st.write("Hello World")`,
           (() => {
             switch (msg.type) {
               case "file:write": {
-                return kernel.writeFile(msg.data.path, msg.data.content);
+                return toast.promise(
+                  kernel.writeFile(msg.data.path, msg.data.content),
+                  {
+                    error: "Failed to write the file",
+                  },
+                  {
+                    hideProgressBar: true,
+                    position: toast.POSITION.BOTTOM_RIGHT,
+                  }
+                );
               }
               case "file:rename": {
-                return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
+                return toast.promise(
+                  kernel.renameFile(msg.data.oldPath, msg.data.newPath),
+                  {
+                    error: "Failed to rename the file",
+                  },
+                  {
+                    hideProgressBar: true,
+                    position: toast.POSITION.BOTTOM_RIGHT,
+                  }
+                );
               }
               case "file:unlink": {
-                return kernel.unlink(msg.data.path);
+                return toast.promise(
+                  kernel.unlink(msg.data.path),
+                  {
+                    error: "Failed to remove the file",
+                  },
+                  {
+                    hideProgressBar: true,
+                    position: toast.POSITION.BOTTOM_RIGHT,
+                  }
+                );
               }
               case "install": {
-                return kernel.install(msg.data.requirements);
+                return toast.promise(
+                  kernel.install(msg.data.requirements),
+                  {
+                    pending: "Installing",
+                    success: "Successfully installed",
+                    error: "Failed to install",
+                  },
+                  {
+                    hideProgressBar: true,
+                    position: toast.POSITION.BOTTOM_RIGHT,
+                  }
+                );
               }
             }
           })()

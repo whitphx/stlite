@@ -1,5 +1,7 @@
 .container {
-  padding: 0.5rem 1rem;
+  display: flex;
+  padding: 0.5rem 0 0.5rem 1rem;
+  justify-content: space-between;
 }
 
 .urlDisplay {
@@ -33,4 +35,10 @@
 .displayBytes {
   margin-left: 0.4rem;
   font-size: small;
+}
+
+.logo {
+  display: inline-block;
+  margin: 0;
+  height: 28px;
 }

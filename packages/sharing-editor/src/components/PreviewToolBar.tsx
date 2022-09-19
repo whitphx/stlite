@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { RiExternalLinkLine, RiClipboardLine } from "react-icons/ri";
 import styles from "./PreviewToolBar.module.scss";
+import logo from "../logo.svg";
 
 interface UrlDisplayProps {
   url: string;
@@ -51,12 +52,16 @@ interface PreviewToolBarProps {
 function PreviewToolBar(props: PreviewToolBarProps) {
   return (
     <div className={styles.container}>
-      <a href={props.sharingUrl} target="_blank" rel="noreferrer">
-        <RiExternalLinkLine />
-        Open App
-      </a>
+      <div>
+        <a href={props.sharingUrl} target="_blank" rel="noreferrer">
+          <RiExternalLinkLine />
+          Open App
+        </a>
 
-      <UrlDisplay url={props.sharingUrl} />
+        <UrlDisplay url={props.sharingUrl} />
+      </div>
+
+      <img src={logo} alt="stlite sharing logo" className={styles.logo} />
     </div>
   );
 }

@@ -37,6 +37,20 @@
   font-size: small;
 }
 
+.innerContainer {
+  display: flex;
+  align-items: center;
+}
+
+.githubIconLink {
+  display: inline-flex;
+  align-items: center;
+  font-size: 24px;
+}
+.githubIconLink:hover {
+  color: var(--c-primary-focus);
+}
+
 .logo {
   display: inline-block;
   margin: 0;

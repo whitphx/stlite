@@ -5,7 +5,11 @@ export function isDarkTheme() {
   // Ref: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/theme/utils.ts#L544
   const cachedThemeStr = window.localStorage.getItem(LocalStore.ACTIVE_THEME);
   if (!cachedThemeStr) {
-    return null;
+    // Detect the system color mode Ref: https://stackoverflow.com/a/57795495/13103190
+    return (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    );
   }
   const { name } = JSON.parse(cachedThemeStr);
 

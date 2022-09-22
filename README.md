@@ -12,7 +12,11 @@ Streamlit is a Python web app framework for the fast development of data apps. T
 
 ## Try it out
 
-Visit the [playground demo](https://whitphx.github.io/stlite/).
+Visit [stlite sharing](https://edit.share.stlite.net/).
+
+[<img src="https://edit.share.stlite.net/ogp.png" height="180" >](https://edit.share.stlite.net/)
+
+The [playground demo](https://whitphx.github.io/stlite/) is also available.
 
 ## Samples
 

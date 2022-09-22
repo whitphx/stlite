@@ -1,4 +1,5 @@
 import { PyodideInterface } from "pyodide";
+import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
@@ -15,14 +16,7 @@ interface StliteWorkerContext extends Worker {
 // Ref: https://v4.webpack.js.org/loaders/worker-loader/#loading-with-worker-loader
 const ctx: StliteWorkerContext = self as any;
 
-/**
- * A promise waiting for the initial data to be sent from the main thread.
- */
-let setInitData: ((initData: WorkerInitialData) => void) | undefined =
-  undefined;
-const initDataPromise = new Promise<WorkerInitialData>((resolve) => {
-  setInitData = resolve;
-});
+const initDataPromiseDelegate = new PromiseDelegate<WorkerInitialData>();
 
 function postProgressMessage(message: string): void {
   ctx.postMessage({
@@ -53,7 +47,7 @@ async function loadPyodideAndPackages() {
   console.debug("Loaded Pyodide");
 
   const { command, entrypoint, files, requirements, wheels } =
-    await initDataPromise;
+    await initDataPromiseDelegate.promise;
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -286,10 +280,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
   // Special case for transmitting the initial data
   if (data.type === "initData") {
-    if (setInitData == null) {
-      throw new Error("Unexpectedly failed to pass the initial data");
-    }
-    setInitData(data.data);
+    initDataPromiseDelegate.resolve(data.data);
     return;
   }
 

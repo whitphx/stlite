@@ -66,6 +66,8 @@ export interface StliteKernelOptions {
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
+
+  onError?: (error: Error) => void;
 }
 
 export class StliteKernel {
@@ -83,12 +85,15 @@ export class StliteKernel {
 
   private onLoad: StliteKernelOptions["onLoad"];
 
+  private onError: StliteKernelOptions["onError"];
+
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
       .replace(FINAL_SLASH_RE, "")
       .replace(INITIAL_SLASH_RE, "");
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
+    this.onError = options.onError;
 
     this._worker = new Worker();
     this._worker.onmessage = (e) => {
@@ -257,6 +262,10 @@ export class StliteKernel {
       }
       case "event:progress": {
         this.onProgress && this.onProgress(msg.data.message);
+        break;
+      }
+      case "event:error": {
+        this.onError && this.onError(msg.data.error);
         break;
       }
       case "event:loaded": {

@@ -8,6 +8,8 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { toast, Slide, Id as ToastId } from "react-toastify";
+import InstallErrorToastContent from "./components/InstallErrorToastContent";
+import "./App.css";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
@@ -159,7 +161,17 @@ st.write("Hello World")`,
                   {
                     pending: "Installing",
                     success: "Successfully installed",
-                    error: "Failed to install",
+                    error: {
+                      render({ data }) {
+                        const error: Error = data;
+                        return <InstallErrorToastContent error={error} />;
+                      },
+                      autoClose: false,
+                      closeOnClick: false,
+                      style: {
+                        cursor: "default", // react-toastify@9.0.8 sets `cursor: pointer` even for toasts with closeOnClick=false, so override it here. Ref: https://github.com/fkhadra/react-toastify/issues/839
+                      },
+                    },
                   },
                   {
                     hideProgressBar: true,

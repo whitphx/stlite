@@ -1,0 +1,7 @@
+/* To make `overflow: scroll` at the toast body work */
+.Toastify__toast-body {
+  width: 0;
+}
+.Toastify__toast-body > div:not(.Toastify__toast-icon) {
+  width: 100%;
+}

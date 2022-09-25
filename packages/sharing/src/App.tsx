@@ -94,6 +94,17 @@ st.write("Hello World")`,
         const onLoad: StliteKernelOptions["onLoad"] = () => {
           toastIds.forEach((id) => toast.dismiss(id));
         };
+        const onError: StliteKernelOptions["onError"] = (error) => {
+          toast(<InstallErrorToastContent error={error} />, {
+            position: toast.POSITION.BOTTOM_RIGHT,
+            type: "error",
+            autoClose: false,
+            closeOnClick: false,
+            style: {
+              cursor: "default", // react-toastify@9.0.8 sets `cursor: pointer` even for toasts with closeOnClick=false, so override it here. Ref: https://github.com/fkhadra/react-toastify/issues/839
+            },
+          });
+        };
 
         const kernel = new StliteKernel({
           command: "run",
@@ -102,6 +113,7 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           onProgress,
           onLoad,
+          onError,
         });
         setKernel(kernel);
 

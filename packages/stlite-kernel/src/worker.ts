@@ -268,7 +268,14 @@ async function loadPyodideAndPackages() {
   });
 }
 
-const pyodideReadyPromise = loadPyodideAndPackages();
+const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
+  ctx.postMessage({
+    type: "event:error",
+    data: {
+      error,
+    },
+  });
+});
 
 /**
  * Process a message sent to the worker.

@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2022-09-26
+
+### `@stlite/stlite-kernel`
+
+#### Fixed
+
+- Refactoring, [#292](https://github.com/whitphx/stlite/pull/292), [#293](https://github.com/whitphx/stlite/pull/293), [#294](https://github.com/whitphx/stlite/pull/294).
+
 ## [0.7.0] - 2022-09-26
 
 ### `@stlite/stlite-kernel`
 
-#### Changed
+#### Fixed
 
 - Patch the Matplotlib backend after installing it at runtime, [#261](https://github.com/whitphx/stlite/pull/261).
 - Implement the message cache and the message queue, [#290](https://github.com/whitphx/stlite/pull/290).

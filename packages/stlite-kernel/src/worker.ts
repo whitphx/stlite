@@ -339,33 +339,41 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
     case "http:request": {
       console.debug("http:request", data.data);
 
-      const { request, httpCommId } = data.data;
+      const messagePort = event.ports[0];
+      const { request } = data.data;
 
-      const onResponse = (statusCode: number, _headers: any, _body: any) => {
-        const headers = _headers.toJs();
-        const body = _body.toJs();
-        console.debug({ httpCommId, statusCode, headers, body });
+      try {
+        const onResponse = (statusCode: number, _headers: any, _body: any) => {
+          const headers = _headers.toJs();
+          const body = _body.toJs();
+          console.debug({ statusCode, headers, body });
 
-        ctx.postMessage({
-          type: "http:response",
-          data: {
-            httpCommId,
-            response: {
-              statusCode,
-              headers,
-              body,
+          const reply: HttpResponseMessage = {
+            type: "http:response",
+            data: {
+              response: {
+                statusCode,
+                headers,
+                body,
+              },
             },
-          },
-        });
-      };
+          };
+          messagePort.postMessage(reply);
+        };
 
-      httpServer.receive_http_from_js(
-        request.method,
-        request.path,
-        request.headers,
-        request.body,
-        onResponse
-      );
+        httpServer.receive_http_from_js(
+          request.method,
+          request.path,
+          request.headers,
+          request.body,
+          onResponse
+        );
+      } catch (error) {
+        messagePort.postMessage({
+          type: "http:response",
+          error,
+        });
+      }
       break;
     }
     case "file:write": {

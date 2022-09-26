@@ -15,8 +15,6 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../.
 
 import Worker from "!!worker-loader?inline=no-fallback!./worker";
 
-let httpCommId = 0;
-
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
 const INITIAL_SLASH_RE = /^\/+/;
@@ -166,23 +164,18 @@ export class StliteKernel {
     this.handleWebSocketMessage = handler;
   }
 
-  private httpRequestPromises: { [httpCommId: number]: PromiseDelegate<any> } =
-    {};
   public sendHttpRequest(request: HttpRequest): Promise<HttpResponse> {
-    httpCommId += 1;
-
-    const executeDelegate = new PromiseDelegate<HttpResponse>();
-    this.httpRequestPromises[httpCommId] = executeDelegate;
-
-    this._worker.postMessage({
-      type: "http:request",
-      data: {
-        httpCommId,
-        request,
+    return this._asyncPostMessage(
+      {
+        type: "http:request",
+        data: {
+          request,
+        },
       },
+      "http:response"
+    ).then((data) => {
+      return data.response;
     });
-
-    return executeDelegate.promise;
   }
 
   public writeFile(
@@ -228,7 +221,17 @@ export class StliteKernel {
     });
   }
 
-  private _asyncPostMessage(message: InMessage): Promise<void> {
+  private _asyncPostMessage(
+    message: InMessage
+  ): Promise<GeneralReplyMessage["data"]>;
+  private _asyncPostMessage<T extends ReplyMessage["type"]>(
+    message: InMessage,
+    expectedReplyType: T
+  ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
+  private _asyncPostMessage(
+    message: InMessage,
+    expectedReplyType = "reply"
+  ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
 
@@ -238,7 +241,10 @@ export class StliteKernel {
         if (msg.error) {
           reject(msg.error);
         } else {
-          resolve();
+          if (msg.type !== expectedReplyType) {
+            throw new Error(`Unexpected reply type "${msg.type}"`);
+          }
+          resolve(msg.data);
         }
       };
 
@@ -277,14 +283,6 @@ export class StliteKernel {
         const { payload } = msg.data;
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
-      }
-      case "http:response": {
-        const { httpCommId, response } = msg.data;
-
-        const executeDelegate = this.httpRequestPromises[httpCommId];
-        delete this.httpRequestPromises[httpCommId];
-
-        executeDelegate.resolve(response);
       }
     }
   }

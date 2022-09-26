@@ -51,7 +51,6 @@ interface WebSocketSendMessage extends InMessageBase {
 interface HttpRequestMessage extends InMessageBase {
   type: "http:request";
   data: {
-    httpCommId: number;
     request: HttpRequest;
   };
 }
@@ -128,25 +127,29 @@ interface WebSocketBackMessage extends OutMessageBase {
     payload: Uint8Array;
   };
 }
-interface HttpResponseMessage extends OutMessageBase {
-  type: "http:response";
-  data: {
-    httpCommId: number;
-    response: HttpResponse;
-  };
-}
 type OutMessage =
   | StartEventMessage
   | ProgressEventMessage
   | ErrorEventMessage
   | LoadedEventMessage
-  | WebSocketBackMessage
-  | HttpResponseMessage;
+  | WebSocketBackMessage;
 
 /**
  * Reply message
  */
-interface ReplyMessage {
-  type: "reply";
-  error?: any;
+interface ReplyMessageBase {
+  type: string;
+  error?: Error;
+  data?: any;
 }
+interface HttpResponseMessage extends ReplyMessageBase {
+  type: "http:response";
+  data: {
+    response: HttpResponse;
+  };
+}
+interface GeneralReplyMessage extends ReplyMessageBase {
+  type: "reply";
+  error?: Error;
+}
+type ReplyMessage = HttpResponseMessage | GeneralReplyMessage;

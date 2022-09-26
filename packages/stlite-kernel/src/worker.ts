@@ -293,14 +293,15 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
   await pyodideReadyPromise;
 
-  switch (data.type) {
-    case "websocket:connect": {
-      console.debug("websocket:connect", data.data);
+  const messagePort = event.ports[0];
 
-      const messagePort = event.ports[0];
-      const { path } = data.data;
+  try {
+    switch (data.type) {
+      case "websocket:connect": {
+        console.debug("websocket:connect", data.data);
 
-      try {
+        const { path } = data.data;
+
         httpServer.start_websocket(
           path,
           (messageProxy: any, binary: boolean) => {
@@ -334,29 +335,21 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         messagePort.postMessage({
           type: "reply",
         });
-      } catch (error) {
-        messagePort.postMessage({
-          type: "reply",
-          error,
-        });
+        break;
       }
-      break;
-    }
-    case "websocket:send": {
-      console.debug("websocket:send", data.data);
+      case "websocket:send": {
+        console.debug("websocket:send", data.data);
 
-      const { payload } = data.data;
+        const { payload } = data.data;
 
-      httpServer.receive_websocket_from_js(payload);
-      break;
-    }
-    case "http:request": {
-      console.debug("http:request", data.data);
+        httpServer.receive_websocket_from_js(payload);
+        break;
+      }
+      case "http:request": {
+        console.debug("http:request", data.data);
 
-      const messagePort = event.ports[0];
-      const { request } = data.data;
+        const { request } = data.data;
 
-      try {
         const onResponse = (statusCode: number, _headers: any, _body: any) => {
           const headers = _headers.toJs();
           const body = _body.toJs();
@@ -382,98 +375,66 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
           request.body,
           onResponse
         );
-      } catch (error) {
-        messagePort.postMessage({
-          type: "http:response",
-          error,
-        });
+        break;
       }
-      break;
-    }
-    case "file:write": {
-      const messagePort = event.ports[0];
-      const { path, data: fileData, opts } = data.data;
+      case "file:write": {
+        const { path, data: fileData, opts } = data.data;
 
-      try {
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, fileData, opts);
         messagePort.postMessage({
           type: "reply",
         });
-      } catch (error) {
-        messagePort.postMessage({
-          type: "reply",
-          error,
-        });
+        break;
       }
-      break;
-    }
-    case "file:rename": {
-      const messagePort = event.ports[0];
-      const { oldPath, newPath } = data.data;
+      case "file:rename": {
+        const { oldPath, newPath } = data.data;
 
-      try {
         console.debug(`Rename "${oldPath}" to ${newPath}`);
         renameWithParents(pyodide, oldPath, newPath);
         messagePort.postMessage({
           type: "reply",
         });
-      } catch (error) {
-        messagePort.postMessage({
-          type: "reply",
-          error,
-        });
+        break;
       }
-      break;
-    }
-    case "file:unlink": {
-      const messagePort = event.ports[0];
-      const { path } = data.data;
+      case "file:unlink": {
+        const { path } = data.data;
 
-      try {
         console.debug(`Remove "${path}`);
         pyodide.FS.unlink(path);
         messagePort.postMessage({
           type: "reply",
         });
-      } catch (error) {
-        messagePort.postMessage({
-          type: "reply",
-          error,
-        });
+        break;
       }
-      break;
-    }
-    case "install": {
-      const messagePort = event.ports[0];
-      const { requirements } = data.data;
+      case "install": {
+        const { requirements } = data.data;
 
-      const micropip = pyodide.pyimport("micropip");
+        const micropip = pyodide.pyimport("micropip");
 
-      console.debug("Install the requirements:", requirements);
-      micropip.install
-        .callKwargs(requirements, { keep_going: true })
-        .then(() => {
-          if (requirements.includes("matplotlib")) {
-            return pyodide.runPythonAsync(`
-              bootstrap._fix_matplotlib_crash()
-            `);
-          }
-        })
-        .then(() => {
-          console.debug("Successfully installed");
-          messagePort.postMessage({
-            type: "reply",
+        console.debug("Install the requirements:", requirements);
+        await micropip.install
+          .callKwargs(requirements, { keep_going: true })
+          .then(() => {
+            if (requirements.includes("matplotlib")) {
+              return pyodide.runPythonAsync(`
+                bootstrap._fix_matplotlib_crash()
+              `);
+            }
+          })
+          .then(() => {
+            console.debug("Successfully installed");
+            messagePort.postMessage({
+              type: "reply",
+            });
           });
-        })
-        .catch((error: Error) => {
-          console.error("Failed to install", error);
-          messagePort.postMessage({
-            type: "reply",
-            error,
-          });
-        });
+      }
     }
+  } catch (error) {
+    messagePort.postMessage({
+      type: "reply",
+      error,
+    });
   }
 };
 

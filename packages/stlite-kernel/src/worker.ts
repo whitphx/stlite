@@ -297,35 +297,49 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
     case "websocket:connect": {
       console.debug("websocket:connect", data.data);
 
-      httpServer.start_websocket(
-        "/stream",
-        (messageProxy: any, binary: boolean) => {
-          // XXX: Now there is no session mechanism
+      const messagePort = event.ports[0];
+      const { path } = data.data;
 
-          if (binary) {
-            const buffer = messageProxy.getBuffer("u8");
-            messageProxy.destroy();
-            const payload = new Uint8ClampedArray(
-              buffer.data.buffer,
-              buffer.data.byteOffset,
-              buffer.data.byteLength
-            );
-            ctx.postMessage({
-              type: "websocket:message",
-              data: {
-                payload: new Uint8Array(payload),
-              },
-            });
-          } else {
-            ctx.postMessage({
-              type: "websocket:message",
-              data: {
-                payload: messageProxy,
-              },
-            });
+      try {
+        httpServer.start_websocket(
+          path,
+          (messageProxy: any, binary: boolean) => {
+            // XXX: Now there is no session mechanism
+
+            if (binary) {
+              const buffer = messageProxy.getBuffer("u8");
+              messageProxy.destroy();
+              const payload = new Uint8ClampedArray(
+                buffer.data.buffer,
+                buffer.data.byteOffset,
+                buffer.data.byteLength
+              );
+              ctx.postMessage({
+                type: "websocket:message",
+                data: {
+                  payload: new Uint8Array(payload),
+                },
+              });
+            } else {
+              ctx.postMessage({
+                type: "websocket:message",
+                data: {
+                  payload: messageProxy,
+                },
+              });
+            }
           }
-        }
-      );
+        );
+
+        messagePort.postMessage({
+          type: "reply",
+        });
+      } catch (error) {
+        messagePort.postMessage({
+          type: "reply",
+          error,
+        });
+      }
       break;
     }
     case "websocket:send": {

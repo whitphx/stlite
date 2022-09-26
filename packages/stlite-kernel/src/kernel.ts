@@ -165,13 +165,16 @@ export class StliteKernel {
   }
 
   public sendHttpRequest(request: HttpRequest): Promise<HttpResponse> {
-    return this._asyncPostMessage<HttpResponseMessage>({
-      type: "http:request",
-      data: {
-        request,
+    return this._asyncPostMessage(
+      {
+        type: "http:request",
+        data: {
+          request,
+        },
       },
-    }).then(({ response }) => {
-      return response;
+      "http:response"
+    ).then((data) => {
+      return data.response;
     });
   }
 
@@ -218,9 +221,17 @@ export class StliteKernel {
     });
   }
 
-  private _asyncPostMessage<T extends ReplyMessage>(
+  private _asyncPostMessage(
     message: InMessage
-  ): Promise<T["data"]> {
+  ): Promise<GeneralReplyMessage["data"]>;
+  private _asyncPostMessage<T extends ReplyMessage["type"]>(
+    message: InMessage,
+    expectedReplyType: T
+  ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
+  private _asyncPostMessage(
+    message: InMessage,
+    expectedReplyType = "reply"
+  ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
 
@@ -230,6 +241,9 @@ export class StliteKernel {
         if (msg.error) {
           reject(msg.error);
         } else {
+          if (msg.type !== expectedReplyType) {
+            throw new Error(`Unexpected reply type "${msg.type}"`);
+          }
           resolve(msg.data);
         }
       };

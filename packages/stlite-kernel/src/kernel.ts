@@ -138,14 +138,12 @@ export class StliteKernel {
   }
 
   public connectWebSocket(path: string): Promise<void> {
-    this._worker.postMessage({
+    return this._asyncPostMessage({
       type: "websocket:connect",
       data: {
         path,
       },
     });
-
-    return Promise.resolve(); // TODO: Communicate the worker to confirm the connection
   }
 
   public sendWebSocketMessage(payload: Uint8Array) {

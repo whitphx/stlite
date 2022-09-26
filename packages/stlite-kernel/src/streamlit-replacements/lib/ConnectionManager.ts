@@ -158,7 +158,7 @@ export class ConnectionManager {
   }
 
   private async connect(): Promise<void> {
-    const WEBSOCKET_STREAM_PATH = "stream" // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
+    const WEBSOCKET_STREAM_PATH = "/stream" // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
 
     try {
       await this.props.kernel.connectWebSocket(WEBSOCKET_STREAM_PATH)

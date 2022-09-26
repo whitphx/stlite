@@ -135,7 +135,7 @@ type OutMessage =
   | WebSocketBackMessage;
 
 /**
- * Reply message
+ * Reply message to InMessage
  */
 interface ReplyMessageBase {
   type: string;

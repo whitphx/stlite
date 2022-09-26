@@ -6,7 +6,7 @@ import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
 import { ReactNode } from "react"
 
 import { StliteKernel } from "../../kernel"
-import { ConnectionState } from "./ConnectionState"
+import { ConnectionState } from "streamlit-browser/src/lib/ConnectionState"
 import { ForwardMsgCache } from "streamlit-browser/src/lib/ForwardMessageCache"
 import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"

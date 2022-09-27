@@ -2,7 +2,9 @@
   "name": "@stlite/desktop",
   "version": "0.7.1",
   "private": true,
+  "main": "./build/electron/main.js",
   "dependencies": {
+    "@craco/craco": "^6.1.2",
     "@stlite/stlite-kernel": "^0.7.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
@@ -17,10 +19,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "craco eject",
+    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\""
   },
   "eslintConfig": {
     "extends": [

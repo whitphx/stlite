@@ -4,18 +4,10 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 module.exports = {
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths}) => {
-      const isEnvDevelopment = webpackEnv === 'development';
-      const isEnvProduction = webpackEnv === 'production';
-
       // Set CSP following the best practice of Electron: https://www.electronjs.org/docs/latest/tutorial/security#7-define-a-content-security-policy
       const htmlWebpackPlugin = webpackConfig.plugins.find((plugin) => plugin instanceof HtmlWebpackPlugin)
-      if (isEnvDevelopment) {
-        // For dev env, CRA uses style-loader with injectType=styleTag, so allow inline styling.
-        htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': 'default-src \'self\'; script-src \'self\' \'unsafe-eval\'; style-src \'unsafe-inline\'; worker-src blob:; script-src-elem \'self\' blob: https://cdn.jsdelivr.net/; connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/' }
-      }
-      if (isEnvProduction) {
-        htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': 'default-src \'self\'; script-src \'self\';' }
-      }
+      // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
+      htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': 'default-src \'self\'; script-src \'self\' \'unsafe-eval\'; style-src \'unsafe-inline\'; worker-src blob:; script-src-elem \'self\' blob: https://cdn.jsdelivr.net/; connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/' }
 
       // Let Babel compile outside of src/.
       // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e

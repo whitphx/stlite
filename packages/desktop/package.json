@@ -2,6 +2,7 @@
   "name": "@stlite/desktop",
   "version": "0.7.1",
   "private": true,
+  "homepage": "./",
   "main": "./build/electron/main.js",
   "dependencies": {
     "@craco/craco": "^6.1.2",

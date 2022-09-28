@@ -2,17 +2,13 @@ import React, { useState, useEffect } from "react";
 import { StliteKernel } from "@stlite/stlite-kernel";
 import StreamlitApp from "./StreamlitApp";
 
-async function loadSnapshotFile(): Promise<Uint8Array> {
-  return window.snapshot.read();
-}
-
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
     let unmounted = false;
     let kernel: StliteKernel | null = null;
 
-    loadSnapshotFile().then((snapshotFileBin) => {
+    window.snapshot.read().then((snapshotFileBin) => {
       if (unmounted) {
         return;
       }

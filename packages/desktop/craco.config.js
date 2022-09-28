@@ -4,10 +4,24 @@ const HtmlWebpackPlugin = require("html-webpack-plugin")
 module.exports = {
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths}) => {
+      const isEnvDevelopment = webpackEnv === 'development';
+
       // Set CSP following the best practice of Electron: https://www.electronjs.org/docs/latest/tutorial/security#7-define-a-content-security-policy
       const htmlWebpackPlugin = webpackConfig.plugins.find((plugin) => plugin instanceof HtmlWebpackPlugin)
-      // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
-      htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': 'default-src \'self\'; script-src \'self\' \'unsafe-eval\'; style-src \'unsafe-inline\'; worker-src blob:; script-src-elem \'self\' blob: https://cdn.jsdelivr.net/; connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/' }
+
+      const csp = [
+        "default-src 'self'",
+        // 'unsafe-eval' is necessary to run the Wasm code
+        "script-src 'self' 'unsafe-eval'",
+        // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
+        "style-src 'self' 'unsafe-inline'",
+        // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
+        'worker-src blob:',
+        "script-src-elem 'self' blob: https://cdn.jsdelivr.net/",
+        // Allow loading the hosted wheels
+        'connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/' + (isEnvDevelopment ? ' http://localhost:3000/ ws://localhost:3000/' : '')
+      ].join("; ")
+      htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': csp }
 
       // Let Babel compile outside of src/.
       // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e

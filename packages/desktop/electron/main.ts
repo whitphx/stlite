@@ -47,7 +47,7 @@ const createWindow = () => {
   })
 
   if (app.isPackaged) {
-    mainWindow.loadFile('../index.html')
+    mainWindow.loadFile(path.resolve(__dirname, '../index.html'))
   } else {
     mainWindow.loadURL("http://localhost:3000");
   }

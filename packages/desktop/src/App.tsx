@@ -26,7 +26,20 @@ function App() {
             data: `import streamlit as st
 
 name = st.text_input("name")
-st.write("Hello,", name or "Electron!")`,
+st.write("Hello,", name or "Electron!")
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+size = st.slider("Sample size", 100, 1000, 100)
+arr = np.random.normal(1, 1, size=size)
+fig, ax = plt.subplots()
+ax.hist(arr, bins=20)
+
+st.pyplot(fig)
+
+st.image("https://raw.githubusercontent.com/whitphx/stlite/main/docs/images/logo.svg")
+`,
           },
           [snapshotMountFilePath]: {
             data: snapshotFileBin,

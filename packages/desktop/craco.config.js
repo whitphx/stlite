@@ -2,6 +2,12 @@ const path = require('path');
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
 module.exports = {
+  babel: {
+    plugins: ["@emotion"],
+    loaderOptions: {
+      cacheDirectory: true,
+    },
+  },
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths}) => {
       const isEnvDevelopment = webpackEnv === 'development';
@@ -19,7 +25,11 @@ module.exports = {
         'worker-src blob:',
         "script-src-elem 'self' blob: https://cdn.jsdelivr.net/",
         // Allow loading the hosted wheels
-        'connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/' + (isEnvDevelopment ? ' http://localhost:3000/ ws://localhost:3000/' : '')
+        'connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/' + (isEnvDevelopment ? ' http://localhost:3000/ ws://localhost:3000/' : ''),
+        // Allow <img> to load any resources
+        'img-src * blob:',
+        // Allow <audio> and <video> to load any resources
+        'media-src * blob:',
       ].join("; ")
       htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': csp }
 

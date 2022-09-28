@@ -275,6 +275,7 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
       error,
     },
   });
+  throw error;
 });
 
 /**

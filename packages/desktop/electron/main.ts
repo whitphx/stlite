@@ -17,8 +17,8 @@ if (process.env.NODE_ENV === 'development') {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -46,7 +46,7 @@ const createWindow = () => {
     return fsPromises.readFile(filePath)
   })
 
-  if (app.isPackaged) {
+  if (app.isPackaged || process.env.NODE_ENV === "production") {
     mainWindow.loadFile(path.resolve(__dirname, '../index.html'))
   } else {
     mainWindow.loadURL("http://localhost:3000");

@@ -20,11 +20,15 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test",
-    "eject": "craco eject",
-    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\""
+    "start:web": "craco start",
+    "build:web": "craco build",
+    "test:web": "craco test",
+    "eject:web": "craco eject",
+    "start:electron": "tsc -p electron -w",
+    "build:electron": "tsc -p electron",
+    "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
+    "build": "yarn build:web && yarn build:electron",
+    "serve": "NODE_ENV=\"production\" electron ."
   },
   "eslintConfig": {
     "extends": [

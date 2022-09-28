@@ -50,7 +50,8 @@ function App() {
           "streamlit_app.py": {
             data: `import streamlit as st
 
-st.write("Hello, Electron!")`,
+name = st.text_input("name")
+st.write("Hello,", name or "Electron!")`,
           },
           "/tmp/tornado-6.2-py3-none-any.whl": {
             data: new Uint8Array(wheels.tornado),

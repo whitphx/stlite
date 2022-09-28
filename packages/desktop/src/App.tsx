@@ -1,28 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
+import {
+  StliteKernel,
+  StliteKernelOptions,
+  wheels as wheelPaths,
+} from "@stlite/stlite-kernel";
 import StreamlitApp from "./StreamlitApp";
 
+const currentURL = window.location.href;
+const parentURL = currentURL.split("/").slice(0, -1).join("/") + "/";
+
+const wheelUrls = {
+  tornado: parentURL + wheelPaths.tornado,
+  pyarrow: parentURL + wheelPaths.pyarrow,
+  streamlit: parentURL + wheelPaths.streamlit,
+};
+
+console.debug({ currentURL, parentURL, wheelUrls });
+
 async function loadWheels(): Promise<
-  Record<keyof NonNullable<StliteKernelOptions["wheelUrls"]>, ArrayBuffer>
+  Record<keyof NonNullable<StliteKernelOptions["wheelUrls"]>, Uint8Array>
 > {
-  // TODO: Load the files from local. Fetching remote resources below is just as mock for dev.
-  const urls = [
-    [
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.7.0/build/pypi/tornado-6.2-py3-none-any.whl",
-    ],
-    [
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.7.0/build/pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
-    ],
-    [
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.7.0/build/pypi/streamlit-1.12.0-py2.py3-none-any.whl",
-    ],
-  ];
-  const arrayBuffers = await Promise.all(
-    urls
-      .map(([url]) => fetch(url))
-      .map((fetchPromise) =>
-        fetchPromise.then((response) => response.arrayBuffer())
-      )
+  const arrayBuffers = await Promise.all<Uint8Array>(
+    [wheelUrls.tornado, wheelUrls.pyarrow, wheelUrls.streamlit].map(
+      (wheelUrl) => {
+        if (wheelUrl.startsWith("file://")) {
+          console.debug("Read a local file", wheelUrl);
+          return window.localWheelFiles.read(
+            wheelUrl.replace(/^file:\/\//, "")
+          );
+        } else {
+          console.debug("Read a remote file", wheelUrl);
+          return fetch(wheelUrl)
+            .then((response) => response.arrayBuffer())
+            .then((ab) => new Uint8Array(ab));
+        }
+      }
+    )
   );
 
   return {
@@ -43,6 +56,9 @@ function App() {
         return;
       }
 
+      const tornadoEmfsPath = "/tmp" + wheelPaths.tornado;
+      const pyarrowEmfsPath = "/tmp" + wheelPaths.pyarrow;
+      const streamlitEmfsPath = "/tmp" + wheelPaths.streamlit;
       kernel = new StliteKernel({
         command: "run",
         entrypoint: "streamlit_app.py",
@@ -53,21 +69,21 @@ function App() {
 name = st.text_input("name")
 st.write("Hello,", name or "Electron!")`,
           },
-          "/tmp/tornado-6.2-py3-none-any.whl": {
+          [tornadoEmfsPath]: {
             data: new Uint8Array(wheels.tornado),
           },
-          "/tmp/stlite_pyarrow-0.1.0-py3-none-any.whl": {
+          [pyarrowEmfsPath]: {
             data: new Uint8Array(wheels.pyarrow),
           },
-          "/tmp/streamlit-1.12.0-py2.py3-none-any.whl": {
+          [streamlitEmfsPath]: {
             data: new Uint8Array(wheels.streamlit),
           },
         },
         requirements: [],
         wheelUrls: {
-          tornado: "emfs:/tmp/tornado-6.2-py3-none-any.whl",
-          pyarrow: "emfs:/tmp/stlite_pyarrow-0.1.0-py3-none-any.whl",
-          streamlit: "emfs:/tmp/streamlit-1.12.0-py2.py3-none-any.whl",
+          tornado: `emfs:${tornadoEmfsPath}`,
+          pyarrow: `emfs:${pyarrowEmfsPath}`,
+          streamlit: `emfs:${streamlitEmfsPath}`,
         },
       });
       setKernel(kernel);

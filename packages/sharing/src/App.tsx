@@ -45,7 +45,7 @@ function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
     let unmounted = false;
-    let kernel: StliteKernel | null = null;
+    let _kernel: StliteKernel | null = null;
     let onMessage: ((e: MessageEvent<ForwardMessage>) => void) | null;
     extractAppDataFromUrl()
       .catch(() => {
@@ -115,6 +115,7 @@ st.write("Hello World")`,
           onLoad,
           onError,
         });
+        _kernel = kernel;
         setKernel(kernel);
 
         // Handle messages from the editor
@@ -212,7 +213,7 @@ st.write("Hello World")`,
       unmounted = true;
 
       onMessage && window.removeEventListener("message", onMessage);
-      kernel && kernel.dispose();
+      _kernel && _kernel.dispose();
     };
   }, []);
 

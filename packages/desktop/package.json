@@ -24,7 +24,7 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject",
-    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\""
+    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\""
   },
   "eslintConfig": {
     "extends": [
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "electron": "^20.2.0",
+    "electron-reload": "^2.0.0-alpha.1",
     "raw-loader": "^4.0.2"
   }
 }

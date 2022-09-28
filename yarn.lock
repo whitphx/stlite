@@ -8836,6 +8836,13 @@ ejs@^3.1.5:
   dependencies:
     jake "^10.6.1"
 
+electron-reload@^2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/electron-reload/-/electron-reload-2.0.0-alpha.1.tgz#6cad98df96695ca1d5462dc9407f7c620028ce99"
+  integrity sha512-hTde7gv0TEqxbxlB3pj2CwoyCQ9sdiQrcP8GkpzhosxyVeYM3mZbMEVKCZK3L0fED7Mz5A9IWmK7zEvi4H3P1g==
+  dependencies:
+    chokidar "^3.5.2"
+
 electron-to-chromium@^1.3.564:
   version "1.4.146"
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.146.tgz#fd20970c3def2f9e6b32ac13a2e7a6b64e1b0c48"

@@ -1,6 +1,18 @@
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 
+if (process.env.NODE_ENV === 'development') {
+  console.log("Hot-reloading Electron enabled")
+  require('electron-reload')(__dirname, {
+    electron: path.resolve(
+      __dirname,
+      process.platform === 'win32'
+        ? '../../node_modules/electron/dist/electron.exe'
+        : '../../node_modules/.bin/electron'
+    ),
+  });
+}
+
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({

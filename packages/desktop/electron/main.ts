@@ -24,26 +24,8 @@ const createWindow = () => {
     },
   });
 
-  ipcMain.handle("readWheelFile", (ev, filePath: string) => {
-    // Read the local file.
-    // Ref: https://stackoverflow.com/a/66270356/13103190
-
-    const allowedDir = path.resolve(__dirname, "..");
-
-    // Check if the `filePath` is under the allowed directory.
-    // Ref: https://stackoverflow.com/a/45242825/13103190
-    // TODO: Write tests covering the false negative pointed in the comments in the thread above.
-    const relativeFromAllowedDir = path.relative(allowedDir, filePath);
-    const isAllowed = (relativeFromAllowedDir && !relativeFromAllowedDir.startsWith('..') && !path.isAbsolute(relativeFromAllowedDir))
-    if (!isAllowed) {
-      throw new Error(`Invalid file access: ${filePath}`);
-    }
-
-    if (path.extname(filePath) !== ".whl") {
-      throw new Error(`Invalid file extension: ${filePath}`);
-    }
-
-    return fsPromises.readFile(filePath)
+  ipcMain.handle("readSnapshotFile", (ev) => {
+    return fsPromises.readFile(path.resolve(__dirname, "../stlite-archive.tar.gz"))
   })
 
   if (app.isPackaged || process.env.NODE_ENV === "production") {

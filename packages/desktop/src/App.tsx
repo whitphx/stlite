@@ -1,48 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  StliteKernel,
-  StliteKernelOptions,
-  wheels as wheelPaths,
-} from "@stlite/stlite-kernel";
+import { StliteKernel } from "@stlite/stlite-kernel";
 import StreamlitApp from "./StreamlitApp";
 
-const currentURL = window.location.href;
-const parentURL = currentURL.split("/").slice(0, -1).join("/") + "/";
-
-const wheelUrls = {
-  tornado: parentURL + wheelPaths.tornado,
-  pyarrow: parentURL + wheelPaths.pyarrow,
-  streamlit: parentURL + wheelPaths.streamlit,
-};
-
-console.debug({ currentURL, parentURL, wheelUrls });
-
-async function loadWheels(): Promise<
-  Record<keyof NonNullable<StliteKernelOptions["wheelUrls"]>, Uint8Array>
-> {
-  const arrayBuffers = await Promise.all<Uint8Array>(
-    [wheelUrls.tornado, wheelUrls.pyarrow, wheelUrls.streamlit].map(
-      (wheelUrl) => {
-        if (wheelUrl.startsWith("file://")) {
-          console.debug("Read a local file", wheelUrl);
-          return window.localWheelFiles.read(
-            wheelUrl.replace(/^file:\/\//, "")
-          );
-        } else {
-          console.debug("Read a remote file", wheelUrl);
-          return fetch(wheelUrl)
-            .then((response) => response.arrayBuffer())
-            .then((ab) => new Uint8Array(ab));
-        }
-      }
-    )
-  );
-
-  return {
-    tornado: arrayBuffers[0],
-    pyarrow: arrayBuffers[1],
-    streamlit: arrayBuffers[2],
-  };
+async function loadSnapshotFile(): Promise<Uint8Array> {
+  return window.snapshot.read();
 }
 
 function App() {
@@ -51,14 +12,12 @@ function App() {
     let unmounted = false;
     let kernel: StliteKernel | null = null;
 
-    loadWheels().then((wheels) => {
+    loadSnapshotFile().then((snapshotFileBin) => {
       if (unmounted) {
         return;
       }
 
-      const tornadoEmfsPath = "/tmp" + wheelPaths.tornado;
-      const pyarrowEmfsPath = "/tmp" + wheelPaths.pyarrow;
-      const streamlitEmfsPath = "/tmp" + wheelPaths.streamlit;
+      const snapshotMountFilePath = "/tmp/stlite-snapshot.tar.gz";
       kernel = new StliteKernel({
         command: "run",
         entrypoint: "streamlit_app.py",
@@ -69,22 +28,12 @@ function App() {
 name = st.text_input("name")
 st.write("Hello,", name or "Electron!")`,
           },
-          [tornadoEmfsPath]: {
-            data: new Uint8Array(wheels.tornado),
-          },
-          [pyarrowEmfsPath]: {
-            data: new Uint8Array(wheels.pyarrow),
-          },
-          [streamlitEmfsPath]: {
-            data: new Uint8Array(wheels.streamlit),
+          [snapshotMountFilePath]: {
+            data: snapshotFileBin,
           },
         },
         requirements: [],
-        wheelUrls: {
-          tornado: `emfs:${tornadoEmfsPath}`,
-          pyarrow: `emfs:${pyarrowEmfsPath}`,
-          streamlit: `emfs:${streamlitEmfsPath}`,
-        },
+        mountedSnapshotFilePath: snapshotMountFilePath,
       });
       setKernel(kernel);
     });

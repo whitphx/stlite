@@ -50,6 +50,8 @@ export interface StliteKernelOptions {
    */
   wheelBaseUrl?: string;
 
+  mountedSnapshotFilePath?: string;
+
   /**
    * The `pathname` that will be used as both
    * a base path of the custom component URLs
@@ -128,6 +130,7 @@ export class StliteKernel {
         pyarrow: pyarrowWheelUrl,
         streamlit: streamlitWheelUrl,
       },
+      mountedSnapshotFilePath: options.mountedSnapshotFilePath,
     };
   }
 

@@ -47,6 +47,9 @@
   "devDependencies": {
     "electron": "^20.2.0",
     "electron-reload": "^2.0.0-alpha.1",
-    "raw-loader": "^4.0.2"
+    "node-fetch": "2",
+    "pyodide": "^0.21.3",
+    "raw-loader": "^4.0.2",
+    "ts-node": "^10.9.1"
   }
 }

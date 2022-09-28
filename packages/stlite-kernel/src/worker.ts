@@ -46,8 +46,14 @@ async function loadPyodideAndPackages() {
   });
   console.debug("Loaded Pyodide");
 
-  const { command, entrypoint, files, requirements, wheels } =
-    await initDataPromiseDelegate.promise;
+  const {
+    command,
+    entrypoint,
+    files,
+    requirements,
+    wheels,
+    mountedSnapshotFilePath,
+  } = await initDataPromiseDelegate.promise;
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -66,25 +72,46 @@ async function loadPyodideAndPackages() {
   ]);
   console.debug("Loaded the initially necessary packages");
 
-  postProgressMessage("Installing streamlit and its dependencies.");
-  console.debug("Loading tornado, pyarrow, and streamlit");
-  const micropip = pyodide.pyimport("micropip");
-  await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
-    keep_going: true,
-  });
-  await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-  console.debug("Loaded tornado, pyarrow, and streamlit");
+  if (mountedSnapshotFilePath) {
+    // Mount the snapshot file
+    postProgressMessage("Restoring the snapshot.");
 
-  postProgressMessage("Installing the requirements.");
-  console.debug("Installing the requirements:", requirements);
-  await micropip.install.callKwargs(requirements, { keep_going: true });
+    await pyodide.runPythonAsync(`import tarfile, shutil, site`);
+
+    // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
+    // assuming these directories will be extracted from the snapshot archive.
+    await pyodide.runPythonAsync(`
+      site_packages_dirs = site.getsitepackages()
+      for site_packages in site_packages_dirs:
+          shutil.rmtree(site_packages)
+    `);
+    console.debug(`Unarchive ${mountedSnapshotFilePath}`);
+    await pyodide.runPythonAsync(`
+      with tarfile.open("${mountedSnapshotFilePath}", "r") as tar_gz_file:
+          tar_gz_file.extractall("/")
+    `);
+  } else {
+    postProgressMessage("Installing streamlit and its dependencies.");
+    console.debug("Loading tornado, pyarrow, and streamlit");
+    const micropip = pyodide.pyimport("micropip");
+    await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
+      keep_going: true,
+    });
+    await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
+    console.debug("Loaded tornado, pyarrow, and streamlit");
+
+    postProgressMessage("Installing the requirements.");
+    console.debug("Installing the requirements:", requirements);
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements:", requirements);
+  }
+
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`
     import importlib
     importlib.invalidate_caches()
   `);
-  console.debug("Installed the requirements:", requirements);
 
   postProgressMessage("Loading streamlit package and setting up the loggers.");
   console.debug("Setting the loggers");

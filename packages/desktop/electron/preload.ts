@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron"
 
-contextBridge.exposeInMainWorld("localWheelFiles", {
-  read: (filePath: string) => ipcRenderer.invoke("readWheelFile", filePath),
+contextBridge.exposeInMainWorld("snapshot", {
+  read: () => ipcRenderer.invoke("readSnapshotFile"),
 })

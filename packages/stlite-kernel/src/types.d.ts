@@ -23,6 +23,7 @@ interface WorkerInitialData {
     pyarrow: string;
     streamlit: string;
   };
+  mountedSnapshotFilePath?: string;
 }
 
 /**

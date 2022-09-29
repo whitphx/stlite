@@ -24,8 +24,10 @@ const createWindow = () => {
     },
   });
 
-  ipcMain.handle("readSnapshotFile", (ev) => {
-    return fsPromises.readFile(path.resolve(__dirname, "../stlite-archive.tar.gz"))
+  ipcMain.handle("readSitePackagesSnapshot", (ev) => {
+    // This archive file has to be created by ./bin/dump_snapshot.ts
+    const archiveFilePath = path.resolve(__dirname, "../site-packages-snapshot.tar.gz")
+    return fsPromises.readFile(archiveFilePath)
   })
 
   if (app.isPackaged || process.env.NODE_ENV === "production") {

@@ -24,18 +24,21 @@ function App() {
     let unmounted = false;
     let kernel: StliteKernel | null = null;
 
-    window.snapshot.read().then((snapshotFileBin) => {
-      if (unmounted) {
-        return;
-      }
+    window.archives
+      .readSitePackagesSnapshot()
+      .then((sitePackagesSnapshotFileBin) => {
+        if (unmounted) {
+          return;
+        }
 
-      const snapshotMountFilePath = "/tmp/stlite-snapshot.tar.gz";
-      kernel = new StliteKernel({
-        command: "run",
-        entrypoint: "streamlit_app.py",
-        files: {
-          "streamlit_app.py": {
-            data: `import streamlit as st
+        const mountedSitePackagesSnapshotFilePath =
+          "/tmp/site-packages-snapshot.tar.gz";
+        kernel = new StliteKernel({
+          command: "run",
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": {
+              data: `import streamlit as st
 
 name = st.text_input("name")
 st.write("Hello,", name or "Electron!")
@@ -52,17 +55,17 @@ st.pyplot(fig)
 
 st.image("https://raw.githubusercontent.com/whitphx/stlite/main/docs/images/logo.svg")
 `,
+            },
+            [mountedSitePackagesSnapshotFilePath]: {
+              data: sitePackagesSnapshotFileBin,
+            },
           },
-          [snapshotMountFilePath]: {
-            data: snapshotFileBin,
-          },
-        },
-        requirements: [],
-        mountedSnapshotFilePath: snapshotMountFilePath,
-        pyodideEntrypointUrl,
+          requirements: [],
+          mountedSitePackagesSnapshotFilePath,
+          pyodideEntrypointUrl,
+        });
+        setKernel(kernel);
       });
-      setKernel(kernel);
-    });
 
     return () => {
       unmounted = true;

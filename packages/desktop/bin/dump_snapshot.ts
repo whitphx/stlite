@@ -46,8 +46,8 @@ async function main(options: BuildOptions) {
   const micropip = pyodide.pyimport("micropip");
   await micropip.install.callKwargs(options.requirements, { keep_going: true });
 
-  console.log("Archive the director(y|ies)")
-  const archiveFilePath = '/tmp/stlite-snapshot.tar.gz'
+  console.log("Archive the site-packages director(y|ies)")
+  const archiveFilePath = '/tmp/site-packages-snapshot.tar.gz'
   await pyodide.runPythonAsync(`
     import tarfile
     import site
@@ -74,5 +74,5 @@ main({
     streamlit: path.resolve(__dirname, "../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"),
   },
   requirements: ["matplotlib"],
-  saveTo: "build/stlite-archive.tar.gz"
+  saveTo: "build/site-packages-snapshot.tar.gz"
 });

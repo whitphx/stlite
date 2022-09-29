@@ -62,7 +62,7 @@ export interface StliteKernelOptions {
    */
   wheelBaseUrl?: string;
 
-  mountedSnapshotFilePath?: string;
+  mountedSitePackagesSnapshotFilePath?: string;
 
   /**
    * The `pathname` that will be used as both
@@ -115,7 +115,7 @@ export class StliteKernel {
     };
 
     let wheels: WorkerInitialData["wheels"] = undefined;
-    if (options.mountedSnapshotFilePath == null) {
+    if (options.mountedSitePackagesSnapshotFilePath == null) {
       console.debug("Custom wheel URLs:", {
         TORNADO_WHEEL,
         PYARROW_WHEEL,
@@ -148,7 +148,8 @@ export class StliteKernel {
       requirements: options.requirements,
       pyodideEntrypointUrl: options.pyodideEntrypointUrl,
       wheels,
-      mountedSnapshotFilePath: options.mountedSnapshotFilePath,
+      mountedSitePackagesSnapshotFilePath:
+        options.mountedSitePackagesSnapshotFilePath,
     };
   }
 

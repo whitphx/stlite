@@ -41,7 +41,7 @@ async function loadPyodideAndPackages() {
     files,
     requirements,
     wheels,
-    mountedSnapshotFilePath,
+    mountedSitePackagesSnapshotFilePath,
     pyodideEntrypointUrl,
   } = await initDataPromiseDelegate.promise;
 
@@ -77,8 +77,8 @@ async function loadPyodideAndPackages() {
   ]);
   console.debug("Loaded the initially necessary packages");
 
-  if (mountedSnapshotFilePath) {
-    // Mount the snapshot file
+  if (mountedSitePackagesSnapshotFilePath) {
+    // Restore the site-packages director(y|ies) from the mounted snapshot file.
     postProgressMessage("Restoring the snapshot.");
 
     await pyodide.runPythonAsync(`import tarfile, shutil, site`);
@@ -90,9 +90,9 @@ async function loadPyodideAndPackages() {
       for site_packages in site_packages_dirs:
           shutil.rmtree(site_packages)
     `);
-    console.debug(`Unarchive ${mountedSnapshotFilePath}`);
+    console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
     await pyodide.runPythonAsync(`
-      with tarfile.open("${mountedSnapshotFilePath}", "r") as tar_gz_file:
+      with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
           tar_gz_file.extractall("/")
     `);
   } else if (wheels) {

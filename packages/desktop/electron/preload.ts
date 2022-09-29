@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron"
 
-contextBridge.exposeInMainWorld("snapshot", {
-  read: () => ipcRenderer.invoke("readSnapshotFile"),
+contextBridge.exposeInMainWorld("archives", {
+  readSitePackagesSnapshot: () => ipcRenderer.invoke("readSitePackagesSnapshot"),
 })

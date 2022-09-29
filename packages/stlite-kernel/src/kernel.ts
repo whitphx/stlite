@@ -109,40 +109,50 @@ export class StliteKernel {
       this._processWorkerMessage(e.data);
     };
 
-    console.debug("Custom wheel URLs:", {
-      TORNADO_WHEEL,
-      PYARROW_WHEEL,
-      STREAMLIT_WHEEL,
-    });
-    const tornadoWheelUrl = makeAbsoluteWheelURL(
-      options.wheelUrls?.tornado ?? (TORNADO_WHEEL as unknown as string),
-      options.wheelBaseUrl
-    );
-    const pyarrowWheelUrl = makeAbsoluteWheelURL(
-      options.wheelUrls?.pyarrow ?? (PYARROW_WHEEL as unknown as string),
-      options.wheelBaseUrl
-    );
-    const streamlitWheelUrl = makeAbsoluteWheelURL(
-      options.wheelUrls?.streamlit ?? (STREAMLIT_WHEEL as unknown as string),
-      options.wheelBaseUrl
-    );
-    console.debug("Custom wheel resolved URLs:", {
-      tornadoWheelUrl,
-      pyarrowWheelUrl,
-      streamlitWheelUrl,
-    });
-    this._workerInitData = {
-      command: options.command,
-      entrypoint: options.entrypoint,
-      files: options.files,
-      requirements: options.requirements,
-      wheels: {
-        tornado: tornadoWheelUrl,
-        pyarrow: pyarrowWheelUrl,
-        streamlit: streamlitWheelUrl,
-      },
-      mountedSnapshotFilePath: options.mountedSnapshotFilePath,
-    };
+    if (options.mountedSnapshotFilePath) {
+      console.debug("snapshot:", options.mountedSnapshotFilePath);
+      this._workerInitData = {
+        command: options.command,
+        entrypoint: options.entrypoint,
+        files: options.files,
+        requirements: options.requirements,
+        mountedSnapshotFilePath: options.mountedSnapshotFilePath,
+      };
+    } else {
+      console.debug("Custom wheel URLs:", {
+        TORNADO_WHEEL,
+        PYARROW_WHEEL,
+        STREAMLIT_WHEEL,
+      });
+      const tornadoWheelUrl = makeAbsoluteWheelURL(
+        options.wheelUrls?.tornado ?? (TORNADO_WHEEL as unknown as string),
+        options.wheelBaseUrl
+      );
+      const pyarrowWheelUrl = makeAbsoluteWheelURL(
+        options.wheelUrls?.pyarrow ?? (PYARROW_WHEEL as unknown as string),
+        options.wheelBaseUrl
+      );
+      const streamlitWheelUrl = makeAbsoluteWheelURL(
+        options.wheelUrls?.streamlit ?? (STREAMLIT_WHEEL as unknown as string),
+        options.wheelBaseUrl
+      );
+      console.debug("Custom wheel resolved URLs:", {
+        tornadoWheelUrl,
+        pyarrowWheelUrl,
+        streamlitWheelUrl,
+      });
+      this._workerInitData = {
+        command: options.command,
+        entrypoint: options.entrypoint,
+        files: options.files,
+        requirements: options.requirements,
+        wheels: {
+          tornado: tornadoWheelUrl,
+          pyarrow: pyarrowWheelUrl,
+          streamlit: streamlitWheelUrl,
+        },
+      };
+    }
   }
 
   get loaded(): Promise<void> {

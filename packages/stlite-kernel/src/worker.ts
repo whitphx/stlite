@@ -90,7 +90,7 @@ async function loadPyodideAndPackages() {
       with tarfile.open("${mountedSnapshotFilePath}", "r") as tar_gz_file:
           tar_gz_file.extractall("/")
     `);
-  } else {
+  } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
     console.debug("Loading tornado, pyarrow, and streamlit");
     const micropip = pyodide.pyimport("micropip");
@@ -104,6 +104,8 @@ async function loadPyodideAndPackages() {
     console.debug("Installing the requirements:", requirements);
     await micropip.install.callKwargs(requirements, { keep_going: true });
     console.debug("Installed the requirements:", requirements);
+  } else {
+    throw new Error(`Neither snapshot nor wheel files are provided.`);
   }
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`

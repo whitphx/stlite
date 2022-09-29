@@ -18,7 +18,7 @@ interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile>;
   requirements: string[];
-  wheels: {
+  wheels?: {
     tornado: string;
     pyarrow: string;
     streamlit: string;

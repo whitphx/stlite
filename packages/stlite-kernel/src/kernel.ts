@@ -114,17 +114,8 @@ export class StliteKernel {
       this._processWorkerMessage(e.data);
     };
 
-    if (options.mountedSnapshotFilePath) {
-      console.debug("snapshot:", options.mountedSnapshotFilePath);
-      this._workerInitData = {
-        command: options.command,
-        entrypoint: options.entrypoint,
-        files: options.files,
-        requirements: options.requirements,
-        pyodideEntrypointUrl: options.pyodideEntrypointUrl,
-        mountedSnapshotFilePath: options.mountedSnapshotFilePath,
-      };
-    } else {
+    let wheels: WorkerInitialData["wheels"] = undefined;
+    if (options.mountedSnapshotFilePath == null) {
       console.debug("Custom wheel URLs:", {
         TORNADO_WHEEL,
         PYARROW_WHEEL,
@@ -142,24 +133,23 @@ export class StliteKernel {
         options.wheelUrls?.streamlit ?? (STREAMLIT_WHEEL as unknown as string),
         options.wheelBaseUrl
       );
-      console.debug("Custom wheel resolved URLs:", {
-        tornadoWheelUrl,
-        pyarrowWheelUrl,
-        streamlitWheelUrl,
-      });
-      this._workerInitData = {
-        command: options.command,
-        entrypoint: options.entrypoint,
-        files: options.files,
-        requirements: options.requirements,
-        pyodideEntrypointUrl: options.pyodideEntrypointUrl,
-        wheels: {
-          tornado: tornadoWheelUrl,
-          pyarrow: pyarrowWheelUrl,
-          streamlit: streamlitWheelUrl,
-        },
+      wheels = {
+        tornado: tornadoWheelUrl,
+        pyarrow: pyarrowWheelUrl,
+        streamlit: streamlitWheelUrl,
       };
+      console.debug("Custom wheel resolved URLs:", wheels);
     }
+
+    this._workerInitData = {
+      command: options.command,
+      entrypoint: options.entrypoint,
+      files: options.files,
+      requirements: options.requirements,
+      pyodideEntrypointUrl: options.pyodideEntrypointUrl,
+      wheels,
+      mountedSnapshotFilePath: options.mountedSnapshotFilePath,
+    };
   }
 
   get loaded(): Promise<void> {

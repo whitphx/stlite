@@ -7,7 +7,8 @@
   "dependencies": {},
   "scripts": {
     "start:web": "craco start",
-    "build:web": "craco build",
+    "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
+    "build:web": "craco build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
     "test:web": "craco test",
     "eject:web": "craco eject",
     "start:electron": "tsc -p electron -w",

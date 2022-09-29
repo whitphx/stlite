@@ -11,6 +11,7 @@ module.exports = {
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths}) => {
       const isEnvDevelopment = webpackEnv === 'development';
+      const isEnvProduction = webpackEnv === 'production';
 
       // Set CSP following the best practice of Electron: https://www.electronjs.org/docs/latest/tutorial/security#7-define-a-content-security-policy
       const htmlWebpackPlugin = webpackConfig.plugins.find((plugin) => plugin instanceof HtmlWebpackPlugin)
@@ -24,13 +25,14 @@ module.exports = {
         // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
         'worker-src blob:',
         "script-src-elem 'self' blob: https://cdn.jsdelivr.net/",
-        // Allow loading the hosted wheels
-        'connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/' + (isEnvDevelopment ? ' http://localhost:3000/ ws://localhost:3000/' : ''),
+        // Allow loading the hosted Pyodide files and wheels
+        isEnvProduction && "connect-src 'self'",
+        isEnvDevelopment && 'connect-src https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/',
         // Allow <img> to load any resources
         'img-src * blob:',
         // Allow <audio> and <video> to load any resources
         'media-src * blob:',
-      ].join("; ")
+      ].filter(Boolean).join("; ")
       htmlWebpackPlugin.options.meta['Content-Security-Policy'] = { 'http-equiv': 'Content-Security-Policy', 'content': csp }
 
       // Let Babel compile outside of src/.

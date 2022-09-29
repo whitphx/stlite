@@ -2,6 +2,22 @@ import React, { useState, useEffect } from "react";
 import { StliteKernel } from "@stlite/stlite-kernel";
 import StreamlitApp from "./StreamlitApp";
 
+let pyodideEntrypointUrl: string | undefined;
+if (process.env.NODE_ENV === "production") {
+  // The `pyodide` directory including `pyodide.js` is downloaded
+  // to the build target directory at the build time for production release.
+  // See the "build:pyodide" NPM script.
+  // Ref: https://pyodide.org/en/stable/usage/downloading-and-deploying.html
+  // We set the path here to be loaded in the worker via `importScript()`.
+  const currentURL = window.location.href;
+  const parentURL =
+    currentURL
+      .split("/")
+      .slice(0, -1)
+      .join("/") + "/";
+  pyodideEntrypointUrl = parentURL + "pyodide/pyodide.js";
+}
+
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
   useEffect(() => {
@@ -43,6 +59,7 @@ st.image("https://raw.githubusercontent.com/whitphx/stlite/main/docs/images/logo
         },
         requirements: [],
         mountedSnapshotFilePath: snapshotMountFilePath,
+        pyodideEntrypointUrl,
       });
       setKernel(kernel);
     });

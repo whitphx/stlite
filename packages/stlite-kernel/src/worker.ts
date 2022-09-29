@@ -2,8 +2,6 @@ import { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
-
 let pyodide: PyodideInterface;
 
 let httpServer: any;
@@ -37,15 +35,6 @@ function postProgressMessage(message: string): void {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  // as of 0.17.0 indexURL must be provided
-  postProgressMessage("Loading Pyodide.");
-  console.debug("Loading Pyodide");
-  pyodide = await loadPyodide({
-    stdout: console.log,
-    stderr: console.error,
-  });
-  console.debug("Loaded Pyodide");
-
   const {
     command,
     entrypoint,
@@ -53,7 +42,23 @@ async function loadPyodideAndPackages() {
     requirements,
     wheels,
     mountedSnapshotFilePath,
+    pyodideEntrypointUrl,
   } = await initDataPromiseDelegate.promise;
+
+  postProgressMessage("Loading Pyodide.");
+
+  console.debug("Import the entrypoint script.");
+  importScripts(
+    pyodideEntrypointUrl ??
+      "https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js"
+  );
+
+  console.debug("Loading Pyodide");
+  pyodide = await loadPyodide({
+    stdout: console.log,
+    stderr: console.error,
+  });
+  console.debug("Loaded Pyodide");
 
   // Mount files
   postProgressMessage("Mounting files.");

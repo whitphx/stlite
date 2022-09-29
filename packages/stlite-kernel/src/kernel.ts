@@ -44,6 +44,11 @@ export interface StliteKernelOptions {
   >;
 
   /**
+   * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
+   */
+  pyodideEntrypointUrl?: string;
+
+  /**
    *
    */
   wheelUrls?: {
@@ -116,6 +121,7 @@ export class StliteKernel {
         entrypoint: options.entrypoint,
         files: options.files,
         requirements: options.requirements,
+        pyodideEntrypointUrl: options.pyodideEntrypointUrl,
         mountedSnapshotFilePath: options.mountedSnapshotFilePath,
       };
     } else {
@@ -146,6 +152,7 @@ export class StliteKernel {
         entrypoint: options.entrypoint,
         files: options.files,
         requirements: options.requirements,
+        pyodideEntrypointUrl: options.pyodideEntrypointUrl,
         wheels: {
           tornado: tornadoWheelUrl,
           pyarrow: pyarrowWheelUrl,

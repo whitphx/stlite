@@ -18,6 +18,7 @@ interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile>;
   requirements: string[];
+  pyodideEntrypointUrl?: string;
   wheels?: {
     tornado: string;
     pyarrow: string;

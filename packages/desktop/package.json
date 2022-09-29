@@ -4,21 +4,7 @@
   "private": true,
   "homepage": "./",
   "main": "./build/electron/main.js",
-  "dependencies": {
-    "@craco/craco": "^6.1.2",
-    "@stlite/stlite-kernel": "^0.7.1",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^13.1.9",
-    "@types/jest": "^26.0.19",
-    "@types/node": "^14.14.16",
-    "@types/react": "^17.0.7",
-    "@types/react-dom": "^17.0.5",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "typescript": "^4.6.3",
-    "web-vitals": "^2.1.4"
-  },
+  "dependencies": {},
   "scripts": {
     "start:web": "craco start",
     "build:web": "craco build",
@@ -27,8 +13,11 @@
     "start:electron": "tsc -p electron -w",
     "build:electron": "tsc -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
-    "build": "yarn build:web && yarn build:electron",
-    "serve": "NODE_ENV=\"production\" electron ."
+    "build": "yarn build:web && yarn build:electron && ./bin/dump_snapshot.ts",
+    "serve": "NODE_ENV=\"production\" electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "eslintConfig": {
     "extends": [
@@ -45,11 +34,40 @@
     ]
   },
   "devDependencies": {
-    "electron": "^20.2.0",
+    "@craco/craco": "^6.1.2",
+    "@stlite/stlite-kernel": "^0.7.1",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^13.1.9",
+    "@types/jest": "^26.0.19",
+    "@types/node": "^14.14.16",
+    "@types/react": "^17.0.7",
+    "@types/react-dom": "^17.0.5",
+    "electron": "20.2.0",
+    "electron-builder": "^23.3.3",
     "electron-reload": "^2.0.0-alpha.1",
     "node-fetch": "2",
     "pyodide": "^0.21.3",
     "raw-loader": "^4.0.2",
-    "ts-node": "^10.9.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.6.3",
+    "web-vitals": "^2.1.4"
+  },
+  "//": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
+  "build": {
+    "appId": "your.id",
+    "mac": {
+      "category": "your.app.category.type"
+    },
+    "productName": "stlite app",
+    "extends": null,
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }

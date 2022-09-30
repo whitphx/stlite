@@ -233,6 +233,97 @@ jobs:
     - run: yarn typecheck
     - run: yarn test
 
+  build-stlite-kernel:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [test-stlite-kernel, test-tornado-e2e]
+
+    env:
+      python-version: "3.10.2"
+      node-version: "16.x"
+      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+      NODE_OPTIONS: "--max-old-space-size=6656"
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    ## Set up Python and Poetry environment
+    - name: Set up Python ${{ env.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ env.python-version }}
+
+    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    - name: Get full Python version
+      id: full-python-version
+      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+    - name: Bootstrap poetry
+      run: |
+        curl -sL https://install.python-poetry.org | python - -y
+
+    - name: Update PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Configure poetry
+      run: poetry config virtualenvs.in-project true
+
+    - name: Set up cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: timeout 10s pip --version || rm -rf .venv
+
+    ## Set up Node environment
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node-version }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
+    - name: Install Streamlit build dependencies
+      run: sudo apt install protobuf-compiler
+
+    - name: Set up
+      run: make init
+
+    ## Build and deploy @stlite/mountable
+    # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
+    - name: Set PUBLIC_URL
+      run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+    - name: Build @stlite/stlite-kernel
+      run: make stlite-kernel
+
+    - name: Package
+      working-directory: packages/stlite-kernel
+      run: yarn pack
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: packages/stlite-kernel/stlite-stlite-kernel-v*.tgz
+        name: stlite-stlite-kernel-${{ github.sha }}.tgz
+
+    - name: Upload the built tar ball as an artifact (when pushed with a version tag)
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        path: packages/stlite-kernel/stlite-stlite-kernel-v*.tgz
+        name: stlite-stlite-kernel-${{ github.ref_name }}.tgz
+
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-stlite-kernel, test-tornado-e2e, test-mountable]

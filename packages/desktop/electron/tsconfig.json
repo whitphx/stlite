@@ -7,5 +7,6 @@
     "rootDir": "../",
     "skipLibCheck": true
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["./**/*.test.*", "./**/__tests__"]
 }

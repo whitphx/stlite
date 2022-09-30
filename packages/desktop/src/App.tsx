@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StliteKernel } from "@stlite/stlite-kernel";
+import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
 import StreamlitApp from "./StreamlitApp";
 
 let pyodideEntrypointUrl: string | undefined;
@@ -24,48 +24,39 @@ function App() {
     let unmounted = false;
     let kernel: StliteKernel | null = null;
 
-    window.archives
-      .readSitePackagesSnapshot()
-      .then((sitePackagesSnapshotFileBin) => {
-        if (unmounted) {
-          return;
-        }
+    Promise.all([
+      window.archives.readSitePackagesSnapshot(),
+      window.archives.readStreamlitAppDirectory(),
+    ]).then(([sitePackagesSnapshotFileBin, streamlitAppFiles]) => {
+      if (unmounted) {
+        return;
+      }
 
-        const mountedSitePackagesSnapshotFilePath =
-          "/tmp/site-packages-snapshot.tar.gz";
-        kernel = new StliteKernel({
-          command: "run",
-          entrypoint: "streamlit_app.py",
-          files: {
-            "streamlit_app.py": {
-              data: `import streamlit as st
-
-name = st.text_input("name")
-st.write("Hello,", name or "Electron!")
-
-import matplotlib.pyplot as plt
-import numpy as np
-
-size = st.slider("Sample size", 100, 1000, 100)
-arr = np.random.normal(1, 1, size=size)
-fig, ax = plt.subplots()
-ax.hist(arr, bins=20)
-
-st.pyplot(fig)
-
-st.image("https://raw.githubusercontent.com/whitphx/stlite/main/docs/images/logo.svg")
-`,
-            },
-            [mountedSitePackagesSnapshotFilePath]: {
-              data: sitePackagesSnapshotFileBin,
-            },
-          },
-          requirements: [],
-          mountedSitePackagesSnapshotFilePath,
-          pyodideEntrypointUrl,
-        });
-        setKernel(kernel);
+      const files: StliteKernelOptions["files"] = {};
+      Object.keys(streamlitAppFiles).forEach((path) => {
+        const data = streamlitAppFiles[path];
+        files[path] = {
+          data,
+        };
       });
+
+      const mountedSitePackagesSnapshotFilePath =
+        "/tmp/site-packages-snapshot.tar.gz";
+      kernel = new StliteKernel({
+        command: "run",
+        entrypoint: "streamlit_app.py",
+        files: {
+          ...files,
+          [mountedSitePackagesSnapshotFilePath]: {
+            data: sitePackagesSnapshotFileBin,
+          },
+        },
+        requirements: [],
+        mountedSitePackagesSnapshotFilePath,
+        pyodideEntrypointUrl,
+      });
+      setKernel(kernel);
+    });
 
     return () => {
       unmounted = true;

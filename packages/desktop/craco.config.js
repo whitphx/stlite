@@ -79,5 +79,22 @@ module.exports = {
 
       return webpackConfig;
     }
+  },
+  jest: {
+    configure: (jestConfig, { env, paths, resolve, rootDir }) => {
+      console.log(jestConfig, { env, paths, resolve, rootDir });
+      jestConfig.roots = [...jestConfig.roots, '<rootDir>/electron' ];
+      jestConfig.collectCoverageFrom = [
+        ...jestConfig.collectCoverageFrom,
+        'electron/**/*.{js,jsx,ts,tsx}',
+        '!electron/**/*.d.ts'
+      ];
+      jestConfig.testMatch = [
+        ...jestConfig.testMatch,
+        '<rootDir>/electron/**/__tests__/**/*.{js,jsx,ts,tsx}',
+        '<rootDir>/electron/**/*.{spec,test}.{js,jsx,ts,tsx}'
+      ];
+      return jestConfig;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import * as path from "path";
 import * as fsPromises from "fs/promises"
+import { walkRead } from "./file"
 
 if (process.env.NODE_ENV === 'development') {
   console.log("Hot-reloading Electron enabled")
@@ -28,6 +29,11 @@ const createWindow = () => {
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(__dirname, "../site-packages-snapshot.tar.gz")
     return fsPromises.readFile(archiveFilePath)
+  })
+
+  ipcMain.handle("readStreamlitAppDirectory", async (ev): Promise<Record<string, Buffer>> => {
+    const streamlitAppDir = path.resolve(__dirname, "../streamlit_app")
+    return walkRead(streamlitAppDir)
   })
 
   if (app.isPackaged || process.env.NODE_ENV === "production") {

@@ -1,7 +1,10 @@
 #!/usr/bin/env yarn ts-node
 
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import path from "path";
 import fsPromises from "fs/promises";
+import fsExtra from 'fs-extra';
 import fetch from "node-fetch";
 import { loadPyodide, PyodideInterface } from "pyodide";
 
@@ -21,7 +24,7 @@ async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
   await micropip.install.callKwargs(requirement, { keep_going: true });
 }
 
-interface BuildOptions {
+interface CreateSitePackagesSnapshotOptions {
   localWheelPaths: {
     tornado: string;
     pyarrow: string;
@@ -31,7 +34,7 @@ interface BuildOptions {
   saveTo: string;
 }
 
-async function main(options: BuildOptions) {
+async function createSitePackagesSnapshot(options: CreateSitePackagesSnapshotOptions) {
   const pyodide = await loadPyodide();
 
   await pyodide.loadPackage([
@@ -67,12 +70,42 @@ async function main(options: BuildOptions) {
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
-main({
-  localWheelPaths: {
-    pyarrow: path.resolve(__dirname, "../../stlite-kernel/py/stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"),
-    tornado: path.resolve(__dirname, "../../stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl"),
-    streamlit: path.resolve(__dirname, "../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"),
-  },
-  requirements: ["matplotlib"],
-  saveTo: "build/site-packages-snapshot.tar.gz"
-});
+interface CopyHomeDirectoryOptions {
+  sourceDir: string;
+  saveTo: string;
+}
+async function copyHomeDirectory(options: CopyHomeDirectoryOptions) {
+  await fsExtra.ensureDir(options.sourceDir);
+  return fsExtra.copy(options.sourceDir, options.saveTo);
+}
+
+yargs(hideBin(process.argv))
+  .command('* <appHomeDirSource>', 'Put the user code and data and the snapshot of the required packages into the build artifact.', () => { }, (argv) => {
+    console.info(argv)
+  })
+  .positional("appHomeDirSource", {
+    describe: "The source directory of the user code and data that will be mounted in the Pyodide file system at app runtime",
+    type: "string",
+    demandOption: true,
+  })
+  .options("requirements", {
+    array: true,
+    type: "string",
+    alias: "r",
+    default: [],
+  })
+  .parseAsync().then(async (args) => {
+    await createSitePackagesSnapshot({
+      localWheelPaths: {
+        pyarrow: path.resolve(__dirname, "../../stlite-kernel/py/stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"),
+        tornado: path.resolve(__dirname, "../../stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl"),
+        streamlit: path.resolve(__dirname, "../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"),
+      },
+      requirements: args.requirements,
+      saveTo: "build/site-packages-snapshot.tar.gz"  // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
+    });
+    await copyHomeDirectory({
+      sourceDir: args.appHomeDirSource,
+      saveTo: "./build/streamlit_app",  // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    })
+  })

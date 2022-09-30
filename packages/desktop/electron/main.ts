@@ -16,7 +16,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const createWindow = () => {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
@@ -30,7 +29,6 @@ const createWindow = () => {
     const archiveFilePath = path.resolve(__dirname, "../site-packages-snapshot.tar.gz")
     return fsPromises.readFile(archiveFilePath)
   })
-
   ipcMain.handle("readStreamlitAppDirectory", async (ev): Promise<Record<string, Buffer>> => {
     const streamlitAppDir = path.resolve(__dirname, "../streamlit_app")
     return walkRead(streamlitAppDir)

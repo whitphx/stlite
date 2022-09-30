@@ -185,6 +185,14 @@ async function loadPyodideAndPackages() {
     from streamlit.web.server import Server
 
 
+    class BadArgumentUsage(Exception):
+        pass
+
+
+    class BadParameter(Exception):
+        pass
+
+
     def _on_server_start(server):
         print("Streamlit server started")
 
@@ -254,11 +262,11 @@ async function loadPyodideAndPackages() {
         _, extension = os.path.splitext(target)
         if extension[1:] not in ACCEPTED_FILE_EXTENSIONS:
             if extension[1:] == "":
-                raise click.BadArgumentUsage(
+                raise BadArgumentUsage(
                     "Streamlit requires raw Python (.py) files, but the provided file has no extension.\\nFor more information, please see https://docs.streamlit.io"
                 )
             else:
-                raise click.BadArgumentUsage(
+                raise BadArgumentUsage(
                     "Streamlit requires raw Python (.py) files, not %s.\\nFor more information, please see https://docs.streamlit.io"
                     % extension
                 )
@@ -268,7 +276,7 @@ async function loadPyodideAndPackages() {
         # \`target\` here can be assumed to be a file path, not a URL.
 
         if not os.path.exists(target):
-            raise click.BadParameter("File does not exist: {}".format(target))
+            raise BadParameter("File does not exist: {}".format(target))
         _main_run(target, args, flag_options=kwargs)
   `);
   console.debug("Defined the bootstrap functions");

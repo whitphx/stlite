@@ -1,46 +1,53 @@
-# Getting Started with Create React App
+## stlite Electron app
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project has been initialized with Create React App v4.0.3, which version is compatible with the Streamlit frontend.
+So the directory structure and configurations are following it.
+The React app in `./src` will be used as a frontend app of the Electron app, running in the renderer process.
 
-## Available Scripts
+Upon it, the source code for the Electron main process has been added at `./electron` that will be built into the same directory as the React app, `./build`.
 
-In the project directory, you can run:
+This project structure is based on the following references.
 
-### `npm start`
+- [Quick Start - Electron](https://www.electronjs.org/docs/latest/tutorial/quick-start)
+- [Create React App(typescript)をベースに electron 環境を構築する](https://zenn.dev/niwaringo/articles/af693596ef948e)
+- [Electron + React + TypeScript の開発環境構築 (webpack 編)](https://zenn.dev/sprout2000/articles/5d7b350c2e85bc)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Workflow to build the app
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Build the base app
 
-### `npm test`
+```sh
+yarn build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This command builds the Electron app including both the main process (from `./electron`) and the renderer process (from `./src` with CRA) into `./build` directory.
 
-### `npm run build`
+At this point, the built app **does not contain the user code and data for Streamlit like `streamlit_app.py`**.
+We will bundle it at the next step.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Inject the user code and data and the installed requirements snapshot
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+./bin/dump_snapshot.ts <app source directory> [--requirements <requirement1> <requirement2> ... <requirementN>]
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+This command will do 2 things;
 
-### `npm run eject`
+1. Copy the `<app source directory>` into `./build`, which will be loaded as a Streamlit app at runtime.
+2. Create a temporary Pyodide environment, install the requirements there, create the snapshot file containing the installed files, and put the file into `./build`.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+The Electron app built in the previous step will load these files and serve the Streamlit app at runtime.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+In other words, we can replace the Streamlit app just by re-running `./bin/dump_snapshot.ts`, without re-building the app here with `yarn build`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Now the `./build` is ready to be packaged.
+At this point, `yarn serve` can be used to preview the app.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Package the final Electron app
 
-## Learn More
+```
+yarn dist
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Create a distributable package using `electron-builder`.
+This set-up is just following [its tutorial](https://www.electron.build/#quick-setup-guide)

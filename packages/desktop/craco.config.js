@@ -82,7 +82,6 @@ module.exports = {
   },
   jest: {
     configure: (jestConfig, { env, paths, resolve, rootDir }) => {
-      console.log(jestConfig, { env, paths, resolve, rootDir });
       jestConfig.roots = [...jestConfig.roots, '<rootDir>/electron' ];
       jestConfig.collectCoverageFrom = [
         ...jestConfig.collectCoverageFrom,

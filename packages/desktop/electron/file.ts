@@ -16,14 +16,14 @@ export async function walkRead(dirPath: string, relative = true): Promise<Record
     }
   }))
 
-  if (relative) {
-    const relPathFileContents: Record<string, Buffer> = {}
-    Object.keys(fileContents).forEach((absPath) => {
-      const relPath = path.relative(dirPath, absPath);
-      relPathFileContents[relPath] = fileContents[absPath];
-    })
-    return relPathFileContents;
+  if (!relative) {
+    return fileContents;
   }
 
-  return fileContents;
+  const relPathFileContents: Record<string, Buffer> = {}
+  Object.keys(fileContents).forEach((absPath) => {
+    const relPath = path.relative(dirPath, absPath);
+    relPathFileContents[relPath] = fileContents[absPath];
+  })
+  return relPathFileContents;
 }

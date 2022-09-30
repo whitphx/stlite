@@ -15,8 +15,8 @@ describe("walkRead", () => {
     const targetDirPath = path.resolve(__dirname, "./foo/")
     const result = await walkRead(targetDirPath, false);
     expect(result).toEqual({
-      [path.resolve(__dirname, "./foo/foo.txt")]: Buffer.from("Lorem ipsum dolor sit amet\n"),
-      [path.resolve(__dirname, "./foo/bar/bar.txt")]: Buffer.from("consectetur adipiscing elit\n"),
+      [path.resolve(targetDirPath, "./foo.txt")]: Buffer.from("Lorem ipsum dolor sit amet\n"),
+      [path.resolve(targetDirPath, "./bar/bar.txt")]: Buffer.from("consectetur adipiscing elit\n"),
     })
   })
 })

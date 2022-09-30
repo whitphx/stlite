@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2022-10-01
+
+### `@stlite/stlite-kernel`
+
+#### Added
+
+- Add options `pyodideEntrypointUrl` and `mountedSitePackagesSnapshotFilePath`, [#295](https://github.com/whitphx/stlite/pull/295).
+
+#### Fixed
+
+- Fix the wrong error messages, [#300](https://github.com/whitphx/stlite/pull/300).
+
+### `@stlite/desktop`
+
+#### Added
+
+- Created `@stlite/desktop`, [#295](https://github.com/whitphx/stlite/pull/295).
+
 ## [0.7.1] - 2022-09-26
 
 ### `@stlite/stlite-kernel`

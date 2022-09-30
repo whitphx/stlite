@@ -95,6 +95,7 @@ async function loadPyodideAndPackages() {
       with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
           tar_gz_file.extractall("/")
     `);
+    console.debug("Restored the snapshot");
   } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
     console.debug("Loading tornado, pyarrow, and streamlit");

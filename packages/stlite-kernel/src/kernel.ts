@@ -51,15 +51,6 @@ export interface StliteKernelOptions {
   /**
    *
    */
-  wheelUrls?: {
-    tornado?: string;
-    pyarrow?: string;
-    streamlit?: string;
-  };
-
-  /**
-   *
-   */
   wheelBaseUrl?: string;
 
   mountedSitePackagesSnapshotFilePath?: string;
@@ -122,15 +113,15 @@ export class StliteKernel {
         STREAMLIT_WHEEL,
       });
       const tornadoWheelUrl = makeAbsoluteWheelURL(
-        options.wheelUrls?.tornado ?? (TORNADO_WHEEL as unknown as string),
+        TORNADO_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
       const pyarrowWheelUrl = makeAbsoluteWheelURL(
-        options.wheelUrls?.pyarrow ?? (PYARROW_WHEEL as unknown as string),
+        PYARROW_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
-        options.wheelUrls?.streamlit ?? (STREAMLIT_WHEEL as unknown as string),
+        STREAMLIT_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
       wheels = {

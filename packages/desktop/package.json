@@ -19,7 +19,11 @@
     "serve": "NODE_ENV=\"production\" electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
   },
   "eslintConfig": {
     "extends": [

@@ -1,6 +1,8 @@
-import { contextBridge, ipcRenderer } from "electron"
+import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("archives", {
-  readSitePackagesSnapshot: () => ipcRenderer.invoke("readSitePackagesSnapshot"),
-  readStreamlitAppDirectory: () => ipcRenderer.invoke("readStreamlitAppDirectory"),
-})
+  readSitePackagesSnapshot: () =>
+    ipcRenderer.invoke("readSitePackagesSnapshot"),
+  readStreamlitAppDirectory: () =>
+    ipcRenderer.invoke("readStreamlitAppDirectory"),
+});

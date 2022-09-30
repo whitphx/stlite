@@ -10,11 +10,7 @@ if (process.env.NODE_ENV === "production") {
   // Ref: https://pyodide.org/en/stable/usage/downloading-and-deploying.html
   // We set the path here to be loaded in the worker via `importScript()`.
   const currentURL = window.location.href;
-  const parentURL =
-    currentURL
-      .split("/")
-      .slice(0, -1)
-      .join("/") + "/";
+  const parentURL = currentURL.split("/").slice(0, -1).join("/") + "/";
   pyodideEntrypointUrl = parentURL + "pyodide/pyodide.js";
 }
 

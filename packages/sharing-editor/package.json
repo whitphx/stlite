@@ -1,11 +1,11 @@
 {
   "name": "@stlite/sharing-editor",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
     "@monaco-editor/react": "^4.4.5",
-    "@stlite/sharing-common": "^0.7.0",
+    "@stlite/sharing-common": "^0.8.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

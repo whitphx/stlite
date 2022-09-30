@@ -1,10 +1,9 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "homepage": "./",
   "main": "./build/electron/main.js",
-  "dependencies": {},
   "scripts": {
     "start:web": "craco start",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
@@ -42,7 +41,7 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.1.2",
-    "@stlite/stlite-kernel": "^0.7.1",
+    "@stlite/stlite-kernel": "^0.8.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

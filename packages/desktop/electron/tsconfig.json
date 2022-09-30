@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "../build",
+    "rootDir": "../",
+    "skipLibCheck": true
+  },
+  "include": ["."],
+  "exclude": ["./**/*.test.*", "./**/__tests__"]
+}

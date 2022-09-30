@@ -2,8 +2,6 @@ import { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js");
-
 let pyodide: PyodideInterface;
 
 let httpServer: any;
@@ -37,17 +35,30 @@ function postProgressMessage(message: string): void {
  *       https://github.com/jupyterlite/jupyterlite/pull/310
  */
 async function loadPyodideAndPackages() {
-  // as of 0.17.0 indexURL must be provided
+  const {
+    command,
+    entrypoint,
+    files,
+    requirements,
+    wheels,
+    mountedSitePackagesSnapshotFilePath,
+    pyodideEntrypointUrl,
+  } = await initDataPromiseDelegate.promise;
+
   postProgressMessage("Loading Pyodide.");
+
+  console.debug("Import the entrypoint script.");
+  importScripts(
+    pyodideEntrypointUrl ??
+      "https://cdn.jsdelivr.net/pyodide/v0.21.0/full/pyodide.js"
+  );
+
   console.debug("Loading Pyodide");
   pyodide = await loadPyodide({
     stdout: console.log,
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
-
-  const { command, entrypoint, files, requirements, wheels } =
-    await initDataPromiseDelegate.promise;
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -66,25 +77,49 @@ async function loadPyodideAndPackages() {
   ]);
   console.debug("Loaded the initially necessary packages");
 
-  postProgressMessage("Installing streamlit and its dependencies.");
-  console.debug("Loading tornado, pyarrow, and streamlit");
-  const micropip = pyodide.pyimport("micropip");
-  await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
-    keep_going: true,
-  });
-  await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-  console.debug("Loaded tornado, pyarrow, and streamlit");
+  if (mountedSitePackagesSnapshotFilePath) {
+    // Restore the site-packages director(y|ies) from the mounted snapshot file.
+    postProgressMessage("Restoring the snapshot.");
 
-  postProgressMessage("Installing the requirements.");
-  console.debug("Installing the requirements:", requirements);
-  await micropip.install.callKwargs(requirements, { keep_going: true });
+    await pyodide.runPythonAsync(`import tarfile, shutil, site`);
+
+    // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
+    // assuming these directories will be extracted from the snapshot archive.
+    await pyodide.runPythonAsync(`
+      site_packages_dirs = site.getsitepackages()
+      for site_packages in site_packages_dirs:
+          shutil.rmtree(site_packages)
+    `);
+    console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
+    await pyodide.runPythonAsync(`
+      with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
+          tar_gz_file.extractall("/")
+    `);
+    console.debug("Restored the snapshot");
+  } else if (wheels) {
+    postProgressMessage("Installing streamlit and its dependencies.");
+    console.debug("Loading tornado, pyarrow, and streamlit");
+    const micropip = pyodide.pyimport("micropip");
+    await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
+      keep_going: true,
+    });
+    await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
+    console.debug("Loaded tornado, pyarrow, and streamlit");
+
+    postProgressMessage("Installing the requirements.");
+    console.debug("Installing the requirements:", requirements);
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements:", requirements);
+  } else {
+    throw new Error(`Neither snapshot nor wheel files are provided.`);
+  }
+
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`
     import importlib
     importlib.invalidate_caches()
   `);
-  console.debug("Installed the requirements:", requirements);
 
   postProgressMessage("Loading streamlit package and setting up the loggers.");
   console.debug("Setting the loggers");

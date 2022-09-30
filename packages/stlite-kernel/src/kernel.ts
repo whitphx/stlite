@@ -44,9 +44,21 @@ export interface StliteKernelOptions {
   >;
 
   /**
+   * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
+   * If not specified, the default one is used.
+   */
+  pyodideEntrypointUrl?: string;
+
+  /**
    *
    */
   wheelBaseUrl?: string;
+
+  /**
+   * If specified, the worker restores the site-packages directories from this archive file
+   * and skip installing the wheels and required packages.
+   */
+  mountedSitePackagesSnapshotFilePath?: string;
 
   /**
    * The `pathname` that will be used as both
@@ -98,38 +110,42 @@ export class StliteKernel {
       this._processWorkerMessage(e.data);
     };
 
-    console.debug("Custom wheel URLs:", {
-      TORNADO_WHEEL,
-      PYARROW_WHEEL,
-      STREAMLIT_WHEEL,
-    });
-    const tornadoWheelUrl = makeAbsoluteWheelURL(
-      TORNADO_WHEEL as unknown as string,
-      options.wheelBaseUrl
-    );
-    const pyarrowWheelUrl = makeAbsoluteWheelURL(
-      PYARROW_WHEEL as unknown as string,
-      options.wheelBaseUrl
-    );
-    const streamlitWheelUrl = makeAbsoluteWheelURL(
-      STREAMLIT_WHEEL as unknown as string,
-      options.wheelBaseUrl
-    );
-    console.debug("Custom wheel resolved URLs:", {
-      tornadoWheelUrl,
-      pyarrowWheelUrl,
-      streamlitWheelUrl,
-    });
+    let wheels: WorkerInitialData["wheels"] = undefined;
+    if (options.mountedSitePackagesSnapshotFilePath == null) {
+      console.debug("Custom wheel URLs:", {
+        TORNADO_WHEEL,
+        PYARROW_WHEEL,
+        STREAMLIT_WHEEL,
+      });
+      const tornadoWheelUrl = makeAbsoluteWheelURL(
+        TORNADO_WHEEL as unknown as string,
+        options.wheelBaseUrl
+      );
+      const pyarrowWheelUrl = makeAbsoluteWheelURL(
+        PYARROW_WHEEL as unknown as string,
+        options.wheelBaseUrl
+      );
+      const streamlitWheelUrl = makeAbsoluteWheelURL(
+        STREAMLIT_WHEEL as unknown as string,
+        options.wheelBaseUrl
+      );
+      wheels = {
+        tornado: tornadoWheelUrl,
+        pyarrow: pyarrowWheelUrl,
+        streamlit: streamlitWheelUrl,
+      };
+      console.debug("Custom wheel resolved URLs:", wheels);
+    }
+
     this._workerInitData = {
       command: options.command,
       entrypoint: options.entrypoint,
       files: options.files,
       requirements: options.requirements,
-      wheels: {
-        tornado: tornadoWheelUrl,
-        pyarrow: pyarrowWheelUrl,
-        streamlit: streamlitWheelUrl,
-      },
+      pyodideEntrypointUrl: options.pyodideEntrypointUrl,
+      wheels,
+      mountedSitePackagesSnapshotFilePath:
+        options.mountedSitePackagesSnapshotFilePath,
     };
   }
 

@@ -10,6 +10,7 @@ jobs:
       tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
       mountable: ${{ steps.filter.outputs.mountable }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
+      desktop: ${{ steps.filter.outputs.desktop }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
@@ -27,6 +28,8 @@ jobs:
             - 'packages/mountable/**/*'
           sharing-common:
             - 'packages/sharing-common/**/*'
+          desktop:
+            - 'packages/desktop/**/*'
 
   test-stlite-kernel:
     needs: changes
@@ -196,6 +199,38 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
+    - run: yarn test
+
+  test-desktop:
+    needs: changes
+    if: ${{ needs.changes.outputs.desktop == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16.x]
+
+    defaults:
+      run:
+        working-directory: packages/desktop
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
+    - run: yarn typecheck
     - run: yarn test
 
   build-mountable:

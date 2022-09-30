@@ -18,11 +18,13 @@ interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile>;
   requirements: string[];
-  wheels: {
+  pyodideEntrypointUrl?: string;
+  wheels?: {
     tornado: string;
     pyarrow: string;
     streamlit: string;
   };
+  mountedSitePackagesSnapshotFilePath?: string;
 }
 
 /**

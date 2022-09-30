@@ -1,0 +1,82 @@
+{
+  "name": "@stlite/desktop",
+  "version": "0.7.1",
+  "private": true,
+  "homepage": "./",
+  "main": "./build/electron/main.js",
+  "dependencies": {},
+  "scripts": {
+    "start:web": "craco start",
+    "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
+    "build:web": "craco build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
+    "test": "craco test",
+    "eject": "craco eject",
+    "start:electron": "tsc -p electron -w",
+    "build:electron": "tsc -p electron",
+    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2 | tar x -C ./build",
+    "typecheck": "yarn tsc --noEmit -p electron",
+    "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
+    "build": "yarn build:web && yarn build:electron && yarn build:pyodide",
+    "serve": "NODE_ENV=\"production\" electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      "last 1 electron version"
+    ],
+    "development": [
+      "last 1 electron version"
+    ]
+  },
+  "devDependencies": {
+    "@craco/craco": "^6.1.2",
+    "@stlite/stlite-kernel": "^0.7.1",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^13.1.9",
+    "@types/jest": "^26.0.19",
+    "@types/node": "^14.14.16",
+    "@types/react": "^17.0.7",
+    "@types/react-dom": "^17.0.5",
+    "@types/yargs": "^17.0.13",
+    "electron": "20.2.0",
+    "electron-builder": "^23.3.3",
+    "electron-reload": "^2.0.0-alpha.1",
+    "fs-extra": "^10.1.0",
+    "node-fetch": "2",
+    "pyodide": "^0.21.3",
+    "raw-loader": "^4.0.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.6.3",
+    "yargs": "^17.5.1"
+  },
+  "//": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
+  "build": {
+    "appId": "your.id",
+    "mac": {
+      "category": "your.app.category.type"
+    },
+    "productName": "stlite app",
+    "extends": null,
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  }
+}

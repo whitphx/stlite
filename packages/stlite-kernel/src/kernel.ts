@@ -45,6 +45,7 @@ export interface StliteKernelOptions {
 
   /**
    * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
+   * If not specified, the default one is used.
    */
   pyodideEntrypointUrl?: string;
 
@@ -53,6 +54,10 @@ export interface StliteKernelOptions {
    */
   wheelBaseUrl?: string;
 
+  /**
+   * If specified, the worker restores the site-packages directories from this archive file
+   * and skip installing the wheels and required packages.
+   */
   mountedSitePackagesSnapshotFilePath?: string;
 
   /**

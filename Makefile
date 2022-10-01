@@ -78,7 +78,7 @@ $(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packag
 
 .PHONY: stlite-kernel
 stlite-kernel: $(stlite_kernel)
-$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_proto)
+$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
 	@touch $@

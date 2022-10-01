@@ -1,4 +1,4 @@
-import { StliteKernelOptions } from "@stlite/stlite-kernel";
+import { StliteKernelOptions } from "@stlite/kernel";
 
 type SimplifiedFiles = Record<string, string | ArrayBufferView>;
 export interface SimplifiedStliteKernelOptions {

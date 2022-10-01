@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StliteKernel, StliteKernelOptions } from "@stlite/stlite-kernel";
+import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import StreamlitApp from "./StreamlitApp";
 
 let pyodideEntrypointUrl: string | undefined;

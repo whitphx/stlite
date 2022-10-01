@@ -3,11 +3,11 @@ mountable := packages/mountable/build/*
 sharing := packages/sharing/build/*
 sharing-common := packages/sharing-common/dist/*
 sharing-editor := packages/sharing-editor/build/*
-stlite_kernel := packages/stlite-kernel/dist/*
-pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
-tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
+kernel := packages/kernel/dist/*
+pyarrow_wheel := packages/kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
+tornado_wheel := packages/kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := packages/stlite-kernel/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl
 
 .PHONY: all
 all: init mountable playground sharing sharing-editor
@@ -45,14 +45,14 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(stlite_kernel) $(streamlit_wheel)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel) $(streamlit_wheel)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(stlite_kernel) $(streamlit_wheel) $(sharing-common) yarn_install
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(streamlit_wheel) $(sharing-common) yarn_install
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -71,26 +71,26 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: playground
 playground: $(playground)
-$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(stlite_kernel) $(streamlit_wheel)
+$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(kernel) $(streamlit_wheel)
 	cd packages/playground; \
 	yarn build
 	@touch $@
 
-.PHONY: stlite-kernel
-stlite-kernel: $(stlite_kernel)
-$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
-	cd packages/stlite-kernel; \
+.PHONY: kernel
+kernel: $(kernel)
+$(kernel): packages/kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
+	cd packages/kernel; \
 	yarn build
 	@touch $@
 
-$(pyarrow_wheel): $(VENV) packages/stlite-kernel/py/stlite-pyarrow/pyarrow/*.py
+$(pyarrow_wheel): $(VENV) packages/kernel/py/stlite-pyarrow/pyarrow/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/stlite-kernel/py/stlite-pyarrow && \
+	cd packages/kernel/py/stlite-pyarrow && \
 	poetry build
 
-$(tornado_wheel): $(VENV) packages/stlite-kernel/py/tornado/tornado/*.py
+$(tornado_wheel): $(VENV) packages/kernel/py/tornado/tornado/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/stlite-kernel/py/tornado && \
+	cd packages/kernel/py/tornado && \
 	TORNADO_EXTENSION=0 python -m build --wheel
 	@touch $@
 

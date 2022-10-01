@@ -1,0 +1,39 @@
+name: 'Set up stlite Python environment'
+inputs:
+  python-version:
+    required: true
+    default: "3.10.2"
+runs:
+  using: "composite"
+  steps:
+    ## Set up Python and Poetry environment
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    - name: Get full Python version
+      id: full-python-version
+      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+
+    - name: Bootstrap poetry
+      run: |
+        curl -sL https://install.python-poetry.org | python - -y
+
+    - name: Update PATH
+      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Configure poetry
+      run: poetry config virtualenvs.in-project true
+
+    - name: Set up cache
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      run: timeout 10s pip --version || rm -rf .venv

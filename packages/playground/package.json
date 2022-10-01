@@ -1,11 +1,11 @@
 {
   "name": "playground",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.1.2",
     "@monaco-editor/react": "^4.4.5",
-    "@stlite/stlite-kernel": "^0.8.0",
+    "@stlite/stlite-kernel": "^0.9.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

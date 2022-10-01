@@ -104,19 +104,23 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
+    const stliteKernelDir = path.dirname(
+      require.resolve("@stlite/stlite-kernel")
+    ); // -> /path/to/stlite-kernel/dist
+    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/stlite-kernel/py
     await createSitePackagesSnapshot({
       localWheelPaths: {
-        pyarrow: path.resolve(
-          __dirname,
-          "../../stlite-kernel/py/stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
+        pyarrow: path.join(
+          stliteKernelPyDir,
+          "stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
         ),
-        tornado: path.resolve(
-          __dirname,
-          "../../stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl"
+        tornado: path.join(
+          stliteKernelPyDir,
+          "tornado/dist/tornado-6.2-py3-none-any.whl"
         ),
-        streamlit: path.resolve(
-          __dirname,
-          "../../../streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"
+        streamlit: path.join(
+          stliteKernelPyDir,
+          "streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"
         ),
       },
       requirements: args.requirements,

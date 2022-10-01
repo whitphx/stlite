@@ -193,10 +193,6 @@ async function loadPyodideAndPackages() {
         pass
 
 
-    def _on_server_start(server):
-        print("Streamlit server started")
-
-
     # Mimic streamlit.web.bootstrap.run() but exclude some code unnecessary for stlite environment
     def run(
         main_script_path,
@@ -214,7 +210,7 @@ async function loadPyodideAndPackages() {
         server = Server(main_script_path, command_line)
 
         # Run the server.
-        asyncio.get_event_loop().create_task(server.start(_on_server_start))
+        asyncio.get_event_loop().create_task(server.start())
 
 
     def _get_command_line_as_string():

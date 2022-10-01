@@ -7,7 +7,7 @@ stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
+streamlit_wheel := packages/stlite-kernel/py/streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
 
 .PHONY: all
 all: init mountable playground sharing sharing-editor
@@ -76,7 +76,9 @@ $(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packag
 	yarn build
 	@touch $@
 
-$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_proto)
+.PHONY: stlite-kernel
+stlite-kernel: $(stlite_kernel)
+$(stlite_kernel): packages/stlite-kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/stlite-kernel; \
 	yarn build
 	@touch $@
@@ -98,11 +100,12 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	$(MAKE) mini-init
 	@touch $@
 
-$(streamlit_wheel): $(VENV) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	cd streamlit && \
 	make distribution
-	@touch $@
+	mkdir -p `dirname $(streamlit_wheel)`
+	cp streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl $(streamlit_wheel)
 
 
 .PHONY: serve

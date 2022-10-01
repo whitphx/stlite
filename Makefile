@@ -7,7 +7,7 @@ stlite_kernel := packages/stlite-kernel/dist/*
 pyarrow_wheel := packages/stlite-kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/stlite-kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := packages/stlite-kernel/py/streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl
+streamlit_wheel := packages/stlite-kernel/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl
 
 .PHONY: all
 all: init mountable playground sharing sharing-editor
@@ -105,7 +105,7 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 	cd streamlit && \
 	make distribution
 	mkdir -p `dirname $(streamlit_wheel)`
-	cp streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl $(streamlit_wheel)
+	cp streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl $(streamlit_wheel)
 
 
 .PHONY: serve

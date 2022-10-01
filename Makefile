@@ -100,7 +100,7 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	$(MAKE) mini-init
 	@touch $@
 
-$(streamlit_wheel): $(VENV) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	cd streamlit && \
 	make distribution

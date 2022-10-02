@@ -289,8 +289,6 @@ jobs:
       with:
         node-version: ${{ env.node-version }}
         cache: 'yarn'
-        registry-url: 'https://registry.npmjs.org'
-        scope: '@stlite'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies
@@ -380,8 +378,6 @@ jobs:
       with:
         node-version: ${{ env.node-version }}
         cache: 'yarn'
-        registry-url: 'https://registry.npmjs.org'
-        scope: '@stlite'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies
@@ -506,8 +502,6 @@ jobs:
       with:
         node-version: ${{ env.node-version }}
         cache: 'yarn'
-        registry-url: 'https://registry.npmjs.org'
-        scope: '@stlite'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies

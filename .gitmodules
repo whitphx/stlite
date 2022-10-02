@@ -1,6 +1,6 @@
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/whitphx/streamlit.git
-[submodule "packages/stlite-kernel/py/tornado"]
-	path = packages/stlite-kernel/py/tornado
+[submodule "packages/kernel/py/tornado"]
+	path = packages/kernel/py/tornado
 	url = https://github.com/whitphx/tornado.git

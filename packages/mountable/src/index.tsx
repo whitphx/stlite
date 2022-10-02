@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { StliteKernel } from "@stlite/stlite-kernel";
+import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
 

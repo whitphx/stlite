@@ -6,7 +6,7 @@ jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
-      stlite-kernel: ${{ steps.filter.outputs.stlite-kernel }}
+      kernel: ${{ steps.filter.outputs.kernel }}
       tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
       mountable: ${{ steps.filter.outputs.mountable }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
@@ -17,12 +17,12 @@ jobs:
       id: filter
       with:
         filters: |
-          stlite-kernel:
-            - 'packages/stlite-kernel/**/*'
-            # - '!packages/stlite-kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
+          kernel:
+            - 'packages/kernel/**/*'
+            # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
           tornado-e2e:
-            - 'packages/stlite-kernel/py/tornado'
-            - 'packages/stlite-kernel/py/e2etests/**/*'
+            - 'packages/kernel/py/tornado'
+            - 'packages/kernel/py/e2etests/**/*'
             - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
@@ -31,9 +31,9 @@ jobs:
           desktop:
             - 'packages/desktop/**/*'
 
-  test-stlite-kernel:
+  test-kernel:
     needs: changes
-    if: ${{ needs.changes.outputs.stlite-kernel == 'true' }}
+    if: ${{ needs.changes.outputs.kernel == 'true' }}
 
     runs-on: ubuntu-latest
 
@@ -44,7 +44,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/stlite-kernel
+        working-directory: packages/kernel
 
     steps:
     - uses: actions/checkout@v3
@@ -123,23 +123,23 @@ jobs:
     - name: Install dependencies
       shell: bash
       run: poetry install
-      working-directory: packages/stlite-kernel/py/e2etests
+      working-directory: packages/kernel/py/e2etests
 
     - name: Run linter and code formatter to the test code module
-      working-directory: packages/stlite-kernel/py/e2etests
+      working-directory: packages/kernel/py/e2etests
       run: |
         poetry run black . --check
         poetry run isort . --check
         poetry run flake8
 
     - name: Run mypy
-      working-directory: packages/stlite-kernel/py/e2etests
+      working-directory: packages/kernel/py/e2etests
       run: poetry run mypy .
 
     - name: Run pytest
       shell: bash
       run: poetry run python -m pytest -v tests
-      working-directory: packages/stlite-kernel/py/e2etests
+      working-directory: packages/kernel/py/e2etests
 
   test-mountable:
     needs: changes
@@ -233,9 +233,9 @@ jobs:
     - run: yarn typecheck
     - run: yarn test
 
-  build-stlite-kernel:
+  build-kernel:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-stlite-kernel, test-tornado-e2e]
+    needs: [test-kernel, test-tornado-e2e]
 
     env:
       python-version: "3.10.2"
@@ -303,30 +303,30 @@ jobs:
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
-    - name: Build @stlite/stlite-kernel
-      run: make stlite-kernel
+    - name: Build @stlite/kernel
+      run: make kernel
 
     - name: Package
-      working-directory: packages/stlite-kernel
+      working-directory: packages/kernel
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v2
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
-        path: packages/stlite-kernel/stlite-stlite-kernel-v*.tgz
-        name: stlite-stlite-kernel-${{ github.sha }}.tgz
+        path: packages/kernel/stlite-kernel-v*.tgz
+        name: stlite-kernel-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v2
       if: startsWith(github.ref, 'refs/tags/v')
       with:
-        path: packages/stlite-kernel/stlite-stlite-kernel-v*.tgz
-        name: stlite-stlite-kernel-${{ github.ref_name }}.tgz
+        path: packages/kernel/stlite-kernel-v*.tgz
+        name: stlite-kernel-${{ github.ref_name }}.tgz
 
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-stlite-kernel, test-tornado-e2e, test-mountable]
+    needs: [test-kernel, test-tornado-e2e, test-mountable]
 
     env:
       python-version: "3.10.2"
@@ -452,7 +452,7 @@ jobs:
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-stlite-kernel, test-tornado-e2e, test-sharing-common]
+    needs: [test-kernel, test-tornado-e2e, test-sharing-common]
 
     env:
       python-version: "3.10.2"
@@ -562,7 +562,7 @@ jobs:
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-stlite-kernel, test-tornado-e2e, test-sharing-common, deploy-sharing]
+    needs: [test-kernel, test-tornado-e2e, test-sharing-common, deploy-sharing]
 
     runs-on: ubuntu-latest
 

@@ -8,7 +8,7 @@ import {
   StliteKernel,
   StliteKernelOptions,
   StliteKernelProvider,
-} from "@stlite/stlite-kernel";
+} from "@stlite/kernel";
 
 import { Id as ToastId, Slide, toast } from "react-toastify";
 

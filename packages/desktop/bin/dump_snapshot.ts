@@ -104,10 +104,8 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
-    const stliteKernelDir = path.dirname(
-      require.resolve("@stlite/stlite-kernel")
-    ); // -> /path/to/stlite-kernel/dist
-    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/stlite-kernel/py
+    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
+    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
     await createSitePackagesSnapshot({
       localWheelPaths: {
         pyarrow: path.join(

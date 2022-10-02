@@ -3,7 +3,6 @@
   "description": "",
   "version": "0.9.0",
   "license": "Apache-2.0",
-  "private": true,
   "main": "dist/index.js",
   "files": [
     "dist/",

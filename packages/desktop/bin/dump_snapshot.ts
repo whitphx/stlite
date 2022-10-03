@@ -118,7 +118,7 @@ yargs(hideBin(process.argv))
         ),
         streamlit: path.join(
           stliteKernelPyDir,
-          "streamlit/lib/dist/streamlit-1.12.0-py2.py3-none-any.whl"
+          "streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl"
         ),
       },
       requirements: args.requirements,

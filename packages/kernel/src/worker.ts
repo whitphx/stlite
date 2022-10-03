@@ -72,7 +72,6 @@ async function loadPyodideAndPackages() {
   postProgressMessage("Loading the initially required packages.");
   console.debug("Loading the initially necessary packages");
   await pyodide.loadPackage([
-    "micropip",
     "ssl", // TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
   ]);
   console.debug("Loaded the initially necessary packages");
@@ -99,6 +98,7 @@ async function loadPyodideAndPackages() {
   } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
     console.debug("Loading tornado, pyarrow, and streamlit");
+    await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
     await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
       keep_going: true,

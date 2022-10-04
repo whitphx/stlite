@@ -3,6 +3,7 @@ mountable := packages/mountable/build/*
 sharing := packages/sharing/build/*
 sharing-common := packages/sharing-common/dist/*
 sharing-editor := packages/sharing-editor/build/*
+desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 pyarrow_wheel := packages/kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
 tornado_wheel := packages/kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
@@ -66,6 +67,13 @@ $(sharing-common): packages/sharing-common/src/*.ts yarn_install
 sharing-editor: $(sharing-editor)
 $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(sharing-common) yarn_install
 	cd packages/sharing-editor; \
+	yarn build
+	@touch $@
+
+.PHONY: desktop
+desktop: $(desktop)
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) yarn_install
+	cd packages/desktop; \
 	yarn build
 	@touch $@
 

@@ -180,6 +180,12 @@ yargs(hideBin(process.argv))
   .then(async (args) => {
     const destDir = path.resolve(process.cwd(), "./build");
 
+    try {
+      await fsPromises.access(args.appHomeDirSource);
+    } catch {
+      throw new Error(`${args.appHomeDirSource} does not exist.`);
+    }
+
     await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,

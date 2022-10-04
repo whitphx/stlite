@@ -4,6 +4,9 @@
   "private": true,
   "homepage": "./",
   "main": "./build/electron/main.js",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "start:web": "craco start",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",

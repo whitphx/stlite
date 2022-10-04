@@ -11,6 +11,40 @@ import { loadPyodide, PyodideInterface } from "pyodide";
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
 
+interface CopyBuildDirectoryOptions {
+  override: boolean;
+  copyTo: string;
+}
+async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
+  console.info(
+    "Copy the build directory (the bare built app files) to this directory..."
+  );
+
+  const sourceDir = path.resolve(__dirname, "../build");
+  const sourceDirStat = await fsPromises.stat(sourceDir);
+  if (!sourceDirStat.isDirectory()) {
+    throw new Error(`The source ${sourceDir} does not exist.`);
+  }
+
+  if (sourceDir === options.copyTo) {
+    console.warn(
+      `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`
+    );
+    return;
+  }
+
+  if (!options.override) {
+    try {
+      await fsPromises.access(options.copyTo);
+      console.info(`${options.copyTo} already exists. Skip copying.`);
+      return;
+    } catch {}
+  }
+
+  console.log(`Copy ${sourceDir} to ${options.copyTo}`);
+  fsExtra.copy(sourceDir, options.copyTo);
+}
+
 async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
   console.log(`Install the local wheel ${localPath}`);
 
@@ -29,10 +63,11 @@ interface CreateSitePackagesSnapshotOptions {
   requirements: string[];
   saveTo: string;
 }
-
 async function createSitePackagesSnapshot(
   options: CreateSitePackagesSnapshotOptions
 ) {
+  console.info("Create the site-packages snapshot file...");
+
   const pyodide = await loadPyodide();
 
   await pyodide.loadPackage(["micropip"]);
@@ -92,17 +127,19 @@ async function createSitePackagesSnapshot(
   console.log("Extract the archive file from EMFS");
   const archiveBin = pyodide.FS.readFile(archiveFilePath);
 
-  console.log("Save the archive file");
+  console.log(`Save the archive file (${options.saveTo})`);
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
 interface CopyHomeDirectoryOptions {
   sourceDir: string;
-  saveTo: string;
+  copyTo: string;
 }
-async function copyHomeDirectory(options: CopyHomeDirectoryOptions) {
-  await fsExtra.ensureDir(options.sourceDir);
-  return fsExtra.copy(options.sourceDir, options.saveTo);
+async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
+  console.info("Copy the Streamlit app directory...");
+
+  console.log(`Copy ${options.sourceDir} to ${options.copyTo}`);
+  return fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
 yargs(hideBin(process.argv))
@@ -132,18 +169,25 @@ yargs(hideBin(process.argv))
     alias: "l",
     default: false,
   })
+  .options("force", {
+    type: "boolean",
+    default: false,
+    alias: "f",
+    describe:
+      "Forcefully copy the directory even if the destination directory already exists.",
+  })
   .parseAsync()
   .then(async (args) => {
-    const targetDir = path.resolve(process.cwd(), "./build");
-    await fsExtra.ensureDir(targetDir);
+    const destDir = path.resolve(process.cwd(), "./build");
 
+    await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: args.requirements,
-      saveTo: path.resolve(targetDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
+      saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
-    await copyHomeDirectory({
+    await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,
-      saveTo: path.resolve(targetDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
   });

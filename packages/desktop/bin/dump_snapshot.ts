@@ -25,11 +25,7 @@ async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
 }
 
 interface CreateSitePackagesSnapshotOptions {
-  localWheelPaths: {
-    tornado: string;
-    pyarrow: string;
-    streamlit: string;
-  };
+  useLocalKernelWheels: boolean;
   requirements: string[];
   saveTo: string;
 }
@@ -41,9 +37,37 @@ async function createSitePackagesSnapshot(
 
   await pyodide.loadPackage(["micropip"]);
 
-  await installLocalWheel(pyodide, options.localWheelPaths.tornado);
-  await installLocalWheel(pyodide, options.localWheelPaths.pyarrow);
-  await installLocalWheel(pyodide, options.localWheelPaths.streamlit);
+  if (options.useLocalKernelWheels) {
+    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
+    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
+    await installLocalWheel(
+      pyodide,
+      path.join(stliteKernelPyDir, "tornado/dist/tornado-6.2-py3-none-any.whl")
+    );
+    await installLocalWheel(
+      pyodide,
+      path.join(
+        stliteKernelPyDir,
+        "stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
+      )
+    );
+    await installLocalWheel(
+      pyodide,
+      path.join(
+        stliteKernelPyDir,
+        "streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl"
+      )
+    );
+  } else {
+    const micropip = pyodide.pyimport("micropip");
+    const wheelUrls = [
+      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.10.1/py/tornado/dist/tornado-6.2-py3-none-any.whl",
+      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.10.1/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl",
+      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.10.1/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl",
+    ];
+    console.log("Install", wheelUrls);
+    await micropip.install.callKwargs(wheelUrls, { keep_going: true });
+  }
 
   console.log(
     `Install the requirements ${JSON.stringify(options.requirements)}`
@@ -102,30 +126,24 @@ yargs(hideBin(process.argv))
     alias: "r",
     default: [],
   })
+  .options("localKernelWheels", {
+    describe: "Use the locally installed kernel wheels",
+    type: "boolean",
+    alias: "l",
+    default: false,
+  })
   .parseAsync()
   .then(async (args) => {
-    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
-    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
+    const targetDir = path.resolve(process.cwd(), "./build");
+    await fsExtra.ensureDir(targetDir);
+
     await createSitePackagesSnapshot({
-      localWheelPaths: {
-        pyarrow: path.join(
-          stliteKernelPyDir,
-          "stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
-        ),
-        tornado: path.join(
-          stliteKernelPyDir,
-          "tornado/dist/tornado-6.2-py3-none-any.whl"
-        ),
-        streamlit: path.join(
-          stliteKernelPyDir,
-          "streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl"
-        ),
-      },
+      useLocalKernelWheels: args.localKernelWheels,
       requirements: args.requirements,
-      saveTo: "build/site-packages-snapshot.tar.gz", // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
+      saveTo: path.resolve(targetDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     await copyHomeDirectory({
       sourceDir: args.appHomeDirSource,
-      saveTo: "./build/streamlit_app", // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      saveTo: path.resolve(targetDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
   });

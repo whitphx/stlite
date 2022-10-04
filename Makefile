@@ -45,14 +45,14 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel) $(streamlit_wheel)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(streamlit_wheel) $(sharing-common) yarn_install
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(sharing-common) yarn_install
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -71,7 +71,7 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: playground
 playground: $(playground)
-$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(kernel) $(streamlit_wheel)
+$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(kernel)
 	cd packages/playground; \
 	yarn build
 	@touch $@

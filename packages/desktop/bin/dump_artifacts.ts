@@ -134,16 +134,16 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
-    const targetDir = path.resolve(process.cwd(), "./build");
-    await fsExtra.ensureDir(targetDir);
+    const destDir = path.resolve(process.cwd(), "./build");
+    await fsExtra.ensureDir(destDir);
 
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: args.requirements,
-      saveTo: path.resolve(targetDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
+      saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     await copyHomeDirectory({
       sourceDir: args.appHomeDirSource,
-      saveTo: path.resolve(targetDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      saveTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
   });

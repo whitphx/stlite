@@ -11,6 +11,40 @@ import { loadPyodide, PyodideInterface } from "pyodide";
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
 
+interface CopyBuildDirectoryOptions {
+  override: boolean;
+  copyTo: string;
+}
+async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
+  console.info(
+    "Copy the build directory (the bare built app files) to this directory"
+  );
+
+  const sourceDir = path.resolve(__dirname, "../build");
+  const sourceDirStat = await fsPromises.stat(sourceDir);
+  if (!sourceDirStat.isDirectory()) {
+    throw new Error(`The source ${sourceDir} does not exist.`);
+  }
+
+  if (sourceDir === options.copyTo) {
+    console.warn(
+      `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`
+    );
+    return;
+  }
+
+  if (!options.override) {
+    try {
+      await fsPromises.access(options.copyTo);
+      console.info(`INFO: ${options.copyTo} already exists. Skip copying.`);
+      return;
+    } catch {}
+  }
+
+  console.log(`Copy ${sourceDir} to ${options.copyTo}`);
+  fsExtra.copy(sourceDir, options.copyTo);
+}
+
 async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
   console.log(`Install the local wheel ${localPath}`);
 
@@ -132,11 +166,19 @@ yargs(hideBin(process.argv))
     alias: "l",
     default: false,
   })
+  .options("force", {
+    type: "boolean",
+    default: false,
+    alias: "f",
+    describe:
+      "Forcefully copy the directory even if the destination directory already exists.",
+  })
   .parseAsync()
   .then(async (args) => {
     const destDir = path.resolve(process.cwd(), "./build");
     await fsExtra.ensureDir(destDir);
 
+    await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: args.requirements,

@@ -104,13 +104,16 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
+    const targetDir = path.resolve(process.cwd(), "./build");
+    await fsExtra.ensureDir(targetDir);
+
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
     const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
     await createSitePackagesSnapshot({
       localWheelPaths: {
         pyarrow: path.join(
           stliteKernelPyDir,
-          "stlite-pyarrow//dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
+          "stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
         ),
         tornado: path.join(
           stliteKernelPyDir,
@@ -122,10 +125,10 @@ yargs(hideBin(process.argv))
         ),
       },
       requirements: args.requirements,
-      saveTo: "build/site-packages-snapshot.tar.gz", // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
+      saveTo: path.resolve(targetDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     await copyHomeDirectory({
       sourceDir: args.appHomeDirSource,
-      saveTo: "./build/streamlit_app", // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      saveTo: path.resolve(targetDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
   });

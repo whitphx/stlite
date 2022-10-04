@@ -17,7 +17,7 @@ interface CopyBuildDirectoryOptions {
 }
 async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   console.info(
-    "Copy the build directory (the bare built app files) to this directory"
+    "Copy the build directory (the bare built app files) to this directory..."
   );
 
   const sourceDir = path.resolve(__dirname, "../build");
@@ -36,7 +36,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   if (!options.override) {
     try {
       await fsPromises.access(options.copyTo);
-      console.info(`INFO: ${options.copyTo} already exists. Skip copying.`);
+      console.info(`${options.copyTo} already exists. Skip copying.`);
       return;
     } catch {}
   }
@@ -63,10 +63,11 @@ interface CreateSitePackagesSnapshotOptions {
   requirements: string[];
   saveTo: string;
 }
-
 async function createSitePackagesSnapshot(
   options: CreateSitePackagesSnapshotOptions
 ) {
+  console.info("Create the site-packages snapshot file...");
+
   const pyodide = await loadPyodide();
 
   await pyodide.loadPackage(["micropip"]);
@@ -126,17 +127,19 @@ async function createSitePackagesSnapshot(
   console.log("Extract the archive file from EMFS");
   const archiveBin = pyodide.FS.readFile(archiveFilePath);
 
-  console.log("Save the archive file");
+  console.log(`Save the archive file (${options.saveTo})`);
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
 interface CopyHomeDirectoryOptions {
   sourceDir: string;
-  saveTo: string;
+  copyTo: string;
 }
-async function copyHomeDirectory(options: CopyHomeDirectoryOptions) {
-  await fsExtra.ensureDir(options.sourceDir);
-  return fsExtra.copy(options.sourceDir, options.saveTo);
+async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
+  console.info("Copy the Streamlit app directory...");
+
+  console.log(`Copy ${options.sourceDir} to ${options.copyTo}`);
+  return fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
 yargs(hideBin(process.argv))
@@ -176,7 +179,6 @@ yargs(hideBin(process.argv))
   .parseAsync()
   .then(async (args) => {
     const destDir = path.resolve(process.cwd(), "./build");
-    await fsExtra.ensureDir(destDir);
 
     await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({
@@ -184,8 +186,8 @@ yargs(hideBin(process.argv))
       requirements: args.requirements,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
-    await copyHomeDirectory({
+    await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,
-      saveTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
   });

@@ -1,14 +1,15 @@
 {
   "name": "@stlite/desktop",
   "version": "0.10.1",
-  "private": true,
+  "license": "Apache-2.0",
   "homepage": "./",
   "main": "./build/electron/main.js",
   "files": [
-    "build"
+    "build",
+    "bin/*.js"
   ],
   "bin": {
-    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.ts"
+    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
   },
   "scripts": {
     "start:web": "craco start",
@@ -19,13 +20,13 @@
     "start:electron": "tsc -p electron -w",
     "build:electron": "tsc -p electron",
     "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
+    "build:bin": "tsc -p bin && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
-    "build": "yarn build:web && yarn build:electron && yarn build:pyodide",
+    "build": "yarn build:web && yarn build:electron && yarn build:pyodide && yarn build:bin",
     "serve": "NODE_ENV=\"production\" electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps",
     "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",

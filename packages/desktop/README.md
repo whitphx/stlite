@@ -20,25 +20,30 @@ This project structure is based on the following references.
 yarn build
 ```
 
-This command builds the Electron app including both the main process (from `./electron`) and the renderer process (from `./src` with CRA) into `./build` directory.
+This command builds the Electron app including the main process code (from `./electron`), the renderer process code (from `./src` with CRA), and Pyodide resources `./pyodide` in the `./build` directory (See `yarn build` command content for what it does).
 
-At this point, the built app **does not contain the user code and data for Streamlit like `streamlit_app.py`**.
-We will bundle it at the next step.
+The app compiled into the `./build` directory is a "bare" Electron stlite app that will load Streamlit app written as a Python project by app developers afterward, while it has not been created at this point, which will be done in the next step.
+
+In other words, we can replace the Streamlit application just by injecting a different code in the next step, keeping the other parts of the `./build` directory.
+
+Therefore, we create and publish an NPM package including the `./build` directory at this point so that we can reuse it as the base of different Streamlit apps afterward (See the `build-desktop` and the `publish-desktop` CI/CD jobs).
 
 ### Inject the user code and data and the installed requirements snapshot
 
 ```
-./bin/dump_snapshot.ts <app source directory> [--requirements <requirement1> <requirement2> ... <requirementN>]
+./bin/dump_artifacts.ts <app source directory> [--requirements <requirement1> <requirement2> ... <requirementN>]
 ```
 
-This command will do 2 things;
+This command will do the following things;
 
-1. Copy the `<app source directory>` into `./build`, which will be loaded as a Streamlit app at runtime.
-2. Create a temporary Pyodide environment, install the requirements there, create the snapshot file containing the installed files, and put the file into `./build`.
+1. Copy the `./build` directory of this package into the current directory. This assumes that `./build` and `./bin/dump_artifacts.ts` are bundled into an NPM package and the script is called by some developer in a new project.
 
-The Electron app built in the previous step will load these files and serve the Streamlit app at runtime.
+- At a development phase of this package itself, this step is skipped as the source and destination directories of copying are the same one.
 
-In other words, we can replace the Streamlit app just by re-running `./bin/dump_snapshot.ts`, without re-building the app here with `yarn build`.
+2. Copy the `<app source directory>` into `./build`. `<app source directory>` is the "home" directory of the Streamlit application.
+3. Create a temporary Pyodide environment, install the requirements there, create the snapshot file containing the installed files, and put the file into `./build`.
+
+The "bare" Electron app built in the previous step will load the files copied/created in steps 2. and 3 and serve the Streamlit app at runtime.
 
 Now the `./build` is ready to be packaged.
 At this point, `yarn serve` can be used to preview the app.

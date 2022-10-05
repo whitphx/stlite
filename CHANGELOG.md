@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2022-10-06
+
+### `@stlite/mountable`
+
+#### Fixed
+
+- Fix README.md, [#327](https://github.com/whitphx/stlite/pull/327).
+- Set up `.npmignore`, [#328](https://github.com/whitphx/stlite/pull/328).
+
 ## [0.10.2] - 2022-10-05
 
 ### `@stlite/kernel`

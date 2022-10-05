@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2022-10-05
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Avoid loading `micropip` if restoring a site-packages snapshot, [#316](https://github.com/whitphx/stlite/pull/316).
+
+### `@stlite/mountable`
+
+#### Fixed
+
+- Fix the build rule, [#319](https://github.com/whitphx/stlite/pull/319).
+
 ## [0.10.1] - 2022-10-02
 
 Same as v0.10.0.

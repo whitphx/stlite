@@ -774,3 +774,74 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         files: packages/desktop/stlite-desktop-v*.tgz
+
+  build-desktop-cli:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [test-desktop]
+
+    env:
+      python-version: "3.10.2"
+      node-version: "16.x"
+      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
+      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+      NODE_OPTIONS: "--max-old-space-size=6656"
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Package
+      working-directory: packages/desktop-cli
+      run: yarn pack
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: packages/desktop-cli/stlite-desktop-cli-v*.tgz
+        name: stlite-desktop-cli-${{ github.sha }}.tgz
+
+    - name: Upload the built tar ball as an artifact (when pushed with a version tag)
+      uses: actions/upload-artifact@v2
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        path: packages/desktop-cli/stlite-desktop-cli-v*.tgz
+        name: stlite-desktop-cli-${{ github.ref_name }}.tgz
+
+  publish-desktop-cli:
+    if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
+    needs: [build-desktop-cli]
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v3
+      id: download-desktop-cli
+      with:
+        name: stlite-desktop-cli-${{ github.ref_name }}.tgz
+        path: packages/desktop-cli
+
+    - run: yarn publish stlite-desktop-cli-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/desktop-cli
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        files: packages/desktop-cli/stlite-desktop-cli-v*.tgz

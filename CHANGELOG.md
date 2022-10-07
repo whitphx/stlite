@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2022-10-0
+
+### `@stlite/desktop-cli`
+
+- Update README explaining the flow to package a Streamlit app into an Electron app, [#334](https://github.com/whitphx/stlite/pull/334).
+
 ## [0.12.0] - 2022-10-0
 
 ### `@stlite/desktop-cli`

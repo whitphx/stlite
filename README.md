@@ -36,6 +36,10 @@ Image processing with OpenCV works on the client-side.
 
 </details>
 
+## Create a desktop app
+
+See [`@stlite/desktop-cli`](./packages/desktop-cli/README.md).
+
 ## Use stlite on your web page
 
 You can use _stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
@@ -102,8 +106,8 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`,
-    },
+`
+    }
   },
   document.getElementById("root")
 );
@@ -160,8 +164,8 @@ import streamlit as st
 
 st.set_page_config(page_title="Page2")
 st.title("Page 2")
-`,
-    },
+`
+    }
   },
   document.getElementById("root")
 );

@@ -39,7 +39,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
    - The file name `streamlit_app.py` is not configurable now.
 6. Optionally, you can add more contents in the directory, including `pages/*.py` for multi-page apps, any data files, and so on.
 7. Run `npm run dump streamlit_app` or `yarn dump streamlit_app`. The command argument `streamlit_app` is the directory name of the Streamlit app you have created in the previous steps. Change it if you used a different name.
-   - If installing some packages is needed, use `-r` option like `npm run dump streamlit_app -r <PackageName1> ... <PackageNameN>`.
+   - If installing some packages is needed, use `-r` option like `npm run dump streamlit_app -- -r <PackageName1> ... <PackageNameN>`.
    - This command creates `./build` directory. It includes
      - The stlite bare app files.
      - `streamlit_app` directory copied from the one you created in the previous steps.

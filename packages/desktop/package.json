@@ -19,7 +19,7 @@
     "eject": "craco eject",
     "start:electron": "tsc -p electron -w",
     "build:electron": "tsc -p electron",
-    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.21.0/pyodide-build-0.21.0.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
+    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.21.3/pyodide-build-0.21.3.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
     "build:bin": "tsc -p bin && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",

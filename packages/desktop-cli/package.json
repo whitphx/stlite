@@ -5,6 +5,6 @@
   "dependencies": {
     "@stlite/desktop": "^0.12.2",
     "node-fetch": "2",
-    "pyodide": "^0.21.0"
+    "pyodide": "^0.21.3"
   }
 }

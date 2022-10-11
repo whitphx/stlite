@@ -173,11 +173,16 @@ st.title("Page 2")
 
 ## Limitations
 
-As _stlite_ runs on the web browser environment, there are things not working well. The known issues follow.
+As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
 - `st.spinner()` is no-op.
 - `st.progress()` does not show the progress bar during the script execution, but shows only the last state after the execution finishes.
 - `time.sleep()` is no-op. This is a problem at Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354
+- The C extension packages that are not built for Pyodide cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#micropip-can-t-find-a-pure-python-wheel for the details.
+- `st.pydeck()` cannot be used because its dependency `pydeck` does not provide a Pyodide-compatible build.
+
+Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues
+If you find a new problem, please report it.
 
 ## Resources
 

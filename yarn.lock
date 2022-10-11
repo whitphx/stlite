@@ -18154,15 +18154,6 @@ pxls@^2.0.0:
     is-buffer "^2.0.3"
     to-uint8 "^1.4.1"
 
-pyodide@^0.21.0:
-  version "0.21.0"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.21.0.tgz#71cf5149db0cb4461b2910d221822646fe7f0d64"
-  integrity sha512-rBvf8eh1BM10FI9P/mtPea3fxlBK22+Og4AwNsOYoaV3KIxOgt2pHM6AQn6jCWO7Ui6GwuuucXyJumACloQwkQ==
-  dependencies:
-    base-64 "^1.0.0"
-    node-fetch "^2.6.1"
-    ws "^8.5.0"
-
 pyodide@^0.21.3:
   version "0.21.3"
   resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.21.3.tgz#0be64868231fa59a5372a1191d157a9e8d83e9d7"

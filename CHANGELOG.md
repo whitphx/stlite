@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.12.2] - 2022-10-0
+## [0.13.0] - 2022-10-11
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Upgrade Pyodide to 0.21.3, [#341](https://github.com/whitphx/stlite/pull/341).
+- Mock `st.spinner()` as a no-op context manager, [#342](https://github.com/whitphx/stlite/pull/342).
+
+## [0.12.2] - 2022-10-11
 
 ### `@stlite/desktop-cli`
 
@@ -15,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix README, [#338](https://github.com/whitphx/stlite/pull/338).
 
-## [0.12.1] - 2022-10-0
+## [0.12.1] - 2022-10-07
 
 ### `@stlite/desktop-cli`
 
@@ -23,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update README explaining the flow to package a Streamlit app into an Electron app, [#334](https://github.com/whitphx/stlite/pull/334).
 
-## [0.12.0] - 2022-10-0
+## [0.12.0] - 2022-10-06
 
 ### `@stlite/desktop-cli`
 

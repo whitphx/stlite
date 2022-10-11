@@ -174,6 +174,23 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Set the loggers");
 
+  postProgressMessage(
+    "Mocking some Streamlit functions for the browser environment."
+  );
+  console.debug("Mocking some Streamlit functions");
+  // Mock `st.spinner` that does not work well with Pyodide. See https://github.com/whitphx/stlite/issues/64#issuecomment-1274084568
+  await pyodide.runPythonAsync(`
+    import streamlit
+    import contextlib
+
+    @contextlib.contextmanager
+    def spinner(*args, **kwargs):
+        yield
+
+    streamlit.spinner = spinner
+  `);
+  console.debug("Mocked some Streamlit functions");
+
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Defining the bootstrap functions");
   // Emulate the process in streamlit/web/cli.py

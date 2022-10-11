@@ -106,8 +106,8 @@ fig, ax = plt.subplots()
 ax.hist(arr, bins=20)
 
 st.pyplot(fig)
-`
-    }
+`,
+    },
   },
   document.getElementById("root")
 );
@@ -164,12 +164,20 @@ import streamlit as st
 
 st.set_page_config(page_title="Page2")
 st.title("Page 2")
-`
-    }
+`,
+    },
   },
   document.getElementById("root")
 );
 ```
+
+## Limitations
+
+As _stlite_ runs on the web browser environment, there are things not working well. The known issues follow.
+
+- `st.spinner()` is no-op.
+- `st.progress()` does not show the progress bar during the script execution, but shows only the last state after the execution finishes.
+- `time.sleep()` is no-op. This is a problem at Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354
 
 ## Resources
 

@@ -12,11 +12,14 @@ module.exports = {
       // Let Babel compile outside of src/.
       // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
       const oneOfRule = webpackConfig.module.rules.find((rule) => rule.oneOf);
-      const tsRule = oneOfRule.oneOf.find((rule) =>
+      const babelRule = oneOfRule.oneOf.find((rule) =>
         rule.test.toString().includes("ts|tsx")
       );
-      tsRule.include = undefined;
-      tsRule.exclude = /node_modules/;
+      babelRule.include = undefined;
+      babelRule.exclude = {
+        include: /node_modules/,
+        exclude:  /node_modules\/@bokeh\/bokehjs\//,  // Transpile Bokeh that include ES2020 syntax
+      }
 
       /* To resolve the alias streamlit/frontend uses */
       webpackConfig.resolve.alias = {

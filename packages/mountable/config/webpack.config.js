@@ -391,7 +391,10 @@ module.exports = function (webpackEnv) {
               // Stlite: Let Babel compile outside of src/.
               // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
               include: undefined,
-              exclude: /node_modules/,
+              exclude: {
+                include: /node_modules/,
+                exclude:  /node_modules\/@bokeh\/bokehjs\//,
+              },
               loader: require.resolve('babel-loader'),
               options: {
                 customize: require.resolve(

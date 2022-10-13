@@ -8,7 +8,6 @@ import StliteSharingIFrame, {
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
-import { loadDefaultAppData } from "./default-app-data";
 import { loadSampleAppData } from "./sample-app";
 
 const SHARING_APP_URL =

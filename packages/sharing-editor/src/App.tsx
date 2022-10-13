@@ -178,31 +178,35 @@ function App() {
 
   return (
     <div className="App">
-      <SampleAppMenu />
-      <div className="editor-pane">
-        <Editor
-          key={initAppDataKey}
-          appData={appData}
-          onFileWrite={handleFileWrite}
-          onFileRename={handleFileRename}
-          onFileDelete={handleFileDelete}
-          onRequirementsChange={handleRequirementsChange}
-        />
+      <div className="side-menu-container">
+        <SampleAppMenu />
       </div>
-      <div className="preview-pane">
-        {url && <PreviewToolBar sharingUrl={url} />}
-        {initialAppData && (
-          <StliteSharingIFrame
+      <div className="editor-previewer-container">
+        <div className="editor-pane">
+          <Editor
             key={initAppDataKey}
-            ref={iframeRef}
-            sharingAppSrc={SHARING_APP_URL}
-            initialAppData={initialAppData}
-            messageTargetOrigin={SHARING_APP_ORIGIN}
-            frameBorder="0"
-            title="stlite app"
-            className="preview-iframe"
+            appData={appData}
+            onFileWrite={handleFileWrite}
+            onFileRename={handleFileRename}
+            onFileDelete={handleFileDelete}
+            onRequirementsChange={handleRequirementsChange}
           />
-        )}
+        </div>
+        <div className="preview-pane">
+          {url && <PreviewToolBar sharingUrl={url} />}
+          {initialAppData && (
+            <StliteSharingIFrame
+              key={initAppDataKey}
+              ref={iframeRef}
+              sharingAppSrc={SHARING_APP_URL}
+              initialAppData={initialAppData}
+              messageTargetOrigin={SHARING_APP_ORIGIN}
+              frameBorder="0"
+              title="stlite app"
+              className="preview-iframe"
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import styles from "./index.module.scss";
 
 interface SampleAppMenuProps {}
 function SampleAppMenu(props: SampleAppMenuProps) {
-  const sampleAppId = useSampleAppId();
+  const currentSampleAppId = useSampleAppId();
 
   return (
     <div className={styles.menu}>
@@ -22,7 +22,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
           >
             <li
               className={classNames(styles.listItem, {
-                [styles.active]: sampleAppId === sampleAppManifest.id,
+                [styles.active]: currentSampleAppId === sampleAppManifest.id,
               })}
             >
               {sampleAppManifest.title}

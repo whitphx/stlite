@@ -12,35 +12,65 @@ interface AppDataUpdateAction {
 }
 type AppDataAction = AppDataInitializeAction | AppDataUpdateAction;
 
+/**
+ * In <App />, both <Editor /> (monaco editor) and <StliteSharingIFrame /> (an iframe wrapper for the stlite app)
+ * are not fully declarative, but mostly imperative only except the initial state.
+ * So we separately manage `initialAppData` that is used to initialize these child elements
+ * and `appData` that is used to track the updated state, for example, to generate the sharable URL upon every code edit.
+ * The `key` state is expected to be used along with `initialAppData` and passed to the `key` prop of the child components
+ * so that they are re-mounted as different elements to reset and initialize the internal states.
+ */
+interface InitializedState {
+  key: number;
+  initialAppData: AppData;
+  appData: AppData;
+}
+interface InitState {
+  key: number;
+  initialAppData: undefined;
+  appData: undefined;
+}
+type State = InitState | InitializedState;
+
 type AppDataDispatchers = {
   initializeAppData: (appData: AppData) => void;
   updateAppData: (updater: AppDataUpdater) => void;
 };
 export function useAppData(
   onUpdate: (appData: AppData) => void
-): [AppData | undefined, AppDataDispatchers] {
-  const reducer = useCallback<
-    React.Reducer<AppData | undefined, AppDataAction>
-  >(
-    (currentAppData, action) => {
+): [State, AppDataDispatchers] {
+  const reducer = useCallback<React.Reducer<State, AppDataAction>>(
+    (currentState, action) => {
       switch (action.type) {
         case "initialize": {
-          return action.appData;
+          return {
+            initialAppData: action.appData,
+            appData: action.appData,
+            key: currentState.key + 1,
+          };
         }
         case "update": {
-          if (currentAppData == null) {
-            return currentAppData;
+          if (currentState.appData == null) {
+            return currentState;
           }
-          const newAppData = action.updater(currentAppData);
+          const newAppData = action.updater(currentState.appData);
           onUpdate(newAppData);
-          return newAppData;
+          return {
+            initialAppData: currentState.initialAppData,
+            appData: newAppData,
+            key: currentState.key,
+          };
         }
       }
     },
     [onUpdate]
   );
 
-  const [appData, dispatch] = useReducer(reducer, undefined);
+  const [state, dispatch] = useReducer(reducer, {
+    initialAppData: undefined,
+    appData: undefined,
+    key: 0,
+  });
   const dispatchers = useMemo<AppDataDispatchers>(
     () => ({
       initializeAppData: (appData) =>
@@ -57,5 +87,5 @@ export function useAppData(
     [dispatch]
   );
 
-  return [appData, dispatchers];
+  return [state, dispatchers];
 }

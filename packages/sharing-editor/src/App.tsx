@@ -9,6 +9,7 @@ import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadDefaultAppData } from "./default-app-data";
+import { loadSampleAppData } from "./sample-app";
 
 const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
@@ -24,11 +25,23 @@ function App() {
     );
     window.history.replaceState(null, "", newUrl);
   }, []);
-  const [appData, { initializeAppData, updateAppData }] =
-    useAppData(onAppDataUpdate);
+  const [
+    { key: initAppDataKey, initialAppData, appData },
+    { initializeAppData, updateAppData },
+  ] = useAppData(onAppDataUpdate);
 
   useEffect(() => {
-    extractAppDataFromUrl().catch(loadDefaultAppData).then(initializeAppData);
+    const urlParams = new URLSearchParams(window.location.search);
+    const sampleAppId = urlParams.get("sampleAppId");
+
+    if (sampleAppId) {
+      console.log(`Load sample app ${sampleAppId}`);
+      loadSampleAppData(sampleAppId).then(initializeAppData);
+    } else {
+      extractAppDataFromUrl()
+        .catch(() => loadSampleAppData(null)) // Load the default sample
+        .then(initializeAppData);
+    }
   }, [initializeAppData]);
 
   const url = useMemo(
@@ -170,6 +183,7 @@ function App() {
     <div className="App">
       <div className="editor-pane">
         <Editor
+          key={initAppDataKey}
           appData={appData}
           onFileWrite={handleFileWrite}
           onFileRename={handleFileRename}
@@ -179,11 +193,12 @@ function App() {
       </div>
       <div className="preview-pane">
         {url && <PreviewToolBar sharingUrl={url} />}
-        {appData && (
+        {initialAppData && (
           <StliteSharingIFrame
+            key={initAppDataKey}
             ref={iframeRef}
             sharingAppSrc={SHARING_APP_URL}
-            initialAppData={appData}
+            initialAppData={initialAppData}
             messageTargetOrigin={SHARING_APP_ORIGIN}
             frameBorder="0"
             title="stlite app"

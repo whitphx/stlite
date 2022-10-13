@@ -48,7 +48,7 @@ async function parseManifestAndFiles(
   sampleAppDirName: string
 ): Promise<SampleAppManifest> {
   const sampleAppDirPath = path.join(sampleAppRootDirPath, sampleAppDirName);
-  const rawManifestFileName = "manifest.json";
+  const rawManifestFileName = "stlite.json";
   const rawManifestFilePath = path.join(sampleAppDirPath, rawManifestFileName);
   const maybeRawManifest = await fsExtra.readJSON(rawManifestFilePath);
   const rawManifest = SampleAppRawManifest.check(maybeRawManifest);

@@ -1,0 +1,5 @@
+{
+  "title": "Simple example",
+  "entrypoint": "streamlit_app.py",
+  "requirements": []
+}

@@ -9,6 +9,8 @@ import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadSampleAppData } from "./sample-app";
+import { useSampleAppId } from "./router";
+import SampleAppMenu from "./SampleAppMenu";
 
 const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
@@ -17,9 +19,7 @@ const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 function App() {
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
-      window.location.origin +
-        window.location.pathname +
-        window.location.search,
+      window.location.origin + window.location.pathname, // window.location.search is excluded because it may include the sample app ID that conflicts the appData content.
       appData
     );
     window.history.replaceState(null, "", newUrl);
@@ -29,10 +29,8 @@ function App() {
     { initializeAppData, updateAppData },
   ] = useAppData(onAppDataUpdate);
 
+  const sampleAppId = useSampleAppId();
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sampleAppId = urlParams.get("sampleAppId");
-
     if (sampleAppId) {
       console.log(`Load sample app ${sampleAppId}`);
       loadSampleAppData(sampleAppId).then(initializeAppData);
@@ -41,7 +39,7 @@ function App() {
         .catch(() => loadSampleAppData(null)) // Load the default sample
         .then(initializeAppData);
     }
-  }, [initializeAppData]);
+  }, [initializeAppData, sampleAppId]);
 
   const url = useMemo(
     () => (appData ? embedAppDataToUrl(SHARING_APP_URL, appData) : null),
@@ -180,6 +178,7 @@ function App() {
 
   return (
     <div className="App">
+      <SampleAppMenu />
       <div className="editor-pane">
         <Editor
           key={initAppDataKey}

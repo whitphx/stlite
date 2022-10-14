@@ -1,11 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
-import {
-  RiExternalLinkLine,
-  RiClipboardLine,
-  RiGithubFill,
-} from "react-icons/ri";
+import { RiExternalLinkLine, RiClipboardLine } from "react-icons/ri";
 import styles from "./PreviewToolBar.module.scss";
-import logo from "../logo.svg";
 
 interface UrlDisplayProps {
   url: string;
@@ -63,18 +58,6 @@ function PreviewToolBar(props: PreviewToolBarProps) {
         </a>
 
         <UrlDisplay url={props.sharingUrl} />
-      </div>
-
-      <div className={styles.innerContainer}>
-        <a
-          href="https://github.com/whitphx/stlite"
-          target="_blank"
-          rel="noreferrer"
-          className={styles.githubIconLink}
-        >
-          <RiGithubFill />
-        </a>
-        <img src={logo} alt="stlite sharing logo" className={styles.logo} />
       </div>
     </div>
   );

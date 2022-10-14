@@ -44,6 +44,23 @@ async function walk(dirPath: string, relative: boolean): Promise<string[]> {
   return filePaths.map((absPath) => path.relative(dirPath, absPath));
 }
 
+async function readRequrements(requirementsTxtPath: string): Promise<string[]> {
+  try {
+    const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
+      encoding: "utf-8",
+    });
+    return requirementsTxtData
+      .split("\n")
+      .map((r) => r.trim())
+      .filter((r) => r !== "");
+  } catch {
+    console.log(
+      `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`
+    );
+    return [];
+  }
+}
+
 async function parseManifestAndFiles(
   sampleAppDirName: string
 ): Promise<SampleAppManifest> {
@@ -54,26 +71,13 @@ async function parseManifestAndFiles(
   const maybeRawManifest = await fsExtra.readJSON(rawManifestFilePath);
   const rawManifest = SampleAppRawManifest.check(maybeRawManifest);
 
-  const requirementsTextName = "requirements.txt";
-  const requirementsTextPath = path.join(
-    sampleAppDirPath,
-    requirementsTextName
-  );
-  let requirements: string[] = [];
-  try {
-    const requirementsTextData = await fsPromises.readFile(
-      requirementsTextPath,
-      { encoding: "utf-8" }
-    );
-    requirements = requirementsTextData
-      .split("\n")
-      .map((r) => r.trim())
-      .filter((r) => r !== "");
-  } catch {}
+  const requirementsTxtName = "requirements.txt";
+  const requirementsTxtPath = path.join(sampleAppDirPath, requirementsTxtName);
+  const requirements = await readRequrements(requirementsTxtPath);
 
   const files = (await walk(sampleAppDirPath, true)).filter(
     (fileName) =>
-      fileName !== rawManifestFileName && fileName !== requirementsTextName
+      fileName !== rawManifestFileName && fileName !== requirementsTxtName
   );
 
   return {

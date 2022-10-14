@@ -1,0 +1,4 @@
+graphviz
+plotly
+scipy
+matplotlib

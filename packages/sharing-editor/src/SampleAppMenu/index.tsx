@@ -12,7 +12,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
   const currentSampleAppId = useSampleAppId();
 
   return (
-    <div className={styles.menu}>
+    <div className={styles.container}>
       <img src={logo} alt="stlite sharing logo" className={styles.logo} />
       <h2 className={styles.heading}>Samples</h2>
       <ol className={styles.list}>

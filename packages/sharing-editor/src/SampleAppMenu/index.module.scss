@@ -1,16 +1,26 @@
-.menu {
-  padding: 1rem;
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.logo {
+  display: inline-block;
+  margin: 0;
+  width: 100%;
+  margin: 1rem 0;
 }
 
 .heading {
-  margin-top: 0;
+  margin: 1rem;
   font-weight: 500;
   font-size: 1.5rem;
 }
 
 .list {
   padding: 0;
-  margin: 0;
+  margin: 0 1rem;
+  flex-grow: 1;
 }
 
 $itemVerticalPadding: 0.5rem;
@@ -34,4 +44,17 @@ $indicator-width: 2px;
 
 .listItem.active {
   border-left: $indicator-width solid var(--c-primary-focus);
+}
+
+.footer {
+  margin: 1rem;
+}
+
+.githubIconLink {
+  display: inline-flex;
+  align-items: center;
+  font-size: 36px;
+}
+.githubIconLink:hover {
+  color: var(--c-primary-focus);
 }

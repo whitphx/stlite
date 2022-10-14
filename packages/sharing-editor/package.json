@@ -12,18 +12,24 @@
     "@types/node": "^14.14.16",
     "@types/react": "^17.0.7",
     "@types/react-dom": "^17.0.5",
+    "classnames": "^2.3.2",
     "mime": "^3.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-icons": "^4.4.0",
+    "react-router-dom": "^6.4.2",
     "react-scripts": "4.0.3",
     "sass": "^1.54.9",
     "typescript": "^4.6.3",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=3030 react-scripts start",
-    "build": "react-scripts build",
+    "start:web": "cross-env PORT=3030 react-scripts start",
+    "start:sampleapps": "chokidar 'public/samples/**/*' -c \"if [ '{event}' = 'add' -o '{event}' = 'unlink' ]; then yarn build:sampleapps; fi;\" --initial",
+    "start": "concurrently \"yarn start:web\" \"yarn start:sampleapps\"",
+    "build:web": "react-scripts build",
+    "build:sampleapps": "ts-node bin/gen-sample-app-manifests-json.ts",
+    "build": "yarn build:sampleapps && yarn build:web",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -47,6 +53,7 @@
   },
   "devDependencies": {
     "@types/mime": "^3.0.1",
-    "raw-loader": "^4.0.2"
+    "raw-loader": "^4.0.2",
+    "runtypes": "^6.6.0"
   }
 }

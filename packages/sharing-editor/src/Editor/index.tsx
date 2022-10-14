@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
 import TabBar from "./components/TabBar";
@@ -62,9 +68,21 @@ function Editor({
     typeof currentFileName === "string" ? appData.files[currentFileName] : null;
 
   const editorRef = useRef<Parameters<OnMount>[0]>(null);
-
+  const monacoRef = useRef<any>(null);
   const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
+  }, []);
+  useEffect(() => {
+    return () => {
+      const monaco = monacoRef.current;
+      if (monaco) {
+        // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
+        // If we don't do it, the previous content will remain after changing the sample apps.
+        // @ts-ignore
+        monaco.editor.getModels().forEach((model) => model.dispose());
+      }
+    };
   }, []);
 
   const handleSave = useCallback(() => {

@@ -1,0 +1,5 @@
+{
+  "title": "Streamlit Hello",
+  "entrypoint": "Hello.py",
+  "requirements": []
+}

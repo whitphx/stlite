@@ -46,8 +46,10 @@ $indicator-width: 2px;
   border-left: $indicator-width solid var(--c-primary-focus);
 }
 
+$kofi-widget-height: 65px; // See https://storage.ko-fi.com/cdn/scripts/overlay-widget.js that is embedded at index.html
 .footer {
   margin: 1rem;
+  margin-bottom: calc( 6px + $kofi-widget-height );
 }
 
 .githubIconLink {

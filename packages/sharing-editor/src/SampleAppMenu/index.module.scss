@@ -49,7 +49,7 @@ $indicator-width: 2px;
 $kofi-widget-height: 65px; // See https://storage.ko-fi.com/cdn/scripts/overlay-widget.js that is embedded at index.html
 .footer {
   margin: 1rem;
-  margin-bottom: $kofi-widget-height;
+  margin-bottom: calc( 6px + $kofi-widget-height );
 }
 
 .githubIconLink {

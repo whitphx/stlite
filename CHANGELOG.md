@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2022-10-16
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Check the wheel URL schemes when installing packages to block local file access, [#352](https://github.com/whitphx/stlite/pull/352).
+
 ## [0.13.0] - 2022-10-11
 
 ### `@stlite/kernel`

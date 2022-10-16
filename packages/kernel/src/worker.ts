@@ -1,6 +1,7 @@
 import { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
+import { verifyRequirements } from "./requirements";
 
 let pyodide: PyodideInterface;
 
@@ -108,6 +109,7 @@ async function loadPyodideAndPackages() {
 
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);
+    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
     await micropip.install.callKwargs(requirements, { keep_going: true });
     console.debug("Installed the requirements:", requirements);
   } else {
@@ -470,6 +472,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         const micropip = pyodide.pyimport("micropip");
 
         console.debug("Install the requirements:", requirements);
+        verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
         await micropip.install
           .callKwargs(requirements, { keep_going: true })
           .then(() => {

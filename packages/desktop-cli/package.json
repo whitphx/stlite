@@ -1,9 +1,9 @@
 {
   "name": "@stlite/desktop-cli",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "license": "Apache-2.0",
   "dependencies": {
-    "@stlite/desktop": "^0.13.0",
+    "@stlite/desktop": "^0.14.0",
     "node-fetch": "2",
     "pyodide": "^0.21.3"
   }

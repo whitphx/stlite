@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Resizable, ResizableProps } from "re-resizable";
+import styles from "./ResizableHeader.module.scss";
 
 const RESIZABLE_ENABLE_PROP = { bottom: true };
 const MIN_RESIZABLE_HEIGHT = 24;
@@ -29,15 +30,9 @@ function ResizableHeader(props: ResizableHeaderProps) {
       maxHeight={maxHeight}
       enable={RESIZABLE_ENABLE_PROP}
       onResizeStart={onResizeStart}
-      style={{
-        display: "flex",
-      }}
+      className={styles.resizableContainer}
     >
-      <div
-        style={{
-          overflow: "scroll",
-        }}
-      >
+      <div className={styles.resizableScrollContainer}>
         <div
           ref={innerElemRef}
           style={{
@@ -49,13 +44,9 @@ function ResizableHeader(props: ResizableHeaderProps) {
       </div>
       {props.fixedFooter && (
         <div
+          className={styles.footer}
           style={{
             height: FOOTER_HEIGHT,
-            position: "absolute",
-            width: "100%",
-            left: 0,
-            bottom: 0,
-            background: "#fff",
           }}
         >
           {props.fixedFooter}

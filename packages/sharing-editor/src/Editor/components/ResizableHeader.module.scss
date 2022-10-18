@@ -1,0 +1,15 @@
+.resizableContainer {
+  display: flex;
+}
+
+.resizableScrollContainer {
+  overflow: scroll;
+}
+
+.footer {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  background: #fff;
+}

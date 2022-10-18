@@ -17,13 +17,6 @@
   flex-grow: 1;
 }
 
-.preview-pane {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
 .preview-iframe {
   width: 100%;
   flex-grow: 1;

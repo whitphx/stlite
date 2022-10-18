@@ -1,11 +1,12 @@
 import React, { useEffect, useCallback, useMemo, useRef } from "react";
-import { Resizable } from "re-resizable";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
 import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
+import EditorPane from "./components/EditorPane";
+import PreviewPane from "./components/PreviewPane";
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
@@ -183,10 +184,7 @@ function App() {
         <SampleAppMenu />
       </div>
       <div className="editor-previewer-container">
-        <Resizable
-          defaultSize={{ width: "50%", height: "100%" }}
-          enable={{ right: true }}
-        >
+        <EditorPane>
           <Editor
             key={initAppDataKey}
             appData={appData}
@@ -195,8 +193,8 @@ function App() {
             onFileDelete={handleFileDelete}
             onRequirementsChange={handleRequirementsChange}
           />
-        </Resizable>
-        <div className="preview-pane">
+        </EditorPane>
+        <PreviewPane>
           {url && <PreviewToolBar sharingUrl={url} />}
           {initialAppData && (
             <StliteSharingIFrame
@@ -210,7 +208,7 @@ function App() {
               className="preview-iframe"
             />
           )}
-        </div>
+        </PreviewPane>
       </div>
     </div>
   );

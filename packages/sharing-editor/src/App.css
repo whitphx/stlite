@@ -17,17 +17,6 @@
   flex-grow: 1;
 }
 
-.editor-pane {
-  width: 50%;
-}
-
-.preview-pane {
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-  height: 100%;
-}
-
 .preview-iframe {
   width: 100%;
   flex-grow: 1;

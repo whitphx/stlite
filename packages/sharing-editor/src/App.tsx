@@ -5,6 +5,8 @@ import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
+import EditorPane from "./components/EditorPane";
+import PreviewPane from "./components/PreviewPane";
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
@@ -182,7 +184,7 @@ function App() {
         <SampleAppMenu />
       </div>
       <div className="editor-previewer-container">
-        <div className="editor-pane">
+        <EditorPane>
           <Editor
             key={initAppDataKey}
             appData={appData}
@@ -191,8 +193,8 @@ function App() {
             onFileDelete={handleFileDelete}
             onRequirementsChange={handleRequirementsChange}
           />
-        </div>
-        <div className="preview-pane">
+        </EditorPane>
+        <PreviewPane>
           {url && <PreviewToolBar sharingUrl={url} />}
           {initialAppData && (
             <StliteSharingIFrame
@@ -206,7 +208,7 @@ function App() {
               className="preview-iframe"
             />
           )}
-        </div>
+        </PreviewPane>
       </div>
     </div>
   );

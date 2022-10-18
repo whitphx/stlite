@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo, useRef } from "react";
+import { Resizable } from "re-resizable";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
 import { useAppData } from "./use-app-data";
@@ -182,7 +183,10 @@ function App() {
         <SampleAppMenu />
       </div>
       <div className="editor-previewer-container">
-        <div className="editor-pane">
+        <Resizable
+          defaultSize={{ width: "50%", height: "100%" }}
+          enable={{ right: true }}
+        >
           <Editor
             key={initAppDataKey}
             appData={appData}
@@ -191,7 +195,7 @@ function App() {
             onFileDelete={handleFileDelete}
             onRequirementsChange={handleRequirementsChange}
           />
-        </div>
+        </Resizable>
         <div className="preview-pane">
           {url && <PreviewToolBar sharingUrl={url} />}
           {initialAppData && (

@@ -10,6 +10,7 @@ import { AppData } from "@stlite/sharing-common";
 import TabBar from "./components/TabBar";
 import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
+import ResizableHeader from "./components/ResizableHeader";
 import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import AddButton from "./components/AddButton";
@@ -176,49 +177,55 @@ function Editor({
 
   return (
     <div className={styles.container}>
-      <TabBar>
-        {fileNames.map((fileName) => (
-          <Tab
-            key={fileName}
-            selected={fileName === currentFileName}
-            fileNameEditable={fileName !== appData.entrypoint}
-            initInEditingModeIfSelected={fileName === addedFileName}
-            fileName={fileName}
-            onSelect={() => setCurrentFileName(fileName)}
-            onDelete={() => handleFileDelete(fileName)}
-            onFileNameChange={(newPath) => {
-              onFileRename(fileName, newPath);
-              setTabFileNames((cur) =>
-                cur.map((f) => (f === fileName ? newPath : f))
-              );
-              if (fileName === currentFileName) {
-                setCurrentFileName(newPath);
-              }
-            }}
-          />
-        ))}
-        <div className={styles.controlButtonGroup}>
-          <AddButton onClick={handleCreateFile} />
-          <FileUploader onUpload={handleFileUpload} />
-        </div>
+      <ResizableHeader
+        resizableArea={
+          <TabBar>
+            {fileNames.map((fileName) => (
+              <Tab
+                key={fileName}
+                selected={fileName === currentFileName}
+                fileNameEditable={fileName !== appData.entrypoint}
+                initInEditingModeIfSelected={fileName === addedFileName}
+                fileName={fileName}
+                onSelect={() => setCurrentFileName(fileName)}
+                onDelete={() => handleFileDelete(fileName)}
+                onFileNameChange={(newPath) => {
+                  onFileRename(fileName, newPath);
+                  setTabFileNames((cur) =>
+                    cur.map((f) => (f === fileName ? newPath : f))
+                  );
+                  if (fileName === currentFileName) {
+                    setCurrentFileName(newPath);
+                  }
+                }}
+              />
+            ))}
+            <div className={styles.controlButtonGroup}>
+              <AddButton onClick={handleCreateFile} />
+              <FileUploader onUpload={handleFileUpload} />
+            </div>
 
-        <div className={styles.requirementsTabContainer}>
-          <Tab
-            selected={currentFileName === REQUIREMENTS_FILENAME}
-            fileNameEditable={false}
-            initInEditingModeIfSelected={false}
-            fileName={REQUIREMENTS_FILENAME}
-            onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
-            onDelete={() => null}
-            onFileNameChange={() => null}
-          />
-        </div>
-      </TabBar>
-      {showTextEditor && (
-        <Toolbar>
-          <SaveButton onClick={handleSave} />
-        </Toolbar>
-      )}
+            <div className={styles.requirementsTabContainer}>
+              <Tab
+                selected={currentFileName === REQUIREMENTS_FILENAME}
+                fileNameEditable={false}
+                initInEditingModeIfSelected={false}
+                fileName={REQUIREMENTS_FILENAME}
+                onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
+                onDelete={() => null}
+                onFileNameChange={() => null}
+              />
+            </div>
+          </TabBar>
+        }
+        fixedFooter={
+          showTextEditor && (
+            <Toolbar>
+              <SaveButton onClick={handleSave} />
+            </Toolbar>
+          )
+        }
+      />
       <div className={styles.editorArea}>
         <div
           // NOTE: Keep the monaco-editor component being mounted

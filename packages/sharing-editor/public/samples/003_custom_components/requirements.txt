@@ -1,0 +1,10 @@
+hiplot
+streamlit-aggrid
+streamlit-agraph
+streamlit-cropper
+streamlit-d3-demo
+streamlit-drawable-canvas
+streamlit-embedcode
+streamlit-folium
+streamlit-lottie
+streamlit-player

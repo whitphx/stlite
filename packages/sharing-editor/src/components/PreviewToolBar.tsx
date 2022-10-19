@@ -1,5 +1,9 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
-import { RiExternalLinkLine, RiClipboardLine } from "react-icons/ri";
+import {
+  RiExternalLinkLine,
+  RiClipboardLine,
+  RiShareLine,
+} from "react-icons/ri";
 import styles from "./PreviewToolBar.module.scss";
 
 interface UrlDisplayProps {
@@ -26,10 +30,7 @@ function UrlDisplay(props: UrlDisplayProps) {
 
   return (
     <div className={styles.urlDisplay}>
-      <label>
-        URL:&nbsp;
-        <input ref={inputRef} defaultValue={props.url} readOnly />
-      </label>
+      <input ref={inputRef} defaultValue={props.url} readOnly />
       <div className={styles.clipboardButtonContainer}>
         <button onClick={copyToClipboard} className={styles.clipboardButton}>
           <RiClipboardLine />
@@ -40,7 +41,11 @@ function UrlDisplay(props: UrlDisplayProps) {
           </span>
         )}
       </div>
-      <span className={styles.displayBytes}>{byteLength} bytes</span>
+      <span className={styles.displayBytes}>({byteLength} bytes)</span>
+      <a href={props.url} target="_blank" rel="noreferrer">
+        <RiExternalLinkLine />
+        Open App
+      </a>
     </div>
   );
 }
@@ -52,12 +57,54 @@ function PreviewToolBar(props: PreviewToolBarProps) {
   return (
     <div className={styles.container}>
       <div className={styles.innerContainer}>
-        <a href={props.sharingUrl} target="_blank" rel="noreferrer">
-          <RiExternalLinkLine />
-          Open App
-        </a>
-
-        <UrlDisplay url={props.sharingUrl} />
+        <div className={styles.card}>
+          <div className={styles.cardHeading}>
+            <RiShareLine />
+          </div>
+          <div className={styles.hoverTarget}>
+            <div className={styles.cardItem}>
+              Web:
+              <UrlDisplay url={props.sharingUrl} />
+            </div>
+            <div className={styles.cardExpandableItemsContainer}>
+              <div className={styles.cardItem}>PWA: Coming Soon...</div>
+              <div className={styles.cardItem}>
+                Self-hosting Web/PWA:
+                <ul>
+                  <li>Codegen: Coming Soon...</li>
+                  <li>
+                    Manual: Read{" "}
+                    <a
+                      href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      this document
+                      <RiExternalLinkLine />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div className={styles.cardItem}>
+                Desktop app:
+                <ul>
+                  <li>Online bundler: Coming Soon...</li>
+                  <li>
+                    Manual: Read{" "}
+                    <a
+                      href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      this document
+                      <RiExternalLinkLine />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

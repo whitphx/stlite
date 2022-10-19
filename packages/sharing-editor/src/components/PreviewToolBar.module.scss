@@ -5,7 +5,8 @@
 }
 
 .urlDisplay {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin: 0 1rem;
 }
 
@@ -40,4 +41,72 @@
 .innerContainer {
   display: flex;
   align-items: center;
+}
+
+$heading-width: 24px;
+$background-color: #fff;
+$border-width: 1px;
+$border-color: #ddd;
+
+.card {
+  padding-left: $heading-width;
+
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+
+  background: $background-color;
+  border: $border-width solid $border-color;
+  border-radius: 0.2rem;
+}
+.card:hover {
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: $border-width;
+}
+
+.cardHeading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: $heading-width;
+  height: 100%;
+
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoverTarget {}
+.cardExpandableItemsContainer {
+  /* Set the hovering location */
+  position: absolute;
+  width: 100%;
+  left: -$border-width;
+  top: 100%;
+  flex-direction: column;
+
+  /* Set the default hidden style for popup behavior */
+  display: none;  // This is overridden when hover is active
+
+  /* Border styles adjusted to .card */
+  background: $background-color;
+  border: $border-width solid $border-color;
+  border-radius: 0.2rem;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.hoverTarget:hover .cardExpandableItemsContainer {
+  display: block;
+}
+
+.cardItem {
+  margin: 0.4rem;
+}
+
+.cardExpandableItemsContainer .cardItem {
+  padding-left: $heading-width;
 }

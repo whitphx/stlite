@@ -7,7 +7,7 @@
 .urlDisplay {
   display: inline-flex;
   align-items: center;
-  margin: 0 1rem;
+  margin: 0;
 }
 
 .clipboardButtonContainer {
@@ -107,6 +107,21 @@ $border-color: #ddd;
   margin: 0.4rem;
 }
 
+.cardItemHeading {
+  margin: 0;
+  margin-right: 0.5rem;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.cardItemHeading::after {
+  content: ":";
+}
+
 .cardExpandableItemsContainer .cardItem {
   padding-left: $heading-width;
+}
+
+.cardItem ul {
+  margin: 0
 }

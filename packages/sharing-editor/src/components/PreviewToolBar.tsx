@@ -63,13 +63,15 @@ function PreviewToolBar(props: PreviewToolBarProps) {
           </div>
           <div className={styles.hoverTarget}>
             <div className={styles.cardItem}>
-              Web:
+              <h3 className={styles.cardItemHeading}>Web</h3>
               <UrlDisplay url={props.sharingUrl} />
             </div>
             <div className={styles.cardExpandableItemsContainer}>
-              <div className={styles.cardItem}>PWA: Coming Soon...</div>
               <div className={styles.cardItem}>
-                Self-hosting Web/PWA:
+                <h3 className={styles.cardItemHeading}>PWA</h3>Coming Soon...
+              </div>
+              <div className={styles.cardItem}>
+                <h3 className={styles.cardItemHeading}>Self-hosting Web/PWA</h3>
                 <ul>
                   <li>Codegen: Coming Soon...</li>
                   <li>
@@ -86,7 +88,7 @@ function PreviewToolBar(props: PreviewToolBarProps) {
                 </ul>
               </div>
               <div className={styles.cardItem}>
-                Desktop app:
+                <h3 className={styles.cardItemHeading}>Desktop app</h3>
                 <ul>
                   <li>Online bundler: Coming Soon...</li>
                   <li>

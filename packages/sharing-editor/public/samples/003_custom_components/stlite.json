@@ -1,4 +1,4 @@
 {
   "title": "Custom Components",
-  "entrypoint": "streamlit_app.py"
+  "entrypoint": "home.py"
 }

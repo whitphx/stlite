@@ -51,7 +51,16 @@
   align-items: center;
 }
 
-$heading-width: 32px;
+.shareIconSquare {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+$heading-width: 40px;
 $background-color: #fff;
 $border-width: 1px;
 $border-color: #ddd;

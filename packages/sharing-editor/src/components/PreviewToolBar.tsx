@@ -6,6 +6,19 @@ import {
 } from "react-icons/ri";
 import styles from "./PreviewToolBar.module.scss";
 
+interface ExternalLinkProps {
+  children: React.ReactNode;
+  href: string;
+  className?: string;
+}
+function ExternalLink({ href, children, ...restProps }: ExternalLinkProps) {
+  return (
+    <a href={href} {...restProps} target="_blank" rel="noreferrer">
+      {children}
+    </a>
+  );
+}
+
 interface UrlDisplayProps {
   url: string;
 }
@@ -42,15 +55,10 @@ function UrlDisplay(props: UrlDisplayProps) {
         )}
       </div>
       <span className={styles.displayBytes}>({byteLength} bytes)</span>
-      <a
-        href={props.url}
-        target="_blank"
-        rel="noreferrer"
-        className={styles.openAppLink}
-      >
+      <ExternalLink href={props.url} className={styles.openAppLink}>
         Open App
         <RiExternalLinkLine />
-      </a>
+      </ExternalLink>
     </div>
   );
 }
@@ -81,14 +89,10 @@ function PreviewToolBar(props: PreviewToolBarProps) {
                 <li>Codegen: Coming Soon...</li>
                 <li>
                   Manual: Read{" "}
-                  <a
-                    href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <ExternalLink href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page">
                     this document
                     <RiExternalLinkLine />
-                  </a>
+                  </ExternalLink>
                 </li>
               </ul>
             </div>
@@ -98,14 +102,10 @@ function PreviewToolBar(props: PreviewToolBarProps) {
                 <li>Online bundler: Coming Soon...</li>
                 <li>
                   Manual: Read{" "}
-                  <a
-                    href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <ExternalLink href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md">
                     this document
                     <RiExternalLinkLine />
-                  </a>
+                  </ExternalLink>
                 </li>
               </ul>
             </div>

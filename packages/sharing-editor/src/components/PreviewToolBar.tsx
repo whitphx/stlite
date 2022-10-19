@@ -42,9 +42,14 @@ function UrlDisplay(props: UrlDisplayProps) {
         )}
       </div>
       <span className={styles.displayBytes}>({byteLength} bytes)</span>
-      <a href={props.url} target="_blank" rel="noreferrer">
-        <RiExternalLinkLine />
+      <a
+        href={props.url}
+        target="_blank"
+        rel="noreferrer"
+        className={styles.openAppLink}
+      >
         Open App
+        <RiExternalLinkLine />
       </a>
     </div>
   );

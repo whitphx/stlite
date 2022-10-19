@@ -1,6 +1,6 @@
 .container {
   display: flex;
-  padding: 0.5rem 0 0.5rem 1rem;
+  padding: 0.4rem 0 0.4rem 1rem;
   justify-content: space-between;
 }
 
@@ -31,11 +31,19 @@
   font-size: 10px;
   color: var(--c-primary);
   border-radius: 0.4rem;
+  z-index: 1;
 }
 
 .displayBytes {
   margin-left: 0.4rem;
   font-size: small;
+}
+
+.openAppLink {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.8rem;
+  text-decoration: underline;
 }
 
 .innerContainer {

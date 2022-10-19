@@ -4,7 +4,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 
 ## How to create a Streamlit desktop app
 
-1. Create a new NPM project with the following `package.json`. Edit the `name` field.
+1. Create the following `package.json` file to start a new NPM project. Edit the `name` field.
    ```json
    {
      "name": "xxx",
@@ -47,4 +47,4 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 8. Run `npm run serve` or `yarn serve` for preview.
    - This command is just a wrapper of `electron` command as you can see at the `"scripts"` field in the `package.json`. It launches Electron and starts the app with `./build/electron/main.js`, which is specified at the `"main"` field in the `package.json`.
 9. Run `npm run dist` or `yarn dist` for packaging.
-   - This command just calls [`electron-builder`](https://www.electron.build/) (see the `"scripts"` field in the `package.json`) and it simply bundles the `./build` directory created in the step above. If you want to customize the built app, e.g., setting the icon, follow its instruction.
+   - This command bundles the `./build` directory created in the step above into application files (`.app`, `.exe`, `.dmg` etc.) in the `./dist` directory. To customize the built app, e.g. setting the icon, follow the [`electron-builder`](https://www.electron.build/) instructions.

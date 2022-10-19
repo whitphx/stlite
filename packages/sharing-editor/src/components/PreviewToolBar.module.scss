@@ -1,12 +1,13 @@
 .container {
   display: flex;
-  padding: 0.5rem 0 0.5rem 1rem;
+  padding: 0.4rem 0 0.4rem 1rem;
   justify-content: space-between;
 }
 
 .urlDisplay {
-  display: inline-block;
-  margin: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
 }
 
 .clipboardButtonContainer {
@@ -30,6 +31,7 @@
   font-size: 10px;
   color: var(--c-primary);
   border-radius: 0.4rem;
+  z-index: 1;
 }
 
 .displayBytes {
@@ -37,7 +39,109 @@
   font-size: small;
 }
 
+.openAppLink {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.8rem;
+  text-decoration: underline;
+}
+
 .innerContainer {
   display: flex;
   align-items: center;
+}
+
+.shareIconSquare {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+$heading-width: 40px;
+$background-color: #fff;
+$border-width: 1px;
+$border-color: #ddd;
+
+.card {
+  padding-left: $heading-width;
+
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+
+  background: $background-color;
+  border: $border-width solid $border-color;
+  border-radius: 0.2rem;
+}
+.card:hover {
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: $border-width;
+}
+
+.cardHeading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: $heading-width;
+  height: 100%;
+
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardExpandableItemsContainer {
+  /* Set the hovering location */
+  position: absolute;
+  width: 100%;
+  left: -$border-width;
+  top: 100%;
+  flex-direction: column;
+
+  /* Set the default hidden style for popup behavior */
+  display: none;  // This is overridden when hover is active
+
+  /* Border styles adjusted to .card */
+  background: $background-color;
+  border: $border-width solid $border-color;
+  border-radius: 0.2rem;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.cardHeading:hover ~ .cardExpandableItemsContainer {
+  display: block;
+}
+.cardExpandableItemsContainer:hover {
+  display: block;
+}
+
+.cardItem {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  padding-right: 0.4rem;
+}
+.cardExpandableItemsContainer .cardItem {
+  padding-left: $heading-width;
+}
+
+.cardItemHeading {
+  margin: 0;
+  margin-right: 0.5rem;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.cardItemHeading::after {
+  content: ":";
+}
+
+.cardItem ul {
+  margin: 0
 }

@@ -51,7 +51,7 @@
   align-items: center;
 }
 
-$heading-width: 24px;
+$heading-width: 32px;
 $background-color: #fff;
 $border-width: 1px;
 $border-color: #ddd;
@@ -87,7 +87,6 @@ $border-color: #ddd;
   justify-content: center;
 }
 
-.hoverTarget {}
 .cardExpandableItemsContainer {
   /* Set the hovering location */
   position: absolute;
@@ -107,12 +106,18 @@ $border-color: #ddd;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
-.hoverTarget:hover .cardExpandableItemsContainer {
+.card:hover .cardExpandableItemsContainer {
   display: block;
 }
 
 .cardItem {
-  margin: 0.4rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  padding-right: 0.4rem;
+}
+.cardExpandableItemsContainer .cardItem {
+  border-top: $border-width solid $border-color;
+  padding-left: $heading-width;
 }
 
 .cardItemHeading {
@@ -124,10 +129,6 @@ $border-color: #ddd;
 }
 .cardItemHeading::after {
   content: ":";
-}
-
-.cardExpandableItemsContainer .cardItem {
-  padding-left: $heading-width;
 }
 
 .cardItem ul {

@@ -66,49 +66,48 @@ function PreviewToolBar(props: PreviewToolBarProps) {
           <div className={styles.cardHeading}>
             <RiShareLine />
           </div>
-          <div className={styles.hoverTarget}>
+          <div className={styles.cardItem}>
+            <h3 className={styles.cardItemHeading}>Web</h3>
+            <UrlDisplay url={props.sharingUrl} />
+          </div>
+          <div className={styles.cardExpandableItemsContainer}>
             <div className={styles.cardItem}>
-              <h3 className={styles.cardItemHeading}>Web</h3>
-              <UrlDisplay url={props.sharingUrl} />
+              <h3 className={styles.cardItemHeading}>PWA/Custom domains</h3>
+              Coming Soon...
             </div>
-            <div className={styles.cardExpandableItemsContainer}>
-              <div className={styles.cardItem}>
-                <h3 className={styles.cardItemHeading}>PWA</h3>Coming Soon...
-              </div>
-              <div className={styles.cardItem}>
-                <h3 className={styles.cardItemHeading}>Self-hosting Web/PWA</h3>
-                <ul>
-                  <li>Codegen: Coming Soon...</li>
-                  <li>
-                    Manual: Read{" "}
-                    <a
-                      href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      this document
-                      <RiExternalLinkLine />
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className={styles.cardItem}>
-                <h3 className={styles.cardItemHeading}>Desktop app</h3>
-                <ul>
-                  <li>Online bundler: Coming Soon...</li>
-                  <li>
-                    Manual: Read{" "}
-                    <a
-                      href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      this document
-                      <RiExternalLinkLine />
-                    </a>
-                  </li>
-                </ul>
-              </div>
+            <div className={styles.cardItem}>
+              <h3 className={styles.cardItemHeading}>Self-hosting Web/PWA</h3>
+              <ul>
+                <li>Codegen: Coming Soon...</li>
+                <li>
+                  Manual: Read{" "}
+                  <a
+                    href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    this document
+                    <RiExternalLinkLine />
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className={styles.cardItem}>
+              <h3 className={styles.cardItemHeading}>Desktop app</h3>
+              <ul>
+                <li>Online bundler: Coming Soon...</li>
+                <li>
+                  Manual: Read{" "}
+                  <a
+                    href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    this document
+                    <RiExternalLinkLine />
+                  </a>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

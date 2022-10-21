@@ -1,4 +1,4 @@
 {
-  "title": "Component gallery",
+  "title": "Component Gallery",
   "entrypoint": "streamlit_app.py"
 }

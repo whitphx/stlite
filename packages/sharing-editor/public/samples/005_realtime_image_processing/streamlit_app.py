@@ -3,6 +3,16 @@ import streamlit as st
 from streamlit_fesion import streamlit_fesion
 
 
+st.title("Serverless real-time video filter")
+st.info("""
+    Every image processing is working on your browser, like all other _stlite_ features.\\
+    Your video is **NEVER UPLOADED** to any remote servers!
+
+     This sample uses [`streamlit-fesion`](https://github.com/whitphx/streamlit-fesion)
+     custom component for the real-time image processing on WebAssembly!
+""", icon="⚡")
+
+
 def grayscale(input_image):
     # Ref: https://scikit-image.org/docs/0.15.x/auto_examples/color_exposure/plot_rgb_to_gray.html  # noqa: E501
     import skimage

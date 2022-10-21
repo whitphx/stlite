@@ -1,4 +1,5 @@
 hiplot
+stmol==0.0.7
 streamlit-aggrid
 streamlit-agraph
 streamlit-cropper

@@ -1,0 +1,4 @@
+{
+  "title": "Realtime Image Processing",
+  "entrypoint": "streamlit_app.py"
+}

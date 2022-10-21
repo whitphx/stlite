@@ -6,7 +6,7 @@ st.title("OpenCV sample")
 
 input_mode = st.radio("Input mode", ["Sample", "Camera", "Upload"])
 if input_mode == "Sample":
-    img = cv2.imread("logo.png")
+    img = cv2.imread("data/logo.png")
 else:
     st.info("""
         Don't worry! The photo data is processed on your browser

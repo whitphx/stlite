@@ -29,6 +29,13 @@ If you are on the editor page, click the "Open App" link on the top right toolba
 
 You can switch the editor and sharing modes by replacing the host naem in the URL,
 `edit.share.stlite.net` and `share.stlite.net`.
+
+### Tell your story!
+When you create some apps with _stlite_, please share it!
+All you need to do is copy and paste the URL 👍
+
+* **stlite** GitHub Discussions [🔗 here](https://github.com/whitphx/stlite/discussions/categories/show-and-tell)
+* Streamlit community forum [🔗 here](https://discuss.streamlit.io/)
 """)
 
 st.header("Component samples")

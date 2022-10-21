@@ -87,6 +87,11 @@ async function parseManifestAndFiles(
   };
 }
 
+const numberPrefixRegex = /^\d+_/;
+function extractSampleAppId(sampleAppDirName: string) {
+  return sampleAppDirName.replace(numberPrefixRegex, "");
+}
+
 async function main() {
   // dir names are also considered as the IDs of the sample apps.
   const sampleDirNames = await fsPromises
@@ -103,7 +108,7 @@ async function main() {
   const sampleAppManifests = await Promise.all(
     sampleDirNames.map((sampleDirName) =>
       parseManifestAndFiles(sampleDirName).then((manifest) => ({
-        id: sampleDirName,
+        id: extractSampleAppId(sampleDirName),
         ...manifest,
       }))
     )

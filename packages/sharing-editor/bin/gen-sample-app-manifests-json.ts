@@ -18,6 +18,7 @@ type SampleAppRawManifest = Static<typeof SampleAppRawManifest>;
 const SampleAppManifest = SampleAppRawManifest.extend({
   files: Array(String),
   requirements: Array(String),
+  basePath: String,
 });
 type SampleAppManifest = Static<typeof SampleAppManifest>;
 
@@ -84,6 +85,7 @@ async function parseManifestAndFiles(
     ...rawManifest,
     files,
     requirements,
+    basePath: sampleAppDirName,
   };
 }
 

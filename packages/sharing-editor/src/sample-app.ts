@@ -62,7 +62,7 @@ export async function loadSampleAppData(sampleAppId: string | null) {
 
   const files = await loadFiles(
     sampleAppManifest["files"],
-    sampleAppManifest.id
+    sampleAppManifest.basePath
   );
 
   const appData: AppData = {

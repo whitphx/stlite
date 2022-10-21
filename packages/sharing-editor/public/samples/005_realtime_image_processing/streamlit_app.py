@@ -8,8 +8,8 @@ st.info("""
     Every image processing is working on your browser, like all other _stlite_ features.\\
     Your video is **NEVER UPLOADED** to any remote servers!
 
-     This sample uses [`streamlit-fesion`](https://github.com/whitphx/streamlit-fesion)
-     custom component for the real-time image processing on WebAssembly!
+    This sample uses [`streamlit-fesion`](https://github.com/whitphx/streamlit-fesion)
+    custom component for the real-time image processing on WebAssembly!
 """, icon="⚡")
 
 

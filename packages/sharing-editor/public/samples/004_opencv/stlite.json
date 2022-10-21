@@ -1,0 +1,4 @@
+{
+  "title": "OpenCV",
+  "entrypoint": "streamlit_app.py"
+}

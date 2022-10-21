@@ -15,13 +15,16 @@ The official repository is [🔗 here](https://github.com/whitphx/stlite).
 
 If you are new to Streamlit, read the Getting Started tutorial [🔗 here](https://docs.streamlit.io/library/get-started) first
 (don't worry, it only takes a few minutes 👍),
-but **you can skip the "Installation" section** because you are here.
-You can start writing code right out of the box on this online editor 😎!
+but **you can skip the "Installation" section** because you are here 😎.
+You can start writing code right out of the box on this online editor 👈!
+(If there is not an editor on the left, you are seeing the shared app.
+Navigate to the editor mode: https://edit.share.stlite.net/)
 
 ### stlite sharing
 This page is built on **stlite sharing**, an online code editor & sharing platform for _stlite_. \\
-If you see the editor and preview panes side by side, you are on the editor service, https://edit.share.stlite.net/. \\
-If you see only this Streamlit app, you are on the sharing service, https://share.stlite.net/.
+If you see the editor and preview panes side by side, you are in the editor mode, https://edit.share.stlite.net/. \\
+If you see only this Streamlit app, you are in the sharing mode, https://share.stlite.net/.
+(If you want to edit the app, please go to the [editor mode](https://edit.share.stlite.net/)!)
 
 The app code and data are encoded into the URL as a hash like `https://share.stlite.net/#!ChBz...`,
 so you can save, share and restore the app only this the URL.
@@ -38,7 +41,10 @@ All you need to do is copy and paste the URL 👍
 * Streamlit community forum [🔗 here](https://discuss.streamlit.io/)
 """)
 
-st.header("Component samples")
+st.header("Streamlit Component Samples")
+st.markdown("""
+    All these features are working on your browser!
+""")
 
 name = st.text_input("Your name?")
 st.write("Hello,", name or "world", "!")

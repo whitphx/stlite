@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2022-10-21
+
+### `@stlite/desktop-cli`
+
+#### Fixed
+
+- Fix README, [#336](https://github.com/whitphx/stlite/pull/336), by @chrieke.
+
 ## [0.14.0] - 2022-10-16
 
 ### `@stlite/kernel`

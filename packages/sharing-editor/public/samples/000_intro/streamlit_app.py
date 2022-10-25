@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 
-st.title("stlite sharing: Serverless Streamlit app service")
+st.title("stlite sharing: Serverless Streamlit app platform")
 
 image = Image.open('data/logo.png')
 st.image(image, caption='stlite logo')

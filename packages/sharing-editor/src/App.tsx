@@ -12,6 +12,7 @@ import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadSampleAppData } from "./sample-app";
 import { useSampleAppId } from "./router";
+import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -177,9 +178,9 @@ function App() {
 
   return (
     <div className="App">
-      <div className="side-menu-container">
+      <ResponsiveDrawoer>
         <SampleAppMenu />
-      </div>
+      </ResponsiveDrawoer>
       {appData == null ? (
         <LoadingScreen />
       ) : (

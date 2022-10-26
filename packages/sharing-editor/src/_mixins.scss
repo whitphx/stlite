@@ -1,0 +1,21 @@
+// https://zenn.dev/tak_dcxi/articles/2cc1828e9c1fe2
+$breakpoints: (
+  'xs': (min-width: 0),
+  'sm': (min-width: 576px),
+  'md': (min-width: 768px),
+  'lg': (min-width: 992px),
+  'xl': (min-width: 1200px),
+  'xxl': (min-width: 1400px)
+) !default;
+
+@mixin responsive($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media screen and #{inspect(map-get($breakpoints, $breakpoint))} {
+      @content;
+    }
+  }
+
+  @else {
+    @error "Undefined breakpoint." + "The available breakpoints are #{map-keys($breakpoints)}";
+  }
+}

@@ -1,0 +1,35 @@
+@use "../mixins";
+
+.openerButton {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  z-index: 1;
+
+  display: block;
+  @include mixins.responsive(md) {
+    display: none;
+  }
+}
+
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: transform .6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  @include mixins.responsive(md) {
+    position: relative;
+    height: 100%;
+    transform: none;
+    transition: none;
+  }
+
+  width: 240px;
+  background-color: #fff;
+  z-index: 1;
+}
+.containerOpen {
+  transform: none;
+}

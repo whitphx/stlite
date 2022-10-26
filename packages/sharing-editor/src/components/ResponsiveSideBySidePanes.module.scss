@@ -31,9 +31,9 @@
   top: 0;
   left: 50%;
   transform: translateX(-100%);
-  width: 10px;
+  width: 16px;
   height: 100%;
-  background-color: #fff;
+  background-color: #000;
   z-index: 1;
 
   @include mixins.responsive(md) {
@@ -42,6 +42,17 @@
 }
 .showRight .divider {
   transform: translateX(0);
+}
+.divider::after {
+  position: absolute;
+  content: ' ';
+  background: #fff;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 50px;
+  border-radius: 3px;
 }
 
 .leftResizableContainer {

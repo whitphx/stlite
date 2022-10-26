@@ -26,9 +26,7 @@ function ResponsiveSideBySidePanes(props: ResponsiveSideBySidePanesProps) {
         <div
           className={styles.divider}
           onClick={() => setShowRight((cur) => !cur)}
-        >
-          |
-        </div>
+        />
         <div className={styles.rightContainer}>{props.right}</div>
       </div>
     </div>

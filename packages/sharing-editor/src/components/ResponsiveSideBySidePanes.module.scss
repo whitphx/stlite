@@ -2,7 +2,7 @@
 
 .outerContainer {
   width: 100vw;
-  overflow: hidden;
+  overflow-x: hidden;
   @include mixins.responsive(md) {
     width: 100%;
   }

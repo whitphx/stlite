@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import classNames from "classnames";
+import { BiMenu } from "react-icons/bi";
 import styles from "./ResponsiveDrawer.module.scss";
 
 interface OpenerButtonProps {
@@ -8,7 +9,7 @@ interface OpenerButtonProps {
 function OpenerButton(props: OpenerButtonProps) {
   return (
     <button onClick={props.onClick} className={styles.openerButton}>
-      Open
+      <BiMenu />
     </button>
   );
 }

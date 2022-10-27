@@ -1,15 +1,31 @@
 @use "../mixins";
 
 .openerButton {
+  display: flex;
+  @include mixins.responsive(md) {
+    display: none;
+  }
+
   position: absolute;
   left: 100%;
   top: 0;
   z-index: 1;
 
-  display: block;
-  @include mixins.responsive(md) {
-    display: none;
-  }
+  justify-content: center;
+  align-items: center;
+
+  padding: 0;
+  margin: 0;
+  background: #fff;
+  outline: none;
+  border: none;
+  border-right: 1px solid var(--c-primary);
+  border-bottom: 1px solid var(--c-primary);
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  width: 24px;
+  height: 24px;
+  color: #333;
 }
 
 .container {

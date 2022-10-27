@@ -75,9 +75,9 @@ function ShareIcon() {
           x2="100%"
           y2="100%"
         >
-          <stop stop-color="rgb(255, 127, 127)" offset="0%" />
-          <stop stop-color="rgb(244, 75, 75)" offset="80%" />
-          <stop stop-color="rgb(173, 74, 82)" offset="100%" />
+          <stop stopColor="rgb(255, 127, 127)" offset="0%" />
+          <stop stopColor="rgb(244, 75, 75)" offset="80%" />
+          <stop stopColor="rgb(173, 74, 82)" offset="100%" />
         </linearGradient>
       </svg>
       <svg viewBox="0 0 32 32" className={styles.shareIconSquare}>

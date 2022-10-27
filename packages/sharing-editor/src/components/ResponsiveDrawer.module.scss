@@ -1,0 +1,68 @@
+@use "../mixins";
+
+.openerButton {
+  display: flex;
+  @include mixins.responsive(md) {
+    display: none;
+  }
+
+  position: absolute;
+  left: 100%;
+  top: 0;
+  z-index: 1;
+
+  justify-content: center;
+  align-items: center;
+
+  padding: 0;
+  margin: 0;
+  background: #fff;
+  outline: none;
+  border: none;
+  border-right: 1px solid var(--c-primary);
+  border-bottom: 1px solid var(--c-primary);
+  border-top-right-radius: 2px;
+  border-bottom-right-radius: 2px;
+  width: 24px;
+  height: 24px;
+  color: #333;
+}
+
+.closerSheet {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  padding: 0;
+  margin: 0;
+  outline: none;
+  border: none;
+  background: #333;
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  transform: translateX(-100%);
+  transition: transform .6s cubic-bezier(0.215, 0.61, 0.355, 1);
+  @include mixins.responsive(md) {
+    position: relative;
+    height: 100%;
+    transform: none;
+    transition: none;
+  }
+
+  width: 240px;
+  background-color: #fff;
+  z-index: 2;
+}
+.containerOpen {
+  transform: none;
+}

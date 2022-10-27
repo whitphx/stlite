@@ -4,19 +4,6 @@
   height: 100%;
 }
 
-.side-menu-container {
-  width: 240px;
-  height: 100%;
-  overflow-y: scroll;
-}
-
-.editor-previewer-container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  flex-grow: 1;
-}
-
 .preview-iframe {
   width: 100%;
   flex-grow: 1;

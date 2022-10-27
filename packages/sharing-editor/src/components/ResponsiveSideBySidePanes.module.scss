@@ -1,0 +1,76 @@
+@use "../mixins";
+
+.outerContainer {
+  width: 100vw;
+  overflow-x: hidden;
+  @include mixins.responsive(md) {
+    width: 100%;
+  }
+}
+
+.transitionContainer {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-grow: 1;
+
+  width: 200vw;
+  @include mixins.responsive(md) {
+    width: 100%;
+  }
+
+  transition: transform .6s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+.transitionContainer.showRight {
+  transform: translateX(-100vw);
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-100%);
+  width: 16px;
+  height: 100%;
+  background-color: #000;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @include mixins.responsive(md) {
+    display: none;
+  }
+}
+.showRight .divider {
+  transform: translateX(0);
+}
+.divider::after {
+  position: relative;
+  content: ' ';
+  background: #fff;
+  width: 6px;
+  height: 50px;
+  border-radius: 3px;
+}
+
+.leftResizableContainer {
+  width: 100vw;
+  @include mixins.responsive(md) {
+    width: 50%;
+  }
+
+  height: 100%;
+}
+
+.rightContainer {
+  width: 100vw;
+  @include mixins.responsive(md) {
+    width: initial;
+  }
+
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

@@ -5,13 +5,13 @@ import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
-import EditorPane from "./components/EditorPane";
-import PreviewPane from "./components/PreviewPane";
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadSampleAppData } from "./sample-app";
 import { useSampleAppId } from "./router";
+import ResponsiveSideBySidePanes from "./components/ResponsiveSideBySidePanes";
+import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -177,14 +177,14 @@ function App() {
 
   return (
     <div className="App">
-      <div className="side-menu-container">
+      <ResponsiveDrawoer>
         <SampleAppMenu />
-      </div>
+      </ResponsiveDrawoer>
       {appData == null ? (
         <LoadingScreen />
       ) : (
-        <div className="editor-previewer-container">
-          <EditorPane>
+        <ResponsiveSideBySidePanes
+          left={
             <Editor
               key={initAppDataKey}
               appData={appData}
@@ -193,23 +193,25 @@ function App() {
               onFileDelete={handleFileDelete}
               onRequirementsChange={handleRequirementsChange}
             />
-          </EditorPane>
-          <PreviewPane>
-            {url && <PreviewToolBar sharingUrl={url} />}
-            {initialAppData && (
-              <StliteSharingIFrame
-                key={initAppDataKey}
-                ref={iframeRef}
-                sharingAppSrc={SHARING_APP_URL}
-                initialAppData={initialAppData}
-                messageTargetOrigin={SHARING_APP_ORIGIN}
-                frameBorder="0"
-                title="stlite app"
-                className="preview-iframe"
-              />
-            )}
-          </PreviewPane>
-        </div>
+          }
+          right={
+            <>
+              {url && <PreviewToolBar sharingUrl={url} />}
+              {initialAppData && (
+                <StliteSharingIFrame
+                  key={initAppDataKey}
+                  ref={iframeRef}
+                  sharingAppSrc={SHARING_APP_URL}
+                  initialAppData={initialAppData}
+                  messageTargetOrigin={SHARING_APP_ORIGIN}
+                  frameBorder="0"
+                  title="stlite app"
+                  className="preview-iframe"
+                />
+              )}
+            </>
+          }
+        />
       )}
     </div>
   );

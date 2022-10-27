@@ -14,22 +14,33 @@ function OpenerButton(props: OpenerButtonProps) {
   );
 }
 
+interface CloserSheetProps {
+  onClick: () => void;
+}
+function CloserSheet(props: CloserSheetProps) {
+  return <button onClick={props.onClick} className={styles.closerSheet} />;
+}
+
 interface ResponsiveDrawerProps {
   children: React.ReactNode;
 }
 function ResponsiveDrawer(props: ResponsiveDrawerProps) {
   const [open, setOpen] = useState(false);
+  const closeButton = useCallback(() => setOpen(false), []);
   const toggleOpen = useCallback(() => setOpen((cur) => !cur), []);
 
   return (
-    <div
-      className={classNames(styles.container, {
-        [styles.containerOpen]: open,
-      })}
-    >
-      <OpenerButton onClick={toggleOpen} />
-      {props.children}
-    </div>
+    <>
+      <div
+        className={classNames(styles.container, {
+          [styles.containerOpen]: open,
+        })}
+      >
+        <OpenerButton onClick={toggleOpen} />
+        {props.children}
+      </div>
+      {open && <CloserSheet onClick={closeButton} />}
+    </>
   );
 }
 

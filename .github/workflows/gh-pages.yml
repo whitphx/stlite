@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        target: ["mountable", "playground"]
+        target: ["mountable"]
 
     env:
       python-version: "3.10.2"
@@ -75,21 +75,6 @@ jobs:
     - name: Set up
       run: make init
 
-    ## Build and deploy the playground app
-    - if: matrix.target == 'playground'
-      name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=/${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-    - if: matrix.target == 'playground'
-      name: Build @stlite/playground
-      run: make playground
-
-    - if: matrix.target == 'playground'
-      name: Upload the built files as an artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: stlite-playground
-        path: packages/playground/build
-
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - if: matrix.target == 'mountable'
@@ -120,18 +105,28 @@ jobs:
     steps:
     - uses: actions/download-artifact@v3
       with:
-        name: stlite-playground
-        path: playground
-    - uses: actions/download-artifact@v3
-      with:
         name: stlite-mountable
         path: mountable
 
-
-    - name: Merge the build artifacts
+    - name: Configure redirect
       run: |
-        mkdir /tmp/website
-        cp -r ./playground/* /tmp/website/.
+        mkdir -p /tmp/website/
+
+        cat << _EOT_ > /tmp/website/_config.yml
+        plugins:
+          - jekyll-redirect-from
+        _EOT_
+
+        cat << _EOT_ > /tmp/website/index.html
+        ---
+        redirect_to: "https://edit.share.stlite.net/"
+        ---
+        _EOT_
+
+        cp /tmp/website/index.html /tmp/website/404.html
+
+    - name: Set the build artifact paths
+      run: |
         mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}
         cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
 

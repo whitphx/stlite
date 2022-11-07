@@ -16,8 +16,6 @@ Visit [stlite sharing](https://edit.share.stlite.net/).
 
 [<img src="https://edit.share.stlite.net/ogp.png" height="180" >](https://edit.share.stlite.net/)
 
-The [playground demo](https://whitphx.github.io/stlite/) is also available.
-
 ## Samples
 
 ### ⚡️Serverless Image Processing App

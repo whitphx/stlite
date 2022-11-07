@@ -206,6 +206,20 @@ After building, you can run the playground app by running the command below. Acc
 make serve
 ```
 
+### Release a new version
+
+You can select the next version in an interactive shell with the following command. Then it will automatically create a new commit, tag it, and push the commit to the remote repository which triggers the release process on GitHub Actions.
+
+```shell
+yarn new-version
+```
+
+`--force-publish` is useful if you need to create a new version without changes to the code.
+
+```shell
+yarn new-version --force-publish
+```
+
 ## Sponsors
 
 ### Databutton

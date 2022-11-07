@@ -1,1 +1,0 @@
-../sharing/craco.config.js

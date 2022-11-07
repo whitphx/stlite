@@ -200,12 +200,6 @@ In the root directory,
 make
 ```
 
-After building, you can run the playground app by running the command below. Access http://localhost:5001/
-
-```shell
-make serve
-```
-
 ### Release a new version
 
 You can select the next version in an interactive shell with the following command. Then it will automatically create a new commit, tag it, and push the commit to the remote repository which triggers the release process on GitHub Actions.

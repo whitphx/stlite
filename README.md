@@ -197,6 +197,8 @@ If you find a new problem, please report it.
 
 [<img src="https://docs.databutton.com/_media/icon.svg" height="100" >](https://www.databutton.io/)
 
+They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
+
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)

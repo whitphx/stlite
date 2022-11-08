@@ -1,4 +1,3 @@
-playground := packages/playground/build/*
 mountable := packages/mountable/build/*
 sharing := packages/sharing/build/*
 sharing-common := packages/sharing-common/dist/*
@@ -11,7 +10,7 @@ streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl
 
 .PHONY: all
-all: init mountable playground sharing sharing-editor
+all: init mountable sharing sharing-editor
 
 
 .PHONY: init
@@ -77,13 +76,6 @@ $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/deskto
 	yarn build
 	@touch $@
 
-.PHONY: playground
-playground: $(playground)
-$(playground): packages/playground/src/*.ts packages/playground/src/*.tsx packages/playground/public/* $(kernel)
-	cd packages/playground; \
-	yarn build
-	@touch $@
-
 .PHONY: kernel
 kernel: $(kernel)
 $(kernel): packages/kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
@@ -114,10 +106,3 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 	make distribution
 	mkdir -p `dirname $(streamlit_wheel)`
 	cp streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl $(streamlit_wheel)
-
-
-.PHONY: serve
-serve: $(VENV)
-	. $(VENV)/bin/activate && \
-	cd packages/playground/build && \
-	python -m http.server 5001

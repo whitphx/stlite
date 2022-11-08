@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2022-11-08
+
+### Changed
+
+- The `command` option has been removed, [#393](https://github.com/whitphx/stlite/pull/393).
+
 ## [0.14.2] - 2022-10-21
 
 ### `@stlite/desktop-cli`

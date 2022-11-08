@@ -14,7 +14,6 @@ interface EmscriptenFile {
   opts?: Record<string, string>;
 }
 interface WorkerInitialData {
-  command: "run" | "hello";
   entrypoint: string;
   files: Record<string, EmscriptenFile>;
   requirements: string[];

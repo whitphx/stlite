@@ -37,7 +37,6 @@ function postProgressMessage(message: string): void {
  */
 async function loadPyodideAndPackages() {
   const {
-    command,
     entrypoint,
     files,
     requirements,
@@ -306,11 +305,7 @@ async function loadPyodideAndPackages() {
       "browser.gatherUsageStats": False,
   }
   `);
-  if (command === "hello") {
-    await pyodide.runPythonAsync(`main_hello(**command_kwargs)`);
-  } else if (command === "run") {
-    await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
-  }
+  await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   console.debug("Booted up the Streamlit server");
 
   console.debug("Setting up the HTTP server");

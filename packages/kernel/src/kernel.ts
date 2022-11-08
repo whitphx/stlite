@@ -21,11 +21,6 @@ const INITIAL_SLASH_RE = /^\/+/;
 
 export interface StliteKernelOptions {
   /**
-   * The Streamlit subcommand to run.
-   */
-  command: "hello" | "run";
-
-  /**
    * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
    */
   entrypoint: string;
@@ -138,7 +133,6 @@ export class StliteKernel {
     }
 
     this._workerInitData = {
-      command: options.command,
       entrypoint: options.entrypoint,
       files: options.files,
       requirements: options.requirements,

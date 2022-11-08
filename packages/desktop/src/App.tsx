@@ -39,7 +39,6 @@ function App() {
       const mountedSitePackagesSnapshotFilePath =
         "/tmp/site-packages-snapshot.tar.gz";
       kernel = new StliteKernel({
-        command: "run",
         entrypoint: "streamlit_app.py",
         files: {
           ...files,

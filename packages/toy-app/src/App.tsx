@@ -11,7 +11,6 @@ import { BackMsg } from "streamlit-browser/src/autogen/proto";
 function App() {
   useEffect(() => {
     const kernel = new StliteKernel({
-      command: "run",
       entrypoint: "streamlit_app.py",
       files: {
         "streamlit_app.py": {

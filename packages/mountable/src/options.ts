@@ -38,7 +38,6 @@ export function canonicalizeMountOptions(
   if (typeof options === "string") {
     const mainScript = options;
     return {
-      command: "run",
       entrypoint: DEFAULT_ENTRYPOINT,
       files: {
         [DEFAULT_ENTRYPOINT]: {
@@ -52,7 +51,6 @@ export function canonicalizeMountOptions(
   const files = canonicalizeFiles(options.files);
 
   return {
-    command: "run",
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,
     requirements: options.requirements || [],

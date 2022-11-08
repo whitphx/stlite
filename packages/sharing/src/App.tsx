@@ -107,7 +107,6 @@ st.write("Hello World")`,
         };
 
         const kernel = new StliteKernel({
-          command: "run",
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
           requirements: appData.requirements,

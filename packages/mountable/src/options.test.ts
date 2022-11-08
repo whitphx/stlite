@@ -3,7 +3,6 @@ import { canonicalizeMountOptions } from "./options";
 describe("canonicalizeMountOptions()", () => {
   it("translates a string input into StliteKernelOptions", () => {
     expect(canonicalizeMountOptions("foo")).toEqual({
-      command: "run",
       entrypoint: "streamlit_app.py",
       files: {
         "streamlit_app.py": {
@@ -22,7 +21,6 @@ describe("canonicalizeMountOptions()", () => {
         },
       })
     ).toEqual({
-      command: "run",
       entrypoint: "streamlit_app.py",
       requirements: [],
       files: {
@@ -42,7 +40,6 @@ describe("canonicalizeMountOptions()", () => {
         },
       })
     ).toEqual({
-      command: "run",
       entrypoint: "foo.py",
       requirements: [],
       files: {
@@ -59,7 +56,6 @@ describe("canonicalizeMountOptions()", () => {
         requirements: ["matplotlib"],
       })
     ).toEqual({
-      command: "run",
       requirements: ["matplotlib"],
       entrypoint: "streamlit_app.py",
       files: {},

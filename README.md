@@ -192,9 +192,49 @@ If you find a new problem, please report it.
 
 ## Development
 
-### Building the packages
+### Initialize the development environment
 
-In the root directory,
+```
+make init
+```
+
+### Development
+
+#### `@stlite/kernel`
+
+The following command starts the file watcher and the hot reloader that are recommended to keep active during the development of other packages depending on the kernel.
+
+```shell
+cd packages/kernel
+yarn start
+```
+
+#### `@stlite/mountable`
+
+```shell
+cd packages/mountable
+yarn start
+```
+
+#### stlite sharing (`@stlite/sharing` and `@stlite/sharing-editor`)
+
+Launch the app sharing service.
+
+```shell
+cd packages/sharing
+yarn start
+```
+
+In another shell, launch the editor service.
+
+```shell
+cd packages/sharing-editor
+yarn start
+```
+
+### Build all the packages
+
+At the root directory,
 
 ```shell
 make

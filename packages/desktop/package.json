@@ -1,6 +1,6 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "license": "Apache-2.0",
   "homepage": "./",
   "main": "./build/electron/main.js",
@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.1.2",
-    "@stlite/kernel": "^0.14.2",
+    "@stlite/kernel": "^0.15.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

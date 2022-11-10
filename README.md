@@ -20,24 +20,6 @@ Visit [stlite sharing](https://edit.share.stlite.net/).
 
 [<img src="https://edit.share.stlite.net/ogp.png" height="180" >](https://edit.share.stlite.net/)
 
-## Samples
-
-### ⚡️Serverless Image Processing App
-
-Image processing with OpenCV works on the client-side.
-
-- Repository📌: https://github.com/whitphx/stlite-image-processing-app
-- Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
-
-<details>
-  <summary>See the tutorial video</summary>
-
-[Serverless Streamlit + OpenCV Python Web App Tutorial](https://youtu.be/7Qja9ZAWcfw), crafted by [1littlecoder](https://www.youtube.com/c/1littlecoder).
-
-[![Serverless Streamlit + OpenCV Python Web App Tutorial](https://img.youtube.com/vi/7Qja9ZAWcfw/0.jpg)](https://youtu.be/7Qja9ZAWcfw)
-
-</details>
-
 ## Create a desktop app
 
 See [`@stlite/desktop-cli`](./packages/desktop-cli/README.md).
@@ -194,6 +176,24 @@ If you find a new problem, please report it.
   The stlite thread at the Streamlit online forum.
 - [📺 "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder, YouTube](https://youtu.be/VQdktxgbmmg):
   A quick tutorial with local app development and GitHub Pages deployment.
+
+## Samples
+
+### ⚡️Serverless Image Processing App
+
+Image processing with OpenCV works on the client-side.
+
+- Repository📌: https://github.com/whitphx/stlite-image-processing-app
+- Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
+
+<details>
+  <summary>See the tutorial video</summary>
+
+[Serverless Streamlit + OpenCV Python Web App Tutorial](https://youtu.be/7Qja9ZAWcfw), crafted by [1littlecoder](https://www.youtube.com/c/1littlecoder).
+
+[![Serverless Streamlit + OpenCV Python Web App Tutorial](https://img.youtube.com/vi/7Qja9ZAWcfw/0.jpg)](https://youtu.be/7Qja9ZAWcfw)
+
+</details>
 
 ## Sponsors
 

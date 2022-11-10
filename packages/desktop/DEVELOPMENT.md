@@ -30,8 +30,8 @@ Therefore, we create and publish an NPM package including the `./build` director
 
 ### Inject the user code and data and the installed requirements snapshot
 
-```
-./bin/dump_artifacts.ts <app source directory> [--requirements <requirement1> <requirement2> ... <requirementN>]
+```shell
+./bin/dump_artifacts.ts <app source directory> [<requirement1> <requirement2> ... <requirementN>]
 ```
 
 This command will do the following things;

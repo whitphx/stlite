@@ -142,9 +142,28 @@ async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
   return fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
+async function readRequirements(
+  requirementsTxtPath: string
+): Promise<string[]> {
+  try {
+    const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
+      encoding: "utf-8",
+    });
+    return requirementsTxtData
+      .split("\n")
+      .map((r) => r.trim())
+      .filter((r) => r !== "");
+  } catch {
+    console.log(
+      `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`
+    );
+    return [];
+  }
+}
+
 yargs(hideBin(process.argv))
   .command(
-    "* <appHomeDirSource>",
+    "* <appHomeDirSource> [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
     () => {},
     (argv) => {
@@ -157,7 +176,14 @@ yargs(hideBin(process.argv))
     type: "string",
     demandOption: true,
   })
-  .options("requirements", {
+  .positional("packages", {
+    describe: "Package names to install.",
+    type: "string",
+    array: true,
+  })
+  .options("requirement", {
+    describe:
+      "Install from the given requirements file. This option can be used multiple times.",
     array: true,
     type: "string",
     alias: "r",
@@ -186,10 +212,17 @@ yargs(hideBin(process.argv))
       throw new Error(`${args.appHomeDirSource} does not exist.`);
     }
 
+    let requirements = args.packages;
+    for (const requirementTxtFilePath of args.requirement) {
+      requirements = requirements.concat(
+        await readRequirements(requirementTxtFilePath)
+      );
+    }
+
     await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
-      requirements: args.requirements,
+      requirements: requirements,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     await copyStreamlitAppDirectory({

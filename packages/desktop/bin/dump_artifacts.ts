@@ -142,6 +142,8 @@ async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
   return fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
+// Original: packages/sharing-editor/bin/gen-sample-app-manifests-json.ts
+// TODO: Be DRY
 async function readRequirements(
   requirementsTxtPath: string
 ): Promise<string[]> {
@@ -159,6 +161,27 @@ async function readRequirements(
     );
     return [];
   }
+}
+
+// Original: kernel/src/requirements.ts
+// TODO: Be DRY
+function verifyRequirements(requirements: string[]) {
+  requirements.forEach((req) => {
+    let url: URL;
+    try {
+      url = new URL(req);
+    } catch {
+      // `req` is not a URL -> OK
+      return;
+    }
+
+    // Ref: The scheme checker in the micropip implementation is https://github.com/pyodide/micropip/blob/v0.1.0/micropip/_compat_in_pyodide.py#L23-L26
+    if (url.protocol === "emfs:" || url.protocol === "file:") {
+      throw new Error(
+        `"emfs:" and "file:" protocols are not allowed for the requirement (${req})`
+      );
+    }
+  });
 }
 
 yargs(hideBin(process.argv))
@@ -218,6 +241,7 @@ yargs(hideBin(process.argv))
         await readRequirements(requirementTxtFilePath)
       );
     }
+    verifyRequirements(requirements);
 
     await copyBuildDirectory({ copyTo: destDir, override: args.force });
     await createSitePackagesSnapshot({

@@ -45,7 +45,9 @@ async function walk(dirPath: string, relative: boolean): Promise<string[]> {
   return filePaths.map((absPath) => path.relative(dirPath, absPath));
 }
 
-async function readRequrements(requirementsTxtPath: string): Promise<string[]> {
+async function readRequirements(
+  requirementsTxtPath: string
+): Promise<string[]> {
   try {
     const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
       encoding: "utf-8",
@@ -74,7 +76,7 @@ async function parseManifestAndFiles(
 
   const requirementsTxtName = "requirements.txt";
   const requirementsTxtPath = path.join(sampleAppDirPath, requirementsTxtName);
-  const requirements = await readRequrements(requirementsTxtPath);
+  const requirements = await readRequirements(requirementsTxtPath);
 
   const files = (await walk(sampleAppDirPath, true)).filter(
     (fileName) =>

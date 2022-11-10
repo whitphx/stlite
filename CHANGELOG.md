@@ -7,15 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.16.0] - 2022-11-10
+## [0.16.1] - 2022-11-10
 
-### Changed
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Added
+
+- Package name verification at the dump command, [#398](https://github.com/whitphx/stlite/pull/398).
+
+#### Fixed
+
+- README.md, [#399](https://github.com/whitphx/stlite/pull/399).
+
+## [0.16.0] - 2022-11-10
 
 ### `@stlite/desktop`, `@stlite/desktop-cli`
 
 #### Changed
 
-- The command signature of `bin/dump_artifacts.ts` is changed so that the package names are passed as the positional arguments following the source directory name and the `-r` option is used to specify the `requirements.txt`.
+- The command signature of `bin/dump_artifacts.ts` is changed so that the package names are passed as the positional arguments following the source directory name and the `-r` option is used to specify the `requirements.txt`, [#396](https://github.com/whitphx/stlite/pull/396).
 
 ## [0.15.0] - 2022-11-08
 

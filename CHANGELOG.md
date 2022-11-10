@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.15.0] - 2022-11-08
+## [0.16.0] - 2022-11-10
 
 ### Changed
+
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Changed
+
+- The command signature of `bin/dump_artifacts.ts` is changed so that the package names are passed as the positional arguments following the source directory name and the `-r` option is used to specify the `requirements.txt`.
+
+## [0.15.0] - 2022-11-08
+
+### `@stlite/kernel`, `@stlite/mountable`
+
+#### Changed
 
 - The `command` option has been removed, [#393](https://github.com/whitphx/stlite/pull/393).
 

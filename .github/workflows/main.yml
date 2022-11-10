@@ -77,14 +77,14 @@ jobs:
       with:
         submodules: true
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/601dc7896c812d39b75f2358b17a9460561d3866/.github/workflows/main.yml#L51-L79
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
     - name: Get full Python version
       id: full-python-version
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
     - name: Bootstrap poetry
       run: |
@@ -253,14 +253,14 @@ jobs:
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ env.python-version }}
 
-    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
     - name: Get full Python version
       id: full-python-version
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
     - name: Bootstrap poetry
       run: |
@@ -377,14 +377,14 @@ jobs:
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ env.python-version }}
 
-    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
     - name: Get full Python version
       id: full-python-version
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
     - name: Bootstrap poetry
       run: |
@@ -501,14 +501,14 @@ jobs:
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ env.python-version }}
 
-    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
     - name: Get full Python version
       id: full-python-version
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
     - name: Bootstrap poetry
       run: |
@@ -671,14 +671,14 @@ jobs:
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ env.python-version }}
 
-    # Ref: https://github.com/python-poetry/poetry/blob/f51a2c7427a046bcb71434e8ff29f6ce137301f7/.github/workflows/main.yml#L51-L79
+    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
     - name: Get full Python version
       id: full-python-version
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
     - name: Bootstrap poetry
       run: |

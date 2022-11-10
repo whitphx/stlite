@@ -309,14 +309,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/kernel/stlite-kernel-v*.tgz
         name: stlite-kernel-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/kernel/stlite-kernel-v*.tgz
@@ -433,14 +433,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
@@ -556,7 +556,7 @@ jobs:
       run: make sharing
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: packages/sharing/build
         name: stlite-sharing
@@ -621,7 +621,7 @@ jobs:
       run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: packages/sharing-editor/build
         name: stlite-sharing-editor
@@ -727,14 +727,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/desktop/stlite-desktop-v*.tgz
         name: stlite-desktop-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/desktop/stlite-desktop-v*.tgz
@@ -798,14 +798,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/desktop-cli/stlite-desktop-cli-v*.tgz
         name: stlite-desktop-cli-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/desktop-cli/stlite-desktop-cli-v*.tgz

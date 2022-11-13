@@ -203,6 +203,12 @@ Image processing with OpenCV works on the client-side.
 
 They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
 
+### Hal9
+
+[<img src="https://hal9.com/logo/hal9-square-black.png" height="50" >](https://hal9.com/)
+
+They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
+
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)

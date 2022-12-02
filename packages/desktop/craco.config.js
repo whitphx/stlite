@@ -23,16 +23,22 @@ module.exports = {
       const csp = [
         "default-src 'self'",
         // 'unsafe-eval' is necessary to run the Wasm code
-        "script-src 'self' 'unsafe-eval'",
+        "script-src 'unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
         // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
         "worker-src blob:",
-        "script-src-elem 'self' blob: https://cdn.jsdelivr.net/",
-        // Allow loading the hosted Pyodide files, wheels, and some remote resources
-        isEnvProduction && `connect-src ${cspSourceForMap} 'self'`,
+        // For <script /> tag permissions.
+        // - 'self': The main scripts
+        // - 'unsafe-inline': Allow the inline scripts from custom components
+        // - *: Custom components may load arbitrary third party scripts from the Internet.
+        "script-src-elem 'self' 'unsafe-inline' *",
+        // For loading external resources.
+        // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
+        // - *: Allow fetch() and XMLHttpRequest to load any resources (*).
+        isEnvProduction && `connect-src ${cspSourceForMap} 'self' *`,
         isEnvDevelopment &&
-          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/`,
+          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ *`,
         // Allow <img> to load any resources. blob: is necessary for st.pyplot, data: is for st.map
         "img-src * blob: data:",
         // Allow <audio> and <video> to load any resources

@@ -147,20 +147,13 @@ async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
 async function readRequirements(
   requirementsTxtPath: string
 ): Promise<string[]> {
-  try {
-    const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
-      encoding: "utf-8",
-    });
-    return requirementsTxtData
-      .split("\n")
-      .map((r) => r.trim())
-      .filter((r) => r !== "");
-  } catch {
-    console.log(
-      `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`
-    );
-    return [];
-  }
+  const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
+    encoding: "utf-8",
+  });
+  return requirementsTxtData
+    .split("\n")
+    .map((r) => r.trim())
+    .filter((r) => r !== "");
 }
 
 // Original: kernel/src/requirements.ts

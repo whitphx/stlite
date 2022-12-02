@@ -37,6 +37,8 @@ module.exports = {
         "img-src * blob: data:",
         // Allow <audio> and <video> to load any resources
         "media-src * blob:",
+        // For st.video() to work with YouTube links. It handles YouTube links in a special way and loads YT resources: https://github.com/streamlit/streamlit/blob/1.15.2/frontend/src/components/elements/Video/Video.tsx#L69
+        "frame-src https://*.youtube.com",
       ]
         .filter(Boolean)
         .join("; ");

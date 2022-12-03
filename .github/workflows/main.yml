@@ -238,7 +238,7 @@ jobs:
     needs: [test-kernel, test-tornado-e2e]
 
     env:
-      python-version: "3.10.2"
+      python-version: "3.10"
       node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
@@ -361,7 +361,7 @@ jobs:
     needs: [test-kernel, test-tornado-e2e, test-mountable]
 
     env:
-      python-version: "3.10.2"
+      python-version: "3.10"
       node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
@@ -484,7 +484,7 @@ jobs:
     needs: [test-kernel, test-tornado-e2e, test-sharing-common]
 
     env:
-      python-version: "3.10.2"
+      python-version: "3.10"
       node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
@@ -654,7 +654,7 @@ jobs:
     needs: [test-kernel, test-tornado-e2e, test-desktop]
 
     env:
-      python-version: "3.10.2"
+      python-version: "3.10"
       node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
@@ -777,7 +777,7 @@ jobs:
     needs: [test-desktop]
 
     env:
-      python-version: "3.10.2"
+      python-version: "3.10"
       node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422

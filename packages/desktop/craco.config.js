@@ -33,6 +33,14 @@ module.exports = {
         // - 'unsafe-inline': Allow the inline scripts from custom components
         // - *: Custom components may load arbitrary third party scripts from the Internet.
         "script-src-elem 'self' 'unsafe-inline' *",
+        // For stylesheets.
+        // - 'self': For the stylesheet files bundled with the core.
+        // - 'unsafe-inline': The core frontend uses some inline stylesheets.
+        // - *: Custom components may load arbitrary remote stylesheets, e.g. streamlit_folium.
+        "style-src-elem 'self' 'unsafe-inline' *",
+        // - 'self': For font files bundled with Streamlit core, for example, for `st.latex()`.
+        // - data: Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
+        "font-src 'self' data:",
         // For loading external resources.
         // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
         // - *: Allow fetch() and XMLHttpRequest to load any resources (*).

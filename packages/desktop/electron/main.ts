@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
-import * as url from "url";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
 import { walkRead } from "./file";
@@ -46,13 +45,7 @@ const createWindow = () => {
     // because absolute URLs with the file:// scheme will be resolved
     // to absolute file paths based on the special handler
     // registered through `interceptFileProtocol` below.
-    mainWindow.loadURL(
-      url.format({
-        pathname: "/index.html",
-        protocol: "file:",
-        slashes: true,
-      })
-    );
+    mainWindow.loadURL("file:///index.html");
   } else {
     mainWindow.loadURL("http://localhost:3000");
   }

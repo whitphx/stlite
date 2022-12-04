@@ -25,7 +25,7 @@
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:bin",
-    "serve": "NODE_ENV=\"production\" electron .",
+    "serve": "cross-env NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",

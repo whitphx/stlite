@@ -22,21 +22,39 @@ module.exports = {
         "https://data.streamlit.io/ https://*.mapbox.com/";
       const csp = [
         "default-src 'self'",
-        // 'unsafe-eval' is necessary to run the Wasm code
-        "script-src 'self' 'unsafe-eval'",
+        // For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
+        "script-src 'wasm-unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
         // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
         "worker-src blob:",
-        "script-src-elem 'self' blob: https://cdn.jsdelivr.net/",
-        // Allow loading the hosted Pyodide files, wheels, and some remote resources
-        isEnvProduction && `connect-src ${cspSourceForMap} 'self'`,
+        // For <script /> tag permissions.
+        // - 'self': The main scripts
+        // - 'unsafe-inline': Allow the inline scripts from custom components
+        // - *: Custom components may load arbitrary third party scripts from the Internet.
+        "script-src-elem 'self' 'unsafe-inline' *",
+        // For stylesheets.
+        // - 'self': For the stylesheet files bundled with the core.
+        // - 'unsafe-inline': The core frontend uses some inline stylesheets.
+        // - *: Custom components may load arbitrary remote stylesheets, e.g. streamlit_folium.
+        "style-src-elem 'self' 'unsafe-inline' *",
+        // - 'self': For font files bundled with Streamlit core, for example, for `st.latex()`.
+        // - data: Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
+        "font-src 'self' data:",
+        // For loading external resources.
+        // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
+        // - *: Allow fetch() and XMLHttpRequest to load any resources (*).
+        isEnvProduction && `connect-src ${cspSourceForMap} 'self' *`,
         isEnvDevelopment &&
-          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/`,
+          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ *`,
         // Allow <img> to load any resources. blob: is necessary for st.pyplot, data: is for st.map
         "img-src * blob: data:",
         // Allow <audio> and <video> to load any resources
         "media-src * blob:",
+        // For iframe sources.
+        // `st.video()` creates an iframe for a YouTube video loading resources from https://*.youtube.com.
+        // In addition, custom components may create iframes loading arbitrary external resources (*).
+        "frame-src *",
       ]
         .filter(Boolean)
         .join("; ");

@@ -22,8 +22,8 @@ module.exports = {
         "https://data.streamlit.io/ https://*.mapbox.com/";
       const csp = [
         "default-src 'self'",
-        // 'unsafe-eval' is necessary to run the Wasm code
-        "script-src 'unsafe-eval'",
+        // For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
+        "script-src 'wasm-unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
         // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16

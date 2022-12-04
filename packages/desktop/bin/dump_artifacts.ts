@@ -139,7 +139,8 @@ async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
   console.info("Copy the Streamlit app directory...");
 
   console.log(`Copy ${options.sourceDir} to ${options.copyTo}`);
-  return fsExtra.copy(options.sourceDir, options.copyTo);
+  await fsPromises.rm(options.copyTo, { recursive: true, force: true });
+  await fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
 // Original: packages/sharing-editor/bin/gen-sample-app-manifests-json.ts

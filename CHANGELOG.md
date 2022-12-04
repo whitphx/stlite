@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2022-12-05
+
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Changed
+
+- `bin/dump_artifacts.ts` crashes when the specified `requirements.txt` does not exist, [#410](https://github.com/whitphx/stlite/pull/410).
+- `bin/dump_artifacts.ts` deletes the existing `streamlit_app` directory inside the `build` directory before copying the new one, [#415](https://github.com/whitphx/stlite/pull/415).
+
+#### Fixed
+
+- Content-Security-Policy has been updated to allow components to load arbitrary external resources, [#408](https://github.com/whitphx/stlite/pull/408).
+- The bug has been fixed that some resources such as the lazy-loaded component chunks are not properly loaded on the desktop app, [#414](https://github.com/whitphx/stlite/pull/414).
+
 ## [0.16.1] - 2022-11-10
 
 ### `@stlite/desktop`, `@stlite/desktop-cli`

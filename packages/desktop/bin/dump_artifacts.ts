@@ -12,7 +12,7 @@ import { loadPyodide, PyodideInterface } from "pyodide";
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
 
 interface CopyBuildDirectoryOptions {
-  override: boolean;
+  keepOld: boolean;
   copyTo: string;
 }
 async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
@@ -33,16 +33,24 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     return;
   }
 
-  if (!options.override) {
+  if (options.keepOld) {
     try {
       await fsPromises.access(options.copyTo);
-      console.info(`${options.copyTo} already exists. Skip copying.`);
+      console.info(
+        `${options.copyTo} already exists. Use it and skip copying.`
+      );
       return;
-    } catch {}
+    } catch {
+      // If the destination directory does not exist
+      throw new Error(
+        `${options.copyTo} does not exist even though the \`keepOld\` option is specified`
+      );
+    }
   }
 
   console.log(`Copy ${sourceDir} to ${options.copyTo}`);
-  fsExtra.copy(sourceDir, options.copyTo);
+  await fsPromises.rm(options.copyTo, { recursive: true, force: true });
+  await fsExtra.copy(sourceDir, options.copyTo);
 }
 
 async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
@@ -212,12 +220,11 @@ yargs(hideBin(process.argv))
     alias: "l",
     default: false,
   })
-  .options("force", {
+  .options("keepOldBuild", {
     type: "boolean",
     default: false,
-    alias: "f",
-    describe:
-      "Forcefully copy the directory even if the destination directory already exists.",
+    alias: "k",
+    describe: "Keep the existing build directory contents except appHomeDir.",
   })
   .parseAsync()
   .then(async (args) => {
@@ -237,7 +244,7 @@ yargs(hideBin(process.argv))
     }
     verifyRequirements(requirements);
 
-    await copyBuildDirectory({ copyTo: destDir, override: args.force });
+    await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: requirements,

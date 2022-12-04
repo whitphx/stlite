@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Changed
+
+- `bin/dump_artifacts.ts` overwrites the `build` directory by default and keep it only when `keepOldBuild` option is specified, [#417](https://github.com/whitphx/stlite/pull/417).
+
 ## [0.17.0] - 2022-12-05
 
 ### `@stlite/desktop`, `@stlite/desktop-cli`

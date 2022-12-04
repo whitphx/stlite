@@ -2,7 +2,7 @@
   "name": "@stlite/desktop",
   "version": "0.16.1",
   "license": "Apache-2.0",
-  "homepage": "./",
+  "homepage": "/",
   "main": "./build/electron/main.js",
   "files": [
     "build",

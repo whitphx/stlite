@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, protocol } from "electron";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
 import { walkRead } from "./file";
@@ -41,7 +41,11 @@ const createWindow = () => {
   );
 
   if (app.isPackaged || process.env.NODE_ENV === "production") {
-    mainWindow.loadFile(path.resolve(__dirname, "../index.html"));
+    // Use .loadURL() with an absolute URL based on "/" instead of .loadFile()
+    // because absolute URLs with the file:// scheme will be resolved
+    // to absolute file paths based on the special handler
+    // registered through `interceptFileProtocol` below.
+    mainWindow.loadURL("file:///index.html");
   } else {
     mainWindow.loadURL("http://localhost:3000");
   }
@@ -55,6 +59,21 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Resolve absolute paths based on the bundled directory.
+  // It is assumed that the resource paths are absolute paths starting with "/",
+  // which is configured at `package.json` with the `"homepage"` field.
+  // Ref: https://github.com/electron/electron/issues/4612#issuecomment-189116655
+  const bundleBasePath = path.resolve(__dirname, "..");
+  protocol.interceptFileProtocol("file", function (req, callback) {
+    const urlWithoutScheme = req.url.slice(7); // 7 = "file://".length
+    if (path.isAbsolute(urlWithoutScheme)) {
+      const resolvedFilePath = path.join(bundleBasePath, urlWithoutScheme);
+      callback(path.normalize(resolvedFilePath));
+    } else {
+      callback(urlWithoutScheme);
+    }
+  });
+
   createWindow();
 
   app.on("activate", () => {

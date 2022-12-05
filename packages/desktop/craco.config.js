@@ -22,8 +22,9 @@ module.exports = {
         "https://data.streamlit.io/ https://*.mapbox.com/";
       const csp = [
         "default-src 'self'",
-        // For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
-        "script-src 'wasm-unsafe-eval'",
+        // - 'wasm-unsafe-eval': For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
+        // - 'unsafe-eval': For some components such as st.*_chart() or custom components such as streamlit_hiplot. Electron shows a warning about it, but we have to use this policy...
+        "script-src 'wasm-unsafe-eval' 'unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
         // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16

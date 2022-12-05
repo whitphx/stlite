@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.2] - 2022-12-05
+
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Fixed
+
+- Content-Security-Policy has been updated, [#424](https://github.com/whitphx/stlite/pull/424).
+
 ## [0.18.1] - 2022-12-05
 
 ### `@stlite/desktop`, `@stlite/desktop-cli`

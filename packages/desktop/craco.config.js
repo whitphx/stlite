@@ -40,8 +40,9 @@ module.exports = {
         // - https: : Custom components may load arbitrary remote stylesheets, e.g. streamlit_folium.
         "style-src-elem 'self' 'unsafe-inline' https:",
         // - 'self': For font files bundled with Streamlit core, for example, for `st.latex()`.
-        // - data: Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
-        "font-src 'self' data:",
+        // - data: : Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
+        // - https: : Some custom components load fonts from remote via HTTPS, e.g. streamlit_folium.
+        "font-src 'self' data: https:",
         // For loading external resources.
         // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
         // - https: : Allow fetch() and XMLHttpRequest to load any resources via HTTPS.

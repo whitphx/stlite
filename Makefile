@@ -1,3 +1,4 @@
+common := packages/common/dist/*
 mountable := packages/mountable/build/*
 sharing := packages/sharing/build/*
 sharing-common := packages/sharing-common/dist/*
@@ -42,6 +43,12 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 	$(GIT) submodule update $*
 	@touch $@
 
+.PHONY: common
+common: $(common)
+$(common): packages/common/src/*.ts yarn_install
+	cd packages/common; \
+	yarn build
+	@touch $@
 
 .PHONY: mountable
 mountable: $(mountable)
@@ -64,14 +71,14 @@ $(sharing-common): packages/sharing-common/src/*.ts yarn_install
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(sharing-common) yarn_install
+$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(common) $(sharing-common) yarn_install
 	cd packages/sharing-editor; \
 	yarn build
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) yarn_install
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) $(common) yarn_install
 	cd packages/desktop; \
 	yarn build
 	@touch $@

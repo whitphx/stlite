@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.1.2",
+    "@stlite/common": "^0.18.2",
     "@stlite/kernel": "^0.18.2",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",

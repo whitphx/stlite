@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
+import { parseRequirementsTxt } from "@stlite/common";
 import TabBar from "./components/TabBar";
 import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
@@ -97,10 +98,7 @@ function Editor({
 
     const value: string = editor.getValue();
     if (currentFileName === REQUIREMENTS_FILENAME) {
-      const requirements = value
-        .split("\n")
-        .map((r) => r.trim())
-        .filter((r) => r !== "");
+      const requirements = parseRequirementsTxt(value);
       onRequirementsChange(requirements);
       return;
     }

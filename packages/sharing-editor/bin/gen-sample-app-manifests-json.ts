@@ -4,6 +4,7 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import { Record, String, Array, Static } from "runtypes";
+import { parseRequirementsTxt } from "@stlite/common";
 
 const rootDirPath = path.resolve(__dirname, "..");
 const sampleAppRootDirPath = path.join(rootDirPath, "./public/samples");
@@ -52,10 +53,7 @@ async function readRequirements(
     const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
       encoding: "utf-8",
     });
-    return requirementsTxtData
-      .split("\n")
-      .map((r) => r.trim())
-      .filter((r) => r !== "");
+    return parseRequirementsTxt(requirementsTxtData);
   } catch {
     console.log(
       `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`

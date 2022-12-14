@@ -8,7 +8,7 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { toast, Slide, Id as ToastId } from "react-toastify";
-import InstallErrorToastContent from "./components/InstallErrorToastContent";
+import ErrorToastContent from "./components/ErrorToastContent";
 import "./App.css";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
@@ -95,15 +95,18 @@ st.write("Hello World")`,
           toastIds.forEach((id) => toast.dismiss(id));
         };
         const onError: StliteKernelOptions["onError"] = (error) => {
-          toast(<InstallErrorToastContent error={error} />, {
-            position: toast.POSITION.BOTTOM_RIGHT,
-            type: "error",
-            autoClose: false,
-            closeOnClick: false,
-            style: {
-              cursor: "default", // react-toastify@9.0.8 sets `cursor: pointer` even for toasts with closeOnClick=false, so override it here. Ref: https://github.com/fkhadra/react-toastify/issues/839
-            },
-          });
+          toast(
+            <ErrorToastContent
+              message="Error during booting up"
+              error={error}
+            />,
+            {
+              position: toast.POSITION.BOTTOM_RIGHT,
+              type: "error",
+              autoClose: false,
+              closeOnClick: false,
+            }
+          );
         };
 
         const kernel = new StliteKernel({
@@ -168,21 +171,22 @@ st.write("Hello World")`,
                 );
               }
               case "install": {
-                return toast.promise(
+                return toast.promise<void, Error>(
                   kernel.install(msg.data.requirements),
                   {
                     pending: "Installing",
                     success: "Successfully installed",
                     error: {
                       render({ data }) {
-                        const error: Error = data;
-                        return <InstallErrorToastContent error={error} />;
+                        return (
+                          <ErrorToastContent
+                            message="Failed to install"
+                            error={data}
+                          />
+                        );
                       },
                       autoClose: false,
                       closeOnClick: false,
-                      style: {
-                        cursor: "default", // react-toastify@9.0.8 sets `cursor: pointer` even for toasts with closeOnClick=false, so override it here. Ref: https://github.com/fkhadra/react-toastify/issues/839
-                      },
                     },
                   },
                   {

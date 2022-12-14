@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1] - 2022-12-14
+
+### `@stlite/sharing-editor`, `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Fixed
+
+- Lines starting with `#` in `requirements.txt` are ignored as comments, [#432](https://github.com/whitphx/stlite/pull/432).
+
 ### `@stlite/desktop-cli`
 
 #### Fixed

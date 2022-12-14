@@ -122,7 +122,18 @@ async function loadPyodideAndPackages() {
     importlib.invalidate_caches()
   `);
 
-  postProgressMessage("Loading streamlit package and setting up the loggers.");
+  postProgressMessage("Loading streamlit package.");
+  console.debug("Loading the Streamlit package");
+  // Importing the `streamlit` module takes most of the time,
+  // so we first run this step independently for clearer logs and easy exec-time profiling.
+  // For https://github.com/whitphx/stlite/issues/427
+  await pyodide.runPythonAsync(`
+      import streamlit.runtime
+      import streamlit.web
+  `);
+  console.debug("Loaded the Streamlit package");
+
+  postProgressMessage("Setting up the loggers.");
   console.debug("Setting the loggers");
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
   // See https://github.com/streamlit/streamlit/issues/4742

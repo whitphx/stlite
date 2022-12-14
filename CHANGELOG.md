@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Changed
+
+- Update the kernel version loaded for desktop apps to v0.19.1, [#434](https://github.com/whitphx/stlite/pull/434).
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Better logs at the booting-up phase, [#437](https://github.com/whitphx/stlite/pull/437).
+
 ## [0.19.1] - 2022-12-14
 
 ### `@stlite/sharing-editor`, `@stlite/desktop`, `@stlite/desktop-cli`

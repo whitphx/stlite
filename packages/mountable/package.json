@@ -1,6 +1,6 @@
 {
   "name": "@stlite/mountable",
-  "version": "0.19.1",
+  "version": "0.20.0",
   "description": "Mountable stlite application",
   "keywords": [
     "stlite",
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@babel/core": "7.12.3",
     "@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
-    "@stlite/kernel": "^0.19.1",
+    "@stlite/kernel": "^0.20.0",
     "@svgr/webpack": "5.5.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",

@@ -7,6 +7,7 @@ import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
 import { loadPyodide, PyodideInterface } from "pyodide";
+import { parseRequirementsTxt } from "@stlite/common";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -151,18 +152,13 @@ async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
   await fsExtra.copy(options.sourceDir, options.copyTo);
 }
 
-// Original: packages/sharing-editor/bin/gen-sample-app-manifests-json.ts
-// TODO: Be DRY
 async function readRequirements(
   requirementsTxtPath: string
 ): Promise<string[]> {
   const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
     encoding: "utf-8",
   });
-  return requirementsTxtData
-    .split("\n")
-    .map((r) => r.trim())
-    .filter((r) => r !== "");
+  return parseRequirementsTxt(requirementsTxtData);
 }
 
 // Original: kernel/src/requirements.ts

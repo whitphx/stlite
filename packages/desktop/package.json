@@ -20,7 +20,7 @@
     "start:electron": "tsc -p electron -w",
     "build:electron": "tsc -p electron",
     "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.21.3/pyodide-build-0.21.3.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
-    "build:bin": "esbuild ./bin/dump_artifacts.ts --bundle --minify --platform=node --external:@stlite/kernel --external:node-fetch --external:pyodide --external:yargs --external:fs-extra --outfile=./bin/dump_artifacts.js && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
+    "build:bin": "./scripts/build_bin.js && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
@@ -48,6 +48,11 @@
       "last 1 electron version"
     ]
   },
+  "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
+  "dependencies": {
+    "node-fetch": "2",
+    "pyodide": "^0.21.3"
+  },
   "devDependencies": {
     "@craco/craco": "^6.1.2",
     "@stlite/common": "^0.20.0",
@@ -74,7 +79,7 @@
     "typescript": "^4.6.3",
     "yargs": "^17.5.1"
   },
-  "//": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
+  "///": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
   "build": {
     "appId": "your.id",
     "mac": {

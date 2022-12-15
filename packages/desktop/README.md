@@ -49,3 +49,8 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
    - This command is just a wrapper of `electron` command as you can see at the `"scripts"` field in the `package.json`. It launches Electron and starts the app with `./build/electron/main.js`, which is specified at the `"main"` field in the `package.json`.
 9. Run `npm run dist` or `yarn dist` for packaging.
    - This command bundles the `./build` directory created in the step above into application files (`.app`, `.exe`, `.dmg` etc.) in the `./dist` directory. To customize the built app, e.g. setting the icon, follow the [`electron-builder`](https://www.electron.build/) instructions.
+
+## Use the latest version of Electron
+
+To make your app secure, be sure to use the latest version of Electron.
+This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.

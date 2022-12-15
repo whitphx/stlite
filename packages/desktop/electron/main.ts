@@ -25,7 +25,23 @@ const createWindow = () => {
     },
   });
 
+  const indexUrl =
+    app.isPackaged || process.env.NODE_ENV === "production"
+      ? "file:///index.html"
+      : "http://localhost:3000/";
+
+  // Check the IPC sender in every callbacks below,
+  // following the security best practice, "17. Validate the sender of all IPC messages."
+  // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
+  const validateIpcSender = (frame: Electron.WebFrameMain): boolean => {
+    return frame.url === indexUrl;
+  };
+
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
+    if (!validateIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(
       __dirname,
@@ -36,20 +52,20 @@ const createWindow = () => {
   ipcMain.handle(
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
+      if (!validateIpcSender(ev.senderFrame)) {
+        throw new Error("Invalid IPC sender");
+      }
+
       const streamlitAppDir = path.resolve(__dirname, "../streamlit_app");
       return walkRead(streamlitAppDir);
     }
   );
 
-  if (app.isPackaged || process.env.NODE_ENV === "production") {
-    // Use .loadURL() with an absolute URL based on "/" instead of .loadFile()
-    // because absolute URLs with the file:// scheme will be resolved
-    // to absolute file paths based on the special handler
-    // registered through `interceptFileProtocol` below.
-    mainWindow.loadURL("file:///index.html");
-  } else {
-    mainWindow.loadURL("http://localhost:3000");
-  }
+  // Use .loadURL() with an absolute URL based on "/" instead of .loadFile()
+  // because absolute URLs with the file:// scheme will be resolved
+  // to absolute file paths based on the special handler
+  // registered through `interceptFileProtocol` below.
+  mainWindow.loadURL(indexUrl);
 
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools();
@@ -94,4 +110,40 @@ app.whenReady().then(() => {
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("web-contents-created", (event, contents) => {
+  // Intercepts webView creation events,
+  // following the security best practice, "12. Verify WebView options before creation."
+  // https://www.electronjs.org/docs/latest/tutorial/security#12-verify-webview-options-before-creation
+  contents.on("will-attach-webview", (event, webPreferences, params) => {
+    // Cancels all webView creation request
+    event.preventDefault();
+  });
+
+  // Intercepts navigation,
+  // following the security best practice, "13. Disable or limit navigation."
+  // https://www.electronjs.org/docs/latest/tutorial/security#13-disable-or-limit-navigation
+  contents.on("will-navigate", (event, navigationUrl) => {
+    console.debug("will-navigate", navigationUrl);
+    event.preventDefault();
+  });
+
+  // Limit new windows creation,
+  // following the security best practice, "14. Disable or limit creation of new windows."
+  // https://www.electronjs.org/docs/latest/tutorial/security#14-disable-or-limit-creation-of-new-windows
+  contents.setWindowOpenHandler(({ url }) => {
+    console.error("Opening a new window is not allowed.");
+    // TODO: Implement `isSafeForExternalOpen()` below with a configurable allowed list.
+    // We'll ask the operating system
+    // to open this event's url in the default browser.
+    // DON'T pass an arbitrary URL to `shell.openExternal()` here
+    // as advised at "15. Do not use shell.openExternal with untrusted content."
+    // if (isSafeForExternalOpen(url)) {
+    //   setImmediate(() => {
+    //     shell.openExternal(url)
+    //   })
+    // }
+    return { action: "deny" };
+  });
 });

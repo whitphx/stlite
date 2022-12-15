@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.2] - 2022-12-15
+
+### `@stlite/desktop`, `@stlite/desktop-cli`
+
+#### Fixed
+
+- Update README to announce that `@stlite/desktop` should be used instead of `@stlite/desktop-cli`, [#444](https://github.com/whitphx/stlite/pull/444).
+
 ## [0.21.1] - 2022-12-15
 
 ### `@stlite/desktop`

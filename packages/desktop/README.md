@@ -54,3 +54,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 
 To make your app secure, be sure to use the latest version of Electron.
 This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.
+
+## Limitations
+
+- Navigation to external resources like `st.markdown("[link](https://streamlit.io/)")` does not work for security. See https://github.com/whitphx/stlite/pull/445 and let us know if you have use cases where you have to use such external links.

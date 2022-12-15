@@ -145,7 +145,7 @@ function PreviewToolBar(props: PreviewToolBarProps) {
                 <li>Online bundler: Coming Soon...</li>
                 <li>
                   Manual: Read{" "}
-                  <ExternalLink href="https://github.com/whitphx/stlite/blob/main/packages/desktop-cli/README.md">
+                  <ExternalLink href="https://github.com/whitphx/stlite/blob/main/packages/desktop/README.md">
                     this document
                     <RiExternalLinkLine />
                   </ExternalLink>

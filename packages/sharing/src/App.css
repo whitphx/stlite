@@ -1,4 +1,4 @@
-/* To make `overflow: scroll` at the toast body work */
+/* To make the horizontal scroll of the toast body with `overflow: scroll` work */
 .Toastify__toast-body {
   width: 0;
 }

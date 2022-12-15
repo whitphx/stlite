@@ -30,15 +30,15 @@ const createWindow = () => {
       ? "file:///index.html"
       : "http://localhost:3000/";
 
-  // Check the IPC sender in every callbacks below,
+  // Check the IPC sender in every callback below,
   // following the security best practice, "17. Validate the sender of all IPC messages."
   // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
-  const validateIpcSender = (frame: Electron.WebFrameMain): boolean => {
+  const isValidIpcSender = (frame: Electron.WebFrameMain): boolean => {
     return frame.url === indexUrl;
   };
 
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
-    if (!validateIpcSender(ev.senderFrame)) {
+    if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error("Invalid IPC sender");
     }
 
@@ -52,7 +52,7 @@ const createWindow = () => {
   ipcMain.handle(
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
-      if (!validateIpcSender(ev.senderFrame)) {
+      if (!isValidIpcSender(ev.senderFrame)) {
         throw new Error("Invalid IPC sender");
       }
 
@@ -61,7 +61,9 @@ const createWindow = () => {
     }
   );
 
-  // Use .loadURL() with an absolute URL based on "/" instead of .loadFile()
+  // Even when the entrypoint is a local file like the production build,
+  // we use .loadURL() with an absolute URL with the `file://` schema
+  // instead of passing a file path to .loadFile()
   // because absolute URLs with the file:// scheme will be resolved
   // to absolute file paths based on the special handler
   // registered through `interceptFileProtocol` below.
@@ -73,7 +75,7 @@ const createWindow = () => {
 };
 
 // Enable process sandboxing globally (https://www.electronjs.org/docs/latest/tutorial/sandbox#enabling-the-sandbox-globally),
-// following the security best practice "4. Enable process sandboxing."
+// following the security best practice, "4. Enable process sandboxing."
 // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
 app.enableSandbox();
 
@@ -113,7 +115,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("web-contents-created", (event, contents) => {
-  // Intercepts webView creation events,
+  // Intercepts webView creation events and forbid all,
   // following the security best practice, "12. Verify WebView options before creation."
   // https://www.electronjs.org/docs/latest/tutorial/security#12-verify-webview-options-before-creation
   contents.on("will-attach-webview", (event, webPreferences, params) => {
@@ -121,7 +123,7 @@ app.on("web-contents-created", (event, contents) => {
     event.preventDefault();
   });
 
-  // Intercepts navigation,
+  // Intercepts navigation and forbid all,
   // following the security best practice, "13. Disable or limit navigation."
   // https://www.electronjs.org/docs/latest/tutorial/security#13-disable-or-limit-navigation
   contents.on("will-navigate", (event, navigationUrl) => {

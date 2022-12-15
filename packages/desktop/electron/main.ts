@@ -21,6 +21,7 @@ const createWindow = () => {
     height: 720,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+      sandbox: true, // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
     },
   });
 
@@ -54,6 +55,11 @@ const createWindow = () => {
     mainWindow.webContents.openDevTools();
   }
 };
+
+// Enable process sandboxing globally (https://www.electronjs.org/docs/latest/tutorial/sandbox#enabling-the-sandbox-globally),
+// following the security best practice "4. Enable process sandboxing."
+// https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
+app.enableSandbox();
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

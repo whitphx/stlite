@@ -22,7 +22,7 @@ Visit [stlite sharing](https://edit.share.stlite.net/).
 
 ## Create a desktop app
 
-See [`@stlite/desktop-cli`](./packages/desktop-cli/README.md).
+See [`@stlite/desktop`](./packages/desktop/README.md).
 
 ## Use stlite on your web page
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.3] - 2022-12-16
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Apply Electron security best practices, [#445](https://github.com/whitphx/stlite/pull/445).
+
 ## [0.21.2] - 2022-12-15
 
 ### `@stlite/desktop`, `@stlite/desktop-cli`

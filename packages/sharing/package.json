@@ -5,6 +5,7 @@
   "homepage": "https://share.stlite.net/",
   "dependencies": {
     "@craco/craco": "^6.1.2",
+    "@stlite/common-react": "^0.21.3",
     "@stlite/kernel": "^0.21.3",
     "@stlite/sharing-common": "^0.21.3",
     "@testing-library/react": "^11.2.7",

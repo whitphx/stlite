@@ -1,0 +1,22 @@
+{
+  "name": "@stlite/common-react",
+  "version": "0.21.3",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "start": "tsc -w",
+    "build": "tsc",
+    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
+  },
+  "dependencies": {
+    "streamlit-browser": "^1.12.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.6.4"
+  }
+}

@@ -74,15 +74,11 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
-        const { onProgress, onLoad, onError } = makeToastKernelCallbacks();
-
         const kernel = new StliteKernel({
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
           requirements: appData.requirements,
-          onProgress,
-          onLoad,
-          onError,
+          ...makeToastKernelCallbacks(),
         });
         _kernel = kernel;
         setKernel(kernel);
@@ -187,7 +183,7 @@ st.write("Hello World")`,
     };
   }, []);
 
-  return kernel ? <StreamlitApp kernel={kernel}></StreamlitApp> : null;
+  return kernel ? <StreamlitApp kernel={kernel} /> : null;
 }
 
 export default App;

@@ -717,6 +717,10 @@ jobs:
     - name: Build @stlite/desktop
       run: make desktop
 
+    - name: Check if electron-builder works
+      working-directory: packages/desktop
+      run: yarn run pack
+
     - name: Package
       working-directory: packages/desktop
       run: yarn pack

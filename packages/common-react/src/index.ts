@@ -1,1 +1,1 @@
-export * from "./toastify-components"
+export * from "./toastify-components";

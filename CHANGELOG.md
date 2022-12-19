@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2022-12-19
+
+### `@stlite/desktop`, `@stlite/mountable`
+
+#### Added
+
+- Show the booting-up progress on toasts, [#446](https://github.com/whitphx/stlite/pull/446).
+
 ## [0.21.3] - 2022-12-16
 
 ### `@stlite/desktop`

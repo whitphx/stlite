@@ -4,6 +4,7 @@
   "version": "0.21.3",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.js",
   "files": [
     "dist/",
     "py/**/*.whl"

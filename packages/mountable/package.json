@@ -28,6 +28,7 @@
   "devDependencies": {
     "@babel/core": "7.12.3",
     "@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
+    "@stlite/common-react": "^0.21.3",
     "@stlite/kernel": "^0.21.3",
     "@svgr/webpack": "5.5.0",
     "@testing-library/react": "^11.2.7",
@@ -81,6 +82,7 @@
     "react-dev-utils": "^11.0.3",
     "react-dom": "^17.0.2",
     "react-refresh": "^0.8.3",
+    "react-toastify": "^9.1.1",
     "resolve": "1.18.1",
     "resolve-url-loader": "^3.1.2",
     "sass-loader": "^10.0.5",

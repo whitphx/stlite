@@ -60,7 +60,7 @@ $(common-react): packages/common-react/src/*.ts yarn_install
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel) $(common-react)
 	cd packages/mountable; \
 	yarn build
 	@touch $@

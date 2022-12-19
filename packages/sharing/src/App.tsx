@@ -8,9 +8,11 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { toast } from "react-toastify";
-import ErrorToastContent from "./components/ErrorToastContent";
 import "./App.css";
-import { makeToastKernelCallbacks } from "@stlite/common-react";
+import {
+  makeToastKernelCallbacks,
+  ErrorToastContent,
+} from "@stlite/common-react";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
@@ -72,21 +74,7 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
-        const { onProgress, onLoad } = makeToastKernelCallbacks();
-        const onError: StliteKernelOptions["onError"] = (error) => {
-          toast(
-            <ErrorToastContent
-              message="Error during booting up"
-              error={error}
-            />,
-            {
-              position: toast.POSITION.BOTTOM_RIGHT,
-              type: "error",
-              autoClose: false,
-              closeOnClick: false,
-            }
-          );
-        };
+        const { onProgress, onLoad, onError } = makeToastKernelCallbacks();
 
         const kernel = new StliteKernel({
           entrypoint: appData.entrypoint,

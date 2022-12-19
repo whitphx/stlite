@@ -1,5 +1,4 @@
 import { ToastContentProps } from "react-toastify";
-import styles from "./ErrorToastContent.module.css";
 
 interface ErrorToastContentProps {
   message: string;
@@ -13,7 +12,12 @@ function ErrorToastContent(props: ErrorToastContentProps) {
     <>
       <p>{injectedProps.message}</p>
       {injectedProps.error && (
-        <pre className={styles.codeContainer}>
+        <pre
+          style={{
+            overflow: "scroll",
+            maxHeight: 300,
+          }}
+        >
           <code>{injectedProps.error.message}</code>
         </pre>
       )}

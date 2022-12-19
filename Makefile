@@ -86,7 +86,7 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) $(common) yarn_install
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) $(common) $(common-react) yarn_install
 	cd packages/desktop; \
 	yarn build
 	@touch $@

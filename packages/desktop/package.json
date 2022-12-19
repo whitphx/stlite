@@ -1,6 +1,6 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "license": "Apache-2.0",
   "homepage": "/",
   "main": "./build/electron/main.js",
@@ -57,9 +57,9 @@
   },
   "devDependencies": {
     "@craco/craco": "^6.1.2",
-    "@stlite/common": "^0.22.0",
-    "@stlite/common-react": "^0.22.0",
-    "@stlite/kernel": "^0.22.0",
+    "@stlite/common": "^0.22.1",
+    "@stlite/common-react": "^0.22.1",
+    "@stlite/kernel": "^0.22.1",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

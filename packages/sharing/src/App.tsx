@@ -8,11 +8,11 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { toast } from "react-toastify";
-import "./App.css";
 import {
   makeToastKernelCallbacks,
   ErrorToastContent,
 } from "@stlite/common-react";
+import "@stlite/common-react/src/toastify-components/toastify.css";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)

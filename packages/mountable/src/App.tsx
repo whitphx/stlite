@@ -1,7 +1,5 @@
 import React from "react";
 
-import "./App.css";
-
 import { StliteKernel, StliteKernelProvider } from "@stlite/kernel";
 
 import ThemedApp from "streamlit-browser/src/ThemedApp";

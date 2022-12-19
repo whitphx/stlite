@@ -6,6 +6,7 @@ import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
 import { ToastContainer, makeToastKernelCallbacks } from "@stlite/common-react";
 import "react-toastify/dist/ReactToastify.css";
+import "@stlite/common-react/src/toastify-components/toastify.css";
 
 /**
  * If `PUBLIC_PATH` which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)

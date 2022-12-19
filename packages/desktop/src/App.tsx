@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import StreamlitApp from "./StreamlitApp";
 import { makeToastKernelCallbacks } from "@stlite/common-react";
-import "./App.css";
+import "@stlite/common-react/src/toastify-components/toastify.css";
 
 let pyodideEntrypointUrl: string | undefined;
 if (process.env.NODE_ENV === "production") {

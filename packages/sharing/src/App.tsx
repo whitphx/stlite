@@ -7,9 +7,12 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
-import { toast, Slide, Id as ToastId } from "react-toastify";
-import ErrorToastContent from "./components/ErrorToastContent";
-import "./App.css";
+import { toast } from "react-toastify";
+import {
+  makeToastKernelCallbacks,
+  ErrorToastContent,
+} from "@stlite/common-react";
+import "@stlite/common-react/src/toastify-components/toastify.css";
 
 const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
@@ -71,51 +74,11 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
-        let prevToastId: ToastId | null = null;
-        const toastIds: ToastId[] = [];
-        const onProgress: StliteKernelOptions["onProgress"] = (message) => {
-          const id = toast(message, {
-            position: toast.POSITION.BOTTOM_RIGHT,
-            transition: Slide,
-            isLoading: true,
-            hideProgressBar: true,
-            closeButton: false,
-          });
-          toastIds.push(id);
-
-          if (prevToastId) {
-            toast.update(prevToastId, {
-              isLoading: false,
-              autoClose: 3000,
-            });
-          }
-          prevToastId = id;
-        };
-        const onLoad: StliteKernelOptions["onLoad"] = () => {
-          toastIds.forEach((id) => toast.dismiss(id));
-        };
-        const onError: StliteKernelOptions["onError"] = (error) => {
-          toast(
-            <ErrorToastContent
-              message="Error during booting up"
-              error={error}
-            />,
-            {
-              position: toast.POSITION.BOTTOM_RIGHT,
-              type: "error",
-              autoClose: false,
-              closeOnClick: false,
-            }
-          );
-        };
-
         const kernel = new StliteKernel({
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
           requirements: appData.requirements,
-          onProgress,
-          onLoad,
-          onError,
+          ...makeToastKernelCallbacks(),
         });
         _kernel = kernel;
         setKernel(kernel);
@@ -220,7 +183,7 @@ st.write("Hello World")`,
     };
   }, []);
 
-  return kernel ? <StreamlitApp kernel={kernel}></StreamlitApp> : null;
+  return kernel ? <StreamlitApp kernel={kernel} /> : null;
 }
 
 export default App;

@@ -4,6 +4,9 @@ import App from "./App";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
+import { ToastContainer, makeToastKernelCallbacks } from "@stlite/common-react";
+import "react-toastify/dist/ReactToastify.css";
+import "@stlite/common-react/src/toastify-components/toastify.css";
 
 /**
  * If `PUBLIC_PATH` which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)
@@ -31,11 +34,13 @@ export function mount(
   const kernel = new StliteKernel({
     ...canonicalizeMountOptions(options),
     wheelBaseUrl,
+    ...makeToastKernelCallbacks(),
   });
 
   ReactDOM.render(
     <React.StrictMode>
       <App kernel={kernel} />
+      <ToastContainer />
     </React.StrictMode>,
     container
   );

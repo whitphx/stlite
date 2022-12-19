@@ -1,3 +1,4 @@
+import React from "react";
 import { ToastContainer as DefaultToastContainer } from "react-toastify";
 import { isDarkTheme } from "./theme";
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { StliteKernelOptions } from "@stlite/kernel";
 import { toast, Slide, Id as ToastId } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";

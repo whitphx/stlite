@@ -1,4 +1,5 @@
 common := packages/common/dist/*
+common-react := packages/common-react/dist/*
 mountable := packages/mountable/build/*
 sharing := packages/sharing/build/*
 sharing-common := packages/sharing-common/dist/*
@@ -50,6 +51,13 @@ $(common): packages/common/src/*.ts yarn_install
 	yarn build
 	@touch $@
 
+.PHONY: common-react
+common-react: $(common-react)
+$(common-react): packages/common-react/src/*.ts yarn_install
+	cd packages/common-react; \
+	yarn build
+	@touch $@
+
 .PHONY: mountable
 mountable: $(mountable)
 $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel)
@@ -59,7 +67,7 @@ $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel)
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(sharing-common) yarn_install
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(sharing-common) $(common-react) yarn_install
 	cd packages/sharing; \
 	yarn build
 	@touch $@

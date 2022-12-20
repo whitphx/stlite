@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
+import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
@@ -39,7 +39,7 @@ export function mount(
 
   ReactDOM.render(
     <React.StrictMode>
-      <App kernel={kernel} />
+      <StreamlitApp kernel={kernel} />
       <ToastContainer />
     </React.StrictMode>,
     container

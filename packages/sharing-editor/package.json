@@ -54,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/parser": "^7.20.5",
     "@types/jsdom": "^20.0.1",
     "@types/mime": "^3.0.1",
     "jsdom": "^20.0.3",

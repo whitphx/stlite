@@ -1,7 +1,33 @@
 import { AppData } from "@stlite/sharing-common";
 
+function makeRequirementsLiteral(
+  requirements: AppData["requirements"]
+): string {
+  return "[" + requirements.map((r) => '"' + r + '"').join(", ") + "]";
+}
+
+function makeEntrypointLiteral(entrypoint: AppData["entrypoint"]): string {
+  return '"' + entrypoint + '"';
+}
+
+function makeFilesLiteral(files: AppData["files"]): string {
+  let content = "";
+  content += "{\n";
+  Object.keys(files).forEach((fileName) => {
+    content += `"${fileName}": `;
+    const fileContent = files[fileName].content;
+    if (fileContent?.$case === "text") {
+      content += "`\n" + fileContent.text + "\n`,";
+    } else if (fileContent?.$case === "data") {
+      // TODO
+    }
+  });
+  content += "\n}";
+  return content;
+}
+
 export function exportAsHtml(appData: AppData): string {
-  return `
+  const output = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -23,16 +49,9 @@ export function exportAsHtml(appData: AppData): string {
     <script>
 stlite.mount(
   {
-    requirements: [${appData.requirements
-      .map((r) => '"' + r + '"')
-      .join(", ")}],
-    entrypoint: "${appData.entrypoint}",
-    files: {
-      "streamlit_app.py": \`
-import streamlit as st
-st.write("Hello World")
-\`
-    },
+    requirements: ${makeRequirementsLiteral(appData.requirements)},
+    entrypoint: ${makeEntrypointLiteral(appData.entrypoint)},
+    files: ${makeFilesLiteral(appData.files)},
   },
   document.getElementById("root")
 )
@@ -40,4 +59,5 @@ st.write("Hello World")
   </body>
 </html>
   `;
+  return output;
 }

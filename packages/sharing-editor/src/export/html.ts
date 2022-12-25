@@ -19,7 +19,9 @@ function makeFilesLiteral(files: AppData["files"]): string {
     if (fileContent?.$case === "text") {
       content += "`\n" + fileContent.text + "\n`,";
     } else if (fileContent?.$case === "data") {
-      // TODO
+      const b64 = btoa(new TextDecoder("utf8").decode(fileContent.data));
+      // const str = new TextEncoder().encode(atob(b64));
+      content += `new TextEncoder().encode(atob("${b64}")),\n`;
     }
   });
   content += "\n}";

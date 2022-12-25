@@ -7,7 +7,7 @@ const jsdom = new JSDOM();
 const parser = new jsdom.window.DOMParser();
 
 describe("exportAsHtml", () => {
-  it("returns a valid HTML string containing necessary elements", () => {
+  it("returns a valid HTML string containing necessary elements and the stlite.mount() call", () => {
     const appData: AppData = {
       entrypoint: "streamlit_app.py",
       files: {
@@ -15,6 +15,12 @@ describe("exportAsHtml", () => {
           content: {
             $case: "text",
             text: `import streamlit as st\nst.write("Hello World")`,
+          },
+        },
+        "foo.dat": {
+          content: {
+            $case: "data",
+            data: new Uint8Array([1, 2, 3, 4]),
           },
         },
       },
@@ -129,6 +135,14 @@ describe("exportAsHtml", () => {
                   }),
                   // Value will be checked below.
                 }),
+                expect.objectContaining({
+                  type: "ObjectProperty",
+                  key: expect.objectContaining({
+                    type: "StringLiteral",
+                    value: "foo.dat",
+                  }),
+                  // Value will be checked below.
+                }),
               ],
             }),
           }),
@@ -138,5 +152,40 @@ describe("exportAsHtml", () => {
     expect(
       mountOptions.properties[2].value.properties[0].value.quasis[0].value.raw
     ).toEqual("\n" + appData.files["streamlit_app.py"].content!.text + "\n");
+    expect(mountOptions.properties[2].value.properties[1].value).toEqual(
+      expect.objectContaining({
+        type: "CallExpression",
+        callee: expect.objectContaining({
+          type: "MemberExpression",
+          object: expect.objectContaining({
+            type: "NewExpression",
+            callee: expect.objectContaining({
+              type: "Identifier",
+              name: "TextEncoder",
+            }),
+          }),
+          computed: false,
+          property: expect.objectContaining({
+            type: "Identifier",
+            name: "encode",
+          }),
+        }),
+        arguments: [
+          expect.objectContaining({
+            type: "CallExpression",
+            callee: expect.objectContaining({
+              type: "Identifier",
+              name: "atob",
+            }),
+            arguments: [
+              expect.objectContaining({
+                type: "StringLiteral",
+                value: "AQIDBA==",
+              }),
+            ],
+          }),
+        ],
+      })
+    );
   });
 });

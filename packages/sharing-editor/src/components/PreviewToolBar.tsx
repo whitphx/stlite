@@ -112,10 +112,25 @@ interface SelfHostingCodeBoxProps {
   children: string;
 }
 function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
+  const codeRef = useRef<HTMLElement>(null);
+  const handleDoubleClick = useCallback<React.MouseEventHandler>((e) => {
+    const codeElem = codeRef.current;
+    if (codeElem == null) {
+      return;
+    }
+    const range = document.createRange();
+    range.selectNodeContents(codeElem);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }, []);
   return (
-    <div className={styles.selfHostingCodeBox}>
+    <div
+      className={styles.selfHostingCodeBox}
+      onDoubleClick={handleDoubleClick}
+    >
       <pre>
-        <code>{props.children}</code>
+        <code ref={codeRef}>{props.children}</code>
       </pre>
     </div>
   );

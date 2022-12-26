@@ -116,7 +116,7 @@ function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
   const htmlSource = props.children;
 
   const codeRef = useRef<HTMLElement>(null);
-  const handleCodeDoubleClick = useCallback<React.MouseEventHandler>((e) => {
+  const handleCodeDoubleClick = useCallback<React.MouseEventHandler>(() => {
     const codeElem = codeRef.current;
     if (codeElem == null) {
       return;
@@ -159,11 +159,12 @@ function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
           <RiDownloadLine />
         </button>
       </div>
-      <div className={styles.selfHostingCodeBox}>
+      <div
+        className={styles.selfHostingCodeBox}
+        onDoubleClick={handleCodeDoubleClick}
+      >
         <pre>
-          <code ref={codeRef} onDoubleClick={handleCodeDoubleClick}>
-            {htmlSource}
-          </code>
+          <code ref={codeRef}>{htmlSource}</code>
         </pre>
       </div>
     </div>

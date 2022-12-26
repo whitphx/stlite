@@ -1,4 +1,4 @@
-import { AppData } from "@stlite/sharing-common";
+import { AppData, u8aToBase64, base64ToU8A } from "@stlite/sharing-common";
 
 function makeRequirementsLiteral(
   requirements: AppData["requirements"]
@@ -10,25 +10,32 @@ function makeEntrypointLiteral(entrypoint: AppData["entrypoint"]): string {
   return '"' + entrypoint + '"';
 }
 
-function makeFilesLiteral(files: AppData["files"]): string {
+function makeFilesLiteral(files: AppData["files"]): {
+  filesLiteral: string;
+  isBase64DecoderRequired: boolean;
+} {
+  let isBase64DecoderRequired = false;
   let content = "";
   content += "{\n";
   Object.keys(files).forEach((fileName) => {
     content += `"${fileName}": `;
     const fileContent = files[fileName].content;
     if (fileContent?.$case === "text") {
-      content += "`\n" + fileContent.text + "\n`,";
+      content += "`\n" + fileContent.text.replaceAll("`", "\\`") + "\n`,";
     } else if (fileContent?.$case === "data") {
-      const b64 = btoa(new TextDecoder("utf8").decode(fileContent.data));
-      // const str = new TextEncoder().encode(atob(b64));
-      content += `new TextEncoder().encode(atob("${b64}")),\n`;
+      const b64 = u8aToBase64(fileContent.data);
+      content += `${base64ToU8A.name}("${b64}"),\n`;
+      isBase64DecoderRequired = true;
     }
   });
   content += "\n}";
-  return content;
+  return { filesLiteral: content, isBase64DecoderRequired };
 }
 
 export function exportAsHtml(appData: AppData): string {
+  const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
+    appData.files
+  );
   const output = `
 <!DOCTYPE html>
 <html>
@@ -53,10 +60,11 @@ stlite.mount(
   {
     requirements: ${makeRequirementsLiteral(appData.requirements)},
     entrypoint: ${makeEntrypointLiteral(appData.entrypoint)},
-    files: ${makeFilesLiteral(appData.files)},
+    files: ${filesLiteral},
   },
   document.getElementById("root")
 )
+${isBase64DecoderRequired ? "\n" + base64ToU8A.toString() : ""}
     </script>
   </body>
 </html>

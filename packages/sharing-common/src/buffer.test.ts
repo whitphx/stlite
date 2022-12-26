@@ -1,13 +1,12 @@
 import { expect, test } from "vitest";
-import { abTobase64, base64ToAb } from "./buffer";
+import { u8aToBase64, base64ToU8A } from "./buffer";
 
-function createDummyArrayBuffer(byteLength: number): ArrayBuffer {
-  const arrayBuffer = new ArrayBuffer(byteLength);
-  const bufferView = new Uint8Array(arrayBuffer);
+function createDummyUint8Array(byteLength: number): Uint8Array {
+  const buf = new Uint8Array(byteLength);
   for (let i = 0; i < byteLength; ++i) {
-    bufferView[i] = i;
+    buf[i] = i;
   }
-  return arrayBuffer;
+  return buf;
 }
 
 test("vitest matcher for ArrayBuffer", () => {
@@ -37,8 +36,8 @@ test("vitest matcher for ArrayBuffer", () => {
   1000000, // Calling `String.fromCharCode.apply()` with a long buffer throws a RangeError.
 ].forEach((byteLength) => {
   test(`encode and decode an array buffer whose length is ${byteLength}`, () => {
-    const data = createDummyArrayBuffer(byteLength);
-    const encDeced = base64ToAb(abTobase64(data));
+    const data = createDummyUint8Array(byteLength);
+    const encDeced = base64ToU8A(u8aToBase64(data));
     expect(new Uint8Array(encDeced)).toEqual(new Uint8Array(data));
   });
 });
@@ -46,8 +45,8 @@ test("vitest matcher for ArrayBuffer", () => {
 [3, 4].forEach((byteLength) => {
   const applyMax = 3;
   test(`encoder with an input longer than or equal (${byteLength}) applyMax (${applyMax})`, () => {
-    const data = createDummyArrayBuffer(byteLength);
-    const encDeced = base64ToAb(abTobase64(data, applyMax));
+    const data = createDummyUint8Array(byteLength);
+    const encDeced = base64ToU8A(u8aToBase64(data, applyMax));
     expect(new Uint8Array(encDeced)).toEqual(new Uint8Array(data));
   });
 });

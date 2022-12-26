@@ -3,6 +3,7 @@ import {
   RiExternalLinkLine,
   RiClipboardLine,
   RiShareLine,
+  RiDownloadLine,
 } from "react-icons/ri";
 import { AppData, embedAppDataToUrl } from "@stlite/sharing-common";
 import { exportAsHtml } from "../export/html";
@@ -112,8 +113,10 @@ interface SelfHostingCodeBoxProps {
   children: string;
 }
 function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
+  const htmlSource = props.children;
+
   const codeRef = useRef<HTMLElement>(null);
-  const handleDoubleClick = useCallback<React.MouseEventHandler>((e) => {
+  const handleCodeDoubleClick = useCallback<React.MouseEventHandler>((e) => {
     const codeElem = codeRef.current;
     if (codeElem == null) {
       return;
@@ -124,14 +127,45 @@ function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
     selection?.removeAllRanges();
     selection?.addRange(range);
   }, []);
+
+  const handleCopyButtonClick = useCallback<React.MouseEventHandler>(() => {
+    navigator.clipboard.writeText(htmlSource);
+  }, [htmlSource]);
+
+  const handleDownloadButtonClick = useCallback<React.MouseEventHandler>(() => {
+    const anchorElem = window.document.createElement("a");
+    anchorElem.setAttribute(
+      "href",
+      "data:text/html;charset=utf-8," + encodeURIComponent(htmlSource)
+    );
+    anchorElem.setAttribute("download", "stlite.html");
+    anchorElem.click();
+    anchorElem.remove();
+  }, [htmlSource]);
+
   return (
-    <div
-      className={styles.selfHostingCodeBox}
-      onDoubleClick={handleDoubleClick}
-    >
-      <pre>
-        <code ref={codeRef}>{props.children}</code>
-      </pre>
+    <div className={styles.selfHostingCodeBoxContainer}>
+      <div className={styles.selfHostingCodeBoxButtons}>
+        <button
+          className={styles.selfHostingCodeBoxCopyButton}
+          onClick={handleCopyButtonClick}
+        >
+          <RiClipboardLine />
+        </button>
+        <button
+          className={styles.selfHostingCodeBoxCopyButton}
+          onClick={handleDownloadButtonClick}
+        >
+          <RiDownloadLine />
+        </button>
+      </div>
+      <div className={styles.selfHostingCodeBox}>
+        <pre>
+          <code ref={codeRef} onDoubleClick={handleCodeDoubleClick}>
+            {htmlSource}
+          </code>
+        </pre>
+      </div>
     </div>
   );
 }

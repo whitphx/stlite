@@ -51,6 +51,9 @@
   align-items: center;
 }
 
+.selfHostingCodeBoxContainer {
+  position: relative;
+}
 .selfHostingCodeBox {
   overflow: scroll;
   width: 100%;
@@ -61,6 +64,11 @@
 .selfHostingCodeBox pre {
   margin: 0.5rem;
   font-size: 0.8rem;
+}
+.selfHostingCodeBoxButtons {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .shareIconSquare {

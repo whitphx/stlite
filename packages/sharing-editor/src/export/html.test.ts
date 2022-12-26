@@ -1,4 +1,4 @@
-import { exportAsHtml } from "./html";
+import { exportAsHtml, RUNTIME_VERSION } from "./html";
 import { JSDOM } from "jsdom";
 import * as babelParser from "@babel/parser";
 import { AppData } from "@stlite/sharing-common/dist";
@@ -30,15 +30,15 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.css"
-    ); // TODO: Set the version dynamically
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`
+    );
 
     const scriptTags = dom.body.getElementsByTagName("script");
     expect(scriptTags.length).toBe(2);
 
     const stliteLoaderScriptTag = scriptTags[0];
     expect(stliteLoaderScriptTag.src).toEqual(
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.js"
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`
     );
     expect(stliteLoaderScriptTag.text).toEqual("");
 
@@ -166,15 +166,15 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.css"
-    ); // TODO: Set the version dynamically
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`
+    );
 
     const scriptTags = dom.body.getElementsByTagName("script");
     expect(scriptTags.length).toBe(2);
 
     const stliteLoaderScriptTag = scriptTags[0];
     expect(stliteLoaderScriptTag.src).toEqual(
-      "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.js"
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`
     );
     expect(stliteLoaderScriptTag.text).toEqual("");
 

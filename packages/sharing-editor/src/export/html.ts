@@ -32,6 +32,9 @@ function makeFilesLiteral(files: AppData["files"]): {
   return { filesLiteral: content, isBase64DecoderRequired };
 }
 
+export const RUNTIME_VERSION =
+  process.env.REACT_APP_SELF_HOSTING_RUNTIME_VERSION ?? "0.20.0";
+
 export function exportAsHtml(appData: AppData): string {
   const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
     appData.files
@@ -48,12 +51,12 @@ export function exportAsHtml(appData: AppData): string {
     <title>stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.14.0/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js"></script>
     <script>
 stlite.mount(
   {

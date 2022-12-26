@@ -51,6 +51,18 @@
   align-items: center;
 }
 
+.selfHostingCodeBox {
+  overflow: scroll;
+  width: 100%;
+  height: 20vh;
+  border: 1px solid #ccc;
+  background-color: #eee;
+}
+.selfHostingCodeBox pre {
+  margin: 0.5rem;
+  font-size: 0.8rem;
+}
+
 .shareIconSquare {
   width: 24px;
   height: 24px;

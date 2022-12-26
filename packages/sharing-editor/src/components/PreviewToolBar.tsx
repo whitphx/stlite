@@ -4,6 +4,8 @@ import {
   RiClipboardLine,
   RiShareLine,
 } from "react-icons/ri";
+import { AppData, embedAppDataToUrl } from "@stlite/sharing-common";
+import { exportAsHtml } from "../export/html";
 import styles from "./PreviewToolBar.module.scss";
 
 interface ExternalLinkProps {
@@ -106,10 +108,37 @@ function ShareIcon() {
   );
 }
 
+interface SelfHostingCodeBoxProps {
+  children: string;
+}
+function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
+  return (
+    <div className={styles.selfHostingCodeBox}>
+      <pre>
+        <code>{props.children}</code>
+      </pre>
+    </div>
+  );
+}
+
 interface PreviewToolBarProps {
-  sharingUrl: string;
+  appData: AppData;
+  sharingAppSrc: string;
 }
 function PreviewToolBar(props: PreviewToolBarProps) {
+  const url = useMemo(
+    () =>
+      props.appData
+        ? embedAppDataToUrl(props.sharingAppSrc, props.appData)
+        : null,
+    [props.sharingAppSrc, props.appData]
+  );
+
+  const html = useMemo(
+    () => (props.appData ? exportAsHtml(props.appData) : null),
+    [props.appData]
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.innerContainer}>
@@ -117,21 +146,26 @@ function PreviewToolBar(props: PreviewToolBarProps) {
           <div className={styles.cardHeading}>
             <ShareIcon />
           </div>
-          <div className={styles.cardItem}>
-            <h3 className={styles.cardItemHeading}>Web</h3>
-            <UrlDisplay url={props.sharingUrl} />
-          </div>
+          {url && (
+            <div className={styles.cardItem}>
+              <h3 className={styles.cardItemHeading}>Web</h3>
+              <UrlDisplay url={url} />
+            </div>
+          )}
           <div className={styles.cardExpandableItemsContainer}>
             <div className={styles.cardItem}>
               <h3 className={styles.cardItemHeading}>PWA/Custom domains</h3>
               Coming Soon...
             </div>
             <div className={styles.cardItem}>
-              <h3 className={styles.cardItemHeading}>Self-hosting Web/PWA</h3>
+              <h3 className={styles.cardItemHeading}>Self-hosting web app</h3>
               <ul>
-                <li>Codegen: Coming Soon...</li>
                 <li>
-                  Manual: Read{" "}
+                  Host the code below on your site.
+                  {html && <SelfHostingCodeBox>{html}</SelfHostingCodeBox>}
+                </li>
+                <li>
+                  For more information, read{" "}
                   <ExternalLink href="https://github.com/whitphx/stlite#use-stlite-on-your-web-page">
                     this document
                     <RiExternalLinkLine />

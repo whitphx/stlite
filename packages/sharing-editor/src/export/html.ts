@@ -36,8 +36,7 @@ export function exportAsHtml(appData: AppData): string {
   const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
     appData.files
   );
-  const output = `
-<!DOCTYPE html>
+  const output = `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -67,7 +66,6 @@ stlite.mount(
 ${isBase64DecoderRequired ? "\n" + base64ToU8A.toString() : ""}
     </script>
   </body>
-</html>
-  `;
+</html>`;
   return output;
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
 import { useAppData } from "./use-app-data";
@@ -43,11 +43,6 @@ function App() {
         .then(initializeAppData);
     }
   }, [initializeAppData, sampleAppId]);
-
-  const url = useMemo(
-    () => (appData ? embedAppDataToUrl(SHARING_APP_URL, appData) : null),
-    [appData]
-  );
 
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
 
@@ -196,7 +191,12 @@ function App() {
           }
           right={
             <>
-              {url && <PreviewToolBar sharingUrl={url} />}
+              {appData && (
+                <PreviewToolBar
+                  appData={appData}
+                  sharingAppSrc={SHARING_APP_URL}
+                />
+              )}
               {initialAppData && (
                 <StliteSharingIFrame
                   key={initAppDataKey}

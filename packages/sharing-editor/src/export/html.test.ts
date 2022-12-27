@@ -183,7 +183,7 @@ describe("exportAsHtml", () => {
     const appScriptContent = appScriptTag.text;
 
     const jsAstRoot = babelParser.parse(appScriptContent);
-    // The source code only includes `stlite.mount()`.
+    // The source code only includes `stlite.mount()` and the Base64 decoder function definition.
     expect(jsAstRoot.program.body.length).toBe(2);
 
     const [stliteMount, funcDef] = jsAstRoot.program.body;
@@ -289,7 +289,7 @@ describe("exportAsHtml", () => {
         arguments: [
           expect.objectContaining({
             type: "StringLiteral",
-            value: "AQIDBA==",
+            value: "AQIDBA==", // A base64-encoded value of `foo.dat`.
           }),
         ],
       })

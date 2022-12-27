@@ -5,7 +5,7 @@
 const DEFAULT_APPLY_MAX = 2 ** 16;
 
 export function u8aToBase64(buf: Uint8Array, applyMax?: number): string {
-  // If `bufView` is too long, `String.fromCharCode.apply(null, bufView)`
+  // If `buf` is too long, `String.fromCharCode.apply(null, buf)`
   // throws `RangeError: Maximum call stack size exceeded`,
   // so we split the buffer into chunks and process them one by one.
   let str = "";

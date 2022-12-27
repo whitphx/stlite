@@ -115,6 +115,7 @@ interface SelfHostingCodeBoxProps {
 function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
   const htmlSource = props.children;
 
+  // Select all the HTML code upon double clicks
   const codeRef = useRef<HTMLElement>(null);
   const handleCodeDoubleClick = useCallback<React.MouseEventHandler>(() => {
     const codeElem = codeRef.current;

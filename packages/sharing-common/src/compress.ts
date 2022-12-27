@@ -15,7 +15,7 @@ function b64urlToB64(hashSafe: string): string {
 
 export function encodeAppData(appData: AppData): string {
   const encodedProto = AppData.encode(appData).finish();
-  // NOTE: Both `abTobase64(encodedProto)` and `abTobase64(new Uint8Array(encodedProto))` causes an error: https://github.com/whitphx/stlite/issues/235
+  // NOTE: Both `u8aToBase64(encodedProto)` and `u8aToBase64(new Uint8Array(encodedProto))` causes an error: https://github.com/whitphx/stlite/issues/235
   //       Creating a new array buffer with `Uint8Array.from(encodedProto)` and passing it as below is necessary.
   //
   // `encodedProto` is NOT Uint8Array but Buffer, although it is typed as Uint8Array (we can find it by printing it with `console.log(encodedProto)`).

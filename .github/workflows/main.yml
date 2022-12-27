@@ -9,6 +9,7 @@ jobs:
       kernel: ${{ steps.filter.outputs.kernel }}
       tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
       mountable: ${{ steps.filter.outputs.mountable }}
+      sharing-editor: ${{ steps.filter.outputs.sharing-editor }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
       desktop: ${{ steps.filter.outputs.desktop }}
     steps:
@@ -26,6 +27,8 @@ jobs:
             - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
+          sharing-editor:
+            - 'packages/sharing-editor/**/*'
           sharing-common:
             - 'packages/sharing-common/**/*'
           desktop:
@@ -169,6 +172,37 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
+    - run: yarn test
+
+  test-sharing-editor:
+    needs: changes
+    if: ${{ needs.changes.outputs.sharing-editor == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16.x]
+
+    defaults:
+      run:
+        working-directory: packages/sharing-editor
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    # - name: Lint
+    #   run: |
+    #     yarn check:eslint
+    #     yarn check:prettier
     - run: yarn test
 
   test-sharing-common:

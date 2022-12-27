@@ -21,7 +21,7 @@ function makeFilesLiteral(files: AppData["files"]): {
     content += `"${fileName}": `;
     const fileContent = files[fileName].content;
     if (fileContent?.$case === "text") {
-      content += "`\n" + fileContent.text.replaceAll("`", "\\`") + "\n`,";
+      content += "`" + fileContent.text.replaceAll("`", "\\`") + "`,\n";
     } else if (fileContent?.$case === "data") {
       const b64 = u8aToBase64(fileContent.data);
       content += `${base64ToU8A.name}("${b64}"),\n`;

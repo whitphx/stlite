@@ -134,7 +134,7 @@ describe("exportAsHtml", () => {
     );
     expect(
       mountOptions.properties[2].value.properties[0].value.quasis[0].value.raw
-    ).toEqual("\n" + appData.files["streamlit_app.py"].content!.text + "\n");
+    ).toEqual(appData.files["streamlit_app.py"].content!.text);
   });
 
   it("returns a valid HTML string containing necessary elements, the stlite.mount() call, and a func definition of binary decoder if binary data included", () => {
@@ -278,7 +278,7 @@ describe("exportAsHtml", () => {
     );
     expect(
       mountOptions.properties[2].value.properties[0].value.quasis[0].value.raw
-    ).toEqual("\n" + appData.files["streamlit_app.py"].content!.text + "\n");
+    ).toEqual(appData.files["streamlit_app.py"].content!.text);
     expect(mountOptions.properties[2].value.properties[1].value).toEqual(
       expect.objectContaining({
         type: "CallExpression",

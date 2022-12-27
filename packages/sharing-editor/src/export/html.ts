@@ -35,6 +35,9 @@ function makeFilesLiteral(files: AppData["files"]): {
 export const RUNTIME_VERSION =
   process.env.REACT_APP_SELF_HOSTING_RUNTIME_VERSION ?? "0.20.0";
 
+const GITHUB_SHA = process.env.REACT_APP_GITHUB_SHA ?? "(unavailable)";
+const DEBUG_COMMENT = `Generated from stlite sharing (https://edit.share.stlite.net/), and the source version is ${GITHUB_SHA}`;
+
 export function exportAsHtml(appData: AppData): string {
   const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
     appData.files
@@ -69,6 +72,7 @@ stlite.mount(
 ${isBase64DecoderRequired ? "\n" + base64ToU8A.toString() : ""}
     </script>
   </body>
+  <!-- ${DEBUG_COMMENT} -->
 </html>`;
   return output;
 }

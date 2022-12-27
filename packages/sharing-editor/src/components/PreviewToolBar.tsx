@@ -212,7 +212,7 @@ function PreviewToolBar(props: PreviewToolBarProps) {
               <h3 className={styles.cardItemHeading}>Self-hosting web app</h3>
               <ul>
                 <li>
-                  Host the code below on your site.
+                  Host the HTML below on your site.
                   {html && <SelfHostingCodeBox>{html}</SelfHostingCodeBox>}
                 </li>
                 <li>

@@ -198,6 +198,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
+    - run: make sharing-common
+      working-directory: .
     - run: yarn install --frozen-lockfile
     # - name: Lint
     #   run: |

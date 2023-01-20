@@ -21,6 +21,8 @@ export async function walkRead(
     })
   );
 
+  // TODO: All paths must be converted to be POSIX
+
   if (!relative) {
     return fileContents;
   }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.2] - 2023-01-21
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Handling file path separators on Windows, [#466](https://github.com/whitphx/stlite/pull/466).
+
 ## [0.22.1] - 2022-12-19
 
 ### `@stlite/desktop`

@@ -241,12 +241,13 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.desktop == 'true' }}
 
-    runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
         node-version: [16.x]
+        os: [ubuntu-latest, windows-latest]  # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
+
+    runs-on: ${{ matrix.os }}
 
     defaults:
       run:
@@ -263,6 +264,7 @@ jobs:
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
+      if: ${{ matrix.os == 'ubuntu-latest' }}  # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.
       run: |
         yarn check:eslint
         yarn check:prettier

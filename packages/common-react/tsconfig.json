@@ -30,6 +30,7 @@
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
     "paths": {
       "src/theme": ["../../streamlit/frontend/src/theme"],
+      "src/theme/*": ["../../streamlit/frontend/src/theme/*"],
       "src/lib/*": ["../../streamlit/frontend/src/lib/*"],
       "src/autogen/*": ["../../streamlit/frontend/src/autogen/*"]
     } /* Specify a set of entries that re-map imports to additional lookup locations. */,

@@ -1,13 +1,13 @@
 {
   "name": "@stlite/sharing",
-  "version": "0.22.2",
+  "version": "0.23.0",
   "private": true,
   "homepage": "https://share.stlite.net/",
   "dependencies": {
     "@craco/craco": "^6.1.2",
-    "@stlite/common-react": "^0.22.2",
-    "@stlite/kernel": "^0.22.2",
-    "@stlite/sharing-common": "^0.22.2",
+    "@stlite/common-react": "^0.23.0",
+    "@stlite/kernel": "^0.23.0",
+    "@stlite/sharing-common": "^0.23.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^13.1.9",
     "@types/jest": "^26.0.19",

@@ -407,7 +407,8 @@ module.exports = function (webpackEnv) {
                 ],
 
                 plugins: [
-                  "@emotion",  // This line has been added after ejection. The emotion babel plugin is necessary for the Streamlit frontend: https://github.com/streamlit/streamlit/blob/786da40420cd5b6d7682da42837c6ecf861e8464/frontend/craco.config.js#L44
+                  "@emotion",  // Stlite: This line has been added after ejection. The emotion babel plugin is necessary for the Streamlit frontend: https://github.com/streamlit/streamlit/blob/786da40420cd5b6d7682da42837c6ecf861e8464/frontend/craco.config.js#L44
+                  "@babel/plugin-proposal-logical-assignment-operators",  // Stlite: This specific plugin is needed to parse the upstream source code with the CRA default browserslist setting. See https://github.com/whitphx/stlite/issues/471
                   [
                     require.resolve('babel-plugin-named-asset-import'),
                     {

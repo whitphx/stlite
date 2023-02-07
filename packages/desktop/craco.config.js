@@ -3,7 +3,17 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   babel: {
-    plugins: ["@emotion"],
+    plugins: [
+      "@emotion",
+      // Stlite: This specific syntax plugin is needed since the syntax was started being used in the upstream codebase (https://github.com/streamlit/streamlit/pull/5913/files#diff-845917f3a07167e741db444532fae1e083d5b9f84ac8e8e38d3a34818a311ad8R242).
+      // With the browserslist setting in the upstream project, this plugin is automatically chosen by @babel/preset-env and the syntax is transpiled nicely,
+      // however, this `desktop` package has a different browserslist optimized for the Electron runtime
+      // and it leads to an error maybe because of CRA's bug.
+      // So we had to specify this single plugin here explicitly.
+      // See https://github.com/whitphx/stlite/issues/471 for the details.
+      // TODO: When CRA is updated to v5, the bug should be gone away so this config can be removed.
+      "@babel/plugin-proposal-logical-assignment-operators",
+    ],
     loaderOptions: {
       cacheDirectory: true,
     },

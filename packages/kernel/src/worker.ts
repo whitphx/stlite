@@ -191,6 +191,7 @@ async function loadPyodideAndPackages() {
   );
   console.debug("Mocking some Streamlit functions");
   // Mock `st.spinner` that does not work well with Pyodide. See https://github.com/whitphx/stlite/issues/64#issuecomment-1274084568
+  // We also need to mock the `spinner` objects imported to some internal modules, e.g. the caching function modules. Ref: https://github.com/whitphx/stlite/pull/472#issuecomment-1420376555
   await pyodide.runPythonAsync(`
     import streamlit
     import contextlib
@@ -200,6 +201,8 @@ async function loadPyodideAndPackages() {
         yield
 
     streamlit.spinner = spinner
+    streamlit.runtime.caching.cache_utils.spinner = spinner
+    streamlit.runtime.legacy_caching.caching.spinner = spinner
   `);
   console.debug("Mocked some Streamlit functions");
 

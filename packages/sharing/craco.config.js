@@ -1,8 +1,11 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
   babel: {
-    plugins: ["@emotion"],
+    plugins: [
+      "@emotion",
+      "@babel/plugin-proposal-logical-assignment-operators", // Stlite: This specific plugin is needed to parse the upstream source code with the CRA default browserslist setting. See https://github.com/whitphx/stlite/issues/471
+    ],
     loaderOptions: {
       cacheDirectory: true,
     },
@@ -21,8 +24,8 @@ module.exports = {
       /* To resolve the alias streamlit/frontend uses */
       webpackConfig.resolve.alias = {
         ...webpackConfig.resolve.alias,
-        "src": path.resolve(__dirname, "../../streamlit/frontend/src")
-      }
+        src: path.resolve(__dirname, "../../streamlit/frontend/src"),
+      };
 
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
       // Apache Arrow uses .mjs
@@ -30,7 +33,7 @@ module.exports = {
         include: /node_modules/,
         test: /\.mjs$/,
         type: "javascript/auto",
-      })
+      });
 
       /* For file-loader that resolves the wheels */
       // Since Webpack5, Asset Modules has been introduced to cover what file-loader had done.
@@ -52,6 +55,6 @@ module.exports = {
       // })
 
       return webpackConfig;
-    }
-  }
-}
+    },
+  },
+};

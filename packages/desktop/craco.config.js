@@ -27,49 +27,57 @@ module.exports = {
       const cspSourceForMap =
         "https://data.streamlit.io/ https://*.mapbox.com/";
       webpackConfig.plugins.push(
-        new CspHtmlWebpackPlugin({
-          "default-src": "'self'",
-          // - 'wasm-unsafe-eval': For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
-          // - 'unsafe-eval': For some components such as st.*_chart() or custom components such as streamlit_hiplot. Electron shows a warning about it, but we have to use this policy...
-          "script-src": "'wasm-unsafe-eval' 'unsafe-eval'",
-          // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
-          "style-src": "'self' 'unsafe-inline'",
-          // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
-          "worker-src": "blob:",
-          // For <script /> tag permissions.
-          // - 'self': The main scripts
-          // - 'unsafe-inline': Allow the inline scripts from custom components
-          // - https: : Custom components may load arbitrary third party scripts from the Internet. We only allow HTTPS for a security sake.
-          "script-src-elem": "'self' 'unsafe-inline' https:",
-          // For stylesheets.
-          // - 'self': For the stylesheet files bundled with the core.
-          // - 'unsafe-inline': The core frontend uses some inline stylesheets.
-          // - https: : Custom components may load arbitrary remote stylesheets, e.g. streamlit_folium.
-          "style-src-elem": "'self' 'unsafe-inline' https:",
-          // - 'self': For font files bundled with Streamlit core, for example, for `st.latex()`.
-          // - data: : Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
-          // - https: : Some custom components load fonts from remote via HTTPS, e.g. streamlit_folium.
-          "font-src": "'self' data: https:",
-          // For loading external resources.
-          // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
-          // - https: : Allow fetch() and XMLHttpRequest to load any resources via HTTPS.
-          "connect-src": isEnvProduction
-            ? `${cspSourceForMap} 'self' https:`
-            : isEnvDevelopment
-            ? `${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https:`
-            : undefined,
-          // Allow <img> to load any resources.
-          // - blob: : For st.pyplot
-          // - data: : For st.map
-          // - file: : For some built-in image files such as the loading GIF animation and images for st.balloon(). TODO: We wanted to restrict the
-          "img-src": "https: blob: data: file:",
-          // Allow <audio> and <video> to load any resources.
-          "media-src": "https: blob:",
-          // For iframe sources.
-          // `st.video()` creates an iframe for a YouTube video loading resources from https://*.youtube.com.
-          // In addition, custom components may create iframes loading arbitrary external resources. We allow only HTTPS for a security sake..
-          "frame-src": "https:",
-        })
+        new CspHtmlWebpackPlugin(
+          {
+            "default-src": "'self'",
+            // - 'wasm-unsafe-eval': For the Wasm code. Ref: https://chromestatus.com/feature/5499765773041664, https://github.com/WebAssembly/content-security-policy/issues/7
+            // - 'unsafe-eval': For some components such as st.*_chart() or custom components such as streamlit_hiplot. Electron shows a warning about it, but we have to use this policy...
+            "script-src": "'wasm-unsafe-eval' 'unsafe-eval'",
+            // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
+            "style-src": "'self' 'unsafe-inline'",
+            // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
+            "worker-src": "blob:",
+            // For <script /> tag permissions.
+            // - 'self': The main scripts
+            // - 'unsafe-inline': Allow the inline scripts from custom components
+            // - https: : Custom components may load arbitrary third party scripts from the Internet. We only allow HTTPS for a security sake.
+            "script-src-elem": "'self' 'unsafe-inline' https:",
+            // For stylesheets.
+            // - 'self': For the stylesheet files bundled with the core.
+            // - 'unsafe-inline': The core frontend uses some inline stylesheets.
+            // - https: : Custom components may load arbitrary remote stylesheets, e.g. streamlit_folium.
+            "style-src-elem": "'self' 'unsafe-inline' https:",
+            // - 'self': For font files bundled with Streamlit core, for example, for `st.latex()`.
+            // - data: : Some custom components load fonts through `data:` scheme, e.g. streamlit_aggrid.
+            // - https: : Some custom components load fonts from remote via HTTPS, e.g. streamlit_folium.
+            "font-src": "'self' data: https:",
+            // For loading external resources.
+            // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
+            // - https: : Allow fetch() and XMLHttpRequest to load any resources via HTTPS.
+            "connect-src": isEnvProduction
+              ? `${cspSourceForMap} 'self' https:`
+              : isEnvDevelopment
+              ? `${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https:`
+              : undefined,
+            // Allow <img> to load any resources.
+            // - blob: : For st.pyplot
+            // - data: : For st.map
+            // - file: : For some built-in image files such as the loading GIF animation and images for st.balloon(). TODO: We wanted to restrict the
+            "img-src": "https: blob: data: file:",
+            // Allow <audio> and <video> to load any resources.
+            "media-src": "https: blob:",
+            // For iframe sources.
+            // `st.video()` creates an iframe for a YouTube video loading resources from https://*.youtube.com.
+            // In addition, custom components may create iframes loading arbitrary external resources. We allow only HTTPS for a security sake..
+            "frame-src": "https:",
+          },
+          {
+            nonceEnabled: {
+              // 'unsafe-inline' that is necessary for Emotion styling is ignored if the directive includes nonce, so adding nonce must be disabled.
+              "style-src": false,
+            },
+          }
+        )
       );
 
       // Let Babel compile outside of src/.

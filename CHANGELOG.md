@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.0] - 2023-02-11
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Pyodide to 0.22.1, [#478](https://github.com/whitphx/stlite/pull/478).
+
 ## [0.23.0] - 2023-02-07
 
 ### `@stlite/kernel`

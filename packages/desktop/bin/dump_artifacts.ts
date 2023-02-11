@@ -103,12 +103,15 @@ async function createSitePackagesSnapshot(
       )
     );
   } else {
+    const packageJson = require(path.resolve(__dirname, "../package.json"));
+    const version = packageJson.version;
+
     const micropip = pyodide.pyimport("micropip");
     const wheelUrls = [
-      // TODO: Set the versions dynamically.
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/tornado/dist/tornado-6.2-py3-none-any.whl",
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl",
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl",
+      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/tornado/dist/tornado-6.2-py3-none-any.whl`,
+      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl`,
+      // TODO: Set the Streamlit version automatically.
+      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl`,
     ];
     console.log("Install", wheelUrls);
     await micropip.install.callKwargs(wheelUrls, { keep_going: true });

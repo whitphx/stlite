@@ -198,7 +198,7 @@ Image processing with OpenCV works on the client-side.
 
 ### Databutton
 
-[<img src="https://docs.databutton.com/_media/icon.svg" height="100" >](https://www.databutton.io/)
+[<img src="https://assets.website-files.com/6213e8906bdf786dcccbce62/621d20f1031cff7b094664f2_large_fav.png" height="100" >](https://www.databutton.io/)
 
 They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
 

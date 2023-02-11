@@ -1,4 +1,3 @@
-pyodide/distutils.tar
 pyodide/openssl-1.1.1n.zip
 pyodide/pyodide.asm.data
 pyodide/pyodide.asm.js

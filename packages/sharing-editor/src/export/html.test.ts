@@ -51,8 +51,32 @@ describe("exportAsHtml", () => {
     expect(jsAstRoot.program.body.length).toBe(1);
 
     const [stliteMount] = jsAstRoot.program.body;
-    expect(stliteMount.expression.callee.object.name).toEqual("stlite");
-    expect(stliteMount.expression.callee.property.name).toEqual("mount");
+
+    expect(stliteMount).toEqual(
+      expect.objectContaining({
+        type: "ExpressionStatement",
+        expression: expect.objectContaining({
+          type: "CallExpression",
+          callee: expect.objectContaining({
+            type: "MemberExpression",
+            object: expect.objectContaining({
+              type: "Identifier",
+              name: "stlite",
+            }),
+            property: expect.objectContaining({
+              type: "Identifier",
+              name: "mount",
+            }),
+          }),
+        }),
+      })
+    );
+    if (
+      stliteMount.type !== "ExpressionStatement" ||
+      stliteMount.expression.type !== "CallExpression"
+    ) {
+      throw new Error();
+    }
 
     expect(stliteMount.expression.arguments.length).toBe(2);
     const [mountOptions, mountTarget] = stliteMount.expression.arguments;
@@ -124,7 +148,16 @@ describe("exportAsHtml", () => {
                     type: "StringLiteral",
                     value: "streamlit_app.py",
                   }),
-                  // Value will be checked below.
+                  value: expect.objectContaining({
+                    quasis: [
+                      expect.objectContaining({
+                        value: expect.objectContaining({
+                          // @ts-ignore
+                          raw: appData.files["streamlit_app.py"].content.text,
+                        }),
+                      }),
+                    ],
+                  }),
                 }),
               ],
             }),
@@ -132,9 +165,6 @@ describe("exportAsHtml", () => {
         ],
       })
     );
-    expect(
-      mountOptions.properties[2].value.properties[0].value.quasis[0].value.raw
-    ).toEqual(appData.files["streamlit_app.py"].content!.text);
   });
 
   it("returns a valid HTML string containing necessary elements, the stlite.mount() call, and a func definition of binary decoder if binary data included", () => {
@@ -187,8 +217,32 @@ describe("exportAsHtml", () => {
     expect(jsAstRoot.program.body.length).toBe(2);
 
     const [stliteMount, funcDef] = jsAstRoot.program.body;
-    expect(stliteMount.expression.callee.object.name).toEqual("stlite");
-    expect(stliteMount.expression.callee.property.name).toEqual("mount");
+
+    expect(stliteMount).toEqual(
+      expect.objectContaining({
+        type: "ExpressionStatement",
+        expression: expect.objectContaining({
+          type: "CallExpression",
+          callee: expect.objectContaining({
+            type: "MemberExpression",
+            object: expect.objectContaining({
+              type: "Identifier",
+              name: "stlite",
+            }),
+            property: expect.objectContaining({
+              type: "Identifier",
+              name: "mount",
+            }),
+          }),
+        }),
+      })
+    );
+    if (
+      stliteMount.type !== "ExpressionStatement" ||
+      stliteMount.expression.type !== "CallExpression"
+    ) {
+      throw new Error();
+    }
 
     expect(stliteMount.expression.arguments.length).toBe(2);
     const [mountOptions, mountTarget] = stliteMount.expression.arguments;
@@ -260,7 +314,16 @@ describe("exportAsHtml", () => {
                     type: "StringLiteral",
                     value: "streamlit_app.py",
                   }),
-                  // Value will be checked below.
+                  value: expect.objectContaining({
+                    quasis: [
+                      expect.objectContaining({
+                        value: expect.objectContaining({
+                          // @ts-ignore
+                          raw: appData.files["streamlit_app.py"].content.text,
+                        }),
+                      }),
+                    ],
+                  }),
                 }),
                 expect.objectContaining({
                   type: "ObjectProperty",
@@ -268,28 +331,22 @@ describe("exportAsHtml", () => {
                     type: "StringLiteral",
                     value: "foo.dat",
                   }),
-                  // Value will be checked below.
+                  value: expect.objectContaining({
+                    type: "CallExpression",
+                    callee: expect.objectContaining({
+                      type: "Identifier",
+                      name: "base64ToU8A",
+                    }),
+                    arguments: [
+                      expect.objectContaining({
+                        type: "StringLiteral",
+                        value: "AQIDBA==", // A base64-encoded value of `foo.dat`.
+                      }),
+                    ],
+                  }),
                 }),
               ],
             }),
-          }),
-        ],
-      })
-    );
-    expect(
-      mountOptions.properties[2].value.properties[0].value.quasis[0].value.raw
-    ).toEqual(appData.files["streamlit_app.py"].content!.text);
-    expect(mountOptions.properties[2].value.properties[1].value).toEqual(
-      expect.objectContaining({
-        type: "CallExpression",
-        callee: expect.objectContaining({
-          type: "Identifier",
-          name: "base64ToU8A",
-        }),
-        arguments: [
-          expect.objectContaining({
-            type: "StringLiteral",
-            value: "AQIDBA==", // A base64-encoded value of `foo.dat`.
           }),
         ],
       })

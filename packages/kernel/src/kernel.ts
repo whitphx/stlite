@@ -13,8 +13,6 @@ import TORNADO_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/
 import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl";
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl";
 
-import Worker from "!!worker-loader?inline=no-fallback!./worker";
-
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
 const INITIAL_SLASH_RE = /^\/+/;
@@ -100,7 +98,7 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
 
-    this._worker = new Worker();
+    this._worker = new Worker(new URL("./worker.js", import.meta.url));
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };

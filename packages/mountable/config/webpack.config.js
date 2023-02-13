@@ -44,10 +44,6 @@ const babelRuntimeRegenerator = require.resolve('@babel/runtime/regenerator', {
   paths: [babelRuntimeEntry],
 });
 
-// Some apps do not need the benefits of saving a web request, so not inlining the chunk
-// makes for a smoother build process.
-const shouldInlineRuntimeChunk = process.env.INLINE_RUNTIME_CHUNK !== 'false';
-
 const emitErrorsAsWarnings = process.env.ESLINT_NO_DEV_ERRORS === 'true';
 const disableESLintPlugin = process.env.DISABLE_ESLINT_PLUGIN === 'true';
 
@@ -110,11 +106,6 @@ module.exports = function (webpackEnv) {
       isEnvDevelopment && require.resolve('style-loader'),
       isEnvProduction && {
         loader: MiniCssExtractPlugin.loader,
-        // css is located in `static/css`, use '../../' to locate index.html folder
-        // in production `paths.publicUrlOrPath` can be a relative path
-        options: paths.publicUrlOrPath.startsWith('.')
-          ? { publicPath: '../../' }
-          : {},
       },
       {
         loader: require.resolve('css-loader'),
@@ -209,8 +200,10 @@ module.exports = function (webpackEnv) {
       // There will be one main bundle, and one file per asynchronous chunk.
       // In development, it does not produce real files.
       filename: isEnvProduction
-        ? 'static/js/[name].[contenthash:8].js'
+        ? 'stlite.js'
         : isEnvDevelopment && 'static/js/bundle.js',
+      // Stlite: For production, build as a library without public/*. For development, run as an app with public/*.
+      library: isEnvProduction ? "stlite" : undefined,
       // There are also additional JS chunk files if you use code splitting.
       chunkFilename: isEnvProduction
         ? 'static/js/[name].[contenthash:8].chunk.js'
@@ -313,6 +306,8 @@ module.exports = function (webpackEnv) {
         // Support React Native Web
         // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
         'react-native': 'react-native-web',
+        // Stlite: To resolve the alias streamlit/frontend uses
+        "src": path.resolve(__dirname, "../../../streamlit/frontend/src"),
         // Allows for better profiling with ReactDevTools
         ...(isEnvProductionProfile && {
           'react-dom$': 'react-dom/profiling',
@@ -335,6 +330,11 @@ module.exports = function (webpackEnv) {
           babelRuntimeRegenerator,
         ]),
       ],
+      mainFields: ["module", "main"],
+      fallback: {
+        tty: false,
+        os: false,
+      },
     },
     module: {
       strictExportPresence: true,
@@ -405,7 +405,10 @@ module.exports = function (webpackEnv) {
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {
               test: /\.(js|mjs|jsx|ts|tsx)$/,
-              include: paths.appSrc,
+              // Stlite: Let Babel compile outside of src/.
+              // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
+              include: undefined,
+              exclude: /node_modules/,
               loader: require.resolve('babel-loader'),
               options: {
                 customize: require.resolve(
@@ -419,8 +422,9 @@ module.exports = function (webpackEnv) {
                     },
                   ],
                 ],
-                
+
                 plugins: [
+                  "@emotion",  // Stlite: This line has been added after ejection. The emotion babel plugin is necessary for the Streamlit frontend: https://github.com/streamlit/streamlit/blob/786da40420cd5b6d7682da42837c6ecf861e8464/frontend/craco.config.js#L44
                   isEnvDevelopment &&
                     shouldUseReactRefresh &&
                     require.resolve('react-refresh/babel'),
@@ -453,7 +457,7 @@ module.exports = function (webpackEnv) {
                 cacheDirectory: true,
                 // See #6846 for context on why cacheCompression is disabled
                 cacheCompression: false,
-                
+
                 // Babel sourcemaps are needed for debugging into node_modules
                 // code.  Without the options below, debuggers like VSCode
                 // show incorrect code and set breakpoints on the wrong lines.
@@ -560,11 +564,35 @@ module.exports = function (webpackEnv) {
             // Make sure to add the new loader(s) before the "file" loader.
           ],
         },
+        // Stlite: Apache Arrow uses .mjs
+        {
+          include: /node_modules/,
+          test: /\.mjs$/,
+          type: "javascript/auto",
+        },
+        // Stlite:
+        // Since Webpack5, Asset Modules has been introduced to cover what file-loader had done.
+        // However, in this project, we use the inline loader setting like `import * from "!!file-loader!/path/to/file"` to use file-loader
+        // but it does not turn off Asset Modules and leads to duplicate assets generated.
+        // To make matters worse, the actually resolved paths from such import statements point to the URL from Asset Modules, not the file-loader specified with the inline syntax,
+        // then we don't obtain the expected result.
+        // So we turn off Asset Modules here by setting `type: 'javascript/auto'`.
+        // See https://webpack.js.org/guides/asset-modules/
+        {
+          test: /\.whl$/i,
+          use: [
+            {
+              loader: "file-loader",
+            },
+          ],
+          type: "javascript/auto",
+        },
       ].filter(Boolean),
     },
     plugins: [
       // Generates an `index.html` file with the <script> injected.
-      new HtmlWebpackPlugin(
+      // Stlite: enable this only for development, as the production build is as a library, not an app.
+      isEnvDevelopment && new HtmlWebpackPlugin(
         Object.assign(
           {},
           {
@@ -589,18 +617,13 @@ module.exports = function (webpackEnv) {
             : undefined
         )
       ),
-      // Inlines the webpack runtime script. This script is too small to warrant
-      // a network request.
-      // https://github.com/facebook/create-react-app/issues/5358
-      isEnvProduction &&
-        shouldInlineRuntimeChunk &&
-        new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/runtime-.+[.]js/]),
       // Makes some environment variables available in index.html.
       // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
       // <link rel="icon" href="%PUBLIC_URL%/favicon.ico">
       // It will be an empty string unless you specify "homepage"
       // in `package.json`, in which case it will be the pathname of that URL.
-      new InterpolateHtmlPlugin(HtmlWebpackPlugin, env.raw),
+      // Stlite: Enable this plugin only for development build..
+      isEnvDevelopment && new InterpolateHtmlPlugin(HtmlWebpackPlugin, env.raw),
       // This gives some necessary context to module not found errors, such as
       // the requesting resource.
       new ModuleNotFoundPlugin(paths.appPath),
@@ -625,7 +648,7 @@ module.exports = function (webpackEnv) {
         new MiniCssExtractPlugin({
           // Options similar to the same options in webpackOptions.output
           // both options are optional
-          filename: 'static/css/[name].[contenthash:8].css',
+          filename: 'stlite.css',
           chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
         }),
       // Generate an asset manifest file with the following content:

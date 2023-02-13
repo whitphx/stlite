@@ -1,4 +1,4 @@
-import path from "path";
+import path from "path-browserify";
 import { PyodideInterface } from "pyodide";
 
 function ensureParent(pyodide: PyodideInterface, filePath: string): void {

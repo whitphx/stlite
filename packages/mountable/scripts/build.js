@@ -14,7 +14,6 @@ process.on('unhandledRejection', err => {
 // Ensure environment variables are read.
 require('../config/env');
 
-
 const path = require('path');
 const chalk = require('react-dev-utils/chalk');
 const fs = require('fs-extra');
@@ -40,7 +39,7 @@ const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
 const isInteractive = process.stdout.isTTY;
 
 // Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appIndexJs])) {
+if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
 }
 
@@ -63,6 +62,8 @@ checkBrowsers(paths.appPath, isInteractive)
     // Remove all content but keep the directory so that
     // if you're in it, you don't end up in Trash
     fs.emptyDirSync(paths.appBuild);
+    // Merge with the public folder
+    copyPublicFolder();
     // Start the webpack build
     return build(previousFileSizes);
   })
@@ -175,13 +176,19 @@ function build(previousFileSizes) {
           process.env.CI.toLowerCase() !== 'false') &&
         messages.warnings.length
       ) {
-        console.log(
-          chalk.yellow(
-            '\nTreating warnings as errors because process.env.CI = true.\n' +
-              'Most CI servers set it automatically.\n'
-          )
+        // Ignore sourcemap warnings in CI builds. See #8227 for more info.
+        const filteredWarnings = messages.warnings.filter(
+          w => !/Failed to parse source map/.test(w)
         );
-        return reject(new Error(messages.warnings.join('\n\n')));
+        if (filteredWarnings.length) {
+          console.log(
+            chalk.yellow(
+              '\nTreating warnings as errors because process.env.CI = true.\n' +
+                'Most CI servers set it automatically.\n'
+            )
+          );
+          return reject(new Error(filteredWarnings.join('\n\n')));
+        }
       }
 
       const resolveArgs = {
@@ -199,5 +206,12 @@ function build(previousFileSizes) {
 
       return resolve(resolveArgs);
     });
+  });
+}
+
+function copyPublicFolder() {
+  fs.copySync(paths.appPublic, paths.appBuild, {
+    dereference: true,
+    filter: file => file !== paths.appHtml,
   });
 }

@@ -96,7 +96,7 @@ export class FileUploadClient {
       return this.kernel
         .sendHttpRequest({
           method: "POST",
-          path: "/upload_file",
+          path: "/_stcore/upload_file",
           body,
           headers: { ...encoder.headers },
         })

@@ -1,7 +1,7 @@
 import streamlit as st
 import numpy as np
 
-@st.experimental_memo
+@st.cache_data
 def load_data():
     data = np.random.randn(10, 1)
     return data

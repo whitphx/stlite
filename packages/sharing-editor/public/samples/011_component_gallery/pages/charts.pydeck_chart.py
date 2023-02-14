@@ -4,7 +4,7 @@ import pydeck as pdk
 import streamlit as st
 
 
-@st.experimental_memo
+@st.cache_data
 def load_data():
     return pd.DataFrame(
         np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4], columns=["lat", "lon"]

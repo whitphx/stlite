@@ -1,7 +1,7 @@
 import streamlit as st
 import graphviz as graphviz
 
-@st.experimental_memo
+@st.cache_data
 def load_graph():
     # Create a graphlib graph object
     graph = graphviz.Digraph()

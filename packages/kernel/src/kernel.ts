@@ -157,7 +157,7 @@ export class StliteKernel {
   }
 
   public sendWebSocketMessage(payload: Uint8Array) {
-    this._worker.postMessage({
+    return this._asyncPostMessage({
       type: "websocket:send",
       data: {
         payload,

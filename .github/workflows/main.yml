@@ -7,7 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kernel: ${{ steps.filter.outputs.kernel }}
-      tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
+      # tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
+      tornado-e2e: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-tornado-e2e job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       mountable: ${{ steps.filter.outputs.mountable }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
@@ -21,10 +22,10 @@ jobs:
           kernel:
             - 'packages/kernel/**/*'
             # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
-          tornado-e2e:
-            - 'packages/kernel/py/tornado'
-            - 'packages/kernel/py/e2etests/**/*'
-            - 'streamlit/**/*'
+          # tornado-e2e:  # We run this job anytime. See above.
+          #   - 'packages/kernel/py/tornado'
+          #   - 'packages/kernel/py/e2etests/**/*'
+          #   - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
           sharing-editor:

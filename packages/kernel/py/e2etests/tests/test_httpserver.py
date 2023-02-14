@@ -66,7 +66,7 @@ def run_streamlit_background():
 
 
 def test_http_server_is_set(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
 
     assert HTTP_SERVER is not None
 
@@ -76,7 +76,9 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
     session = AppSession()
 
     from streamlit.proto import BackMsg_pb2
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
 
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
@@ -93,7 +95,9 @@ def test_http_server_websocket(AppSession, run_streamlit_background):
 
 
 def test_http_get(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
 
     on_response = Mock()
 
@@ -107,7 +111,9 @@ def test_http_get(run_streamlit_background):
 
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
 def test_http_file_upload(AppSession, run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
 
     app_session = AppSession.return_value
     app_session.id = (
@@ -133,8 +139,11 @@ def test_http_file_upload(AppSession, run_streamlit_background):
 
     on_response = Mock()
 
+    headers = dict(r.headers)
+    body = r.body
+    assert body is not None
     task = HTTP_SERVER.receive_http(
-        "POST", "/_stcore/upload_file", r.headers, r.body, on_response
+        "POST", "/_stcore/upload_file", headers, body, on_response
     )
 
     loop = task.get_loop()

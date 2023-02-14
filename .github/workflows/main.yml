@@ -114,6 +114,11 @@ jobs:
     - name: Create virtualenv
       run: python -m venv .venv
 
+    - name: Install dependencies
+      shell: bash
+      run: poetry install
+      working-directory: packages/kernel/py/e2etests
+
     # Set up the /streamlit submodule
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies
@@ -123,11 +128,6 @@ jobs:
         . .venv/bin/activate
         cd streamlit
         make mini-init
-
-    - name: Install dependencies
-      shell: bash
-      run: poetry install
-      working-directory: packages/kernel/py/e2etests
 
     - name: Run linter and code formatter to the test code module
       working-directory: packages/kernel/py/e2etests

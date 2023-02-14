@@ -13,6 +13,9 @@ TORNADO_SUBMODULE = HERE / "../../tornado"
 TORNADO_PYTHONPATH = TORNADO_SUBMODULE
 sys.path.insert(0, str(TORNADO_PYTHONPATH))
 
+PYARROW_DIR = HERE / "../../stlite-pyarrow"
+PYARROW_PYTHONPATH = PYARROW_DIR
+sys.path.insert(0, str(PYARROW_PYTHONPATH))
 
 sys.modules["pyodide"] = Mock()
 sys.modules["pyodide.ffi"] = Mock()

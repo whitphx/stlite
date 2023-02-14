@@ -116,8 +116,10 @@ jobs:
 
     - name: Install dependencies
       shell: bash
-      run: poetry install
-      working-directory: packages/kernel/py/e2etests
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry install
 
     # Set up the /streamlit submodule
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -130,20 +132,25 @@ jobs:
         make mini-init
 
     - name: Run linter and code formatter to the test code module
-      working-directory: packages/kernel/py/e2etests
       run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
         poetry run black . --check
         poetry run isort . --check
         poetry run flake8
 
     - name: Run mypy
-      working-directory: packages/kernel/py/e2etests
-      run: poetry run mypy .
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry run mypy .
 
     - name: Run pytest
       shell: bash
-      run: poetry run python -m pytest -v tests
-      working-directory: packages/kernel/py/e2etests
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry run python -m pytest -v tests
 
   test-mountable:
     needs: changes

@@ -25,7 +25,7 @@
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git"
   },
-  "dependencies": {
+  "devDependencies": {
     "@babel/core": "^7.16.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@stlite/common-react": "^0.24.0",

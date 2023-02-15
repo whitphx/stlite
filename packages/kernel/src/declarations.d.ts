@@ -9,16 +9,6 @@ declare module "*.whl" {
   return res;
 }
 
-declare module "*?raw" {
-  const res: string;
-  return res;
-}
-
-declare module "!!raw-loader!*" {
-  const res: string;
-  export default res;
-}
-
 // Declarations for worker.ts where some variables are dynamically loaded through importScript.
 declare let loadPyodide: any;
 

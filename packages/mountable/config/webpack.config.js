@@ -330,6 +330,7 @@ module.exports = function (webpackEnv) {
           babelRuntimeRegenerator,
         ]),
       ],
+      // Stlite: Customization to build the Streamlit frontend, copied from https://github.com/streamlit/streamlit/blob/1.18.1/frontend/craco.config.js#L48-L52
       mainFields: ["module", "main"],
       fallback: {
         tty: false,
@@ -564,7 +565,8 @@ module.exports = function (webpackEnv) {
             // Make sure to add the new loader(s) before the "file" loader.
           ],
         },
-        // Stlite: Apache Arrow uses .mjs
+        // Stlite: Customization to build the Streamlit frontend, copied from https://github.com/streamlit/streamlit/blob/1.18.1/frontend/craco.config.js#L54
+        // Apache Arrow uses .mjs
         {
           include: /node_modules/,
           test: /\.mjs$/,

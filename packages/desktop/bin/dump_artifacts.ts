@@ -84,6 +84,7 @@ async function createSitePackagesSnapshot(
   if (options.useLocalKernelWheels) {
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
     const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
+    // TODO: Set the wheel file names dynamically
     await installLocalWheel(
       pyodide,
       path.join(stliteKernelPyDir, "tornado/dist/tornado-6.2-py3-none-any.whl")
@@ -111,6 +112,7 @@ async function createSitePackagesSnapshot(
       `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/tornado/dist/tornado-6.2-py3-none-any.whl`,
       `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl`,
       // TODO: Set the Streamlit version automatically.
+      // -> Download the NPM package once, and get the file list from the package.
       `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl`,
     ];
     console.log("Install", wheelUrls);

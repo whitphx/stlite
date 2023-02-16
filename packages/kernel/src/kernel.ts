@@ -3,6 +3,7 @@
 import { PromiseDelegate } from "@lumino/coreutils";
 
 import { makeAbsoluteWheelURL } from "./url";
+import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
@@ -98,7 +99,11 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
 
-    this._worker = new Worker(new URL("./worker.js", import.meta.url));
+    // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
+    // Read the comment in `cross-origin-worker.ts` for the detail.
+    const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+    this._worker = workerMaker.worker;
+
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };

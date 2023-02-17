@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.0] - 2023-02-17
+
+### `@stlite/desktop`
+
+#### Changed
+
+- Set the package versions dynamically based on the jsDelivr API response at build time, [#480](https://github.com/whitphx/stlite/pull/480).
+
 ## [0.24.0] - 2023-02-11
 
 ### `@stlite/kernel`

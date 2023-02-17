@@ -8,4 +8,3 @@ numpy==1.22.0
 scipy
 altair==4.2.0
 pydeck==0.7.1
-streamlit==1.13.0

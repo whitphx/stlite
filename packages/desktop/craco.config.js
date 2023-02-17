@@ -27,8 +27,9 @@ module.exports = {
         "script-src 'wasm-unsafe-eval' 'unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
-        // The worker source is bundled as a separate file via Webpack's worker feature.
-        "worker-src 'self'",
+        // - 'self': The stlite kernel worker is bundled as a separate file via Webpack 5's worker feature.
+        // - blob: : Some third party libraries such as Mapbox used in st.map() create workers from blob.
+        "worker-src 'self' blob:",
         // For <script /> tag permissions.
         // - 'self': The main scripts
         // - 'unsafe-inline': Allow the inline scripts from custom components

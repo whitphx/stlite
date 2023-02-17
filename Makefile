@@ -122,6 +122,6 @@ streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	cd streamlit && \
-	make distribution
+	$(MAKE) distribution
 	mkdir -p `dirname $(streamlit_wheel)`
 	cp streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl $(streamlit_wheel)

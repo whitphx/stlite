@@ -40,11 +40,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [16.x]
-
     defaults:
       run:
         working-directory: packages/kernel
@@ -53,10 +48,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -150,10 +144,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     defaults:
       run:
         working-directory: packages/mountable
@@ -162,10 +152,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -180,11 +169,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [16.x]
-
     defaults:
       run:
         working-directory: packages/sharing-editor
@@ -193,10 +177,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: make sharing-common
       working-directory: .
@@ -213,10 +196,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-
     defaults:
       run:
         working-directory: packages/sharing-common
@@ -225,10 +204,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -244,7 +222,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16.x]
         os: [ubuntu-latest, windows-latest]  # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
 
     runs-on: ${{ matrix.os }}
@@ -257,10 +234,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -277,7 +253,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -322,10 +297,9 @@ jobs:
       run: timeout 10s pip --version || rm -rf .venv
 
     ## Set up Node environment
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -373,7 +347,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version-file: .nvmrc
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
@@ -400,7 +374,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -445,10 +418,9 @@ jobs:
       run: timeout 10s pip --version || rm -rf .venv
 
     ## Set up Node environment
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -496,7 +468,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version-file: .nvmrc
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
@@ -523,7 +495,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -568,10 +539,9 @@ jobs:
       run: timeout 10s pip --version || rm -rf .venv
 
     ## Set up Node environment
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -632,7 +602,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -643,10 +612,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Set SHARING_APP_URL (preview)
@@ -693,7 +661,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -738,10 +705,9 @@ jobs:
       run: timeout 10s pip --version || rm -rf .venv
 
     ## Set up Node environment
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -790,7 +756,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version-file: .nvmrc
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
@@ -817,7 +783,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -860,7 +825,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
       with:
-        node-version: 16.x
+        node-version-file: .nvmrc
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'

@@ -3,17 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   babel: {
-    plugins: [
-      "@emotion",
-      // Stlite: This specific syntax plugin is needed since the syntax was started being used in the upstream codebase (https://github.com/streamlit/streamlit/pull/5913/files#diff-845917f3a07167e741db444532fae1e083d5b9f84ac8e8e38d3a34818a311ad8R242).
-      // With the browserslist setting in the upstream project, this plugin is automatically chosen by @babel/preset-env and the syntax is transpiled nicely,
-      // however, this `desktop` package has a different browserslist optimized for the Electron runtime
-      // and it leads to an error maybe because of CRA's bug.
-      // So we had to specify this single plugin here explicitly.
-      // See https://github.com/whitphx/stlite/issues/471 for the details.
-      // TODO: When CRA is updated to v5, the bug should be gone away so this config can be removed.
-      "@babel/plugin-proposal-logical-assignment-operators",
-    ],
+    plugins: ["@emotion"],
     loaderOptions: {
       cacheDirectory: true,
     },
@@ -37,8 +27,9 @@ module.exports = {
         "script-src 'wasm-unsafe-eval' 'unsafe-eval'",
         // style-src is necessary because of emotion. In dev, style-loader with injectType=styleTag is also the reason.
         "style-src 'self' 'unsafe-inline'",
-        // The worker is inlined as blob: https://github.com/whitphx/stlite/blob/v0.7.1/packages/stlite-kernel/src/kernel.ts#L16
-        "worker-src blob:",
+        // - 'self': The stlite kernel worker is bundled as a separate file via Webpack 5's worker feature.
+        // - blob: : Some third party libraries such as Mapbox used in st.map() create workers from blob.
+        "worker-src 'self' blob:",
         // For <script /> tag permissions.
         // - 'self': The main scripts
         // - 'unsafe-inline': Allow the inline scripts from custom components
@@ -73,9 +64,11 @@ module.exports = {
       ]
         .filter(Boolean)
         .join("; ");
-      htmlWebpackPlugin.options.meta["Content-Security-Policy"] = {
-        "http-equiv": "Content-Security-Policy",
-        content: csp,
+      htmlWebpackPlugin.userOptions.meta = {
+        "Content-Security-Policy": {
+          "http-equiv": "Content-Security-Policy",
+          content: csp,
+        },
       };
 
       // Let Babel compile outside of src/.
@@ -94,6 +87,12 @@ module.exports = {
       };
 
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
+      webpackConfig.resolve.mainFields = ["module", "main"];
+      // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module
+      webpackConfig.resolve.fallback ||= {};
+      webpackConfig.resolve.fallback.tty = false;
+      webpackConfig.resolve.fallback.os = false;
+
       // Apache Arrow uses .mjs
       webpackConfig.module.rules.push({
         include: /node_modules/,
@@ -109,16 +108,15 @@ module.exports = {
       // then we don't obtain the expected result.
       // So we turn off Asset Modules here by setting `type: 'javascript/auto'`.
       // See https://webpack.js.org/guides/asset-modules/
-      // TODO: Enable when using Webpack 5.
-      // webpackConfig.module.rules.push({
-      //   test: /\.whl$/i,
-      //   use: [
-      //     {
-      //       loader: 'file-loader',
-      //     }
-      //   ],
-      //   type: 'javascript/auto'
-      // })
+      webpackConfig.module.rules.push({
+        test: /\.whl$/i,
+        use: [
+          {
+            loader: "file-loader",
+          },
+        ],
+        type: "javascript/auto",
+      });
 
       return webpackConfig;
     },

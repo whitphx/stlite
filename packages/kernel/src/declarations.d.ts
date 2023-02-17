@@ -9,28 +9,6 @@ declare module "*.whl" {
   return res;
 }
 
-declare module "*?raw" {
-  const res: string;
-  return res;
-}
-
-declare module "!!raw-loader!*" {
-  const res: string;
-  export default res;
-}
-
-// Ref: https://v4.webpack.js.org/loaders/worker-loader/
-declare module "!!worker-loader?*" {
-  // You need to change `Worker`, if you specified a different value for the `workerType` option
-  class WebpackWorker extends Worker {
-    constructor();
-  }
-
-  // Uncomment this if you set the `esModule` option to `false`
-  // export = WebpackWorker;
-  export default WebpackWorker;
-}
-
 // Declarations for worker.ts where some variables are dynamically loaded through importScript.
 declare let loadPyodide: any;
 

@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-@st.experimental_memo
+@st.cache_data
 def load_data():
     data = pd.DataFrame(
         np.random.randn(1000, 2),
@@ -10,7 +10,7 @@ def load_data():
 
     return data
 
-@st.experimental_memo
+@st.cache_data
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode('utf-8')

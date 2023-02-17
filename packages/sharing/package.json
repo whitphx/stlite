@@ -4,26 +4,26 @@
   "private": true,
   "homepage": "https://share.stlite.net/",
   "dependencies": {
-    "@craco/craco": "^6.1.2",
+    "@craco/craco": "^7.0.0",
     "@stlite/common-react": "^0.25.0",
     "@stlite/kernel": "^0.25.0",
     "@stlite/sharing-common": "^0.25.0",
-    "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^13.1.9",
-    "@types/jest": "^26.0.19",
-    "@types/node": "^14.14.16",
+    "@testing-library/react": "^12.1.4",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/jest": "^27.4.3",
+    "@types/node": "^16.18.12",
     "@types/react": "^17.0.7",
     "@types/react-dom": "^17.0.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
+    "react-scripts": "5.0.1",
     "react-toastify": "^9.1.1",
-    "streamlit-browser": "^1.12.0",
-    "typescript": "^4.6.3",
+    "streamlit-browser": "^1.18.1",
+    "typescript": "^4.9.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "cross-env REACT_APP_EDITOR_APP_ORIGIN=http://localhost:3030 BROWSER=false craco start",
+    "start": "cross-env REACT_APP_EDITOR_APP_ORIGIN=http://localhost:3030 BROWSER=none craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
@@ -45,8 +45,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "raw-loader": "^4.0.2"
   }
 }

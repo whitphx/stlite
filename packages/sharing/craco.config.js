@@ -2,10 +2,7 @@ const path = require("path");
 
 module.exports = {
   babel: {
-    plugins: [
-      "@emotion",
-      "@babel/plugin-proposal-logical-assignment-operators", // Stlite: This specific plugin is needed to parse the upstream source code with the CRA default browserslist setting. See https://github.com/whitphx/stlite/issues/471
-    ],
+    plugins: ["@emotion"],
     loaderOptions: {
       cacheDirectory: true,
     },
@@ -28,6 +25,12 @@ module.exports = {
       };
 
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
+      webpackConfig.resolve.mainFields = ["module", "main"];
+      // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module
+      webpackConfig.resolve.fallback ||= {};
+      webpackConfig.resolve.fallback.tty = false;
+      webpackConfig.resolve.fallback.os = false;
+
       // Apache Arrow uses .mjs
       webpackConfig.module.rules.push({
         include: /node_modules/,
@@ -43,16 +46,15 @@ module.exports = {
       // then we don't obtain the expected result.
       // So we turn off Asset Modules here by setting `type: 'javascript/auto'`.
       // See https://webpack.js.org/guides/asset-modules/
-      // TODO: Enable when using Webpack 5.
-      // webpackConfig.module.rules.push({
-      //   test: /\.whl$/i,
-      //   use: [
-      //     {
-      //       loader: 'file-loader',
-      //     }
-      //   ],
-      //   type: 'javascript/auto'
-      // })
+      webpackConfig.module.rules.push({
+        test: /\.whl$/i,
+        use: [
+          {
+            loader: "file-loader",
+          },
+        ],
+        type: "javascript/auto",
+      });
 
       return webpackConfig;
     },

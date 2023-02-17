@@ -5,18 +5,17 @@ from unittest.mock import ANY, Mock, patch
 
 import pytest
 import requests
-import streamlit
 import tornado
 from streamlit import config
 from streamlit.hello import Hello
-from streamlit.server.server import Server
+from streamlit.runtime.runtime import Runtime
+from streamlit.web.server.server import Server
 
 
 @pytest.fixture
 def run_streamlit_background():
-    """Mimic streamlit.cli.main_hello()"""
+    """Mimic streamlit.web.cli.main_hello()"""
     filename = Hello.__file__
-    streamlit._is_running_with_streamlit = True
 
     config.set_option(
         "server.fileWatcherType", "none", "<test>"
@@ -34,15 +33,12 @@ def run_streamlit_background():
     data_from_thread: dict[str, Any] = {"server": None, "exception": None}
 
     async def init_server():
-        """Mimic streamlit.bootstrap.run()"""
-
-        def on_start(server: Server):
-            data_from_thread["server"] = server
-            event.set()
-
-        ioloop = tornado.ioloop.IOLoop.current()
-        server = Server(ioloop, filename, None)
-        server.start(on_start)
+        """Mimic streamlit.web.bootstrap.run()"""
+        tornado.ioloop.IOLoop.current()
+        server = Server(filename, None)
+        await server.start()
+        data_from_thread["server"] = server
+        event.set()
 
     def start():
         asyncio.set_event_loop(server_evloop)
@@ -65,39 +61,43 @@ def run_streamlit_background():
     yield
 
     server.stop()
+    Runtime._instance = None
     thread.join()
-    Server._singleton = None
 
 
 def test_http_server_is_set(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
 
     assert HTTP_SERVER is not None
 
 
-@patch("streamlit.server.server.AppSession")
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
 def test_http_server_websocket(AppSession, run_streamlit_background):
     session = AppSession()
 
     from streamlit.proto import BackMsg_pb2
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
 
     backMsg = BackMsg_pb2.BackMsg()
     backMsg.stop_script = True
 
     on_websocket_message = Mock()
 
-    HTTP_SERVER.start_websocket("/stream", on_websocket_message)
+    HTTP_SERVER.start_websocket("/_stcore/stream", on_websocket_message)
 
     HTTP_SERVER.receive_websocket(backMsg.SerializeToString())
-    session.handle_stop_script_request.assert_called()
+    session.handle_backmsg.assert_called_with(backMsg)
 
     HTTP_SERVER.websocket_handler.write_message(b"foobar", binary=True)
     on_websocket_message.assert_called_with(b"foobar", binary=True)
 
 
 def test_http_get(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
 
     on_response = Mock()
 
@@ -109,23 +109,29 @@ def test_http_get(run_streamlit_background):
     on_response.assert_called_with(200, ANY, b"ok")
 
 
-def test_http_file_upload(run_streamlit_background):
-    from tornado.httpserver import HTTP_SERVER  # type: ignore
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_file_upload(AppSession, run_streamlit_background):
+    from tornado.httpserver import HTTP_SERVER
+
+    assert HTTP_SERVER is not None
+
+    app_session = AppSession.return_value
+    app_session.id = (
+        "foo"  # Every mocked AppSession's ID is fixed to be "foo" for test simplicity.
+    )
 
     # Initiate the session
     receive_websocket = Mock()
-    HTTP_SERVER.start_websocket("/stream", receive_websocket)
+    HTTP_SERVER.start_websocket("/_stcore/stream", receive_websocket)
 
-    server = Server.get_current()
-    session_ids = server._session_info_by_id.keys()
-    session_id = list(session_ids)[0]
+    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
 
     req = requests.Request(
         "POST",
-        "http://example.com:55555/upload_file",
+        "http://example.com:55555/_stcore/upload_file",
         files={"file": ("foo.txt", "Foo\nBar\nBaz")},
         data={
-            "sessionId": session_id,
+            "sessionId": active_session.id,
             "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None",
         },
     )
@@ -133,8 +139,11 @@ def test_http_file_upload(run_streamlit_background):
 
     on_response = Mock()
 
+    headers = dict(r.headers)
+    body = r.body
+    assert body is not None
     task = HTTP_SERVER.receive_http(
-        "POST", "/upload_file", r.headers, r.body, on_response
+        "POST", "/_stcore/upload_file", headers, body, on_response
     )
 
     loop = task.get_loop()

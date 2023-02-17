@@ -7,7 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kernel: ${{ steps.filter.outputs.kernel }}
-      tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
+      # tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
+      tornado-e2e: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-tornado-e2e job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       mountable: ${{ steps.filter.outputs.mountable }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
@@ -21,10 +22,10 @@ jobs:
           kernel:
             - 'packages/kernel/**/*'
             # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
-          tornado-e2e:
-            - 'packages/kernel/py/tornado'
-            - 'packages/kernel/py/e2etests/**/*'
-            - 'streamlit/**/*'
+          # tornado-e2e:  # We run this job anytime. See above.
+          #   - 'packages/kernel/py/tornado'
+          #   - 'packages/kernel/py/e2etests/**/*'
+          #   - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
           sharing-editor:
@@ -107,6 +108,13 @@ jobs:
     - name: Create virtualenv
       run: python -m venv .venv
 
+    - name: Install dependencies
+      shell: bash
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry install
+
     # Set up the /streamlit submodule
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
     - name: Install Streamlit build dependencies
@@ -117,26 +125,26 @@ jobs:
         cd streamlit
         make mini-init
 
-    - name: Install dependencies
-      shell: bash
-      run: poetry install
-      working-directory: packages/kernel/py/e2etests
-
     - name: Run linter and code formatter to the test code module
-      working-directory: packages/kernel/py/e2etests
       run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
         poetry run black . --check
         poetry run isort . --check
         poetry run flake8
 
     - name: Run mypy
-      working-directory: packages/kernel/py/e2etests
-      run: poetry run mypy .
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry run mypy .
 
     - name: Run pytest
       shell: bash
-      run: poetry run python -m pytest -v tests
-      working-directory: packages/kernel/py/e2etests
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/e2etests
+        poetry run python -m pytest -v tests
 
   test-mountable:
     needs: changes

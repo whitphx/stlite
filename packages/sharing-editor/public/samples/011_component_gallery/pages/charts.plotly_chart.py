@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.figure_factory as ff
 import numpy as np
 
-@st.experimental_memo
+@st.cache_data
 def load_data():
     # Add histogram data
     x1 = np.random.randn(200) - 2

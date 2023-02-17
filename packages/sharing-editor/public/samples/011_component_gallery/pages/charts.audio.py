@@ -2,7 +2,7 @@ import requests
 import streamlit as st
 
 
-@st.experimental_memo
+@st.cache_data
 def read_file_from_url(url):
     headers = {
         "User-Agent": "StreamlitDocs/1.5.0 (https://docs.streamlit.io; hello@streamlit.io)"

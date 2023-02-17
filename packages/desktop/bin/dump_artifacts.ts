@@ -84,6 +84,7 @@ async function createSitePackagesSnapshot(
   if (options.useLocalKernelWheels) {
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
     const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
+    // TODO: Set the wheel file names dynamically
     await installLocalWheel(
       pyodide,
       path.join(stliteKernelPyDir, "tornado/dist/tornado-6.2-py3-none-any.whl")
@@ -99,17 +100,25 @@ async function createSitePackagesSnapshot(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl"
+        "streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl"
       )
     );
   } else {
+    const packageJson = require(path.resolve(__dirname, "../package.json"));
+    const version = packageJson.version;
+
+    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
+    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
+    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
+    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
+      fileData.name.endsWith(".whl")
+    );
+    const wheelUrls = wheelFiles.map(
+      (wheelFile) =>
+        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
+    );
+
     const micropip = pyodide.pyimport("micropip");
-    const wheelUrls = [
-      // TODO: Set the versions dynamically.
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/tornado/dist/tornado-6.2-py3-none-any.whl",
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl",
-      "https://cdn.jsdelivr.net/npm/@stlite/kernel@0.19.1/py/streamlit/lib/dist/streamlit-1.13.0-py2.py3-none-any.whl",
-    ];
     console.log("Install", wheelUrls);
     await micropip.install.callKwargs(wheelUrls, { keep_going: true });
   }

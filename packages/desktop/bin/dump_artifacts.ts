@@ -107,14 +107,18 @@ async function createSitePackagesSnapshot(
     const packageJson = require(path.resolve(__dirname, "../package.json"));
     const version = packageJson.version;
 
+    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
+    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
+    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
+    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
+      fileData.name.endsWith(".whl")
+    );
+    const wheelUrls = wheelFiles.map(
+      (wheelFile) =>
+        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
+    );
+
     const micropip = pyodide.pyimport("micropip");
-    const wheelUrls = [
-      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/tornado/dist/tornado-6.2-py3-none-any.whl`,
-      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl`,
-      // TODO: Set the Streamlit version automatically.
-      // -> Download the NPM package once, and get the file list from the package.
-      `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}/py/streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl`,
-    ];
     console.log("Install", wheelUrls);
     await micropip.install.callKwargs(wheelUrls, { keep_going: true });
   }

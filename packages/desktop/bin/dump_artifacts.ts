@@ -100,7 +100,7 @@ async function createSitePackagesSnapshot(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.17.0-py2.py3-none-any.whl"
+        "streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl"
       )
     );
   } else {

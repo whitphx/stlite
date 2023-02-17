@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `@stlite/kernel`
 
+#### Changed
+
 - Update Streamlit to 1.18.1, [#482](https://github.com/whitphx/stlite/pull/482).
 
 ## [0.25.0] - 2023-02-17

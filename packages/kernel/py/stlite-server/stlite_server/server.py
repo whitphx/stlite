@@ -1,5 +1,6 @@
 import logging
 from typing import Callable, Dict, Final, Optional, Union
+import re
 
 import pyodide
 from streamlit import config, file_util, source_util, util
@@ -11,6 +12,8 @@ from streamlit.runtime import Runtime, RuntimeConfig, RuntimeState, SessionClien
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
 from streamlit.runtime.runtime_util import serialize_forward_msg
 from streamlit.runtime.runtime_util import get_max_message_size_bytes
+
+from .server_util import make_url_path_regex
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +57,7 @@ class Server:
         await self._runtime.start()
 
     def start_websocket(self, path: str, on_message):
-        if path != "/" + STREAM_ENDPOINT:
+        if not re.match(make_url_path_regex(STREAM_ENDPOINT), path):
             raise RuntimeError("Invalid WebSocket endpoint")
         self._websocket_handler.open(on_message)
 

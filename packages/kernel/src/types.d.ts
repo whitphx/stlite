@@ -19,7 +19,7 @@ interface WorkerInitialData {
   requirements: string[];
   pyodideEntrypointUrl?: string;
   wheels?: {
-    tornado: string;
+    stliteServer: string;
     pyarrow: string;
     streamlit: string;
   };

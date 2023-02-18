@@ -2,7 +2,6 @@ import { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
-import StliteServerPyCode from "../py/stlite-webserver/stlite_webserver/__init__.py";
 
 let pyodide: PyodideInterface;
 
@@ -91,10 +90,10 @@ async function loadPyodideAndPackages() {
     console.debug("Restored the snapshot");
   } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
-    console.debug("Loading pyarrow and streamlit");
+    console.debug("Loading pyarrow, stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs([wheels.pyarrow], {
+    await micropip.install.callKwargs([wheels.pyarrow, wheels.stliteServer], {
       keep_going: true,
     });
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
@@ -202,10 +201,6 @@ async function loadPyodideAndPackages() {
 
   // TODO: Migrate the preprocessing code that streamlit.web.cli:main_run() and streamlit.web.bootstrap:run() did.
 
-  console.debug("Define the stlite server class");
-  await pyodide.runPythonAsync(StliteServerPyCode as unknown as string);
-  console.debug("Defined the stlite server class");
-
   console.debug("Booting up the Streamlit server");
   // Bootstrap
   // await pyodide.runPythonAsync(`
@@ -218,6 +213,7 @@ async function loadPyodideAndPackages() {
   // `);
   // await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   await pyodide.runPythonAsync(`
+    from stlite_webserver import Server
     server = Server("${entrypoint}", None)
     server.start()
   `);

@@ -55,6 +55,10 @@ module.exports = {
         ],
         type: "javascript/auto",
       });
+      webpackConfig.module.rules.push({
+        test: /\.py$/,
+        type: "asset/source",
+      });
 
       return webpackConfig;
     },

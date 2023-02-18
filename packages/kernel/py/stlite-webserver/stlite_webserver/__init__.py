@@ -54,6 +54,8 @@ class Server:
         await self._runtime.start()
 
     def start_websocket(self, path: str, on_message):
+        if path != "/" + STREAM_ENDPOINT:
+            raise RuntimeError("Invalid WebSocket endpoint")
         self._websocket_handler.open(on_message)
 
     def receive_websocket(self, message: bytes):

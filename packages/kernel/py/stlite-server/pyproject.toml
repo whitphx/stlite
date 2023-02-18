@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "stlite-webserver"
+name = "stlite-server"
 version = "0.1.0"
 description = ""
 authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]

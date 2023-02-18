@@ -213,7 +213,7 @@ async function loadPyodideAndPackages() {
   // `);
   // await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   await pyodide.runPythonAsync(`
-    from stlite_server import Server
+    from stlite_server.server import Server
     server = Server("${entrypoint}", None)
     server.start()
   `);

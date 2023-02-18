@@ -8,7 +8,7 @@ import requests
 from streamlit import config
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
-from stlite_webserver import Server
+from stlite_server.server import Server
 
 
 @pytest.fixture

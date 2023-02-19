@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-from typing import Callable, Dict, Final, List, Optional, Tuple, Union
+from typing import Callable, Dict, Final, List, Optional, Tuple, Union, cast
 
 import pyodide
 from streamlit import config, file_util, source_util, util
@@ -160,6 +160,7 @@ class Server:
             return
 
         # Parse args and kwargs from the path pattern emulating Tornado's URL routing.
+        match = cast(re.Match[str], match)
         args = match.groups()
         kwargs = match.groupdict()
         kwarg_indexes = (

@@ -1,5 +1,5 @@
 import abc
-from typing import NamedTuple, Tuple, Union
+from typing import Any, Coroutine, Dict, NamedTuple, Tuple, Union
 
 
 class Request(NamedTuple):
@@ -8,9 +8,16 @@ class Request(NamedTuple):
     body: Union[str, bytes]
 
 
+HandlerReturnType = Tuple[int, Dict[str, str], bytes]
+
+
 class RequestHandler(abc.ABC):
-    async def get(self, request: Request, *args) -> Tuple[int, dict, bytes]:
+    def get(
+        self, request: Request
+    ) -> Union[HandlerReturnType, Coroutine[Any, Any, HandlerReturnType]]:
         return 405, {}, b""
 
-    async def post(self, request: Request, *args) -> Tuple[int, dict, bytes]:
+    def post(
+        self, request: Request
+    ) -> Union[HandlerReturnType, Coroutine[Any, Any, HandlerReturnType]]:
         return 405, {}, b""

@@ -62,20 +62,20 @@ class Server:
         LOGGER.debug("Starting server...")
 
         self._websocket_handler = WebSocketHandler(self._runtime)
-        base = ""
-        self._routes = [
+
+        # Based on the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L221  # noqa: E501
+        base = ""  # The original impl reads the `server.baseUrlPath` config, but we use a fixed empty string.  # noqa: E501
+        routes = [
             (
-                re.compile(make_url_path_regex(base, HEALTH_ENDPOINT)),
+                make_url_path_regex(base, HEALTH_ENDPOINT),
                 HealthHandler(
                     callback=lambda: self._runtime.is_ready_for_browser_connection
                 ),
             ),
             (
-                re.compile(
-                    make_url_path_regex(
-                        base,
-                        UPLOAD_FILE_ROUTE,
-                    )
+                make_url_path_regex(
+                    base,
+                    UPLOAD_FILE_ROUTE,
                 ),
                 UploadFileRequestHandler(
                     file_mgr=self._runtime.uploaded_file_mgr,
@@ -83,10 +83,11 @@ class Server:
                 ),
             ),
             (
-                re.compile(make_url_path_regex(base, f"{MEDIA_ENDPOINT}/(.*)")),
+                make_url_path_regex(base, f"{MEDIA_ENDPOINT}/(.*)"),
                 MediaFileHandler(self._media_file_storage),
             ),
         ]
+        self._routes = [(re.compile(pattern), handler) for (pattern, handler) in routes]
 
         await self._runtime.start()
 

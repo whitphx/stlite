@@ -1,23 +1,22 @@
 import abc
-from typing import Any, Coroutine, Dict, NamedTuple, Tuple, Union
+from typing import Any, Coroutine, NamedTuple, Union
 
 
 class Request(NamedTuple):
     path: str
-    headers: dict
+    headers: dict[str, str]
     body: Union[str, bytes]
 
 
-HandlerReturnType = Tuple[int, Dict[str, str], bytes]
+class Response(NamedTuple):
+    status_code: int
+    headers: dict[str, str]
+    body: Union[str, bytes]
 
 
 class RequestHandler(abc.ABC):
-    def get(
-        self, request: Request
-    ) -> Union[HandlerReturnType, Coroutine[Any, Any, HandlerReturnType]]:
-        return 405, {}, b""
+    def get(self, request: Request) -> Union[Response, Coroutine[Any, Any, Response]]:
+        return Response(status_code=405, headers={}, body="")
 
-    def post(
-        self, request: Request
-    ) -> Union[HandlerReturnType, Coroutine[Any, Any, HandlerReturnType]]:
-        return 405, {}, b""
+    def post(self, request: Request) -> Union[Response, Coroutine[Any, Any, Response]]:
+        return Response(status_code=405, headers={}, body="")

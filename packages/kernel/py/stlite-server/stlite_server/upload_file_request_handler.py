@@ -1,9 +1,9 @@
 import logging
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List
 
 from streamlit.runtime.uploaded_file_manager import UploadedFileManager, UploadedFileRec
 
-from .handler import Request, RequestHandler
+from .handler import Request, RequestHandler, Response
 from .httputil import HTTPFile, parse_body_arguments
 
 # /_stcore/upload_file/(optional session id)/(optional widget id)
@@ -40,7 +40,7 @@ class UploadFileRequestHandler(RequestHandler):
         # Convert bytes to string
         return arg[0].decode("utf-8")
 
-    def post(self, request: Request, **kwargs) -> Tuple[int, dict, bytes]:
+    def post(self, request: Request, **kwargs) -> Response:
         # NOTE: The original implementation uses an async function,
         #       but it didn't make use of any async features,
         #       so we made it a regular function here for simplicity sake.
@@ -62,7 +62,7 @@ class UploadFileRequestHandler(RequestHandler):
                 raise Exception(f"Invalid session_id: '{session_id}'")
 
         except Exception as e:
-            return 400, {}, str(e).encode("utf-8")
+            return Response(status_code=400, headers={}, body=str(e).encode("utf-8"))
 
         # Create an UploadedFile object for each file.
         # We assign an initial, invalid file_id to each file in this loop.
@@ -81,10 +81,10 @@ class UploadFileRequestHandler(RequestHandler):
                 )
 
         if len(uploaded_files) != 1:
-            return (
-                400,
-                {},
-                f"Expected 1 file, but got {len(uploaded_files)}".encode("utf-8"),
+            return Response(
+                status_code=400,
+                headers={},
+                body=f"Expected 1 file, but got {len(uploaded_files)}",
             )
 
         added_file = self._file_mgr.add_file(
@@ -93,4 +93,4 @@ class UploadFileRequestHandler(RequestHandler):
 
         # Return the file_id to the client. (The client will parse
         # the string back to an int.)
-        return 200, {}, str(added_file.id)
+        return Response(status_code=200, headers={}, body=str(added_file.id))

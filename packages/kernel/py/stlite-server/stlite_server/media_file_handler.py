@@ -8,7 +8,7 @@ from streamlit.runtime.memory_media_file_storage import (
 )
 from streamlit.string_util import generate_download_filename_from_title
 
-from .handler import Request, RequestHandler
+from .handler import Request, RequestHandler, Response
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class MediaFileHandler(RequestHandler):
     def __init__(self, storage: MemoryMediaFileStorage) -> None:
         self._storage = storage
 
-    def get(self, request: Request, path: str) -> tuple[int, dict[str, str], bytes]:
+    def get(self, request: Request, path: str) -> Response:
         # NOTE: The original implementation of `get` in `tornado.web:StaticFileHandler`
         #       is a bit more complex, where it tries to convert the URL param `path`
         #       to a file-system path and tries to make it an absolute path based on
@@ -34,7 +34,7 @@ class MediaFileHandler(RequestHandler):
             media_file = self._storage.get_file(absolute_path)
         except MediaFileStorageError:
             LOGGER.error("MediaFileHandler: Missing file %s", absolute_path)
-            return 404, {}, b"Not Found"
+            return Response(404, {}, "Not Found")
 
         headers = {}
         # Copied from tornado.web:StaticFileHandler.get_headers()
@@ -78,4 +78,4 @@ class MediaFileHandler(RequestHandler):
         size = media_file.content_size
         headers["Content-Length"] = str(size)
 
-        return 200, headers, media_file.content
+        return Response(200, headers, media_file.content)

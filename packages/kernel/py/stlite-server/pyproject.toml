@@ -28,3 +28,7 @@ profile = "black"
 
 [tool.mypy]
 check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["pyodide", "pyodide.*"]
+ignore_missing_imports = true

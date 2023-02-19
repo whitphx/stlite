@@ -9,6 +9,8 @@ class Request(NamedTuple):
 
 
 class RequestHandler(abc.ABC):
-    @abc.abstractmethod
     async def get(self, request: Request, *args) -> Tuple[int, dict, bytes]:
-        ...
+        return 405, {}, b""
+
+    async def post(self, request: Request, *args) -> Tuple[int, dict, bytes]:
+        return 405, {}, b""

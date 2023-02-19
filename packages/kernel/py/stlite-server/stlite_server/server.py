@@ -17,6 +17,7 @@ from streamlit.runtime.runtime_util import get_max_message_size_bytes
 from .server_util import make_url_path_regex
 from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
+from .upload_file_request_handler import UPLOAD_FILE_ROUTE, UploadFileRequestHandler
 from .media_file_handler import MediaFileHandler
 
 LOGGER = logging.getLogger(__name__)
@@ -62,6 +63,13 @@ class Server:
             (
                 re.compile(make_url_path_regex(base, HEALTH_ENDPOINT)),
                 HealthHandler(callback=lambda: self._runtime.is_ready_for_browser_connection),
+            ),
+            (
+                re.compile(make_url_path_regex(
+                    base,
+                    UPLOAD_FILE_ROUTE,
+                )),
+                UploadFileRequestHandler(file_mgr=self._runtime.uploaded_file_mgr, is_active_session=self._runtime.is_active_session),
             ),
             (
                 re.compile(make_url_path_regex(base, f"{MEDIA_ENDPOINT}/(.*)")),
@@ -112,6 +120,7 @@ class Server:
     def receive_http(self, method: str, path: str, headers: dict, body: Union[str, bytes], on_response: Callable[[int, dict, bytes], None]):
         LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
 
+        # Find the handler for the path and method.
         handler = None
         for path_regex, handler_candidate in self._routes:
             match = path_regex.match(path)
@@ -121,7 +130,6 @@ class Server:
         if handler is None:
             on_response(404, {}, b"")
             return
-
         method_name = method.lower()
         if method_name not in ("get", "post"):
             on_response(405, {}, b"Now allowed")
@@ -131,9 +139,18 @@ class Server:
             on_response(405, {}, b"")
             return
 
-        request = Request(path=path, headers=headers, body=body)
+        # Parse args and kwargs from the path pattern emulating Tornado's URL routing.
         args = match.groups()
-        res_or_coro = handle_method(request, *args)
+        kwargs = match.groupdict()
+        kwarg_indexes = path_regex.groupindex.values()  # These args are also captured in kwargs, so we remove them from args. Note that these indexes are 1-based.
+        args_no_dup = []
+        for i, arg in enumerate(args):
+            if i + 1 not in kwarg_indexes:  # Compare 0-based indexes with 1-based indexes
+                args_no_dup.append(arg)
+
+        # Call the handler method.
+        request = Request(path=path, headers=headers, body=body)
+        res_or_coro = handle_method(request, *args_no_dup, **kwargs)
         if asyncio.iscoroutine(res_or_coro):
             task = asyncio.ensure_future(res_or_coro)
             def callback(future: asyncio.Future):

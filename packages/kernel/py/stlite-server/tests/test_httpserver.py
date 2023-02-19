@@ -120,46 +120,41 @@ def test_http_media_get(AppSession, setup_server):
     assert called_header | expected_header == called_header
 
 
-# @patch("streamlit.runtime.websocket_session_manager.AppSession")
-# def test_http_file_upload(AppSession, setup_server):
-#     from tornado.httpserver import HTTP_SERVER
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_file_upload(AppSession, setup_server):
+    server: Server = setup_server
 
-#     assert HTTP_SERVER is not None
+    app_session = AppSession.return_value
+    app_session.id = (
+        "foo"  # Every mocked AppSession's ID is fixed to be "foo" for test simplicity.
+    )
 
-#     app_session = AppSession.return_value
-#     app_session.id = (
-#         "foo"  # Every mocked AppSession's ID is fixed to be "foo" for test simplicity.
-#     )
+    # Initiate the session
+    receive_websocket = Mock()
+    server.start_websocket("/_stcore/stream", receive_websocket)
 
-#     # Initiate the session
-#     receive_websocket = Mock()
-#     HTTP_SERVER.start_websocket("/_stcore/stream", receive_websocket)
+    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
 
-#     active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
+    req = requests.Request(
+        "POST",
+        "http://example.com:55555/_stcore/upload_file",
+        files={"file": ("foo.txt", "Foo\nBar\nBaz")},
+        data={
+            "sessionId": active_session.id,
+            "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None",
+        },
+    )
+    r = req.prepare()
 
-#     req = requests.Request(
-#         "POST",
-#         "http://example.com:55555/_stcore/upload_file",
-#         files={"file": ("foo.txt", "Foo\nBar\nBaz")},
-#         data={
-#             "sessionId": active_session.id,
-#             "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None",
-#         },
-#     )
-#     r = req.prepare()
+    on_response = Mock()
 
-#     on_response = Mock()
+    headers = dict(r.headers)
+    body = r.body
+    assert body is not None
+    server.receive_http(
+        "POST", "/_stcore/upload_file", headers, body, on_response
+    )
 
-#     headers = dict(r.headers)
-#     body = r.body
-#     assert body is not None
-#     task = HTTP_SERVER.receive_http(
-#         "POST", "/_stcore/upload_file", headers, body, on_response
-#     )
-
-#     loop = task.get_loop()
-#     loop.run_until_complete(task)
-
-#     on_response.assert_called_with(
-#         200, ANY, b"1"
-#     )  # Returns 1, which is the ID of the first file.
+    on_response.assert_called_with(
+        200, ANY, b"1"
+    )  # Returns 1, which is the ID of the first file.

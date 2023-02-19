@@ -1,4 +1,5 @@
-from .handler import RequestHandler, Request
+from .handler import Request, RequestHandler
+
 
 # Mimic streamlit.web.server.routes:HealthHandler
 class HealthHandler(RequestHandler):

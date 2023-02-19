@@ -8,6 +8,7 @@ import requests
 from streamlit import config
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
+
 from stlite_server.server import Server
 
 
@@ -82,9 +83,13 @@ def test_http_server_websocket(AppSession, setup_server):
     server.receive_websocket(backMsg.SerializeToString())
     session.handle_backmsg.assert_called_with(backMsg)
 
-    forwardMsg = proto.ForwardMsg_pb2.ForwardMsg(session_event=proto.SessionEvent_pb2.SessionEvent(script_changed_on_disk=True))
+    forwardMsg = proto.ForwardMsg_pb2.ForwardMsg(
+        session_event=proto.SessionEvent_pb2.SessionEvent(script_changed_on_disk=True)
+    )
     server._websocket_handler.write_forward_msg(forwardMsg)
-    on_websocket_message.assert_called_with(serialize_forward_msg(forwardMsg), bool=True)
+    on_websocket_message.assert_called_with(
+        serialize_forward_msg(forwardMsg), bool=True
+    )
 
 
 def test_http_get(setup_server):
@@ -104,7 +109,9 @@ def test_http_get(setup_server):
 def test_http_media_get(AppSession, setup_server):
     server: Server = setup_server
 
-    url = Runtime.instance().media_file_mgr.add(b"Foo\nBar\nBaz", "text/plain", "1234", "foo.txt", is_for_static_download=True)
+    url = Runtime.instance().media_file_mgr.add(
+        b"Foo\nBar\nBaz", "text/plain", "1234", "foo.txt", is_for_static_download=True
+    )
 
     on_response = Mock()
 
@@ -114,7 +121,7 @@ def test_http_media_get(AppSession, setup_server):
     called_header = on_response.call_args[0][1]
     expected_header = {
         "Content-Type": "text/plain",
-        'Content-Disposition': 'attachment; filename="foo.txt"',
+        "Content-Disposition": 'attachment; filename="foo.txt"',
         "Content-Length": str(len(b"Foo\nBar\nBaz")),
     }
     assert called_header | expected_header == called_header
@@ -151,9 +158,7 @@ def test_http_file_upload(AppSession, setup_server):
     headers = dict(r.headers)
     body = r.body
     assert body is not None
-    server.receive_http(
-        "POST", "/_stcore/upload_file", headers, body, on_response
-    )
+    server.receive_http("POST", "/_stcore/upload_file", headers, body, on_response)
 
     on_response.assert_called_with(
         200, ANY, b"1"

@@ -1,18 +1,20 @@
 # `parse_body_arguments()` whose original impl was in tornado.httputil
 # and its dependent functions are copied from Tornado to here, with some modifications.
 
-from functools import lru_cache
+import email
 import logging
 import urllib.parse
-import email
-from typing import Dict, List, Optional, NamedTuple, Union, Tuple, Generator
+from functools import lru_cache
+from typing import Dict, Generator, List, NamedTuple, Optional, Tuple, Union
 
 LOGGER = logging.getLogger(__name__)
+
 
 class HTTPFile(NamedTuple):
     filename: str
     body: bytes
     content_type: str
+
 
 def parse_qs_bytes(
     qs: Union[str, bytes], keep_blank_values: bool = False, strict_parsing: bool = False
@@ -85,6 +87,7 @@ def parse_body_arguments(
         except Exception as e:
             LOGGER.warning("Invalid multipart/form-data: %s", e)
 
+
 def parse_multipart_form_data(
     boundary: bytes,
     data: bytes,
@@ -142,6 +145,7 @@ def parse_multipart_form_data(
         else:
             arguments.setdefault(name, []).append(value)
 
+
 @lru_cache(1000)
 def _normalize_header(name: str) -> str:
     """Map a header name to Http-Header-Case.
@@ -177,6 +181,7 @@ def HTTPHeaders_parse_line(line: str) -> Tuple[str, str]:
         _last_key = norm_name
         return norm_name, value.strip()
 
+
 def HTTPHeaders_parse(headers: str) -> Dict:
     """Returns a dictionary from HTTP header text.
 
@@ -201,6 +206,7 @@ def HTTPHeaders_parse(headers: str) -> Dict:
             h[name] = value
     return h
 
+
 def _parseparam(s: str) -> Generator[str, None, None]:
     while s[:1] == ";":
         s = s[1:]
@@ -212,6 +218,7 @@ def _parseparam(s: str) -> Generator[str, None, None]:
         f = s[:end]
         yield f.strip()
         s = s[end:]
+
 
 def _parse_header(line: str) -> Tuple[str, Dict[str, str]]:
     r"""Parse a Content-type like header.
@@ -252,6 +259,7 @@ unicode_type = str
 
 _UTF8_TYPES = (bytes, type(None))
 
+
 def utf8(value: Union[None, str, bytes]) -> Optional[bytes]:  # noqa: F811
     """Converts a string argument to a byte string.
 
@@ -264,7 +272,9 @@ def utf8(value: Union[None, str, bytes]) -> Optional[bytes]:  # noqa: F811
         raise TypeError("Expected bytes, unicode, or None; got %r" % type(value))
     return value.encode("utf-8")
 
+
 _TO_UNICODE_TYPES = (unicode_type, type(None))
+
 
 def to_unicode(value: Union[None, str, bytes]) -> Optional[str]:  # noqa: F811
     """Converts a string argument to a unicode string.
@@ -277,5 +287,6 @@ def to_unicode(value: Union[None, str, bytes]) -> Optional[str]:  # noqa: F811
     if not isinstance(value, bytes):
         raise TypeError("Expected bytes, unicode, or None; got %r" % type(value))
     return value.decode("utf-8")
+
 
 native_str = to_unicode

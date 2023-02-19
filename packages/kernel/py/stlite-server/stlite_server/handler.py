@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple, Union, NamedTuple
+from typing import NamedTuple, Tuple, Union
 
 
 class Request(NamedTuple):

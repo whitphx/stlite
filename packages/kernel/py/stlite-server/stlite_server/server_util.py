@@ -1,4 +1,4 @@
-# Copied from https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server_util.py#L73-L77
+# Copied from https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server_util.py#L73-L77  # noqa: E501
 def make_url_path_regex(*path, **kwargs) -> str:
     """Get a regex of the form ^/foo/bar/baz/?$ for a path (foo, bar, baz)."""
     path = [x.strip("/") for x in path if x]  # Filter out falsely components.

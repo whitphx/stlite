@@ -1,5 +1,6 @@
+import asyncio
 import logging
-from typing import Callable, Dict, Final, Optional, Union
+from typing import Callable, Dict, List, Final, Optional, Union, Tuple
 import re
 
 import pyodide
@@ -14,6 +15,9 @@ from streamlit.runtime.runtime_util import serialize_forward_msg
 from streamlit.runtime.runtime_util import get_max_message_size_bytes
 
 from .server_util import make_url_path_regex
+from .handler import RequestHandler
+from .health_handler import HealthHandler, Request
+from .media_file_handler import MediaFileHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +32,7 @@ SCRIPT_HEALTH_CHECK_ENDPOINT: Final = (
 )
 
 class Server:
+    _routes: List[Tuple[re.Pattern, RequestHandler]] = []
     def __init__(self, main_script_path: str, command_line: Optional[str]) -> None:
         self._main_script_path = main_script_path
 
@@ -51,8 +56,18 @@ class Server:
 
         LOGGER.debug("Starting server...")
 
-        # TODO: Initialize paths
         self._websocket_handler = WebSocketHandler(self._runtime)
+        base = ""
+        self._routes = [
+            (
+                re.compile(make_url_path_regex(base, HEALTH_ENDPOINT)),
+                HealthHandler(callback=lambda: self._runtime.is_ready_for_browser_connection),
+            ),
+            (
+                re.compile(make_url_path_regex(base, f"{MEDIA_ENDPOINT}/(.*)")),
+                MediaFileHandler(self._media_file_storage),
+            ),
+        ]
 
         await self._runtime.start()
 
@@ -72,6 +87,68 @@ class Server:
             return
 
         self.receive_websocket(payload)
+
+    def receive_http_from_js(
+        self,
+        method: str,
+        path: str,
+        headers: pyodide.ffi.JsProxy,
+        body: Union[str, pyodide.ffi.JsProxy],
+        on_response: Callable[[int, dict, bytes], None]
+    ):
+        headers = headers.to_py()
+
+        if isinstance(body, pyodide.ffi.JsProxy):
+            body = body.to_bytes()
+
+        return self.receive_http(
+            method=method,
+            path=path,
+            headers=headers,
+            body=body,
+            on_response=on_response
+        )
+
+    def receive_http(self, method: str, path: str, headers: dict, body: Union[str, bytes], on_response: Callable[[int, dict, bytes], None]):
+        LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
+
+        handler = None
+        for path_regex, handler_candidate in self._routes:
+            match = path_regex.match(path)
+            if match:
+                handler = handler_candidate
+                break
+        if handler is None:
+            on_response(404, {}, b"")
+            return
+
+        method_name = method.lower()
+        if method_name not in ("get", "post"):
+            on_response(405, {}, b"Now allowed")
+            return
+        handle_method = getattr(handler, method_name, None)
+        if handle_method is None:
+            on_response(405, {}, b"")
+            return
+
+        request = Request(path=path, headers=headers, body=body)
+        args = match.groups()
+        res_or_coro = handle_method(request, *args)
+        if asyncio.iscoroutine(res_or_coro):
+            task = asyncio.ensure_future(res_or_coro)
+            def callback(future: asyncio.Future):
+                status, res_headers, res_body = future.result()
+                if isinstance(res_body, str):
+                    res_body = res_body.encode("utf-8")
+                on_response(status, res_headers, res_body)
+            task.add_done_callback(callback)
+            return task
+
+        status, res_headers, res_body = res_or_coro
+        if isinstance(res_body, str):
+            res_body = res_body.encode("utf-8")
+        on_response(status, res_headers, res_body)
+        return
 
     def stop(self):
         self._websocket_handler.on_close()

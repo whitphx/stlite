@@ -57,6 +57,7 @@ def setup_server():
 
     yield server
 
+    Runtime.instance().stop()
     server.stop()
     Runtime._instance = None
     thread.join()
@@ -86,19 +87,37 @@ def test_http_server_websocket(AppSession, setup_server):
     on_websocket_message.assert_called_with(serialize_forward_msg(forwardMsg), bool=True)
 
 
-# def test_http_get(setup_server):
-#     from tornado.httpserver import HTTP_SERVER
+def test_http_get(setup_server):
+    server: Server = setup_server
 
-#     assert HTTP_SERVER is not None
+    on_response = Mock()
 
-#     on_response = Mock()
+    task = server.receive_http("GET", "/healthz", {}, "", on_response)
 
-#     task = HTTP_SERVER.receive_http("GET", "/healthz", {}, "", on_response)
+    loop = task.get_loop()
+    loop.run_until_complete(task)
 
-#     loop = task.get_loop()
-#     loop.run_until_complete(task)
+    on_response.assert_called_with(200, ANY, b"ok")
 
-#     on_response.assert_called_with(200, ANY, b"ok")
+
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_media_get(AppSession, setup_server):
+    server: Server = setup_server
+
+    url = Runtime.instance().media_file_mgr.add(b"Foo\nBar\nBaz", "text/plain", "1234", "foo.txt", is_for_static_download=True)
+
+    on_response = Mock()
+
+    server.receive_http("GET", url, {}, "", on_response)
+
+    on_response.assert_called_with(200, ANY, b"Foo\nBar\nBaz")
+    called_header = on_response.call_args[0][1]
+    expected_header = {
+        "Content-Type": "text/plain",
+        'Content-Disposition': 'attachment; filename="foo.txt"',
+        "Content-Length": str(len(b"Foo\nBar\nBaz")),
+    }
+    assert called_header | expected_header == called_header
 
 
 # @patch("streamlit.runtime.websocket_session_manager.AppSession")

@@ -108,6 +108,7 @@ $(pyarrow_wheel): $(VENV) packages/kernel/py/stlite-pyarrow/pyarrow/*.py
 $(tornado_wheel): $(VENV) packages/kernel/py/tornado/tornado/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/kernel/py/tornado && \
+	pip install -U build && \
 	TORNADO_EXTENSION=0 python -m build --wheel
 	@touch $@
 

@@ -87,9 +87,7 @@ def test_http_server_websocket(AppSession, setup_server):
         session_event=proto.SessionEvent_pb2.SessionEvent(script_changed_on_disk=True)
     )
     server._websocket_handler.write_forward_msg(forwardMsg)
-    on_websocket_message.assert_called_with(
-        serialize_forward_msg(forwardMsg), bool=True
-    )
+    on_websocket_message.assert_called_with(serialize_forward_msg(forwardMsg), True)
 
 
 def test_http_get(setup_server):

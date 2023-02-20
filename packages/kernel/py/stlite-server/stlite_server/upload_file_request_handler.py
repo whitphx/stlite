@@ -48,6 +48,9 @@ class UploadFileRequestHandler(RequestHandler):
         args: Dict[str, List[bytes]] = {}
         files: Dict[str, List[HTTPFile]] = {}
 
+        if not isinstance(request.body, bytes):
+            raise Exception("request body must be bytes")
+
         parse_body_arguments(
             content_type=request.headers["Content-Type"],
             body=request.body,

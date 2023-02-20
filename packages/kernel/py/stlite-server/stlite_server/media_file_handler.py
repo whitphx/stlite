@@ -22,7 +22,7 @@ class MediaFileHandler(RequestHandler):
     def __init__(self, storage: MemoryMediaFileStorage) -> None:
         self._storage = storage
 
-    def get(self, request: Request, path: str) -> Response:
+    def get(self, request: Request, path: str) -> Response:  # type: ignore[override]
         # NOTE: The original implementation of `get` in `tornado.web:StaticFileHandler`
         #       is a bit more complex, where it tries to convert the URL param `path`
         #       to a file-system path and tries to make it an absolute path based on

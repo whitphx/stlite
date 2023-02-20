@@ -203,7 +203,8 @@ class WebSocketHandler(SessionClient):
 
     _runtime: Runtime
     _session_id: Optional[str]
-    _callback: Optional[Callable[[bytes, bool], None]]
+
+    _callback: Optional[Callable[[Union[bytes, str], bool], None]]
 
     def __init__(self, runtime: Runtime) -> None:
         self._runtime = runtime
@@ -211,9 +212,11 @@ class WebSocketHandler(SessionClient):
 
     def write_forward_msg(self, msg: ForwardMsg) -> None:
         """Send a ForwardMsg to the browser."""
-        self._callback(serialize_forward_msg(msg), bool=True)
+        if self._callback is None:
+            raise RuntimeError("WebSocket is not open")
+        self._callback(serialize_forward_msg(msg), True)
 
-    def open(self, on_message: Callable[[bytes], None]) -> None:
+    def open(self, on_message: Callable[[Union[bytes, str], bool], None]) -> None:
         self._callback = on_message
 
         # Omit the original implementation in browser_websocket_handler.py here,

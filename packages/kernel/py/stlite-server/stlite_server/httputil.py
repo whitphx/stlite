@@ -1,7 +1,7 @@
 # `parse_body_arguments()` whose original impl was in tornado.httputil
 # and its dependent functions are copied from Tornado to here, with some modifications.
 
-import email
+import email.utils
 import logging
 import urllib.parse
 from functools import lru_cache
@@ -255,34 +255,26 @@ def _parse_header(line: str) -> Tuple[str, Dict[str, str]]:
     return key, pdict
 
 
-unicode_type = str
-
-_UTF8_TYPES = (bytes, type(None))
-
-
-def utf8(value: Union[None, str, bytes]) -> Optional[bytes]:  # noqa: F811
+def utf8(value: Union[str, bytes]) -> bytes:
     """Converts a string argument to a byte string.
 
     If the argument is already a byte string or None, it is returned unchanged.
     Otherwise it must be a unicode string and is encoded as utf8.
     """
-    if isinstance(value, _UTF8_TYPES):
+    if isinstance(value, bytes):
         return value
-    if not isinstance(value, unicode_type):
+    if not isinstance(value, str):
         raise TypeError("Expected bytes, unicode, or None; got %r" % type(value))
     return value.encode("utf-8")
 
 
-_TO_UNICODE_TYPES = (unicode_type, type(None))
-
-
-def to_unicode(value: Union[None, str, bytes]) -> Optional[str]:  # noqa: F811
+def to_unicode(value: Union[str, bytes]) -> str:
     """Converts a string argument to a unicode string.
 
     If the argument is already a unicode string or None, it is returned
     unchanged.  Otherwise it must be a byte string and is decoded as utf8.
     """
-    if isinstance(value, _TO_UNICODE_TYPES):
+    if isinstance(value, str):
         return value
     if not isinstance(value, bytes):
         raise TypeError("Expected bytes, unicode, or None; got %r" % type(value))

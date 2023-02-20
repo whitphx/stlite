@@ -4,17 +4,11 @@ import re
 from typing import Callable, Dict, Final, List, Optional, Tuple, Union, cast
 
 import pyodide
-from streamlit import config, file_util, source_util, util
-from streamlit.components.v1.components import ComponentRegistry
-from streamlit.config_option import ConfigOption
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
-from streamlit.runtime import Runtime, RuntimeConfig, RuntimeState, SessionClient
+from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
-from streamlit.runtime.runtime_util import (
-    get_max_message_size_bytes,
-    serialize_forward_msg,
-)
+from streamlit.runtime.runtime_util import serialize_forward_msg
 
 from .handler import RequestHandler
 from .health_handler import HealthHandler, Request

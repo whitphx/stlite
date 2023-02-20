@@ -7,8 +7,7 @@
   "types": "dist/index.d.js",
   "files": [
     "dist/",
-    "py/**/*.whl",
-    "py/stlite-webserver/stlite_webserver/**/*.py"
+    "py/**/*.whl"
   ],
   "scripts": {
     "start": "tsc -w",

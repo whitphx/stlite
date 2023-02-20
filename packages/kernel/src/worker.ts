@@ -202,17 +202,18 @@ async function loadPyodideAndPackages() {
   // TODO: Migrate the preprocessing code that streamlit.web.cli:main_run() and streamlit.web.bootstrap:run() did.
 
   console.debug("Booting up the Streamlit server");
-  // Bootstrap
-  // await pyodide.runPythonAsync(`
-  // command_kwargs = {
-  //     "server.headless": True,  # Not to open the browser after launching
-  //     "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
-  //     "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
-  //     "browser.gatherUsageStats": False,
-  // }
-  // `);
-  // await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
+  // Override configs. Ref: streamlit.web.bootstrap:load_config_options() that is called from streamlit.web.cli:main_run()
   await pyodide.runPythonAsync(`
+    from streamlit import config
+    option_overrides = {
+        "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
+        "browser.gatherUsageStats": False,
+    }
+    config.get_config_options(force_reparse=True, options_from_flags=option_overrides)
+  `);
+  // Initialize and start the server.
+  await pyodide.runPythonAsync(`
+
     from stlite_server.server import Server
     server = Server("${entrypoint}", None)
     server.start()

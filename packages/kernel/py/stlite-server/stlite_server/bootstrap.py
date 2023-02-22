@@ -77,7 +77,8 @@ def _fix_sys_argv(main_script_path: str, args: List[str]) -> None:
 
 
 def _fix_pydeck_mapbox_api_warning() -> None:
-    """Sets MAPBOX_API_KEY environment variable needed for PyDeck otherwise it will throw an exception"""
+    """Sets MAPBOX_API_KEY environment variable needed for
+    PyDeck otherwise it will throw an exception"""
 
     os.environ["MAPBOX_API_KEY"] = config.get_option("mapbox.token")
 

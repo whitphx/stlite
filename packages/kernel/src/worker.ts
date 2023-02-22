@@ -199,8 +199,6 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Mocked some Streamlit functions");
 
-  // TODO: Migrate the preprocessing code that streamlit.web.cli:main_run() and streamlit.web.bootstrap:run() did.
-
   console.debug("Booting up the Streamlit server");
   // Override configs. Ref: streamlit.web.bootstrap:load_config_options() that is called from streamlit.web.cli:main_run()
   await pyodide.runPythonAsync(`
@@ -213,9 +211,16 @@ async function loadPyodideAndPackages() {
   `);
   // Initialize and start the server.
   await pyodide.runPythonAsync(`
-
+    from stlite_server.bootstrap import prepare
     from stlite_server.server import Server
-    server = Server("${entrypoint}", None)
+
+    main_script_path = "${entrypoint}"
+    command_line = None
+    args = []
+
+    prepare(main_script_path, args)
+
+    server = Server(main_script_path, command_line)
     server.start()
   `);
   console.debug("Booted up the Streamlit server");

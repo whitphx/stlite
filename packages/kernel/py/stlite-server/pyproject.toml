@@ -16,6 +16,7 @@ flake8 = "^6.0.0"
 isort = "^5.12.0"
 mypy = "^1.0.1"
 data-science-types = "^0.2.23"  # For matplotlib stubs
+streamlit-aggrid = "^0.3.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -31,5 +32,5 @@ profile = "black"
 check_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["pyodide", "pyodide.*"]
+module = ["pyodide", "pyodide.*", "st_aggrid"]
 ignore_missing_imports = true

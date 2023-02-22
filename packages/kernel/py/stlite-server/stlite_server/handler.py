@@ -4,6 +4,7 @@ from typing import Any, Coroutine, NamedTuple, Union
 
 class Request(NamedTuple):
     path: str
+    query: str
     headers: dict[str, str]
     body: Union[str, bytes]
 

@@ -1,4 +1,5 @@
 import asyncio
+import os
 import re
 import threading
 from typing import Any
@@ -7,6 +8,7 @@ from unittest.mock import ANY, Mock, patch
 import pytest
 import requests
 from streamlit import config
+from streamlit.components.v1.components import declare_component
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
 
@@ -187,3 +189,30 @@ def test_http_file_upload(AppSession, setup_server):
     on_response.assert_called_with(
         200, ANY, b"1"
     )  # Returns 1, which is the ID of the first file.
+
+
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_component(AppSession, setup_server):
+    server: Server = setup_server
+
+    import st_aggrid
+
+    aggrid_dir = os.path.dirname(st_aggrid.__file__)
+    declare_component("AgGrid", aggrid_dir)
+    with open(
+        os.path.join(aggrid_dir, "frontend/build/index.html"), "rb"
+    ) as aggrid_index_html:
+        aggrid_index_html_contents = aggrid_index_html.read()
+
+    on_response = Mock()
+
+    server.receive_http(
+        "GET",
+        r"/component/st_aggrid.agGrid/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
+        {},
+        "",
+        on_response,
+    )
+    on_response.assert_called_with(
+        200, {"Content-Type": "text/html"}, aggrid_index_html_contents
+    )

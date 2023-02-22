@@ -1,5 +1,5 @@
 import logging
-from urllib.parse import parse_qs, quote, unquote_plus, urlparse
+from urllib.parse import parse_qs, quote, unquote_plus
 
 from streamlit.runtime.media_file_storage import MediaFileKind, MediaFileStorageError
 from streamlit.runtime.memory_media_file_storage import (
@@ -54,9 +54,12 @@ class MediaFileHandler(RequestHandler):
             filename = media_file.filename
 
             if not filename:
-                title = (
-                    parse_qs(urlparse(request.path).query).get("title", "")[0].strip()
-                )  # NOTE: The original was `self.get_argument("title", "", True)`
+                try:
+                    title = (
+                        parse_qs(request.query).get("title", "")[0].strip()
+                    )  # NOTE: The original was `self.get_argument("title", "", True)`
+                except Exception:
+                    return Response(400, {}, "Bad Request")
                 title = unquote_plus(title)
                 filename = generate_download_filename_from_title(title)
                 filename = (

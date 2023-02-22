@@ -1,15 +1,18 @@
 import asyncio
 import logging
 import re
+import urllib.parse
 from typing import Callable, Dict, Final, List, Optional, Tuple, Union, cast
 
 import pyodide
+from streamlit.components.v1.components import ComponentRegistry
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
 from streamlit.runtime.runtime_util import serialize_forward_msg
 
+from .component_request_handler import ComponentRequestHandler
 from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
 from .media_file_handler import MediaFileHandler
@@ -80,6 +83,10 @@ class Server:
                 make_url_path_regex(base, f"{MEDIA_ENDPOINT}/(.*)"),
                 MediaFileHandler(self._media_file_storage),
             ),
+            (
+                make_url_path_regex(base, "component/(.*)"),
+                ComponentRequestHandler(registry=ComponentRegistry.instance()),
+            ),
         ]
         self._routes = [(re.compile(pattern), handler) for (pattern, handler) in routes]
 
@@ -135,6 +142,9 @@ class Server:
     ):
         LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
 
+        url_parse_result = urllib.parse.urlparse(path)
+        path = url_parse_result.path
+
         # Find the handler for the path and method.
         handler = None
         for path_regex, handler_candidate in self._routes:
@@ -143,7 +153,7 @@ class Server:
                 handler = handler_candidate
                 break
         if handler is None:
-            on_response(404, {}, b"")
+            on_response(404, {}, b"No handler found")
             return
         method_name = method.lower()
         if method_name not in ("get", "post"):
@@ -169,7 +179,9 @@ class Server:
                 args_no_dup.append(arg)
 
         # Call the handler method.
-        request = Request(path=path, headers=headers, body=body)
+        request = Request(
+            path=path, query=url_parse_result.query, headers=headers, body=body
+        )
         res_or_coro = handle_method(request, *args_no_dup, **kwargs)
         if asyncio.iscoroutine(res_or_coro):
             task = asyncio.ensure_future(res_or_coro)

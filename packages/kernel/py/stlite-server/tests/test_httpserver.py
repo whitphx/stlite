@@ -1,4 +1,5 @@
 import asyncio
+import re
 import threading
 from typing import Any
 from unittest.mock import ANY, Mock, patch
@@ -107,22 +108,47 @@ def test_http_get(setup_server):
 def test_http_media_get(AppSession, setup_server):
     server: Server = setup_server
 
-    url = Runtime.instance().media_file_mgr.add(
-        b"Foo\nBar\nBaz", "text/plain", "1234", "foo.txt", is_for_static_download=True
-    )
-
     on_response = Mock()
 
-    server.receive_http("GET", url, {}, "", on_response)
+    # For the case where the file name is set
+    url1 = Runtime.instance().media_file_mgr.add(
+        b"Foo1\nFoo2\nFoo3",
+        "text/plain",
+        "1234",
+        "foo.txt",
+        is_for_static_download=True,
+    )
 
-    on_response.assert_called_with(200, ANY, b"Foo\nBar\nBaz")
+    server.receive_http("GET", url1, {}, "", on_response)
+    on_response.assert_called_with(200, ANY, b"Foo1\nFoo2\nFoo3")
     called_header = on_response.call_args[0][1]
     expected_header = {
         "Content-Type": "text/plain",
         "Content-Disposition": 'attachment; filename="foo.txt"',
-        "Content-Length": str(len(b"Foo\nBar\nBaz")),
+        "Content-Length": str(len(b"Foo1\nFoo2\nFoo3")),
     }
     assert called_header | expected_header == called_header
+
+    # For the case where the file name is None and specified via query parameter
+    url2 = Runtime.instance().media_file_mgr.add(
+        b"Bar1\nBar2\nBar3", "text/plain", "1234", None, is_for_static_download=True
+    )
+
+    server.receive_http("GET", url2, {}, "", on_response)  # No query parameter
+    on_response.assert_called_with(400, ANY, b"Bad Request")
+
+    server.receive_http("GET", url2 + "?title=bar", {}, "", on_response)
+    on_response.assert_called_with(200, ANY, b"Bar1\nBar2\nBar3")
+    called_header = on_response.call_args[0][1]
+    expected_header = {
+        "Content-Type": "text/plain",
+        "Content-Length": str(len(b"Bar1\nBar2\nBar3")),
+    }
+    assert called_header | expected_header == called_header
+    assert re.match(
+        r"^attachment; filename=\"Bar_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}.txt\"$",
+        called_header["Content-Disposition"],
+    )  # noqa: E501
 
 
 @patch("streamlit.runtime.websocket_session_manager.AppSession")

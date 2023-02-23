@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Coroutine, NamedTuple
+from typing import Awaitable, NamedTuple
 
 
 class Request(NamedTuple):
@@ -16,8 +16,8 @@ class Response(NamedTuple):
 
 
 class RequestHandler(abc.ABC):
-    def get(self, request: Request) -> Response | Coroutine[Any, Any, Response]:
+    def get(self, request: Request) -> Response | Awaitable[Response]:
         return Response(status_code=405, headers={}, body="")
 
-    def post(self, request: Request) -> Response | Coroutine[Any, Any, Response]:
+    def post(self, request: Request) -> Response | Awaitable[Response]:
         return Response(status_code=405, headers={}, body="")

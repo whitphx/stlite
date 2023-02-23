@@ -3,7 +3,7 @@ from typing import Awaitable, Callable
 from .handler import Request, RequestHandler, Response
 
 
-# Mimic streamlit.web.server.routes:HealthHandler
+# Mimic streamlit.web.server.routes.HealthHandler
 class HealthHandler(RequestHandler):
     def __init__(self, callback):
         self._callback: Callable[[], Awaitable[tuple[bool, str]]] = callback

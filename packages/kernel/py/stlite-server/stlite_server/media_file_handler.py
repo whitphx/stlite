@@ -10,7 +10,7 @@ from streamlit.string_util import generate_download_filename_from_title
 
 from .handler import Request, RequestHandler, Response
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 
 # Mimic the behavior of
@@ -33,7 +33,7 @@ class MediaFileHandler(RequestHandler):
         try:
             media_file = self._storage.get_file(absolute_path)
         except MediaFileStorageError:
-            LOGGER.error("MediaFileHandler: Missing file %s", absolute_path)
+            _LOGGER.error("MediaFileHandler: Missing file %s", absolute_path)
             return Response(404, {}, "Not Found")
 
         headers = {}

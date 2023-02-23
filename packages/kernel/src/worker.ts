@@ -199,20 +199,16 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Mocked some Streamlit functions");
 
+  postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");
-  // Override configs. Ref: streamlit.web.bootstrap:load_config_options() that is called from streamlit.web.cli:main_run()
   await pyodide.runPythonAsync(`
-    from streamlit import config
-    option_overrides = {
+    from stlite_server.bootstrap import load_config_options, prepare
+    from stlite_server.server import Server
+
+    load_config_options({
         "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
         "browser.gatherUsageStats": False,
-    }
-    config.get_config_options(force_reparse=True, options_from_flags=option_overrides)
-  `);
-  // Initialize and start the server.
-  await pyodide.runPythonAsync(`
-    from stlite_server.bootstrap import prepare
-    from stlite_server.server import Server
+    })
 
     main_script_path = "${entrypoint}"
     command_line = None

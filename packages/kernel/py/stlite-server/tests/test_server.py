@@ -93,7 +93,7 @@ def test_http_server_websocket(AppSession, setup_server):
     on_websocket_message.assert_called_with(serialize_forward_msg(forwardMsg), True)
 
 
-def test_http_get(setup_server):
+def test_http_get_health(setup_server):
     server: Server = setup_server
 
     on_response = Mock()
@@ -107,7 +107,7 @@ def test_http_get(setup_server):
 
 
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_media_get(AppSession, setup_server):
+def test_http_media(AppSession, setup_server):
     server: Server = setup_server
 
     on_response = Mock()

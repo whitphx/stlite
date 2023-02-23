@@ -97,7 +97,7 @@ async function loadPyodideAndPackages() {
       keep_going: true,
     });
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-    console.debug("Loaded pyarrow and streamlit");
+    console.debug("Loaded pyarrow, stlite-server, and streamlit");
 
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);

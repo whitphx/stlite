@@ -106,8 +106,7 @@ def test_http_get_health(setup_server):
     on_response.assert_called_with(200, ANY, b"ok")
 
 
-@patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_media(AppSession, setup_server):
+def test_http_media(setup_server):
     server: Server = setup_server
 
     on_response = Mock()
@@ -191,8 +190,7 @@ def test_http_file_upload(AppSession, setup_server):
     )  # Returns 1, which is the ID of the first file.
 
 
-@patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_component(AppSession, setup_server):
+def test_http_component(setup_server):
     server: Server = setup_server
 
     import st_aggrid

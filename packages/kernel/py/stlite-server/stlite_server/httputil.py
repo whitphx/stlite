@@ -169,9 +169,6 @@ def HTTPHeaders_parse_line(line: str) -> Tuple[str, str]:
         # continuation of a multi-line header
         if _last_key is None:
             raise RuntimeError("first header line cannot start with whitespace")
-        # new_part = " " + line.lstrip()
-        # _as_list[_last_key][-1] += new_part
-        # _dict[_last_key] += new_part
     else:
         try:
             name, value = line.split(":", 1)

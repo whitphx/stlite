@@ -13,9 +13,16 @@ from .handler import Request, RequestHandler, Response
 _LOGGER = logging.getLogger(__name__)
 
 
+def get_argument(request: Request, key: str, strip: bool) -> str | None:
+    title_list = parse_qs(request.query).get(key)
+    if title_list is None:
+        return None
+    return title_list[0].strip() if strip else title_list[0]
+
+
 # Mimic the behavior of
-# streamlit.web.server.media_file_handler:MediaFileHandler
-# and tornado.web:StaticFileHandler.
+# streamlit.web.server.media_file_handler.MediaFileHandler
+# and tornado.web.StaticFileHandler.
 class MediaFileHandler(RequestHandler):
     _storage: MemoryMediaFileStorage
 
@@ -24,10 +31,10 @@ class MediaFileHandler(RequestHandler):
 
     def get(self, request: Request, path: str) -> Response:  # type: ignore[override]
         # NOTE: The original implementation of `get` in `tornado.web:StaticFileHandler`
-        #       is a bit more complex, where it tries to convert the URL param `path`
-        #       to a file-system path and tries to make it an absolute path based on
-        #       a given root path, but we don't need that here because the file-system
-        #       is not Windows and we don't have a root path (see `{"path": ""}` at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L269).  # noqa: E501
+        #       is a bit more complex, where it tries to convert the `path` argument
+        #       to a file-system path and to make it an absolute path based on a given
+        #       root path, but we don't need that here because the file-system is not
+        #       Windows and we don't have a root path (see `{"path": ""}` at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L269).  # noqa: E501
         #       So, we just use the `path` argument as-is.
         absolute_path = path
         try:
@@ -37,7 +44,7 @@ class MediaFileHandler(RequestHandler):
             return Response(404, {}, "Not Found")
 
         headers = {}
-        # Copied from tornado.web:StaticFileHandler.get_headers()
+        # Copied from tornado.web.StaticFileHandler.get_headers()
         headers["Accept-Ranges"] = "bytes"
         # NOTE: This implementation skips the `Etag` header which was set by
         #       the original StaticFileHandler, because stlite does not care
@@ -49,16 +56,15 @@ class MediaFileHandler(RequestHandler):
         #       `media_file.mimetype` here.
         headers["Content-Type"] = media_file.mimetype
 
-        # Copied from streamlit.web.server.media_file_handler:MediaFileHandler.set_extra_headers()  # noqa: E501
+        # Copied from streamlit.web.server.media_file_handler.MediaFileHandler.set_extra_headers()  # noqa: E501
         if media_file and media_file.kind == MediaFileKind.DOWNLOADABLE:
             filename = media_file.filename
 
             if not filename:
-                try:
-                    title = (
-                        parse_qs(request.query).get("title", "")[0].strip()
-                    )  # NOTE: The original was `self.get_argument("title", "", True)`
-                except Exception:
+                title = get_argument(
+                    request, "title", True
+                )  # NOTE: The original was `self.get_argument("title", "", True)`
+                if title is None:
                     return Response(400, {}, "Bad Request")
                 title = unquote_plus(title)
                 filename = generate_download_filename_from_title(title)
@@ -76,8 +82,9 @@ class MediaFileHandler(RequestHandler):
 
             headers["Content-Disposition"] = "attachment; " + file_expr
 
-        # This implementation ignores the `Range` header which was dealt with
-        # by the original StaticFileHandler, and this always returns the full file.
+        # NOTE: This implementation ignores the `Range` header which was dealt with
+        #       by the original StaticFileHandler.
+        #       Instead, this method always returns the full file.
         size = media_file.content_size
         headers["Content-Length"] = str(size)
 

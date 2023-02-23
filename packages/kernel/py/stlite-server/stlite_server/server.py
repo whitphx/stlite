@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import urllib.parse
-from typing import Callable, Dict, Final, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Final, List, Optional, Tuple, cast
 
 import pyodide
 from streamlit.components.v1.components import ComponentRegistry
@@ -116,7 +116,7 @@ class Server:
         method: str,
         path: str,
         headers: pyodide.ffi.JsProxy,
-        body: Union[str, pyodide.ffi.JsProxy],
+        body: str | pyodide.ffi.JsProxy,
         on_response: Callable[[int, dict, bytes], None],
     ):
         headers = headers.to_py()
@@ -137,7 +137,7 @@ class Server:
         method: str,
         path: str,
         headers: dict,
-        body: Union[str, bytes],
+        body: str | bytes,
         on_response: Callable[[int, dict, bytes], None],
     ):
         LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
@@ -217,7 +217,7 @@ class WebSocketHandler(SessionClient):
     _runtime: Runtime
     _session_id: Optional[str]
 
-    _callback: Optional[Callable[[Union[bytes, str], bool], None]]
+    _callback: Optional[Callable[[bytes | str, bool], None]]
 
     def __init__(self, runtime: Runtime) -> None:
         self._runtime = runtime
@@ -229,7 +229,7 @@ class WebSocketHandler(SessionClient):
             raise RuntimeError("WebSocket is not open")
         self._callback(serialize_forward_msg(msg), True)
 
-    def open(self, on_message: Callable[[Union[bytes, str], bool], None]) -> None:
+    def open(self, on_message: Callable[[bytes | str, bool], None]) -> None:
         self._callback = on_message
 
         # Omit the original implementation in browser_websocket_handler.py here,
@@ -249,7 +249,7 @@ class WebSocketHandler(SessionClient):
         self._runtime.disconnect_session(self._session_id)
         self._session_id = None
 
-    def on_message(self, payload: Union[str, bytes]) -> None:
+    def on_message(self, payload: str | bytes) -> None:
         # Copied from https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/browser_websocket_handler.py#L148-L189  # noqa: E501
 
         if not self._session_id:

@@ -61,8 +61,8 @@ def setup_server():
 
     yield server
 
-    Runtime.instance().stop()
     server.stop()
+    server_evloop.run_until_complete(server._runtime.stopped)
     Runtime._instance = None
     thread.join()
 

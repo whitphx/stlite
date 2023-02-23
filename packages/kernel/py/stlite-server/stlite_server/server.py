@@ -203,6 +203,7 @@ class Server:
 
     def stop(self):
         self._websocket_handler.on_close()
+        self._runtime.stop()
 
 
 class WebSocketHandler(SessionClient):

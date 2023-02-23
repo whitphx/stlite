@@ -150,7 +150,7 @@ def test_http_media_get(AppSession, setup_server):
     assert re.match(
         r"^attachment; filename=\"Bar_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}.txt\"$",
         called_header["Content-Disposition"],
-    )  # noqa: E501
+    )
 
 
 @patch("streamlit.runtime.websocket_session_manager.AppSession")

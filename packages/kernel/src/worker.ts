@@ -201,6 +201,7 @@ async function loadPyodideAndPackages() {
 
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");
+  // The following Python code is based on streamlit.web.cli.main_run().
   await pyodide.runPythonAsync(`
     from stlite_server.bootstrap import load_config_options, prepare
     from stlite_server.server import Server

@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import urllib.parse
-from typing import Callable, Dict, Final, List, Optional, Tuple, Union, cast
+from typing import Callable, Dict, Final, List, Optional, Tuple, cast
 
 import pyodide
 from streamlit.components.v1.components import ComponentRegistry
@@ -116,7 +116,7 @@ class Server:
         method: str,
         path: str,
         headers: pyodide.ffi.JsProxy,
-        body: Union[str, pyodide.ffi.JsProxy],
+        body: str | pyodide.ffi.JsProxy,
         on_response: Callable[[int, dict, bytes], None],
     ):
         headers = headers.to_py()

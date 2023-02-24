@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import urllib.parse
-from typing import Callable, Dict, Final, List, Optional, Tuple, cast
+from typing import Callable, Final, cast
 
 import pyodide
 from streamlit.components.v1.components import ComponentRegistry
@@ -21,21 +21,16 @@ from .upload_file_request_handler import UPLOAD_FILE_ROUTE, UploadFileRequestHan
 
 LOGGER = logging.getLogger(__name__)
 
+# These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L81-L89  # noqa: E501
 MEDIA_ENDPOINT: Final = "/media"
 STREAM_ENDPOINT: Final = r"_stcore/stream"
-METRIC_ENDPOINT: Final = r"(?:st-metrics|_stcore/metrics)"
-MESSAGE_ENDPOINT: Final = r"_stcore/message"
 HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
-ALLOWED_MESSAGE_ORIGIN_ENDPOINT: Final = r"_stcore/allowed-message-origins"
-SCRIPT_HEALTH_CHECK_ENDPOINT: Final = (
-    r"(?:script-health-check|_stcore/script-health-check)"
-)
 
 
 class Server:
-    _routes: List[Tuple[re.Pattern, RequestHandler]] = []
+    _routes: list[tuple[re.Pattern, RequestHandler]] = []
 
-    def __init__(self, main_script_path: str, command_line: Optional[str]) -> None:
+    def __init__(self, main_script_path: str, command_line: str | None) -> None:
         self._main_script_path = main_script_path
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
@@ -58,6 +53,7 @@ class Server:
 
         LOGGER.debug("Starting server...")
 
+        # In stlite, impl, we deal with WebSocket separately.
         self._websocket_handler = WebSocketHandler(self._runtime)
 
         # Based on the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L221  # noqa: E501
@@ -97,9 +93,6 @@ class Server:
             raise RuntimeError("Invalid WebSocket endpoint")
         self._websocket_handler.open(on_message)
 
-    def receive_websocket(self, message: bytes):
-        self._websocket_handler.on_message(message)
-
     def receive_websocket_from_js(self, payload_from_js: pyodide.ffi.JsProxy):
         payload = payload_from_js.to_bytes()
 
@@ -110,6 +103,9 @@ class Server:
             return
 
         self.receive_websocket(payload)
+
+    def receive_websocket(self, message: bytes):
+        self._websocket_handler.on_message(message)
 
     def receive_http_from_js(
         self,
@@ -159,8 +155,8 @@ class Server:
         if method_name not in ("get", "post"):
             on_response(405, {}, b"Now allowed")
             return
-        handle_method = getattr(handler, method_name, None)
-        if handle_method is None:
+        handler_method = getattr(handler, method_name, None)
+        if handler_method is None:
             on_response(405, {}, b"")
             return
 
@@ -182,7 +178,7 @@ class Server:
         request = Request(
             path=path, query=url_parse_result.query, headers=headers, body=body
         )
-        res_or_coro = handle_method(request, *args_no_dup, **kwargs)
+        res_or_coro = handler_method(request, *args_no_dup, **kwargs)
         if asyncio.iscoroutine(res_or_coro):
             task = asyncio.ensure_future(res_or_coro)
 
@@ -208,16 +204,16 @@ class Server:
 
 class WebSocketHandler(SessionClient):
     """
-    This class is a replacement for the class of the same name in
-    streamlit.web.server.browser_websocket_handler.py.
-    The implementation is based on the original WebSocketHandler in
-    https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/browser_websocket_handler.py.  # noqa: E501
+    This class is an stlite replacement for
+    streamlit.web.server.browser_websocket_handler.BrowserWebSocketHandler,
+    and the implementation is based on it.
+    Ref: https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/browser_websocket_handler.py.  # noqa: E501
     """
 
     _runtime: Runtime
-    _session_id: Optional[str]
+    _session_id: str | None
 
-    _callback: Optional[Callable[[bytes | str, bool], None]]
+    _callback: Callable[[bytes | str, bool], None] | None
 
     def __init__(self, runtime: Runtime) -> None:
         self._runtime = runtime
@@ -234,11 +230,11 @@ class WebSocketHandler(SessionClient):
 
         # Omit the original implementation in browser_websocket_handler.py here,
         # and just use empty values for these objects.
-        user_info: Dict[str, Optional[str]] = dict()
+        user_info: dict[str, str | None] = dict()
         existing_session_id = None
 
         self._session_id = self._runtime.connect_session(
-            client=self,  #
+            client=self,
             user_info=user_info,
             existing_session_id=existing_session_id,
         )

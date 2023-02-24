@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.0] - 2023-02-24
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Remove Tornado and introduce an original server implementation, [#492](https://github.com/whitphx/stlite/pull/492).
+
 ## [0.26.0] - 2023-02-17
 
 ### `@stlite/kernel`

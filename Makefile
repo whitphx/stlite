@@ -7,7 +7,7 @@ sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 pyarrow_wheel := packages/kernel/py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl
-tornado_wheel := packages/kernel/py/tornado/dist/tornado-6.2-py3-none-any.whl
+stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/autogen
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl
 
@@ -95,7 +95,7 @@ $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/deskto
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(pyarrow_wheel) $(tornado_wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): packages/kernel/src/*.ts $(pyarrow_wheel) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel; \
 	yarn build
 	@touch $@
@@ -105,11 +105,11 @@ $(pyarrow_wheel): $(VENV) packages/kernel/py/stlite-pyarrow/pyarrow/*.py
 	cd packages/kernel/py/stlite-pyarrow && \
 	poetry build
 
-$(tornado_wheel): $(VENV) packages/kernel/py/tornado/tornado/*.py
+.PHONY: stlite-server-wheel
+$(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/kernel/py/tornado && \
-	pip install -U build && \
-	TORNADO_EXTENSION=0 python -m build --wheel
+	cd packages/kernel/py/stlite-server && \
+	poetry build
 	@touch $@
 
 $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
@@ -123,6 +123,6 @@ streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	cd streamlit && \
-	$(MAKE) distribution
+	SNOWPARK_CONDA_BUILD=true $(MAKE) distribution
 	mkdir -p `dirname $(streamlit_wheel)`
 	cp streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl $(streamlit_wheel)

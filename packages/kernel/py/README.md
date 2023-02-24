@@ -1,10 +1,15 @@
-## `tornado`
+## `stlite-server`
 
-A customized version of `tornado`.
+Streamlit has 2 separate submodules, `web` and `runtime`.
+We use `runtime` only, which contains all necessary core features of Streamlit, but we omit `web` because it relies on `tornado`, which cannot be installed on Pyodide, and even if we hack it to be installable, we don't need its full HTTP-compatible implementation. In contrast, we only need a small subset (or imitation) of HTTP for our original communication layer used in `worker.ts`, and we prioritize a smaller bundle size.
 
-The original Tornado cannot be installed and run on Pyodide environment and stlite kernel needs a customized communication protocol, so we forked and customized it.
+For that purpose, we created this package, `stlite-server`, including `server.Server` class.
+It exposes methods for the WebSocket- and HTTP-like connections that are handled in `worker.ts`, and it also implements request handlers similar to the ones defined in the original server implementation, `streamlit.web.server.server.Server`.
 
-### Implementation principles
-* Simplicity and readability is the top priority.
-* Neither reproducing the original behavior nor implementing the correct HTTP protocol is needed.
-* We do not pay efforts to keep the original code. We do it if it supports reading and implementing the code, and we don't if it does not.
+See the following links for the details.
+* A PR where this package is created.
+  * https://github.com/whitphx/stlite/pull/492
+* PRs for the upstream Streamlit repo where the `web` and `runtime` sub-packages are decoupled.
+  * https://github.com/streamlit/streamlit/pull/4956
+  * https://github.com/streamlit/streamlit/pull/5072
+  * https://github.com/streamlit/streamlit/pull/5136

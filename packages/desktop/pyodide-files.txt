@@ -1,8 +1,6 @@
-pyodide/openssl-1.1.1n.zip
 pyodide/pyodide.asm.data
 pyodide/pyodide.asm.js
 pyodide/pyodide.asm.wasm
 pyodide/pyodide.js
 pyodide/pyodide_py.tar
 pyodide/repodata.json
-pyodide/ssl-1.0.0.zip

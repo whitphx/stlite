@@ -1,21 +1,23 @@
 [tool.poetry]
-name = "stlite-e2etests"
+name = "stlite-server"
 version = "0.1.0"
 description = ""
 authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.10, <3.12"
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.1.2"
-requests = "^2.28.1"
-black = "^22.6.0"
-flake8 = "^5.0.4"
-isort = "^5.10.1"
-mypy = "^0.981"
-types-requests = "^2.28.8"
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
+requests = "^2.28.2"
+black = "^23.1.0"
+flake8 = "^6.0.0"
+isort = "^5.12.0"
+mypy = "^1.0.1"
+streamlit-aggrid = "^0.3.3"
+pandas-stubs = "^1.5.3.230214"
+matplotlib = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -29,8 +31,7 @@ profile = "black"
 
 [tool.mypy]
 check_untyped_defs = true
-mypy_path = "../tornado"
 
 [[tool.mypy.overrides]]
-module = ["tornado", "tornado.*"]
-ignore_errors = true
+module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]
+ignore_missing_imports = true

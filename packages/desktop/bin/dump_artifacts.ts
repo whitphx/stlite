@@ -87,7 +87,10 @@ async function createSitePackagesSnapshot(
     // TODO: Set the wheel file names dynamically
     await installLocalWheel(
       pyodide,
-      path.join(stliteKernelPyDir, "tornado/dist/tornado-6.2-py3-none-any.whl")
+      path.join(
+        stliteKernelPyDir,
+        "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"
+      )
     );
     await installLocalWheel(
       pyodide,

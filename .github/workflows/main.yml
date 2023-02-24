@@ -7,8 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       kernel: ${{ steps.filter.outputs.kernel }}
-      # tornado-e2e: ${{ steps.filter.outputs.tornado-e2e }}
-      tornado-e2e: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-tornado-e2e job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      # stlite-server: ${{ steps.filter.outputs.stlite-server }}
+      stlite-server: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-server job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       mountable: ${{ steps.filter.outputs.mountable }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor }}
       sharing-common: ${{ steps.filter.outputs.sharing-common }}
@@ -22,9 +22,8 @@ jobs:
           kernel:
             - 'packages/kernel/**/*'
             # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
-          # tornado-e2e:  # We run this job anytime. See above.
-          #   - 'packages/kernel/py/tornado'
-          #   - 'packages/kernel/py/e2etests/**/*'
+          # stlite-server:  # We run this job anytime. See above.
+          #   - 'packages/kernel/py/stlite-server/**/*'
           #   - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
@@ -60,15 +59,14 @@ jobs:
         yarn check:prettier
     - run: yarn test
 
-  test-tornado-e2e:
+  test-stlite-server:
     needs: changes
-    if: ${{ needs.changes.outputs.tornado-e2e == 'true' }}
+    if: ${{ needs.changes.outputs.stlite-server == 'true' }}
+
+    env:
+      python-version: "3.10"
 
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -112,7 +110,7 @@ jobs:
       shell: bash
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/e2etests
+        cd packages/kernel/py/stlite-server
         poetry install
 
     # Set up the /streamlit submodule
@@ -128,7 +126,7 @@ jobs:
     - name: Run linter and code formatter to the test code module
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/e2etests
+        cd packages/kernel/py/stlite-server
         poetry run black . --check
         poetry run isort . --check
         poetry run flake8
@@ -136,14 +134,14 @@ jobs:
     - name: Run mypy
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/e2etests
+        cd packages/kernel/py/stlite-server
         poetry run mypy .
 
     - name: Run pytest
       shell: bash
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/e2etests
+        cd packages/kernel/py/stlite-server
         poetry run python -m pytest -v tests
 
   test-mountable:
@@ -257,7 +255,7 @@ jobs:
 
   build-kernel:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-tornado-e2e]
+    needs: [test-kernel, test-stlite-server]
 
     env:
       python-version: "3.10"
@@ -378,7 +376,7 @@ jobs:
 
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-tornado-e2e, test-mountable]
+    needs: [test-kernel, test-stlite-server, test-mountable]
 
     env:
       python-version: "3.10"
@@ -499,7 +497,7 @@ jobs:
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-tornado-e2e, test-sharing-common]
+    needs: [test-kernel, test-stlite-server, test-sharing-common]
 
     env:
       python-version: "3.10"
@@ -605,7 +603,7 @@ jobs:
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-tornado-e2e, test-sharing-editor, test-sharing-common, deploy-sharing]
+    needs: [test-kernel, test-stlite-server, test-sharing-editor, test-sharing-common, deploy-sharing]
 
     runs-on: ubuntu-latest
 
@@ -665,7 +663,7 @@ jobs:
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-tornado-e2e, test-desktop]
+    needs: [test-kernel, test-stlite-server, test-desktop]
 
     env:
       python-version: "3.10"

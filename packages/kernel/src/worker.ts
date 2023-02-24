@@ -69,13 +69,6 @@ async function loadPyodideAndPackages() {
     writeFileWithParents(pyodide, path, data, opts);
   });
 
-  postProgressMessage("Loading the initially required packages.");
-  console.debug("Loading the initially necessary packages");
-  await pyodide.loadPackage([
-    "ssl", // TODO: This package is only to be loaded from tornado, but it is not actually used. So this should be replaced with a lightweight mock.
-  ]);
-  console.debug("Loaded the initially necessary packages");
-
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.
     postProgressMessage("Restoring the snapshot.");
@@ -97,14 +90,14 @@ async function loadPyodideAndPackages() {
     console.debug("Restored the snapshot");
   } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
-    console.debug("Loading tornado, pyarrow, and streamlit");
+    console.debug("Loading pyarrow, stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs([wheels.tornado, wheels.pyarrow], {
+    await micropip.install.callKwargs([wheels.pyarrow, wheels.stliteServer], {
       keep_going: true,
     });
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-    console.debug("Loaded tornado, pyarrow, and streamlit");
+    console.debug("Loaded pyarrow, stlite-server, and streamlit");
 
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);
@@ -207,127 +200,31 @@ async function loadPyodideAndPackages() {
   console.debug("Mocked some Streamlit functions");
 
   postProgressMessage("Booting up the Streamlit server.");
-  console.debug("Defining the bootstrap functions");
-  // Emulate the process in streamlit/web/cli.py
-  await pyodide.runPythonAsync(`
-    import asyncio
-    import os
-    import streamlit
-    import streamlit.web.bootstrap as bootstrap
-    from streamlit.web.server import Server
-
-
-    class BadArgumentUsage(Exception):
-        pass
-
-
-    class BadParameter(Exception):
-        pass
-
-
-    # Mimic streamlit.web.bootstrap.run() but exclude some code unnecessary for stlite environment
-    def run(
-        main_script_path,
-        command_line,
-        args,
-        flag_options,
-    ) -> None:
-        bootstrap._fix_sys_path(main_script_path)
-        bootstrap._fix_matplotlib_crash()
-        bootstrap._fix_sys_argv(main_script_path, args)
-        bootstrap._fix_pydeck_mapbox_api_warning()
-        bootstrap._install_pages_watcher(main_script_path)
-
-        # Create the server. It won't start running yet.
-        server = Server(main_script_path, command_line)
-
-        # Run the server.
-        asyncio.get_event_loop().create_task(server.start())
-
-
-    def _get_command_line_as_string():
-        return ""  # TODO
-
-
-    def _main_run(file, args=None, flag_options=None):
-        if args is None:
-            args = []
-
-        if flag_options is None:
-            flag_options = {}
-
-        command_line = _get_command_line_as_string()
-
-        # Set a global flag indicating that we're "within" streamlit.
-        streamlit._is_running_with_streamlit = True
-
-        # check_credentials()  # Disable credential check on Pyodide
-
-        run(file, command_line, args, flag_options)  # Call this customized run function instead of the original bootstrap.run.
-
-
-    def main_hello(**kwargs):
-        """Runs the Hello World script."""
-        from streamlit.hello import Hello
-
-        bootstrap.load_config_options(flag_options=kwargs)
-        filename = Hello.__file__
-        _main_run(filename, flag_options=kwargs)
-
-
-    ACCEPTED_FILE_EXTENSIONS = ("py", "py3")
-
-
-    def main_run(target, args=None, **kwargs):
-        """Run a Python script, piping stderr to Streamlit.
-
-        The script can be local or it can be an url. In the latter case, Streamlit
-        will download the script to a temporary file and runs this file.
-
-        """
-        bootstrap.load_config_options(flag_options=kwargs)
-
-        _, extension = os.path.splitext(target)
-        if extension[1:] not in ACCEPTED_FILE_EXTENSIONS:
-            if extension[1:] == "":
-                raise BadArgumentUsage(
-                    "Streamlit requires raw Python (.py) files, but the provided file has no extension.\\nFor more information, please see https://docs.streamlit.io"
-                )
-            else:
-                raise BadArgumentUsage(
-                    "Streamlit requires raw Python (.py) files, not %s.\\nFor more information, please see https://docs.streamlit.io"
-                    % extension
-                )
-
-        # stlite deals with the URL input in the JS layer,
-        # so Python code does not take care of it and
-        # \`target\` here can be assumed to be a file path, not a URL.
-
-        if not os.path.exists(target):
-            raise BadParameter("File does not exist: {}".format(target))
-        _main_run(target, args, flag_options=kwargs)
-  `);
-  console.debug("Defined the bootstrap functions");
-
   console.debug("Booting up the Streamlit server");
-  // Bootstrap
+  // The following Python code is based on streamlit.web.cli.main_run().
   await pyodide.runPythonAsync(`
-  command_kwargs = {
-      "server.headless": True,  # Not to open the browser after launching
-      "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
-      "server.enableXsrfProtection": False,  # Disable XSRF protection as it relies on cookies
-      "browser.gatherUsageStats": False,
-  }
+    from stlite_server.bootstrap import load_config_options, prepare
+    from stlite_server.server import Server
+
+    load_config_options({
+        "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
+        "browser.gatherUsageStats": False,
+    })
+
+    main_script_path = "${entrypoint}"
+    command_line = None
+    args = []
+
+    prepare(main_script_path, args)
+
+    server = Server(main_script_path, command_line)
+    server.start()
   `);
-  await pyodide.runPythonAsync(`main_run("${entrypoint}", **command_kwargs)`);
   console.debug("Booted up the Streamlit server");
 
   console.debug("Setting up the HTTP server");
   // Pull the http server instance from Python world to JS world and set up it.
-  await pyodide.runPythonAsync(`
-    from tornado.httpserver import HTTP_SERVER
-  `); // HTTP_SERVER is set AFTER the streamlit module is loaded.
-  httpServer = pyodide.globals.get("HTTP_SERVER").copy();
+  httpServer = pyodide.globals.get("server").copy();
   console.debug("Set up the HTTP server");
 
   ctx.postMessage({

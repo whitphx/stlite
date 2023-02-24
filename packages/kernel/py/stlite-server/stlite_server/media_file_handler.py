@@ -14,10 +14,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_argument(request: Request, key: str, strip: bool) -> str | None:
-    title_list = parse_qs(request.query).get(key)
-    if title_list is None:
+    arg_list = parse_qs(request.query).get(key)
+    if arg_list is None:
         return None
-    return title_list[0].strip() if strip else title_list[0]
+    return arg_list[0].strip() if strip else arg_list[0]
 
 
 # Mimic the behavior of

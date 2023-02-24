@@ -49,7 +49,9 @@ class UploadFileRequestHandler(RequestHandler):
         files: Dict[str, List[HTTPFile]] = {}
 
         if not isinstance(request.body, bytes):
-            raise Exception("request body must be bytes")
+            return Response(
+                status_code=400, headers={}, body="request body must be bytes"
+            )
 
         parse_body_arguments(
             content_type=request.headers["Content-Type"],
@@ -65,7 +67,7 @@ class UploadFileRequestHandler(RequestHandler):
                 raise Exception(f"Invalid session_id: '{session_id}'")
 
         except Exception as e:
-            return Response(status_code=400, headers={}, body=str(e).encode("utf-8"))
+            return Response(status_code=400, headers={}, body=str(e))
 
         # Create an UploadedFile object for each file.
         # We assign an initial, invalid file_id to each file in this loop.

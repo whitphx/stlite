@@ -384,7 +384,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
           .then(() => {
             if (requirements.includes("matplotlib")) {
               return pyodide.runPythonAsync(`
-                bootstrap._fix_matplotlib_crash()
+                from stlite_server.bootstrap import _fix_matplotlib_crash
+                _fix_matplotlib_crash()
               `);
             }
           })

@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Fixed
 
 - `matplotlib` installation, [#496](https://github.com/whitphx/stlite/pull/496).
+
+### `@stlite/desktop`
+
+#### Fixed
+
 - Update Electron to 23.1.1, [#498](https://github.com/whitphx/stlite/pull/498).
 
 ## [0.27.0] - 2023-02-24

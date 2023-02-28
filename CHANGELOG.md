@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.1] - 2023-03-01
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- `matplotlib` installation, [#496](https://github.com/whitphx/stlite/pull/496).
+- Update Electron to 23.1.1, [#498](https://github.com/whitphx/stlite/pull/498).
+
 ## [0.27.0] - 2023-02-24
 
 ### `@stlite/kernel`

@@ -93,7 +93,24 @@ async function loadPyodideAndPackages() {
     console.debug("Loading pyarrow, stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs([wheels.pyarrow, wheels.stliteServer], {
+    pyodide.runPython(`
+import micropip
+micropip.add_mock_package(
+    "pyarrow", "0.0.1",
+    modules={
+        "pyarrow": """
+__version__ = '0.0.1'  # TODO: Update when releasing
+
+
+class Table:
+    @classmethod
+    def from_pandas(*args, **kwargs):
+        raise NotImplementedError("stlite is not supporting this method.")
+"""
+    }
+)
+`);
+    await micropip.install.callKwargs([wheels.stliteServer], {
       keep_going: true,
     });
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });

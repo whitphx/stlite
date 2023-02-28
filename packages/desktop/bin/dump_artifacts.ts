@@ -96,13 +96,6 @@ async function createSitePackagesSnapshot(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl"
-      )
-    );
-    await installLocalWheel(
-      pyodide,
-      path.join(
-        stliteKernelPyDir,
         "streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl"
       )
     );

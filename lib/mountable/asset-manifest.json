@@ -2,7 +2,7 @@
   "files": {
     "main.css": "./stlite.css",
     "main.js": "./stlite.js",
-    "static/js/2876.bc674fd2.chunk.js": "./static/js/2876.bc674fd2.chunk.js",
+    "static/js/2876.ac6bee75.chunk.js": "./static/js/2876.ac6bee75.chunk.js",
     "static/js/3419.121e38d1.chunk.js": "./static/js/3419.121e38d1.chunk.js",
     "static/js/6911.06263813.chunk.js": "./static/js/6911.06263813.chunk.js",
     "static/js/7091.688d992f.chunk.js": "./static/js/7091.688d992f.chunk.js",
@@ -143,7 +143,7 @@
     "pypi/stlite_pyarrow-0.1.0-py3-none-any.whl": "./pypi/stlite_pyarrow-0.1.0-py3-none-any.whl",
     "stlite.css.map": "./stlite.css.map",
     "stlite.js.map": "./stlite.js.map",
-    "2876.bc674fd2.chunk.js.map": "./static/js/2876.bc674fd2.chunk.js.map",
+    "2876.ac6bee75.chunk.js.map": "./static/js/2876.ac6bee75.chunk.js.map",
     "3419.121e38d1.chunk.js.map": "./static/js/3419.121e38d1.chunk.js.map",
     "6911.06263813.chunk.js.map": "./static/js/6911.06263813.chunk.js.map",
     "7091.688d992f.chunk.js.map": "./static/js/7091.688d992f.chunk.js.map",

@@ -2,6 +2,7 @@ import { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
+import { mockPyArrow } from "./mock";
 
 let pyodide: PyodideInterface;
 
@@ -88,33 +89,26 @@ async function loadPyodideAndPackages() {
           tar_gz_file.extractall("/")
     `);
     console.debug("Restored the snapshot");
+
+    postProgressMessage("Mocking some packages.");
+    console.debug("Mock pyarrow");
+    mockPyArrow(pyodide);
+    console.debug("Mocked pyarrow");
   } else if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
-    console.debug("Loading pyarrow, stlite-server, and streamlit");
+    console.debug("Loading stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    pyodide.runPython(`
-import micropip
-micropip.add_mock_package(
-    "pyarrow", "0.0.1",
-    modules={
-        "pyarrow": """
-__version__ = '0.0.1'  # TODO: Update when releasing
-
-
-class Table:
-    @classmethod
-    def from_pandas(*args, **kwargs):
-        raise NotImplementedError("stlite is not supporting this method.")
-"""
-    }
-)
-`);
     await micropip.install.callKwargs([wheels.stliteServer], {
       keep_going: true,
     });
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-    console.debug("Loaded pyarrow, stlite-server, and streamlit");
+    console.debug("Loaded stlite-server, and streamlit");
+
+    postProgressMessage("Mocking some packages.");
+    console.debug("Mock pyarrow");
+    mockPyArrow(pyodide);
+    console.debug("Mocked pyarrow");
 
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);

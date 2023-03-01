@@ -11,7 +11,6 @@ import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import PYARROW_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-pyarrow/dist/stlite_pyarrow-0.1.0-py3-none-any.whl";
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.18.1-py2.py3-none-any.whl";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
@@ -112,15 +111,10 @@ export class StliteKernel {
     if (options.mountedSitePackagesSnapshotFilePath == null) {
       console.debug("Custom wheel URLs:", {
         STLITE_SERVER_WHEEL,
-        PYARROW_WHEEL,
         STREAMLIT_WHEEL,
       });
       const stliteServerWheelUrl = makeAbsoluteWheelURL(
         STLITE_SERVER_WHEEL as unknown as string,
-        options.wheelBaseUrl
-      );
-      const pyarrowWheelUrl = makeAbsoluteWheelURL(
-        PYARROW_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
@@ -129,7 +123,6 @@ export class StliteKernel {
       );
       wheels = {
         stliteServer: stliteServerWheelUrl,
-        pyarrow: pyarrowWheelUrl,
         streamlit: streamlitWheelUrl,
       };
       console.debug("Custom wheel resolved URLs:", wheels);

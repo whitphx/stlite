@@ -9,9 +9,5 @@ STREAMLIT_SUBMODULE = REPO_ROOT / "streamlit"
 STREAMLIT_PYTHONPATH = STREAMLIT_SUBMODULE / "lib"
 sys.path.insert(0, str(STREAMLIT_PYTHONPATH))
 
-PYARROW_DIR = HERE / "../../stlite-pyarrow"
-PYARROW_PYTHONPATH = PYARROW_DIR
-sys.path.insert(0, str(PYARROW_PYTHONPATH))
-
 sys.modules["pyodide"] = MagicMock()
 sys.modules["pyodide.ffi"] = MagicMock()

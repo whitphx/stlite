@@ -20,7 +20,6 @@ interface WorkerInitialData {
   pyodideEntrypointUrl?: string;
   wheels?: {
     stliteServer: string;
-    pyarrow: string;
     streamlit: string;
   };
   mountedSitePackagesSnapshotFilePath?: string;

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.2] - 2023-03-01
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Stop using a wheel file to mock `pyarrow` package, [#497](https://github.com/whitphx/stlite/pull/497), [#499](https://github.com/whitphx/stlite/pull/499).
+
 ## [0.27.1] - 2023-03-01
 
 ### `@stlite/kernel`

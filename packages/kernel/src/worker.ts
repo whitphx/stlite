@@ -208,6 +208,13 @@ async function loadPyodideAndPackages() {
     streamlit.runtime.caching.cache_utils.spinner = spinner
     streamlit.runtime.legacy_caching.caching.spinner = spinner
   `);
+  // Disable caching. See https://github.com/whitphx/stlite/issues/495
+  await pyodide.runPythonAsync(`
+    def is_cacheable_msg(msg):
+        return False
+
+    streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
+  `);
   console.debug("Mocked some Streamlit functions");
 
   postProgressMessage("Booting up the Streamlit server.");

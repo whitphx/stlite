@@ -174,6 +174,8 @@ If you find a new problem, please report it.
   The stlite thread at the Streamlit online forum.
 - [📺 "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder, YouTube](https://youtu.be/VQdktxgbmmg):
   A quick tutorial with local app development and GitHub Pages deployment.
+- [📺 "How to Convert a Streamlit App to an .EXE Executable", by Fanilo Andrianasolo, YouTube](https://youtu.be/3wZ7GRbr91g):
+  A tutorial to convert a Streamlit app to an executable file with stlite and a demo to run it on an offline machine.
 
 ## Samples
 

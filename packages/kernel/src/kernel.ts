@@ -76,7 +76,7 @@ export interface StliteKernelOptions {
 export class StliteKernel {
   private _isDisposed = false;
 
-  private _worker: StliteWorker;
+  private _workerPromise: Promise<StliteWorker>;
 
   private _loaded = new PromiseDelegate<void>();
 
@@ -101,11 +101,12 @@ export class StliteKernel {
     // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
     // Read the comment in `cross-origin-worker.ts` for the detail.
     const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
-    this._worker = workerMaker.worker;
-
-    this._worker.onmessage = (e) => {
-      this._processWorkerMessage(e.data);
-    };
+    this._workerPromise = workerMaker.workerPromise;
+    this._workerPromise.then((worker) => {
+      worker.onmessage = (e) => {
+        this._processWorkerMessage(e.data);
+      };
+    });
 
     let wheels: WorkerInitialData["wheels"] = undefined;
     if (options.mountedSitePackagesSnapshotFilePath == null) {
@@ -252,7 +253,9 @@ export class StliteKernel {
         }
       };
 
-      this._worker.postMessage(message, [channel.port2]);
+      return this._workerPromise.then((worker) =>
+        worker.postMessage(message, [channel.port2])
+      );
     });
   }
 
@@ -264,10 +267,12 @@ export class StliteKernel {
   private _processWorkerMessage(msg: OutMessage): void {
     switch (msg.type) {
       case "event:start": {
-        this._worker.postMessage({
-          type: "initData",
-          data: this._workerInitData,
-        });
+        this._workerPromise.then((worker) =>
+          worker.postMessage({
+            type: "initData",
+            data: this._workerInitData,
+          })
+        );
         break;
       }
       case "event:progress": {
@@ -305,7 +310,7 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    this._worker.terminate();
+    this._workerPromise.then((worker) => worker.terminate());
 
     this._isDisposed = true;
   }

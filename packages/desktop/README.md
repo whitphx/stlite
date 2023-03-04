@@ -12,7 +12,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
      "main": "./build/electron/main.js",
      "scripts": {
        "dump": "dump-stlite-desktop-artifacts",
-       "serve": "NODE_ENV=\"production\" electron .",
+       "serve": "cross-env NODE_ENV=production electron .",
        "pack": "electron-builder --dir",
        "dist": "electron-builder",
        "postinstall": "electron-builder install-app-deps"
@@ -25,6 +25,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
      },
      "devDependencies": {
        "@stlite/desktop": "^0.25.0",
+       "cross-env": "^7.0.3",
        "electron": "23.1.1",
        "electron-builder": "^23.6.0"
      }

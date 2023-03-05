@@ -7,7 +7,6 @@ import { ReactNode } from "react"
 
 import { StliteKernel } from "../../kernel"
 import { ConnectionState } from "streamlit-browser/src/lib/ConnectionState"
-import { ForwardMsgCache } from "streamlit-browser/src/lib/ForwardMessageCache"
 import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 
@@ -44,7 +43,6 @@ export class ConnectionManager {
 
   constructor(props: Props) {
     this.props = props
-    this.cache = new ForwardMsgCache(() => this.getBaseUriParts())
 
     this.props.kernel.onWebSocketMessage((payload) => {
       if (typeof payload === "string") {
@@ -102,12 +100,6 @@ export class ConnectionManager {
   }
 
   /**
-   * ForwardMessages get passed through this cache. This gets initialized
-   * once we connect to the server.
-   */
-  private readonly cache: ForwardMsgCache
-
-  /**
    * To guarantee packet transmission order, this is the index of the last
    * dispatched incoming message.
    */
@@ -125,11 +117,11 @@ export class ConnectionManager {
   private readonly messageQueue: MessageQueue = {}
 
   /**
-   * Increment the runCount on our message cache, and clear entries
-   * whose age is greater than the max.
+   * No-op in stlite.
    */
-  public incrementMessageCacheRunCount(maxMessageAge: number): void {
-    this.cache.incrementRunCount(maxMessageAge)
+  public incrementMessageCacheRunCount(): void {
+    // no-op.
+    // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }
 
   private async handleMessage(data: ArrayBuffer): Promise<void> {
@@ -140,10 +132,12 @@ export class ConnectionManager {
     const encodedMsg = new Uint8Array(data)
     const msg = ForwardMsg.decode(encodedMsg)
 
-    this.messageQueue[messageIndex] = await this.cache.processMessagePayload(
-      msg,
-      encodedMsg
-    )
+    // stlite doesn't handle caches.
+    if (msg.type === "refHash") {
+      throw new Error(`Unexpected cache reference message.`)
+    }
+
+    this.messageQueue[messageIndex] = msg
 
     // Dispatch any pending messages in the queue. This may *not* result
     // in our just-decoded message being dispatched: if there are other

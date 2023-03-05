@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.3] - 2023-03-05
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix the sample `package.json` in `desktop/README.md`, [#502](https://github.com/whitphx/stlite/pull/502).
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Disable `ForwardMsg` caching, [#505](https://github.com/whitphx/stlite/pull/505).
+
 ## [0.27.2] - 2023-03-01
 
 ### `@stlite/kernel`

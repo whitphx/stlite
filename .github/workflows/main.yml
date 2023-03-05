@@ -441,7 +441,9 @@ jobs:
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
     - name: Build @stlite/mountable
-      run: make mountable
+      run: |
+        make mountable CRA_ARGS=--stats
+        mv build/bundle-stats.json bundle-stats.json
 
     - name: Package
       working-directory: packages/mountable
@@ -460,6 +462,12 @@ jobs:
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.ref_name }}.tgz
+
+    - name: Upload the Webpack stats JSON file as an artifact
+      uses: actions/upload-artifact@v3
+        with:
+          path: packages/mountable/bundle-stats.json
+          name: mountable-bundle-stats.json
 
   publish-mountable:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491

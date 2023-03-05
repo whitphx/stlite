@@ -4,7 +4,7 @@ This sample app is a copy of the `streamlit hello` demo.
 The source files have been copied from https://github.com/streamlit/streamlit/tree/1.13.0/lib/streamlit/hello with the following modifications.
 
 - `0_Animation_Demo.py` has been removed because `st.progress` and a long loop does not work well as written at https://github.com/whitphx/stlite#limitations and https://github.com/whitphx/stlite/issues/34.
-- `2_Mapping_Demo.py` has been removed because `st.pydeck` does not work as written at https://github.com/whitphx/stlite#limitations.
+- `2_Mapping_Demo.py` has been modified to use `pyodide.http` to load the remote resource fed to `pd.read_json` that is necessary in the Pyodide environment.
 - `3_DataFrame_Demo.py` has been modified as follows.
   - Unused imports are removed.
   - `agri.csv.gz` is pre-downloaded and provided as a local file because accessing remote files from the _stlite_ environment has the CORS problem.

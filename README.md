@@ -197,6 +197,11 @@ Image processing with OpenCV works on the client-side.
 
 ## Sponsors
 
+### Streamlit (Snowflake)
+
+<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />
+<img src="https://docs.snowflake.com/_images/logo-snowflake-sans-text.png" height="100" />
+
 ### Databutton
 
 [<img src="https://assets.website-files.com/6213e8906bdf786dcccbce62/621d20f1031cff7b094664f2_large_fav.png" height="100" >](https://www.databutton.io/)

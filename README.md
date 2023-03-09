@@ -161,6 +161,7 @@ As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/)
 - `st.spinner()` is no-op.
 - `st.progress()` does not show the progress bar during the script execution, but shows only the last state after the execution finishes.
 - `time.sleep()` is no-op. This is a problem at Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354
+- `st.experimental_data_editor` does not work as it relies on PyArrow, but it doesn't work on Pyodide. Track this issue on https://github.com/whitphx/stlite/issues/509.
 - The C extension packages that are not built for Pyodide cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#micropip-can-t-find-a-pure-python-wheel for the details.
 
 Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues

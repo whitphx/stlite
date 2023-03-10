@@ -16,6 +16,7 @@ import BinaryFileEditor from "./BinaryFileEditor";
 import FileUploader, { FileUploaderProps } from "./FileUploader";
 import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
+import ThemeSelect from "./components/ThemeSelect";
 import styles from "./Editor.module.scss";
 import { isDarkMode } from "../color-mode";
 
@@ -173,6 +174,8 @@ function Editor({
     [appData.requirements]
   );
 
+  const [isDarkTheme, setIsDarkTheme] = useState(isDarkMode());
+
   return (
     <div className={styles.container}>
       <ResizableHeader
@@ -220,6 +223,7 @@ function Editor({
           showTextEditor && (
             <Toolbar>
               <SaveButton onClick={handleSave} />
+              <ThemeSelect isDark={isDarkTheme} onChange={setIsDarkTheme} />
             </Toolbar>
           )
         }
@@ -245,7 +249,7 @@ function Editor({
                 : undefined
             }
             onMount={handleEditorDitMount}
-            theme={isDarkMode() ? "vs-dark" : "vs-light"}
+            theme={isDarkTheme ? "vs-dark" : "light"}
           />
         </div>
         {currentFileName != null && currentFile?.content?.$case === "data" && (

@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-stlite.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-stlite.start",
+        "title": "Launch stlite preview"
       }
     ]
   },

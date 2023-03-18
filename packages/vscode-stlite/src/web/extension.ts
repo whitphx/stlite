@@ -1,27 +1,57 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	console.log('"vscode-stlite" is now active in the web extension host.');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-stlite" is now active in the web extension host!');
+	context.subscriptions.push(vscode.commands.registerCommand('vscode-stlite.start', () => {
+		const panel = vscode.window.createWebviewPanel(
+			'stlite',
+			'stlite preview',
+			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+			{
+				enableScripts: true,
+			}
+		);
+		panel.webview.html = getWebviewContent("0.27.2");
+	}));
+}
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vscode-stlite.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
+function getWebviewContent(stliteVersion: string) {
+	return `<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8" />
+			<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+			<meta
+				name="viewport"
+				content="width=device-width, initial-scale=1, shrink-to-fit=no"
+			/>
+			<title>stlite app</title>
+			<link
+				rel="stylesheet"
+				href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.css"
+			/>
+		</head>
+		<body>
+			<div id="root"></div>
+			<script>
+			window.parent = { postMessage: () => {} };
+			</script>
+			<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
+			<script>
+				stlite.mount(
+					\`
+import streamlit as st
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from stlite in a web extension host!');
-	});
-
-	context.subscriptions.push(disposable);
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+	\`,
+					document.getElementById("root")
+				);
+			</script>
+		</body>
+	</html>`;
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

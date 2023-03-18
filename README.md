@@ -177,6 +177,8 @@ If you find a new problem, please report it.
   A quick tutorial with local app development and GitHub Pages deployment.
 - [📺 "How to Convert a Streamlit App to an .EXE Executable", by Fanilo Andrianasolo, YouTube](https://youtu.be/3wZ7GRbr91g):
   A tutorial to convert a Streamlit app to an executable file with stlite and a demo to run it on an offline machine.
+- [📖 "Is This the Easiest Way to Build Your Streamlit App?", by Shantala Mukherjee](https://onlyweb.hashnode.dev/is-this-the-easiest-way-to-build-your-streamlit-app)
+- [📖 "The Best Python Desktop App Framework?", by Caleb Robey at Depot Analytics](https://www.depotanalytics.co/post/the-best-python-desktop-app-framework)
 
 ## Samples
 

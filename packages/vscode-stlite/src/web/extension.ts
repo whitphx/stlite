@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+declare const STLITE_VERSION: string;  // This is set by webpack during the build
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('"vscode-stlite" is now active in the web extension host.');
 
@@ -12,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 				enableScripts: true,
 			}
 		);
-		panel.webview.html = getWebviewContent("0.27.2");
+		panel.webview.html = getWebviewContent(STLITE_VERSION);
 	}));
 }
 

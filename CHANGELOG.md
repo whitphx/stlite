@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0] - 2023-03-19
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Support top-level await, [#514](https://github.com/whitphx/stlite/pull/514).
+
 ## [0.28.0] - 2023-03-10
 
 ### `@stlite/kernel`

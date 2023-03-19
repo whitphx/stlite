@@ -1,16 +1,25 @@
-import requests
 import streamlit as st
+import pyodide.http
 
 
-@st.cache_data
-def read_file_from_url(url):
+async def read_file_from_url(url):
+    # st.cache_data does not work on async functions,
+    # so we cache the data manually in st.session_state.
+    cache_key = f"audio_data_{url}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+
     headers = {
         "User-Agent": "StreamlitDocs/1.5.0 (https://docs.streamlit.io; hello@streamlit.io)"
     }
-    return requests.get(url, headers=headers).content
+    res = await pyodide.http.pyfetch(url, headers=headers)
+    data = await res.bytes()
+    st.session_state[cache_key] = data
+    return data
 
 
-file_bytes = read_file_from_url(
+# stlite supports top-level await.
+file_bytes = await read_file_from_url(
     "https://upload.wikimedia.org/wikipedia/commons/c/c4/Muriel-Nguyen-Xuan-Chopin-valse-opus64-1.ogg"
 )
 

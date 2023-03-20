@@ -158,7 +158,7 @@ st.title("Page 2")
 
 As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
-- `st.spinner()` is no-op.
+- `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because stlite runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
 - `st.progress()` does not show the progress bar during the script execution, but shows only the last state after the execution finishes.
 - `time.sleep()` is no-op. This is a problem at Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354
 - `st.experimental_data_editor` does not work as it relies on PyArrow, but it doesn't work on Pyodide. Track this issue on https://github.com/whitphx/stlite/issues/509.

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.1] - 2023-03-20
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Support `st.spinner()` with async functions, [#515](https://github.com/whitphx/stlite/pull/515).
+
 ## [0.29.0] - 2023-03-19
 
 ### `@stlite/kernel`

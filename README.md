@@ -159,8 +159,7 @@ st.title("Page 2")
 As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
 - `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because stlite runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
-- `st.progress()` does not show the progress bar during the script execution, but shows only the last state after the execution finishes.
-- `time.sleep()` is no-op. This is a problem at Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354
+- `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
 - `st.experimental_data_editor` does not work as it relies on PyArrow, but it doesn't work on Pyodide. Track this issue on https://github.com/whitphx/stlite/issues/509.
 - For URL access, `urllib` or `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.
 - The C extension packages that are not built for Pyodide cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#micropip-can-t-find-a-pure-python-wheel for the details.
@@ -170,9 +169,42 @@ If you find a new problem, please report it.
 
 ## Top-level await
 
+TL;DR: use top-level await instead of `asyncio.run()` on stlite.
+
 Unlike the original Streamlit, stlite supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, stlite runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
 
-Top-level await can be useful in various situations, such as when accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, like `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
+Top-level await can be useful in various situations.
+
+### Example 1: `asyncio.sleep()`
+
+One of the most common use cases is `asyncio.sleep()`. As mentioned in the previous section, `time.sleep()` is no-op on stlite because its blocking nature is not compatible with the single-threaded event loop in the web browser environment. Instead, `asyncio.sleep()`, which is non-blocking, can be used to pause the execution of a script for a specified amount of time.
+
+You can use top-level await either for `asyncio.sleep()` directly or for an async function that contains `asyncio.sleep()` like the following:
+
+```python
+import asyncio
+import streamlit as st
+
+st.write("Hello, world!")
+await asyncio.sleep(3)
+st.write("Goodbye, world!")
+```
+
+```python
+import asyncio
+import streamlit as st
+
+async def main():
+    st.write("Hello, world!")
+    await asyncio.sleep(3)
+    st.write("Goodbye, world!")
+
+await main()
+```
+
+### Example 2: `pyodide.http.pyfetch()`
+
+Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, like `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
 
 Here's a sample code snippet demonstrating the usage of top-level await with `pyodide.http.pyfetch()`:
 
@@ -183,8 +215,6 @@ url = "your_url_here"
 response = await pyodide.http.pyfetch(url)
 data_in_bytes = await response.bytes()
 ```
-
-This code snippet shows how to use top-level await to fetch data from an external resource using `pyodide.http.pyfetch()` and retrieve the response data in bytes format.
 
 ## Resources
 

@@ -133,38 +133,37 @@ export function activate(context: vscode.ExtensionContext) {
 
 function getWebviewContent(stliteVersion: string) {
   return `<!DOCTYPE html>
-	<html>
-		<head>
-			<meta charset="UTF-8" />
-			<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-			<meta
-				name="viewport"
-				content="width=device-width, initial-scale=1, shrink-to-fit=no"
-			/>
-			<title>stlite app</title>
-			<link
-				rel="stylesheet"
-				href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.css"
-			/>
-		</head>
-		<body>
-			<div id="root"></div>
-			<script>
-			window.parent = { postMessage: () => {} };
-			</script>
-			<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
-			<script>
+  <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      />
+      <title>stlite app</title>
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.css"
+      />
+    </head>
+    <body>
+      <div id="root"></div>
+      <script>
+      window.parent = { postMessage: () => {} };
+      </script>
+      <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
+      <script>
         const vscode = acquireVsCodeApi();
 
-				let stliteCtx = null;
+        let stliteCtx = null;
 
-				// Handle the message inside the webview
-				window.addEventListener('message', event => {
-					console.log("event.data:", event.data);
+        window.addEventListener('message', event => {
+          console.debug("event.data:", event.data);
 
-					const message = event.data; // The JSON data our extension sent
+          const message = event.data;
 
-					switch (message.type) {
+          switch (message.type) {
             case 'init': {
               const { mountOptions } = message.data;
               stliteCtx = stlite.mount(mountOptions, document.getElementById("root"));
@@ -173,21 +172,21 @@ function getWebviewContent(stliteVersion: string) {
               });
               break;
             }
-						case 'file:write': {
-							const { path, content } = message.data;
-							stliteCtx.writeFile(path, content);
-							break;
-						}
-						case 'file:delete': {
-							const { path } = message.data;
-							stliteCtx.unlink(path);
-							break;
-						}
-					}
-				});
-			</script>
-		</body>
-	</html>`;
+            case 'file:write': {
+              const { path, content } = message.data;
+              stliteCtx.writeFile(path, content);
+              break;
+            }
+            case 'file:delete': {
+              const { path } = message.data;
+              stliteCtx.unlink(path);
+              break;
+            }
+          }
+        });
+      </script>
+    </body>
+  </html>`;
 }
 
 // This method is called when your extension is deactivated

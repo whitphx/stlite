@@ -67,9 +67,9 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.workspace.createFileSystemWatcher(fileWatcherPattern);
         context.subscriptions.push(fileWatcher);
 
-        context.subscriptions.push(fileWatcher.onDidCreate(writeFile));
-        context.subscriptions.push(fileWatcher.onDidChange(writeFile));
-        context.subscriptions.push(fileWatcher.onDidDelete(deleteFile));
+        fileWatcher.onDidCreate(writeFile, undefined, context.subscriptions);
+        fileWatcher.onDidChange(writeFile, undefined, context.subscriptions);
+        fileWatcher.onDidDelete(deleteFile, undefined, context.subscriptions);
       });
     })
   );

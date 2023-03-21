@@ -152,6 +152,7 @@ function getWebviewContent(stliteVersion: string) {
     <body>
       <div id="root"></div>
       <script>
+      // Streamlit's withHostCommunication accesses window.parent.postMessage, which is not available in the webview, so we need to mock it.
       window.parent = { postMessage: () => {} };
       </script>
       <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>

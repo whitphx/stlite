@@ -60,6 +60,12 @@ export function mount(
     ) => {
       return kernel.writeFile(path, data, opts);
     },
+    renameFile: (oldPath: string, newPath: string) => {
+      return kernel.renameFile(oldPath, newPath);
+    },
+    unlink: (path: string) => {
+      return kernel.unlink(path);
+    },
   };
 }
 

@@ -1,94 +1,97 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
+import * as path from "path";
+import * as vscode from "vscode";
 
-declare const STLITE_VERSION: string;  // This is set by webpack during the build
+declare const STLITE_VERSION: string; // This is set by webpack during the build
 
-const fileWatcherPattern = '**/*';
+const fileWatcherPattern = "**/*";
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('"vscode-stlite" is now active in the web extension host.');
+  console.log('"vscode-stlite" is now active in the web extension host.');
 
-	let panel: vscode.WebviewPanel | undefined = undefined;
+  let panel: vscode.WebviewPanel | undefined = undefined;
 
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-stlite.start', () => {
-		const stliteMountOpts = {
-			requirements: [],  // TODO
-			entrypoint: "streamlit_app.py",  // TODO: get this from the user
-			files: {
-				"streamlit_app.py": `import streamlit as st
+  context.subscriptions.push(
+    vscode.commands.registerCommand("vscode-stlite.start", () => {
+      const stliteMountOpts = {
+        requirements: [], // TODO
+        entrypoint: "streamlit_app.py", // TODO: get this from the user
+        files: {
+          "streamlit_app.py": `import streamlit as st
 st.title("Hello, World!")`,
-			}  // TODO: read this from the file system
-		};  // NOTE: This must be JSON-encodable.
+        }, // TODO: read this from the file system
+      }; // NOTE: This must be JSON-encodable.
 
-		panel = vscode.window.createWebviewPanel(
-			'stlite',
-			'stlite preview',
-			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-			{
-				enableScripts: true,
-			}
-		);
-		panel.webview.html = getWebviewContent(STLITE_VERSION, stliteMountOpts);
-	}));
+      panel = vscode.window.createWebviewPanel(
+        "stlite",
+        "stlite preview",
+        vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+        {
+          enableScripts: true,
+        }
+      );
+      panel.webview.html = getWebviewContent(STLITE_VERSION, stliteMountOpts);
+    })
+  );
 
-	async function writeFile(uri: vscode.Uri) {
-		console.debug("[stlite] Write file: " + uri.fsPath);
+  async function writeFile(uri: vscode.Uri) {
+    console.debug("[stlite] Write file: " + uri.fsPath);
 
-		const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-		if (!workspaceFolder) {
-			return;
-		}
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+    if (!workspaceFolder) {
+      return;
+    }
 
-		const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
-		const content = await vscode.workspace.fs.readFile(uri);
+    const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
+    const content = await vscode.workspace.fs.readFile(uri);
 
-		console.debug("[stlite] RelPath: " + relPath);
+    console.debug("[stlite] RelPath: " + relPath);
 
-		panel?.webview.postMessage({
-			type: 'file:write',
-			data: {
-				path: relPath,
-				content,
-			},
-		});
-	}
+    panel?.webview.postMessage({
+      type: "file:write",
+      data: {
+        path: relPath,
+        content,
+      },
+    });
+  }
 
-	function deleteFile(uri: vscode.Uri) {
-		console.debug("[stlite] Delete file: " + uri.fsPath);
+  function deleteFile(uri: vscode.Uri) {
+    console.debug("[stlite] Delete file: " + uri.fsPath);
 
-		const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-		if (!workspaceFolder) {
-			return;
-		}
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+    if (!workspaceFolder) {
+      return;
+    }
 
-		const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
+    const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
 
-		console.debug("[stlite]  RelPath: " + relPath);
+    console.debug("[stlite]  RelPath: " + relPath);
 
-		panel?.webview.postMessage({
-			type: 'file:delete',
-			data: {
-				path: relPath,
-			},
-		});
-	}
+    panel?.webview.postMessage({
+      type: "file:delete",
+      data: {
+        path: relPath,
+      },
+    });
+  }
 
-	vscode.workspace.findFiles(fileWatcherPattern).then((fileUris) => {
-		fileUris.forEach(async (uri) => {
-			writeFile(uri);
-		});
+  vscode.workspace.findFiles(fileWatcherPattern).then((fileUris) => {
+    fileUris.forEach(async (uri) => {
+      writeFile(uri);
+    });
 
-		const fileWatcher = vscode.workspace.createFileSystemWatcher(fileWatcherPattern);
-		context.subscriptions.push(fileWatcher);
+    const fileWatcher =
+      vscode.workspace.createFileSystemWatcher(fileWatcherPattern);
+    context.subscriptions.push(fileWatcher);
 
-		context.subscriptions.push(fileWatcher.onDidCreate(writeFile));
-		context.subscriptions.push(fileWatcher.onDidChange(writeFile));
-		context.subscriptions.push(fileWatcher.onDidDelete(deleteFile));
-	});
+    context.subscriptions.push(fileWatcher.onDidCreate(writeFile));
+    context.subscriptions.push(fileWatcher.onDidChange(writeFile));
+    context.subscriptions.push(fileWatcher.onDidDelete(deleteFile));
+  });
 }
 
 function getWebviewContent(stliteVersion: string, mountOpts: any) {
-	return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 	<html>
 		<head>
 			<meta charset="UTF-8" />
@@ -140,4 +143,4 @@ function getWebviewContent(stliteVersion: string, mountOpts: any) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}

@@ -26,7 +26,10 @@
     "compile-web": "webpack",
     "watch-web": "webpack --watch",
     "package-web": "webpack --mode production --devtool hidden-source-map",
-    "lint": "eslint src --ext ts",
+    "fix:eslint": "eslint --fix src --ext ts",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint src --ext ts",
+    "check:prettier": "prettier --check .",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
   },
   "devDependencies": {

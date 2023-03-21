@@ -21,9 +21,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.ViewColumn.One, // Editor column to show the new webview panel in.
         {
           enableScripts: true,
+          retainContextWhenHidden: true,
         }
       );
       panel.webview.html = getWebviewContent(STLITE_VERSION);
+      panelInitializedPromise = new PromiseDelegate();
 
       panel.webview.onDidReceiveMessage(
         (message) => {

@@ -15,6 +15,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("vscode-stlite.start", () => {
+      if (panel) {
+        panel.reveal();
+        return;
+      }
       panel = vscode.window.createWebviewPanel(
         "stlite",
         "stlite preview",

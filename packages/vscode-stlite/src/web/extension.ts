@@ -21,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
         panel.reveal();
         return;
       }
+
       panel = vscode.window.createWebviewPanel(
         "stlite",
         "stlite preview",
@@ -30,6 +31,14 @@ export function activate(context: vscode.ExtensionContext) {
           retainContextWhenHidden: true,
         }
       );
+      panel.onDidDispose(
+        () => {
+          panel = undefined;
+        },
+        undefined,
+        context.subscriptions
+      );
+
       panel.webview.html = getWebviewContent(STLITE_VERSION);
       panelInitializedPromise = new PromiseDelegate();
 

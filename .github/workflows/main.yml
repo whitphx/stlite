@@ -867,6 +867,10 @@ jobs:
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: make common
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
     - run: xvfb-run -a yarn test
       if: runner.os == 'Linux'
       working-directory: packages/vscode-stlite

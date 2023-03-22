@@ -851,3 +851,38 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: packages/desktop-cli/stlite-desktop-cli-v*.tgz
+
+  test-build-publish-vscode-extension:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: actions/setup-node@v3
+      with:
+        node-version-file: .nvmrc
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - run: make common
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
+      if: runner.os == 'Linux'
+      working-directory: packages/vscode-stlite
+    - run: xvfb-run -a yarn test
+      if: runner.os == 'Linux'
+      working-directory: packages/vscode-stlite
+    - run: yarn test
+      if: runner.os != 'Linux'
+      working-directory: packages/vscode-stlite
+    - name: Publish
+      if: success() && startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
+      run: npm run deploy
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      working-directory: packages/vscode-stlite

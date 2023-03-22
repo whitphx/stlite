@@ -1,0 +1,1 @@
+# "stlite" VSCode extension

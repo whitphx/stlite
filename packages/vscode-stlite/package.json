@@ -7,7 +7,8 @@
   "version": "0.29.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/whitphx/stlite.git"
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/vscode-stlite"
   },
   "engines": {
     "vscode": "^1.76.0"

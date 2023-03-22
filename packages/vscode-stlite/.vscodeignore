@@ -4,6 +4,10 @@ src/**
 out/**
 node_modules/**
 .gitignore
+.eslintignore
+.prettierignore
+.eslintcache
+.lintstagedrc.json
 vsc-extension-quickstart.md
 webpack.config.js
 .yarnrc

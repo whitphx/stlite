@@ -96,11 +96,7 @@ export function activate(context: vscode.ExtensionContext) {
             canPickMany: false,
             placeHolder: "Select the entrypoint file",
           })
-          .then((selectedItem) => {
-            if (selectedItem) {
-              return selectedItem.relPath;
-            }
-          });
+          .then((selectedItem) => selectedItem?.relPath);
         if (entrypoint == null) {
           panel?.dispose();
           return;

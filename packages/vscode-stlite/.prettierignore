@@ -1,3 +1,6 @@
 # Ignore artifacts:
 dist
 coverage
+
+.vscode
+.vscode-test-web

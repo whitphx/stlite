@@ -854,6 +854,7 @@ jobs:
 
   test-build-publish-vscode-extension:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}

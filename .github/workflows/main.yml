@@ -871,6 +871,7 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
+      working-directory: packages/vscode-stlite
     - run: xvfb-run -a yarn test
       if: runner.os == 'Linux'
       working-directory: packages/vscode-stlite

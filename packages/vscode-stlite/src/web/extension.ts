@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('"vscode-stlite" is now active in the web extension host.');
 
   let panel: vscode.WebviewPanel | undefined = undefined;
-  let panelInitializedPromise = new PromiseDelegate();
+  let panelInitializedPromise = new PromiseDelegate<void>();
 
   context.subscriptions.push(
     vscode.commands.registerCommand("vscode-stlite.start", () => {
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
         (message) => {
           switch (message.type) {
             case "init:done": {
-              panelInitializedPromise.resolve(undefined);
+              panelInitializedPromise.resolve();
               return;
             }
           }
@@ -57,6 +57,9 @@ export function activate(context: vscode.ExtensionContext) {
 
       vscode.workspace.findFiles(fileWatcherPattern).then(async (fileUris) => {
         const files: { [fileName: string]: Uint8Array } = {};
+        const entrypointCandidates: (vscode.QuickPickItem & {
+          relPath: string;
+        })[] = [];
         await Promise.all(
           fileUris.map(async (uri) => {
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
@@ -71,17 +74,41 @@ export function activate(context: vscode.ExtensionContext) {
             const content = await vscode.workspace.fs.readFile(uri);
 
             files[relPath] = content;
+
+            if (relPath.endsWith(".py")) {
+              entrypointCandidates.push({
+                relPath,
+                label: relPath,
+              });
+            }
           })
         );
+
         const requirements =
           requirementsTxtPath in files
             ? parseRequirementsTxt(
                 new TextDecoder().decode(files[requirementsTxtPath])
               )
             : [];
+
+        const entrypoint = await vscode.window
+          .showQuickPick(entrypointCandidates, {
+            canPickMany: false,
+            placeHolder: "Select the entrypoint file",
+          })
+          .then((selectedItem) => {
+            if (selectedItem) {
+              return selectedItem.relPath;
+            }
+          });
+        if (entrypoint == null) {
+          panel?.dispose();
+          return;
+        }
+
         const stliteMountOpts = {
           requirements,
-          entrypoint: "streamlit_app.py", // TODO: get this from the user
+          entrypoint,
           files,
         }; // NOTE: This must be JSON-encodable.
         initStlite(stliteMountOpts);

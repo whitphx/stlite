@@ -2,6 +2,7 @@
   "name": "vscode-stlite",
   "displayName": "stlite",
   "description": "",
+  "license": "Apache-2.0",
   "version": "0.29.1",
   "engines": {
     "vscode": "^1.76.0"

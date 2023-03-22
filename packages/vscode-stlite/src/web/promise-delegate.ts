@@ -20,7 +20,7 @@ export class PromiseDelegate<T> {
     this.resolveInternal(value);
   }
 
-  public reject(reason: any): void {
+  public reject(reason: unknown): void {
     this.rejectInternal(reason);
   }
 }

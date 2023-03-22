@@ -124,7 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  async function initStlite(mountOptions: any) {
+  async function initStlite(mountOptions: unknown) {
     console.debug("[stlite] Initialize: " + mountOptions);
 
     panel?.webview.postMessage({

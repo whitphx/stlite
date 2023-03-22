@@ -865,8 +865,8 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
-    - run: make common
     - run: yarn install --frozen-lockfile
+    - run: make common
     - run: xvfb-run -a yarn test
       if: runner.os == 'Linux'
       working-directory: packages/vscode-stlite

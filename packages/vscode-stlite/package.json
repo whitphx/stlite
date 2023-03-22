@@ -4,7 +4,7 @@
   "publisher": "whitphx",
   "description": "",
   "license": "SEE LICENSE IN LICENSE",
-  "version": "0.29.1",
+  "version": "0.29.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
@@ -41,7 +41,7 @@
     "deploy": "vsce publish --yarn"
   },
   "devDependencies": {
-    "@stlite/common": "^0.29.1",
+    "@stlite/common": "^0.29.2",
     "@types/mocha": "^10.0.1",
     "@types/vscode": "^1.76.0",
     "@types/webpack-env": "^1.18.0",

@@ -216,6 +216,8 @@ function getWebviewContent(stliteVersion: string) {
       <script>
       // Streamlit's withHostCommunication accesses window.parent.postMessage, which is not available in the webview, so we need to mock it.
       window.parent = { postMessage: () => {} };
+      // Calling history.pushState inside WebView causes a page transition on the parent editor window, so we need to mock it.
+      window.history.pushState = () => {};
       </script>
       <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
       <script>

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.2] - 2023-03-23
+
+### `@stlite/vscode-stlite`
+
+#### Added
+
+- Create a VSCode extension, [#513](https://github.com/whitphx/stlite/pull/513).
+
 ## [0.29.1] - 2023-03-20
 
 ### `@stlite/kernel`

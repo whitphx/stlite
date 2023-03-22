@@ -1,11 +1,13 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import { parseRequirementsTxt } from "@stlite/common";
 
 import { PromiseDelegate } from "./promise-delegate";
 
 declare const STLITE_VERSION: string; // This is set by webpack during the build
 
 const fileWatcherPattern = "**/*";
+const requirementsTxtPath = "requirements.txt";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('"vscode-stlite" is now active in the web extension host.');
@@ -45,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
       );
 
       vscode.workspace.findFiles(fileWatcherPattern).then(async (fileUris) => {
-        let files: { [fileName: string]: Uint8Array } = {};
+        const files: { [fileName: string]: Uint8Array } = {};
         await Promise.all(
           fileUris.map(async (uri) => {
             const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
@@ -62,8 +64,14 @@ export function activate(context: vscode.ExtensionContext) {
             files[relPath] = content;
           })
         );
+        const requirements =
+          requirementsTxtPath in files
+            ? parseRequirementsTxt(
+                new TextDecoder().decode(files[requirementsTxtPath])
+              )
+            : [];
         const stliteMountOpts = {
-          requirements: [], // TODO
+          requirements,
           entrypoint: "streamlit_app.py", // TODO: get this from the user
           files,
         }; // NOTE: This must be JSON-encodable.
@@ -106,6 +114,20 @@ export function activate(context: vscode.ExtensionContext) {
     const content = await vscode.workspace.fs.readFile(uri);
 
     console.debug("[stlite] RelPath: " + relPath);
+
+    if (relPath === requirementsTxtPath) {
+      const requirements = parseRequirementsTxt(
+        new TextDecoder().decode(content)
+      );
+
+      panel?.webview.postMessage({
+        type: "install",
+        data: {
+          requirements,
+        },
+      });
+      return;
+    }
 
     panel?.webview.postMessage({
       type: "file:write",
@@ -187,6 +209,11 @@ function getWebviewContent(stliteVersion: string) {
             case 'file:delete': {
               const { path } = message.data;
               stliteCtx.unlink(path);
+              break;
+            }
+            case 'install': {
+              const { requirements } = message.data;
+              stliteCtx.install(requirements);
               break;
             }
           }

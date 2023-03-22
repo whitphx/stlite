@@ -1,6 +1,7 @@
 {
   "name": "vscode-stlite",
   "displayName": "stlite",
+  "publisher": "whitphx",
   "description": "",
   "license": "SEE LICENSE IN LICENSE",
   "version": "0.29.1",

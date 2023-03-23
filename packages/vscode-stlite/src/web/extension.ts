@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
           console.debug("Received message from webview:", message);
           // NOTE: There are both types of messages from the webview,
           //       messages defined for stlite's functionality, and
-          //       Streamlit's iframe messages transmitted from `withHostCommunication` HOC and relayed by the mocked `window.parent.postMessage` in the WebView,
+          //       Streamlit's iframe messages transmitted from the `withHostCommunication` HOC and relayed by the mocked `window.parent.postMessage` in the WebView,
           switch (message.type) {
             case "init:done": {
               panelInitializedPromise.resolve();
@@ -56,8 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
             case "GUEST_READY": {
               // Override the base URL for page links in MPA to solve the problem of https://github.com/whitphx/stlite/issues/519.
               // On vscode.dev, the base URL is set as `https://...` because `window.location.protocol` is `https://` and it is used as https://github.com/streamlit/streamlit/blob/1.19.0/frontend/src/components/core/Sidebar/SidebarNav.tsx#L106,
-              // however, links with such href values in WebView panels on vscode.dev will open new tabs when clicked even if the `onClick` handler is set and `e.preventDefault()` is called.
-              // So, we have to override the base URL with the `vscode-webview://` protocol, which does not open new tabs on vscode.dev.
+              // however, links with such href values in WebView panels on vscode.dev will open unnecessary new tabs
+              // when clicked even if the `onClick` handler is set and `e.preventDefault()` is called.
+              // So, we have to override the base URL with the `vscode-webview://` protocol, which doesn't open new tabs on vscode.dev.
               panel?.webview.postMessage({
                 stCommVersion: 1,
                 type: "SET_PAGE_LINK_BASE_URL",

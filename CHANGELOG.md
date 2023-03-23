@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.3] - 2023-03-23
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Suppress unnecessary tab creations when clicking page links on MPA, [#520](https://github.com/whitphx/stlite/pull/520).
+
 ## [0.29.2] - 2023-03-23
 
 ### `@stlite/vscode-stlite`

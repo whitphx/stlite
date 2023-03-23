@@ -16,6 +16,10 @@
   "categories": [
     "Other"
   ],
+  "icon": "images/icon.png",
+  "sponsor": {
+    "url": "https://github.com/sponsors/whitphx"
+  },
   "activationEvents": [],
   "browser": "./dist/web/extension.js",
   "contributes": {

@@ -17,7 +17,6 @@ jobs:
 
     env:
       python-version: "3.10"
-      node-version: "16.x"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -62,10 +61,9 @@ jobs:
       run: timeout 10s pip --version || rm -rf .venv
 
     ## Set up Node environment
-    - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+    - uses: actions/setup-node@v3
       with:
-        node-version: ${{ env.node-version }}
+        node-version-file: .nvmrc
         cache: 'yarn'
 
     ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
@@ -86,7 +84,7 @@ jobs:
 
     - if: matrix.target == 'mountable'
       name: Upload the built files as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: stlite-mountable
         path: packages/mountable/build
@@ -131,7 +129,7 @@ jobs:
         cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
 
     - name: Upload the website files as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: ${{ github.ref != 'refs/heads/main' }}
       with:
         name: website

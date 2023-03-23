@@ -244,8 +244,6 @@ function getWebviewContent(stliteVersion: string) {
             vscode.postMessage(msg);
           }
         };
-        // Calling history.pushState inside WebView causes a page transition on the parent editor window, so we need to mock it.
-        window.history.pushState = (...args) => {};
 
         let stliteCtx = null;
 

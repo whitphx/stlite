@@ -133,22 +133,26 @@ export function activate(context: vscode.ExtensionContext) {
           },
         }; // NOTE: This must be JSON-encodable.
         initStlite(stliteMountOpts);
-
-        const fileWatcher =
-          vscode.workspace.createFileSystemWatcher(fileWatcherPattern);
-        context.subscriptions.push(fileWatcher);
-
-        fileWatcher.onDidCreate(writeFile, undefined, context.subscriptions);
-        fileWatcher.onDidChange(writeFile, undefined, context.subscriptions);
-        fileWatcher.onDidDelete(deleteFile, undefined, context.subscriptions);
       });
     })
   );
 
+  const fileWatcher =
+    vscode.workspace.createFileSystemWatcher(fileWatcherPattern);
+  context.subscriptions.push(fileWatcher);
+  fileWatcher.onDidCreate(writeFile, undefined, context.subscriptions);
+  fileWatcher.onDidChange(writeFile, undefined, context.subscriptions);
+  fileWatcher.onDidDelete(deleteFile, undefined, context.subscriptions);
+
   async function initStlite(mountOptions: unknown) {
     console.debug("[stlite] Initialize: " + mountOptions);
 
-    panel?.webview.postMessage({
+    if (panel == null) {
+      console.warn("[stlite] Panel has not been created.");
+      return;
+    }
+
+    panel.webview.postMessage({
       type: "init",
       data: {
         mountOptions,
@@ -161,6 +165,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   async function writeFile(uri: vscode.Uri) {
     console.debug("[stlite] Write file: " + uri.fsPath);
+
+    if (panel == null) {
+      return;
+    }
 
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!workspaceFolder) {
@@ -177,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
         new TextDecoder().decode(content)
       );
 
-      panel?.webview.postMessage({
+      panel.webview.postMessage({
         type: "install",
         data: {
           requirements,
@@ -186,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    panel?.webview.postMessage({
+    panel.webview.postMessage({
       type: "file:write",
       data: {
         path: relPath,
@@ -198,6 +206,10 @@ export function activate(context: vscode.ExtensionContext) {
   function deleteFile(uri: vscode.Uri) {
     console.debug("[stlite] Delete file: " + uri.fsPath);
 
+    if (panel == null) {
+      return;
+    }
+
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!workspaceFolder) {
       return;
@@ -207,7 +219,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     console.debug("[stlite]  RelPath: " + relPath);
 
-    panel?.webview.postMessage({
+    panel.webview.postMessage({
       type: "file:delete",
       data: {
         path: relPath,

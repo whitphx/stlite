@@ -2,6 +2,7 @@
 // and WebsocketConnection.
 
 import { BackMsg, ForwardMsg } from "streamlit-browser/src/autogen/proto"
+import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types"
 import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
 import { ReactNode } from "react"
 
@@ -34,6 +35,12 @@ interface Props {
    * Called when our ConnectionState is changed.
    */
   connectionStateChanged: (connectionState: ConnectionState) => void
+
+  /**
+   * Function to set the list of origins that this app should accept
+   * cross-origin messages from (if in a relevant deployment scenario).
+   */
+  setAllowedOriginsResp: (resp: IAllowedMessageOriginsResponse) => void
 }
 
 export class ConnectionManager {
@@ -54,6 +61,7 @@ export class ConnectionManager {
 
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
+      this.props.setAllowedOriginsResp(this.props.kernel.allowedOriginsResp)
       this.connect()
     })
   }

@@ -39,14 +39,31 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions
       );
 
-      panel.webview.html = getWebviewContent(STLITE_VERSION);
       panelInitializedPromise = new PromiseDelegate();
+      panel.webview.html = getWebviewContent(STLITE_VERSION);
 
       panel.webview.onDidReceiveMessage(
         (message) => {
+          console.debug("Received message from webview:", message);
+          // NOTE: There are both types of messages from the webview,
+          //       messages defined for stlite's functionality, and
+          //       Streamlit's iframe messages transmitted from the `withHostCommunication` HOC and relayed by the mocked `window.parent.postMessage` in the WebView,
           switch (message.type) {
             case "init:done": {
               panelInitializedPromise.resolve();
+              return;
+            }
+            case "GUEST_READY": {
+              // Override the base URL for page links in MPA to solve the problem of https://github.com/whitphx/stlite/issues/519.
+              // On vscode.dev, the base URL is set as `https://...` because `window.location.protocol` is `https://` and it is used as https://github.com/streamlit/streamlit/blob/1.19.0/frontend/src/components/core/Sidebar/SidebarNav.tsx#L106,
+              // however, links with such href values in WebView panels on vscode.dev will open unnecessary new tabs
+              // when clicked even if the `onClick` handler is set and `e.preventDefault()` is called.
+              // So, we have to override the base URL with the `vscode-webview://` protocol, which doesn't open new tabs on vscode.dev.
+              panel?.webview.postMessage({
+                stCommVersion: 1,
+                type: "SET_PAGE_LINK_BASE_URL",
+                pageLinkBaseUrl: "vscode-webview://stlite",
+              });
               return;
             }
           }
@@ -106,6 +123,14 @@ export function activate(context: vscode.ExtensionContext) {
           requirements,
           entrypoint,
           files,
+          allowedOriginsResp: {
+            // The `withHostCommunication` HOC in Streamlit's frontend accepts messages from the parent window on these hosts.
+            allowedOrigins: [
+              "vscode-webview://*", // For VSCode desktop
+              "https://*.vscode-cdn.net", // For vscode.dev
+            ],
+            useExternalAuthToken: false,
+          },
         }; // NOTE: This must be JSON-encodable.
         initStlite(stliteMountOpts);
 
@@ -209,15 +234,16 @@ function getWebviewContent(stliteVersion: string) {
     </head>
     <body>
       <div id="root"></div>
-      <script>
-      // Streamlit's withHostCommunication accesses window.parent.postMessage, which is not available in the webview, so we need to mock it.
-      window.parent = { postMessage: () => {} };
-      // Calling history.pushState inside WebView causes a page transition on the parent editor window, so we need to mock it.
-      window.history.pushState = () => {};
-      </script>
       <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
       <script>
         const vscode = acquireVsCodeApi();
+
+        // Streamlit's withHostCommunication accesses window.parent.postMessage, which is not available in the webview, so we need to mock it.
+        window.parent = {
+          postMessage: (msg) => {
+            vscode.postMessage(msg);
+          }
+        };
 
         let stliteCtx = null;
 

@@ -5,6 +5,7 @@ export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
   files?: StliteKernelOptions["files"] | SimplifiedFiles;
+  allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
 }
 
 function canonicalizeFiles(
@@ -54,5 +55,6 @@ export function canonicalizeMountOptions(
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,
     requirements: options.requirements || [],
+    allowedOriginsResp: options.allowedOriginsResp,
   };
 }

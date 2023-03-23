@@ -2,6 +2,8 @@
 
 import { PromiseDelegate } from "@lumino/coreutils";
 
+import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
+
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
@@ -54,6 +56,18 @@ export interface StliteKernelOptions {
   mountedSitePackagesSnapshotFilePath?: string;
 
   /**
+   * This value will be passed to the withHostCommunication HOC so it verifies the origin of the messages from the parent window.
+   * In the original Streamlit, this value is defined at https://github.com/streamlit/streamlit/blob/1.19.0/lib/streamlit/web/server/routes.py#L178-L194
+   * and passed to the frontend via the `_stcore/allowed-message-origins` API endpoint.
+   * Instead, in stlite, this value can be configured through this property,
+   * while it is rarely necessary, as such iframe messaging is not used in stlite basically.
+   * The primary usage is for the VSCode extension to use the iframe messaging to solve the problem of https://github.com/whitphx/stlite/issues/519
+   * sending the `SET_PAGE_LINK_BASE_URL` message to the app in a WebView panel to override the URL scheme of the links.
+   * Note that Streamlit's iframe messaging referred to here is different from the iframe messaging mechanism implemented for the iframe embedded on stlite sharing.
+   */
+  allowedOriginsResp?: IAllowedMessageOriginsResponse;
+
+  /**
    * The `pathname` that will be used as both
    * a base path of the custom component URLs
    * ana the path of the main page in MPA.
@@ -84,6 +98,8 @@ export class StliteKernel {
 
   public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
 
+  public readonly allowedOriginsResp: IAllowedMessageOriginsResponse; // Will be passed to ConnectionManager to call `setAllowedMessageOrigins` from it.
+
   private onProgress: StliteKernelOptions["onProgress"];
 
   private onLoad: StliteKernelOptions["onLoad"];
@@ -94,6 +110,10 @@ export class StliteKernel {
     this.basePath = (options.basePath ?? window.location.pathname)
       .replace(FINAL_SLASH_RE, "")
       .replace(INITIAL_SLASH_RE, "");
+    this.allowedOriginsResp = options.allowedOriginsResp ?? {
+      allowedOrigins: [],
+      useExternalAuthToken: false,
+    };
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;

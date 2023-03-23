@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.5] - 2023-03-23
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Avoid duplicated callback registrations, [#526](https://github.com/whitphx/stlite/pull/526).
+- Show the preview panel in the active column, [#527](https://github.com/whitphx/stlite/pull/527).
+
 ## [0.29.4] - 2023-03-23
 
 ### `@stlite/mountable`

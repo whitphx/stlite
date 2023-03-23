@@ -21,7 +21,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-stlite.start",
+        "command": "stlite.start",
         "title": "Launch stlite preview"
       }
     ]

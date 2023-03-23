@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
   let panelInitializedPromise = new PromiseDelegate<void>();
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-stlite.start", () => {
+    vscode.commands.registerCommand("stlite.start", () => {
       const columnToShowIn = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : undefined;

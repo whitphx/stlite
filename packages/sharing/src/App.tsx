@@ -7,10 +7,9 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
-import { toast } from "react-toastify";
 import {
   makeToastKernelCallbacks,
-  ErrorToastContent,
+  StliteKernelWithToast,
 } from "@stlite/common-react";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
@@ -83,6 +82,8 @@ st.write("Hello World")`,
         _kernel = kernel;
         setKernel(kernel);
 
+        const kernelWithToast = new StliteKernelWithToast(kernel);
+
         // Handle messages from the editor
         onMessage = (event) => {
           if (!isEditorOrigin(event.origin)) {
@@ -98,65 +99,22 @@ st.write("Hello World")`,
           (() => {
             switch (msg.type) {
               case "file:write": {
-                return toast.promise(
-                  kernel.writeFile(msg.data.path, msg.data.content),
-                  {
-                    error: "Failed to write the file",
-                  },
-                  {
-                    hideProgressBar: true,
-                    position: toast.POSITION.BOTTOM_RIGHT,
-                  }
+                return kernelWithToast.writeFile(
+                  msg.data.path,
+                  msg.data.content
                 );
               }
               case "file:rename": {
-                return toast.promise(
-                  kernel.renameFile(msg.data.oldPath, msg.data.newPath),
-                  {
-                    error: "Failed to rename the file",
-                  },
-                  {
-                    hideProgressBar: true,
-                    position: toast.POSITION.BOTTOM_RIGHT,
-                  }
+                return kernelWithToast.renameFile(
+                  msg.data.oldPath,
+                  msg.data.newPath
                 );
               }
               case "file:unlink": {
-                return toast.promise(
-                  kernel.unlink(msg.data.path),
-                  {
-                    error: "Failed to remove the file",
-                  },
-                  {
-                    hideProgressBar: true,
-                    position: toast.POSITION.BOTTOM_RIGHT,
-                  }
-                );
+                return kernelWithToast.unlink(msg.data.path);
               }
               case "install": {
-                return toast.promise<void, Error>(
-                  kernel.install(msg.data.requirements),
-                  {
-                    pending: "Installing",
-                    success: "Successfully installed",
-                    error: {
-                      render({ data }) {
-                        return (
-                          <ErrorToastContent
-                            message="Failed to install"
-                            error={data}
-                          />
-                        );
-                      },
-                      autoClose: false,
-                      closeOnClick: false,
-                    },
-                  },
-                  {
-                    hideProgressBar: true,
-                    position: toast.POSITION.BOTTOM_RIGHT,
-                  }
-                );
+                return kernelWithToast.install(msg.data.requirements);
               }
             }
           })()

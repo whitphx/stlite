@@ -4,7 +4,11 @@ import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
-import { ToastContainer, makeToastKernelCallbacks } from "@stlite/common-react";
+import {
+  ToastContainer,
+  makeToastKernelCallbacks,
+  StliteKernelWithToast,
+} from "@stlite/common-react";
 import "react-toastify/dist/ReactToastify.css";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
@@ -45,26 +49,28 @@ export function mount(
     container
   );
 
+  const kernelWithToast = new StliteKernelWithToast(kernel);
+
   return {
     unmount: () => {
       kernel.dispose();
       ReactDOM.unmountComponentAtNode(container);
     },
     install: (requirements: string[]) => {
-      return kernel.install(requirements);
+      return kernelWithToast.install(requirements);
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, any>
     ) => {
-      return kernel.writeFile(path, data, opts);
+      return kernelWithToast.writeFile(path, data, opts);
     },
     renameFile: (oldPath: string, newPath: string) => {
-      return kernel.renameFile(oldPath, newPath);
+      return kernelWithToast.renameFile(oldPath, newPath);
     },
     unlink: (path: string) => {
-      return kernel.unlink(path);
+      return kernelWithToast.unlink(path);
     },
   };
 }

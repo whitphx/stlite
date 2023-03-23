@@ -16,6 +16,7 @@
   "categories": [
     "Other"
   ],
+  "icon": "images/icon.png",
   "activationEvents": [],
   "browser": "./dist/web/extension.js",
   "contributes": {

@@ -45,6 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
       panel.webview.onDidReceiveMessage(
         (message) => {
           console.debug("Received message from webview:", message);
+          // NOTE: There are both types of messages from the webview,
+          //       messages defined for stlite's functionality, and
+          //       Streamlit's iframe messages transmitted from `withHostCommunication` HOC and relayed by the mocked `window.parent.postMessage` in the WebView,
           switch (message.type) {
             case "init:done": {
               panelInitializedPromise.resolve();
@@ -120,6 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
           entrypoint,
           files,
           allowedOriginsResp: {
+            // The `withHostCommunication` HOC in Streamlit's frontend accepts messages from the parent window on these hosts.
             allowedOrigins: [
               "vscode-webview://*", // For VSCode desktop
               "https://*.vscode-cdn.net", // For vscode.dev

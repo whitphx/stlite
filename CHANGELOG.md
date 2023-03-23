@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.4] - 2023-03-23
+
+### `@stlite/mountable`
+
+#### Fixed
+
+- Show toasts upon kernel method calls, [#523](https://github.com/whitphx/stlite/pull/523).
+
 ## [0.29.3] - 2023-03-23
 
 ### `@stlite/vscode-stlite`

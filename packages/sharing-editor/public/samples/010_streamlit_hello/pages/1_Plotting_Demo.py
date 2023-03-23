@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
+import asyncio
 
 import numpy as np
 
@@ -20,7 +20,7 @@ import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-def plotting_demo():
+async def plotting_demo():
     progress_bar = st.sidebar.progress(0)
     status_text = st.sidebar.empty()
     last_rows = np.random.randn(1, 1)
@@ -32,7 +32,8 @@ def plotting_demo():
         chart.add_rows(new_rows)
         progress_bar.progress(i)
         last_rows = new_rows
-        time.sleep(0.05)
+        # NOTE: time.sleep is no-op on stlite/Pyodide, so we use asyncio.sleep instead.
+        await asyncio.sleep(0.05)
 
     progress_bar.empty()
 
@@ -51,6 +52,6 @@ Streamlit. We're generating a bunch of random numbers in a loop for around
 5 seconds. Enjoy!"""
 )
 
-plotting_demo()
+await plotting_demo()
 
 show_code(plotting_demo)

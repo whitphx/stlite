@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
               panel?.webview.postMessage({
                 stCommVersion: 1,
                 type: "SET_PAGE_LINK_BASE_URL",
-                pageLinkBaseUrl: "vscode-webview://",
+                pageLinkBaseUrl: "vscode-webview://stlite",
               });
               return;
             }

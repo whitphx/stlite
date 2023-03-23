@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.6] - 2023-03-24
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Rename the VSCode command, [#528](https://github.com/whitphx/stlite/pull/528).
+
 ## [0.29.5] - 2023-03-23
 
 ### `@stlite/vscode-stlite`

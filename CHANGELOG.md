@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.10] - 2023-03-24
+
+### `@stlite/vscode-stlite`
+
+#### Changed
+
+- Add `extensionKind` field, [#534](https://github.com/whitphx/stlite/pull/534).
+- Fix the release workflow so that the VSC extension is released after `@stlite/mountable`, [#535](https://github.com/whitphx/stlite/pull/535).
+
 ## [0.29.9] - 2023-03-24
 
 ### `@stlite/vscode-stlite`
 
-#### Fixed
+#### Changed
 
 - Set keywords, [#533](https://github.com/whitphx/stlite/pull/533).
 
@@ -27,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `@stlite/vscode-stlite`
 
-#### Fixed
+#### Changed
 
 - Fill metadata for the VSCode extension, [#530](https://github.com/whitphx/stlite/pull/530)
 
@@ -35,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `@stlite/vscode-stlite`
 
-#### Fixed
+#### Changed
 
 - Rename the VSCode command, [#528](https://github.com/whitphx/stlite/pull/528).
 

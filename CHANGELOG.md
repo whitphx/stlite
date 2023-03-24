@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.29.7] - 2023-03-24
+## [0.29.9] - 2023-03-24
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Set keywords, [#533](https://github.com/whitphx/stlite/pull/533).
+
+## [0.29.8] - 2023-03-24
 
 ### `@stlite/vscode-stlite`
 

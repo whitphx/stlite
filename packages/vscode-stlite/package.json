@@ -16,6 +16,9 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "Streamlit"
+  ],
   "icon": "images/icon.png",
   "sponsor": {
     "url": "https://github.com/sponsors/whitphx"

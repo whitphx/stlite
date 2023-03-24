@@ -852,7 +852,7 @@ jobs:
       with:
         files: packages/desktop-cli/stlite-desktop-cli-v*.tgz
 
-  test-build-publish-vscode-extension:
+  test-build-vscode-extension:
     strategy:
       fail-fast: false
       matrix:
@@ -880,9 +880,66 @@ jobs:
     - run: yarn test
       if: runner.os != 'Linux'
       working-directory: packages/vscode-stlite
-    - name: Publish
-      if: success() && startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
-      run: npm run deploy
+    - name: Build
+      if: success() && matrix.os == 'ubuntu-latest'
+      run: |
+        if [ $IS_RELEASE = true ]; then
+          VERSION=$(node -p "require('./package.json').version")
+        else
+          VERSION=${{ github.sha }}
+        fi
+        yarn run vsce package -o vscode-stlite-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
       env:
-        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
       working-directory: packages/vscode-stlite
+    - name: Upload the vsix built on Linux
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: packages/vscode-stlite/vscode-stlite*.vsix
+        name: vscode-stlite-${{ github.sha }}.vsix
+    - name: Upload the vsix built on Linux
+      uses: actions/upload-artifact@v3
+      if: ${{ matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: packages/vscode-stlite/vscode-stlite*.vsix
+        name: vscode-stlite-${{ github.ref_name }}.vsix
+
+  publish-vscode-extension:
+    if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
+    needs: [test-build-vscode-extension]
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [marketplace, openvsx]
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: vscode-stlite-${{ github.ref_name }}.vsix
+    - run: |
+        files=( vscode-stlite*.vsix )
+        echo "vsix_filename=${files[0]}" >> $GITHUB_ENV
+    - if: matrix.target == 'marketplace'
+      name: Publish to Visual Studio Marketplace
+      uses: HaaLeo/publish-vscode-extension@v1
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.VSCE_PAT }}
+        registryUrl: https://marketplace.visualstudio.com
+    - if: matrix.target == 'openvsx'
+      name: Publish to Open VSX Registry
+      uses: HaaLeo/publish-vscode-extension@v1
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+    - name: Create a new release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "${{ env.vsix_filename }}"

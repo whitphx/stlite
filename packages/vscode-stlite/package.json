@@ -19,6 +19,9 @@
   "keywords": [
     "Streamlit"
   ],
+  "extensionKind": [
+    "workspace"
+  ],
   "icon": "images/icon.png",
   "sponsor": {
     "url": "https://github.com/sponsors/whitphx"

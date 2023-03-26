@@ -906,7 +906,7 @@ jobs:
         name: vscode-stlite-${{ github.ref_name }}.vsix
 
   publish-vscode-extension:
-    if: ${{ success() && startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
     needs:
     - test-build-vscode-extension
     - publish-mountable  # The VSC extension uses the same version of published @stlite/mountable, so it must be released in order.

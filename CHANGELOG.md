@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.13] - 2023-03-27
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Update README fixing the image path.
+
 ## [0.29.12] - 2023-03-27
 
 ### `@stlite/vscode-stlite`

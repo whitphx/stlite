@@ -1,6 +1,6 @@
 {
   "name": "@stlite/vscode-webview-app",
-  "version": "0.29.12",
+  "version": "0.29.13",
   "private": true,
   "files": [
     "build"

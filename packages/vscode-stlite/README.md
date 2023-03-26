@@ -10,6 +10,8 @@ To use this extension, follow these steps:
 2. Select the script file to run, which would normally be passed to the `streamlit run` command
 3. The preview of your Streamlit app will be shown in the integrated VSCode panel.
 
+![Screenshot of launching the extension](./images/screenshot_launch_extension.gif)
+
 ## Python Dependencies
 
 The dependencies required to run your Streamlit app are read from the `requirements.txt` file. The package names must be written line by line in the file. When the preview panel is launched, the dependencies are installed. If the `requirements.txt` file is updated after the panel is launched, the installation will run again.

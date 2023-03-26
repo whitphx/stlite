@@ -1,9 +1,12 @@
 {
-  "name": "toy-app",
+  "name": "@stlite/vscode-webview-app",
   "version": "0.29.11",
   "private": true,
+  "files": [
+    "build"
+  ],
   "dependencies": {
-    "@stlite/kernel": "^0.29.11",
+    "@craco/craco": "^7.0.0",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",
@@ -13,13 +16,12 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.4",
-    "web-vitals": "^2.1.4"
+    "typescript": "^4.9.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -30,17 +32,10 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "last 1 electron version"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "last 1 electron version"
     ]
-  },
-  "devDependencies": {
-    "raw-loader": "^4.0.2"
   }
 }

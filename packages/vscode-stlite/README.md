@@ -10,7 +10,7 @@ To use this extension, follow these steps:
 2. Select the script file to run, which would normally be passed to the `streamlit run` command
 3. The preview of your Streamlit app will be shown in the integrated VSCode panel.
 
-![Screenshot of launching the extension](./images/screenshot_launch_extension.gif)
+![Screenshot of launching the extension](/packages/vscode-stlite/images/screenshot_launch_extension.gif)
 
 ## Python Dependencies
 

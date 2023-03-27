@@ -941,7 +941,8 @@ jobs:
       with:
         extensionFile: "${{ env.vsix_filename }}"
         pat: ${{ secrets.OPEN_VSX_TOKEN }}
-    - name: Create a new release
+    - if: matrix.target == 'marketplace'
+      name: Create a new release
       uses: softprops/action-gh-release@v1
       with:
         files: "${{ env.vsix_filename }}"

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.15] - 2023-03-29
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Remove the `extensionKind` field for the extension to work on VSCode Desktop, [#542](https://github.com/whitphx/stlite/pull/542).
+
 ## [0.29.14] - 2023-03-27
 
 ### `@stlite/vscode-stlite`

@@ -1,6 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { parseRequirementsTxt } from "@stlite/common";
+import minimatch from "minimatch";
 
 import { PromiseDelegate } from "./promise-delegate";
 
@@ -13,6 +14,9 @@ const ignoreFilesConfig = config.get("ignoreFiles");
 const fileWatcherPattern = "**/*";
 const fileWatcherIgnorePattern =
   typeof ignoreFilesConfig === "string" ? ignoreFilesConfig : undefined;
+const fileWatcherIgnoreMatch = fileWatcherIgnorePattern
+  ? new minimatch.Minimatch(fileWatcherIgnorePattern)
+  : undefined;
 const requirementsTxtPath = "requirements.txt";
 const maxEntrypointCandidates = 1000;
 
@@ -193,6 +197,10 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    if (fileWatcherIgnoreMatch?.match(uri.fsPath)) {
+      return;
+    }
+
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
     if (!workspaceFolder) {
       return;
@@ -230,6 +238,10 @@ export function activate(context: vscode.ExtensionContext) {
     console.debug("[stlite] Delete file: " + uri.fsPath);
 
     if (panel == null) {
+      return;
+    }
+
+    if (fileWatcherIgnoreMatch?.match(uri.fsPath)) {
       return;
     }
 

@@ -31,7 +31,17 @@
         "command": "stlite.start",
         "title": "Launch stlite preview"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "stlite",
+      "properties": {
+        "stlite.ignoreFiles": {
+          "type": "string",
+          "default": "**/{.*,tests,dist,build}/**",
+          "description": "Glob pattern to match files to ignore."
+        }
+      }
+    }
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",

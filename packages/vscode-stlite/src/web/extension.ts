@@ -137,8 +137,20 @@ export function activate(context: vscode.ExtensionContext) {
                 )
               : [];
 
+          const sortedEntrypointCandidates = entrypointCandidates.sort(
+            (a, b) => {
+              const aSegs = a.relPath.split(path.sep);
+              const bSegs = b.relPath.split(path.sep);
+              if (aSegs.length !== bSegs.length) {
+                return aSegs.length - bSegs.length;
+              }
+              const aBasename = aSegs[aSegs.length - 1];
+              const bBasename = bSegs[bSegs.length - 1];
+              return aBasename.localeCompare(bBasename);
+            }
+          );
           const entrypoint = await vscode.window
-            .showQuickPick(entrypointCandidates, {
+            .showQuickPick(sortedEntrypointCandidates, {
               canPickMany: false,
               placeHolder: "Select the entrypoint file",
             })

@@ -35,6 +35,11 @@
     "configuration": {
       "title": "stlite",
       "properties": {
+        "stlite.targetFiles": {
+          "type": "string",
+          "default": "{*,*/*,*/*/*}",
+          "description": "Glob pattern to match files to find and watch."
+        },
         "stlite.ignoreFiles": {
           "type": "string",
           "default": "**/{.*,tests,dist,build}/**",

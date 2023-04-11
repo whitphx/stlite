@@ -9,9 +9,11 @@ declare const STLITE_VERSION: string; // This is set by webpack during the build
 
 const config = vscode.workspace.getConfiguration("stlite");
 
+const targetFilesConfig = config.get("targetFiles");
 const ignoreFilesConfig = config.get("ignoreFiles");
 
-const fileWatcherPattern = "**/*";
+const fileWatcherPattern =
+  typeof targetFilesConfig === "string" ? targetFilesConfig : "**/*";
 const fileWatcherIgnorePattern =
   typeof ignoreFilesConfig === "string" ? ignoreFilesConfig : undefined;
 const fileWatcherIgnoreMatch = fileWatcherIgnorePattern

@@ -1,13 +1,32 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { parseRequirementsTxt } from "@stlite/common";
+import minimatch from "minimatch";
 
 import { PromiseDelegate } from "./promise-delegate";
 
 declare const STLITE_VERSION: string; // This is set by webpack during the build
 
-const fileWatcherPattern = "**/*";
+const config = vscode.workspace.getConfiguration("stlite");
+
+const targetFilesConfig = config.get("targetFiles");
+const ignoreFilesConfig = config.get("ignoreFiles");
+
+const fileWatcherPattern =
+  typeof targetFilesConfig === "string" ? targetFilesConfig : "**/*";
+const fileWatcherIgnorePattern =
+  typeof ignoreFilesConfig === "string" ? ignoreFilesConfig : undefined;
+const fileWatcherIgnoreMatch = fileWatcherIgnorePattern
+  ? new minimatch.Minimatch(fileWatcherIgnorePattern)
+  : undefined;
 const requirementsTxtPath = "requirements.txt";
+const maxEntrypointCandidates = 1000;
+
+console.log("stlite configs", {
+  fileWatcherPattern,
+  fileWatcherIgnorePattern,
+  requirementsTxtPath,
+});
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('"vscode-stlite" is now active in the web extension host.');
@@ -76,68 +95,74 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions
       );
 
-      vscode.workspace.findFiles(fileWatcherPattern).then(async (fileUris) => {
-        const files: { [fileName: string]: Uint8Array } = {};
-        const entrypointCandidates: (vscode.QuickPickItem & {
-          relPath: string;
-        })[] = [];
-        await Promise.all(
-          fileUris.map(async (uri) => {
-            const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-            if (!workspaceFolder) {
-              return;
-            }
+      vscode.workspace
+        .findFiles(
+          fileWatcherPattern,
+          fileWatcherIgnorePattern,
+          maxEntrypointCandidates
+        )
+        .then(async (fileUris) => {
+          const files: { [fileName: string]: Uint8Array } = {};
+          const entrypointCandidates: (vscode.QuickPickItem & {
+            relPath: string;
+          })[] = [];
+          await Promise.all(
+            fileUris.map(async (uri) => {
+              const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+              if (!workspaceFolder) {
+                return;
+              }
 
-            const relPath = path.relative(
-              workspaceFolder.uri.fsPath,
-              uri.fsPath
-            );
-            const content = await vscode.workspace.fs.readFile(uri);
+              const relPath = path.relative(
+                workspaceFolder.uri.fsPath,
+                uri.fsPath
+              );
+              const content = await vscode.workspace.fs.readFile(uri);
 
-            files[relPath] = content;
+              files[relPath] = content;
 
-            if (relPath.endsWith(".py")) {
-              entrypointCandidates.push({
-                relPath,
-                label: relPath,
-              });
-            }
-          })
-        );
+              if (relPath.endsWith(".py")) {
+                entrypointCandidates.push({
+                  relPath,
+                  label: relPath,
+                });
+              }
+            })
+          );
 
-        const requirements =
-          requirementsTxtPath in files
-            ? parseRequirementsTxt(
-                new TextDecoder().decode(files[requirementsTxtPath])
-              )
-            : [];
+          const requirements =
+            requirementsTxtPath in files
+              ? parseRequirementsTxt(
+                  new TextDecoder().decode(files[requirementsTxtPath])
+                )
+              : [];
 
-        const entrypoint = await vscode.window
-          .showQuickPick(entrypointCandidates, {
-            canPickMany: false,
-            placeHolder: "Select the entrypoint file",
-          })
-          .then((selectedItem) => selectedItem?.relPath);
-        if (entrypoint == null) {
-          panel?.dispose();
-          return;
-        }
+          const entrypoint = await vscode.window
+            .showQuickPick(entrypointCandidates, {
+              canPickMany: false,
+              placeHolder: "Select the entrypoint file",
+            })
+            .then((selectedItem) => selectedItem?.relPath);
+          if (entrypoint == null) {
+            panel?.dispose();
+            return;
+          }
 
-        const stliteMountOpts = {
-          requirements,
-          entrypoint,
-          files,
-          allowedOriginsResp: {
-            // The `withHostCommunication` HOC in Streamlit's frontend accepts messages from the parent window on these hosts.
-            allowedOrigins: [
-              "vscode-webview://*", // For VSCode desktop
-              "https://*.vscode-cdn.net", // For vscode.dev
-            ],
-            useExternalAuthToken: false,
-          },
-        }; // NOTE: This must be JSON-encodable.
-        initStlite(stliteMountOpts);
-      });
+          const stliteMountOpts = {
+            requirements,
+            entrypoint,
+            files,
+            allowedOriginsResp: {
+              // The `withHostCommunication` HOC in Streamlit's frontend accepts messages from the parent window on these hosts.
+              allowedOrigins: [
+                "vscode-webview://*", // For VSCode desktop
+                "https://*.vscode-cdn.net", // For vscode.dev
+              ],
+              useExternalAuthToken: false,
+            },
+          }; // NOTE: This must be JSON-encodable.
+          initStlite(stliteMountOpts);
+        });
     })
   );
 
@@ -171,6 +196,10 @@ export function activate(context: vscode.ExtensionContext) {
     console.debug("[stlite] Write file: " + uri.fsPath);
 
     if (panel == null) {
+      return;
+    }
+
+    if (fileWatcherIgnoreMatch?.match(uri.fsPath)) {
       return;
     }
 
@@ -211,6 +240,10 @@ export function activate(context: vscode.ExtensionContext) {
     console.debug("[stlite] Delete file: " + uri.fsPath);
 
     if (panel == null) {
+      return;
+    }
+
+    if (fileWatcherIgnoreMatch?.match(uri.fsPath)) {
       return;
     }
 

@@ -33,7 +33,7 @@
       }
     ],
     "configuration": {
-      "title": "stlite",
+      "title": "stlite (Streamlit)",
       "properties": {
         "stlite.targetFiles": {
           "type": "string",

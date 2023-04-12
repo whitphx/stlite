@@ -36,19 +36,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("stlite.start", () => {
-      const columnToShowIn = vscode.window.activeTextEditor
-        ? vscode.window.activeTextEditor.viewColumn
-        : undefined;
-
       if (panel) {
-        panel.reveal(columnToShowIn);
+        panel.reveal();
         return;
       }
 
       panel = vscode.window.createWebviewPanel(
         "stlite",
         "stlite preview",
-        columnToShowIn ?? vscode.ViewColumn.One,
+        vscode.ViewColumn.Beside,
         {
           enableScripts: true,
           retainContextWhenHidden: true,

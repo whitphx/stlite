@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.1] - 2023-04-12
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+Fix an error about event handler registrations on mac, [#548](https://github.com/whitphx/stlite/pull/548).
+
 ## [0.30.0] - 2023-04-12
 
 ### `@stlite/vscode-stlite`

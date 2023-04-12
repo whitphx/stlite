@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.0] - 2023-04-12
+
+### `@stlite/vscode-stlite`
+
+#### Added
+
+- Add configs to set the target and ignored files, [#543](https://github.com/whitphx/stlite/pull/543).
+- Sort the entrypoint file candidate list, [#547](https://github.com/whitphx/stlite/pull/547).
+
 ## [0.29.15] - 2023-03-29
 
 ### `@stlite/vscode-stlite`

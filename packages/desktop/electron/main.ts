@@ -61,6 +61,11 @@ const createWindow = () => {
     }
   );
 
+  mainWindow.on("closed", () => {
+    ipcMain.removeHandler("readSitePackagesSnapshot");
+    ipcMain.removeHandler("readStreamlitAppDirectory");
+  });
+
   // Even when the entrypoint is a local file like the production build,
   // we use .loadURL() with an absolute URL with the `file://` schema
   // instead of passing a file path to .loadFile()

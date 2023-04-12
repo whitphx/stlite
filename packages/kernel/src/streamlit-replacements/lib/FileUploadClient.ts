@@ -31,6 +31,8 @@ interface WidgetInfo {
 }
 
 interface Props {
+  /** The app's SessionInfo instance. */
+  sessionInfo: SessionInfo
   getServerUri: () => BaseUriParts | undefined
   csrfEnabled: boolean
   formsWithPendingRequestsChanged: (formIds: Set<string>) => void
@@ -40,6 +42,8 @@ interface Props {
  * Handles uploading files to the server.
  */
 export class FileUploadClient {
+  private readonly sessionInfo: SessionInfo
+
   /**
    * Map of <formId: number of outstanding requests>. Updated whenever
    * a widget in a form creates are completes a request.
@@ -53,6 +57,7 @@ export class FileUploadClient {
 
   public constructor(props: Props) {
     this.pendingFormUploadsChanged = props.formsWithPendingRequestsChanged
+    this.sessionInfo = props.sessionInfo
   }
 
   private kernel: StliteKernel | undefined
@@ -77,7 +82,7 @@ export class FileUploadClient {
     cancelToken?: CancelToken // TODO
   ): Promise<number> {
     const form = new FormData()
-    form.append("sessionId", SessionInfo.current.sessionId)
+    form.append("sessionId", this.sessionInfo.current.sessionId)
     form.append("widgetId", widget.id)
     form.append(file.name, file)
 

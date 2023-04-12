@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.30.2] - 2023-04-12
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Open the preview in a split panel, [#549](https://github.com/whitphx/stlite/pull/549).
+
 ## [0.30.1] - 2023-04-12
 
 ### `@stlite/vscode-stlite`

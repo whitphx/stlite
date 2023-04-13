@@ -8,6 +8,7 @@ import { ReactNode } from "react"
 
 import { StliteKernel } from "../../kernel"
 import { ConnectionState } from "streamlit-browser/src/lib/ConnectionState"
+import { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
 import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 
@@ -20,6 +21,9 @@ interface Props {
    * Kernel object to connect to.
    */
   kernel: StliteKernel
+
+  /** The app's SessionInfo instance */
+  sessionInfo: SessionInfo
 
   /**
    * Function to be called when we receive a message from the server.

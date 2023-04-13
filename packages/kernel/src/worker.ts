@@ -215,6 +215,7 @@ async function loadPyodideAndPackages() {
     load_config_options({
         "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
         "browser.gatherUsageStats": False,
+        "runner.fastReruns": False,  # Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
     })
 
     main_script_path = "${entrypoint}"

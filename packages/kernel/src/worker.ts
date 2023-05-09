@@ -6,6 +6,11 @@ import { mockPyArrow } from "./mock";
 
 let pyodide: PyodideInterface;
 
+// Cognite
+let token: string;
+let baseUrl: string;
+let project: string;
+
 let httpServer: any;
 
 interface StliteWorkerContext extends Worker {
@@ -60,6 +65,9 @@ async function loadPyodideAndPackages() {
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
+
+  console.debug("Patch Cognite");
+  patchCognite();
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -257,6 +265,27 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const data = event.data;
 
+  // handle Cognite data
+  if (event.data.type === "newToken") {
+    token = data.token;
+    project = data.project;
+    baseUrl = data.baseUrl;
+
+    if (token && project && baseUrl) {
+      if (pyodide) {
+        // If kernel is ready, set new values
+        await pyodide.runPythonAsync(`
+        import os
+        os.environ["COGNITE_TOKEN"] = "${token}"
+        os.environ["COGNITE_PROJECT"] = "${project}"
+        os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+        # Set flag to tell the SDK that we are inside of a Fusion Notebook:
+        os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
+      `);
+      }
+    }
+  }
+
   // Special case for transmitting the initial data
   if (data.type === "initData") {
     initDataPromiseDelegate.resolve(data.data);
@@ -415,3 +444,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 ctx.postMessage({
   type: "event:start",
 });
+
+const patchCognite = async (): Promise<void> => {
+  await pyodide.runPythonAsync(`
+    await piplite.install(['pyodide-http'], keep_going=True);
+    await piplite.install(['requests'], keep_going=True);
+    # Patching inside the SDK was added in version 5.6.0:
+    await piplite.install(['cognite-sdk>=5.6.0'], keep_going=True);
+    await piplite.install(['pandas'], keep_going=True);
+    await piplite.install(['matplotlib'], keep_going=True);
+  `);
+
+  // If token has been passed already, set token etc
+  await pyodide.runPythonAsync(`
+    import os
+    os.environ["COGNITE_TOKEN"] = "${token}"
+    os.environ["COGNITE_PROJECT"] = "${project}"
+    os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+    # Set flag to tell the SDK that we are inside of a Fusion Notebook:
+    os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
+  `);
+};

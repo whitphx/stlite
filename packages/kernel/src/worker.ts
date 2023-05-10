@@ -61,7 +61,6 @@ async function loadPyodideAndPackages() {
 
   console.debug("Loading Pyodide");
   pyodide = await loadPyodide({
-    stdout: console.log,
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
@@ -169,7 +168,6 @@ async function loadPyodideAndPackages() {
     } else if (msg.startsWith("DEBUG")) {
       console.debug(msg);
     } else {
-      console.log(msg);
     }
   };
   self.__logCallback__ = logCallback;
@@ -413,7 +411,6 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
         const micropip = pyodide.pyimport("micropip");
 
-        console.debug("Install the requirements:", requirements);
         verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
         await micropip.install
           .callKwargs(requirements, { keep_going: true })
@@ -446,15 +443,15 @@ ctx.postMessage({
 });
 
 const patchCognite = async (): Promise<void> => {
-  await pyodide.runPythonAsync(`
-    await piplite.install(['pyodide-http'], keep_going=True);
-    await piplite.install(['requests'], keep_going=True);
-    # Patching inside the SDK was added in version 5.6.0:
-    await piplite.install(['cognite-sdk>=5.6.0'], keep_going=True);
-    await piplite.install(['pandas'], keep_going=True);
-    await piplite.install(['matplotlib'], keep_going=True);
-  `);
+  // const micropip = await pyodide.loadPackage("micropip") 
+  const requirements = ["pyodide-http", "requests", "cognite-sdk", "pandas", "matplotlib"]
 
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install.callKwargs(requirements, {
+    keep_going: true,
+  });
+  
   // If token has been passed already, set token etc
   await pyodide.runPythonAsync(`
     import os

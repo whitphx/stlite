@@ -1,6 +1,9 @@
 import streamlit as st
 from PIL import Image
-
+from cognite.client import CogniteClient
+client = CogniteClient()
+assets = client.assets.list(limit=10).to_pandas()
+st.dataframe(assets)
 st.title("stlite sharing: Serverless Streamlit app platform")
 
 image = Image.open('data/logo.png')

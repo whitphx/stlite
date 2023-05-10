@@ -1,13 +1,12 @@
 name: Build and Deploy GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - '*'
 
-env:
-  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+# env:
+#   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
 
 jobs:
   build:
@@ -106,27 +105,10 @@ jobs:
         name: stlite-mountable
         path: mountable
 
-    - name: Configure redirect
-      run: |
-        mkdir -p /tmp/website/
-
-        cat << _EOT_ > /tmp/website/_config.yml
-        plugins:
-          - jekyll-redirect-from
-        _EOT_
-
-        cat << _EOT_ > /tmp/website/index.html
-        ---
-        redirect_to: "https://edit.share.stlite.net/"
-        ---
-        _EOT_
-
-        cp /tmp/website/index.html /tmp/website/404.html
-
     - name: Set the build artifact paths
       run: |
-        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}
-        cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
+        mkdir -p /tmp/website
+        cp -r ./mountable/* /tmp/website/.
 
     - name: Upload the website files as an artifact
       uses: actions/upload-artifact@v3

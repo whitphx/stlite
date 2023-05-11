@@ -6,6 +6,11 @@ import { mockPyArrow } from "./mock";
 
 let pyodide: PyodideInterface;
 
+// Cognite
+let token: string;
+let baseUrl: string;
+let project: string;
+
 let httpServer: any;
 
 interface StliteWorkerContext extends Worker {
@@ -56,10 +61,12 @@ async function loadPyodideAndPackages() {
 
   console.debug("Loading Pyodide");
   pyodide = await loadPyodide({
-    stdout: console.log,
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
+
+  console.debug("Patch Cognite");
+  patchCognite();
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -161,7 +168,6 @@ async function loadPyodideAndPackages() {
     } else if (msg.startsWith("DEBUG")) {
       console.debug(msg);
     } else {
-      console.log(msg);
     }
   };
   self.__logCallback__ = logCallback;
@@ -256,6 +262,27 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
  */
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const data = event.data;
+
+  // handle Cognite data
+  if (event.data.type === "newToken") {
+    token = data.token;
+    project = data.project;
+    baseUrl = data.baseUrl;
+
+    if (token && project && baseUrl) {
+      if (pyodide) {
+        // If kernel is ready, set new values
+        await pyodide.runPythonAsync(`
+        import os
+        os.environ["COGNITE_TOKEN"] = "${token}"
+        os.environ["COGNITE_PROJECT"] = "${project}"
+        os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+        # Set flag to tell the SDK that we are inside of a Fusion Notebook:
+        os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
+      `);
+      }
+    }
+  }
 
   // Special case for transmitting the initial data
   if (data.type === "initData") {
@@ -384,7 +411,6 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
         const micropip = pyodide.pyimport("micropip");
 
-        console.debug("Install the requirements:", requirements);
         verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
         await micropip.install
           .callKwargs(requirements, { keep_going: true })
@@ -415,3 +441,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 ctx.postMessage({
   type: "event:start",
 });
+
+const patchCognite = async (): Promise<void> => {
+  // const micropip = await pyodide.loadPackage("micropip") 
+  const requirements = ["pipdeptree", "pyodide-http", "requests", "cognite-sdk", "pandas", "matplotlib"]
+
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install.callKwargs(requirements, {
+    keep_going: true,
+  });
+  
+  // If token has been passed already, set token etc
+  await pyodide.runPythonAsync(`
+    import os
+    os.environ["COGNITE_TOKEN"] = "${token}"
+    os.environ["COGNITE_PROJECT"] = "${project}"
+    os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+    # Set flag to tell the SDK that we are inside of a Fusion Notebook:
+    os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
+  `);
+};

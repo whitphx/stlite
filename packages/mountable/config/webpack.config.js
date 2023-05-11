@@ -594,7 +594,7 @@ module.exports = function (webpackEnv) {
     plugins: [
       // Generates an `index.html` file with the <script> injected.
       // Stlite: enable this only for development, as the production build is as a library, not an app.
-      isEnvDevelopment && new HtmlWebpackPlugin(
+      new HtmlWebpackPlugin(
         Object.assign(
           {},
           {

@@ -1,0 +1,13 @@
+{
+    "hosting": {
+      "site": "cdf-stlite-prod",
+      "public": "/tmp/website/",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "site": "cdf-stlite-staging",
+      "public": "/tmp/website/",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+}
+  

@@ -81,6 +81,14 @@ interface InstallMessage extends InMessageBase {
     requirements: string[];
   };
 }
+interface InstallMessage extends InMessageBase {
+  type: "newToken";
+  data: {
+    token: string;
+    baseUrl: string;
+    project: string;
+  };
+}
 type InMessage =
   | InitDataMessage
   | WebSocketConnectMessage
@@ -89,7 +97,8 @@ type InMessage =
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage
-  | InstallMessage;
+  | InstallMessage
+  | TokenMessage;
 
 interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;

@@ -1,13 +1,10 @@
-name: Build and Deploy GitHub Pages
+name: Build and Deploy Stlite
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
-env:
-  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
 
 jobs:
   build:
@@ -106,39 +103,26 @@ jobs:
         name: stlite-mountable
         path: mountable
 
-    - name: Configure redirect
-      run: |
-        mkdir -p /tmp/website/
-
-        cat << _EOT_ > /tmp/website/_config.yml
-        plugins:
-          - jekyll-redirect-from
-        _EOT_
-
-        cat << _EOT_ > /tmp/website/index.html
-        ---
-        redirect_to: "https://edit.share.stlite.net/"
-        ---
-        _EOT_
-
-        cp /tmp/website/index.html /tmp/website/404.html
-
     - name: Set the build artifact paths
       run: |
-        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}
-        cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
-
-    - name: Upload the website files as an artifact
-      uses: actions/upload-artifact@v3
-      if: ${{ github.ref != 'refs/heads/main' }}
+        mkdir -p /tmp/website
+        cp -r ./mountable/* /tmp/website/.
+        mv /tmp/website/asset-manifest.json /tmp/website/manifest.json
+    # Deploying to notebook-staging
+    - uses: FirebaseExtended/action-hosting-deploy@v0
       with:
-        name: website
-        path: /tmp/website
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
+        channelId: live
+        projectId: fbhosting-217032465111
+        target: cognite-notebook-standalone-staging
+    # Deploying to Firebase
+    - uses: FirebaseExtended/action-hosting-deploy@v0
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: /tmp/website
-        enable_jekyll: true
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
+        channelId: live
+        projectId: fusion-217032465111
+        target: cdf-stlite-prod
+    
+

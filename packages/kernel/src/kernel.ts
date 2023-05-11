@@ -378,6 +378,5 @@ const sendTokenToWorker = (
     project,
     distinct_id: email,
   });
-  console.log("Sending to worker: ", { token, baseUrl, project, email })
   worker.postMessage({ type: "newToken", token, baseUrl, project, email });
 };

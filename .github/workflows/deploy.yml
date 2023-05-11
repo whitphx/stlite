@@ -1,16 +1,10 @@
 name: Build and Deploy Stlite
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
-    branches:
-      - '*'
-
-
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -113,6 +107,7 @@ jobs:
       run: |
         mkdir -p /tmp/website
         cp -r ./mountable/* /tmp/website/.
+        mv /tmp/website/asset-manifest.json /tmp/website/manifest.json
     # Deploying to notebook-staging
     - uses: FirebaseExtended/action-hosting-deploy@v0
       with:

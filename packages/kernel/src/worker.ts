@@ -444,7 +444,7 @@ ctx.postMessage({
 
 const patchCognite = async (): Promise<void> => {
   // const micropip = await pyodide.loadPackage("micropip") 
-  const requirements = ["pyodide-http", "requests", "cognite-sdk", "pandas", "matplotlib"]
+  const requirements = ["pipdeptree", "pyodide-http", "requests", "cognite-sdk", "pandas", "matplotlib"]
 
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");

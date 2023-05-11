@@ -1,12 +1,16 @@
-name: Build and Deploy GitHub Pages
+name: Build and Deploy Stlite
 
 on:
   pull_request:
     branches:
       - '*'
 
-# env:
-#   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
 
 jobs:
   build:
@@ -109,18 +113,21 @@ jobs:
       run: |
         mkdir -p /tmp/website
         cp -r ./mountable/* /tmp/website/.
-
-    - name: Upload the website files as an artifact
-      uses: actions/upload-artifact@v3
-      if: ${{ github.ref != 'refs/heads/main' }}
+    # Deploying to notebook-staging
+    - uses: FirebaseExtended/action-hosting-deploy@v0
       with:
-        name: website
-        path: /tmp/website
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
+        channelId: live
+        projectId: fbhosting-217032465111
+        target: cognite-notebook-standalone-staging
+    # Deploying to Firebase
+    - uses: FirebaseExtended/action-hosting-deploy@v0
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: /tmp/website
-        enable_jekyll: true
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
+        channelId: live
+        projectId: fusion-217032465111
+        target: cdf-stlite-prod
+    
+

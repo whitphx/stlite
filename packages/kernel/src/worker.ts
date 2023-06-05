@@ -1,4 +1,4 @@
-import { PyodideInterface } from "pyodide";
+import type { PyodideInterface } from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";

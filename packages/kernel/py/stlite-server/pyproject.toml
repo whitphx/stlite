@@ -31,6 +31,11 @@ profile = "black"
 
 [tool.mypy]
 check_untyped_defs = true
+mypy_path = "../../../../streamlit/lib"
+
+[[tool.mypy.overrides]]
+module = ["streamlit", "streamlit.*"]
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]

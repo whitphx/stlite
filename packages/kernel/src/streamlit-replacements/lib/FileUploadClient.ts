@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-import { CancelToken } from "axios"
-import { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
+import type { CancelToken } from "axios"
+import type { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
 import _ from "lodash"
-import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
+import type { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
 import { FormDataEncoder, FormDataLike } from "form-data-encoder"
 import { isValidFormId } from "streamlit-browser/src/lib/utils"
-import { StliteKernel } from "../../kernel"
+import type { StliteKernel } from "../../kernel"
 
 /** Common widget protobuf fields that are used by the FileUploadClient. */
 interface WidgetInfo {

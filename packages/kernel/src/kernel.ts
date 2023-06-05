@@ -2,7 +2,7 @@
 
 import { PromiseDelegate } from "@lumino/coreutils";
 
-import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
+import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
 
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
@@ -33,10 +33,7 @@ export interface StliteKernelOptions {
   /**
    * Files to mount.
    */
-  files: Record<
-    string,
-    { data: string | ArrayBufferView; opts?: Record<string, any> }
-  >;
+  files: Record<string, EmscriptenFile>;
 
   /**
    * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
@@ -205,7 +202,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, any>
+    opts?: Record<string, unknown>
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",

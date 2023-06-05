@@ -1,4 +1,4 @@
-import { PyodideInterface } from "pyodide";
+import type { PyodideInterface } from "pyodide";
 
 export function mockPyArrow(pyodide: PyodideInterface) {
   pyodide.runPython(`

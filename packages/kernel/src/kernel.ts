@@ -2,7 +2,7 @@
 
 import { PromiseDelegate } from "@lumino/coreutils";
 
-import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
+import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
 
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";

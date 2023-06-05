@@ -2,13 +2,13 @@
 // and WebsocketConnection.
 
 import { BackMsg, ForwardMsg } from "streamlit-browser/src/autogen/proto"
-import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types"
-import { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
-import { ReactNode } from "react"
+import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types"
+import type { BaseUriParts } from "streamlit-browser/src/lib/UriUtil"
+import type { ReactNode } from "react"
 
-import { StliteKernel } from "../../kernel"
+import type { StliteKernel } from "../../kernel"
 import { ConnectionState } from "streamlit-browser/src/lib/ConnectionState"
-import { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
+import type { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
 import { ensureError } from "streamlit-browser/src/lib/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 

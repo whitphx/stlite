@@ -33,7 +33,7 @@ export function writeFileWithParents(
   pyodide: PyodideInterface,
   filePath: string,
   data: string | ArrayBufferView,
-  opts?: Record<string, any>
+  opts?: Parameters<PyodideInterface["FS"]["writeFile"]>[2]
 ): void {
   ensureParent(pyodide, filePath);
   pyodide.FS.writeFile(filePath, data, opts);

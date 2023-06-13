@@ -7,6 +7,18 @@ import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
+import type {
+  EmscriptenFile,
+  GeneralReplyMessage,
+  HttpRequest,
+  HttpResponse,
+  InMessage,
+  OutMessage,
+  ReplyMessage,
+  StliteWorker,
+  WorkerInitialData,
+} from "./types";
+
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
 // About this change on Pyodide, see the links below:

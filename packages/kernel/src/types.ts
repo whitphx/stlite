@@ -1,19 +1,19 @@
-interface HttpRequest {
+export interface HttpRequest {
   method: "GET" | "POST";
   path: string;
   headers: { [key: string]: string };
   body: ArrayBuffer | string;
 }
-interface HttpResponse {
+export interface HttpResponse {
   statusCode: number;
   headers: Map<string, string>;
   body: Uint8Array;
 }
-interface EmscriptenFile {
+export interface EmscriptenFile {
   data: string | ArrayBufferView;
   opts?: Record<string, string>;
 }
-interface WorkerInitialData {
+export interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile>;
   requirements: string[];
@@ -32,29 +32,29 @@ interface InMessageBase {
   type: string;
   data?: unknown;
 }
-interface InitDataMessage extends InMessageBase {
+export interface InitDataMessage extends InMessageBase {
   type: "initData";
   data: WorkerInitialData;
 }
-interface WebSocketConnectMessage extends InMessageBase {
+export interface WebSocketConnectMessage extends InMessageBase {
   type: "websocket:connect";
   data: {
     path: string;
   };
 }
-interface WebSocketSendMessage extends InMessageBase {
+export interface WebSocketSendMessage extends InMessageBase {
   type: "websocket:send";
   data: {
     payload: Uint8Array;
   };
 }
-interface HttpRequestMessage extends InMessageBase {
+export interface HttpRequestMessage extends InMessageBase {
   type: "http:request";
   data: {
     request: HttpRequest;
   };
 }
-interface FileWriteMessage extends InMessageBase {
+export interface FileWriteMessage extends InMessageBase {
   type: "file:write";
   data: {
     path: string;
@@ -62,26 +62,26 @@ interface FileWriteMessage extends InMessageBase {
     opts?: Record<string, any>;
   };
 }
-interface FileRenameMessage extends InMessageBase {
+export interface FileRenameMessage extends InMessageBase {
   type: "file:rename";
   data: {
     oldPath: string;
     newPath: string;
   };
 }
-interface FileUnlinkMessage extends InMessage {
+export interface FileUnlinkMessage extends InMessageBase {
   type: "file:unlink";
   data: {
     path: string;
   };
 }
-interface InstallMessage extends InMessageBase {
+export interface InstallMessage extends InMessageBase {
   type: "install";
   data: {
     requirements: string[];
   };
 }
-type InMessage =
+export type InMessage =
   | InitDataMessage
   | WebSocketConnectMessage
   | WebSocketSendMessage
@@ -91,7 +91,7 @@ type InMessage =
   | FileUnlinkMessage
   | InstallMessage;
 
-interface StliteWorker extends Worker {
+export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
   postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
 }
@@ -103,31 +103,31 @@ interface OutMessageBase {
   type: string;
   data?: unknown;
 }
-interface StartEventMessage extends OutMessageBase {
+export interface StartEventMessage extends OutMessageBase {
   type: "event:start";
 }
-interface ProgressEventMessage extends OutMessageBase {
+export interface ProgressEventMessage extends OutMessageBase {
   type: "event:progress";
   data: {
     message: string;
   };
 }
-interface ErrorEventMessage extends OutMessageBase {
+export interface ErrorEventMessage extends OutMessageBase {
   type: "event:error";
   data: {
     error: Error;
   };
 }
-interface LoadedEventMessage extends OutMessageBase {
+export interface LoadedEventMessage extends OutMessageBase {
   type: "event:loaded";
 }
-interface WebSocketBackMessage extends OutMessageBase {
+export interface WebSocketBackMessage extends OutMessageBase {
   type: "websocket:message";
   data: {
     payload: Uint8Array;
   };
 }
-type OutMessage =
+export type OutMessage =
   | StartEventMessage
   | ProgressEventMessage
   | ErrorEventMessage
@@ -142,14 +142,14 @@ interface ReplyMessageBase {
   error?: Error;
   data?: any;
 }
-interface HttpResponseMessage extends ReplyMessageBase {
+export interface HttpResponseMessage extends ReplyMessageBase {
   type: "http:response";
   data: {
     response: HttpResponse;
   };
 }
-interface GeneralReplyMessage extends ReplyMessageBase {
+export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
   error?: Error;
 }
-type ReplyMessage = HttpResponseMessage | GeneralReplyMessage;
+export type ReplyMessage = HttpResponseMessage | GeneralReplyMessage;

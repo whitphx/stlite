@@ -3,6 +3,12 @@ import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";
+import {
+  WorkerInitialData,
+  type OutMessage,
+  InMessage,
+  HttpResponseMessage,
+} from "./types";
 
 let pyodide: PyodideInterface;
 

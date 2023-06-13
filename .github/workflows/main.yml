@@ -866,7 +866,9 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
-    - run: yarn install --frozen-lockfile
+    - run: |
+      yarn config set network-timeout 300000  # https://github.com/yarnpkg/yarn/issues/8242
+      yarn install --frozen-lockfile
     - run: make common
     - name: Lint
       run: |

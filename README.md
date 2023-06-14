@@ -96,6 +96,106 @@ st.pyplot(fig)
 );
 ```
 
+### Various ways to load files
+
+You can pass an object to the `files` option to mount files, whose keys are file paths, and you can specify the values in various ways as below.
+
+#### Passing string or binary data
+
+You can pass the file content as a string or binary data.
+
+This is what we did in the example above.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/text_file.txt": "file content",
+      "path/to/binary_file.bin": new Uint8Array([0x00, 0x01, 0x02, 0x03]),
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+### Passing an object with a URL
+
+You can use this way to load a file from a URL and mount it to the specified path on the virtual file system.
+
+Either an absolute or relative URL is accepted. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/file": {
+        url: "https://example.com/path/to/file",
+      },
+      "path/to/file2": {
+        url: "./path/to/file",
+      },
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+### Passing an object with options (advanced)
+
+stlite runs on [Pyodide](https://pyodide.org/), and [it has a file system provided by Emscripten](https://pyodide.org/en/stable/usage/file-system.html).
+The files specified via the `files` option are mounted on the file system, and [Emscripten's `FS.writeFile()` function](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.writeFile) is used internally for it.
+You can specify the options (`opts`) for the `FS.writeFile(path, data, opts)` function as below.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/text_file.txt": {
+        data: "file content",
+        opts: {
+          encoding: "utf8",
+        },
+      },
+      "path/to/file": {
+        url: "https://example.com/path/to/file",
+        opts: {
+          encoding: "utf8",
+        },
+      },
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+### Loading archive files
+
+You can load archive files such as zip files, unpack them, and mount the unpacked files to the file system by using the `archives` option.
+
+The `url` field of each item accepts either an absolute or relative URL. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
+
+The downloaded archive file is unpacked by the [`pyodide.unpackArchive(buffer, format, options)`](https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.unpackArchive) function. You have to pass the rest of the arguments of the function, `format` and `options` as below.
+
+```js
+  mount(
+    {
+      archives: [
+        {
+          url: "./foo.zip",
+          // buffer: new Uint8Array([...archive file binary...]), // You can also pass the binary data directly
+          format: "zip",
+          options: {},
+        },
+      ],
+      // ... other options ...
+    },
+    document.getElementById("root") as HTMLElement
+  );
+```
+
 ### Other stlite versions
 
 In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.

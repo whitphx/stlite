@@ -48,6 +48,7 @@ function App() {
             data: sitePackagesSnapshotFileBin,
           },
         },
+        archives: [],
         requirements: [],
         mountedSitePackagesSnapshotFilePath,
         pyodideEntrypointUrl,

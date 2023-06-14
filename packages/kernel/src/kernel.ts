@@ -14,6 +14,8 @@ import type {
   HttpResponse,
   InMessage,
   OutMessage,
+  PyodideArchive,
+  PyodideArchiveUrl,
   ReplyMessage,
   StliteWorker,
   WorkerInitialData,
@@ -46,6 +48,11 @@ export interface StliteKernelOptions {
    * Files to mount.
    */
   files: Record<string, EmscriptenFile>;
+
+  /**
+   * Archives to unpack and mount.
+   */
+  archives: Array<PyodideArchive | PyodideArchiveUrl>;
 
   /**
    * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
@@ -160,6 +167,7 @@ export class StliteKernel {
     this._workerInitData = {
       entrypoint: options.entrypoint,
       files: options.files,
+      archives: options.archives,
       requirements: options.requirements,
       pyodideEntrypointUrl: options.pyodideEntrypointUrl,
       wheels,

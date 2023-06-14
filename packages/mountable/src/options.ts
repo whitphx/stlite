@@ -5,6 +5,7 @@ export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
   files?: StliteKernelOptions["files"] | SimplifiedFiles;
+  archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
 }
 
@@ -29,6 +30,30 @@ function canonicalizeFiles(
   return canonicalFiles;
 }
 
+export function resolveUrl(url: string): string {
+  return new URL(url, window.location.href).href;
+}
+
+function canonicalizeArchives(
+  archives: SimplifiedStliteKernelOptions["archives"]
+): StliteKernelOptions["archives"] {
+  if (archives == null) {
+    return [];
+  }
+
+  return archives.map((archive) => {
+    if ("buffer" in archive) {
+      return archive;
+    }
+
+    // Resolve relative URLs before passing to the worker because the base URL is different in the worker.
+    return {
+      ...archive,
+      url: resolveUrl(archive.url),
+    };
+  });
+}
+
 const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
 export type MountOptions = string | SimplifiedStliteKernelOptions;
@@ -45,15 +70,18 @@ export function canonicalizeMountOptions(
           data: mainScript,
         },
       },
+      archives: [],
       requirements: [],
     };
   }
 
   const files = canonicalizeFiles(options.files);
+  const archives = canonicalizeArchives(options.archives);
 
   return {
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
     files,
+    archives,
     requirements: options.requirements || [],
     allowedOriginsResp: options.allowedOriginsResp,
   };

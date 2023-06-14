@@ -71,6 +71,12 @@ describe("canonicalizeMountOptions()", () => {
       canonicalizeMountOptions({
         files: {
           "streamlit_app.py": "foo",
+          "foo.txt": {
+            data: "foo",
+          },
+          "bar.txt": {
+            url: "./bar.txt",
+          },
         },
       })
     ).toEqual({
@@ -79,6 +85,12 @@ describe("canonicalizeMountOptions()", () => {
       files: {
         "streamlit_app.py": {
           data: "foo",
+        },
+        "foo.txt": {
+          data: "foo",
+        },
+        "bar.txt": {
+          url: "http://localhost/bar.txt",
         },
       },
       archives: [],

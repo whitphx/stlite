@@ -15,6 +15,10 @@ export interface EmscriptenFile {
   data: string | ArrayBufferView;
   opts?: Record<string, string>;
 }
+export interface EmscriptenFileUrl {
+  url: string;
+  opts?: Record<string, string>;
+}
 export interface PyodideArchive {
   buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
   format: Parameters<PyodideInterface["unpackArchive"]>[1];
@@ -27,7 +31,7 @@ export interface PyodideArchiveUrl {
 }
 export interface WorkerInitialData {
   entrypoint: string;
-  files: Record<string, EmscriptenFile>;
+  files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
   pyodideEntrypointUrl?: string;

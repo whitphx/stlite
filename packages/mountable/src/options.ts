@@ -1,10 +1,13 @@
 import { StliteKernelOptions } from "@stlite/kernel";
+import { EmscriptenFile, EmscriptenFileUrl } from "@stlite/kernel/dist/types";
 
-type SimplifiedFiles = Record<string, string | ArrayBufferView>;
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
-  files?: StliteKernelOptions["files"] | SimplifiedFiles;
+  files?: Record<
+    string,
+    string | ArrayBufferView | EmscriptenFile | EmscriptenFileUrl
+  >;
   archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
 }
@@ -19,13 +22,25 @@ function canonicalizeFiles(
   const canonicalFiles: StliteKernelOptions["files"] = {};
   Object.keys(files).forEach((key) => {
     const value = files[key];
-    if (typeof value === "object" && "data" in value) {
-      canonicalFiles[key] = value;
-    } else {
+    if (typeof value === "string" || ArrayBuffer.isView(value)) {
       canonicalFiles[key] = {
         data: value,
       };
+      return;
     }
+    if (typeof value === "object") {
+      if ("data" in value) {
+        canonicalFiles[key] = value;
+        return;
+      } else if ("url" in value) {
+        canonicalFiles[key] = {
+          ...value,
+          url: resolveUrl(value.url),
+        };
+        return;
+      }
+    }
+    throw new Error(`Invalid file value: ${value}`);
   });
   return canonicalFiles;
 }

@@ -9,6 +9,7 @@ import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
 import type {
   EmscriptenFile,
+  EmscriptenFileUrl,
   GeneralReplyMessage,
   HttpRequest,
   HttpResponse,
@@ -47,7 +48,7 @@ export interface StliteKernelOptions {
   /**
    * Files to mount.
    */
-  files: Record<string, EmscriptenFile>;
+  files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
 
   /**
    * Archives to unpack and mount.

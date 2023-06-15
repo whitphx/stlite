@@ -6,7 +6,7 @@ export interface SimplifiedStliteKernelOptions {
   requirements?: StliteKernelOptions["requirements"];
   files?: Record<
     string,
-    string | ArrayBufferView | EmscriptenFile | EmscriptenFileUrl
+    EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
   >;
   archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];

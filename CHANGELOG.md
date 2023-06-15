@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.32.0] - 2023-06-15
+
+### `@stlite/mountable`
+
+#### Added
+
+- An `archives` option to download, unpack, and mount files, [#567](https://github.com/whitphx/stlite/pull/567).
+
 ## [0.31.0] - 2023-04-13
 
 ### `@stlite/kernel`

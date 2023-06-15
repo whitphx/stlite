@@ -22,12 +22,12 @@ export interface EmscriptenFileUrl {
 export interface PyodideArchive {
   buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
   format: Parameters<PyodideInterface["unpackArchive"]>[1];
-  options: Parameters<PyodideInterface["unpackArchive"]>[2];
+  options?: Parameters<PyodideInterface["unpackArchive"]>[2];
 }
 export interface PyodideArchiveUrl {
   url: string;
   format: Parameters<PyodideInterface["unpackArchive"]>[1];
-  options: Parameters<PyodideInterface["unpackArchive"]>[2];
+  options?: Parameters<PyodideInterface["unpackArchive"]>[2];
 }
 export interface WorkerInitialData {
   entrypoint: string;

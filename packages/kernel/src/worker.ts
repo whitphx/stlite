@@ -46,6 +46,7 @@ async function loadPyodideAndPackages() {
   const {
     entrypoint,
     files,
+    archives,
     requirements,
     wheels,
     mountedSitePackagesSnapshotFilePath,
@@ -69,12 +70,43 @@ async function loadPyodideAndPackages() {
 
   // Mount files
   postProgressMessage("Mounting files.");
-  Object.keys(files).forEach((path) => {
-    const { data, opts } = files[path];
+  await Promise.all(
+    Object.keys(files).map(async (path) => {
+      const file = files[path];
 
-    console.debug(`Write a file "${path}"`);
-    writeFileWithParents(pyodide, path, data, opts);
-  });
+      let data: string | ArrayBufferView;
+      if ("url" in file) {
+        console.debug(`Fetch a file from ${file.url}`);
+        data = await fetch(file.url)
+          .then((res) => res.arrayBuffer())
+          .then((buffer) => new Uint8Array(buffer));
+      } else {
+        data = file.data;
+      }
+      const { opts } = files[path];
+
+      console.debug(`Write a file "${path}"`);
+      writeFileWithParents(pyodide, path, data, opts);
+    })
+  );
+
+  // Unpack archives
+  postProgressMessage("Unpacking archives.");
+  await Promise.all(
+    archives.map(async (archive) => {
+      let buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
+      if ("url" in archive) {
+        console.debug(`Fetch an archive from ${archive.url}`);
+        buffer = await fetch(archive.url).then((res) => res.arrayBuffer());
+      } else {
+        buffer = archive.buffer;
+      }
+      const { format, options } = archive;
+
+      console.debug(`Unpack an archive`, { format, options });
+      pyodide.unpackArchive(buffer, format, options);
+    })
+  );
 
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.

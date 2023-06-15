@@ -76,6 +76,7 @@ st.write("Hello World")`,
         const kernel = new StliteKernel({
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
+          archives: [],
           requirements: appData.requirements,
           ...makeToastKernelCallbacks(),
         });

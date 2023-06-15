@@ -131,7 +131,6 @@ st.map(df)
         {
           url: "/test-files/foo.zip",
           format: "zip",
-          options: {},
         },
       ],
       requirements: ["matplotlib"],

@@ -87,6 +87,18 @@ if (process.env.NODE_ENV === "development") {
         "streamlit_app.py": `import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+
+st.markdown("Files in \`.\`:")
+st.write(os.listdir("."))
+
+st.markdown("\`./foo/foo.txt\`:")
+with open("./foo/foo.txt") as f:
+    st.write(f.read())
+
+st.markdown("\`./bar.txt\`:")
+with open("./bar.txt") as f:
+    st.write(f.read())
 
 size = st.slider("Sample size", 100, 1000)
 
@@ -111,7 +123,17 @@ df = pd.DataFrame(
 
 st.map(df)
     `,
+        "bar.txt": {
+          url: "/test-files/bar.txt",
+        },
       },
+      archives: [
+        {
+          url: "/test-files/foo.zip",
+          format: "zip",
+          options: {},
+        },
+      ],
       requirements: ["matplotlib"],
     },
     document.getElementById("root") as HTMLElement

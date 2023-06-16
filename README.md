@@ -119,7 +119,7 @@ stlite.mount(
 );
 ```
 
-### Passing an object with a URL
+#### Passing an object with a URL
 
 You can use this way to load a file from a URL and mount it to the specified path on the virtual file system.
 
@@ -142,7 +142,7 @@ stlite.mount(
 );
 ```
 
-### Passing an object with options (advanced)
+#### Passing an object with options (advanced)
 
 stlite runs on [Pyodide](https://pyodide.org/), and [it has a file system provided by Emscripten](https://pyodide.org/en/stable/usage/file-system.html).
 The files specified via the `files` option are mounted on the file system, and [Emscripten's `FS.writeFile()` function](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.writeFile) is used internally for it.

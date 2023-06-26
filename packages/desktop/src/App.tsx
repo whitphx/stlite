@@ -24,38 +24,41 @@ function App() {
 
     Promise.all([
       window.archives.readSitePackagesSnapshot(),
+      window.archives.readRequirements(),
       window.archives.readStreamlitAppDirectory(),
-    ]).then(([sitePackagesSnapshotFileBin, streamlitAppFiles]) => {
-      if (unmounted) {
-        return;
-      }
+    ]).then(
+      ([sitePackagesSnapshotFileBin, requirements, streamlitAppFiles]) => {
+        if (unmounted) {
+          return;
+        }
 
-      const files: StliteKernelOptions["files"] = {};
-      Object.keys(streamlitAppFiles).forEach((path) => {
-        const data = streamlitAppFiles[path];
-        files[path] = {
-          data,
-        };
-      });
+        const files: StliteKernelOptions["files"] = {};
+        Object.keys(streamlitAppFiles).forEach((path) => {
+          const data = streamlitAppFiles[path];
+          files[path] = {
+            data,
+          };
+        });
 
-      const mountedSitePackagesSnapshotFilePath =
-        "/tmp/site-packages-snapshot.tar.gz";
-      kernel = new StliteKernel({
-        entrypoint: "streamlit_app.py",
-        files: {
-          ...files,
-          [mountedSitePackagesSnapshotFilePath]: {
-            data: sitePackagesSnapshotFileBin,
+        const mountedSitePackagesSnapshotFilePath =
+          "/tmp/site-packages-snapshot.tar.gz";
+        kernel = new StliteKernel({
+          entrypoint: "streamlit_app.py",
+          files: {
+            ...files,
+            [mountedSitePackagesSnapshotFilePath]: {
+              data: sitePackagesSnapshotFileBin,
+            },
           },
-        },
-        archives: [],
-        requirements: [],
-        mountedSitePackagesSnapshotFilePath,
-        pyodideEntrypointUrl,
-        ...makeToastKernelCallbacks(),
-      });
-      setKernel(kernel);
-    });
+          archives: [],
+          requirements,
+          mountedSitePackagesSnapshotFilePath,
+          pyodideEntrypointUrl,
+          ...makeToastKernelCallbacks(),
+        });
+        setKernel(kernel);
+      }
+    );
 
     return () => {
       unmounted = true;

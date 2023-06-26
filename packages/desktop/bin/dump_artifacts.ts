@@ -6,11 +6,19 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
-import { loadPyodide, PyodideInterface } from "pyodide";
+import {
+  loadPyodide,
+  type PyodideInterface,
+  version as pyodideVersion,
+} from "pyodide";
 import { parseRequirementsTxt } from "@stlite/common";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
+
+function makePyodideUrl(filename: string): string {
+  return `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/${filename}`;
+}
 
 interface CopyBuildDirectoryOptions {
   keepOld: boolean;
@@ -54,6 +62,50 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   await fsExtra.copy(sourceDir, options.copyTo);
 }
 
+interface InspectUsedBuiltinPackagesOptions {
+  requirements: string[];
+  useLocalKernelWheels: boolean;
+}
+/**
+ * Get the list of the built-in packages used by the given requirements.
+ * These package files (`pyodide/*.whl`) will be vendored in the app executable
+ * and loaded at runtime to avoid problems such as https://github.com/whitphx/stlite/issues/558
+ */
+async function inspectUsedBuiltinPackages(
+  options: InspectUsedBuiltinPackagesOptions
+): Promise<string[]> {
+  if (options.requirements.length === 0) {
+    return [];
+  }
+
+  const pyodide = await loadPyodide();
+
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+
+  micropip.add_mock_package("streamlit", "1.21.0");
+
+  await micropip.install(options.requirements);
+  return Object.entries(pyodide.loadedPackages)
+    .filter(([, channel]) => channel === "default channel")
+    .map(([name]) => name);
+}
+
+async function loadPyodideBuiltinPackageData(): Promise<
+  Record<
+    string,
+    { name: string; version: string; file_name: string; depends: string[] }
+  >
+> {
+  const url = makePyodideUrl("repodata.json");
+
+  console.log(`Load the Pyodide repodata.json from ${url}`);
+  const res = await fetch(url);
+  const resJson = await res.json();
+
+  return resJson.packages;
+}
+
 async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
   console.log(`Install the local wheel ${localPath}`);
 
@@ -70,6 +122,7 @@ async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
 interface CreateSitePackagesSnapshotOptions {
   useLocalKernelWheels: boolean;
   requirements: string[];
+  usedBuiltinPackages: string[];
   saveTo: string;
 }
 async function createSitePackagesSnapshot(
@@ -119,10 +172,29 @@ async function createSitePackagesSnapshot(
     await micropip.install.callKwargs(wheelUrls, { keep_going: true });
   }
 
+  const micropip = pyodide.pyimport("micropip");
+
+  const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();
+
+  if (options.usedBuiltinPackages.length > 0) {
+    console.log(
+      "Mocking builtin packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
+    );
+    options.usedBuiltinPackages.forEach((pkg) => {
+      const packageInfo = pyodideBuiltinPackageMap[pkg];
+      if (packageInfo == null) {
+        throw new Error(`Package ${pkg} is not found in the lock file.`);
+      }
+
+      console.log(`Mock ${packageInfo.name} ${packageInfo.version}`);
+      micropip.add_mock_package(packageInfo.name, packageInfo.version);
+    });
+  }
+
   console.log(
     `Install the requirements ${JSON.stringify(options.requirements)}`
   );
-  const micropip = pyodide.pyimport("micropip");
+
   await micropip.install.callKwargs(options.requirements, { keep_going: true });
 
   console.log("Archive the site-packages director(y|ies)");
@@ -167,6 +239,16 @@ async function readRequirements(
   return parseRequirementsTxt(requirementsTxtData);
 }
 
+async function writeRequirements(
+  requirementsTxtPath: string,
+  requirements: string[]
+): Promise<void> {
+  const requirementsTxtData = requirements.join("\n");
+  await fsPromises.writeFile(requirementsTxtPath, requirementsTxtData, {
+    encoding: "utf-8",
+  });
+}
+
 // Original: kernel/src/requirements.ts
 // TODO: Be DRY
 function verifyRequirements(requirements: string[]) {
@@ -186,6 +268,42 @@ function verifyRequirements(requirements: string[]) {
       );
     }
   });
+}
+
+interface DownloadPyodideBuiltinPackageWheelsOptions {
+  packages: string[];
+  destDir: string;
+}
+async function downloadPyodideBuiltinPackageWheels(
+  options: DownloadPyodideBuiltinPackageWheelsOptions
+) {
+  const pyodideBuiltinPackages = await loadPyodideBuiltinPackageData();
+  const usedBuiltInPackages = options.packages.map(
+    (pkgName) => pyodideBuiltinPackages[pkgName]
+  );
+  const usedBuiltinPackageUrls = usedBuiltInPackages.map((pkg) =>
+    makePyodideUrl(pkg.file_name)
+  );
+
+  console.log("Downloading the used built-in packages...");
+  await Promise.all(
+    usedBuiltinPackageUrls.map(async (pkgUrl) => {
+      const dstPath = path.resolve(
+        options.destDir,
+        "./pyodide",
+        path.basename(pkgUrl)
+      );
+      console.log(`Download ${pkgUrl} to ${dstPath}`);
+      const res = await fetch(pkgUrl);
+      if (!res.ok) {
+        throw new Error(
+          `Failed to download ${pkgUrl}: ${res.status} ${res.statusText}`
+        );
+      }
+      const buf = await res.arrayBuffer();
+      await fsPromises.writeFile(dstPath, Buffer.from(buf));
+    })
+  );
 }
 
 yargs(hideBin(process.argv))
@@ -246,14 +364,34 @@ yargs(hideBin(process.argv))
     }
     verifyRequirements(requirements);
 
+    const usedBuiltinPackages = await inspectUsedBuiltinPackages({
+      requirements: requirements,
+      useLocalKernelWheels: args.localKernelWheels,
+    });
+    console.log("The built-in packages loaded for the given requirements:");
+    console.log(usedBuiltinPackages);
+
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: requirements,
+      usedBuiltinPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
+    // The `requirements.txt` file will be needed to call `micropip.install()` at runtime.
+    // The built-in packages will be vendored in the build artifact as wheel files
+    // and `micropip.install()` will install them at runtime,
+    // while the packages downloaded from PyPI will have been included in the site-packages snapshot.
+    await writeRequirements(
+      path.resolve(destDir, "./requirements.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
+      requirements
+    );
     await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,
       copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    });
+    await downloadPyodideBuiltinPackageWheels({
+      packages: usedBuiltinPackages,
+      destDir,
     });
   });

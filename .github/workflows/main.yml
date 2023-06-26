@@ -2,6 +2,11 @@ name: Test, Build, and Publish
 
 on: [push]
 
+concurrency:
+  # https://stackoverflow.com/a/72408109
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest

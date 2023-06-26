@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.33.0] - 2023-06-26
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Package the Pyodide built-in package wheels in the app executables and load them at runtime, [#572](https://github.com/whitphx/stlite/pull/572).
+
 ## [0.32.0] - 2023-06-15
 
 ### `@stlite/mountable`

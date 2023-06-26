@@ -6,11 +6,19 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
-import { loadPyodide, type PyodideInterface } from "pyodide";
+import {
+  loadPyodide,
+  type PyodideInterface,
+  version as pyodideVersion,
+} from "pyodide";
 import { parseRequirementsTxt } from "@stlite/common";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
+
+function makePyodideUrl(filename: string): string {
+  return `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/${filename}`;
+}
 
 interface CopyBuildDirectoryOptions {
   keepOld: boolean;
@@ -83,22 +91,19 @@ async function inspectUsedBuiltinPackages(
     .map(([name]) => name);
 }
 
-async function loadPyodideLockFilePackages(
-  pyodideDir: string
-): Promise<
+async function loadPyodideBuiltinPackageData(): Promise<
   Record<
     string,
     { name: string; version: string; file_name: string; depends: string[] }
   >
 > {
-  const pyodideLockFilePath = path.resolve(pyodideDir, "repodata.json");
+  const url = makePyodideUrl("repodata.json");
 
-  const lockFileData = await fsPromises.readFile(pyodideLockFilePath, {
-    encoding: "utf-8",
-  });
-  const lockFileJson = JSON.parse(lockFileData);
+  console.log(`Load the Pyodide repodata.json from ${url}`);
+  const res = await fetch(url);
+  const resJson = await res.json();
 
-  return lockFileJson.packages;
+  return resJson.packages;
 }
 
 async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
@@ -118,7 +123,6 @@ interface CreateSitePackagesSnapshotOptions {
   useLocalKernelWheels: boolean;
   requirements: string[];
   usedBuiltinPackages: string[];
-  pyodideDir: string;
   saveTo: string;
 }
 async function createSitePackagesSnapshot(
@@ -170,16 +174,14 @@ async function createSitePackagesSnapshot(
 
   const micropip = pyodide.pyimport("micropip");
 
-  const pyodideBuiltinPackages = await loadPyodideLockFilePackages(
-    options.pyodideDir
-  );
+  const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();
 
   if (options.usedBuiltinPackages.length > 0) {
     console.log(
-      "Mocking builtin packages because these will be installed from the actual wheel files at runtime..."
+      "Mocking builtin packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
     options.usedBuiltinPackages.forEach((pkg) => {
-      const packageInfo = pyodideBuiltinPackages[pkg];
+      const packageInfo = pyodideBuiltinPackageMap[pkg];
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
@@ -268,38 +270,38 @@ function verifyRequirements(requirements: string[]) {
   });
 }
 
-interface CopyPyodideBuiltinPackageWheelsOptions {
-  pyodideDir: string;
+interface DownloadPyodideBuiltinPackageWheelsOptions {
   packages: string[];
   destDir: string;
 }
-async function copyPyodideBuiltinPackageWheels(
-  options: CopyPyodideBuiltinPackageWheelsOptions
+async function downloadPyodideBuiltinPackageWheels(
+  options: DownloadPyodideBuiltinPackageWheelsOptions
 ) {
-  const pyodideBuiltinPackages = await loadPyodideLockFilePackages(
-    options.pyodideDir
-  );
+  const pyodideBuiltinPackages = await loadPyodideBuiltinPackageData();
   const usedBuiltInPackages = options.packages.map(
     (pkgName) => pyodideBuiltinPackages[pkgName]
   );
-  const usedBuiltinPackagePaths = usedBuiltInPackages.map((pkg) =>
-    path.resolve(options.pyodideDir, pkg.file_name)
+  const usedBuiltinPackageUrls = usedBuiltInPackages.map((pkg) =>
+    makePyodideUrl(pkg.file_name)
   );
 
-  console.log("Copy the used built-in packages");
+  console.log("Downloading the used built-in packages...");
   await Promise.all(
-    usedBuiltinPackagePaths.map((pkgPath) => {
-      console.log(
-        `Copy ${pkgPath} to ${path.resolve(
-          options.destDir,
-          "./pyodide",
-          path.basename(pkgPath)
-        )}`
+    usedBuiltinPackageUrls.map(async (pkgUrl) => {
+      const dstPath = path.resolve(
+        options.destDir,
+        "./pyodide",
+        path.basename(pkgUrl)
       );
-      return fsPromises.copyFile(
-        pkgPath,
-        path.resolve(options.destDir, "./pyodide", path.basename(pkgPath))
-      );
+      console.log(`Download ${pkgUrl} to ${dstPath}`);
+      const res = await fetch(pkgUrl);
+      if (!res.ok) {
+        throw new Error(
+          `Failed to download ${pkgUrl}: ${res.status} ${res.statusText}`
+        );
+      }
+      const buf = await res.arrayBuffer();
+      await fsPromises.writeFile(dstPath, Buffer.from(buf));
     })
   );
 }
@@ -347,7 +349,6 @@ yargs(hideBin(process.argv))
   .parseAsync()
   .then(async (args) => {
     const destDir = path.resolve(process.cwd(), "./build");
-    const pyodideDir = path.resolve(__dirname, "../pyodide");
 
     try {
       await fsPromises.access(args.appHomeDirSource);
@@ -367,14 +368,14 @@ yargs(hideBin(process.argv))
       requirements: requirements,
       useLocalKernelWheels: args.localKernelWheels,
     });
-    console.log({ usedBuiltinPackages });
+    console.log("The built-in packages loaded for the given requirements:");
+    console.log(usedBuiltinPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
       useLocalKernelWheels: args.localKernelWheels,
       requirements: requirements,
       usedBuiltinPackages,
-      pyodideDir,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     // The `requirements.txt` file will be needed to call `micropip.install()` at runtime.
@@ -389,8 +390,7 @@ yargs(hideBin(process.argv))
       sourceDir: args.appHomeDirSource,
       copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
-    await copyPyodideBuiltinPackageWheels({
-      pyodideDir,
+    await downloadPyodideBuiltinPackageWheels({
       packages: usedBuiltinPackages,
       destDir,
     });

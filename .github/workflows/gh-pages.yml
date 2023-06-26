@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 concurrency:
+  # https://stackoverflow.com/a/72408109
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 

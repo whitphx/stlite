@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  USE_CONSTRAINT_FILE: false
+  USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
 
 jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples

@@ -13,6 +13,7 @@ concurrency:
 
 env:
   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+  USE_CONSTRAINT_FILE: false
 
 jobs:
   build:

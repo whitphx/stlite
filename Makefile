@@ -7,8 +7,8 @@ sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
-streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.21.0-py2.py3-none-any.whl
+streamlit_proto := streamlit/frontend/src/lib/proto.d.ts
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.23.1-py2.py3-none-any.whl
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -119,4 +119,4 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 	cd streamlit && \
 	SNOWPARK_CONDA_BUILD=true $(MAKE) distribution
 	mkdir -p `dirname $(streamlit_wheel)`
-	cp streamlit/lib/dist/streamlit-1.21.0-py2.py3-none-any.whl $(streamlit_wheel)
+	cp streamlit/lib/dist/streamlit-1.23.1-py2.py3-none-any.whl $(streamlit_wheel)

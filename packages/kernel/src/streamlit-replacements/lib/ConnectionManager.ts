@@ -2,7 +2,7 @@
 // and WebsocketConnection.
 
 import { BackMsg, ForwardMsg } from "streamlit-browser/src/lib/proto"
-import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hocs/withHostCommunication/types"
+import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types"
 import type { BaseUriParts } from "streamlit-browser/src/lib/util/UriUtil"
 import type { ReactNode } from "react"
 

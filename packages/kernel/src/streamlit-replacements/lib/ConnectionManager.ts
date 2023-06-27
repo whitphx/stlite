@@ -1,7 +1,7 @@
 // Mimic https://github.com/streamlit/streamlit/blob/1.9.0/frontend/src/lib/ConnectionManager.ts
 // and WebsocketConnection.
 
-import { BackMsg, ForwardMsg } from "streamlit-browser/src/autogen/proto"
+import { BackMsg, ForwardMsg } from "streamlit-browser/src/lib/proto"
 import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hocs/withHostCommunication/types"
 import type { BaseUriParts } from "streamlit-browser/src/lib/util/UriUtil"
 import type { ReactNode } from "react"

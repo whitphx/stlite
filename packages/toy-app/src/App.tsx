@@ -6,7 +6,7 @@ import {
   ConnectionManager,
   ConnectionState,
 } from "@stlite/kernel";
-import { BackMsg } from "streamlit-browser/src/autogen/proto";
+import { BackMsg } from "streamlit-browser/src/lib/proto";
 
 function App() {
   useEffect(() => {

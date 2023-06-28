@@ -1,12 +1,11 @@
 import logging
-from urllib.parse import parse_qs, quote, unquote_plus
+from urllib.parse import parse_qs, quote
 
 from streamlit.runtime.media_file_storage import MediaFileKind, MediaFileStorageError
 from streamlit.runtime.memory_media_file_storage import (
     MemoryMediaFileStorage,
     get_extension_for_mimetype,
 )
-from streamlit.string_util import generate_download_filename_from_title
 
 from .handler import Request, RequestHandler, Response
 
@@ -61,16 +60,7 @@ class MediaFileHandler(RequestHandler):
             filename = media_file.filename
 
             if not filename:
-                title = get_argument(
-                    request, "title", True
-                )  # NOTE: The original was `self.get_argument("title", "", True)`
-                if title is None:
-                    return Response(400, {}, "Bad Request")
-                title = unquote_plus(title)
-                filename = generate_download_filename_from_title(title)
-                filename = (
-                    f"{filename}{get_extension_for_mimetype(media_file.mimetype)}"
-                )
+                filename = f"streamlit_download{get_extension_for_mimetype(media_file.mimetype)}"  # noqa: E501
 
             try:
                 # Check that the value can be encoded in latin1. Latin1 is

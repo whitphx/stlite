@@ -83,7 +83,7 @@ async function inspectUsedBuiltinPackages(
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  micropip.add_mock_package("streamlit", "1.23.1");
+  micropip.add_mock_package("streamlit", "1.24.0");
 
   await micropip.install(options.requirements);
   return Object.entries(pyodide.loadedPackages)
@@ -149,7 +149,7 @@ async function createSitePackagesSnapshot(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.23.1-py2.py3-none-any.whl"
+        "streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl"
       )
     );
   } else {

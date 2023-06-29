@@ -9,7 +9,7 @@ on:
 concurrency:
   # https://stackoverflow.com/a/72408109
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable

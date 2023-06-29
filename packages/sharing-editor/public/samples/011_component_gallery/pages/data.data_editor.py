@@ -14,7 +14,7 @@ def load_data():
 
 
 df = load_data()
-edited_df = st.experimental_data_editor(df, use_container_width=True)
+edited_df = st.data_editor(df, use_container_width=True)
 
 favorite_command = edited_df.loc[edited_df["rating"].idxmax()]["command"]
 st.markdown(f"Your favorite command is **{favorite_command}** 🎈")

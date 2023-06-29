@@ -20,6 +20,6 @@ def load_data():
 
 df = load_data()
 
-st.experimental_data_editor(df, key="data_editor", num_rows="dynamic")
+st.data_editor(df, key="data_editor", num_rows="dynamic")
 st.write("Here's the session state:")
 st.write(st.session_state["data_editor"])

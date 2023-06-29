@@ -29,6 +29,4 @@ def load_data():
 
 
 df = load_data()
-edited_df = st.experimental_data_editor(
-    df, use_container_width=True, num_rows="dynamic"
-)
+edited_df = st.data_editor(df, use_container_width=True, num_rows="dynamic")

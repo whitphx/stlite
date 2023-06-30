@@ -58,7 +58,7 @@ async function loadPyodideAndPackages() {
   console.debug("Import the entrypoint script.");
   importScripts(
     pyodideEntrypointUrl ??
-      "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"
+      "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js"
   );
 
   console.debug("Loading Pyodide");

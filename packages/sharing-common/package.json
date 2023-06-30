@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-common",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
   "license": "Apache-2.0",

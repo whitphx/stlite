@@ -386,7 +386,6 @@ jobs:
         scope: '@stlite'
 
     - uses: actions/download-artifact@v3
-      id: download-kernel
       with:
         name: stlite-kernel-${{ github.ref_name }}.tgz
         path: packages/kernel
@@ -517,7 +516,6 @@ jobs:
         scope: '@stlite'
 
     - uses: actions/download-artifact@v3
-      id: download-mountable
       with:
         name: stlite-mountable-${{ github.ref_name }}.tgz
         path: packages/mountable
@@ -825,7 +823,6 @@ jobs:
         scope: '@stlite'
 
     - uses: actions/download-artifact@v3
-      id: download-desktop
       with:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: packages/desktop

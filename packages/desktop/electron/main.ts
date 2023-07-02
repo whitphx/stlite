@@ -77,6 +77,7 @@ const createWindow = () => {
 
   mainWindow.on("closed", () => {
     ipcMain.removeHandler("readSitePackagesSnapshot");
+    ipcMain.removeHandler("readRequirements");
     ipcMain.removeHandler("readStreamlitAppDirectory");
   });
 

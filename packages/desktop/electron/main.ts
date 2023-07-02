@@ -108,12 +108,12 @@ app.whenReady().then(() => {
   // Ref: https://github.com/electron/electron/issues/4612#issuecomment-189116655
   const bundleBasePath = path.resolve(__dirname, "..");
   protocol.interceptFileProtocol("file", function (req, callback) {
-    const urlWithoutScheme = req.url.slice(7); // 7 = "file://".length
-    if (path.isAbsolute(urlWithoutScheme)) {
-      const resolvedFilePath = path.join(bundleBasePath, urlWithoutScheme);
+    const filePath = new URL(req.url).pathname; // `file://<absolute_path>?<query>#<hash>` -> `<absolute_path>`
+    if (path.isAbsolute(filePath)) {
+      const resolvedFilePath = path.join(bundleBasePath, filePath);
       callback(path.normalize(resolvedFilePath));
     } else {
-      callback(urlWithoutScheme);
+      callback(filePath);
     }
   });
 

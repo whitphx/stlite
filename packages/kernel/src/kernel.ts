@@ -10,7 +10,7 @@ import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
   EmscriptenFile,
   EmscriptenFileUrl,
-  GeneralReplyMessage,
+  ReplyMessageGeneralReply,
   HttpRequest,
   HttpResponse,
   InMessage,
@@ -265,7 +265,7 @@ export class StliteKernel {
 
   private _asyncPostMessage(
     message: InMessage
-  ): Promise<GeneralReplyMessage["data"]>;
+  ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
     expectedReplyType: T

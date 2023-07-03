@@ -8,7 +8,7 @@ export interface HttpRequest {
 }
 export interface HttpResponse {
   statusCode: number;
-  headers: Record<string, string>;
+  headers: Map<string, string>;
   body: Uint8Array;
 }
 export interface EmscriptenFile {

@@ -113,8 +113,6 @@ jobs:
     # Settings for GitHub pages deployment, ref: https://github.com/peaceiris/actions-gh-pages#getting-started
     permissions:
       contents: write
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
     - uses: actions/download-artifact@v3

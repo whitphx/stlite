@@ -49,29 +49,29 @@ interface InMessageBase {
   type: string;
   data?: unknown;
 }
-export interface InitDataMessage extends InMessageBase {
+export interface InMessageInitData extends InMessageBase {
   type: "initData";
   data: WorkerInitialData;
 }
-export interface WebSocketConnectMessage extends InMessageBase {
+export interface InMessageWebSocketConnect extends InMessageBase {
   type: "websocket:connect";
   data: {
     path: string;
   };
 }
-export interface WebSocketSendMessage extends InMessageBase {
+export interface InMessageWebSocketSend extends InMessageBase {
   type: "websocket:send";
   data: {
     payload: Uint8Array;
   };
 }
-export interface HttpRequestMessage extends InMessageBase {
+export interface InMessageHttpRequest extends InMessageBase {
   type: "http:request";
   data: {
     request: HttpRequest;
   };
 }
-export interface FileWriteMessage extends InMessageBase {
+export interface InMessageFileWrite extends InMessageBase {
   type: "file:write";
   data: {
     path: string;
@@ -79,34 +79,34 @@ export interface FileWriteMessage extends InMessageBase {
     opts?: Record<string, any>;
   };
 }
-export interface FileRenameMessage extends InMessageBase {
+export interface InMessageFileRename extends InMessageBase {
   type: "file:rename";
   data: {
     oldPath: string;
     newPath: string;
   };
 }
-export interface FileUnlinkMessage extends InMessageBase {
+export interface InMessageFileUnlink extends InMessageBase {
   type: "file:unlink";
   data: {
     path: string;
   };
 }
-export interface InstallMessage extends InMessageBase {
+export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
     requirements: string[];
   };
 }
 export type InMessage =
-  | InitDataMessage
-  | WebSocketConnectMessage
-  | WebSocketSendMessage
-  | HttpRequestMessage
-  | FileWriteMessage
-  | FileRenameMessage
-  | FileUnlinkMessage
-  | InstallMessage;
+  | InMessageInitData
+  | InMessageWebSocketConnect
+  | InMessageWebSocketSend
+  | InMessageHttpRequest
+  | InMessageFileWrite
+  | InMessageFileRename
+  | InMessageFileUnlink
+  | InMessageInstall;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -120,36 +120,36 @@ interface OutMessageBase {
   type: string;
   data?: unknown;
 }
-export interface StartEventMessage extends OutMessageBase {
+export interface OutMessageStartEvent extends OutMessageBase {
   type: "event:start";
 }
-export interface ProgressEventMessage extends OutMessageBase {
+export interface OutMessageProgressEvent extends OutMessageBase {
   type: "event:progress";
   data: {
     message: string;
   };
 }
-export interface ErrorEventMessage extends OutMessageBase {
+export interface OutMessageErrorEvent extends OutMessageBase {
   type: "event:error";
   data: {
     error: Error;
   };
 }
-export interface LoadedEventMessage extends OutMessageBase {
+export interface OutMessageLoadedEvent extends OutMessageBase {
   type: "event:loaded";
 }
-export interface WebSocketBackMessage extends OutMessageBase {
+export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
     payload: Uint8Array;
   };
 }
 export type OutMessage =
-  | StartEventMessage
-  | ProgressEventMessage
-  | ErrorEventMessage
-  | LoadedEventMessage
-  | WebSocketBackMessage;
+  | OutMessageStartEvent
+  | OutMessageProgressEvent
+  | OutMessageErrorEvent
+  | OutMessageLoadedEvent
+  | OutMessageWebSocketBack;
 
 /**
  * Reply message to InMessage
@@ -159,14 +159,14 @@ interface ReplyMessageBase {
   error?: Error;
   data?: any;
 }
-export interface HttpResponseMessage extends ReplyMessageBase {
+export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";
   data: {
     response: HttpResponse;
   };
 }
-export interface GeneralReplyMessage extends ReplyMessageBase {
+export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";
   error?: Error;
 }
-export type ReplyMessage = HttpResponseMessage | GeneralReplyMessage;
+export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;

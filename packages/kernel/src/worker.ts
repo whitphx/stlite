@@ -7,7 +7,7 @@ import {
   WorkerInitialData,
   type OutMessage,
   InMessage,
-  HttpResponseMessage,
+  ReplyMessageHttpResponse,
 } from "./types";
 
 let pyodide: PyodideInterface;
@@ -369,7 +369,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
           const body = _body.toJs();
           console.debug({ statusCode, headers, body });
 
-          const reply: HttpResponseMessage = {
+          const reply: ReplyMessageHttpResponse = {
             type: "http:response",
             data: {
               response: {

@@ -3,7 +3,7 @@ import type { PyodideInterface } from "pyodide";
 export interface HttpRequest {
   method: "GET" | "POST";
   path: string;
-  headers: { [key: string]: string };
+  headers: Record<string, string>;
   body: ArrayBuffer | string;
 }
 export interface HttpResponse {

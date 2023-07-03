@@ -12,6 +12,7 @@ import {
   version as pyodideVersion,
 } from "pyodide";
 import { parseRequirementsTxt } from "@stlite/common";
+import type { DesktopAppManifest } from "../electron/main";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -306,6 +307,21 @@ async function downloadPyodideBuiltinPackageWheels(
   );
 }
 
+async function dumpManifest() {
+  const packageJson = require(path.resolve(__dirname, "../package.json"));
+  const stliteManifest = packageJson.stlite?.desktop || {};
+  const manifestData: DesktopAppManifest = {
+    embed: stliteManifest.embed || false,
+  };
+  const manifestPath = path.resolve(__dirname, "../build/stlite-manifest.json");
+  const manifestDataStr = JSON.stringify(manifestData, null, 2);
+  console.log(`Dump the manifest file -> ${manifestPath}`);
+  console.log(manifestDataStr);
+  await fsPromises.writeFile(manifestPath, manifestDataStr, {
+    encoding: "utf-8",
+  });
+}
+
 yargs(hideBin(process.argv))
   .command(
     "* <appHomeDirSource> [packages..]",
@@ -394,4 +410,5 @@ yargs(hideBin(process.argv))
       packages: usedBuiltinPackages,
       destDir,
     });
+    await dumpManifest();
   });

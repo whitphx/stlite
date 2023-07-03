@@ -15,7 +15,24 @@ if (process.env.NODE_ENV === "development") {
   });
 }
 
-const createWindow = () => {
+export interface DesktopAppManifest {
+  embed: boolean;
+}
+async function readManifest(): Promise<DesktopAppManifest> {
+  const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
+  const manifestText = await fsPromises.readFile(manifestPath, {
+    encoding: "utf-8",
+  });
+  const maybeManifestData = JSON.parse(manifestText);
+
+  return {
+    embed: maybeManifestData.embed ?? false,
+  };
+}
+
+const createWindow = async () => {
+  const manifest = await readManifest();
+
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
@@ -25,10 +42,19 @@ const createWindow = () => {
     },
   });
 
-  const indexUrl =
+  const indexUrlObj = new URL(
     app.isPackaged || process.env.NODE_ENV === "production"
       ? "file:///index.html"
-      : "http://localhost:3000/";
+      : "http://localhost:3000/"
+  );
+
+  const indexUrlParams = new URLSearchParams();
+  if (manifest.embed) {
+    indexUrlParams.set("embed", "true");
+  }
+  indexUrlObj.search = indexUrlParams.toString();
+
+  const indexUrl = indexUrlObj.toString();
 
   // Check the IPC sender in every callback below,
   // following the security best practice, "17. Validate the sender of all IPC messages."

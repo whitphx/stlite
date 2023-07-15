@@ -1,5 +1,5 @@
 import { AppData } from "./proto/models";
-import { URL_HASH_PREFIX } from "./consts";
+import { URL_HASH_PREFIX_ENCODED_APPDATA } from "./consts";
 import { encodeAppData, decodeAppData } from "./compress";
 
 /**
@@ -36,67 +36,92 @@ export function processGitblobUrl(url: string): string {
   return url + "/raw";
 }
 
-function extractScriptUrlAndRequirementsFromHash(
+function parseHash(
   hashValue: string
-): { url: string; requirements: string[] } | null {
+):
+  | { url: string; requirements: string[] }
+  | { code: string; requirements: string[] }
+  | null {
   if (hashValue.startsWith("http")) {
     return { url: processGitblobUrl(hashValue), requirements: [] };
   }
 
   const params = new URLSearchParams(hashValue);
   const url = params.get("url");
-  if (url) {
-    const requirements = params.getAll("req");
+  const code = params.get("code");
+  const requirements = params.getAll("req");
 
+  if (code) {
+    if (url) {
+      console.warn(
+        "Both 'url' and 'code' are specified in the URL hash. Ignoring 'url'."
+      );
+    }
+    return { code: decodeURIComponent(code), requirements };
+  } else if (url) {
     return { url: processGitblobUrl(url), requirements };
   }
 
   return null;
 }
 
-export function extractAppDataFromUrl(): Promise<AppData> {
+async function compileMainScriptAndRequirementsFromHash(
+  hashValue: string
+): Promise<{ code: string; filename: string; requirements: string[] } | null> {
+  const parseResult = parseHash(hashValue);
+  if (parseResult == null) {
+    return null;
+  }
+
+  if ("code" in parseResult) {
+    const { code, requirements } = parseResult;
+    return { code, filename: "streamlit_app.py", requirements };
+  }
+
+  const { url, requirements } = parseResult;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}`);
+  }
+  const content = await res.text();
+  const lastPathSegment = new URL(url).pathname
+    .replace(/\/*$/, "")
+    .split("/")
+    .slice(-1)[0];
+  const filename = lastPathSegment.endsWith(".py")
+    ? lastPathSegment
+    : "streamlit_app.py";
+  return { code: content, filename, requirements };
+}
+
+export async function extractAppDataFromUrl(): Promise<AppData> {
   const hashValue = window.location.hash.replace(/^#/, "");
-  if (hashValue.startsWith(URL_HASH_PREFIX)) {
+  if (hashValue.startsWith(URL_HASH_PREFIX_ENCODED_APPDATA)) {
     const encodedAppData = hashValue.slice(1);
     const appData = decodeAppData(encodedAppData);
-    return Promise.resolve(appData);
+    return appData;
   }
 
-  const urlAndReqs = extractScriptUrlAndRequirementsFromHash(hashValue);
-  if (urlAndReqs) {
-    const { url, requirements } = urlAndReqs;
-
-    return fetch(url)
-      .then((res) => res.text())
-      .then((content) => {
-        const lastPathSegment = new URL(url).pathname
-          .replace(/\/*$/, "")
-          .split("/")
-          .slice(-1)[0];
-        const filename = lastPathSegment.endsWith(".py")
-          ? lastPathSegment
-          : "streamlit_app.py";
-        const mainScriptPath = filename;
-
-        const appData: AppData = {
-          entrypoint: mainScriptPath,
-          files: {
-            [mainScriptPath]: {
-              content: {
-                $case: "text",
-                text: content,
-              },
-            },
-          },
-          requirements,
-        };
-        return appData;
-      });
+  const result = await compileMainScriptAndRequirementsFromHash(hashValue);
+  if (result == null) {
+    return Promise.reject();
   }
 
-  return Promise.reject();
+  const { code, filename, requirements } = result;
+  return {
+    entrypoint: filename,
+    files: {
+      [filename]: {
+        content: {
+          $case: "text",
+          text: code,
+        },
+      },
+    },
+    requirements,
+  };
 }
 
 export function embedAppDataToUrl(url: string, appData: AppData): string {
-  return `${url}#${URL_HASH_PREFIX}${encodeAppData(appData)}`;
+  return `${url}#${URL_HASH_PREFIX_ENCODED_APPDATA}${encodeAppData(appData)}`;
 }

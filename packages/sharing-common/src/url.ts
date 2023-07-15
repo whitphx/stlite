@@ -79,7 +79,11 @@ async function compileMainScriptAndRequirementsFromHash(
   }
 
   const { url, requirements } = parseResult;
-  const content = await fetch(url).then((res) => res.text());
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}`);
+  }
+  const content = await res.text();
   const lastPathSegment = new URL(url).pathname
     .replace(/\/*$/, "")
     .split("/")

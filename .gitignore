@@ -294,3 +294,6 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+### Others
+.pyodide-xbuildenv/

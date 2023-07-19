@@ -21,10 +21,10 @@ VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: $(VENV)
+venv: $(VENV) requirements.dev.txt
 $(VENV):
 	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -U build poetry pyodide-build
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install

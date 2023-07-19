@@ -123,7 +123,7 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
 	fi && \
-	pushd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && popd && \
+	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
 	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)

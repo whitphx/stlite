@@ -72,7 +72,7 @@ jobs:
     if: ${{ needs.changes.outputs.stlite-server == 'true' }}
 
     env:
-      python-version: "3.11"
+      python-version: "3.11.2"
 
     runs-on: ubuntu-latest
 
@@ -275,7 +275,7 @@ jobs:
     needs: [test-kernel, test-stlite-server]
 
     env:
-      python-version: "3.11"
+      python-version: "3.11.2"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -405,7 +405,7 @@ jobs:
     needs: [test-kernel, test-stlite-server, test-mountable]
 
     env:
-      python-version: "3.11"
+      python-version: "3.11.2"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -535,7 +535,7 @@ jobs:
     needs: [test-kernel, test-stlite-server, test-sharing-common]
 
     env:
-      python-version: "3.11"
+      python-version: "3.11.2"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -711,7 +711,7 @@ jobs:
     needs: [test-kernel, test-stlite-server, test-desktop]
 
     env:
-      python-version: "3.11"
+      python-version: "3.11.2"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),

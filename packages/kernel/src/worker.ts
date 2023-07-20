@@ -175,7 +175,6 @@ async function loadPyodideAndPackages() {
   // For https://github.com/whitphx/stlite/issues/427
   await pyodide.runPythonAsync(`
       import streamlit.runtime
-      import streamlit.web
   `);
   console.debug("Loaded the Streamlit package");
 

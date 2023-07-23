@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.37.0] - 2023-07-23
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Compile the Streamlit wheel file to bytecode at build time, [#590](https://github.com/whitphx/stlite/pull/590).
+
 ## [0.36.0] - 2023-07-03
 
 ### `@stlite/desktop`

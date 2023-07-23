@@ -8,7 +8,7 @@ desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/src/lib/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -22,9 +22,9 @@ NODE_MODULES := ./node_modules
 
 .PHONY: venv
 venv: $(VENV)
-$(VENV):
+$(VENV): requirements.dev.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install build poetry
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
@@ -116,7 +116,14 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
-	cd streamlit && \
-	SNOWPARK_CONDA_BUILD=true $(MAKE) distribution
-	mkdir -p `dirname $(streamlit_wheel)`
-	cp streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl $(streamlit_wheel)
+	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
+	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
+	PYODIDE_PYTHON_VERSION=`pyodide config get python_version` && \
+	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
+		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
+		exit 1; \
+	fi && \
+	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl && \
+	mkdir -p $(dir $(streamlit_wheel)) && \
+	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)

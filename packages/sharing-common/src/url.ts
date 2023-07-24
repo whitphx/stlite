@@ -36,7 +36,7 @@ export function processGitblobUrl(url: string): string {
   return url + "/raw";
 }
 
-function parseHash(
+export function parseHash(
   hashValue: string
 ):
   | { url: string; requirements: string[] }
@@ -49,7 +49,12 @@ function parseHash(
   const params = new URLSearchParams(hashValue);
   const url = params.get("url");
   const code = params.get("code");
-  const requirements = params.getAll("req");
+  const requirements = params
+    .getAll("req")
+    .map((r) => r.split(","))
+    .flat()
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0);
 
   if (code) {
     if (url) {

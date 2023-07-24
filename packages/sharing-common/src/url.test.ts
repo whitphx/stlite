@@ -1,5 +1,5 @@
-import { describe, test, expect } from "vitest";
-import { processGitblobUrl } from "./url";
+import { describe, it, test, expect } from "vitest";
+import { processGitblobUrl, parseHash } from "./url";
 
 describe("processGitblobUrl", () => {
   const githubUrls: [string, string][] = [
@@ -70,6 +70,20 @@ describe("processGitblobUrl", () => {
   invalidUrls.forEach((url) => {
     test(`Non-matching URL ("${url}") is not replaced`, () => {
       expect(processGitblobUrl(url)).toEqual(url);
+    });
+  });
+});
+
+describe("parseHash", () => {
+  const reqTestCases: [string, string[]][] = [
+    ["code=xxx&req=foo", ["foo"]],
+    ["code=xxx&req=foo&req=bar", ["foo", "bar"]],
+    ["code=xxx&req=foo&req=bar&req=baz", ["foo", "bar", "baz"]],
+    ["code=xxx&req=foo&req=bar,baz", ["foo", "bar", "baz"]],
+  ];
+  reqTestCases.forEach(([hash, requirements]) => {
+    it(`parses requirements from "${hash}"`, () => {
+      expect(parseHash(hash)).toEqual({ requirements, code: "xxx" });
     });
   });
 });

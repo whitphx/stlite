@@ -75,6 +75,17 @@ describe("processGitblobUrl", () => {
 });
 
 describe("parseHash", () => {
+  const codeEncDecTestCases: string[] = ["xxx", 'print("%" % 42)'];
+  codeEncDecTestCases.forEach((code) => {
+    it(`parses the encoded code from the hash, with code = "${code}"`, () => {
+      const encodedCode = encodeURIComponent(code);
+      expect(parseHash(`code=${encodedCode}`)).toEqual({
+        code,
+        requirements: [],
+      });
+    });
+  });
+
   const reqTestCases: [string, string[]][] = [
     ["code=xxx&req=foo", ["foo"]],
     ["code=xxx&req=foo&req=bar", ["foo", "bar"]],

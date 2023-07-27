@@ -62,7 +62,7 @@ export function parseHash(
         "Both 'url' and 'code' are specified in the URL hash. Ignoring 'url'."
       );
     }
-    return { code: decodeURIComponent(code), requirements };
+    return { code, requirements };
   } else if (url) {
     return { url: processGitblobUrl(url), requirements };
   }

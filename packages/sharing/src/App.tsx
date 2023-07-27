@@ -50,7 +50,10 @@ function App() {
     let _kernel: StliteKernel | null = null;
     let onMessage: ((e: MessageEvent<ForwardMessage>) => void) | null;
     extractAppDataFromUrl()
-      .catch(() => {
+      .catch((err) => {
+        console.error("Failed to extract app data from URL. Show default app.");
+        console.error(err);
+
         const defaultAppData: AppData = {
           entrypoint: "streamlit_app.py",
           files: {

@@ -1,5 +1,9 @@
 ## Local development of `stlite`
 
+### Python requirement
+
+Use the Python version same as the one which the [currently used Pyodide](./packages/kernel/src/worker.ts) runs.
+
 ### Initialize the development environment
 
 ```

@@ -304,7 +304,7 @@ await main()
 
 ### Example 2: `pyodide.http.pyfetch()`
 
-Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, like `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
+Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, such as `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
 
 Here's a sample code snippet demonstrating the usage of top-level await with `pyodide.http.pyfetch()`:
 

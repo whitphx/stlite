@@ -38,7 +38,7 @@ module.exports = {
         type: "javascript/auto",
       });
 
-      // For parquet-wasm, which includes .wasm files and needs async load.
+      // For parquet-wasm, which includes `.wasm` files and needs async load.
       // https://qiita.com/laiso/items/a5f7362c4a9163a878e5
       // https://webpack.js.org/configuration/experiments/
       webpackConfig.module.rules.push({

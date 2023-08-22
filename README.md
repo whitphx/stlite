@@ -328,6 +328,9 @@ data_in_bytes = await response.bytes()
   A tutorial to convert a Streamlit app to an executable file with stlite and a demo to run it on an offline machine.
 - [📖 "Is This the Easiest Way to Build Your Streamlit App?", by Shantala Mukherjee](https://onlyweb.hashnode.dev/is-this-the-easiest-way-to-build-your-streamlit-app)
 - [📖 "The Best Python Desktop App Framework?", by Caleb Robey at Depot Analytics](https://www.depotanalytics.co/post/the-best-python-desktop-app-framework)
+- [📖 "Python-Based Data Viz (With No Installation Required)", by Sam Minot](https://towardsdatascience.com/python-based-data-viz-with-no-installation-required-aaf2358c881)
+- [📖 "Converting Streamlit application to exe file", by Neelasha Sen](https://ploomber.io/blog/streamlit_exe/)
+- [📖 "Streamlit + Stlite: Beyond Data Science Applications", by Saumitra Panchal](https://medium.com/@saumitrapanchal/streamlit-stlite-beyond-data-science-applications-23de64648883)
 
 ## Samples
 

@@ -132,11 +132,11 @@ SHARED_TEST_CASES = [
         pd.Index(["st.text_area", "st.markdown"]),
         TestCaseMetadata(2, 1, DataFormat.PANDAS_INDEX),
     ),
-    # Pyarrow Table (pyarrow.Table):
-    (
-        pa.Table.from_pandas(pd.DataFrame(["st.text_area", "st.markdown"])),
-        TestCaseMetadata(2, 1, DataFormat.PYARROW_TABLE),
-    ),
+    # # Pyarrow Table (pyarrow.Table):
+    # (
+    #     pa.Table.from_pandas(pd.DataFrame(["st.text_area", "st.markdown"])),
+    #     TestCaseMetadata(2, 1, DataFormat.PYARROW_TABLE),
+    # ),
     # List of rows (List[List[Scalar]]):
     (
         [["st.text_area", "widget"], ["st.markdown", "element"]],

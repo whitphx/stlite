@@ -631,13 +631,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
-      # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
-      # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
-      # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-      NODE_OPTIONS: "--max-old-space-size=6656"
-
     steps:
     - uses: actions/checkout@v3
       with:

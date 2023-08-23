@@ -1,0 +1,2 @@
+vega_datasets
+plotly==5.1.0

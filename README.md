@@ -259,6 +259,13 @@ st.title("Page 2")
 As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
 - `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because stlite runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
+  - If you want to show a spinner with a blocking method, add a 0.1 second sleep before the blocking method call, although this will definitely add an empty 0.1 second wait to the execution.
+    ```python
+    with st.spinner("Running a blocking method..."):
+        await asyncio.sleep(0.1)  # Add this line to wait for the spinner to start showing
+        some_blocking_method()
+    ```
+- `st.bokeh_chart` does not work since Pyodide uses Bokeh version 3.x while Streamlit only supports 2.x. The 3.x support for Streamlit is tracked here: https://github.com/streamlit/streamlit/issues/5858
 - `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
 - There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe`, `st.data_editor`, `st.table`, and Altair-based charts. The reason is that stlite uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - For URL access, `urllib` and `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.

@@ -100,6 +100,18 @@ module.exports = {
         type: "javascript/auto",
       });
 
+      // For parquet-wasm, which includes `.wasm` files and needs async load.
+      // https://qiita.com/laiso/items/a5f7362c4a9163a878e5
+      // https://webpack.js.org/configuration/experiments/
+      webpackConfig.module.rules.push({
+        test: /\.wasm$/,
+        type: "webassembly/async",
+      });
+      webpackConfig.experiments = {
+        ...webpackConfig.experiments,
+        asyncWebAssembly: true,
+      };
+
       /* For file-loader that resolves the wheels */
       // Since Webpack5, Asset Modules has been introduced to cover what file-loader had done.
       // However, in this project, we use the inline loader setting like `import * from "!!file-loader!/path/to/file"` to use file-loader

@@ -8,4 +8,5 @@ numpy
 scipy
 altair
 pydeck
+vega_datasets
 streamlit

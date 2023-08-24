@@ -1,9 +1,9 @@
 {
   "name": "toy-app",
-  "version": "0.37.0",
+  "version": "0.38.0",
   "private": true,
   "dependencies": {
-    "@stlite/kernel": "^0.37.0",
+    "@stlite/kernel": "^0.38.0",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",

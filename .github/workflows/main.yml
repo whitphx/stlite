@@ -22,14 +22,14 @@ jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
-      kernel: ${{ fromJson( steps.filter.outputs.kernel || env.RUN_ALL_TESTS == 'true' ) }}
-      # stlite-server: ${{ fromJson( steps.filter.outputs.stlite-server || env.RUN_ALL_TESTS == 'true' ) }}
+      kernel: ${{ fromJson( steps.filter.outputs.kernel || env.RUN_ALL_TESTS == true ) }}
+      # stlite-server: ${{ fromJson( steps.filter.outputs.stlite-server || env.RUN_ALL_TESTS == true ) }}
       stlite-server: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-server job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
-      mountable: ${{ fromJson( steps.filter.outputs.mountable || env.RUN_ALL_TESTS == 'true' ) }}
-      sharing-editor: ${{ fromJson( steps.filter.outputs.sharing-editor || env.RUN_ALL_TESTS == 'true' ) }}
-      sharing-common: ${{ fromJson( steps.filter.outputs.sharing-common || env.RUN_ALL_TESTS == 'true' ) }}
-      desktop: ${{ fromJson( steps.filter.outputs.desktop || env.RUN_ALL_TESTS == 'true' ) }}
-      vscode-extension: ${{ fromJson( steps.filter.outputs.vscode-extension || env.RUN_ALL_TESTS == 'true' ) }}
+      mountable: ${{ fromJson( steps.filter.outputs.mountable || env.RUN_ALL_TESTS == true ) }}
+      sharing-editor: ${{ fromJson( steps.filter.outputs.sharing-editor || env.RUN_ALL_TESTS == true ) }}
+      sharing-common: ${{ fromJson( steps.filter.outputs.sharing-common || env.RUN_ALL_TESTS == true ) }}
+      desktop: ${{ fromJson( steps.filter.outputs.desktop || env.RUN_ALL_TESTS == true ) }}
+      vscode-extension: ${{ fromJson( steps.filter.outputs.vscode-extension || env.RUN_ALL_TESTS == true ) }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2

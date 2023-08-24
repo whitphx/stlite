@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.0] - 2023-08-24
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Switch the data frame serialization method to the standard option of Streamlit by bypassing Arrow serialization using Parquet, with huge support by @LukasMasuch, [#601](https://github.com/whitphx/stlite/pull/601), [whitphx/streamlit#3](https://github.com/whitphx/streamlit/pull/3).
+
 ## [0.37.0] - 2023-07-23
 
 ### `@stlite/kernel`

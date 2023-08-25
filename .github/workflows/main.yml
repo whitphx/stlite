@@ -14,19 +14,21 @@ env:
   # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
   # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
   NODE_OPTIONS: "--max-old-space-size=6656"
+  RUN_ALL_TESTS: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
   USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
 
 jobs:
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
-      kernel: ${{ steps.filter.outputs.kernel }}
-      # stlite-server: ${{ steps.filter.outputs.stlite-server }}
+      kernel: ${{ steps.filter.outputs.kernel == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      # stlite-server: ${{ steps.filter.outputs.stlite-server == 'true' || env.RUN_ALL_TESTS == 'true' }}
       stlite-server: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-server job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
-      mountable: ${{ steps.filter.outputs.mountable }}
-      sharing-editor: ${{ steps.filter.outputs.sharing-editor }}
-      sharing-common: ${{ steps.filter.outputs.sharing-common }}
-      desktop: ${{ steps.filter.outputs.desktop }}
+      mountable: ${{ steps.filter.outputs.mountable == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      desktop: ${{ steps.filter.outputs.desktop == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      vscode-extension: ${{ steps.filter.outputs.vscode-extension == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
@@ -47,6 +49,8 @@ jobs:
             - 'packages/sharing-common/**/*'
           desktop:
             - 'packages/desktop/**/*'
+          vscode-extension:
+            - 'packages/vscode-stlite/**/*'
 
   test-kernel:
     needs: changes
@@ -802,6 +806,9 @@ jobs:
         files: packages/desktop/stlite-desktop-v*.tgz
 
   test-build-vscode-extension:
+    needs: changes
+    if: ${{ needs.changes.outputs.vscode-extension == 'true' }}
+
     strategy:
       fail-fast: false
       matrix:

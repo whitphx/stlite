@@ -67,6 +67,20 @@ In this sample,
 - stlite library is imported with the first script tag, then the global `stlite` object becomes available.
 - `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
+> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
+> ```html
+> <script>
+>      stlite.mount(
+>        `
+>import streamlit as st
+>
+>st.markdown("This is an inline code format: \`code\`")
+>`,
+>        document.getElementById("root")
+>      );
+>    </script>
+>```
+> 
 ### More controls
 
 If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.

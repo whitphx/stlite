@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.1] - 2023-09-28
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix the dumped manifest file path, [#618](https://github.com/whitphx/stlite/pull/618).
+
 ## [0.38.0] - 2023-08-24
 
 ### `@stlite/kernel`

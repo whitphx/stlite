@@ -307,17 +307,21 @@ async function downloadPyodideBuiltinPackageWheels(
   );
 }
 
-async function dumpManifest() {
-  const packageJson = require(path.resolve(__dirname, "../package.json"));
+interface DumpManifestOptions {
+  packageJsonPath: string;
+  manifestFilePath: string;
+}
+async function dumpManifest(options: DumpManifestOptions) {
+  const packageJson = require(options.packageJsonPath);
   const stliteManifest = packageJson.stlite?.desktop || {};
   const manifestData: DesktopAppManifest = {
     embed: stliteManifest.embed || false,
   };
-  const manifestPath = path.resolve(__dirname, "../build/stlite-manifest.json");
+
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
-  console.log(`Dump the manifest file -> ${manifestPath}`);
+  console.log(`Dump the manifest file -> ${options.manifestFilePath}`);
   console.log(manifestDataStr);
-  await fsPromises.writeFile(manifestPath, manifestDataStr, {
+  await fsPromises.writeFile(options.manifestFilePath, manifestDataStr, {
     encoding: "utf-8",
   });
 }
@@ -364,7 +368,8 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
-    const destDir = path.resolve(process.cwd(), "./build");
+    const projectDir = process.cwd();
+    const destDir = path.resolve(projectDir, "./build");
 
     try {
       await fsPromises.access(args.appHomeDirSource);
@@ -410,5 +415,8 @@ yargs(hideBin(process.argv))
       packages: usedBuiltinPackages,
       destDir,
     });
-    await dumpManifest();
+    await dumpManifest({
+      packageJsonPath: path.resolve(projectDir, "./package.json"),
+      manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
+    });
   });

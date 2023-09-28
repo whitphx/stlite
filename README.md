@@ -271,7 +271,7 @@ This URL points to the head of the main branch which is usually ahead of the rel
 
 ### Different Pyodide distributions
 
-_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below, for example when your organization has a restrictive policy for the CDN access.
+_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for the CDN access.
 
 ```js
 stlite.mount(

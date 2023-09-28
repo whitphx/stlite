@@ -56,7 +56,7 @@ export interface StliteKernelOptions {
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
 
   /**
-   * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
+   * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
    * If not specified, the default one is used.
    */
   pyodideEntrypointUrl?: string;

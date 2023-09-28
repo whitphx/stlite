@@ -10,6 +10,7 @@ export interface SimplifiedStliteKernelOptions {
   >;
   archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
+  pyodideUrl?: StliteKernelOptions["pyodideEntrypointUrl"];
 }
 
 function canonicalizeFiles(
@@ -99,5 +100,6 @@ export function canonicalizeMountOptions(
     archives,
     requirements: options.requirements || [],
     allowedOriginsResp: options.allowedOriginsResp,
+    pyodideEntrypointUrl: options.pyodideUrl,
   };
 }

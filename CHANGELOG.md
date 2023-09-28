@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.39.0] - 2023-09-28
+
+### `@stlite/mountable`
+
+#### Added
+
+- Add `pyodideUrl` option, [#620](https://github.com/whitphx/stlite/pull/620).
+
 ## [0.38.1] - 2023-09-28
 
 ### `@stlite/desktop`

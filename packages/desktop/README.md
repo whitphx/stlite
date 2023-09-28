@@ -24,7 +24,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
        }
      },
      "devDependencies": {
-       "@stlite/desktop": "0.36.0",
+       "@stlite/desktop": "0.38.1",
        "cross-env": "^7.0.3",
        "electron": "^25.2.0",
        "electron-builder": "^24.4.0"

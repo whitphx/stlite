@@ -67,20 +67,21 @@ In this sample,
 - stlite library is imported with the first script tag, then the global `stlite` object becomes available.
 - `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
-> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
+> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in `` st.mount(` ... `) ``. To avoid this, you can escape them with with a preceding backslash `\`.
+>
 > ```html
 > <script>
->      stlite.mount(
->        `
->import streamlit as st
->
->st.markdown("This is an inline code format: \`code\`")
->`,
->        document.getElementById("root")
->      );
->    </script>
->```
+>   stlite.mount(
+>     `
+> import streamlit as st
 > 
+> st.markdown("This is an inline code format: \`code\`")
+> `,
+>     document.getElementById("root")
+>   );
+> </script>
+> ```
+
 ### More controls
 
 If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.
@@ -194,44 +195,21 @@ The `url` field of each item accepts either an absolute or relative URL. Conside
 The downloaded archive file is unpacked by the [`pyodide.unpackArchive(buffer, format, options)`](https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.unpackArchive) function. You have to pass the rest of the arguments of the function, `format` and `options` as below.
 
 ```js
-  mount(
-    {
-      archives: [
-        {
-          url: "./foo.zip",
-          // buffer: new Uint8Array([...archive file binary...]), // You can also pass the binary data directly
-          format: "zip",
-          options: {},
-        },
-      ],
-      // ... other options ...
-    },
-    document.getElementById("root") as HTMLElement
-  );
+mount(
+  {
+    archives: [
+      {
+        url: "./foo.zip",
+        // buffer: new Uint8Array([...archive file binary...]), // You can also pass the binary data directly
+        format: "zip",
+        options: {},
+      },
+    ],
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
 ```
-
-### Other stlite versions
-
-In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
-You can use another version by changing the version number in the URL.
-
-The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
-
-#### The latest release
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
-```
-
-You can use the latest version of the published stlite package with this URL.
-
-#### The head of the main branch
-
-```html
-<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
-```
-
-This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
 
 ### Multipage apps
 
@@ -263,6 +241,43 @@ st.set_page_config(page_title="Page2")
 st.title("Page 2")
 `,
     },
+  },
+  document.getElementById("root")
+);
+```
+
+### Different stlite versions
+
+In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
+You can use another version by changing the version number in the URL.
+
+The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
+
+#### The latest release
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+```
+
+You can use the latest version of the published stlite package with this URL.
+
+#### The head of the main branch
+
+```html
+<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+```
+
+This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
+
+### Different Pyodide distributions
+
+_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below, for example when your organization has a restrictive policy for the CDN access.
+
+```js
+stlite.mount(
+  {
+    pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
+    // ... other options ...
   },
   document.getElementById("root")
 );

@@ -55,6 +55,9 @@ async function initPyodide(
   return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
 }
 
+const DEFAULT_PYODIDE_URL =
+  "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js";
+
 /**
  * Load Pyodided and initialize the interpreter.
  *
@@ -72,15 +75,12 @@ async function loadPyodideAndPackages() {
     requirements,
     wheels,
     mountedSitePackagesSnapshotFilePath,
-    pyodideEntrypointUrl,
+    pyodideUrl = DEFAULT_PYODIDE_URL,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
 
   console.debug("Loading Pyodide");
-  const pyodideUrl =
-    pyodideEntrypointUrl ??
-    "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js";
   pyodide = await initPyodide(pyodideUrl, {
     stdout: console.log,
     stderr: console.error,

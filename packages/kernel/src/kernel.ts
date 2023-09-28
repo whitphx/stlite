@@ -59,7 +59,7 @@ export interface StliteKernelOptions {
    * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
    * If not specified, the default one is used.
    */
-  pyodideEntrypointUrl?: string;
+  pyodideUrl?: string;
 
   /**
    *
@@ -170,7 +170,7 @@ export class StliteKernel {
       files: options.files,
       archives: options.archives,
       requirements: options.requirements,
-      pyodideEntrypointUrl: options.pyodideEntrypointUrl,
+      pyodideUrl: options.pyodideUrl,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,

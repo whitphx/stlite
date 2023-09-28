@@ -34,7 +34,7 @@ export interface WorkerInitialData {
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
-  pyodideEntrypointUrl?: string;
+  pyodideUrl?: string;
   wheels?: {
     stliteServer: string;
     streamlit: string;

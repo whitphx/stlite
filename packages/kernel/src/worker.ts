@@ -1,4 +1,4 @@
-import type { PyodideInterface } from "pyodide";
+import type Pyodide from "pyodide";
 import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
@@ -10,7 +10,7 @@ import {
   ReplyMessageHttpResponse,
 } from "./types";
 
-let pyodide: PyodideInterface;
+let pyodide: Pyodide.PyodideInterface;
 
 let httpServer: any;
 
@@ -33,6 +33,31 @@ function postProgressMessage(message: string): void {
   });
 }
 
+async function initPyodide(
+  pyodideUrl: string,
+  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0]
+): Promise<Pyodide.PyodideInterface> {
+  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
+  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
+
+  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
+  let loadPyodide: typeof Pyodide.loadPyodide;
+  if (pyodideUrl.endsWith(".mjs")) {
+    // note: this does not work at all in firefox
+    const pyodideModule: typeof Pyodide = await import(
+      /* webpackIgnore: true */ pyodideUrl
+    );
+    loadPyodide = pyodideModule.loadPyodide;
+  } else {
+    importScripts(pyodideUrl);
+    loadPyodide = (self as any).loadPyodide;
+  }
+  return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
+}
+
+const DEFAULT_PYODIDE_URL =
+  "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js";
+
 /**
  * Load Pyodided and initialize the interpreter.
  *
@@ -50,19 +75,13 @@ async function loadPyodideAndPackages() {
     requirements,
     wheels,
     mountedSitePackagesSnapshotFilePath,
-    pyodideEntrypointUrl,
+    pyodideUrl = DEFAULT_PYODIDE_URL,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
 
-  console.debug("Import the entrypoint script.");
-  importScripts(
-    pyodideEntrypointUrl ??
-      "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js"
-  );
-
   console.debug("Loading Pyodide");
-  pyodide = await loadPyodide({
+  pyodide = await initPyodide(pyodideUrl, {
     stdout: console.log,
     stderr: console.error,
   });
@@ -94,7 +113,7 @@ async function loadPyodideAndPackages() {
   postProgressMessage("Unpacking archives.");
   await Promise.all(
     archives.map(async (archive) => {
-      let buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
+      let buffer: Parameters<Pyodide.PyodideInterface["unpackArchive"]>[0];
       if ("url" in archive) {
         console.debug(`Fetch an archive from ${archive.url}`);
         buffer = await fetch(archive.url).then((res) => res.arrayBuffer());

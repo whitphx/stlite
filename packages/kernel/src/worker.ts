@@ -76,6 +76,7 @@ async function loadPyodideAndPackages() {
     wheels,
     mountedSitePackagesSnapshotFilePath,
     pyodideUrl = DEFAULT_PYODIDE_URL,
+    streamlitConfig,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
@@ -269,14 +270,18 @@ async function loadPyodideAndPackages() {
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");
   // The following Python code is based on streamlit.web.cli.main_run().
+  self.__streamlitFlagOptions__ = {
+    ...streamlitConfig,
+    "browser.gatherUsageStats": false,
+    "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
+  };
   await pyodide.runPythonAsync(`
     from stlite_server.bootstrap import load_config_options, prepare
     from stlite_server.server import Server
+    from js import __streamlitFlagOptions__
 
-    load_config_options({
-        "browser.gatherUsageStats": False,
-        "runner.fastReruns": False,  # Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
-    })
+    flag_options = __streamlitFlagOptions__.to_py()
+    load_config_options(flag_options)
 
     main_script_path = "${entrypoint}"
     command_line = None

@@ -11,6 +11,7 @@ export interface SimplifiedStliteKernelOptions {
   archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
+  streamlitConfig?: StliteKernelOptions["streamlitConfig"];
 }
 
 function canonicalizeFiles(
@@ -101,5 +102,6 @@ export function canonicalizeMountOptions(
     requirements: options.requirements || [],
     allowedOriginsResp: options.allowedOriginsResp,
     pyodideUrl: options.pyodideUrl,
+    streamlitConfig: options.streamlitConfig,
   };
 }

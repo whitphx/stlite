@@ -9,8 +9,6 @@ declare module "*.whl" {
   return res;
 }
 
-type PyodideConvertiblePrimitive = string | number | boolean | null | undefined; // Ref: https://pyodide.org/en/stable/usage/type-conversions.html#javascript-to-python
-
 // Declarations for the `self` object in worker.ts some of whose properties are used to share values with the Python environment.
 interface Window {
   __logCallback__: (msg: string) => void;

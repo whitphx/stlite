@@ -1,5 +1,12 @@
 import type { PyodideInterface } from "pyodide";
 
+export type PyodideConvertiblePrimitive =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined; // Ref: https://pyodide.org/en/stable/usage/type-conversions.html#javascript-to-python
+
 export interface HttpRequest {
   method: "GET" | "POST";
   path: string;
@@ -40,6 +47,7 @@ export interface WorkerInitialData {
     streamlit: string;
   };
   mountedSitePackagesSnapshotFilePath?: string;
+  streamlitConfig?: Record<string, PyodideConvertiblePrimitive>;
 }
 
 /**

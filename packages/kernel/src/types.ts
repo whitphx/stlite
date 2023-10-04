@@ -36,6 +36,9 @@ export interface PyodideArchiveUrl {
   format: Parameters<PyodideInterface["unpackArchive"]>[1];
   options?: Parameters<PyodideInterface["unpackArchive"]>[2];
 }
+export interface StreamlitConfig {
+  [key: string]: PyodideConvertiblePrimitive;
+}
 export interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
@@ -47,7 +50,7 @@ export interface WorkerInitialData {
     streamlit: string;
   };
   mountedSitePackagesSnapshotFilePath?: string;
-  streamlitConfig?: Record<string, PyodideConvertiblePrimitive>;
+  streamlitConfig?: StreamlitConfig;
 }
 
 /**
@@ -178,3 +181,35 @@ export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   error?: Error;
 }
 export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;
+
+/**
+ * Validators
+ */
+export function isPyodideConvertiblePrimitive(
+  value: unknown
+): value is PyodideConvertiblePrimitive {
+  return (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    value === null ||
+    value === undefined
+  );
+}
+export function isStreamlitConfig(value: unknown): value is StreamlitConfig {
+  return (
+    typeof value === "object" &&
+    value != null &&
+    Object.entries(value).every(
+      ([key, value]) =>
+        typeof key === "string" && isPyodideConvertiblePrimitive(value)
+    )
+  );
+}
+export function assertStreamlitConfig(
+  value: unknown
+): asserts value is StreamlitConfig {
+  if (!isStreamlitConfig(value)) {
+    throw new Error(`Invalid streamlitConfig: ${value}`);
+  }
+}

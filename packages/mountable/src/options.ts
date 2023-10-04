@@ -1,9 +1,5 @@
 import { StliteKernelOptions } from "@stlite/kernel";
-import type {
-  EmscriptenFile,
-  EmscriptenFileUrl,
-  PyodideConvertiblePrimitive,
-} from "@stlite/kernel";
+import type { EmscriptenFile, EmscriptenFileUrl } from "@stlite/kernel";
 
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
@@ -15,7 +11,7 @@ export interface SimplifiedStliteKernelOptions {
   archives?: StliteKernelOptions["archives"];
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
-  streamlitConfig?: Record<string, PyodideConvertiblePrimitive>;
+  streamlitConfig?: StliteKernelOptions["streamlitConfig"];
 }
 
 function canonicalizeFiles(

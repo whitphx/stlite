@@ -20,8 +20,9 @@ import type {
   ReplyMessage,
   StliteWorker,
   WorkerInitialData,
-  PyodideConvertiblePrimitive,
+  StreamlitConfig,
 } from "./types";
+import { assertStreamlitConfig } from "./types";
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
@@ -104,7 +105,7 @@ export interface StliteKernelOptions {
    * The keys are the same as the ones passed to the `streamlit run` shell command as `--` options (flags).
    * For example, `--logger.level info` is passed as `{ "logger.level": "info" }`.
    */
-  streamlitConfig?: Record<string, PyodideConvertiblePrimitive>;
+  streamlitConfig?: StreamlitConfig;
 
   onProgress?: (message: string) => void;
 
@@ -174,7 +175,11 @@ export class StliteKernel {
       console.debug("Custom wheel resolved URLs:", wheels);
     }
 
-    // TODO: Validate the input types.
+    // TODO: Assert other options as well.
+    if (options.streamlitConfig != null) {
+      assertStreamlitConfig(options.streamlitConfig);
+    }
+
     this._workerInitData = {
       entrypoint: options.entrypoint,
       files: options.files,

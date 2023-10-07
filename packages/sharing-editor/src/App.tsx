@@ -9,7 +9,7 @@ import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import { loadSampleAppData } from "./sample-app";
-import { useSampleAppId } from "./router";
+import { useSampleAppId, useEmbedMode } from "./router";
 import ResponsiveSideBySidePanes from "./components/ResponsiveSideBySidePanes";
 import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
@@ -43,6 +43,8 @@ function App() {
         .then(initializeAppData);
     }
   }, [initializeAppData, sampleAppId]);
+
+  const isEmbedMode = useEmbedMode();
 
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
 
@@ -172,9 +174,11 @@ function App() {
 
   return (
     <div className="App">
-      <ResponsiveDrawoer>
-        <SampleAppMenu />
-      </ResponsiveDrawoer>
+      {!isEmbedMode && (
+        <ResponsiveDrawoer>
+          <SampleAppMenu />
+        </ResponsiveDrawoer>
+      )}
       {appData == null ? (
         <LoadingScreen />
       ) : (

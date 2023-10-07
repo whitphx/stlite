@@ -1,5 +1,8 @@
-import { StliteKernelOptions } from "@stlite/kernel";
-import type { EmscriptenFile, EmscriptenFileUrl } from "@stlite/kernel";
+import type {
+  StliteKernelOptions,
+  EmscriptenFile,
+  EmscriptenFileUrl,
+} from "@stlite/kernel";
 
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;

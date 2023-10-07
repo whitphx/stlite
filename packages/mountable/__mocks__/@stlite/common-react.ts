@@ -1,7 +1,11 @@
+const onError = jest.fn();
+const onLoad = jest.fn();
+const onProgress = jest.fn();
+
 export function makeToastKernelCallbacks() {
   return {
-    onError: jest.fn(),
-    onLoad: jest.fn(),
-    onProgress: jest.fn(),
+    onError,
+    onLoad,
+    onProgress,
   };
 }

@@ -1,3 +1,4 @@
+import { makeToastKernelCallbacks } from "@stlite/common-react";
 import { canonicalizeMountOptions, resolveUrl } from "./options";
 
 describe("resolveUrl()", () => {
@@ -188,5 +189,29 @@ describe("canonicalizeMountOptions()", () => {
       onLoad: expect.any(Function),
       onError: expect.any(Function),
     });
+  });
+
+  it("wraps the `onError` option and also shows the original toast callback if `true` returned", () => {
+    const toastCallbacks = makeToastKernelCallbacks();
+
+    const error = new Error("foo");
+
+    const onError = jest.fn();
+    const options = canonicalizeMountOptions({ onError });
+    options.onError(error);
+    expect(onError).toHaveBeenCalledWith(error);
+    expect(toastCallbacks.onError).toHaveBeenCalledWith(error);
+  });
+
+  it("wraps the `onError` option but prevents the toast if `false` returned", () => {
+    const toastCallbacks = makeToastKernelCallbacks();
+
+    const error = new Error("foo");
+
+    const onError = jest.fn(() => false);
+    const options = canonicalizeMountOptions({ onError });
+    options.onError(error);
+    expect(onError).toHaveBeenCalledWith(error);
+    expect(toastCallbacks.onError).not.toHaveBeenCalled();
   });
 });

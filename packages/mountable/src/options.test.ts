@@ -198,7 +198,7 @@ describe("canonicalizeMountOptions()", () => {
 
     const onError = jest.fn();
     const options = canonicalizeMountOptions({ onError });
-    options.onError(error);
+    options.onError!(error);
     expect(onError).toHaveBeenCalledWith(error);
     expect(toastCallbacks.onError).toHaveBeenCalledWith(error);
   });
@@ -210,7 +210,7 @@ describe("canonicalizeMountOptions()", () => {
 
     const onError = jest.fn(() => false);
     const options = canonicalizeMountOptions({ onError });
-    options.onError(error);
+    options.onError!(error);
     expect(onError).toHaveBeenCalledWith(error);
     expect(toastCallbacks.onError).not.toHaveBeenCalled();
   });

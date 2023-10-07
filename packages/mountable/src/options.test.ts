@@ -64,9 +64,7 @@ describe("canonicalizeMountOptions()", () => {
       },
       requirements: [],
       archives: [],
-      onProgress: expect.any(Function),
-      onLoad: expect.any(Function),
-      onError: expect.any(Function),
+      ...makeToastKernelCallbacks(),
     });
   });
 
@@ -98,9 +96,7 @@ describe("canonicalizeMountOptions()", () => {
         },
       },
       archives: [],
-      onProgress: expect.any(Function),
-      onLoad: expect.any(Function),
-      onError: expect.any(Function),
+      ...makeToastKernelCallbacks(),
     });
   });
 
@@ -146,9 +142,7 @@ describe("canonicalizeMountOptions()", () => {
           options: {},
         },
       ],
-      onProgress: expect.any(Function),
-      onLoad: expect.any(Function),
-      onError: expect.any(Function),
+      ...makeToastKernelCallbacks(),
     });
   });
 
@@ -169,9 +163,7 @@ describe("canonicalizeMountOptions()", () => {
         },
       },
       archives: [],
-      onProgress: expect.any(Function),
-      onLoad: expect.any(Function),
-      onError: expect.any(Function),
+      ...makeToastKernelCallbacks(),
     });
   });
 
@@ -185,19 +177,17 @@ describe("canonicalizeMountOptions()", () => {
       entrypoint: "streamlit_app.py",
       files: {},
       archives: [],
-      onProgress: expect.any(Function),
-      onLoad: expect.any(Function),
-      onError: expect.any(Function),
+      ...makeToastKernelCallbacks(),
     });
   });
 
-  it("wraps the `onError` option and also shows the original toast callback if `true` returned", () => {
+  it("wraps the `onError` option and also delegates to the original toast callback if `true` returned", () => {
     const toastCallbacks = makeToastKernelCallbacks();
-
-    const error = new Error("foo");
 
     const onError = jest.fn();
     const options = canonicalizeMountOptions({ onError });
+
+    const error = new Error("foo");
     options.onError!(error);
     expect(onError).toHaveBeenCalledWith(error);
     expect(toastCallbacks.onError).toHaveBeenCalledWith(error);
@@ -206,10 +196,10 @@ describe("canonicalizeMountOptions()", () => {
   it("wraps the `onError` option but prevents the toast if `false` returned", () => {
     const toastCallbacks = makeToastKernelCallbacks();
 
-    const error = new Error("foo");
-
     const onError = jest.fn(() => false);
     const options = canonicalizeMountOptions({ onError });
+
+    const error = new Error("foo");
     options.onError!(error);
     expect(onError).toHaveBeenCalledWith(error);
     expect(toastCallbacks.onError).not.toHaveBeenCalled();

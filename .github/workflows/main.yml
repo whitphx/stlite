@@ -187,6 +187,8 @@ jobs:
         node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
+    - run: make common-react
+      working-directory: .
     - name: Lint
       run: |
         yarn check:eslint
@@ -211,9 +213,9 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
+    - run: yarn install --frozen-lockfile
     - run: make sharing-common
       working-directory: .
-    - run: yarn install --frozen-lockfile
     # - name: Lint
     #   run: |
     #     yarn check:eslint

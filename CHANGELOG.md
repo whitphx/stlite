@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.41.0] - 2023-10-07
+
+### `@stlite/mountable`
+
+#### Added
+
+- Add `onError` option, [#632](https://github.com/whitphx/stlite/pull/632).
+
 ## [0.40.0] - 2023-10-04
 
 ### `@stlite/mountable`

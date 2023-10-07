@@ -1,5 +1,9 @@
-import { StliteKernelOptions } from "@stlite/kernel";
-import type { EmscriptenFile, EmscriptenFileUrl } from "@stlite/kernel";
+import type {
+  StliteKernelOptions,
+  EmscriptenFile,
+  EmscriptenFileUrl,
+} from "@stlite/kernel";
+import { makeToastKernelCallbacks } from "@stlite/common-react";
 
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
@@ -12,6 +16,10 @@ export interface SimplifiedStliteKernelOptions {
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
+  // We won't add onProgress and onLoad callbacks until they are required by some users to keep the API simple.
+  onError?: (
+    ...args: Parameters<NonNullable<StliteKernelOptions["onError"]>>
+  ) => boolean | void;
 }
 
 function canonicalizeFiles(
@@ -78,6 +86,8 @@ export type MountOptions = string | SimplifiedStliteKernelOptions;
 export function canonicalizeMountOptions(
   options: string | SimplifiedStliteKernelOptions
 ): StliteKernelOptions {
+  const toastCallbacks = makeToastKernelCallbacks();
+
   if (typeof options === "string") {
     const mainScript = options;
     return {
@@ -89,11 +99,22 @@ export function canonicalizeMountOptions(
       },
       archives: [],
       requirements: [],
+      ...toastCallbacks,
     };
   }
 
   const files = canonicalizeFiles(options.files);
   const archives = canonicalizeArchives(options.archives);
+
+  const onErrorOption = options.onError;
+  const onError: StliteKernelOptions["onError"] = onErrorOption
+    ? (...args) => {
+        const shouldShowToast = onErrorOption(...args);
+        if (shouldShowToast !== false) {
+          toastCallbacks.onError(...args);
+        }
+      }
+    : toastCallbacks.onError;
 
   return {
     entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
@@ -103,5 +124,7 @@ export function canonicalizeMountOptions(
     allowedOriginsResp: options.allowedOriginsResp,
     pyodideUrl: options.pyodideUrl,
     streamlitConfig: options.streamlitConfig,
+    ...toastCallbacks,
+    onError,
   };
 }

@@ -52,21 +52,21 @@ $(common): packages/common/src/*.ts yarn_install
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): packages/common-react/src/*.ts yarn_install
+$(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 	cd packages/common-react; \
 	yarn build
 	@touch $@
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel) $(common-react)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(sharing-common) $(common-react) yarn_install
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -80,14 +80,14 @@ $(sharing-common): packages/sharing-common/src/*.ts yarn_install
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(common) $(sharing-common) yarn_install
+$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx yarn_install $(common) $(sharing-common)
 	cd packages/sharing-editor; \
 	yarn build
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) $(common) $(common-react) yarn_install
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
 	cd packages/desktop; \
 	yarn build
 	@touch $@

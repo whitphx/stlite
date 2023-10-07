@@ -63,6 +63,9 @@ describe("canonicalizeMountOptions()", () => {
       },
       requirements: [],
       archives: [],
+      onProgress: expect.any(Function),
+      onLoad: expect.any(Function),
+      onError: expect.any(Function),
     });
   });
 
@@ -94,6 +97,9 @@ describe("canonicalizeMountOptions()", () => {
         },
       },
       archives: [],
+      onProgress: expect.any(Function),
+      onLoad: expect.any(Function),
+      onError: expect.any(Function),
     });
   });
 
@@ -139,6 +145,9 @@ describe("canonicalizeMountOptions()", () => {
           options: {},
         },
       ],
+      onProgress: expect.any(Function),
+      onLoad: expect.any(Function),
+      onError: expect.any(Function),
     });
   });
 
@@ -159,6 +168,9 @@ describe("canonicalizeMountOptions()", () => {
         },
       },
       archives: [],
+      onProgress: expect.any(Function),
+      onLoad: expect.any(Function),
+      onError: expect.any(Function),
     });
   });
 
@@ -172,6 +184,9 @@ describe("canonicalizeMountOptions()", () => {
       entrypoint: "streamlit_app.py",
       files: {},
       archives: [],
+      onProgress: expect.any(Function),
+      onLoad: expect.any(Function),
+      onError: expect.any(Function),
     });
   });
 });

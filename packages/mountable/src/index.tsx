@@ -4,7 +4,11 @@ import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { canonicalizeMountOptions, MountOptions } from "./options";
-import { ToastContainer, StliteKernelWithToast } from "@stlite/common-react";
+import {
+  ToastContainer,
+  makeToastKernelCallbacks,
+  StliteKernelWithToast,
+} from "@stlite/common-react";
 import "react-toastify/dist/ReactToastify.css";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
@@ -34,6 +38,7 @@ export function mount(
   const kernel = new StliteKernel({
     ...canonicalizeMountOptions(options),
     wheelBaseUrl,
+    ...makeToastKernelCallbacks(),
   });
 
   ReactDOM.render(

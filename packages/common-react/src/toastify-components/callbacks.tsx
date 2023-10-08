@@ -4,9 +4,9 @@ import { toast, Slide, Id as ToastId } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 
 interface ToastKernelCallbacks {
-  onProgress: NonNullable<StliteKernelOptions["onProgress"]>;
-  onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
-  onError: NonNullable<StliteKernelOptions["onError"]>;
+  onProgress: StliteKernelOptions["onProgress"];
+  onLoad: StliteKernelOptions["onLoad"];
+  onError: StliteKernelOptions["onError"];
 }
 export function makeToastKernelCallbacks(): ToastKernelCallbacks {
   let prevToastId: ToastId | null = null;

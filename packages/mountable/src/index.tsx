@@ -50,6 +50,7 @@ export function mount(
   );
 
   const kernelWithToast = new StliteKernelWithToast(kernel);
+  let currentKernel: StliteKernel | StliteKernelWithToast = kernelWithToast;
 
   return {
     unmount: () => {
@@ -57,20 +58,26 @@ export function mount(
       ReactDOM.unmountComponentAtNode(container);
     },
     install: (requirements: string[]) => {
-      return kernelWithToast.install(requirements);
+      return currentKernel.install(requirements);
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, any>
     ) => {
-      return kernelWithToast.writeFile(path, data, opts);
+      return currentKernel.writeFile(path, data, opts);
     },
     renameFile: (oldPath: string, newPath: string) => {
-      return kernelWithToast.renameFile(oldPath, newPath);
+      return currentKernel.renameFile(oldPath, newPath);
     },
     unlink: (path: string) => {
-      return kernelWithToast.unlink(path);
+      return currentKernel.unlink(path);
+    },
+    enableToast: (): void => {
+      currentKernel = kernelWithToast;
+    },
+    disableToast: (): void => {
+      currentKernel = kernel;
     },
   };
 }

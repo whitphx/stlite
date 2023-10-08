@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.1] - 2023-10-09
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Send error objects from a worker thread to the main thread properly, [#638](https://github.com/whitphx/stlite/pull/638).
+
 ## [0.42.0] - 2023-10-08
 
 ### `@stlite/mountable`

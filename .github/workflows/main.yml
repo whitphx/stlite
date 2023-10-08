@@ -398,6 +398,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: packages/kernel/stlite-kernel-v*.tgz
+        generate_release_notes: true
 
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -520,6 +521,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: packages/mountable/stlite-mountable-v*.tgz
+        generate_release_notes: true
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -804,6 +806,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: packages/desktop/stlite-desktop-v*.tgz
+        generate_release_notes: true
 
   test-build-vscode-extension:
     needs: changes
@@ -903,3 +906,4 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: "${{ env.vsix_filename }}"
+        generate_release_notes: true

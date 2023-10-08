@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.0] - 2023-10-08
+
+### `@stlite/mountable`
+
+#### Added
+
+- `.disableToast()` and `.enableToast()`, [#636](https://github.com/whitphx/stlite/pull/636).
+
+#### Changed
+
+- Revert `onError`, [#635](https://github.com/whitphx/stlite/pull/635).
+
 ## [0.41.0] - 2023-10-07
 
 ### `@stlite/mountable`

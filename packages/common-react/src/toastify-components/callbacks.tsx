@@ -37,7 +37,7 @@ export function makeToastKernelCallbacks(): ToastKernelCallbacks {
       <ErrorToastContent message="Error during booting up" error={error} />,
       {
         position: toast.POSITION.BOTTOM_RIGHT,
-        type: "error",
+        type: toast.TYPE.ERROR,
         autoClose: false,
         closeOnClick: false,
       }

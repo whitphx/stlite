@@ -14,13 +14,13 @@ let pyodide: Pyodide.PyodideInterface;
 
 let httpServer: any;
 
-interface StliteWorkerContext extends Worker {
+interface StliteWorkerContext extends DedicatedWorkerGlobalScope {
   postMessage(message: OutMessage, transfer: Transferable[]): void;
   postMessage(message: OutMessage, options?: StructuredSerializeOptions): void;
 }
 
 // Ref: https://v4.webpack.js.org/loaders/worker-loader/#loading-with-worker-loader
-const ctx: StliteWorkerContext = self as any;
+const ctx = self as StliteWorkerContext;
 
 const initDataPromiseDelegate = new PromiseDelegate<WorkerInitialData>();
 

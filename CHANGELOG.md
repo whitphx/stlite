@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.2] - 2023-10-10
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Error object serialization for inter-thread communication, [#641](https://github.com/whitphx/stlite/pull/641).
+
 ## [0.42.1] - 2023-10-09
 
 ### `@stlite/kernel`

@@ -3,9 +3,9 @@ import { PromiseDelegate } from "@lumino/coreutils";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";
-import {
+import type {
   WorkerInitialData,
-  type OutMessage,
+  OutMessage,
   InMessage,
   ReplyMessageHttpResponse,
 } from "./types";

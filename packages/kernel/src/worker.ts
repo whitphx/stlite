@@ -1,5 +1,5 @@
 import type Pyodide from "pyodide";
-import { PromiseDelegate } from "@lumino/coreutils";
+import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";

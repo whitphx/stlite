@@ -1,9 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { parseRequirementsTxt } from "@stlite/common";
+import { parseRequirementsTxt, PromiseDelegate } from "@stlite/common";
 import minimatch from "minimatch";
-
-import { PromiseDelegate } from "./promise-delegate";
 
 declare const STLITE_VERSION: string; // This is set by webpack during the build
 

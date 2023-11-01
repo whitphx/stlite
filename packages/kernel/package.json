@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",
-    "@lumino/coreutils": "^1.12.0",
+    "@stlite/common": "^0.42.2",
     "form-data-encoder": "^2.0.1",
     "path-browserify": "^1.0.1",
     "streamlit-browser": "^1.18.1"

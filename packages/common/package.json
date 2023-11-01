@@ -1,16 +1,21 @@
 {
   "name": "@stlite/common",
   "version": "0.42.2",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "files": [
     "dist/"
   ],
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "start": "tsc -w",
-    "build": "tsc",
+    "start": "run-p start:*",
+    "start:esm": "tsc -w -p tsconfig.esm.json",
+    "start:cjs": "tsc -w -p tsconfig.cjs.json",
+    "build": "run-p build:*",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",

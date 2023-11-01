@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.3] - 2023-11-01
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Use internal implementation of `PromiseDelegate`, [#646](https://github.com/whitphx/stlite/pull/646).
+
 ## [0.42.2] - 2023-10-10
 
 ### `@stlite/kernel`

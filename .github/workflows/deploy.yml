@@ -108,14 +108,6 @@ jobs:
         mkdir -p /tmp/website
         cp -r ./mountable/* /tmp/website/.
         mv /tmp/website/asset-manifest.json /tmp/website/manifest.json
-    # Deploying to notebook-staging
-    - uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
-        channelId: live
-        projectId: fbhosting-217032465111
-        target: cognite-notebook-standalone-staging
     # Deploying to Firebase
     - uses: FirebaseExtended/action-hosting-deploy@v0
       with:

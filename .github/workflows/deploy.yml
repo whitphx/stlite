@@ -87,6 +87,7 @@ jobs:
         path: packages/mountable/build
 
   deploy:
+    environment: CD
     needs: build
 
     runs-on: ubuntu-latest

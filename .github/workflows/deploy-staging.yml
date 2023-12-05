@@ -1,10 +1,9 @@
-name: Build and Deploy Stlite
+name: Deploy stlite to staging
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
@@ -105,10 +104,10 @@ jobs:
       with:
         name: stlite-mountable
         path: mountable
-    - name: Set the build artifact paths
+    - name: Copy firebase.json to the root directory
       run: |
         cp -r ./mountable/firebase.json $(pwd)
-    - name: Set the build artifact paths
+    - name: Rename the manifest file
       run: |
         mv ./mountable/asset-manifest.json ./mountable/manifest.json
     # Deploying to Firebase
@@ -118,6 +117,6 @@ jobs:
         firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
         channelId: live
         projectId: fusion-217032465111
-        target: cognite-stlite-standalone-production
+        target: cognite-stlite-standalone-staging
     
 

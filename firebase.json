@@ -1,13 +1,26 @@
 {
-    "hosting": {
-      "site": "cdf-stlite-prod",
+  "hosting": [
+    {
+      "site": "cognite-stlite-standalone-staging",
       "public": "/tmp/website/",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
     },
     {
-      "site": "cdf-stlite-staging",
+      "site": "cognite-stlite-standalone-production",
       "public": "/tmp/website/",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
     }
+  ]
 }
-  

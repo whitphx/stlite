@@ -110,9 +110,7 @@ jobs:
         cp -r ./mountable/firebase.json $(pwd)
     - name: Set the build artifact paths
       run: |
-        mkdir -p /tmp/website
-        cp -r ./mountable/* /tmp/website/.
-        mv /tmp/website/asset-manifest.json /tmp/website/manifest.json
+        mv ./mountable/asset-manifest.json ./mountable/manifest.json
     # Deploying to Firebase
     - uses: FirebaseExtended/action-hosting-deploy@v0
       with:

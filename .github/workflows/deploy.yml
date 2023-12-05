@@ -4,8 +4,8 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
-
+    branches:
+      - '*'
 jobs:
   build:
     strategy:
@@ -89,7 +89,6 @@ jobs:
         path: packages/mountable/build
 
   deploy:
-    environment: CD
     needs: build
 
     runs-on: ubuntu-latest

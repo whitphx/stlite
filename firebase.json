@@ -2,7 +2,7 @@
   "hosting": [
     {
       "site": "cognite-stlite-standalone-staging",
-      "public": "/tmp/website/",
+      "public": "./mountable",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
@@ -13,7 +13,7 @@
     },
     {
       "site": "cognite-stlite-standalone-production",
-      "public": "/tmp/website/",
+      "public": "./mountable",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {

@@ -12,6 +12,11 @@ import type {
 
 let pyodide: Pyodide.PyodideInterface;
 
+// Cognite
+let token: string;
+let baseUrl: string;
+let project: string;
+
 let httpServer: any;
 
 interface StliteWorkerContext extends DedicatedWorkerGlobalScope {
@@ -322,6 +327,8 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const msg = event.data;
 
+  handleCogniteMessage(msg);
+
   // Special case for transmitting the initial data
   if (msg.type === "initData") {
     initDataPromiseDelegate.resolve(msg.data);
@@ -497,3 +504,26 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 ctx.postMessage({
   type: "event:start",
 });
+
+const handleCogniteMessage = async (msg: InMessage) => {
+  // handle Cognite data
+  if (msg.type === "newToken") {
+    token = msg.data.token;
+    project = msg.data.project;
+    baseUrl = msg.data.baseUrl;
+
+    if (token && project && baseUrl) {
+      if (pyodide) {
+        // If kernel is ready, set new values
+        await pyodide.runPythonAsync(`
+        import os
+        os.environ["COGNITE_TOKEN"] = "${token}"
+        os.environ["COGNITE_PROJECT"] = "${project}"
+        os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+        # Set flag to tell the SDK that we are inside of a Fusion Notebook:
+        os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
+      `);
+      }
+    }
+  }
+};

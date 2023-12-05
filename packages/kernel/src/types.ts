@@ -109,6 +109,16 @@ export interface InMessageInstall extends InMessageBase {
     requirements: string[];
   };
 }
+
+export interface InTokenMessage extends InMessageBase {
+  type: "newToken";
+  data: {
+    token: string;
+    baseUrl: string;
+    project: string;
+  };
+}
+
 export type InMessage =
   | InMessageInitData
   | InMessageWebSocketConnect
@@ -117,7 +127,8 @@ export type InMessage =
   | InMessageFileWrite
   | InMessageFileRename
   | InMessageFileUnlink
-  | InMessageInstall;
+  | InMessageInstall
+  | InTokenMessage;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;

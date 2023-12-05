@@ -1,6 +1,5 @@
-pyodide/pyodide.asm.data
 pyodide/pyodide.asm.js
 pyodide/pyodide.asm.wasm
 pyodide/pyodide.js
-pyodide/pyodide_py.tar
+pyodide/python_stdlib.zip
 pyodide/repodata.json

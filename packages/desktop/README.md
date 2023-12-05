@@ -24,10 +24,10 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
        }
      },
      "devDependencies": {
-       "@stlite/desktop": "^0.25.0",
+       "@stlite/desktop": "0.39.0",
        "cross-env": "^7.0.3",
-       "electron": "23.1.1",
-       "electron-builder": "^23.6.0"
+       "electron": "^26.2.4",
+       "electron-builder": "^24.6.4"
      }
    }
    ```
@@ -55,6 +55,21 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 
 To make your app secure, be sure to use the latest version of Electron.
 This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.
+
+## Hide the toolbar, hamburger menu, and the footer
+
+If you want to hide the toolbar, hamburger menu, and the footer, add the following to your `package.json` file and run the `dump` command again. By adding the `stlite.desktop.embed` field, the dumped Streamlit app will work in the [embed mode](https://docs.streamlit.io/streamlit-community-cloud/get-started/embed-your-app#embedding-with-iframes) which hides the toolbar, hamburger menu, and the footer.
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "embed": true
+    }
+  }
+}
+```
 
 ## Limitations
 

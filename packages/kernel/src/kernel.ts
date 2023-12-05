@@ -1,11 +1,28 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
-import { PromiseDelegate } from "@lumino/coreutils";
+import { PromiseDelegate } from "@stlite/common";
 
-import { IAllowedMessageOriginsResponse } from "streamlit-browser/src/hocs/withHostCommunication/types";
+import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types";
 
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+
+import type {
+  EmscriptenFile,
+  EmscriptenFileUrl,
+  ReplyMessageGeneralReply,
+  HttpRequest,
+  HttpResponse,
+  InMessage,
+  OutMessage,
+  PyodideArchive,
+  PyodideArchiveUrl,
+  ReplyMessage,
+  StliteWorker,
+  WorkerInitialData,
+  StreamlitConfig,
+} from "./types";
+import { assertStreamlitConfig } from "./types";
 
 // Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
 // so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
@@ -13,7 +30,7 @@ import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.21.0-py2.py3-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl";
 
 import mixpanel from "mixpanel-browser";
 mixpanel.init("fb25742efb56d116b736515a0ad5f6ef", { debug: false });
@@ -36,16 +53,18 @@ export interface StliteKernelOptions {
   /**
    * Files to mount.
    */
-  files: Record<
-    string,
-    { data: string | ArrayBufferView; opts?: Record<string, any> }
-  >;
+  files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
 
   /**
-   * The URL of `pyodide.js` to be loaded via `importScripts()` in the worker.
+   * Archives to unpack and mount.
+   */
+  archives: Array<PyodideArchive | PyodideArchiveUrl>;
+
+  /**
+   * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
    * If not specified, the default one is used.
    */
-  pyodideEntrypointUrl?: string;
+  pyodideUrl?: string;
 
   /**
    *
@@ -82,6 +101,14 @@ export interface StliteKernelOptions {
    * so explicitly setting `basePath` is recommended.
    */
   basePath?: string;
+
+  /**
+   * Streamlit configurations described in https://docs.streamlit.io/library/advanced-features/configuration.
+   * These values can be configured through this property as key-value pairs.
+   * The keys are the same as the ones passed to the `streamlit run` shell command as `--` options (flags).
+   * For example, `--logger.level info` is passed as `{ "logger.level": "info" }`.
+   */
+  streamlitConfig?: StreamlitConfig;
 
   onProgress?: (message: string) => void;
 
@@ -154,14 +181,21 @@ export class StliteKernel {
       console.debug("Custom wheel resolved URLs:", wheels);
     }
 
+    // TODO: Assert other options as well.
+    if (options.streamlitConfig != null) {
+      assertStreamlitConfig(options.streamlitConfig);
+    }
+
     this._workerInitData = {
       entrypoint: options.entrypoint,
       files: options.files,
+      archives: options.archives,
       requirements: options.requirements,
-      pyodideEntrypointUrl: options.pyodideEntrypointUrl,
+      pyodideUrl: options.pyodideUrl,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,
+      streamlitConfig: options.streamlitConfig,
     };
   }
 
@@ -211,7 +245,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, any>
+    opts?: Record<string, unknown>
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -253,7 +287,7 @@ export class StliteKernel {
 
   private _asyncPostMessage(
     message: InMessage
-  ): Promise<GeneralReplyMessage["data"]>;
+  ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
     expectedReplyType: T

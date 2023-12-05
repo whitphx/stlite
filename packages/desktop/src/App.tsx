@@ -4,7 +4,7 @@ import StreamlitApp from "./StreamlitApp";
 import { makeToastKernelCallbacks } from "@stlite/common-react";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
-let pyodideEntrypointUrl: string | undefined;
+let pyodideUrl: string | undefined;
 if (process.env.NODE_ENV === "production") {
   // The `pyodide` directory including `pyodide.js` is downloaded
   // to the build target directory at the build time for production release.
@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === "production") {
   // We set the path here to be loaded in the worker via `importScript()`.
   const currentURL = window.location.href;
   const parentURL = currentURL.split("/").slice(0, -1).join("/") + "/";
-  pyodideEntrypointUrl = parentURL + "pyodide/pyodide.js";
+  pyodideUrl = parentURL + "pyodide/pyodide.js";
 }
 
 function App() {
@@ -24,37 +24,41 @@ function App() {
 
     Promise.all([
       window.archives.readSitePackagesSnapshot(),
+      window.archives.readRequirements(),
       window.archives.readStreamlitAppDirectory(),
-    ]).then(([sitePackagesSnapshotFileBin, streamlitAppFiles]) => {
-      if (unmounted) {
-        return;
-      }
+    ]).then(
+      ([sitePackagesSnapshotFileBin, requirements, streamlitAppFiles]) => {
+        if (unmounted) {
+          return;
+        }
 
-      const files: StliteKernelOptions["files"] = {};
-      Object.keys(streamlitAppFiles).forEach((path) => {
-        const data = streamlitAppFiles[path];
-        files[path] = {
-          data,
-        };
-      });
+        const files: StliteKernelOptions["files"] = {};
+        Object.keys(streamlitAppFiles).forEach((path) => {
+          const data = streamlitAppFiles[path];
+          files[path] = {
+            data,
+          };
+        });
 
-      const mountedSitePackagesSnapshotFilePath =
-        "/tmp/site-packages-snapshot.tar.gz";
-      kernel = new StliteKernel({
-        entrypoint: "streamlit_app.py",
-        files: {
-          ...files,
-          [mountedSitePackagesSnapshotFilePath]: {
-            data: sitePackagesSnapshotFileBin,
+        const mountedSitePackagesSnapshotFilePath =
+          "/tmp/site-packages-snapshot.tar.gz";
+        kernel = new StliteKernel({
+          entrypoint: "streamlit_app.py",
+          files: {
+            ...files,
+            [mountedSitePackagesSnapshotFilePath]: {
+              data: sitePackagesSnapshotFileBin,
+            },
           },
-        },
-        requirements: [],
-        mountedSitePackagesSnapshotFilePath,
-        pyodideEntrypointUrl,
-        ...makeToastKernelCallbacks(),
-      });
-      setKernel(kernel);
-    });
+          archives: [],
+          requirements,
+          mountedSitePackagesSnapshotFilePath,
+          pyodideUrl,
+          ...makeToastKernelCallbacks(),
+        });
+        setKernel(kernel);
+      }
+    );
 
     return () => {
       unmounted = true;

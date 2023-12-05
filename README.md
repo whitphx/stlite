@@ -41,12 +41,12 @@ Here is a sample HTML file.
     <title>stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.0/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.31.0/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.js"></script>
     <script>
       stlite.mount(
         `
@@ -66,6 +66,21 @@ In this sample,
 
 - stlite library is imported with the first script tag, then the global `stlite` object becomes available.
 - `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
+
+> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in `` st.mount(` ... `) ``. To avoid this, you can escape them with with a preceding backslash `\`.
+>
+> ```html
+> <script>
+>   stlite.mount(
+>     `
+> import streamlit as st
+> 
+> st.markdown("This is an inline code format: \`code\`")
+> `,
+>     document.getElementById("root")
+>   );
+> </script>
+> ```
 
 ### More controls
 
@@ -96,28 +111,105 @@ st.pyplot(fig)
 );
 ```
 
-### Other stlite versions
+### Various ways to load files
 
-In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
-You can use another version by changing the version number in the URL.
+You can pass an object to the `files` option to mount files, whose keys are file paths, and you can specify the values in various ways as below.
 
-The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
+#### Passing string or binary data
 
-#### The latest release
+You can pass the file content as a string or binary data.
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+This is what we did in the example above.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/text_file.txt": "file content",
+      "path/to/binary_file.bin": new Uint8Array([0x00, 0x01, 0x02, 0x03]),
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
 ```
 
-You can use the latest version of the published stlite package with this URL.
+#### Passing an object with a URL
 
-#### The head of the main branch
+You can use this way to load a file from a URL and mount it to the specified path on the virtual file system.
 
-```html
-<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+Either an absolute or relative URL is accepted. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/file": {
+        url: "https://example.com/path/to/file",
+      },
+      "path/to/file2": {
+        url: "./path/to/file",
+      },
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
 ```
 
-This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
+#### Passing an object with options (advanced)
+
+stlite runs on [Pyodide](https://pyodide.org/), and [it has a file system provided by Emscripten](https://pyodide.org/en/stable/usage/file-system.html).
+The files specified via the `files` option are mounted on the file system, and [Emscripten's `FS.writeFile()` function](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.writeFile) is used internally for it.
+You can specify the options (`opts`) for the `FS.writeFile(path, data, opts)` function as below.
+
+```js
+stlite.mount(
+  {
+    files: {
+      "path/to/text_file.txt": {
+        data: "file content",
+        opts: {
+          encoding: "utf8",
+        },
+      },
+      "path/to/file": {
+        url: "https://example.com/path/to/file",
+        opts: {
+          encoding: "utf8",
+        },
+      },
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+### Loading archive files
+
+You can load archive files such as zip files, unpack them, and mount the unpacked files to the file system by using the `archives` option.
+
+The `url` field of each item accepts either an absolute or relative URL. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
+
+The downloaded archive file is unpacked by the [`pyodide.unpackArchive(buffer, format, options)`](https://pyodide.org/en/stable/usage/api/js-api.html#pyodide.unpackArchive) function. You have to pass the rest of the arguments of the function, `format` and `options` as below.
+
+```js
+mount(
+  {
+    archives: [
+      {
+        url: "./foo.zip",
+        // buffer: new Uint8Array([...archive file binary...]), // You can also pass the binary data directly
+        format: "zip",
+        options: {},
+      },
+    ],
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
 
 ### Multipage apps
 
@@ -154,14 +246,58 @@ st.title("Page 2")
 );
 ```
 
+### Different stlite versions
+
+In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
+You can use another version by changing the version number in the URL.
+
+The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
+
+#### The latest release
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+```
+
+You can use the latest version of the published stlite package with this URL.
+
+#### The head of the main branch
+
+```html
+<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+```
+
+This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
+
+### Different Pyodide distributions
+
+_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for the CDN access.
+
+```js
+stlite.mount(
+  {
+    pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
 ## Limitations
 
 As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
 - `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because stlite runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
+  - If you want to show a spinner with a blocking method, add a 0.1 second sleep before the blocking method call, although this will definitely add an empty 0.1 second wait to the execution.
+    ```python
+    with st.spinner("Running a blocking method..."):
+        await asyncio.sleep(0.1)  # Add this line to wait for the spinner to start showing
+        some_blocking_method()
+    ```
+- `st.bokeh_chart()` does not work since Pyodide uses Bokeh version 3.x while Streamlit only supports 2.x. The 3.x support for Streamlit is tracked here: https://github.com/streamlit/streamlit/issues/5858
 - `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
-- `st.experimental_data_editor` does not work as it relies on PyArrow, but it doesn't work on Pyodide. Track this issue on https://github.com/whitphx/stlite/issues/509.
-- For URL access, `urllib` or `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.
+- There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that stlite uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
+- For URL access, `urllib` and `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.
 - The C extension packages that are not built for Pyodide cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#micropip-can-t-find-a-pure-python-wheel for the details.
 
 Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues
@@ -169,7 +305,7 @@ If you find a new problem, please report it.
 
 ## Top-level await
 
-TL;DR: use top-level await instead of `asyncio.run()` on stlite.
+TL;DR: Use top-level await instead of `asyncio.run()` on stlite.
 
 Unlike the original Streamlit, stlite supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, stlite runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
 
@@ -204,7 +340,7 @@ await main()
 
 ### Example 2: `pyodide.http.pyfetch()`
 
-Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, like `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
+Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, such as `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
 
 Here's a sample code snippet demonstrating the usage of top-level await with `pyodide.http.pyfetch()`:
 
@@ -228,6 +364,9 @@ data_in_bytes = await response.bytes()
   A tutorial to convert a Streamlit app to an executable file with stlite and a demo to run it on an offline machine.
 - [📖 "Is This the Easiest Way to Build Your Streamlit App?", by Shantala Mukherjee](https://onlyweb.hashnode.dev/is-this-the-easiest-way-to-build-your-streamlit-app)
 - [📖 "The Best Python Desktop App Framework?", by Caleb Robey at Depot Analytics](https://www.depotanalytics.co/post/the-best-python-desktop-app-framework)
+- [📖 "Python-Based Data Viz (With No Installation Required)", by Sam Minot](https://towardsdatascience.com/python-based-data-viz-with-no-installation-required-aaf2358c881)
+- [📖 "Converting Streamlit application to exe file", by Neelasha Sen](https://ploomber.io/blog/streamlit_exe/)
+- [📖 "Streamlit + Stlite: Beyond Data Science Applications", by Saumitra Panchal](https://medium.com/@saumitrapanchal/streamlit-stlite-beyond-data-science-applications-23de64648883)
 
 ## Samples
 

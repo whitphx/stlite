@@ -23,6 +23,10 @@
 }
 .transitionContainer.showRight {
   transform: translateX(-100vw);
+
+  @include mixins.responsive(md) {
+    transform: none;
+  }
 }
 
 .divider {

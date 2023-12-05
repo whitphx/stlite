@@ -1,5 +1,12 @@
-graphviz
+pandas
 plotly
-pydeck
-scipy
+bokeh
+graphviz
+requests
 matplotlib
+numpy
+scipy
+altair
+pydeck
+vega_datasets
+streamlit

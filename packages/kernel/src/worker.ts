@@ -1,25 +1,26 @@
-import { PyodideInterface } from "pyodide";
-import { PromiseDelegate } from "@lumino/coreutils";
+import type Pyodide from "pyodide";
+import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";
+import type {
+  WorkerInitialData,
+  OutMessage,
+  InMessage,
+  ReplyMessageHttpResponse,
+} from "./types";
 
-let pyodide: PyodideInterface;
-
-// Cognite
-let token: string;
-let baseUrl: string;
-let project: string;
+let pyodide: Pyodide.PyodideInterface;
 
 let httpServer: any;
 
-interface StliteWorkerContext extends Worker {
+interface StliteWorkerContext extends DedicatedWorkerGlobalScope {
   postMessage(message: OutMessage, transfer: Transferable[]): void;
   postMessage(message: OutMessage, options?: StructuredSerializeOptions): void;
 }
 
 // Ref: https://v4.webpack.js.org/loaders/worker-loader/#loading-with-worker-loader
-const ctx: StliteWorkerContext = self as any;
+const ctx = self as StliteWorkerContext;
 
 const initDataPromiseDelegate = new PromiseDelegate<WorkerInitialData>();
 
@@ -31,6 +32,31 @@ function postProgressMessage(message: string): void {
     },
   });
 }
+
+async function initPyodide(
+  pyodideUrl: string,
+  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0]
+): Promise<Pyodide.PyodideInterface> {
+  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
+  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
+
+  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
+  let loadPyodide: typeof Pyodide.loadPyodide;
+  if (pyodideUrl.endsWith(".mjs")) {
+    // note: this does not work at all in firefox
+    const pyodideModule: typeof Pyodide = await import(
+      /* webpackIgnore: true */ pyodideUrl
+    );
+    loadPyodide = pyodideModule.loadPyodide;
+  } else {
+    importScripts(pyodideUrl);
+    loadPyodide = (self as any).loadPyodide;
+  }
+  return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
+}
+
+const DEFAULT_PYODIDE_URL =
+  "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js";
 
 /**
  * Load Pyodided and initialize the interpreter.
@@ -45,37 +71,62 @@ async function loadPyodideAndPackages() {
   const {
     entrypoint,
     files,
+    archives,
     requirements,
     wheels,
     mountedSitePackagesSnapshotFilePath,
-    pyodideEntrypointUrl,
+    pyodideUrl = DEFAULT_PYODIDE_URL,
+    streamlitConfig,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
 
-  console.debug("Import the entrypoint script.");
-  importScripts(
-    pyodideEntrypointUrl ??
-      "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"
-  );
-
   console.debug("Loading Pyodide");
-  pyodide = await loadPyodide({
+  pyodide = await initPyodide(pyodideUrl, {
+    stdout: console.log,
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
 
-  console.debug("Patch Cognite");
-  patchCognite();
-
   // Mount files
   postProgressMessage("Mounting files.");
-  Object.keys(files).forEach((path) => {
-    const { data, opts } = files[path];
+  await Promise.all(
+    Object.keys(files).map(async (path) => {
+      const file = files[path];
 
-    console.debug(`Write a file "${path}"`);
-    writeFileWithParents(pyodide, path, data, opts);
-  });
+      let data: string | ArrayBufferView;
+      if ("url" in file) {
+        console.debug(`Fetch a file from ${file.url}`);
+        data = await fetch(file.url)
+          .then((res) => res.arrayBuffer())
+          .then((buffer) => new Uint8Array(buffer));
+      } else {
+        data = file.data;
+      }
+      const { opts } = files[path];
+
+      console.debug(`Write a file "${path}"`);
+      writeFileWithParents(pyodide, path, data, opts);
+    })
+  );
+
+  // Unpack archives
+  postProgressMessage("Unpacking archives.");
+  await Promise.all(
+    archives.map(async (archive) => {
+      let buffer: Parameters<Pyodide.PyodideInterface["unpackArchive"]>[0];
+      if ("url" in archive) {
+        console.debug(`Fetch an archive from ${archive.url}`);
+        buffer = await fetch(archive.url).then((res) => res.arrayBuffer());
+      } else {
+        buffer = archive.buffer;
+      }
+      const { format, options } = archive;
+
+      console.debug(`Unpack an archive`, { format, options });
+      pyodide.unpackArchive(buffer, format, options);
+    })
+  );
 
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.
@@ -116,14 +167,18 @@ async function loadPyodideAndPackages() {
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
+  } else {
+    throw new Error(`Neither snapshot nor wheel files are provided.`);
+  }
 
+  if (requirements.length > 0) {
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);
     verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
     await micropip.install.callKwargs(requirements, { keep_going: true });
     console.debug("Installed the requirements:", requirements);
-  } else {
-    throw new Error(`Neither snapshot nor wheel files are provided.`);
   }
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
@@ -167,6 +222,8 @@ async function loadPyodideAndPackages() {
       console.info(msg);
     } else if (msg.startsWith("DEBUG")) {
       console.debug(msg);
+    } else {
+      console.log(msg);
     }
   };
   self.__logCallback__ = logCallback;
@@ -213,15 +270,18 @@ async function loadPyodideAndPackages() {
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");
   // The following Python code is based on streamlit.web.cli.main_run().
+  self.__streamlitFlagOptions__ = {
+    ...streamlitConfig,
+    "browser.gatherUsageStats": false,
+    "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
+  };
   await pyodide.runPythonAsync(`
     from stlite_server.bootstrap import load_config_options, prepare
     from stlite_server.server import Server
+    from js import __streamlitFlagOptions__
 
-    load_config_options({
-        "global.dataFrameSerialization": "legacy",  # Not to use PyArrow
-        "browser.gatherUsageStats": False,
-        "runner.fastReruns": False,  # Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
-    })
+    flag_options = __streamlitFlagOptions__.to_py()
+    load_config_options(flag_options)
 
     main_script_path = "${entrypoint}"
     command_line = None
@@ -260,32 +320,11 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
  * @param event The message event to process
  */
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
-  const data = event.data;
-
-  // handle Cognite data
-  if (event.data.type === "newToken") {
-    token = data.token;
-    project = data.project;
-    baseUrl = data.baseUrl;
-
-    if (token && project && baseUrl) {
-      if (pyodide) {
-        // If kernel is ready, set new values
-        await pyodide.runPythonAsync(`
-        import os
-        os.environ["COGNITE_TOKEN"] = "${token}"
-        os.environ["COGNITE_PROJECT"] = "${project}"
-        os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
-        # Set flag to tell the SDK that we are inside of a Fusion Notebook:
-        os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
-      `);
-      }
-    }
-  }
+  const msg = event.data;
 
   // Special case for transmitting the initial data
-  if (data.type === "initData") {
-    initDataPromiseDelegate.resolve(data.data);
+  if (msg.type === "initData") {
+    initDataPromiseDelegate.resolve(msg.data);
     return;
   }
 
@@ -294,11 +333,11 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const messagePort = event.ports[0];
 
   try {
-    switch (data.type) {
+    switch (msg.type) {
       case "websocket:connect": {
-        console.debug("websocket:connect", data.data);
+        console.debug("websocket:connect", msg.data);
 
-        const { path } = data.data;
+        const { path } = msg.data;
 
         httpServer.start_websocket(
           path,
@@ -336,24 +375,24 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         break;
       }
       case "websocket:send": {
-        console.debug("websocket:send", data.data);
+        console.debug("websocket:send", msg.data);
 
-        const { payload } = data.data;
+        const { payload } = msg.data;
 
         httpServer.receive_websocket_from_js(payload);
         break;
       }
       case "http:request": {
-        console.debug("http:request", data.data);
+        console.debug("http:request", msg.data);
 
-        const { request } = data.data;
+        const { request } = msg.data;
 
         const onResponse = (statusCode: number, _headers: any, _body: any) => {
           const headers = _headers.toJs();
           const body = _body.toJs();
           console.debug({ statusCode, headers, body });
 
-          const reply: HttpResponseMessage = {
+          const reply: ReplyMessageHttpResponse = {
             type: "http:response",
             data: {
               response: {
@@ -376,7 +415,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         break;
       }
       case "file:write": {
-        const { path, data: fileData, opts } = data.data;
+        const { path, data: fileData, opts } = msg.data;
 
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, fileData, opts);
@@ -386,7 +425,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         break;
       }
       case "file:rename": {
-        const { oldPath, newPath } = data.data;
+        const { oldPath, newPath } = msg.data;
 
         console.debug(`Rename "${oldPath}" to ${newPath}`);
         renameWithParents(pyodide, oldPath, newPath);
@@ -396,7 +435,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         break;
       }
       case "file:unlink": {
-        const { path } = data.data;
+        const { path } = msg.data;
 
         console.debug(`Remove "${path}`);
         pyodide.FS.unlink(path);
@@ -406,10 +445,11 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
         break;
       }
       case "install": {
-        const { requirements } = data.data;
+        const { requirements } = msg.data;
 
         const micropip = pyodide.pyimport("micropip");
 
+        console.debug("Install the requirements:", requirements);
         verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
         await micropip.install
           .callKwargs(requirements, { keep_going: true })
@@ -430,9 +470,26 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
       }
     }
   } catch (error) {
+    console.error(error);
+
+    if (!(error instanceof Error)) {
+      throw error;
+    }
+
+    // The `error` object may contain non-serializable properties such as function (for example Pyodide.FS.ErrnoError which has a `.setErrno` function),
+    // so it must be converted to a plain object before sending it to the main thread.
+    // Otherwise, the following error will be thrown:
+    // `Uncaught (in promise) DOMException: Failed to execute 'postMessage' on 'MessagePort': #<Object> could not be cloned.`
+    // Also, the JSON.stringify() and JSON.parse() approach like https://stackoverflow.com/a/42376465/13103190
+    // does not work for Error objects because the Error object is not enumerable.
+    // So we use the following approach to clone the Error object.
+    const cloneableError = new Error(error.message);
+    cloneableError.name = error.name;
+    cloneableError.stack = error.stack;
+
     messagePort.postMessage({
       type: "reply",
-      error,
+      error: cloneableError,
     });
   }
 };
@@ -440,15 +497,3 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 ctx.postMessage({
   type: "event:start",
 });
-
-const patchCognite = async (): Promise<void> => {
-  // If token has been passed already, set token etc
-  await pyodide.runPythonAsync(`
-    import os
-    os.environ["COGNITE_TOKEN"] = "${token}"
-    os.environ["COGNITE_PROJECT"] = "${project}"
-    os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
-    # Set flag to tell the SDK that we are inside of a Fusion Notebook:
-    os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
-  `);
-};

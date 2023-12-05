@@ -3,10 +3,10 @@
     "target": "ESNext",
     "module": "commonjs",
     "outDir": ".",
-    "rootDir": ".",
+    "rootDir": "..",
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["."],
+  "include": ["./bin", "./electron"],
   "exclude": []
 }

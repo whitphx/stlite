@@ -573,6 +573,14 @@ module.exports = function (webpackEnv) {
           type: "javascript/auto",
         },
         // Stlite:
+        // For parquet-wasm, which includes `.wasm` files and needs async load.
+        // https://qiita.com/laiso/items/a5f7362c4a9163a878e5
+        // https://webpack.js.org/configuration/experiments/
+        {
+          test: /\.wasm$/,
+          type: "webassembly/async",
+        },
+        // Stlite:
         // Since Webpack5, Asset Modules has been introduced to cover what file-loader had done.
         // However, in this project, we use the inline loader setting like `import * from "!!file-loader!/path/to/file"` to use file-loader
         // but it does not turn off Asset Modules and leads to duplicate assets generated.
@@ -590,6 +598,11 @@ module.exports = function (webpackEnv) {
           type: "javascript/auto",
         },
       ].filter(Boolean),
+    },
+    // Stlite:
+    // This is necessary to make the async load of parquet-wasm work. See the comment above about parquet-wasm as well.
+    experiments: {
+      asyncWebAssembly: true,
     },
     plugins: [
       // Generates an `index.html` file with the <script> injected.

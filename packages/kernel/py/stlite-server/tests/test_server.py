@@ -1,6 +1,5 @@
 import asyncio
 import os
-import re
 import threading
 from typing import Any
 from unittest.mock import ANY, Mock, patch
@@ -130,15 +129,12 @@ def test_http_media(setup_server):
     }
     assert called_header | expected_header == called_header
 
-    # For the case where the file name is None and specified via query parameter
+    # For the case where the file name is None
     url2 = Runtime.instance().media_file_mgr.add(
         b"Bar1\nBar2\nBar3", "text/plain", "1234", None, is_for_static_download=True
     )
 
     server.receive_http("GET", url2, {}, "", on_response)  # No query parameter
-    on_response.assert_called_with(400, ANY, b"Bad Request")
-
-    server.receive_http("GET", url2 + "?title=bar", {}, "", on_response)
     on_response.assert_called_with(200, ANY, b"Bar1\nBar2\nBar3")
     called_header = on_response.call_args[0][1]
     expected_header = {
@@ -146,10 +142,11 @@ def test_http_media(setup_server):
         "Content-Length": str(len(b"Bar1\nBar2\nBar3")),
     }
     assert called_header | expected_header == called_header
-    assert re.match(
-        r"^attachment; filename=\"Bar_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}.txt\"$",
-        called_header["Content-Disposition"],
+    assert (
+        called_header["Content-Disposition"]
+        == 'attachment; filename="streamlit_download.txt"'
     )
+    on_response.reset_mock()
 
 
 @patch("streamlit.runtime.websocket_session_manager.AppSession")

@@ -120,6 +120,6 @@ jobs:
         firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
         channelId: live
         projectId: fusion-217032465111
-        target: cdf-stlite-prod
+        target: cognite-stlite-standalone-production
     
 

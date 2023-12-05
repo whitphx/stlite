@@ -78,7 +78,9 @@ jobs:
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
       run: make mountable
-
+    - if: matrix.target == 'mountable'
+      name: Copy firebase.json
+      run: cp firebase.json packages/mountable/build/
     - if: matrix.target == 'mountable'
       name: Upload the built files as an artifact
       uses: actions/upload-artifact@v3

@@ -13,7 +13,7 @@ A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers.
 
-## Try it out
+## Try it out now
 
 Visit [stlite sharing](https://edit.share.stlite.net/).
 

@@ -5,6 +5,10 @@ on:
     branches:
       - release-production
 
+env:
+  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+  USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
+      
 jobs:
   build:
     strategy:
@@ -12,7 +16,7 @@ jobs:
         target: ["mountable"]
 
     env:
-      python-version: "3.11.2"
+      python-version: "3.10"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -50,7 +54,7 @@ jobs:
       id: cache
       with:
         path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
     - name: Ensure cache is healthy
       if: steps.cache.outputs.cache-hit == 'true'
@@ -61,7 +65,7 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
-
+    
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
     # Actions are running as of 2023.05.03 - doesn't have recent versions
     # of protoc in its package repository.
@@ -75,18 +79,19 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
       env:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-
     - name: Set up
       run: make init
-
+    
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - if: matrix.target == 'mountable'
       name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+    
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
-      run: make mountable
+      run: make mountable  
+
     - if: matrix.target == 'mountable'
       name: Copy firebase.json
       run: cp firebase.json packages/mountable/build/
@@ -106,6 +111,8 @@ jobs:
     # Settings for GitHub pages deployment, ref: https://github.com/peaceiris/actions-gh-pages#getting-started
     permissions:
       contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
     - uses: actions/download-artifact@v3

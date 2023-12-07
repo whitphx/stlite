@@ -116,6 +116,7 @@ export interface InTokenMessage extends InMessageBase {
     token: string;
     baseUrl: string;
     project: string;
+    email?: string;
   };
 }
 

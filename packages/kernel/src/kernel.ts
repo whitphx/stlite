@@ -412,5 +412,8 @@ const sendTokenToWorker = (
     project,
     distinct_id: email,
   });
-  worker.postMessage({ type: "newToken", token, baseUrl, project, email });
+  worker.postMessage({
+    type: "newToken",
+    data: { token, baseUrl, project, email },
+  });
 };

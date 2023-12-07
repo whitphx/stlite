@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^12",
+    "@types/mixpanel-browser": "^2.47.5",
     "@types/path-browserify": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",

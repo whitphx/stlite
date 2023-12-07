@@ -7,8 +7,8 @@ sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
-streamlit_proto := streamlit/frontend/src/autogen
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.21.0-py2.py3-none-any.whl
+streamlit_proto := streamlit/frontend/src/lib/proto.d.ts
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -22,9 +22,9 @@ NODE_MODULES := ./node_modules
 
 .PHONY: venv
 venv: $(VENV)
-$(VENV):
+$(VENV): requirements.dev.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install build poetry
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
@@ -52,21 +52,21 @@ $(common): packages/common/src/*.ts yarn_install
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): packages/common-react/src/*.ts yarn_install
+$(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 	cd packages/common-react; \
 	yarn build
 	@touch $@
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx $(kernel) $(common-react)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx $(kernel) $(sharing-common) $(common-react) yarn_install
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -80,21 +80,21 @@ $(sharing-common): packages/sharing-common/src/*.ts yarn_install
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx $(common) $(sharing-common) yarn_install
+$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx yarn_install $(common) $(sharing-common)
 	cd packages/sharing-editor; \
 	yarn build
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(kernel) $(common) $(common-react) yarn_install
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
 	cd packages/desktop; \
 	yarn build
 	@touch $@
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel; \
 	yarn build
 	@touch $@
@@ -116,7 +116,14 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
-	cd streamlit && \
-	SNOWPARK_CONDA_BUILD=true $(MAKE) distribution
-	mkdir -p `dirname $(streamlit_wheel)`
-	cp streamlit/lib/dist/streamlit-1.21.0-py2.py3-none-any.whl $(streamlit_wheel)
+	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
+	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
+	PYODIDE_PYTHON_VERSION=`pyodide config get python_version` && \
+	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
+		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
+		exit 1; \
+	fi && \
+	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl && \
+	mkdir -p $(dir $(streamlit_wheel)) && \
+	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)

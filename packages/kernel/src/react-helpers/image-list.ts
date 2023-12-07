@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useStliteKernel } from "./StliteKernelProvider";
-import { IImage, Image as ImageProto } from "src/autogen/proto";
+import { IImage, Image as ImageProto } from "src/lib/proto";
 
 /**
  * Overrides an image array by loading data from the stlite kernel

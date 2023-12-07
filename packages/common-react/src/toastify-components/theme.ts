@@ -1,8 +1,8 @@
 import {
   LocalStore,
   localStorageAvailable,
-} from "streamlit-browser/src/lib/storageUtils";
-import { darkTheme } from "streamlit-browser/src/theme/themeConfigs";
+} from "streamlit-browser/src/lib/util/storageUtils";
+import { darkTheme } from "streamlit-browser/src/lib/theme/themeConfigs";
 
 function isSystemDarkTheme(): boolean {
   // Detect the system color mode. Ref: https://stackoverflow.com/a/57795495/13103190

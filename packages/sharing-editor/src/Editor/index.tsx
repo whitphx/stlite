@@ -8,6 +8,7 @@ import React, {
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
 import { parseRequirementsTxt } from "@stlite/common";
+import { useLocalStorage } from "usehooks-ts";
 import TabBar from "./components/TabBar";
 import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
@@ -174,7 +175,10 @@ function Editor({
     [appData.requirements]
   );
 
-  const [isDarkTheme, setIsDarkTheme] = useState(isDarkMode());
+  const [isDarkTheme, setIsDarkTheme] = useLocalStorage(
+    "editor-theme",
+    isDarkMode()
+  );
 
   return (
     <div className={styles.container}>

@@ -5,6 +5,10 @@ on:
     branches:
       - '*'
 
+env:
+  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+  USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
+      
 jobs:
   build:
     strategy:
@@ -12,13 +16,13 @@ jobs:
         target: ["mountable"]
 
     env:
-      python-version: "3.10"
+      python-version: "3.11.2"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
       # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
       NODE_OPTIONS: "--max-old-space-size=6656"
-
+      
     runs-on: ubuntu-latest
 
     steps:
@@ -61,19 +65,29 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
-
-    ## Set up apt packages. Ref: https://github.com/streamlit/streamlit/wiki/Contributing#ubuntu
-    - name: Install Streamlit build dependencies
-      run: sudo apt install protobuf-compiler
-
+    
+    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
+    # Actions are running as of 2023.05.03 - doesn't have recent versions
+    # of protoc in its package repository.
+    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
+    # So we download the precompiled binary from the release page and install it,
+    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
+    - name: Install protoc
+      run: |
+        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
+        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+      env:
+        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
     - name: Set up
       run: make init
-
+    
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - if: matrix.target == 'mountable'
       name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+    
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
       run: make mountable

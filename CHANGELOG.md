@@ -7,6 +7,136 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.3] - 2023-11-01
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Use internal implementation of `PromiseDelegate`, [#646](https://github.com/whitphx/stlite/pull/646).
+
+## [0.42.2] - 2023-10-10
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Error object serialization for inter-thread communication, [#641](https://github.com/whitphx/stlite/pull/641).
+
+## [0.42.1] - 2023-10-09
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Send error objects from a worker thread to the main thread properly, [#638](https://github.com/whitphx/stlite/pull/638).
+
+## [0.42.0] - 2023-10-08
+
+### `@stlite/mountable`
+
+#### Added
+
+- `.disableToast()` and `.enableToast()`, [#636](https://github.com/whitphx/stlite/pull/636).
+
+#### Changed
+
+- Revert `onError`, [#635](https://github.com/whitphx/stlite/pull/635).
+
+## [0.41.0] - 2023-10-07
+
+### `@stlite/mountable`
+
+#### Added
+
+- Add `onError` option, [#632](https://github.com/whitphx/stlite/pull/632).
+
+## [0.40.0] - 2023-10-04
+
+### `@stlite/mountable`
+
+#### Added
+
+- Add `streamlitConfig` option, [#625](https://github.com/whitphx/stlite/pull/625).
+
+## [0.39.0] - 2023-09-28
+
+### `@stlite/mountable`
+
+#### Added
+
+- Add `pyodideUrl` option, [#620](https://github.com/whitphx/stlite/pull/620).
+
+## [0.38.1] - 2023-09-28
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix the dumped manifest file path, [#618](https://github.com/whitphx/stlite/pull/618).
+
+## [0.38.0] - 2023-08-24
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Switch the data frame serialization method to the standard option of Streamlit by bypassing Arrow serialization using Parquet, with huge support by @LukasMasuch, [#601](https://github.com/whitphx/stlite/pull/601), [whitphx/streamlit#3](https://github.com/whitphx/streamlit/pull/3).
+
+## [0.37.0] - 2023-07-23
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Compile the Streamlit wheel file to bytecode at build time, [#590](https://github.com/whitphx/stlite/pull/590).
+
+## [0.36.0] - 2023-07-03
+
+### `@stlite/desktop`
+
+#### Added
+
+- A custom `package.json` field `stlite.embed` has been added to control the embed mode, [#585](https://github.com/whitphx/stlite/pull/585).
+
+## [0.35.1] - 2023-07-03
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Unregister an ipc handler, [#584](https://github.com/whitphx/stlite/pull/584).
+
+## [0.35.0] - 2023-06-30
+
+### `@stlite/kernel`
+
+- Update Pyodide to 0.23.3, [#581](https://github.com/whitphx/stlite/pull/581).
+
+## [0.34.0] - 2023-06-28
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.24.0, [#574](https://github.com/whitphx/stlite/pull/574), [#575](https://github.com/whitphx/stlite/pull/575).
+
+## [0.33.0] - 2023-06-26
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Package the Pyodide built-in package wheels in the app executables and load them at runtime, [#572](https://github.com/whitphx/stlite/pull/572).
+
+## [0.32.0] - 2023-06-15
+
+### `@stlite/mountable`
+
+#### Added
+
+- An `archives` option to download, unpack, and mount files, [#567](https://github.com/whitphx/stlite/pull/567).
+
 ## [0.31.0] - 2023-04-13
 
 ### `@stlite/kernel`

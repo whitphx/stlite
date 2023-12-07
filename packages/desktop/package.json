@@ -1,6 +1,6 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.31.0",
+  "version": "0.42.3",
   "license": "Apache-2.0",
   "homepage": "/",
   "main": "./build/electron/main.js",
@@ -19,12 +19,13 @@
     "eject": "craco eject",
     "start:electron": "tsc -p electron -w",
     "build:electron": "tsc -p electron",
-    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.22.1/pyodide-core-0.22.1.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
+    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.23.3/pyodide-core-0.23.3.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
     "build:bin": "./scripts/build_bin.js && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:bin",
+    "dump:dev": "ts-node ./bin/dump_artifacts.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
@@ -52,14 +53,14 @@
   "dependencies": {
     "fs-extra": "^10.1.0",
     "node-fetch": "2",
-    "pyodide": "0.22.1",
+    "pyodide": "0.23.3",
     "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@craco/craco": "^7.0.0",
-    "@stlite/common": "^0.31.0",
-    "@stlite/common-react": "^0.31.0",
-    "@stlite/kernel": "^0.31.0",
+    "@stlite/common": "^0.42.3",
+    "@stlite/common-react": "^0.42.3",
+    "@stlite/kernel": "^0.42.3",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",
@@ -71,6 +72,7 @@
     "electron-builder": "^23.6.0",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.16.6",
+    "parquet-wasm": "^0.4.0",
     "raw-loader": "^4.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -93,6 +95,11 @@
     ],
     "directories": {
       "buildResources": "assets"
+    }
+  },
+  "stlite": {
+    "desktop": {
+      "embed": true
     }
   }
 }

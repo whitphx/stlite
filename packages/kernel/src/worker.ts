@@ -327,8 +327,6 @@ const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
 self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   const msg = event.data;
 
-  handleCogniteMessage(msg);
-
   // Special case for transmitting the initial data
   if (msg.type === "initData") {
     initDataPromiseDelegate.resolve(msg.data);
@@ -336,6 +334,8 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
   }
 
   await pyodideReadyPromise;
+
+  handleCogniteMessage(msg);
 
   const messagePort = event.ports[0];
 

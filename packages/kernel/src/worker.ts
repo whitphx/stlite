@@ -128,6 +128,16 @@ async function loadPyodideAndPackages() {
     })
   );
 
+  if (requirements.length > 0) {
+    postProgressMessage("Installing the requirements.");
+    console.debug("Installing the requirements:", requirements);
+    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements:", requirements);
+  }
+
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.
     postProgressMessage("Restoring the snapshot.");
@@ -170,16 +180,6 @@ async function loadPyodideAndPackages() {
     console.debug("Mocked pyarrow");
   } else {
     throw new Error(`Neither snapshot nor wheel files are provided.`);
-  }
-
-  if (requirements.length > 0) {
-    postProgressMessage("Installing the requirements.");
-    console.debug("Installing the requirements:", requirements);
-    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs(requirements, { keep_going: true });
-    console.debug("Installed the requirements:", requirements);
   }
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`

@@ -128,14 +128,8 @@ async function loadPyodideAndPackages() {
     })
   );
 
-  if (requirements.length > 0) {
-    postProgressMessage("Installing the requirements.");
-    console.debug("Installing the requirements:", requirements);
-    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs(requirements, { keep_going: true });
-    console.debug("Installed the requirements:", requirements);
+  if (!mountedSitePackagesSnapshotFilePath && !wheels) {
+    throw new Error(`Neither snapshot nor wheel files are provided.`);
   }
 
   if (mountedSitePackagesSnapshotFilePath) {
@@ -162,7 +156,22 @@ async function loadPyodideAndPackages() {
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
-  } else if (wheels) {
+  }
+
+  // NOTE: It's important to install the requirements before loading the streamlit package
+  // because it allows users to specify the versions of Streamlit's dependencies via requirements.txt
+  // before these versions are automatically resolved by micropip when installing Streamlit.
+  if (requirements.length > 0) {
+    postProgressMessage("Installing the requirements.");
+    console.debug("Installing the requirements:", requirements);
+    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements:", requirements);
+  }
+
+  if (wheels) {
     postProgressMessage("Installing streamlit and its dependencies.");
     console.debug("Loading stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
@@ -178,8 +187,6 @@ async function loadPyodideAndPackages() {
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
-  } else {
-    throw new Error(`Neither snapshot nor wheel files are provided.`);
   }
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`

@@ -161,6 +161,7 @@ async function loadPyodideAndPackages() {
   // NOTE: It's important to install the requirements before loading the streamlit package
   // because it allows users to specify the versions of Streamlit's dependencies via requirements.txt
   // before these versions are automatically resolved by micropip when installing Streamlit.
+  // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
   if (requirements.length > 0) {
     postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);

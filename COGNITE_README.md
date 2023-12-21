@@ -42,6 +42,8 @@ This will serve the app at http://localhost:3000.
 
 ## Serving in Fusion
 
+Open a new terminal and clone the repo
+
 ### Clone Fusion repository
 
 ```

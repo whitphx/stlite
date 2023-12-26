@@ -177,7 +177,7 @@ async function loadPyodideAndPackages() {
     console.debug("Loading stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install(["altair==5.1.2"]); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
+    await micropip.install(["altair<5.2.0"]); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
     await micropip.install.callKwargs([wheels.stliteServer], {
       keep_going: true,
     });

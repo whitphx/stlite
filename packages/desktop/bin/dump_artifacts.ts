@@ -84,9 +84,11 @@ async function inspectUsedBuiltinPackages(
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  micropip.add_mock_package("streamlit", "1.24.0");
-
   await micropip.install(options.requirements);
+  await installStreamlitWheels(pyodide, {
+    useLocalKernelWheels: options.useLocalKernelWheels,
+  });
+
   return Object.entries(pyodide.loadedPackages)
     .filter(([, channel]) => channel === "default channel")
     .map(([name]) => name);
@@ -120,21 +122,13 @@ async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
   await micropip.install.callKwargs(requirement, { keep_going: true });
 }
 
-interface CreateSitePackagesSnapshotOptions {
+interface InstallStreamlitWheelsOptions {
   useLocalKernelWheels: boolean;
-  requirements: string[];
-  usedBuiltinPackages: string[];
-  saveTo: string;
 }
-async function createSitePackagesSnapshot(
-  options: CreateSitePackagesSnapshotOptions
+async function installStreamlitWheels(
+  pyodide: PyodideInterface,
+  options: InstallStreamlitWheelsOptions
 ) {
-  console.info("Create the site-packages snapshot file...");
-
-  const pyodide = await loadPyodide();
-
-  await pyodide.loadPackage(["micropip"]);
-
   if (options.useLocalKernelWheels) {
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
     const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
@@ -172,11 +166,28 @@ async function createSitePackagesSnapshot(
     console.log("Install", wheelUrls);
     await micropip.install.callKwargs(wheelUrls, { keep_going: true });
   }
+}
+
+interface CreateSitePackagesSnapshotOptions {
+  useLocalKernelWheels: boolean;
+  requirements: string[];
+  usedBuiltinPackages: string[];
+  saveTo: string;
+}
+async function createSitePackagesSnapshot(
+  options: CreateSitePackagesSnapshotOptions
+) {
+  console.info("Create the site-packages snapshot file...");
+
+  const pyodide = await loadPyodide();
+
+  await pyodide.loadPackage(["micropip"]);
 
   const micropip = pyodide.pyimport("micropip");
 
   const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();
 
+  const mockedPackages: string[] = [];
   if (options.usedBuiltinPackages.length > 0) {
     console.log(
       "Mocking builtin packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
@@ -189,6 +200,7 @@ async function createSitePackagesSnapshot(
 
       console.log(`Mock ${packageInfo.name} ${packageInfo.version}`);
       micropip.add_mock_package(packageInfo.name, packageInfo.version);
+      mockedPackages.push(packageInfo.name);
     });
   }
 
@@ -197,10 +209,17 @@ async function createSitePackagesSnapshot(
   );
 
   await micropip.install.callKwargs(options.requirements, { keep_going: true });
+  await installStreamlitWheels(pyodide, {
+    useLocalKernelWheels: options.useLocalKernelWheels,
+  });
+
+  console.log("Remove the mocked packages", mockedPackages);
+  mockedPackages.forEach((pkg) => micropip.remove_mock_package(pkg));
 
   console.log("Archive the site-packages director(y|ies)");
   const archiveFilePath = "/tmp/site-packages-snapshot.tar.gz";
   await pyodide.runPythonAsync(`
+    import os
     import tarfile
     import site
 
@@ -209,6 +228,8 @@ async function createSitePackagesSnapshot(
     tar_file_name = '${archiveFilePath}'
     with tarfile.open(tar_file_name, mode='w:gz') as gzf:
         for site_packages in site_packages_dirs:
+            print("Add site-package:", site_packages)
+            print(os.listdir(site_packages))
             gzf.add(site_packages)
   `);
 
@@ -400,12 +421,12 @@ yargs(hideBin(process.argv))
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     // The `requirements.txt` file will be needed to call `micropip.install()` at runtime.
-    // The built-in packages will be vendored in the build artifact as wheel files
+    // The Pyodide-built packages will be vendored in the build artifact as wheel files
     // and `micropip.install()` will install them at runtime,
     // while the packages downloaded from PyPI will have been included in the site-packages snapshot.
     await writeRequirements(
       path.resolve(destDir, "./requirements.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
-      requirements
+      usedBuiltinPackages
     );
     await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,

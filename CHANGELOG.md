@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.4] - 2023-12-27
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Set the `altair` version to `<5.2.0` as a workaround to solve an error of [#662](https://github.com/whitphx/stlite/issues/662), [#668](https://github.com/whitphx/stlite/pull/668).
+- Install the user-specified requirements before the Streamlit package, [#664](https://github.com/whitphx/stlite/pull/664).
+- Fix `DEVELOPMENT.md`, [#665](https://github.com/whitphx/stlite/pull/665), by @andeplane.
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix the CSP for `st.camera_input()`, [#666](https://github.com/whitphx/stlite/pull/666).
+
 ## [0.42.3] - 2023-11-01
 
 ### `@stlite/kernel`

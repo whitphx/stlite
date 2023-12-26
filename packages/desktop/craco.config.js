@@ -47,9 +47,10 @@ module.exports = {
         // For loading external resources.
         // - `cspSourceForMap`:  The hosted Pyodide files, wheels, and some remote resources
         // - https: : Allow fetch() and XMLHttpRequest to load any resources via HTTPS.
-        isEnvProduction && `connect-src ${cspSourceForMap} 'self' https:`,
+        // - data: : `st.camera_input()` calls `fetch()` with the data: scheme when loading the preview image (while `data:` is not recommended to use for security reasons though).
+        isEnvProduction && `connect-src ${cspSourceForMap} 'self' https: data:`,
         isEnvDevelopment &&
-          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https:`,
+          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https: data:`,
         // Allow <img> to load any resources.
         // - blob: : For st.pyplot
         // - data: : For st.map

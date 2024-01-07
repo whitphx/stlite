@@ -107,10 +107,10 @@ $(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*
 	@touch $@
 
 .PHONY: streamlit-proto
+streamlit-proto: $(streamlit_proto)
 $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
-	cd streamlit; \
-	$(MAKE) mini-init
+	$(MAKE) -C streamlit protobuf
 	@touch $@
 
 .PHONY: streamlit-wheel

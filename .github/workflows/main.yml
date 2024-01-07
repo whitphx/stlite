@@ -145,7 +145,7 @@ jobs:
       run: |
         . .venv/bin/activate
         cd streamlit
-        make mini-init
+        make mini-init -e USE_CONSTRAINTS_FILE=${{ env.USE_CONSTRAINTS_FILE }}
 
     - name: Run linter and code formatter to the test code module
       run: |

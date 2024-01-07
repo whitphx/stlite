@@ -80,7 +80,7 @@
     "sass-loader": "^12.3.0",
     "semver": "^7.3.5",
     "source-map-loader": "^3.0.0",
-    "@streamlit/lib": "1.27.0",
+    "@streamlit/app": "1.27.0",
     "style-loader": "^3.3.1",
     "tailwindcss": "^3.0.2",
     "terser-webpack-plugin": "^5.2.5",

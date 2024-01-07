@@ -1,15 +1,16 @@
 // Mimic https://github.com/streamlit/streamlit/blob/1.9.0/frontend/src/lib/ConnectionManager.ts
 // and WebsocketConnection.
 
-import { BackMsg, ForwardMsg } from "streamlit-browser/src/lib/proto"
-import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types"
-import type { BaseUriParts } from "streamlit-browser/src/lib/util/UriUtil"
 import type { ReactNode } from "react"
 
+import { BackMsg, ForwardMsg } from "@streamlit/lib/src/proto"
+import type { IAllowedMessageOriginsResponse } from "@streamlit/lib/src/hostComm/types"
+import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
+
 import type { StliteKernel } from "../../kernel"
-import { ConnectionState } from "streamlit-browser/src/app/connection/ConnectionState"
-import type { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
-import { ensureError } from "streamlit-browser/src/lib/util/ErrorHandling"
+import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"
+import type { SessionInfo } from "@streamlit/lib/src/SessionInfo"
+import { ensureError } from "@streamlit/lib/src/util/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 
 interface MessageQueue {

@@ -2,7 +2,7 @@
 
 import { PromiseDelegate } from "@stlite/common";
 
-import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types";
+import type { IAllowedMessageOriginsResponse } from "@streamlit/lib/src/hostComm/types";
 
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";

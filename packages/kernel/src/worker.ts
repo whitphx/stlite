@@ -422,7 +422,7 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
 
         httpServer.receive_http_from_js(
           request.method,
-          request.path,
+          decodeURIComponent(request.path),
           request.headers,
           request.body,
           onResponse

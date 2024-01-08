@@ -9,6 +9,7 @@ kernel := packages/kernel/dist/*
 stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.27.0-cp311-none-any.whl
+streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -59,14 +60,14 @@ $(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -87,7 +88,7 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/desktop; \
 	yarn build
 	@touch $@
@@ -128,3 +129,8 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.27.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
+
+.PHONY: streamlit-frontend-lib
+streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
+$(streamlit_frontend_lib_prod): yarn_install $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
+	$(MAKE) -C streamlit frontend-lib-prod

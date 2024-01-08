@@ -148,7 +148,7 @@ async function installStreamlitWheels(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl"
+        "streamlit/lib/dist/streamlit-1.27.0-cp311-none-any.whl"
       )
     );
   } else {

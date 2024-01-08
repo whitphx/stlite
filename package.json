@@ -25,6 +25,7 @@
     "wait-on": "^6.0.1"
   },
   "resolutions": {
+    "immutable": "4.2.3",
     "webpack": "5.76.0",
     "@types/react": "17.*"
   },

@@ -107,6 +107,11 @@ export interface StliteKernelOptions {
    */
   streamlitConfig?: StreamlitConfig;
 
+  /**
+   * If true, the loading toasts are disabled.
+   */
+  disableLoadingToasts?: boolean;
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -186,6 +191,7 @@ export class StliteKernel {
       archives: options.archives,
       requirements: options.requirements,
       pyodideUrl: options.pyodideUrl,
+      disableLoadingToasts: options.disableLoadingToasts,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,

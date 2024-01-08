@@ -15,6 +15,7 @@ export interface SimplifiedStliteKernelOptions {
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
+  disableLoadingToasts?: StliteKernelOptions["disableLoadingToasts"];
 }
 
 function canonicalizeFiles(
@@ -106,5 +107,6 @@ export function canonicalizeMountOptions(
     allowedOriginsResp: options.allowedOriginsResp,
     pyodideUrl: options.pyodideUrl,
     streamlitConfig: options.streamlitConfig,
+    disableLoadingToasts: options.disableLoadingToasts,
   };
 }

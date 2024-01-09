@@ -51,7 +51,7 @@ export interface WorkerInitialData {
   };
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
-  disableLoadingToasts?: boolean;
+  disableProgressToasts?: boolean;
 }
 
 /**

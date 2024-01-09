@@ -108,9 +108,9 @@ export interface StliteKernelOptions {
   streamlitConfig?: StreamlitConfig;
 
   /**
-   * If true, the loading toasts are disabled.
+   * If true, no toasts will be shown on loading progress steps.
    */
-  disableLoadingToasts?: boolean;
+  disableProgressToasts?: boolean;
 
   onProgress?: (message: string) => void;
 
@@ -191,7 +191,7 @@ export class StliteKernel {
       archives: options.archives,
       requirements: options.requirements,
       pyodideUrl: options.pyodideUrl,
-      disableLoadingToasts: options.disableLoadingToasts,
+      disableProgressToasts: options.disableProgressToasts,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,

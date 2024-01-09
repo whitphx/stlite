@@ -107,6 +107,6 @@ export function canonicalizeMountOptions(
     allowedOriginsResp: options.allowedOriginsResp,
     pyodideUrl: options.pyodideUrl,
     streamlitConfig: options.streamlitConfig,
-    disableLoadingToasts: options.disableLoadingToasts,
+    disableProgressToasts: options.disableProgressToasts,
   };
 }

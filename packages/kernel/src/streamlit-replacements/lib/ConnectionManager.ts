@@ -130,13 +130,6 @@ export class ConnectionManager {
   }
 
   public sendMessage(obj: BackMsg): void {
-    // Stlite Modification:
-    // if (this.connection instanceof WebsocketConnection && this.isConnected()) {
-    //   this.connection.sendMessage(obj)
-    // } else {
-    //   // Don't need to make a big deal out of this. Just print to console.
-    //   logError(`Cannot send message when server is disconnected: ${obj}`)
-    // }
     if (this.isConnected()) {
       this.props.kernel.sendWebSocketMessage(
         BackMsg.encode(BackMsg.create(obj)).finish()
@@ -173,6 +166,13 @@ export class ConnectionManager {
     // no-op.
     // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }
+
+    /**
+   * No-op in stlite.
+   */
+    disconnect(): void {
+      // no-op.
+    }  
 
   private async handleMessage(data: ArrayBuffer): Promise<void> {
     // Assign this message an index.
@@ -214,13 +214,6 @@ export class ConnectionManager {
       console.error(err.message)
       this.setConnectionState(ConnectionState.DISCONNECTED_FOREVER, err.message)
     }
-  }
-
-  /**
-   * No-op in stlite.
-   */
-  disconnect(): void {
-    // no-op.
   }
 
   private setConnectionState = (

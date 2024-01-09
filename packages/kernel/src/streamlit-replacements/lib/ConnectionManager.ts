@@ -107,10 +107,6 @@ export class ConnectionManager {
    * if we are connected to a server.
    */
   public getBaseUriParts(): BaseUriParts | undefined {
-    // Stlite Modification:
-    // if (this.connection instanceof WebsocketConnection) {
-    //   return this.connection.getBaseUriParts()
-    // }
     if (this.connectionState === ConnectionState.CONNECTED) {
       // The existence of this property became necessary for multi-page apps: https://github.com/streamlit/streamlit/pull/4698/files#diff-e56cb91573ddb6a97ecd071925fe26504bb5a65f921dc64c63e534162950e1ebR967-R975
       // so here a dummy BaseUriParts object is returned.
@@ -140,8 +136,6 @@ export class ConnectionManager {
     }
   }
 
-
-  // Stlite Modifications:
   /**
    * To guarantee packet transmission order, this is the index of the last
    * dispatched incoming message.
@@ -205,8 +199,6 @@ export class ConnectionManager {
     const WEBSOCKET_STREAM_PATH = "_stcore/stream" // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
 
     try {
-      // Stlite Modifications:
-      // this.connection = await this.connectToRunningServer()
       await this.props.kernel.connectWebSocket("/" + WEBSOCKET_STREAM_PATH)
       this.setConnectionState(ConnectionState.CONNECTED)
     } catch (e) {

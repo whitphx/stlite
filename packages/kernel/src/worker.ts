@@ -56,7 +56,7 @@ async function initPyodide(
 }
 
 const DEFAULT_PYODIDE_URL =
-  "https://cdn.jsdelivr.net/pyodide/v0.23.3//full/pyodide.js";
+  "https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js";
 
 /**
  * Load Pyodided and initialize the interpreter.
@@ -80,9 +80,8 @@ async function loadPyodideAndPackages() {
     disableLoadingToasts,
   } = await initDataPromiseDelegate.promise;
 
-  if (!disableLoadingToasts) {
-    postProgressMessage("⚙️ Loading Pyodide...");
-  }
+  postProgressMessage("Loading Pyodide.");
+  
   console.debug("Loading Pyodide");
   pyodide = await initPyodide(pyodideUrl, {
     stdout: console.log,
@@ -91,8 +90,8 @@ async function loadPyodideAndPackages() {
   console.debug("Loaded Pyodide");
 
   // Mount files
-  // postProgressMessage("Mounting files.");
-  console.debug("Mounting files.");
+  postProgressMessage("Mounting files.");
+
   await Promise.all(
     Object.keys(files).map(async (path) => {
       const file = files[path];
@@ -114,8 +113,7 @@ async function loadPyodideAndPackages() {
   );
 
   // Unpack archives
-  // postProgressMessage("Unpacking archives.");
-  console.debug("Unpacking archives.");
+  postProgressMessage("Unpacking archives.");
   await Promise.all(
     archives.map(async (archive) => {
       let buffer: Parameters<Pyodide.PyodideInterface["unpackArchive"]>[0];
@@ -138,10 +136,7 @@ async function loadPyodideAndPackages() {
 
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.
-    if (!disableLoadingToasts) {
-      postProgressMessage("Restoring the snapshot...");
-    }
-    // console.debug("Restoring the snapshot.");
+    postProgressMessage("Restoring the snapshot...");
 
     await pyodide.runPythonAsync(`import tarfile, shutil, site`);
 
@@ -159,20 +154,18 @@ async function loadPyodideAndPackages() {
     `);
     console.debug("Restored the snapshot");
 
-    // postProgressMessage("Mocking some packages.");
+    postProgressMessage("Mocking some packages.");
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
   }
   
-    // NOTE: It's important to install the requirements before loading the streamlit package
+  // NOTE: It's important to install the requirements before loading the streamlit package
   // because it allows users to specify the versions of Streamlit's dependencies via requirements.txt
   // before these versions are automatically resolved by micropip when installing Streamlit.
   // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
   if (requirements.length > 0) {
-    if (!disableLoadingToasts) {
-      postProgressMessage("📦 Processing dependencies...");
-    }
+    postProgressMessage("Installing the requirements.");
     console.debug("Installing the requirements:", requirements);
     verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
     await pyodide.loadPackage("micropip");
@@ -182,9 +175,7 @@ async function loadPyodideAndPackages() {
   }
 
   if (wheels) {
-    if (!disableLoadingToasts) {
-      postProgressMessage("🎛 Installing Streamlit...");
-    }
+    postProgressMessage("Installing streamlit and its dependencies.");
     console.debug("Loading stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
@@ -194,7 +185,7 @@ async function loadPyodideAndPackages() {
     await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
     console.debug("Loaded stlite-server, and streamlit");
 
-    // postProgressMessage("Mocking some packages.");
+    postProgressMessage("Mocking some packages.");
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
@@ -207,7 +198,7 @@ async function loadPyodideAndPackages() {
     importlib.invalidate_caches()
   `);
 
-  // postProgressMessage("Loading streamlit package.");
+  postProgressMessage("Loading streamlit package.");
   console.debug("Loading the Streamlit package");
   // Importing the `streamlit` module takes most of the time,
   // so we first run this step independently for clearer logs and easy exec-time profiling.
@@ -218,7 +209,7 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Loaded the Streamlit package");
 
-  // postProgressMessage("Setting up the loggers.");
+  postProgressMessage("Setting up the loggers.");
   console.debug("Setting the loggers");
   // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
   // See https://github.com/streamlit/streamlit/issues/4742
@@ -271,9 +262,9 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Set the loggers");
 
-  // postProgressMessage(
-  //   "Mocking some Streamlit functions for the browser environment."
-  // );
+  postProgressMessage(
+    "Mocking some Streamlit functions for the browser environment."
+  );
   console.debug("Mocking some Streamlit functions");
   // Disable caching. See https://github.com/whitphx/stlite/issues/495
   await pyodide.runPythonAsync(`
@@ -286,15 +277,10 @@ async function loadPyodideAndPackages() {
   `);
   console.debug("Mocked some Streamlit functions");
 
-  if (!disableLoadingToasts) {
-    postProgressMessage("🎈 Inflating balloons...");
-  }
-
-  console.debug("Booting up the Streamlit server");
+  postProgressMessage("Booting up the Streamlit server.");
   // The following Python code is based on streamlit.web.cli.main_run().
   self.__streamlitFlagOptions__ = {
     ...streamlitConfig,
-    // "browser.gatherUsageStats": true,
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };
   await pyodide.runPythonAsync(`

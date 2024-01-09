@@ -8,10 +8,14 @@ interface ToastKernelCallbacks {
   onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
   onError: NonNullable<StliteKernelOptions["onError"]>;
 }
-export function makeToastKernelCallbacks(): ToastKernelCallbacks {
+export function makeToastKernelCallbacks(showProgressToasts = true, showErrorToasts = true): ToastKernelCallbacks {
   let prevToastId: ToastId | null = null;
   const toastIds: ToastId[] = [];
   const onProgress: StliteKernelOptions["onProgress"] = (message) => {
+    if (!showProgressToasts) {
+      return;
+    }
+
     const id = toast(message, {
       position: toast.POSITION.BOTTOM_RIGHT,
       transition: Slide,
@@ -33,6 +37,10 @@ export function makeToastKernelCallbacks(): ToastKernelCallbacks {
     toastIds.forEach((id) => toast.dismiss(id));
   };
   const onError: StliteKernelOptions["onError"] = (error) => {
+    if (!showErrorToasts) {
+      return;
+    }
+    
     toast(
       <ErrorToastContent message="Error during booting up" error={error} />,
       {

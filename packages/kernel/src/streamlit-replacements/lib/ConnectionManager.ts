@@ -19,7 +19,7 @@
 import { ReactNode } from "react"
 
 import {
-  IHostConfigResponse,
+  IAllowedMessageOriginsResponse,
   BaseUriParts,
   getPossibleBaseUris,
   logError,
@@ -30,6 +30,7 @@ import {
   ForwardMsg,
 } from "@streamlit/lib"
 
+import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 import { ConnectionState } from "./ConnectionState"
 import { WebsocketConnection } from "./WebsocketConnection"
 
@@ -89,10 +90,10 @@ interface Props {
   resetHostAuthToken: () => void
 
   /**
-   * Function to set the host config for this app (if in a relevant deployment
-   * scenario).
+   * Function to set the list of origins that this app should accept
+   * cross-origin messages from (if in a relevant deployment scenario).
    */
-  onHostConfigResp: (resp: IHostConfigResponse) => void
+  setAllowedOriginsResp: (resp: IAllowedMessageOriginsResponse) => void
 }
 
 /**
@@ -118,7 +119,7 @@ export class ConnectionManager {
 
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
-      this.props.onHostConfigResp(this.props.kernel.hostConfig)
+      this.props.setAllowedOriginsResp(this.props.kernel.allowedOriginsResp)
       this.connect()
     })
   }
@@ -146,8 +147,8 @@ export class ConnectionManager {
       // in order to avoid unexpected accesses to external resources,
       // while the basePath is representing the actual info.
       return {
-        host: "xxx",
-        port: 99999,
+        host: DUMMY_BASE_HOSTNAME,
+        port: DUMMY_BASE_PORT,
         // When a new session starts, a page name for multi-page apps (a relative path to the app root url) is calculated based on this `basePath`
         // then a `rerunScript` BackMsg is sent to the server with `pageName` (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L1064)
         // and `window.history.pushState` is called (https://github.com/streamlit/streamlit/blob/ace58bfa3582d4f8e7f281b4dbd266ddd8a32b54/frontend/src/App.tsx#L665).
@@ -175,34 +176,6 @@ export class ConnectionManager {
     }
   }
 
-  private showRetryError = (
-    totalRetries: number,
-    latestError: ReactNode,
-    // The last argument of this function is unused and exists because the
-    // WebsocketConnection.OnRetry type allows a third argument to be set to be
-    // used in tests.
-    _retryTimeout: number
-  ): void => {
-    if (totalRetries === RETRY_COUNT_FOR_WARNING) {
-      this.props.onConnectionError(latestError)
-    }
-  }
-
-  private connectToRunningServer(): WebsocketConnection {
-    const baseUriPartsList = getPossibleBaseUris()
-
-    return new WebsocketConnection({
-      sessionInfo: this.props.sessionInfo,
-      endpoints: this.props.endpoints,
-      baseUriPartsList,
-      onMessage: this.props.onMessage,
-      onConnectionStateChange: this.setConnectionState,
-      onRetry: this.showRetryError,
-      claimHostAuthToken: this.props.claimHostAuthToken,
-      resetHostAuthToken: this.props.resetHostAuthToken,
-      onHostConfigResp: this.props.onHostConfigResp,
-    })
-  }
 
   // Stlite Modifications:
   /**
@@ -221,7 +194,6 @@ export class ConnectionManager {
    * (because we're still decoding previous messages)
    */
   private readonly messageQueue: MessageQueue = {}
-
 
   /**
    * No-op in stlite.
@@ -257,12 +229,14 @@ export class ConnectionManager {
       this.lastDispatchedMessageIndex = dispatchMessageIndex
     }
   }
-  
+
   private async connect(): Promise<void> {
+    const WEBSOCKET_STREAM_PATH = "_stcore/stream" // The original is defined in streamlit/frontend/src/lib/WebsocketConnection.tsx
+    
     try {
       // Stlite Modifications:
       // this.connection = await this.connectToRunningServer()
-      await this.props.kernel.connectWebSocket("/_stcore/stream")
+      await this.props.kernel.connectWebSocket("/" + WEBSOCKET_STREAM_PATH)
       this.setConnectionState(ConnectionState.CONNECTED)
     } catch (e) {
       const err = ensureError(e)
@@ -291,5 +265,4 @@ export class ConnectionManager {
       this.props.onConnectionError(errMsg || "unknown")
     }
   }
-
 }

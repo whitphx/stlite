@@ -1,12 +1,11 @@
 // Mimic https://github.com/streamlit/streamlit/blob/1.27.0/frontend/app/src/connection/ConnectionManager.ts
 // and WebsocketConnection.
 
-import { ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import {
   IAllowedMessageOriginsResponse,
   BaseUriParts,
-  logError,
   SessionInfo,
   StreamlitEndpoints,
   ensureError,
@@ -16,7 +15,6 @@ import {
 
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 import { ConnectionState } from "./ConnectionState"
-import { WebsocketConnection } from "./WebsocketConnection"
 
 import type { StliteKernel } from "@stlite/kernel"
 
@@ -81,7 +79,7 @@ export class ConnectionManager {
 
   constructor(props: Props) {
     this.props = props
-    
+
     this.props.kernel.onWebSocketMessage((payload) => {
       if (typeof payload === "string") {
         console.error("Unexpected payload type.")

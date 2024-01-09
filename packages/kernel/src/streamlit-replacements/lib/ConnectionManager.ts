@@ -161,7 +161,7 @@ export class ConnectionManager {
     // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }
 
-    /**
+  /**
    * No-op in stlite.
    */
     disconnect(): void {

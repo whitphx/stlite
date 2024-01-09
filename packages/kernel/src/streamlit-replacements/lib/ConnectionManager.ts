@@ -77,14 +77,12 @@ interface Props {
 export class ConnectionManager {
   private readonly props: Props
 
-  private connection?: WebsocketConnection
-
   private connectionState: ConnectionState = ConnectionState.INITIAL
 
   constructor(props: Props) {
     this.props = props
-
-    this.props.kernel.onWebSocketMessage(payload => {
+    
+    this.props.kernel.onWebSocketMessage((payload) => {
       if (typeof payload === "string") {
         console.error("Unexpected payload type.")
         return
@@ -220,8 +218,11 @@ export class ConnectionManager {
     }
   }
 
+  /**
+   * No-op in stlite.
+   */
   disconnect(): void {
-    this.connection?.disconnect()
+    // no-op.
   }
 
   private setConnectionState = (

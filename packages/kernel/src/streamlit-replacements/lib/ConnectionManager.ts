@@ -6,7 +6,6 @@ import { ReactNode } from "react"
 import {
   IAllowedMessageOriginsResponse,
   BaseUriParts,
-  getPossibleBaseUris,
   logError,
   SessionInfo,
   StreamlitEndpoints,
@@ -24,15 +23,6 @@ import type { StliteKernel } from "@stlite/kernel"
 interface MessageQueue {
   [index: number]: any
 }
-
-/**
- * When the websocket connection retries this many times, we show a dialog
- * letting the user know we're having problems connecting. This happens
- * after about 15 seconds as, before the 6th retry, we've set timeouts for
- * a total of approximately 0.5 + 1 + 2 + 4 + 8 = 15.5 seconds (+/- some
- * due to jitter).
- */
-const RETRY_COUNT_FOR_WARNING = 6
 
 interface Props {
   /**

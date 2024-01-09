@@ -1,3 +1,6 @@
+// Mimic https://github.com/streamlit/streamlit/blob/1.27.0/frontend/app/src/connection/ConnectionManager.ts
+// and WebsocketConnection.
+
 /**
  * Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
  *
@@ -172,51 +175,6 @@ export class ConnectionManager {
     }
   }
 
-  /**
-   * Increment the runCount on our message cache, and clear entries
-   * whose age is greater than the max.
-   */
-  public incrementMessageCacheRunCount(maxMessageAge: number): void {
-    // StaticConnection does not use a MessageCache.
-    if (this.connection instanceof WebsocketConnection) {
-      this.connection.incrementMessageCacheRunCount(maxMessageAge)
-    }
-  }
-
-  private async connect(): Promise<void> {
-    try {
-      // Stlite Modifications:
-      // this.connection = await this.connectToRunningServer()
-      await this.props.kernel.connectWebSocket("/_stcore/stream")
-      this.setConnectionState(ConnectionState.CONNECTED)
-    } catch (e) {
-      const err = ensureError(e)
-      logError(err.message)
-      this.setConnectionState(
-        ConnectionState.DISCONNECTED_FOREVER,
-        err.message
-      )
-    }
-  }
-
-  disconnect(): void {
-    this.connection?.disconnect()
-  }
-
-  private setConnectionState = (
-    connectionState: ConnectionState,
-    errMsg?: string
-  ): void => {
-    if (this.connectionState !== connectionState) {
-      this.connectionState = connectionState
-      this.props.connectionStateChanged(connectionState)
-    }
-
-    if (errMsg || connectionState === ConnectionState.DISCONNECTED_FOREVER) {
-      this.props.onConnectionError(errMsg || "unknown")
-    }
-  }
-
   private showRetryError = (
     totalRetries: number,
     latestError: ReactNode,
@@ -264,6 +222,15 @@ export class ConnectionManager {
    */
   private readonly messageQueue: MessageQueue = {}
 
+
+  /**
+   * No-op in stlite.
+   */
+  public incrementMessageCacheRunCount(): void {
+    // no-op.
+    // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
+  }
+
   private async handleMessage(data: ArrayBuffer): Promise<void> {
     // Assign this message an index.
     const messageIndex = this.nextMessageIndex
@@ -290,4 +257,39 @@ export class ConnectionManager {
       this.lastDispatchedMessageIndex = dispatchMessageIndex
     }
   }
+  
+  private async connect(): Promise<void> {
+    try {
+      // Stlite Modifications:
+      // this.connection = await this.connectToRunningServer()
+      await this.props.kernel.connectWebSocket("/_stcore/stream")
+      this.setConnectionState(ConnectionState.CONNECTED)
+    } catch (e) {
+      const err = ensureError(e)
+      logError(err.message)
+      this.setConnectionState(
+        ConnectionState.DISCONNECTED_FOREVER,
+        err.message
+      )
+    }
+  }
+
+  disconnect(): void {
+    this.connection?.disconnect()
+  }
+
+  private setConnectionState = (
+    connectionState: ConnectionState,
+    errMsg?: string
+  ): void => {
+    if (this.connectionState !== connectionState) {
+      this.connectionState = connectionState
+      this.props.connectionStateChanged(connectionState)
+    }
+
+    if (errMsg || connectionState === ConnectionState.DISCONNECTED_FOREVER) {
+      this.props.onConnectionError(errMsg || "unknown")
+    }
+  }
+
 }

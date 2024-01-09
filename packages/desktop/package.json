@@ -53,7 +53,7 @@
   "dependencies": {
     "fs-extra": "^10.1.0",
     "node-fetch": "2",
-    "pyodide": "0.24.1",
+    "pyodide": "0.23.3",
     "yargs": "^17.5.1"
   },
   "devDependencies": {

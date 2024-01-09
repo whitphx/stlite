@@ -90,7 +90,6 @@ async function loadPyodideAndPackages() {
 
   // Mount files
   postProgressMessage("Mounting files.");
-
   await Promise.all(
     Object.keys(files).map(async (path) => {
       const file = files[path];

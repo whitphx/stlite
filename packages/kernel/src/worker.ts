@@ -77,11 +77,10 @@ async function loadPyodideAndPackages() {
     mountedSitePackagesSnapshotFilePath,
     pyodideUrl = DEFAULT_PYODIDE_URL,
     streamlitConfig,
-    disableLoadingToasts,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
-  
+
   console.debug("Loading Pyodide");
   pyodide = await initPyodide(pyodideUrl, {
     stdout: console.log,
@@ -136,7 +135,7 @@ async function loadPyodideAndPackages() {
 
   if (mountedSitePackagesSnapshotFilePath) {
     // Restore the site-packages director(y|ies) from the mounted snapshot file.
-    postProgressMessage("Restoring the snapshot...");
+    postProgressMessage("Restoring the snapshot.");
 
     await pyodide.runPythonAsync(`import tarfile, shutil, site`);
 
@@ -159,7 +158,7 @@ async function loadPyodideAndPackages() {
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
   }
-  
+
   // NOTE: It's important to install the requirements before loading the streamlit package
   // because it allows users to specify the versions of Streamlit's dependencies via requirements.txt
   // before these versions are automatically resolved by micropip when installing Streamlit.
@@ -278,6 +277,7 @@ async function loadPyodideAndPackages() {
   console.debug("Mocked some Streamlit functions");
 
   postProgressMessage("Booting up the Streamlit server.");
+  console.debug("Booting up the Streamlit server");
   // The following Python code is based on streamlit.web.cli.main_run().
   self.__streamlitFlagOptions__ = {
     ...streamlitConfig,

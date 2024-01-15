@@ -15,7 +15,7 @@ export interface SimplifiedStliteKernelOptions {
   allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
-  disableLoadingToasts?: StliteKernelOptions["disableLoadingToasts"];
+  disableProgressToasts?: StliteKernelOptions["disableProgressToasts"];
 }
 
 function canonicalizeFiles(

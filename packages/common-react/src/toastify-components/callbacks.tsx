@@ -8,11 +8,11 @@ interface ToastKernelCallbacks {
   onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
   onError: NonNullable<StliteKernelOptions["onError"]>;
 }
-export function makeToastKernelCallbacks(showProgressToasts = true, showErrorToasts = true): ToastKernelCallbacks {
+export function makeToastKernelCallbacks(disableProgressToasts = false, disableErrorToasts = false): ToastKernelCallbacks {
   let prevToastId: ToastId | null = null;
   const toastIds: ToastId[] = [];
   const onProgress: StliteKernelOptions["onProgress"] = (message) => {
-    if (!showProgressToasts) {
+    if (disableProgressToasts) {
       return;
     }
 
@@ -37,7 +37,7 @@ export function makeToastKernelCallbacks(showProgressToasts = true, showErrorToa
     toastIds.forEach((id) => toast.dismiss(id));
   };
   const onError: StliteKernelOptions["onError"] = (error) => {
-    if (!showErrorToasts) {
+    if (disableErrorToasts) {
       return;
     }
     

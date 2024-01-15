@@ -39,7 +39,7 @@ export function mount(
   const kernel = new StliteKernel({
     ...mountOptions,
     wheelBaseUrl,
-    ...makeToastKernelCallbacks(mountOptions.disableProgressToasts === false),
+    ...makeToastKernelCallbacks(mountOptions.disableProgressToasts === true),
   });
 
   ReactDOM.render(

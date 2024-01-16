@@ -25,7 +25,7 @@ from .upload_file_request_handler import UPLOAD_FILE_ROUTE, UploadFileRequestHan
 
 LOGGER = logging.getLogger(__name__)
 
-# These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L81-L89  # noqa: E501
+# These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.27.0/lib/streamlit/web/server/server.py#L83-L92  # noqa: E501
 UPLOAD_FILE_ENDPOINT: Final = "/_stcore/upload_file"
 MEDIA_ENDPOINT: Final = "/media"
 STREAM_ENDPOINT: Final = "_stcore/stream"

@@ -160,7 +160,7 @@ class Server:
             on_response(404, {}, b"No handler found")
             return
         method_name = method.lower()
-        if method_name not in ("get", "post", "delete"):
+        if method_name not in ("get", "put", "delete"):
             on_response(405, {}, b"Not allowed")
             return
         handler_method = getattr(handler, method_name, None)

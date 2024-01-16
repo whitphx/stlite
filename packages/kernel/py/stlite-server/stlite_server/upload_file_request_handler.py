@@ -41,7 +41,7 @@ class UploadFileRequestHandler(RequestHandler):
         # Convert bytes to string
         return arg[0].decode("utf-8")
 
-    def post(self, request: Request, **kwargs) -> Response:
+    def put(self, request: Request, **kwargs) -> Response:
         # NOTE: The original implementation uses an async function,
         #       but it didn't make use of any async features,
         #       so we made it a regular function here for simplicity sake.

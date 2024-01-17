@@ -3,7 +3,8 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 HERE = Path(__file__).parent.resolve()
-REPO_ROOT = HERE / "../../../.."
+REPO_ROOT = HERE / "../../../../.."
+REPO_ROOT = REPO_ROOT.resolve()
 
 STREAMLIT_SUBMODULE = REPO_ROOT / "streamlit"
 STREAMLIT_PYTHONPATH = STREAMLIT_SUBMODULE / "lib"

@@ -21,7 +21,7 @@ from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
 from .media_file_handler import MediaFileHandler
 from .server_util import make_url_path_regex
-from .upload_file_request_handler import UPLOAD_FILE_ROUTE, UploadFileRequestHandler
+from .upload_file_request_handler import UploadFileRequestHandler
 
 LOGGER = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class Server:
             (
                 make_url_path_regex(
                     base,
-                    UPLOAD_FILE_ROUTE,
+                    rf"{UPLOAD_FILE_ENDPOINT}/(?P<session_id>[^/]+)/(?P<file_id>[^/]+)",
                 ),
                 UploadFileRequestHandler(
                     file_mgr=self._runtime.uploaded_file_mgr,

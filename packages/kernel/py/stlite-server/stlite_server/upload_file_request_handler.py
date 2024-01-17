@@ -7,10 +7,6 @@ from streamlit.runtime.uploaded_file_manager import UploadedFileManager, Uploade
 from .handler import Request, RequestHandler, Response
 from .httputil import HTTPFile, parse_body_arguments
 
-# /_stcore/upload_file/(optional session id)/(optional file id)
-UPLOAD_FILE_ROUTE = (
-    r"/_stcore/upload_file/(?P<session_id>[^/]+)/(?P<file_id>[^/]+)"
-)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -62,9 +58,8 @@ class UploadFileRequestHandler(RequestHandler):
         )
 
         try:
-            path_args = re.match(UPLOAD_FILE_ROUTE, request.path)
-            session_id = path_args.group('session_id')
-            file_id = path_args.group('file_id')
+            session_id = kwargs['session_id']
+            file_id = kwargs['file_id']
             # session_id = self._require_arg(args, "sessionId")
             # file_id = self._require_arg(args, "fileId")
             if not self._is_active_session(session_id):
@@ -103,10 +98,8 @@ class UploadFileRequestHandler(RequestHandler):
 
     def delete(self, request: Request,  **kwargs):
         """Delete file request handler."""
-
-        path_args = re.match(UPLOAD_FILE_ROUTE, request.path)
-        session_id = path_args.group('session_id')
-        file_id = path_args.group('file_id')
+        session_id = kwargs['session_id']
+        file_id = kwargs['file_id']
 
         self._file_mgr.remove_file(session_id=session_id, file_id=file_id)
         self.set_status(204)

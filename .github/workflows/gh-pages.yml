@@ -13,7 +13,7 @@ concurrency:
 
 env:
   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
-  USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
+  USE_CONSTRAINTS_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
 
 jobs:
   build:

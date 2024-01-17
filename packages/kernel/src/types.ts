@@ -8,7 +8,7 @@ export type PyodideConvertiblePrimitive =
   | undefined; // Ref: https://pyodide.org/en/stable/usage/type-conversions.html#javascript-to-python
 
 export interface HttpRequest {
-  method: "GET" | "POST";
+  method: "GET" | "PUT";
   path: string;
   headers: Record<string, string>;
   body: ArrayBuffer | string;

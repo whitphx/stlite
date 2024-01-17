@@ -1,17 +1,22 @@
-// Mimic https://github.com/streamlit/streamlit/blob/1.9.0/frontend/src/lib/ConnectionManager.ts
+// Mimic https://github.com/streamlit/streamlit/blob/1.27.0/frontend/app/src/connection/ConnectionManager.ts
 // and WebsocketConnection.
 
 import type { ReactNode } from "react"
 
-import { BackMsg, ForwardMsg } from "@streamlit/lib/src/proto"
-import type { IAllowedMessageOriginsResponse } from "@streamlit/lib/src/hostComm/types"
-import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
+import {
+  IAllowedMessageOriginsResponse,
+  BaseUriParts,
+  SessionInfo,
+  StreamlitEndpoints,
+  ensureError,
+  BackMsg,
+  ForwardMsg,
+} from "@streamlit/lib"
 
-import type { StliteKernel } from "../../kernel"
-import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"
-import type { SessionInfo } from "@streamlit/lib/src/SessionInfo"
-import { ensureError } from "@streamlit/lib/src/util/ErrorHandling"
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
+import { ConnectionState } from "./ConnectionState"
+
+import type { StliteKernel } from "@stlite/kernel"
 
 interface MessageQueue {
   [index: number]: any
@@ -25,6 +30,9 @@ interface Props {
 
   /** The app's SessionInfo instance */
   sessionInfo: SessionInfo
+
+  /** The app's StreamlitEndpoints instance */
+  endpoints: StreamlitEndpoints
 
   /**
    * Function to be called when we receive a message from the server.
@@ -42,12 +50,28 @@ interface Props {
   connectionStateChanged: (connectionState: ConnectionState) => void
 
   /**
+   * Function to get the auth token set by the host of this app (if in a
+   * relevant deployment scenario).
+   */
+  claimHostAuthToken: () => Promise<string | undefined>
+
+  /**
+   * Function to clear the withHostCommunication hoc's auth token. This should
+   * be called after the promise returned by claimHostAuthToken successfully
+   * resolves.
+   */
+  resetHostAuthToken: () => void
+
+  /**
    * Function to set the list of origins that this app should accept
    * cross-origin messages from (if in a relevant deployment scenario).
    */
   setAllowedOriginsResp: (resp: IAllowedMessageOriginsResponse) => void
 }
 
+/**
+ * Manages our connection to the Server.
+ */
 export class ConnectionManager {
   private readonly props: Props
 
@@ -136,6 +160,13 @@ export class ConnectionManager {
     // no-op.
     // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }
+
+  /**
+   * No-op in stlite.
+   */
+    disconnect(): void {
+      // no-op.
+    }  
 
   private async handleMessage(data: ArrayBuffer): Promise<void> {
     // Assign this message an index.

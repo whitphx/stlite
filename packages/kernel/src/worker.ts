@@ -177,7 +177,6 @@ async function loadPyodideAndPackages() {
     console.debug("Loading stlite-server, and streamlit");
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install(["altair<5.2.0"]); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
     await micropip.install.callKwargs([wheels.stliteServer], {
       keep_going: true,
     });
@@ -280,8 +279,9 @@ async function loadPyodideAndPackages() {
   console.debug("Booting up the Streamlit server");
   // The following Python code is based on streamlit.web.cli.main_run().
   self.__streamlitFlagOptions__ = {
+    // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
+    "browser.gatherUsageStats": false, 
     ...streamlitConfig,
-    "browser.gatherUsageStats": false,
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };
   await pyodide.runPythonAsync(`

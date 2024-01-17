@@ -35,10 +35,11 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body
 ) {
+  const mountOptions = canonicalizeMountOptions(options);
   const kernel = new StliteKernel({
-    ...canonicalizeMountOptions(options),
+    ...mountOptions,
     wheelBaseUrl,
-    ...makeToastKernelCallbacks(),
+    ...makeToastKernelCallbacks(mountOptions.disableProgressToasts === true),
   });
 
   ReactDOM.render(

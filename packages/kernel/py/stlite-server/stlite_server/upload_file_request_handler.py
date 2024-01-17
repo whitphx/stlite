@@ -1,14 +1,15 @@
 import logging
 from typing import Callable, Dict, List
+import re
 
 from streamlit.runtime.uploaded_file_manager import UploadedFileManager, UploadedFileRec
 
 from .handler import Request, RequestHandler, Response
 from .httputil import HTTPFile, parse_body_arguments
 
-# /_stcore/upload_file/(optional session id)/(optional widget id)
+# /_stcore/upload_file/(optional session id)/(optional file id)
 UPLOAD_FILE_ROUTE = (
-    r"/_stcore/upload_file/?(?P<session_id>[^/]*)?/?(?P<widget_id>[^/]*)?"
+    r"/_stcore/upload_file/(?P<session_id>[^/]+)/(?P<file_id>[^/]+)"
 )
 LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class UploadFileRequestHandler(RequestHandler):
         # Convert bytes to string
         return arg[0].decode("utf-8")
 
-    def post(self, request: Request, **kwargs) -> Response:
+    def put(self, request: Request, **kwargs) -> Response:
         # NOTE: The original implementation uses an async function,
         #       but it didn't make use of any async features,
         #       so we made it a regular function here for simplicity sake.
@@ -61,8 +62,11 @@ class UploadFileRequestHandler(RequestHandler):
         )
 
         try:
-            session_id = self._require_arg(args, "sessionId")
-            widget_id = self._require_arg(args, "widgetId")
+            path_args = re.match(UPLOAD_FILE_ROUTE, request.path)
+            session_id = path_args.group('session_id')
+            file_id = path_args.group('file_id')
+            # session_id = self._require_arg(args, "sessionId")
+            # file_id = self._require_arg(args, "fileId")
             if not self._is_active_session(session_id):
                 raise Exception(f"Invalid session_id: '{session_id}'")
 
@@ -78,7 +82,7 @@ class UploadFileRequestHandler(RequestHandler):
             for file in flist:
                 uploaded_files.append(
                     UploadedFileRec(
-                        id=0,
+                        file_id=file_id,
                         name=file.filename,
                         type=file.content_type,
                         data=file.body,
@@ -92,10 +96,17 @@ class UploadFileRequestHandler(RequestHandler):
                 body=f"Expected 1 file, but got {len(uploaded_files)}",
             )
 
-        added_file = self._file_mgr.add_file(
-            session_id=session_id, widget_id=widget_id, file=uploaded_files[0]
+        self._file_mgr.add_file(
+            session_id=session_id, file=uploaded_files[0]
         )
+        return Response(status_code=204, headers={}, body="")
 
-        # Return the file_id to the client. (The client will parse
-        # the string back to an int.)
-        return Response(status_code=200, headers={}, body=str(added_file.id))
+    def delete(self, request: Request,  **kwargs):
+        """Delete file request handler."""
+
+        path_args = re.match(UPLOAD_FILE_ROUTE, request.path)
+        session_id = path_args.group('session_id')
+        file_id = path_args.group('file_id')
+
+        self._file_mgr.remove_file(session_id=session_id, file_id=file_id)
+        self.set_status(204)

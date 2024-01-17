@@ -19,5 +19,8 @@ class RequestHandler(abc.ABC):
     def get(self, request: Request) -> Response | Awaitable[Response]:
         return Response(status_code=405, headers={}, body="")
 
-    def post(self, request: Request) -> Response | Awaitable[Response]:
+    def put(self, request: Request) -> Response | Awaitable[Response]:
+        return Response(status_code=405, headers={}, body="")
+
+    def delete(self, request: Request) -> Response | Awaitable[Response]:
         return Response(status_code=405, headers={}, body="")

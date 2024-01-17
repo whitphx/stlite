@@ -35,7 +35,6 @@
     "@stlite/common": "^0.42.3",
     "@streamlit/app": "1.27.0",
     "@streamlit/lib": "1.27.0",
-    "form-data-encoder": "^2.0.1",
     "path-browserify": "^1.0.1"
   }
 }

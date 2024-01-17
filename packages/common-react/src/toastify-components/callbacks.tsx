@@ -3,12 +3,21 @@ import { StliteKernelOptions } from "@stlite/kernel";
 import { toast, Slide, Id as ToastId } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 
-interface ToastKernelCallbacks {
+export interface MakeToastKernelCallbacksOptions {
+  disableProgressToasts?: boolean;
+  disableErrorToasts?: boolean;
+}
+export interface ToastKernelCallbacks {
   onProgress: NonNullable<StliteKernelOptions["onProgress"]>;
   onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
   onError: NonNullable<StliteKernelOptions["onError"]>;
 }
-export function makeToastKernelCallbacks(disableProgressToasts = false, disableErrorToasts = false): ToastKernelCallbacks {
+export function makeToastKernelCallbacks(
+  options?: MakeToastKernelCallbacksOptions
+): ToastKernelCallbacks {
+  const { disableProgressToasts = false, disableErrorToasts = false } =
+    options ?? {};
+
   let prevToastId: ToastId | null = null;
   const toastIds: ToastId[] = [];
   const onProgress: StliteKernelOptions["onProgress"] = (message) => {
@@ -40,7 +49,7 @@ export function makeToastKernelCallbacks(disableProgressToasts = false, disableE
     if (disableErrorToasts) {
       return;
     }
-    
+
     toast(
       <ErrorToastContent message="Error during booting up" error={error} />,
       {

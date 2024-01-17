@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
-import { canonicalizeMountOptions, MountOptions } from "./options";
+import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
   makeToastKernelCallbacks,
@@ -35,11 +35,11 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body
 ) {
-  const mountOptions = canonicalizeMountOptions(options);
+  const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
-    ...mountOptions,
+    ...kernelOptions,
     wheelBaseUrl,
-    ...makeToastKernelCallbacks(mountOptions.disableProgressToasts === true),
+    ...makeToastKernelCallbacks(toastCallbackOptions),
   });
 
   ReactDOM.render(

@@ -1,6 +1,5 @@
 import logging
 from typing import Callable, Dict, List
-import re
 
 from streamlit.runtime.uploaded_file_manager import UploadedFileManager, UploadedFileRec
 
@@ -18,32 +17,14 @@ class UploadFileRequestHandler(RequestHandler):
         self._file_mgr = file_mgr
         self._is_active_session = is_active_session
 
-    @staticmethod
-    def _require_arg(args: Dict[str, List[bytes]], name: str) -> str:
-        """Return the value of the argument with the given name.
-
-        A human-readable exception will be raised if the argument doesn't
-        exist. This will be used as the body for the error response returned
-        from the request.
-        """
-        try:
-            arg = args[name]
-        except KeyError:
-            raise Exception(f"Missing '{name}'")
-
-        if len(arg) != 1:
-            raise Exception(f"Expected 1 '{name}' arg, but got {len(arg)}")
-
-        # Convert bytes to string
-        return arg[0].decode("utf-8")
-
     def put(self, request: Request, **kwargs) -> Response:
-        # NOTE: The original implementation uses an async function,
-        #       but it didn't make use of any async features,
-        #       so we made it a regular function here for simplicity sake.
+        """Receive an uploaded file and add it to our UploadedFileManager."""
 
         args: Dict[str, List[bytes]] = {}
         files: Dict[str, List[HTTPFile]] = {}
+
+        session_id = kwargs['session_id']
+        file_id = kwargs['file_id']
 
         if not isinstance(request.body, bytes):
             return Response(
@@ -58,29 +39,21 @@ class UploadFileRequestHandler(RequestHandler):
         )
 
         try:
-            session_id = kwargs['session_id']
-            file_id = kwargs['file_id']
-            # session_id = self._require_arg(args, "sessionId")
-            # file_id = self._require_arg(args, "fileId")
             if not self._is_active_session(session_id):
-                raise Exception(f"Invalid session_id: '{session_id}'")
-
+                raise Exception(f"Invalid session_id")
         except Exception as e:
             return Response(status_code=400, headers={}, body=str(e))
 
-        # Create an UploadedFile object for each file.
-        # We assign an initial, invalid file_id to each file in this loop.
-        # The file_mgr will assign unique file IDs and return in `add_file`,
-        # below.
         uploaded_files: List[UploadedFileRec] = []
+
         for _, flist in files.items():
             for file in flist:
                 uploaded_files.append(
                     UploadedFileRec(
                         file_id=file_id,
-                        name=file.filename,
-                        type=file.content_type,
-                        data=file.body,
+                        name=file["filename"],
+                        type=file["content_type"],
+                        data=file["body"],
                     )
                 )
 
@@ -91,9 +64,7 @@ class UploadFileRequestHandler(RequestHandler):
                 body=f"Expected 1 file, but got {len(uploaded_files)}",
             )
 
-        self._file_mgr.add_file(
-            session_id=session_id, file=uploaded_files[0]
-        )
+        self._file_mgr.add_file(session_id=session_id, file=uploaded_files[0])
         return Response(status_code=204, headers={}, body="")
 
     def delete(self, request: Request,  **kwargs):
@@ -102,4 +73,4 @@ class UploadFileRequestHandler(RequestHandler):
         file_id = kwargs['file_id']
 
         self._file_mgr.remove_file(session_id=session_id, file_id=file_id)
-        self.set_status(204)
+        return Response(status_code=204, headers={}, body="")

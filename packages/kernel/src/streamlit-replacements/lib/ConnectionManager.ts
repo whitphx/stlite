@@ -14,9 +14,9 @@ import {
 } from "@streamlit/lib"
 
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
-import { ConnectionState } from "./ConnectionState"
+import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"
 
-import type { StliteKernel } from "@stlite/kernel"
+import type { StliteKernel } from "../../kernel"
 
 interface MessageQueue {
   [index: number]: any
@@ -164,9 +164,9 @@ export class ConnectionManager {
   /**
    * No-op in stlite.
    */
-    disconnect(): void {
-      // no-op.
-    }  
+  disconnect(): void {
+    // no-op.
+  }
 
   private async handleMessage(data: ArrayBuffer): Promise<void> {
     // Assign this message an index.

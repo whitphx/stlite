@@ -179,11 +179,15 @@ def test_http_file_upload(AppSession, setup_server):
     headers = dict(r.headers)
     body = r.body
     assert body is not None
-    server.receive_http("PUT", f"/_stcore/upload_file/{active_session.id}/{file_id}", headers, body, on_response)
-
-    on_response.assert_called_with(
-        204, ANY, b""
+    server.receive_http(
+        "PUT",
+        f"/_stcore/upload_file/{active_session.id}/{file_id}",
+        headers,
+        body,
+        on_response,
     )
+
+    on_response.assert_called_with(204, ANY, b"")
 
 
 def test_http_component(setup_server):

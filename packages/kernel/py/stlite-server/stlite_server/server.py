@@ -10,8 +10,8 @@ from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
-from streamlit.runtime.runtime_util import serialize_forward_msg
 from streamlit.runtime.memory_uploaded_file_manager import MemoryUploadedFileManager
+from streamlit.runtime.runtime_util import serialize_forward_msg
 from streamlit.web.cache_storage_manager_config import (
     create_default_cache_storage_manager,
 )

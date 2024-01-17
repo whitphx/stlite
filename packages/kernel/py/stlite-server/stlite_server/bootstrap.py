@@ -123,10 +123,11 @@ def _install_pages_watcher(main_script_path_str: str) -> None:
         allow_nonexistent=True,
     )
 
+
 def _fix_altair():
     """Fix an issue with Altair and the mocked pyarrow module of stlite."""
     try:
-        from altair.utils import _importers
+        from altair.utils import _importers  # type: ignore[import]
 
         def _pyarrow_available():
             return False
@@ -137,16 +138,21 @@ def _fix_altair():
             raise ImportError("Pyarrow is not available in stlite.")
 
         _importers.import_pyarrow_interchange = _import_pyarrow_interchange
-    except:
+    except ImportError:
         pass
+    except Exception as e:
+        logger.error("Failed to fix Altair", exc_info=e)
+
 
 def _fix_requests():
     try:
-        import pyodide_http
+        import pyodide_http  # type: ignore[import]
+
         pyodide_http.patch_all()  # Patch all libraries
     except ImportError:
         # pyodide_http is not installed. No need to do anything.
         pass
+
 
 def prepare(
     main_script_path: str,

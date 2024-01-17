@@ -1,6 +1,7 @@
 import logging
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, cast
 
+from streamlit.runtime.memory_uploaded_file_manager import MemoryUploadedFileManager
 from streamlit.runtime.uploaded_file_manager import UploadedFileManager, UploadedFileRec
 
 from .handler import Request, RequestHandler, Response
@@ -14,7 +15,9 @@ class UploadFileRequestHandler(RequestHandler):
     def __init__(
         self, file_mgr: UploadedFileManager, is_active_session: Callable[[str], bool]
     ) -> None:
-        self._file_mgr = file_mgr
+        self._file_mgr = cast(
+            MemoryUploadedFileManager, file_mgr
+        )  # HACK: The upstream reference impl also has this type mismatch while it's not checked because Tornado's initialize() is not type checked.  # noqa: E501
         self._is_active_session = is_active_session
 
     def put(self, request: Request, **kwargs) -> Response:
@@ -23,8 +26,8 @@ class UploadFileRequestHandler(RequestHandler):
         args: Dict[str, List[bytes]] = {}
         files: Dict[str, List[HTTPFile]] = {}
 
-        session_id = kwargs['session_id']
-        file_id = kwargs['file_id']
+        session_id = kwargs["session_id"]
+        file_id = kwargs["file_id"]
 
         if not isinstance(request.body, bytes):
             return Response(
@@ -40,7 +43,7 @@ class UploadFileRequestHandler(RequestHandler):
 
         try:
             if not self._is_active_session(session_id):
-                raise Exception(f"Invalid session_id")
+                raise Exception("Invalid session_id")
         except Exception as e:
             return Response(status_code=400, headers={}, body=str(e))
 
@@ -67,10 +70,10 @@ class UploadFileRequestHandler(RequestHandler):
         self._file_mgr.add_file(session_id=session_id, file=uploaded_files[0])
         return Response(status_code=204, headers={}, body="")
 
-    def delete(self, request: Request,  **kwargs):
+    def delete(self, request: Request, **kwargs):
         """Delete file request handler."""
-        session_id = kwargs['session_id']
-        file_id = kwargs['file_id']
+        session_id = kwargs["session_id"]
+        file_id = kwargs["file_id"]
 
         self._file_mgr.remove_file(session_id=session_id, file_id=file_id)
         return Response(status_code=204, headers={}, body="")

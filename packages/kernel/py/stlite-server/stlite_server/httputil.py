@@ -5,7 +5,7 @@ import email.utils
 import logging
 import urllib.parse
 from functools import lru_cache
-from typing import Dict, Generator, List, TypedDict, Optional, Tuple, Union
+from typing import Dict, Generator, List, Optional, Tuple, TypedDict, Union
 
 LOGGER = logging.getLogger(__name__)
 

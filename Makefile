@@ -95,7 +95,7 @@ $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/deskto
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit_frontend_lib_prod)
 	cd packages/kernel; \
 	yarn build
 	@touch $@

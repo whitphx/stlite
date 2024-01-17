@@ -280,7 +280,7 @@ async function loadPyodideAndPackages() {
   // The following Python code is based on streamlit.web.cli.main_run().
   self.__streamlitFlagOptions__ = {
     // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
-    "browser.gatherUsageStats": false, 
+    "browser.gatherUsageStats": false,
     ...streamlitConfig,
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };

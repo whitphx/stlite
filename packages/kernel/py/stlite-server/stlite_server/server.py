@@ -26,9 +26,9 @@ from .upload_file_request_handler import UploadFileRequestHandler
 LOGGER = logging.getLogger(__name__)
 
 # These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.27.0/lib/streamlit/web/server/server.py#L83-L92  # noqa: E501
-UPLOAD_FILE_ENDPOINT: Final = "/_stcore/upload_file"
 MEDIA_ENDPOINT: Final = "/media"
-STREAM_ENDPOINT: Final = "_stcore/stream"
+UPLOAD_FILE_ENDPOINT: Final = "/_stcore/upload_file"
+STREAM_ENDPOINT: Final = r"_stcore/stream"
 HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
 
 
@@ -39,14 +39,15 @@ class Server:
         self._main_script_path = main_script_path
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
-        self.uploaded_file_mgr = MemoryUploadedFileManager(UPLOAD_FILE_ENDPOINT)
+
+        uploaded_file_mgr = MemoryUploadedFileManager(UPLOAD_FILE_ENDPOINT)
 
         self._runtime = Runtime(
             RuntimeConfig(
                 script_path=main_script_path,
                 command_line=command_line,
                 media_file_storage=self._media_file_storage,
-                uploaded_file_manager=self.uploaded_file_mgr,
+                uploaded_file_manager=uploaded_file_mgr,
                 cache_storage_manager=create_default_cache_storage_manager(),
             ),
         )

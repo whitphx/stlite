@@ -22,8 +22,7 @@ VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: $(VENV)
-$(VENV): requirements.dev.txt
+venv: requirements.dev.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
 	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
@@ -101,7 +100,8 @@ $(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit
 	@touch $@
 
 .PHONY: stlite-server-wheel
-$(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*.py
+stlite-server-wheel: $(stlite-server-wheel)
+$(stlite-server-wheel): venv packages/kernel/py/stlite-server/stlite_server/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/kernel/py/stlite-server && \
 	poetry build
@@ -109,7 +109,7 @@ $(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*
 
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
-$(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
+$(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
@@ -117,7 +117,7 @@ $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \

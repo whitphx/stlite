@@ -61,14 +61,14 @@ $(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 mountable: $(mountable)
 $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react)
 	cd packages/mountable; \
-	yarn build
+	yarn build ${CRA_ARGS}
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
 $(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing; \
-	yarn build
+	yarn build ${CRA_ARGS}
 	@touch $@
 
 .PHONY: sharing-common
@@ -82,14 +82,14 @@ $(sharing-common): packages/sharing-common/src/*.ts yarn_install
 sharing-editor: $(sharing-editor)
 $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx yarn_install $(common) $(sharing-common)
 	cd packages/sharing-editor; \
-	yarn build
+	yarn build ${CRA_ARGS}
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
 $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
 	cd packages/desktop; \
-	yarn build
+	yarn build ${CRA_ARGS}
 	@touch $@
 
 .PHONY: kernel

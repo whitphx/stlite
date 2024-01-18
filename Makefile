@@ -111,6 +111,7 @@ $(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*
 streamlit-proto: $(streamlit_proto)
 $(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
+	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
 	@touch $@
 

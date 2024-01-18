@@ -173,7 +173,7 @@ async function loadPyodideAndPackages() {
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
   if (wheels) {
-    requirements.push("altair<5.2.0"); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
+    await micropip.install("altair<5.2.0", { keep_going: true }); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
 
     console.debug(
       "Installing the wheels:",

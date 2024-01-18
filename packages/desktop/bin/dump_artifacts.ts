@@ -84,7 +84,7 @@ async function inspectUsedBuiltinPackages(
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  await micropip.install(options.requirements);
+  await micropip.install.callKwargs(options.requirements, { keep_going: true });
   await installStreamlitWheels(pyodide, {
     useLocalKernelWheels: options.useLocalKernelWheels,
   });
@@ -130,8 +130,6 @@ async function installStreamlitWheels(
   options: InstallStreamlitWheelsOptions
 ) {
   const micropip = pyodide.pyimport("micropip");
-
-  await micropip.install(["altair<5.2.0"]); // Altair>=5.2.0 checks PyArrow version and emits an error (https://github.com/altair-viz/altair/pull/3160)
 
   if (options.useLocalKernelWheels) {
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist

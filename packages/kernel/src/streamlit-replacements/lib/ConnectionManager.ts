@@ -3,15 +3,12 @@
 
 import type { ReactNode } from "react"
 
-import {
-  IAllowedMessageOriginsResponse,
-  BaseUriParts,
-  SessionInfo,
-  StreamlitEndpoints,
-  ensureError,
-  BackMsg,
-  ForwardMsg,
-} from "@streamlit/lib"
+import { IAllowedMessageOriginsResponse } from "@streamlit/lib/src/hostComm/types"
+import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
+import { SessionInfo } from "@streamlit/lib/src/SessionInfo"
+import type { StreamlitEndpoints } from "@streamlit/lib/src/StreamlitEndpoints"
+import { BackMsg, ForwardMsg } from "@streamlit/lib/src/proto"
+import { ensureError } from "@streamlit/lib/src/util/ErrorHandling"
 
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"

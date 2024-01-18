@@ -102,7 +102,9 @@ jobs:
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
-      run: make mountable
+      run: |
+        . .venv/bin/activate
+        make mountable
 
     - if: matrix.target == 'mountable'
       name: Upload the built files as an artifact

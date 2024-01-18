@@ -4690,10 +4690,19 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@17.*", "@types/react@^16", "@types/react@^17", "@types/react@^17.0.7":
+"@types/react@*", "@types/react@^17", "@types/react@^17.0.7":
   version "17.0.74"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.74.tgz#ea93059a55e5cfc7a76e7712fe8db5317dd29ee3"
   integrity sha512-nBtFGaeTMzpiL/p73xbmCi00SiCQZDTJUk9ZuHOLtil3nI+y7l269LHkHIAYpav99ZwGnPJzuJsJpfLXjiQ52g==
+  dependencies:
+    "@types/prop-types" "*"
+    "@types/scheduler" "*"
+    csstype "^3.0.2"
+
+"@types/react@^16":
+  version "16.14.56"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.14.56.tgz#4cf37850a87edcb9f3526648338eff35d283c9ab"
+  integrity sha512-MxuHB7dvVm5yOxRr7hJoonLG0JY8YvqZtaQ9Quirp3Oe4FLFjAgxkxsKE6IspdHPpRVZKo2ZoDEravWO81EeYA==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -12253,7 +12262,7 @@ immer@^9.0.19, immer@^9.0.7:
   resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.21.tgz#1e025ea31a40f24fb064f1fef23e931496330176"
   integrity sha512-bc4NBHqOqSfRW7POMkHd51LvClaeMXpm8dx0e8oE2GORbq5aRK7Bxl4FyzVLdGtLmvLKL7BTDBG5ACQm4HWjTA==
 
-immutable@4.2.3, immutable@^4.0.0, immutable@^4.2.3:
+immutable@^4.0.0, immutable@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.2.3.tgz#a203cdda37a5a30bc351b982a1794c1930198815"
   integrity sha512-IHpmvaOIX4VLJwPOuQr1NpeBr2ZG6vpIj3blsLVxXRWJscLioaJRStqC+NcBsLeCDsnGlPpXd5/WZmnE7MbsKA==

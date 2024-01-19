@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.43.0] - 2024-01-19
+## [0.43.1] - 2024-01-19
 
 ### `@stlite/kernel`
 
@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Changed
 
 - Remove `ctx.disableToast()` and `ctx.enableToast()`, [#671](https://github.com/whitphx/stlite/pull/671)
+
+## [0.43.0]
+
+Skipped
 
 ## [0.42.5] - 2024-01-19
 

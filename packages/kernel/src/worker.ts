@@ -158,35 +158,41 @@ async function loadPyodideAndPackages() {
     console.debug("Mocked pyarrow");
   }
 
-  // NOTE: It's important to install the requirements before loading the streamlit package
-  // because it allows users to specify the versions of Streamlit's dependencies via requirements.txt
-  // before these versions are automatically resolved by micropip when installing Streamlit.
+  verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
+  // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
+  // which satisfies the following two requirements:
+  // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+  // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+  // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+  // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+  // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+  // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+  // ===
   // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
-  if (requirements.length > 0) {
-    postProgressMessage("Installing the requirements.");
-    console.debug("Installing the requirements:", requirements);
-    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs(requirements, { keep_going: true });
-    console.debug("Installed the requirements:", requirements);
-  }
-
+  postProgressMessage("Installing packages.");
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
   if (wheels) {
-    postProgressMessage("Installing streamlit and its dependencies.");
-    console.debug("Loading stlite-server, and streamlit");
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-    await micropip.install.callKwargs([wheels.stliteServer], {
-      keep_going: true,
-    });
-    await micropip.install.callKwargs([wheels.streamlit], { keep_going: true });
-    console.debug("Loaded stlite-server, and streamlit");
+    console.debug(
+      "Installing the wheels:",
+      wheels,
+      "and the requirements:",
+      requirements
+    );
+    await micropip.install.callKwargs(
+      [wheels.stliteServer, wheels.streamlit, ...requirements],
+      { keep_going: true }
+    );
+    console.debug("Installed the wheels and the requirements");
 
     postProgressMessage("Mocking some packages.");
     console.debug("Mock pyarrow");
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
+  } else {
+    console.debug("Installing the requirements:", requirements);
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements");
   }
 
   // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`

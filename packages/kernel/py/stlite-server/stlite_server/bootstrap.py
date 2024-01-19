@@ -124,6 +124,36 @@ def _install_pages_watcher(main_script_path_str: str) -> None:
     )
 
 
+def _fix_altair():
+    """Fix an issue with Altair and the mocked pyarrow module of stlite."""
+    try:
+        from altair.utils import _importers  # type: ignore[import]
+
+        def _pyarrow_available():
+            return False
+
+        _importers.pyarrow_available = _pyarrow_available
+
+        def _import_pyarrow_interchange():
+            raise ImportError("Pyarrow is not available in stlite.")
+
+        _importers.import_pyarrow_interchange = _import_pyarrow_interchange
+    except ImportError:
+        pass
+    except Exception as e:
+        logger.error("Failed to fix Altair", exc_info=e)
+
+
+def _fix_requests():
+    try:
+        import pyodide_http  # type: ignore[import]
+
+        pyodide_http.patch_all()  # Patch all libraries
+    except ImportError:
+        # pyodide_http is not installed. No need to do anything.
+        pass
+
+
 def prepare(
     main_script_path: str,
     args: List[str],
@@ -135,6 +165,8 @@ def prepare(
     """
     _fix_sys_path(main_script_path)
     _fix_matplotlib_crash()
+    _fix_altair()
+    _fix_requests()
     _fix_sys_argv(main_script_path, args)
     _fix_pydeck_mapbox_api_warning()
     _install_pages_watcher(main_script_path)

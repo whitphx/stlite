@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.27.0, [#671](https://github.com/whitphx/stlite/pull/671)
+
+### `@stlite/mountable`
+
+#### Added
+
+- `disableProgressToasts` and `disableErrorToasts` options, [#671](https://github.com/whitphx/stlite/pull/671)
+
+#### Changed
+
+- Remove `ctx.disableToast()` and `ctx.enableToast()`, [#671](https://github.com/whitphx/stlite/pull/671)
+
 ## [0.42.5] - 2024-01-19
 
 ### `@stlite/kernel`

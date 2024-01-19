@@ -5,12 +5,12 @@ import email.utils
 import logging
 import urllib.parse
 from functools import lru_cache
-from typing import Dict, Generator, List, NamedTuple, Optional, Tuple, Union
+from typing import Dict, Generator, List, Optional, Tuple, TypedDict, Union
 
 LOGGER = logging.getLogger(__name__)
 
 
-class HTTPFile(NamedTuple):
+class HTTPFile(TypedDict):
     filename: str
     body: bytes
     content_type: str

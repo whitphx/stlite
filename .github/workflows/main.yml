@@ -87,39 +87,11 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+
+    - uses: ./.github/actions/init-all
       with:
         python-version: ${{ env.python-version }}
-
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
-
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
-
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
-
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
-
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
-
-    - name: Create virtualenv
-      run: python -m venv .venv
+        node-version-file: .nvmrc
 
     - name: Install dependencies
       shell: bash
@@ -128,26 +100,6 @@ jobs:
         cd packages/kernel/py/stlite-server
         poetry install
 
-    # Node packages are needed to build proto
-    - uses: actions/setup-node@v3
-      with:
-        node-version-file: .nvmrc
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
     - name: Set up Streamlit and build proto
       run: |
         . .venv/bin/activate
@@ -294,63 +246,10 @@ jobs:
       with:
         submodules: true
 
-    ## Set up Python and Poetry environment
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+    - uses: ./.github/actions/init-all
       with:
         python-version: ${{ env.python-version }}
-
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
-
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
-
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
-
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
-
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
-
-    - name: Create virtualenv
-      run: python -m venv .venv
-
-    ## Set up Node environment
-    - uses: actions/setup-node@v3
-      with:
         node-version-file: .nvmrc
-        cache: 'yarn'
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-
-    - name: Set up
-      run: make init
 
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
@@ -424,63 +323,10 @@ jobs:
       with:
         submodules: true
 
-    ## Set up Python and Poetry environment
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+    - uses: ./.github/actions/init-all
       with:
         python-version: ${{ env.python-version }}
-
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
-
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
-
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
-
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
-
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
-
-    - name: Create virtualenv
-      run: python -m venv .venv
-
-    ## Set up Node environment
-    - uses: actions/setup-node@v3
-      with:
         node-version-file: .nvmrc
-        cache: 'yarn'
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-
-    - name: Set up
-      run: make init
 
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
@@ -554,63 +400,10 @@ jobs:
       with:
         submodules: true
 
-    ## Set up Python and Poetry environment
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+    - uses: ./.github/actions/init-all
       with:
         python-version: ${{ env.python-version }}
-
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
-
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
-
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
-
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
-
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
-
-    - name: Create virtualenv
-      run: python -m venv .venv
-
-    ## Set up Node environment
-    - uses: actions/setup-node@v3
-      with:
         node-version-file: .nvmrc
-        cache: 'yarn'
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-
-    - name: Set up
-      run: make init
 
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
@@ -722,63 +515,10 @@ jobs:
       with:
         submodules: true
 
-    ## Set up Python and Poetry environment
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+    - uses: ./.github/actions/init-all
       with:
         python-version: ${{ env.python-version }}
-
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
-
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
-
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
-
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('requirements*.txt') }}
-
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
-
-    - name: Create virtualenv
-      run: python -m venv .venv
-
-    ## Set up Node environment
-    - uses: actions/setup-node@v3
-      with:
         node-version-file: .nvmrc
-        cache: 'yarn'
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-
-    - name: Set up
-      run: make init
 
     ## Build and deploy @stlite/desktop
     - name: Build @stlite/desktop

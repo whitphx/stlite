@@ -81,9 +81,6 @@ async function inspectUsedBuiltinPackages(
 
   const pyodide = await loadPyodide();
 
-  await pyodide.loadPackage("micropip");
-  const micropip = pyodide.pyimport("micropip");
-
   await installPackages(pyodide, {
     useLocalKernelWheels: options.useLocalKernelWheels,
     requirements: options.requirements,
@@ -132,6 +129,7 @@ async function installPackages(
   pyodide: PyodideInterface,
   options: InstallStreamlitWheelsOptions
 ) {
+  await pyodide.loadPackage(["micropip"]);
   const micropip = pyodide.pyimport("micropip");
 
   const requirements: string[] = [...options.requirements];
@@ -192,7 +190,6 @@ async function createSitePackagesSnapshot(
   const pyodide = await loadPyodide();
 
   await pyodide.loadPackage(["micropip"]);
-
   const micropip = pyodide.pyimport("micropip");
 
   const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();

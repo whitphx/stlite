@@ -274,6 +274,7 @@ jobs:
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
+    - run: yarn config set network-timeout 600000  # `yarn install` often takes so long time on in the Windows env.
     - run: yarn install --frozen-lockfile
     - name: Lint
       if: ${{ matrix.os == 'ubuntu-latest' }}  # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.

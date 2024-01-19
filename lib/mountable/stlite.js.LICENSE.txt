@@ -11,6 +11,28 @@ object-assign
 */
 
 /*!
+  	 * Copyright (c) 2017 Benjamin Van Ryseghem<benjamin@vanryseghem.com>
+  	 *
+  	 * Permission is hereby granted, free of charge, to any person obtaining a copy
+  	 * of this software and associated documentation files (the "Software"), to deal
+  	 * in the Software without restriction, including without limitation the rights
+  	 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  	 * copies of the Software, and to permit persons to whom the Software is
+  	 * furnished to do so, subject to the following conditions:
+  	 *
+  	 * The above copyright notice and this permission notice shall be included in
+  	 * all copies or substantial portions of the Software.
+  	 *
+  	 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  	 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  	 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  	 * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  	 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  	 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  	 * SOFTWARE.
+  	 */
+
+/*!
  * Determine if an object is a Buffer
  *
  * @author   Feross Aboukhadijeh <https://feross.org>
@@ -76,8 +98,6 @@ object-assign
  * Licensed MIT © Zeno Rocha
  */
 
-/*! @license DOMPurify 2.4.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.5/LICENSE */
-
 /*! Moment Duration Format v2.2.2
  *  https://github.com/jsmreese/moment-duration-format
  *  Date: 2018-02-16
@@ -88,8 +108,6 @@ object-assign
  *  Copyright 2018 John Madhavan-Reese
  *  Released under the MIT license
  */
-
-/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
 
 /**
  * @license
@@ -174,4 +192,4 @@ object-assign
 
 //! moment.js
 
-//! version : 0.5.40
+//! version : 0.5.44

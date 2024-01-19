@@ -12,10 +12,7 @@ import type {
 
 let pyodide: Pyodide.PyodideInterface;
 
-// Cognite
-let token: string;
-let baseUrl: string;
-let project: string;
+let tokenIsSet = false;
 
 let httpServer: any;
 
@@ -175,6 +172,11 @@ async function loadPyodideAndPackages() {
     console.debug("Mocked pyarrow");
   } else {
     throw new Error(`Neither snapshot nor wheel files are provided.`);
+  }
+
+  while (!tokenIsSet) {
+    // Wait for Fusion to send token
+    await new Promise((r) => setTimeout(r, 50));
   }
 
   if (requirements.length > 0) {
@@ -509,14 +511,17 @@ ctx.postMessage({
 const handleCogniteMessage = async (msg: InMessage) => {
   // handle Cognite data
   if (msg.type === "newToken") {
-    token = msg.data.token;
-    project = msg.data.project;
-    baseUrl = msg.data.baseUrl;
+    const token = msg.data.token;
+    const project = msg.data.project;
+    const baseUrl = msg.data.baseUrl;
 
     if (token && project && baseUrl) {
-      if (pyodide) {
-        // If kernel is ready, set new values
-        await pyodide.runPythonAsync(`
+      while (!pyodide) {
+        // Wait for pyodide to be ready
+        await new Promise((r) => setTimeout(r, 50));
+      }
+
+      await pyodide.runPythonAsync(`
         import os
         os.environ["COGNITE_TOKEN"] = "${token}"
         os.environ["COGNITE_PROJECT"] = "${project}"
@@ -524,7 +529,7 @@ const handleCogniteMessage = async (msg: InMessage) => {
         # Set flag to tell the SDK that we are inside of a Fusion Notebook:
         os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
       `);
-      }
+      tokenIsSet = true;
     }
   }
 };

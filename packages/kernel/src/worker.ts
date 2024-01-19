@@ -336,9 +336,9 @@ self.onmessage = async (event: MessageEvent<InMessage>): Promise<void> => {
     return;
   }
 
-  await pyodideReadyPromise;
-
   handleCogniteMessage(msg);
+
+  await pyodideReadyPromise;
 
   const messagePort = event.ports[0];
 

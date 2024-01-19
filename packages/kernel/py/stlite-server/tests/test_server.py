@@ -190,6 +190,35 @@ def test_http_file_upload(AppSession, setup_server):
     on_response.assert_called_with(204, ANY, b"")
 
 
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_file_delete(AppSession, setup_server):
+    server: Server = setup_server
+
+    app_session = AppSession.return_value
+    app_session.id = (
+        "foo"  # Every mocked AppSession's ID is fixed to be "foo" for test simplicity.
+    )
+
+    # Initiate the session
+    receive_websocket = Mock()
+    server.start_websocket("/_stcore/stream", receive_websocket)
+
+    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
+
+    file_id = str(uuid.uuid4())
+
+    # Delete the file
+    on_response = Mock()
+    server.receive_http(
+        "DELETE",
+        f"/_stcore/upload_file/{active_session.id}/{file_id}",
+        {},
+        "",
+        on_response,
+    )
+    on_response.assert_called_with(204, ANY, b"")
+
+
 def test_http_component(setup_server):
     server: Server = setup_server
 

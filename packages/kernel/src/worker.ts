@@ -509,7 +509,7 @@ ctx.postMessage({
 });
 
 const handleCogniteMessage = async (msg: InMessage) => {
-  // handle Cognite data
+  // Fusion sends in a token to the worker, which we need to set in the environment
   if (msg.type === "newToken") {
     const token = msg.data.token;
     const project = msg.data.project;

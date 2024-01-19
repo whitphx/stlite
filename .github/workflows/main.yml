@@ -14,7 +14,7 @@ env:
   # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
   # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
   NODE_OPTIONS: "--max-old-space-size=6656"
-  RUN_ALL_TESTS: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+  RUN_ALL_TESTS: true
   USE_CONSTRAINTS_FILE: false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 jobs:

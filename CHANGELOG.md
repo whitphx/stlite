@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.42.5] - 2024-01-19
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Install the user-specified requirements and the stlite custom wheels at the same time, [#676](https://github.com/whitphx/stlite/pull/676).
+
 ## [0.42.4] - 2023-12-27
 
 ### `@stlite/kernel`

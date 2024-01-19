@@ -149,7 +149,7 @@ async function installPackages(
       pyodide,
       path.join(
         stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.27.0-cp311-none-any.whl"
+        "streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl"
       )
     );
     requirements.push(streamlitWheel);

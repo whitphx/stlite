@@ -31,7 +31,7 @@
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@stlite/common-react": "^0.43.1",
     "@stlite/kernel": "^0.43.1",
-    "@streamlit/app": "1.27.0",
+    "@streamlit/app": "1.30.0",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

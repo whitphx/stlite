@@ -97,9 +97,9 @@ async function loadPyodideBuiltinPackageData(): Promise<
     { name: string; version: string; file_name: string; depends: string[] }
   >
 > {
-  const url = makePyodideUrl("repodata.json");
+  const url = makePyodideUrl("pyodide-lock.json");
 
-  console.log(`Load the Pyodide repodata.json from ${url}`);
+  console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
   const res = await fetch(url);
   const resJson = await res.json();
 

@@ -1,6 +1,6 @@
-import numpy as np
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import numpy as np
 
 
 @st.cache_data
@@ -11,4 +11,4 @@ def load_data():
 
 chart_data = load_data()
 
-st.bar_chart(chart_data)
+st.scatter_chart(chart_data)

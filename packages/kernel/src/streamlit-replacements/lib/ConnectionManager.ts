@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react"
 
-import { IAllowedMessageOriginsResponse } from "@streamlit/lib/src/hostComm/types"
+import { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types"
 import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
 import { SessionInfo } from "@streamlit/lib/src/SessionInfo"
 import type { StreamlitEndpoints } from "@streamlit/lib/src/StreamlitEndpoints"
@@ -60,10 +60,10 @@ interface Props {
   resetHostAuthToken: () => void
 
   /**
-   * Function to set the list of origins that this app should accept
-   * cross-origin messages from (if in a relevant deployment scenario).
+   * Function to set the host config for this app (if in a relevant deployment
+   * scenario).
    */
-  setAllowedOriginsResp: (resp: IAllowedMessageOriginsResponse) => void
+  onHostConfigResp: (resp: IHostConfigResponse) => void
 }
 
 /**
@@ -87,7 +87,7 @@ export class ConnectionManager {
 
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
-      this.props.setAllowedOriginsResp(this.props.kernel.allowedOriginsResp)
+      this.props.onHostConfigResp(this.props.kernel.hostConfigResponse)
       this.connect()
     })
   }

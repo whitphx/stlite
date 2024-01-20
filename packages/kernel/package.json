@@ -33,8 +33,8 @@
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",
     "@stlite/common": "^0.43.1",
-    "@streamlit/app": "1.27.0",
-    "@streamlit/lib": "1.27.0",
+    "@streamlit/app": "1.30.0",
+    "@streamlit/lib": "1.30.0",
     "path-browserify": "^1.0.1"
   }
 }

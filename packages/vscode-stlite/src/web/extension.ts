@@ -158,7 +158,7 @@ export function activate(context: vscode.ExtensionContext) {
             requirements,
             entrypoint,
             files,
-            allowedOriginsResp: {
+            hostConfig: {
               // The `withHostCommunication` HOC in Streamlit's frontend accepts messages from the parent window on these hosts.
               allowedOrigins: [
                 "vscode-webview://*", // For VSCode desktop

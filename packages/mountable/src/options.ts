@@ -13,7 +13,7 @@ export interface SimplifiedStliteKernelOptions {
     EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
   >;
   archives?: StliteKernelOptions["archives"];
-  allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
+  hostConfig?: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
 }
@@ -114,7 +114,7 @@ export function parseMountOptions(options: MountOptions): {
       files,
       archives,
       requirements: options.requirements || [],
-      allowedOriginsResp: options.allowedOriginsResp,
+      hostConfigResponse: options.hostConfig,
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
     },

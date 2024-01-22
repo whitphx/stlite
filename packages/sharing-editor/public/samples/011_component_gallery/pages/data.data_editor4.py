@@ -20,6 +20,6 @@ def load_data():
 
 df = load_data()
 
-st.data_editor(df, key="data_editor", num_rows="dynamic")
-st.write("Here's the session state:")
-st.write(st.session_state["data_editor"])
+st.data_editor(df, key="my_key", num_rows="dynamic")
+st.write("Here's the value in Session State:")
+st.write(st.session_state["my_key"])

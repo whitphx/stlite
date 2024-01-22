@@ -10,19 +10,24 @@ from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
+from streamlit.runtime.memory_uploaded_file_manager import MemoryUploadedFileManager
 from streamlit.runtime.runtime_util import serialize_forward_msg
+from streamlit.web.cache_storage_manager_config import (
+    create_default_cache_storage_manager,
+)
 
 from .component_request_handler import ComponentRequestHandler
 from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
 from .media_file_handler import MediaFileHandler
 from .server_util import make_url_path_regex
-from .upload_file_request_handler import UPLOAD_FILE_ROUTE, UploadFileRequestHandler
+from .upload_file_request_handler import UploadFileRequestHandler
 
 LOGGER = logging.getLogger(__name__)
 
-# These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L81-L89  # noqa: E501
+# These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.27.0/lib/streamlit/web/server/server.py#L83-L92  # noqa: E501
 MEDIA_ENDPOINT: Final = "/media"
+UPLOAD_FILE_ENDPOINT: Final = "/_stcore/upload_file"
 STREAM_ENDPOINT: Final = r"_stcore/stream"
 HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
 
@@ -35,11 +40,15 @@ class Server:
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
 
+        uploaded_file_mgr = MemoryUploadedFileManager(UPLOAD_FILE_ENDPOINT)
+
         self._runtime = Runtime(
             RuntimeConfig(
                 script_path=main_script_path,
                 command_line=command_line,
                 media_file_storage=self._media_file_storage,
+                uploaded_file_manager=uploaded_file_mgr,
+                cache_storage_manager=create_default_cache_storage_manager(),
             ),
         )
 
@@ -68,7 +77,7 @@ class Server:
             (
                 make_url_path_regex(
                     base,
-                    UPLOAD_FILE_ROUTE,
+                    rf"{UPLOAD_FILE_ENDPOINT}/(?P<session_id>[^/]+)/(?P<file_id>[^/]+)",
                 ),
                 UploadFileRequestHandler(
                     file_mgr=self._runtime.uploaded_file_mgr,
@@ -152,8 +161,8 @@ class Server:
             on_response(404, {}, b"No handler found")
             return
         method_name = method.lower()
-        if method_name not in ("get", "post"):
-            on_response(405, {}, b"Now allowed")
+        if method_name not in ("get", "put", "delete"):
+            on_response(405, {}, b"Not allowed")
             return
         handler_method = getattr(handler, method_name, None)
         if handler_method is None:

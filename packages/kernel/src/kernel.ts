@@ -2,7 +2,7 @@
 
 import { PromiseDelegate } from "@stlite/common";
 
-import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types";
+import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
 
 import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
@@ -30,10 +30,7 @@ import { assertStreamlitConfig } from "./types";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl";
-
-import mixpanel from "mixpanel-browser";
-mixpanel.init("fb25742efb56d116b736515a0ad5f6ef", { debug: false });
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -78,16 +75,17 @@ export interface StliteKernelOptions {
   mountedSitePackagesSnapshotFilePath?: string;
 
   /**
-   * This value will be passed to the withHostCommunication HOC so it verifies the origin of the messages from the parent window.
-   * In the original Streamlit, this value is defined at https://github.com/streamlit/streamlit/blob/1.19.0/lib/streamlit/web/server/routes.py#L178-L194
-   * and passed to the frontend via the `_stcore/allowed-message-origins` API endpoint.
+   * In the original Streamlit, the `hostConfig` endpoint returns a value of this type
+   * and the frontend app fetches it (https://github.com/streamlit/streamlit/blob/1.30.0/frontend/app/src/connection/WebsocketConnection.tsx#L696-L703)
+   * and passes it to the `onHostConfigResp` callback to configure the app (https://github.com/streamlit/streamlit/blob/1.30.0/frontend/app/src/App.tsx#L393-L415).
    * Instead, in stlite, this value can be configured through this property,
-   * while it is rarely necessary, as such iframe messaging is not used in stlite basically.
-   * The primary usage is for the VSCode extension to use the iframe messaging to solve the problem of https://github.com/whitphx/stlite/issues/519
-   * sending the `SET_PAGE_LINK_BASE_URL` message to the app in a WebView panel to override the URL scheme of the links.
+   * which is passed to the `ConnectionManager` class to call `onHostConfigResp` from it.
+   * One of the usages in stlite is to configure the `allowedOrigins` property
+   * for VSCode extension to use the iframe messaging to solve the problem of https://github.com/whitphx/stlite/issues/519
+   * by sending the `SET_PAGE_LINK_BASE_URL` message to the app in a WebView panel to override the URL scheme of the links.
    * Note that Streamlit's iframe messaging referred to here is different from the iframe messaging mechanism implemented for the iframe embedded on stlite sharing.
    */
-  allowedOriginsResp?: IAllowedMessageOriginsResponse;
+  hostConfigResponse?: IHostConfigResponse;
 
   /**
    * The `pathname` that will be used as both
@@ -128,7 +126,7 @@ export class StliteKernel {
 
   public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
 
-  public readonly allowedOriginsResp: IAllowedMessageOriginsResponse; // Will be passed to ConnectionManager to call `setAllowedMessageOrigins` from it.
+  public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
   private onProgress: StliteKernelOptions["onProgress"];
 
@@ -140,10 +138,7 @@ export class StliteKernel {
     this.basePath = (options.basePath ?? window.location.pathname)
       .replace(FINAL_SLASH_RE, "")
       .replace(INITIAL_SLASH_RE, "");
-    this.allowedOriginsResp = options.allowedOriginsResp ?? {
-      allowedOrigins: [],
-      useExternalAuthToken: false,
-    };
+    this.hostConfigResponse = options.hostConfigResponse ?? {};
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;
@@ -407,11 +402,6 @@ const sendTokenToWorker = (
   },
   worker: StliteWorker
 ) => {
-  mixpanel.track("STLiteKernel.initKernel", {
-    baseUrl,
-    project,
-    distinct_id: email,
-  });
   worker.postMessage({
     type: "newToken",
     data: { token, baseUrl, project, email },

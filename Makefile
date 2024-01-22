@@ -7,8 +7,9 @@ sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
-streamlit_proto := streamlit/frontend/src/lib/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl
+streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl
+streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -21,8 +22,7 @@ VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: $(VENV)
-$(VENV): requirements.dev.txt
+venv: requirements.dev.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
 	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
@@ -59,14 +59,14 @@ $(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -87,7 +87,7 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react) $(streamlit_frontend_lib_prod)
 	cd packages/desktop; \
 	yarn build
 	@touch $@
@@ -100,21 +100,24 @@ $(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit
 	@touch $@
 
 .PHONY: stlite-server-wheel
-$(stlite-server-wheel): $(VENV) packages/kernel/py/stlite-server/stlite_server/*.py
+stlite-server-wheel: $(stlite-server-wheel)
+$(stlite-server-wheel): venv packages/kernel/py/stlite-server/stlite_server/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/kernel/py/stlite-server && \
 	poetry build
 	@touch $@
 
-$(streamlit_proto): $(VENV) streamlit/proto/streamlit/proto/*.proto
+.PHONY: streamlit-proto
+streamlit-proto: $(streamlit_proto)
+$(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
-	cd streamlit; \
-	$(MAKE) mini-init
+	$(MAKE) -C streamlit python-init-dev-only && \
+	$(MAKE) -C streamlit protobuf
 	@touch $@
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
@@ -124,6 +127,11 @@ $(streamlit_wheel): $(VENV) $(streamlit_proto) streamlit/lib/streamlit/**/*.py s
 		exit 1; \
 	fi && \
 	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
-	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.24.0-py2.py3-none-any.whl && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.30.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
+
+.PHONY: streamlit-frontend-lib
+streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
+$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
+	$(MAKE) -C streamlit frontend-lib-prod

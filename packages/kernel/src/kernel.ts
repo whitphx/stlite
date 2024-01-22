@@ -32,9 +32,6 @@ import { assertStreamlitConfig } from "./types";
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl";
 
-import mixpanel from "mixpanel-browser";
-mixpanel.init("fb25742efb56d116b736515a0ad5f6ef", { debug: false });
-
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
 const INITIAL_SLASH_RE = /^\/+/;
@@ -405,11 +402,6 @@ const sendTokenToWorker = (
   },
   worker: StliteWorker
 ) => {
-  mixpanel.track("STLiteKernel.initKernel", {
-    baseUrl,
-    project,
-    distinct_id: email,
-  });
   worker.postMessage({
     type: "newToken",
     data: { token, baseUrl, project, email },

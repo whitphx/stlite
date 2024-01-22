@@ -5,7 +5,7 @@ import streamlit as st
 
 @st.cache_data
 def load_data():
-    df = pd.DataFrame(np.random.randn(50, 3), columns=["a", "b", "c"])
+    df = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
     return df
 
 

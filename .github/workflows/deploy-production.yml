@@ -133,5 +133,3 @@ jobs:
         channelId: live
         projectId: fusion-217032465111
         target: cognite-stlite-standalone-production
-    
-

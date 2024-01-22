@@ -1,4 +1,4 @@
-import { canonicalizeMountOptions, resolveUrl } from "./options";
+import { parseMountOptions, resolveUrl } from "./options";
 
 describe("resolveUrl()", () => {
   let windowSpy: jest.SpyInstance;
@@ -52,9 +52,10 @@ describe("resolveUrl()", () => {
   });
 });
 
-describe("canonicalizeMountOptions()", () => {
+describe("parseMountOptions()", () => {
   it("translates a string input into StliteKernelOptions", () => {
-    expect(canonicalizeMountOptions("foo")).toEqual({
+    const { kernelOptions } = parseMountOptions("foo");
+    expect(kernelOptions).toEqual({
       entrypoint: "streamlit_app.py",
       files: {
         "streamlit_app.py": {
@@ -67,19 +68,18 @@ describe("canonicalizeMountOptions()", () => {
   });
 
   it("fills `command`, `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
-    expect(
-      canonicalizeMountOptions({
-        files: {
-          "streamlit_app.py": "foo",
-          "foo.txt": {
-            data: "foo",
-          },
-          "bar.txt": {
-            url: "./bar.txt",
-          },
+    const { kernelOptions } = parseMountOptions({
+      files: {
+        "streamlit_app.py": "foo",
+        "foo.txt": {
+          data: "foo",
         },
-      })
-    ).toEqual({
+        "bar.txt": {
+          url: "./bar.txt",
+        },
+      },
+    });
+    expect(kernelOptions).toEqual({
       entrypoint: "streamlit_app.py",
       requirements: [],
       files: {
@@ -98,27 +98,26 @@ describe("canonicalizeMountOptions()", () => {
   });
 
   it("normalizes the archives field", () => {
-    expect(
-      canonicalizeMountOptions({
-        archives: [
-          {
-            url: "./foo.zip",
-            format: "zip",
-            options: {},
-          },
-          {
-            url: "https://example.com/bar.zip",
-            format: "zip",
-            options: {},
-          },
-          {
-            buffer: new Uint8Array([1, 2, 3]),
-            format: "zip",
-            options: {},
-          },
-        ],
-      })
-    ).toEqual({
+    const { kernelOptions } = parseMountOptions({
+      archives: [
+        {
+          url: "./foo.zip",
+          format: "zip",
+          options: {},
+        },
+        {
+          url: "https://example.com/bar.zip",
+          format: "zip",
+          options: {},
+        },
+        {
+          buffer: new Uint8Array([1, 2, 3]),
+          format: "zip",
+          options: {},
+        },
+      ],
+    });
+    expect(kernelOptions).toEqual({
       entrypoint: "streamlit_app.py",
       requirements: [],
       files: {},
@@ -143,14 +142,13 @@ describe("canonicalizeMountOptions()", () => {
   });
 
   it("preserves the `entrypoint` field if specified", () => {
-    expect(
-      canonicalizeMountOptions({
-        entrypoint: "foo.py",
-        files: {
-          "streamlit_app.py": "foo",
-        },
-      })
-    ).toEqual({
+    const { kernelOptions } = parseMountOptions({
+      entrypoint: "foo.py",
+      files: {
+        "streamlit_app.py": "foo",
+      },
+    });
+    expect(kernelOptions).toEqual({
       entrypoint: "foo.py",
       requirements: [],
       files: {
@@ -163,15 +161,33 @@ describe("canonicalizeMountOptions()", () => {
   });
 
   it("preserves the `requirements` option if specified", () => {
-    expect(
-      canonicalizeMountOptions({
-        requirements: ["matplotlib"],
-      })
-    ).toEqual({
+    const { kernelOptions } = parseMountOptions({
+      requirements: ["matplotlib"],
+    });
+    expect(kernelOptions).toEqual({
       requirements: ["matplotlib"],
       entrypoint: "streamlit_app.py",
       files: {},
       archives: [],
+    });
+  });
+
+  it("fills the toast callback options", () => {
+    const { toastCallbackOptions } = parseMountOptions("foo");
+    expect(toastCallbackOptions).toEqual({
+      disableProgressToasts: false,
+      disableErrorToasts: false,
+    });
+  });
+
+  it("passes the toast callback options", () => {
+    const { toastCallbackOptions } = parseMountOptions({
+      disableProgressToasts: true,
+      disableErrorToasts: true,
+    });
+    expect(toastCallbackOptions).toEqual({
+      disableProgressToasts: true,
+      disableErrorToasts: true,
     });
   });
 });

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import threading
+import uuid
 from typing import Any
 from unittest.mock import ANY, Mock, patch
 
@@ -164,14 +165,12 @@ def test_http_file_upload(AppSession, setup_server):
 
     active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
 
+    file_id = str(uuid.uuid4())
+
     req = requests.Request(
-        "POST",
-        "http://example.com:55555/_stcore/upload_file",
+        "PUT",
+        f"http://example.com:55555/_stcore/upload_file/{active_session.id}/{file_id}",
         files={"file": ("foo.txt", "Foo\nBar\nBaz")},
-        data={
-            "sessionId": active_session.id,
-            "widgetId": "$$GENERATED_WIDGET_KEY-23195dab12a102415c4621538530154c-None",
-        },
     )
     r = req.prepare()
 
@@ -180,11 +179,44 @@ def test_http_file_upload(AppSession, setup_server):
     headers = dict(r.headers)
     body = r.body
     assert body is not None
-    server.receive_http("POST", "/_stcore/upload_file", headers, body, on_response)
+    server.receive_http(
+        "PUT",
+        f"/_stcore/upload_file/{active_session.id}/{file_id}",
+        headers,
+        body,
+        on_response,
+    )
 
-    on_response.assert_called_with(
-        200, ANY, b"1"
-    )  # Returns 1, which is the ID of the first file.
+    on_response.assert_called_with(204, ANY, b"")
+
+
+@patch("streamlit.runtime.websocket_session_manager.AppSession")
+def test_http_file_delete(AppSession, setup_server):
+    server: Server = setup_server
+
+    app_session = AppSession.return_value
+    app_session.id = (
+        "foo"  # Every mocked AppSession's ID is fixed to be "foo" for test simplicity.
+    )
+
+    # Initiate the session
+    receive_websocket = Mock()
+    server.start_websocket("/_stcore/stream", receive_websocket)
+
+    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
+
+    file_id = str(uuid.uuid4())
+
+    # Delete the file
+    on_response = Mock()
+    server.receive_http(
+        "DELETE",
+        f"/_stcore/upload_file/{active_session.id}/{file_id}",
+        {},
+        "",
+        on_response,
+    )
+    on_response.assert_called_with(204, ANY, b"")
 
 
 def test_http_component(setup_server):

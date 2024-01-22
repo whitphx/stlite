@@ -3,7 +3,9 @@
   "name": "stlite",
   "workspaces": [
     "packages/*",
-    "streamlit/frontend"
+    "streamlit/frontend",
+    "streamlit/frontend/app",
+    "streamlit/frontend/lib"
   ],
   "scripts": {
     "new-version": "lerna version --force-publish",
@@ -21,6 +23,11 @@
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "wait-on": "^6.0.1"
+  },
+  "resolutions": {
+    "immutable": "4.2.3",
+    "webpack": "5.76.0",
+    "@types/react": "17.*"
   },
   "version": "0.2.0"
 }

@@ -8,9 +8,10 @@ const InvalidSampleAppIdSymbol = Symbol("InvalidSampleAppId");
 
 export function useSampleAppId(): string | null {
   const [searchParams, setSearchParams] = useSearchParams();
-  const sampleAppIdFromUrl = searchParams.get(URL_SEARCH_KEY_SAMPLE_APP_ID);
   const sampleAppId: string | null | typeof InvalidSampleAppIdSymbol =
     useMemo(() => {
+      const sampleAppIdFromUrl = searchParams.get(URL_SEARCH_KEY_SAMPLE_APP_ID);
+
       if (sampleAppIdFromUrl == null) {
         return null;
       }
@@ -18,7 +19,7 @@ export function useSampleAppId(): string | null {
         return sampleAppIdFromUrl;
       }
       return InvalidSampleAppIdSymbol;
-    }, [sampleAppIdFromUrl]);
+    }, [searchParams]);
 
   if (sampleAppId == null) {
     return null;
@@ -39,4 +40,21 @@ export function useSampleAppId(): string | null {
   }
 
   return sampleAppId;
+}
+
+export const URL_SEARCH_KEY_EMBED_MODE = "embed";
+
+export function useEmbedMode() {
+  const [searchParams] = useSearchParams();
+
+  const embedMode = useMemo(() => {
+    const embedModeFromUrl = searchParams.get(URL_SEARCH_KEY_EMBED_MODE);
+
+    if (embedModeFromUrl == null) {
+      return false;
+    }
+    return embedModeFromUrl === "true";
+  }, [searchParams]);
+
+  return embedMode;
 }

@@ -20,11 +20,17 @@ import sys
 from unittest.mock import Mock, patch
 
 import matplotlib
+import pytest
 from streamlit import config
 
 from stlite_server import bootstrap
 
 
+@pytest.mark.skip(
+    reason="The `runner.fixMatplotlib` option is deprecated since 2024-01-20 "
+    "and its fix has not been commited even to the upstream, "
+    "https://github.com/whitphx/stlite/pull/678#issuecomment-1901893049"
+)
 @patch("stlite_server.bootstrap._install_pages_watcher", Mock())
 def test_fix_matplotlib_crash():
     """Test that bootstrap.run sets the matplotlib backend to

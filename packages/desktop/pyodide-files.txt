@@ -2,4 +2,4 @@ pyodide/pyodide.asm.js
 pyodide/pyodide.asm.wasm
 pyodide/pyodide.js
 pyodide/python_stdlib.zip
-pyodide/repodata.json
+pyodide/pyodide-lock.json

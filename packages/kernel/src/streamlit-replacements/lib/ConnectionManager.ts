@@ -1,16 +1,19 @@
-// Mimic https://github.com/streamlit/streamlit/blob/1.9.0/frontend/src/lib/ConnectionManager.ts
+// Mimic https://github.com/streamlit/streamlit/blob/1.27.0/frontend/app/src/connection/ConnectionManager.ts
 // and WebsocketConnection.
 
-import { BackMsg, ForwardMsg } from "streamlit-browser/src/lib/proto"
-import type { IAllowedMessageOriginsResponse } from "streamlit-browser/src/lib/hostComm/types"
-import type { BaseUriParts } from "streamlit-browser/src/lib/util/UriUtil"
 import type { ReactNode } from "react"
 
-import type { StliteKernel } from "../../kernel"
-import { ConnectionState } from "streamlit-browser/src/app/connection/ConnectionState"
-import type { SessionInfo } from "streamlit-browser/src/lib/SessionInfo"
-import { ensureError } from "streamlit-browser/src/lib/util/ErrorHandling"
+import { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types"
+import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
+import { SessionInfo } from "@streamlit/lib/src/SessionInfo"
+import type { StreamlitEndpoints } from "@streamlit/lib/src/StreamlitEndpoints"
+import { BackMsg, ForwardMsg } from "@streamlit/lib/src/proto"
+import { ensureError } from "@streamlit/lib/src/util/ErrorHandling"
+
 import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
+import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"
+
+import type { StliteKernel } from "../../kernel"
 
 interface MessageQueue {
   [index: number]: any
@@ -24,6 +27,9 @@ interface Props {
 
   /** The app's SessionInfo instance */
   sessionInfo: SessionInfo
+
+  /** The app's StreamlitEndpoints instance */
+  endpoints: StreamlitEndpoints
 
   /**
    * Function to be called when we receive a message from the server.
@@ -41,12 +47,28 @@ interface Props {
   connectionStateChanged: (connectionState: ConnectionState) => void
 
   /**
-   * Function to set the list of origins that this app should accept
-   * cross-origin messages from (if in a relevant deployment scenario).
+   * Function to get the auth token set by the host of this app (if in a
+   * relevant deployment scenario).
    */
-  setAllowedOriginsResp: (resp: IAllowedMessageOriginsResponse) => void
+  claimHostAuthToken: () => Promise<string | undefined>
+
+  /**
+   * Function to clear the withHostCommunication hoc's auth token. This should
+   * be called after the promise returned by claimHostAuthToken successfully
+   * resolves.
+   */
+  resetHostAuthToken: () => void
+
+  /**
+   * Function to set the host config for this app (if in a relevant deployment
+   * scenario).
+   */
+  onHostConfigResp: (resp: IHostConfigResponse) => void
 }
 
+/**
+ * Manages our connection to the Server.
+ */
 export class ConnectionManager {
   private readonly props: Props
 
@@ -65,7 +87,7 @@ export class ConnectionManager {
 
     this.props.kernel.loaded.then(() => {
       console.log("The kernel has been loaded. Start connecting.")
-      this.props.setAllowedOriginsResp(this.props.kernel.allowedOriginsResp)
+      this.props.onHostConfigResp(this.props.kernel.hostConfigResponse)
       this.connect()
     })
   }
@@ -134,6 +156,13 @@ export class ConnectionManager {
   public incrementMessageCacheRunCount(): void {
     // no-op.
     // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
+  }
+
+  /**
+   * No-op in stlite.
+   */
+  disconnect(): void {
+    // no-op.
   }
 
   private async handleMessage(data: ArrayBuffer): Promise<void> {

@@ -3,6 +3,7 @@ import type {
   EmscriptenFile,
   EmscriptenFileUrl,
 } from "@stlite/kernel";
+import type { MakeToastKernelCallbacksOptions } from "@stlite/common-react";
 
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
@@ -12,7 +13,7 @@ export interface SimplifiedStliteKernelOptions {
     EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
   >;
   archives?: StliteKernelOptions["archives"];
-  allowedOriginsResp?: StliteKernelOptions["allowedOriginsResp"];
+  hostConfig?: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
 }
@@ -76,22 +77,31 @@ function canonicalizeArchives(
 
 const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
-export type MountOptions = string | SimplifiedStliteKernelOptions;
+export type DetailedMountOptions = SimplifiedStliteKernelOptions &
+  MakeToastKernelCallbacksOptions;
+export type MountOptions = string | DetailedMountOptions;
 
-export function canonicalizeMountOptions(
-  options: string | SimplifiedStliteKernelOptions
-): StliteKernelOptions {
+export function parseMountOptions(options: MountOptions): {
+  kernelOptions: StliteKernelOptions;
+  toastCallbackOptions: MakeToastKernelCallbacksOptions;
+} {
   if (typeof options === "string") {
     const mainScript = options;
     return {
-      entrypoint: DEFAULT_ENTRYPOINT,
-      files: {
-        [DEFAULT_ENTRYPOINT]: {
-          data: mainScript,
+      kernelOptions: {
+        entrypoint: DEFAULT_ENTRYPOINT,
+        files: {
+          [DEFAULT_ENTRYPOINT]: {
+            data: mainScript,
+          },
         },
+        archives: [],
+        requirements: [],
       },
-      archives: [],
-      requirements: [],
+      toastCallbackOptions: {
+        disableProgressToasts: false,
+        disableErrorToasts: false,
+      },
     };
   }
 
@@ -99,12 +109,18 @@ export function canonicalizeMountOptions(
   const archives = canonicalizeArchives(options.archives);
 
   return {
-    entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
-    files,
-    archives,
-    requirements: options.requirements || [],
-    allowedOriginsResp: options.allowedOriginsResp,
-    pyodideUrl: options.pyodideUrl,
-    streamlitConfig: options.streamlitConfig,
+    kernelOptions: {
+      entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
+      files,
+      archives,
+      requirements: options.requirements || [],
+      hostConfigResponse: options.hostConfig,
+      pyodideUrl: options.pyodideUrl,
+      streamlitConfig: options.streamlitConfig,
+    },
+    toastCallbackOptions: {
+      disableProgressToasts: options.disableProgressToasts || false,
+      disableErrorToasts: options.disableErrorToasts || false,
+    },
   };
 }

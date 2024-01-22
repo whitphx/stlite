@@ -7,7 +7,7 @@ on:
 
 env:
   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
-  USE_CONSTRAINT_FILE: false  # https://github.com/streamlit/streamlit/blob/1.23.1/.github/workflows/release.yml#L61-L62
+  USE_CONSTRAINTS_FILE: false # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
       
 jobs:
   build:
@@ -27,6 +27,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: true
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
@@ -47,7 +49,7 @@ jobs:
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Configure poetry
-      run: poetry config virtualenvs.in-project true
+      run: poetry config virtualenvs.in-project false
 
     - name: Set up cache
       uses: actions/cache@v3
@@ -60,11 +62,15 @@ jobs:
       if: steps.cache.outputs.cache-hit == 'true'
       run: timeout 10s pip --version || rm -rf .venv
 
+    - name: Create virtualenv
+      run: python -m venv .venv
+
     ## Set up Node environment
     - uses: actions/setup-node@v3
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
+    - run: yarn install --frozen-lockfile
     
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
     # Actions are running as of 2023.05.03 - doesn't have recent versions
@@ -90,4 +96,6 @@ jobs:
     
     - if: matrix.target == 'mountable'
       name: Build @stlite/mountable
-      run: make mountable
+      run: |
+        . .venv/bin/activate
+        make mountable

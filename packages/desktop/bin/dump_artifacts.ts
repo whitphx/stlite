@@ -81,12 +81,11 @@ async function inspectUsedBuiltinPackages(
 
   const pyodide = await loadPyodide();
 
-  await pyodide.loadPackage("micropip");
-  const micropip = pyodide.pyimport("micropip");
+  await installPackages(pyodide, {
+    useLocalKernelWheels: options.useLocalKernelWheels,
+    requirements: options.requirements,
+  });
 
-  micropip.add_mock_package("streamlit", "1.24.0");
-
-  await micropip.install(options.requirements);
   return Object.entries(pyodide.loadedPackages)
     .filter(([, channel]) => channel === "default channel")
     .map(([name]) => name);
@@ -98,26 +97,83 @@ async function loadPyodideBuiltinPackageData(): Promise<
     { name: string; version: string; file_name: string; depends: string[] }
   >
 > {
-  const url = makePyodideUrl("repodata.json");
+  const url = makePyodideUrl("pyodide-lock.json");
 
-  console.log(`Load the Pyodide repodata.json from ${url}`);
+  console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
   const res = await fetch(url);
   const resJson = await res.json();
 
   return resJson.packages;
 }
 
-async function installLocalWheel(pyodide: PyodideInterface, localPath: string) {
-  console.log(`Install the local wheel ${localPath}`);
+async function prepareLocalWheel(
+  pyodide: PyodideInterface,
+  localPath: string
+): Promise<string> {
+  console.log(`Preparing the local wheel ${localPath}`);
 
   const data = await fsPromises.readFile(localPath);
   const emfsPath = "/tmp/" + path.basename(localPath);
   pyodide.FS.writeFile(emfsPath, data);
 
-  const micropip = pyodide.pyimport("micropip");
   const requirement = `emfs:${emfsPath}`;
-  console.log(`Install ${requirement}`);
-  await micropip.install.callKwargs(requirement, { keep_going: true });
+  console.log(`The local wheel ${localPath} is prepared as ${requirement}`);
+  return requirement;
+}
+
+interface InstallStreamlitWheelsOptions {
+  requirements: string[];
+  useLocalKernelWheels: boolean;
+}
+async function installPackages(
+  pyodide: PyodideInterface,
+  options: InstallStreamlitWheelsOptions
+) {
+  await pyodide.loadPackage(["micropip"]);
+  const micropip = pyodide.pyimport("micropip");
+
+  const requirements: string[] = [...options.requirements];
+  if (options.useLocalKernelWheels) {
+    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
+    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
+    // TODO: Set the wheel file names dynamically
+    const stliteServerWheel = await prepareLocalWheel(
+      pyodide,
+      path.join(
+        stliteKernelPyDir,
+        "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"
+      )
+    );
+    requirements.push(stliteServerWheel);
+    const streamlitWheel = await prepareLocalWheel(
+      pyodide,
+      path.join(
+        stliteKernelPyDir,
+        "streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl"
+      )
+    );
+    requirements.push(streamlitWheel);
+  } else {
+    const packageJson = require(path.resolve(__dirname, "../package.json"));
+    const version = packageJson.version;
+
+    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
+    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
+    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
+    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
+      fileData.name.endsWith(".whl")
+    );
+    const wheelUrls = wheelFiles.map(
+      (wheelFile) =>
+        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
+    );
+
+    console.log("Kernel wheels:", wheelUrls);
+    requirements.push(...wheelUrls);
+  }
+
+  console.log("Install the packages:", requirements);
+  await micropip.install.callKwargs(requirements, { keep_going: true });
 }
 
 interface CreateSitePackagesSnapshotOptions {
@@ -134,49 +190,11 @@ async function createSitePackagesSnapshot(
   const pyodide = await loadPyodide();
 
   await pyodide.loadPackage(["micropip"]);
-
-  if (options.useLocalKernelWheels) {
-    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
-    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
-    // TODO: Set the wheel file names dynamically
-    await installLocalWheel(
-      pyodide,
-      path.join(
-        stliteKernelPyDir,
-        "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"
-      )
-    );
-    await installLocalWheel(
-      pyodide,
-      path.join(
-        stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.24.0-cp311-none-any.whl"
-      )
-    );
-  } else {
-    const packageJson = require(path.resolve(__dirname, "../package.json"));
-    const version = packageJson.version;
-
-    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
-    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
-    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
-    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
-      fileData.name.endsWith(".whl")
-    );
-    const wheelUrls = wheelFiles.map(
-      (wheelFile) =>
-        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
-    );
-
-    const micropip = pyodide.pyimport("micropip");
-    console.log("Install", wheelUrls);
-    await micropip.install.callKwargs(wheelUrls, { keep_going: true });
-  }
-
   const micropip = pyodide.pyimport("micropip");
 
   const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();
 
+  const mockedPackages: string[] = [];
   if (options.usedBuiltinPackages.length > 0) {
     console.log(
       "Mocking builtin packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
@@ -189,6 +207,7 @@ async function createSitePackagesSnapshot(
 
       console.log(`Mock ${packageInfo.name} ${packageInfo.version}`);
       micropip.add_mock_package(packageInfo.name, packageInfo.version);
+      mockedPackages.push(packageInfo.name);
     });
   }
 
@@ -196,11 +215,18 @@ async function createSitePackagesSnapshot(
     `Install the requirements ${JSON.stringify(options.requirements)}`
   );
 
-  await micropip.install.callKwargs(options.requirements, { keep_going: true });
+  await installPackages(pyodide, {
+    useLocalKernelWheels: options.useLocalKernelWheels,
+    requirements: options.requirements,
+  });
+
+  console.log("Remove the mocked packages", mockedPackages);
+  mockedPackages.forEach((pkg) => micropip.remove_mock_package(pkg));
 
   console.log("Archive the site-packages director(y|ies)");
   const archiveFilePath = "/tmp/site-packages-snapshot.tar.gz";
   await pyodide.runPythonAsync(`
+    import os
     import tarfile
     import site
 
@@ -209,6 +235,8 @@ async function createSitePackagesSnapshot(
     tar_file_name = '${archiveFilePath}'
     with tarfile.open(tar_file_name, mode='w:gz') as gzf:
         for site_packages in site_packages_dirs:
+            print("Add site-package:", site_packages)
+            print(os.listdir(site_packages))
             gzf.add(site_packages)
   `);
 
@@ -400,12 +428,12 @@ yargs(hideBin(process.argv))
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     // The `requirements.txt` file will be needed to call `micropip.install()` at runtime.
-    // The built-in packages will be vendored in the build artifact as wheel files
+    // The Pyodide-built packages will be vendored in the build artifact as wheel files
     // and `micropip.install()` will install them at runtime,
     // while the packages downloaded from PyPI will have been included in the site-packages snapshot.
     await writeRequirements(
       path.resolve(destDir, "./requirements.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
-      requirements
+      usedBuiltinPackages
     );
     await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,

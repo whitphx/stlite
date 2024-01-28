@@ -393,17 +393,21 @@ const sendTokenToWorker = (
     token,
     baseUrl,
     project,
+    organization,
+    fusionUrl,
     email,
   }: {
     token: string;
     baseUrl: string;
     project: string;
+    organization: string;
+    fusionUrl: string;
     email?: string;
   },
   worker: StliteWorker
 ) => {
   worker.postMessage({
     type: "newToken",
-    data: { token, baseUrl, project, email },
+    data: { token, baseUrl, organization, fusionUrl, project, email },
   });
 };

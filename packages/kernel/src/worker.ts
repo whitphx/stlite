@@ -528,6 +528,8 @@ const handleCogniteMessage = async (msg: InMessage) => {
     const token = msg.data.token;
     const project = msg.data.project;
     const baseUrl = msg.data.baseUrl;
+    const fusionUrl = msg.data.fusionUrl;
+    const organization = msg.data.organization;
 
     if (token && project && baseUrl) {
       while (!pyodide) {
@@ -540,9 +542,12 @@ const handleCogniteMessage = async (msg: InMessage) => {
         os.environ["COGNITE_TOKEN"] = "${token}"
         os.environ["COGNITE_PROJECT"] = "${project}"
         os.environ["COGNITE_BASE_URL"] = "${baseUrl}"
+        os.environ["COGNITE_FUSION_URL"] = "${fusionUrl}"
+        os.environ["COGNITE_ORGANIZATION"] = "${organization}"
         # Set flag to tell the SDK that we are inside of a Fusion Notebook:
         os.environ["COGNITE_FUSION_NOTEBOOK"] = "1"
       `);
+
       tokenIsSet = true;
     }
   }

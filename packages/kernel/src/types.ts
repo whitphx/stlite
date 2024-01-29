@@ -115,6 +115,8 @@ export interface InTokenMessage extends InMessageBase {
   data: {
     token: string;
     baseUrl: string;
+    fusionUrl: string;
+    organization: string;
     project: string;
     email?: string;
   };

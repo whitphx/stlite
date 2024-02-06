@@ -11,7 +11,7 @@ import {
   type PyodideInterface,
   version as pyodideVersion,
 } from "pyodide";
-import { parseRequirementsTxt } from "@stlite/common";
+import { parseRequirementsTxt, STLITE_REQUIREMENTS } from "@stlite/common";
 import type { DesktopAppManifest } from "../electron/main";
 
 // @ts-ignore
@@ -132,7 +132,10 @@ async function installPackages(
   await pyodide.loadPackage(["micropip"]);
   const micropip = pyodide.pyimport("micropip");
 
-  const requirements: string[] = [...options.requirements];
+  const requirements: string[] = [
+    ...options.requirements,
+    ...STLITE_REQUIREMENTS,
+  ];
   if (options.useLocalKernelWheels) {
     const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
     const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py

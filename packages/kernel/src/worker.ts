@@ -1,5 +1,5 @@
 import type Pyodide from "pyodide";
-import { PromiseDelegate } from "@stlite/common";
+import { PromiseDelegate, STLITE_REQUIREMENTS } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";
@@ -180,7 +180,12 @@ async function loadPyodideAndPackages() {
       requirements
     );
     await micropip.install.callKwargs(
-      [wheels.stliteServer, wheels.streamlit, ...requirements],
+      [
+        wheels.stliteServer,
+        wheels.streamlit,
+        ...requirements,
+        ...STLITE_REQUIREMENTS,
+      ],
       { keep_going: true }
     );
     console.debug("Installed the wheels and the requirements");

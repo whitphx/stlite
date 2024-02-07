@@ -2,15 +2,22 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import "./global.scss";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Root from "./Root";
 import App, { loader as appLoader } from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    loader: appLoader,
-    element: <App />,
+    element: <Root />,
+    children: [
+      {
+        path: "/",
+        loader: appLoader,
+        element: <App />,
+      },
+    ],
   },
 ]);
 

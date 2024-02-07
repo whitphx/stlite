@@ -15,6 +15,7 @@
     "@types/react-dom": "^17.0.5",
     "classnames": "^2.3.2",
     "mime": "^3.0.0",
+    "nprogress": "^0.2.0",
     "re-resizable": "^6.9.9",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -58,6 +59,7 @@
     "@babel/parser": "^7.20.5",
     "@types/jsdom": "^20.0.1",
     "@types/mime": "^3.0.1",
+    "@types/nprogress": "^0.2.3",
     "jsdom": "^20.0.3",
     "raw-loader": "^4.0.2",
     "runtypes": "^6.6.0"

@@ -1,7 +1,7 @@
 {
   "name": "@stlite/kernel",
   "description": "",
-  "version": "0.45.0",
+  "version": "0.45.1",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",
-    "@stlite/common": "^0.45.0",
+    "@stlite/common": "^0.45.1",
     "@streamlit/app": "1.30.0",
     "@streamlit/lib": "1.30.0",
     "path-browserify": "^1.0.1"

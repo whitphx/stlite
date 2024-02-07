@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.45.1] - 2024-02-07
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Remove the HTTP patch because [`urllib3` started to support Pyodide since 2.2.0](https://urllib3.readthedocs.io/en/stable/reference/contrib/emscripten.html), [#689](https://github.com/whitphx/stlite/pull/689).
+
 ## [0.45.0] - 2024-01-20
 
 ### `@stlite/kernel`

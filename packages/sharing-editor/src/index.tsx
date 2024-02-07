@@ -9,11 +9,11 @@ import reportWebVitals from "./reportWebVitals";
 
 const router = createBrowserRouter([
   {
-    path: "/",
     element: <Root />,
     children: [
       {
-        path: "/",
+        path: "*",
+        index: true,
         loader: appLoader,
         element: <App />,
       },

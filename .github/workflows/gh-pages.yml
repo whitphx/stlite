@@ -108,7 +108,7 @@ jobs:
 
     - if: matrix.target == 'mountable'
       name: Upload the built files as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: stlite-mountable
         path: packages/mountable/build
@@ -151,7 +151,7 @@ jobs:
         cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
 
     - name: Upload the website files as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ github.ref != 'refs/heads/main' }}
       with:
         name: website

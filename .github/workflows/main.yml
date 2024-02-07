@@ -55,7 +55,7 @@ jobs:
           vscode-extension:
             - 'packages/vscode-stlite/**/*'
 
-  test-common:
+  test-build-common:
     needs: changes
     if: ${{ needs.changes.outputs.common == 'true' }}
 
@@ -79,6 +79,7 @@ jobs:
         yarn check:eslint
         yarn check:prettier
     - run: yarn test
+    - run: yarn build
 
   test-kernel:
     needs: changes
@@ -266,7 +267,7 @@ jobs:
 
   build-kernel:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-server]
+    needs: [test-build-common, test-kernel, test-stlite-server]
 
     runs-on: ubuntu-latest
 

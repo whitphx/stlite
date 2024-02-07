@@ -2,15 +2,21 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 import "./global.scss";
-import App from "./App";
+import App, { loader as appLoader } from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    loader: appLoader,
+    element: <App />,
+  },
+]);
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>,
   document.getElementById("root") as HTMLElement
 );

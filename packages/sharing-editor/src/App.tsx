@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import { LoaderFunctionArgs, useLoaderData } from "react-router-dom";
 import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
@@ -8,18 +9,55 @@ import StliteSharingIFrame, {
 import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
-import { loadSampleAppData } from "./sample-app";
-import { useSampleAppId, useEmbedMode } from "./router";
+import {
+  loadSampleAppData,
+  parseSampleAppIdInSearchParams,
+} from "./sample-app";
 import ResponsiveSideBySidePanes from "./components/ResponsiveSideBySidePanes";
 import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
+import { URL_SEARCH_KEY_SAMPLE_APP_ID, URL_SEARCH_KEY_EMBED_MODE } from "./url";
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+
+  const { sampleAppId, isInvalidSampleAppId } = parseSampleAppIdInSearchParams(
+    url.searchParams
+  );
+
+  if (isInvalidSampleAppId) {
+    const newUrl = new URL(url);
+    newUrl.searchParams.delete(URL_SEARCH_KEY_SAMPLE_APP_ID);
+    throw new Response("Redirect", {
+      status: 302,
+      headers: {
+        Location: newUrl.toString(),
+      },
+    });
+  }
+
+  const appData = sampleAppId
+    ? await loadSampleAppData(sampleAppId)
+    : await extractAppDataFromUrl().catch(() => loadSampleAppData(null)); // If failed, fallback to the default sample
+
+  const embedModeInUrl = url.searchParams.get(URL_SEARCH_KEY_EMBED_MODE);
+  const embedMode = embedModeInUrl === "true";
+
+  return { appData, sampleAppId, embedMode };
+};
 
 const SHARING_APP_URL =
   process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
 const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 function App() {
+  const {
+    appData: initialAppData,
+    sampleAppId,
+    embedMode,
+  } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
       window.location.origin + window.location.pathname, // window.location.search is excluded because it may include the sample app ID that conflicts the appData content.
@@ -28,23 +66,13 @@ function App() {
     window.history.replaceState(null, "", newUrl);
   }, []);
   const [
-    { key: initAppDataKey, initialAppData, appData },
+    { key: initAppDataKey, appData },
     { initializeAppData, updateAppData },
   ] = useAppData(onAppDataUpdate);
 
-  const sampleAppId = useSampleAppId();
   useEffect(() => {
-    if (sampleAppId) {
-      console.log(`Load sample app ${sampleAppId}`);
-      loadSampleAppData(sampleAppId).then(initializeAppData);
-    } else {
-      extractAppDataFromUrl()
-        .catch(() => loadSampleAppData(null)) // Load the default sample
-        .then(initializeAppData);
-    }
-  }, [initializeAppData, sampleAppId]);
-
-  const isEmbedMode = useEmbedMode();
+    initializeAppData(initialAppData);
+  }, [initialAppData, initializeAppData]);
 
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
 
@@ -174,9 +202,9 @@ function App() {
 
   return (
     <div className="App">
-      {!isEmbedMode && (
+      {!embedMode && (
         <ResponsiveDrawoer>
-          <SampleAppMenu />
+          <SampleAppMenu currentSampleAppId={sampleAppId} />
         </ResponsiveDrawoer>
       )}
       {appData == null ? (
@@ -208,7 +236,6 @@ function App() {
                   sharingAppSrc={SHARING_APP_URL}
                   initialAppData={initialAppData}
                   messageTargetOrigin={SHARING_APP_ORIGIN}
-                  frameBorder="0"
                   title="stlite app"
                   className="preview-iframe"
                 />

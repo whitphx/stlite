@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
-import { LoaderFunctionArgs, useLoaderData } from "react-router-dom";
+import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
   StliteSharingIFrameRef,
@@ -29,12 +29,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (isInvalidSampleAppId) {
     const newUrl = new URL(url);
     newUrl.searchParams.delete(URL_SEARCH_KEY_SAMPLE_APP_ID);
-    throw new Response("Redirect", {
-      status: 302,
-      headers: {
-        Location: newUrl.toString(),
-      },
-    });
+    throw redirect(newUrl.toString());
   }
 
   const appData = sampleAppId

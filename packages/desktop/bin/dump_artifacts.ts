@@ -154,22 +154,23 @@ async function installPackages(
     );
     requirements.push(streamlitWheel);
   } else {
-    const packageJson = require(path.resolve(__dirname, "../package.json"));
-    const version = packageJson.version;
+    const wheelsDir = path.join(__dirname, "../wheels");
+    const wheelFilePaths = await fsPromises
+      .readdir(wheelsDir)
+      .then((fileNames) =>
+        fileNames.filter((fileName) => fileName.endsWith(".whl"))
+      )
+      .then((fileNames) =>
+        fileNames.map((fileName) => path.join(wheelsDir, fileName))
+      );
+    console.log("The wheel files to be installed:", wheelFilePaths);
 
-    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
-    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
-    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
-    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
-      fileData.name.endsWith(".whl")
+    const wheelRequirements = await Promise.all(
+      wheelFilePaths.map((wheelFilePath) =>
+        prepareLocalWheel(pyodide, wheelFilePath)
+      )
     );
-    const wheelUrls = wheelFiles.map(
-      (wheelFile) =>
-        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
-    );
-
-    console.log("Kernel wheels:", wheelUrls);
-    requirements.push(...wheelUrls);
+    requirements.push(...wheelRequirements);
   }
 
   console.log("Install the packages:", requirements);

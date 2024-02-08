@@ -295,14 +295,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/kernel/stlite-kernel-v*.tgz
         name: stlite-kernel-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/kernel/stlite-kernel-v*.tgz
@@ -326,7 +326,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: stlite-kernel-${{ github.ref_name }}.tgz
         path: packages/kernel
@@ -372,14 +372,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
         name: stlite-mountable-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/mountable/stlite-mountable-v*.tgz
@@ -403,7 +403,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: stlite-mountable-${{ github.ref_name }}.tgz
         path: packages/mountable
@@ -448,7 +448,7 @@ jobs:
         make sharing
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: packages/sharing/build
         name: stlite-sharing
@@ -467,7 +467,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: stlite-sharing
           path: website
@@ -504,7 +504,7 @@ jobs:
       run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: packages/sharing-editor/build
         name: stlite-sharing-editor
@@ -521,7 +521,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: stlite-sharing-editor
           path: website
@@ -565,14 +565,14 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/desktop/stlite-desktop-v*.tgz
         name: stlite-desktop-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: packages/desktop/stlite-desktop-v*.tgz
@@ -596,7 +596,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: packages/desktop
@@ -657,13 +657,13 @@ jobs:
         IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
       working-directory: packages/vscode-stlite
     - name: Upload the vsix built on Linux
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
         name: vscode-stlite-${{ github.sha }}.vsix
     - name: Upload the vsix built on Linux
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
@@ -686,7 +686,7 @@ jobs:
         target: [marketplace, openvsx]
 
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: vscode-stlite-${{ github.ref_name }}.vsix
     - run: |

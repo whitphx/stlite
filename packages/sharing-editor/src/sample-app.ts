@@ -52,11 +52,14 @@ async function loadFiles(
   return files;
 }
 
-export async function loadSampleAppData(sampleAppId: string | null) {
-  const sampleAppManifest =
-    sampleAppId == null
-      ? sampleAppManifests[0]
-      : sampleAppManifests.find((manifest) => manifest.id === sampleAppId);
+export function getDefaultSampleAppId(): string {
+  return sampleAppManifests[0].id;
+}
+
+export async function loadSampleAppData(sampleAppId: string) {
+  const sampleAppManifest = sampleAppManifests.find(
+    (manifest) => manifest.id === sampleAppId
+  );
   if (sampleAppManifest == null) {
     throw new Error(`No sample app found for ${sampleAppId}`);
   }

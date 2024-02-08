@@ -18,22 +18,26 @@ function SampleAppMenu(props: SampleAppMenuProps) {
       <img src={logo} alt="stlite sharing logo" className={styles.logo} />
       <h2 className={styles.heading}>Samples</h2>
       <ol className={styles.list}>
-        {sampleAppManifests.map((sampleAppManifest) => (
-          <Link
-            key={sampleAppManifest.id}
-            to={{
-              search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
-            }}
-          >
-            <li
-              className={classNames(styles.listItem, {
-                [styles.active]: currentSampleAppId === sampleAppManifest.id,
-              })}
+        {sampleAppManifests.map((sampleAppManifest) => {
+          const isActive = currentSampleAppId === sampleAppManifest.id;
+          const LinkComponent = isActive ? React.Fragment : Link;
+          return (
+            <LinkComponent
+              key={sampleAppManifest.id}
+              to={{
+                search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
+              }}
             >
-              {sampleAppManifest.title}
-            </li>
-          </Link>
-        ))}
+              <li
+                className={classNames(styles.listItem, {
+                  [styles.active]: isActive,
+                })}
+              >
+                {sampleAppManifest.title}
+              </li>
+            </LinkComponent>
+          );
+        })}
       </ol>
       <div className={styles.footer}>
         <a

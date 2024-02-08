@@ -10,6 +10,7 @@ import Editor, { EditorProps } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import {
+  getDefaultSampleAppId,
   loadSampleAppData,
   parseSampleAppIdInSearchParams,
 } from "./sample-app";
@@ -19,27 +20,39 @@ import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 import { URL_SEARCH_KEY_SAMPLE_APP_ID, URL_SEARCH_KEY_EMBED_MODE } from "./url";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+interface AppLoaderData {
+  appData: AppData;
+  sampleAppId: string | null;
+  embedMode: boolean;
+}
+export const loader = async ({
+  request,
+}: LoaderFunctionArgs): Promise<AppLoaderData> => {
   const url = new URL(request.url);
-
-  const { sampleAppId, isInvalidSampleAppId } = parseSampleAppIdInSearchParams(
-    url.searchParams
-  );
+  const { sampleAppId: parsedSampleAppId, isInvalidSampleAppId } =
+    parseSampleAppIdInSearchParams(url.searchParams);
 
   if (isInvalidSampleAppId) {
-    const newUrl = new URL(url);
-    newUrl.searchParams.delete(URL_SEARCH_KEY_SAMPLE_APP_ID);
-    throw redirect(newUrl.toString());
+    const correctedUrl = new URL(url);
+    correctedUrl.searchParams.delete(URL_SEARCH_KEY_SAMPLE_APP_ID);
+    throw redirect(correctedUrl.toString());
   }
 
-  const appData = sampleAppId
-    ? await loadSampleAppData(sampleAppId)
-    : await extractAppDataFromUrl().catch(() => loadSampleAppData(null)); // If failed, fallback to the default sample
+  const embedMode = url.searchParams.get(URL_SEARCH_KEY_EMBED_MODE) === "true";
 
-  const embedModeInUrl = url.searchParams.get(URL_SEARCH_KEY_EMBED_MODE);
-  const embedMode = embedModeInUrl === "true";
+  if (parsedSampleAppId == null) {
+    try {
+      const appData = await extractAppDataFromUrl();
+      return { appData, sampleAppId: null, embedMode };
+    } catch {
+      const defaultSampleAppId = getDefaultSampleAppId();
+      const appData = await loadSampleAppData(defaultSampleAppId);
+      return { appData, sampleAppId: defaultSampleAppId, embedMode };
+    }
+  }
 
-  return { appData, sampleAppId, embedMode };
+  const appData = await loadSampleAppData(parsedSampleAppId);
+  return { appData, sampleAppId: parsedSampleAppId, embedMode };
 };
 
 const SHARING_APP_URL =
@@ -51,7 +64,7 @@ function App() {
     appData: initialAppData,
     sampleAppId,
     embedMode,
-  } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  } = useLoaderData() as AppLoaderData;
 
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(

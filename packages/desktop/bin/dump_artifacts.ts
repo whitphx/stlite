@@ -405,7 +405,7 @@ yargs(hideBin(process.argv))
       throw new Error(`${args.appHomeDirSource} does not exist.`);
     }
 
-    let requirements = args.packages;
+    let requirements = args.packages ?? [];
     for (const requirementTxtFilePath of args.requirement) {
       requirements = requirements.concat(
         await readRequirements(requirementTxtFilePath)

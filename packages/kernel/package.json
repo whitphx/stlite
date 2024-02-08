@@ -28,7 +28,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "pyodide": "0.24.1",
     "typescript": "^4.9.4",
-    "vitest": "^0.21.1"
+    "vitest": "^1.2.2"
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",

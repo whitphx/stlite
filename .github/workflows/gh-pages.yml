@@ -38,7 +38,7 @@ jobs:
 
     ## Set up Python and Poetry environment
     - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.python-version }}
 

@@ -17,7 +17,7 @@ isort = "^5.12.0"
 mypy = "^1.0.1"
 streamlit-aggrid = "^0.3.3"
 pandas-stubs = "^2.1.4.231227"
-matplotlib = "^3.7.0"
+matplotlib = "^3.8.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

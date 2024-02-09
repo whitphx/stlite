@@ -25,7 +25,7 @@
     "sass": "^1.54.9",
     "typescript": "^4.9.4",
     "usehooks-ts": "^2.9.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^3.5.2"
   },
   "scripts": {
     "start:web": "cross-env PORT=3030 react-scripts start",

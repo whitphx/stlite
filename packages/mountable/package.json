@@ -61,7 +61,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.3",
     "jest-resolve": "^27.4.2",
-    "jest-watch-typeahead": "^1.0.0",
+    "jest-watch-typeahead": "^2.2.2",
     "mini-css-extract-plugin": "^2.4.5",
     "parquet-wasm": "^0.4.0",
     "postcss": "^8.4.4",

@@ -9,7 +9,7 @@ license = "Apache-2.0"
 python = "^3.10, <3.12"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.1"
+pytest = "^8.0.0"
 requests = "^2.31.0"
 black = "^24.1.1"
 flake8 = "^7.0.0"

@@ -32,7 +32,7 @@
     "@stlite/common-react": "^0.45.2",
     "@stlite/kernel": "^0.45.2",
     "@streamlit/app": "1.30.0",
-    "@svgr/webpack": "^5.5.0",
+    "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",

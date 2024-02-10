@@ -2,13 +2,13 @@
 
 // Copy wheels from the `@stlite/kernel` package to the `wheels` directory.
 
-const fs = require("fs-extra");
+const fsPromises = require("fs/promises");
 const path = require("path");
 
 async function copyFileToDir(filePath, dirPath) {
   const fileName = path.basename(filePath);
   const destPath = path.join(dirPath, fileName);
-  await fs.copy(filePath, destPath);
+  await fsPromises.copyFile(filePath, destPath);
 }
 
 async function main() {
@@ -25,14 +25,14 @@ async function main() {
     "streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl"
   );
 
-  // Create the `wheels` directory if it doesn't exist
+  // Create the `wheels` directory
   const wheelsDir = path.join(__dirname, "../wheels");
-
-  if (await fs.pathExists(wheelsDir)) {
-    await fs.emptyDir(wheelsDir);
-  } else {
-    await fs.mkdir(wheelsDir);
+  if (
+    await fsPromises.stat(wheelsDir).catch((error) => error.code !== "ENOENT")
+  ) {
+    await fsPromises.rm(wheelsDir, { recursive: true });
   }
+  await fsPromises.mkdir(wheelsDir);
 
   // Copy the wheels to the `wheels` directory
   await copyFileToDir(stliteServerWheelPath, wheelsDir);

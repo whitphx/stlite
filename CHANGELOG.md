@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.45.4] - 2024-02-11
+
+### `@stlite/common`
+
+#### Fixed
+
+- `requirements.txt` parser to ignore comments, [#739](https://github.com/whitphx/stlite/pull/739).
+
 ## [0.45.3] - 2024-02-11
 
 ### `@stlite/kernel`

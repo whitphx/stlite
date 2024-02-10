@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.45.3] - 2024-02-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Restore the `pyodide-http` patch which was removed in 0.45.1, [#738](https://github.com/whitphx/stlite/pull/738).
+
 ## [0.45.2] - 2024-02-08
 
 ### `@stlite/*`

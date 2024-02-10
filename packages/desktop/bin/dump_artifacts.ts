@@ -65,7 +65,6 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
 
 interface InspectUsedBuiltinPackagesOptions {
   requirements: string[];
-  useLocalKernelWheels: boolean;
 }
 /**
  * Get the list of the built-in packages used by the given requirements.
@@ -82,7 +81,6 @@ async function inspectUsedBuiltinPackages(
   const pyodide = await loadPyodide();
 
   await installPackages(pyodide, {
-    useLocalKernelWheels: options.useLocalKernelWheels,
     requirements: options.requirements,
   });
 
@@ -123,7 +121,6 @@ async function prepareLocalWheel(
 
 interface InstallStreamlitWheelsOptions {
   requirements: string[];
-  useLocalKernelWheels: boolean;
 }
 async function installPackages(
   pyodide: PyodideInterface,
@@ -133,51 +130,24 @@ async function installPackages(
   const micropip = pyodide.pyimport("micropip");
 
   const requirements: string[] = [...options.requirements];
-  if (options.useLocalKernelWheels) {
-    const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
-    const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
-    // TODO: Set the wheel file names dynamically
-    const stliteServerWheel = await prepareLocalWheel(
-      pyodide,
-      path.join(
-        stliteKernelPyDir,
-        "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"
-      )
-    );
-    requirements.push(stliteServerWheel);
-    const streamlitWheel = await prepareLocalWheel(
-      pyodide,
-      path.join(
-        stliteKernelPyDir,
-        "streamlit/lib/dist/streamlit-1.30.0-cp311-none-any.whl"
-      )
-    );
-    requirements.push(streamlitWheel);
-  } else {
-    const packageJson = require(path.resolve(__dirname, "../package.json"));
-    const version = packageJson.version;
 
-    const jsDelivrFilesUrl = `https://data.jsdelivr.com/v1/package/npm/@stlite/kernel@${version}/flat`;
-    const jsDelivrFilesRes = await fetch(jsDelivrFilesUrl);
-    const jsDelivrFilesJson = await jsDelivrFilesRes.json();
-    const wheelFiles = jsDelivrFilesJson.files.filter((fileData) =>
-      fileData.name.endsWith(".whl")
-    );
-    const wheelUrls = wheelFiles.map(
-      (wheelFile) =>
-        `https://cdn.jsdelivr.net/npm/@stlite/kernel@${version}${wheelFile.name}`
-    );
-
-    console.log("Kernel wheels:", wheelUrls);
-    requirements.push(...wheelUrls);
-  }
+  const wheelsDir = path.join(__dirname, "../wheels");
+  const stliteServerWheel = await prepareLocalWheel(
+    pyodide,
+    path.join(wheelsDir, "stlite_server-0.1.0-py3-none-any.whl")
+  );
+  requirements.push(stliteServerWheel);
+  const streamlitWheel = await prepareLocalWheel(
+    pyodide,
+    path.join(wheelsDir, "streamlit-1.30.0-cp311-none-any.whl")
+  );
+  requirements.push(streamlitWheel);
 
   console.log("Install the packages:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
 }
 
 interface CreateSitePackagesSnapshotOptions {
-  useLocalKernelWheels: boolean;
   requirements: string[];
   usedBuiltinPackages: string[];
   saveTo: string;
@@ -216,7 +186,6 @@ async function createSitePackagesSnapshot(
   );
 
   await installPackages(pyodide, {
-    useLocalKernelWheels: options.useLocalKernelWheels,
     requirements: options.requirements,
   });
 
@@ -382,12 +351,6 @@ yargs(hideBin(process.argv))
     alias: "r",
     default: [],
   })
-  .options("localKernelWheels", {
-    describe: "Use the locally installed kernel wheels",
-    type: "boolean",
-    alias: "l",
-    default: false,
-  })
   .options("keepOldBuild", {
     type: "boolean",
     default: false,
@@ -415,14 +378,12 @@ yargs(hideBin(process.argv))
 
     const usedBuiltinPackages = await inspectUsedBuiltinPackages({
       requirements: requirements,
-      useLocalKernelWheels: args.localKernelWheels,
     });
     console.log("The built-in packages loaded for the given requirements:");
     console.log(usedBuiltinPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
-      useLocalKernelWheels: args.localKernelWheels,
       requirements: requirements,
       usedBuiltinPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.45.5] - 2024-02-11
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Ship the stlite wheels along with the `desktop` package instead of loading them fron the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
+
 ## [0.45.4] - 2024-02-11
 
 ### `@stlite/common`

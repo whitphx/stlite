@@ -7,11 +7,14 @@ describe("parseRequirementsTxt", () => {
 
 packageB
 # comment
-packageC`;
+packageC
+packageD # comment
+`;
     expect(parseRequirementsTxt(content)).toEqual([
       "packageA",
       "packageB",
       "packageC",
+      "packageD",
     ]);
   });
 });

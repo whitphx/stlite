@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import streamlit as st
-import inspect
-import textwrap
-import time
 import numpy as np
 from utils import show_code
 
@@ -32,7 +30,7 @@ def plotting_demo():
         chart.add_rows(new_rows)
         progress_bar.progress(i)
         last_rows = new_rows
-        time.sleep(0.05)
+        asyncio.sleep(0.05)
 
     progress_bar.empty()
 

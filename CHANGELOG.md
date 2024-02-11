@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.47.0] - 2024-02-11
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Stop publishing `@stlite/kernel` to NPM, [#743](https://github.com/whitphx/stlite/pull/743).
+
 ## [0.46.1] - 2024-02-11
 
 ### `@stlite/kernel`

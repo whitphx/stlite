@@ -54,7 +54,7 @@
   "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
     "fs-extra": "^10.1.0",
-    "node-fetch": "2",
+    "node-fetch": "3",
     "pyodide": "0.24.1",
     "yargs": "^17.7.2"
   },

@@ -1,5 +1,6 @@
 {
   "name": "@stlite/kernel",
+  "private": true,
   "description": "",
   "version": "0.46.1",
   "license": "Apache-2.0",

@@ -8,5 +8,8 @@ numpy
 scipy
 altair
 pydeck
+Faker
+openai
 vega_datasets
 streamlit
+ssl  # `openai` depends on `ssl`, which is a standard library but not vendored with Pyodide

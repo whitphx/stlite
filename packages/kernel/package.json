@@ -14,6 +14,7 @@
     "start": "tsc -w",
     "build": "tsc",
     "test": "vitest",
+    "typecheck": "tsc -p ./tsconfig.check.json",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",

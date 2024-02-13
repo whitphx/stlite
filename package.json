@@ -14,7 +14,7 @@
   "devDependencies": {
     "@lerna-lite/cli": "^3.3.0",
     "chokidar-cli": "^3.0.0",
-    "concurrently": "^7.4.0",
+    "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.6.0",
     "husky": "^8.0.1",

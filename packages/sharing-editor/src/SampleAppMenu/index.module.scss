@@ -35,7 +35,7 @@ $indicator-width: 2px;
   font-size: 1.1rem;
   border-left: $indicator-width solid #ddd;
 }
-.listItem:hover {
+.listItem:not(.active):hover {
   background-color: #eee;
 }
 
@@ -44,6 +44,7 @@ $indicator-width: 2px;
 }
 
 .listItem.active {
+  cursor: default;
   border-left: $indicator-width solid var(--c-primary-focus);
 }
 

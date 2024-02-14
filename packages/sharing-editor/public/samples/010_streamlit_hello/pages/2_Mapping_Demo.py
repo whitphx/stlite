@@ -21,8 +21,6 @@ import pydeck as pdk
 import streamlit as st
 from streamlit.hello.utils import show_code
 
-import pyodide.http  # We need to use `pyodide.http` in the Pyodide environment for network communications. See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide
-
 
 def mapping_demo():
     @st.cache_data
@@ -31,8 +29,7 @@ def mapping_demo():
             "https://raw.githubusercontent.com/streamlit/"
             "example-data/master/hello/v1/%s" % filename
         )
-        # return pd.read_json(url)
-        return pd.read_json(pyodide.http.open_url(url))
+        return pd.read_json(url)
 
     try:
         ALL_LAYERS = {

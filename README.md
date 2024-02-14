@@ -3,7 +3,6 @@
 [![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
-[![npm (@stlite/kernel)](https://img.shields.io/npm/v/@stlite/kernel?label=%40stlite%2Fkernel)](https://www.npmjs.com/package/@stlite/kernel)
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/mountable?label=%40stlite%2Fmountable)](https://www.npmjs.com/package/@stlite/mountable)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
@@ -298,7 +297,7 @@ As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/)
 - `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
 - There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that stlite uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - For URL access, `urllib` and `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.
-- The C extension packages that are not built for Pyodide cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#micropip-can-t-find-a-pure-python-wheel for the details.
+- Packages including binary extensions (e.g. C/Rust/Fortran/etc) that are not built for the Pyodide environment cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package for the details.
 
 Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues
 If you find a new problem, please report it.

@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.47.0] - 2024-02-11
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Stop publishing `@stlite/kernel` to NPM, [#743](https://github.com/whitphx/stlite/pull/743).
+
+## [0.46.1] - 2024-02-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Restore the `pyodide-http` patch which was removed in 0.45.1, [#742](https://github.com/whitphx/stlite/pull/742) and [#738](https://github.com/whitphx/stlite/pull/738), which was released once as 0.45.3 but not effective.
+
+## [0.46.0] - 2024-02-11
+
+### `@stlite/desktop`
+
+#### Changed
+
+- Update Streamlit to 1.31.0, [#741](https://github.com/whitphx/stlite/pull/741)
+
+## [0.45.5] - 2024-02-11
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Ship the stlite wheels along with the `desktop` package instead of loading them fron the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
+
+## [0.45.4] - 2024-02-11
+
+### `@stlite/common`
+
+#### Fixed
+
+- `requirements.txt` parser to ignore comments, [#739](https://github.com/whitphx/stlite/pull/739).
+
+## [0.45.3] - 2024-02-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Restore the `pyodide-http` patch which was removed in 0.45.1, [#738](https://github.com/whitphx/stlite/pull/738).
+
+## [0.45.2] - 2024-02-08
+
+### `@stlite/*`
+
+#### Fixed
+
+- Internal package updates.
+
+## [0.45.1] - 2024-02-07
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Remove the HTTP patch because [`urllib3` started to support Pyodide since 2.2.0](https://urllib3.readthedocs.io/en/stable/reference/contrib/emscripten.html), [#689](https://github.com/whitphx/stlite/pull/689).
+
 ## [0.45.0] - 2024-01-20
 
 ### `@stlite/kernel`

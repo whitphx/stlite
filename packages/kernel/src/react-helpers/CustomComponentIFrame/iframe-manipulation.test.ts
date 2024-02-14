@@ -19,24 +19,25 @@ const mockIframeSrcDoc = `
 </html>
 `;
 
-const mockHtmlResponses = {
-  "/component/package.component/index.html": {
-    contentType: "text/html",
-    body: mockIframeSrcDoc,
-  },
-  "/component/package.component/346f82515df6a4f2eb7f15393fdcea08.js": {
-    contentType: "text/javascript",
-    body: `"This is foo.js"`,
-  },
-  "/component/package.component/static/js/2.55bd8404.chunk.js": {
-    contentType: "text/javascript",
-    body: `"This is bar.js"`,
-  },
-  "/component/package.component/static/css/main.870b2c18.chunk.css": {
-    contentType: "text/css; charset=utf-8",
-    body: `// This is a CSS file`,
-  },
-};
+const mockHtmlResponses: Record<string, { contentType: string; body: string }> =
+  {
+    "/component/package.component/index.html": {
+      contentType: "text/html",
+      body: mockIframeSrcDoc,
+    },
+    "/component/package.component/346f82515df6a4f2eb7f15393fdcea08.js": {
+      contentType: "text/javascript",
+      body: `"This is foo.js"`,
+    },
+    "/component/package.component/static/js/2.55bd8404.chunk.js": {
+      contentType: "text/javascript",
+      body: `"This is bar.js"`,
+    },
+    "/component/package.component/static/css/main.870b2c18.chunk.css": {
+      contentType: "text/css; charset=utf-8",
+      body: `// This is a CSS file`,
+    },
+  };
 
 vi.mock("../../kernel", () => {
   const StliteKernel = vi.fn();
@@ -48,7 +49,7 @@ vi.mock("../../kernel", () => {
       if (htmlResponse) {
         return Promise.resolve({
           statusCode: 200,
-          headers: new Map([["Content-Type", htmlResponse.type]]),
+          headers: new Map([["Content-Type", htmlResponse.contentType]]),
           body: new TextEncoder().encode(htmlResponse.body),
         });
       } else {
@@ -79,8 +80,10 @@ describe("manipulateIFrameDocument", () => {
     expect(iframeDocument).not.toBeUndefined();
 
     const kernel = new StliteKernel({
-      pyodideUrl: "",
-      command: "run",
+      entrypoint: "",
+      files: {},
+      archives: [],
+      requirements: [],
     });
 
     await manipulateIFrameDocument(

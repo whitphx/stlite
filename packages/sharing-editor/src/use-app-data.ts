@@ -22,12 +22,10 @@ type AppDataAction = AppDataInitializeAction | AppDataUpdateAction;
  */
 interface InitializedState {
   key: number;
-  initialAppData: AppData;
   appData: AppData;
 }
 interface InitState {
   key: number;
-  initialAppData: undefined;
   appData: undefined;
 }
 type State = InitState | InitializedState;
@@ -44,7 +42,6 @@ export function useAppData(
       switch (action.type) {
         case "initialize": {
           return {
-            initialAppData: action.appData,
             appData: action.appData,
             key: currentState.key + 1,
           };
@@ -56,7 +53,6 @@ export function useAppData(
           const newAppData = action.updater(currentState.appData);
           onUpdate(newAppData);
           return {
-            initialAppData: currentState.initialAppData,
             appData: newAppData,
             key: currentState.key,
           };
@@ -67,7 +63,6 @@ export function useAppData(
   );
 
   const [state, dispatch] = useReducer(reducer, {
-    initialAppData: undefined,
     appData: undefined,
     key: 0,
   });

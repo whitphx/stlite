@@ -1,12 +1,13 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.45.0",
+  "version": "0.47.0",
   "license": "Apache-2.0",
   "homepage": "/",
   "main": "./build/electron/main.js",
   "files": [
     "build",
-    "bin/*.js"
+    "bin/*.js",
+    "wheels"
   ],
   "bin": {
     "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
@@ -21,10 +22,11 @@
     "build:electron": "tsc -p electron",
     "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.24.1/pyodide-core-0.24.1.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
     "build:bin": "./scripts/build_bin.js && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
+    "build:wheels": "./scripts/copy_wheels.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
-    "build": "yarn build:app && yarn build:bin",
+    "build": "yarn build:app && yarn build:wheels && yarn build:bin",
     "dump:dev": "ts-node ./bin/dump_artifacts.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
@@ -54,25 +56,25 @@
     "fs-extra": "^10.1.0",
     "node-fetch": "2",
     "pyodide": "0.24.1",
-    "yargs": "^17.5.1"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@craco/craco": "^7.0.0",
-    "@stlite/common": "^0.45.0",
-    "@stlite/common-react": "^0.45.0",
-    "@stlite/kernel": "^0.45.0",
-    "@streamlit/app": "1.30.0",
+    "@stlite/common": "^0.47.0",
+    "@stlite/common-react": "^0.47.0",
+    "@stlite/kernel": "^0.47.0",
+    "@streamlit/app": "1.31.0",
     "@testing-library/react": "^12.1.4",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",
     "@types/node": "^16.18.12",
     "@types/react": "^17.0.7",
     "@types/react-dom": "^17.0.5",
-    "@types/yargs": "^17.0.13",
-    "electron": "23.1.1",
-    "electron-builder": "^23.6.0",
+    "@types/yargs": "^17.0.32",
+    "electron": "28.2.1",
+    "electron-builder": "^24.9.1",
     "electron-reload": "^2.0.0-alpha.1",
-    "esbuild": "^0.16.6",
+    "esbuild": "^0.20.0",
     "parquet-wasm": "^0.4.0",
     "raw-loader": "^4.0.2",
     "react": "^17.0.2",

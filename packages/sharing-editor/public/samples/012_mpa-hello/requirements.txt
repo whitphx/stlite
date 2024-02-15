@@ -1,0 +1,6 @@
+pandas
+numpy
+altair
+pydeck
+opencv-python
+streamlit

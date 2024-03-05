@@ -5018,9 +5018,9 @@
     "@types/react" "*"
 
 "@types/react@*", "@types/react@17.*", "@types/react@^16", "@types/react@^17", "@types/react@^17.0.7":
-  version "17.0.75"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.75.tgz#cffbc76840a12fcadaf5a3cf14878bb06efcf73d"
-  integrity sha512-MSA+NzEzXnQKrqpO63CYqNstFjsESgvJAdAyyJ1n6ZQq/GLgf6nOfIKwk+Twuz0L1N6xPe+qz5xRCJrbhMaLsw==
+  version "17.0.76"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.76.tgz#bfdf762046699e265655cd8f67a51beab6cd1e80"
+  integrity sha512-w9Aq+qeszGYoQM0hgFcdsAODGJdogadBDiitPm+zjBFJ0mLymvn2qSXsDaLJUndFRqqXk1FQfa9avHUBk1JhJQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -21445,9 +21445,9 @@ use-sidecar@^1.1.2:
     tslib "^2.0.0"
 
 usehooks-ts@^2.9.1:
-  version "2.14.0"
-  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.14.0.tgz#8c38fdb9133a7278f88ff8c762695ccaec4abfb8"
-  integrity sha512-jnhrjTRJoJS7cFxz63tRYc5mzTKf/h+Ii8P0PDHymT9qDe4ZA2/gzDRmDR4WGausg5X8wMIdghwi3BBCN9JKow==
+  version "2.15.1"
+  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-2.15.1.tgz#ede348c6f01b4b4fe981e240551624885a2fed83"
+  integrity sha512-AK29ODCt4FT9XleILNbkbjjmkRCNaQrgxQEkvqHjlnT76iPXzTFGvK2Y/s83JEdSxRp43YEnSa3bYBEV6HZ26Q==
   dependencies:
     lodash.debounce "^4.0.8"
 

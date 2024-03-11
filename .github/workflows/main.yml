@@ -337,7 +337,7 @@ jobs:
       working-directory: packages/mountable
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: packages/mountable/stlite-mountable-v*.tgz
         generate_release_notes: true
@@ -530,7 +530,7 @@ jobs:
       working-directory: packages/desktop
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: packages/desktop/stlite-desktop-v*.tgz
         generate_release_notes: true
@@ -630,7 +630,7 @@ jobs:
         pat: ${{ secrets.OPEN_VSX_TOKEN }}
     - if: matrix.target == 'marketplace'
       name: Create a new release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: "${{ env.vsix_filename }}"
         generate_release_notes: true

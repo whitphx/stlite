@@ -24,7 +24,7 @@ function FileNameForm({
   return (
     <form
       onSubmit={useCallback(
-        (e) => {
+        (e: React.FormEvent<HTMLFormElement>) => {
           e.preventDefault();
           if (submittable) {
             onFinish(tmpFileName);
@@ -33,7 +33,7 @@ function FileNameForm({
         [submittable, onFinish, tmpFileName]
       )}
       onKeyDown={useCallback(
-        (e) => {
+        (e: React.KeyboardEvent<HTMLFormElement>) => {
           if (e.key === "Escape") {
             onCancel();
           }

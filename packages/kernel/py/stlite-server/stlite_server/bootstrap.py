@@ -96,23 +96,42 @@ def _install_pages_watcher(main_script_path_str: str) -> None:
 
 
 def _fix_altair():
-    """Fix an issue with Altair and the mocked pyarrow module of stlite."""
-    try:
-        from altair.utils import _importers  # type: ignore[import]
+    """Install custom finder and importer to patch altair when it's imported."""
+    from importlib.abc import MetaPathFinder
+    from importlib.machinery import PathFinder, SourceFileLoader
 
-        def _pyarrow_available():
-            return False
+    class AltairCustomFinder(MetaPathFinder):
+        def find_spec(self, fullname, path, target=None):
+            if fullname == "altair.utils._importers":
+                spec = PathFinder.find_spec(fullname, path, target)
+                if spec is not None and spec.origin is not None:
+                    spec.loader = AltairCustomLoader(spec.name, spec.origin)
+                    return spec
 
-        _importers.pyarrow_available = _pyarrow_available
+    class AltairCustomLoader(SourceFileLoader):
+        def create_module(self, spec):
+            # Return None to use the default module creation process
+            return None
 
-        def _import_pyarrow_interchange():
-            raise ImportError("Pyarrow is not available in stlite.")
+        def exec_module(self, module):
+            super().exec_module(module)
 
-        _importers.import_pyarrow_interchange = _import_pyarrow_interchange
-    except ImportError:
-        pass
-    except Exception as e:
-        logger.error("Failed to fix Altair", exc_info=e)
+            self.patch_module(module)
+            logger.debug(f"{module.__name__} has been patched.")
+
+        def patch_module(self, module):
+            def _pyarrow_available():
+                return False
+
+            module.pyarrow_available = _pyarrow_available
+
+            def _import_pyarrow_interchange():
+                raise ImportError("Pyarrow is not available in stlite.")
+
+            module.import_pyarrow_interchange = _import_pyarrow_interchange
+
+    finder = AltairCustomFinder()
+    sys.meta_path.insert(0, finder)
 
 
 def _fix_requests():

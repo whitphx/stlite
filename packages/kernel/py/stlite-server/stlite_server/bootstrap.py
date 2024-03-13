@@ -96,7 +96,14 @@ def _install_pages_watcher(main_script_path_str: str) -> None:
 
 
 def _fix_altair():
-    """Install custom finder and importer to patch altair when it's imported."""
+    """Install custom finder and importer to patch Altair when it's imported.
+    The patch fixes an issue with Altair and the mocked pyarrow module of stlite.
+    """
+
+    # The original patch is https://github.com/whitphx/stlite/blob/v0.47.0/packages/kernel/py/stlite-server/stlite_server/bootstrap.py#L127-L144.  # noqa: E501
+    # Since Streamlit 1.32.0, it lazy-loads the Altair module for performance reasons,
+    # so we introduced a custom finder and loader to execute the patch
+    # upon the lazy-import of Altair as below.
     from importlib.abc import MetaPathFinder
     from importlib.machinery import PathFinder, SourceFileLoader
 

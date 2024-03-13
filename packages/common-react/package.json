@@ -14,7 +14,7 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
-    "@streamlit/lib": "1.32.0"
+    "@streamlit/lib": "1.32.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.49.0",

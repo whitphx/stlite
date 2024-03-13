@@ -104,6 +104,11 @@ def _fix_altair():
     # Since Streamlit 1.32.0, it lazy-loads the Altair module for performance reasons,
     # so we introduced a custom finder and loader to execute the patch
     # upon the lazy-import of Altair as below.
+    # NOTE: After I wrote this code, I found https://pypi.org/project/importhook/,
+    #       which is for this purpose.
+    #       While I keep this code for now because its implementation is simpler
+    #       and works well for our purpose,
+    #       we may want to consider using the library in the future.
     from importlib.abc import MetaPathFinder
     from importlib.machinery import PathFinder, SourceFileLoader
 

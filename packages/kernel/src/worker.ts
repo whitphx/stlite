@@ -227,6 +227,8 @@ async function loadPyodideAndPackages() {
       streamlit.logger.set_log_level = lambda *a, **k: None
 
       for name in streamlit.logger._loggers.keys():
+          if name == "root":
+              name = "streamlit"
           logger = logging.getLogger(name)
           logger.propagate = True
           logger.handlers.clear()

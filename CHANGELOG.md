@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.47.1] - 2024-02-11
+## [0.47.2] - 2024-03-15
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Logger settings, [#786](https://github.com/whitphx/stlite/pull/786).
+
+## [0.47.1] - 2024-03-14
 
 ### `@stlite/kernel`
 

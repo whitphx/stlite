@@ -195,7 +195,7 @@ async function loadPyodideAndPackages() {
     console.debug("Installed the requirements");
   }
 
-  // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
+  // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`
     import importlib
@@ -225,6 +225,14 @@ async function loadPyodideAndPackages() {
       streamlit.logger.setup_formatter = None
       streamlit.logger.update_formatter = lambda *a, **k: None
       streamlit.logger.set_log_level = lambda *a, **k: None
+
+      for name in streamlit.logger._loggers.keys():
+          logger = logging.getLogger(name)
+          logger.propagate = True
+          logger.handlers.clear()
+          logger.setLevel(logging.NOTSET)
+
+      streamlit.logger._loggers = {}
   `);
   // Then configure the logger.
   const logCallback = (msg: string) => {
@@ -261,8 +269,8 @@ async function loadPyodideAndPackages() {
       root_logger.addHandler(js_handler)
       root_logger.setLevel(logging.DEBUG)
 
-      streamlit_handler = logging.getLogger("streamlit")
-      streamlit_handler.setLevel(logging.DEBUG)
+      streamlit_logger = logging.getLogger("streamlit")
+      streamlit_logger.setLevel(logging.DEBUG)
   `);
   console.debug("Set the loggers");
 

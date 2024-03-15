@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.48.0] - 2024-03-15
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.32.2, [#783](https://github.com/whitphx/stlite/pull/783).
+  - This update includes lazy-imports of some dependencies, which reduces the initial loading time.
+
 ## [0.47.2] - 2024-03-15
 
 ### `@stlite/kernel`

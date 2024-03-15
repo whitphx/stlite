@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@lerna-lite/cli": "^3.3.0",
+    "@lerna-lite/version": "^3.3.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",

@@ -7,6 +7,26 @@
 // so this `CrossOriginWorkerMaker` class must be defined in a separate file and
 // be imported as the `Worker` alias into the file where the syntax is used to load the worker.
 // This technique was introduced at https://github.com/webpack/webpack/discussions/14648#discussioncomment-1589272
+
+const workerBlobUrlCache = new Map<string, string>();
+
+function getWorkerBlobUrl(url: URL): string {
+  const urlStr = url.toString();
+
+  const cached = workerBlobUrlCache.get(urlStr);
+  if (cached) {
+    console.debug(`Using a cached worker blob URL for ${urlStr}`);
+    return cached;
+  }
+
+  const workerBlob = new Blob([`importScripts("${urlStr}");`], {
+    type: "text/javascript",
+  });
+  const workerBlobUrl = URL.createObjectURL(workerBlob);
+  workerBlobUrlCache.set(urlStr, workerBlobUrl);
+  return workerBlobUrl;
+}
+
 export class CrossOriginWorkerMaker {
   public readonly worker: Worker;
 
@@ -18,12 +38,8 @@ export class CrossOriginWorkerMaker {
       console.debug(
         `Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
       );
-      const workerBlob = new Blob([`importScripts("${url.toString()}");`], {
-        type: "text/javascript",
-      });
-      const workerBlobUrl = URL.createObjectURL(workerBlob);
+      const workerBlobUrl = getWorkerBlobUrl(url);
       this.worker = new Worker(workerBlobUrl);
-      URL.revokeObjectURL(workerBlobUrl);
     }
   }
 }

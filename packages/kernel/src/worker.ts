@@ -195,7 +195,7 @@ async function loadPyodideAndPackages() {
     console.debug("Installed the requirements");
   }
 
-  // The following code is necessary to avoid errors like  `NameError: name '_imp' is not defined`
+  // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
   // at importing installed packages.
   await pyodide.runPythonAsync(`
     import importlib
@@ -224,45 +224,67 @@ async function loadPyodideAndPackages() {
       streamlit.logger.setup_formatter = None
       streamlit.logger.update_formatter = lambda *a, **k: None
       streamlit.logger.set_log_level = lambda *a, **k: None
+
+      for name in streamlit.logger._loggers.keys():
+          if name == "root":
+              name = "streamlit"
+          logger = logging.getLogger(name)
+          logger.propagate = True
+          logger.handlers.clear()
+          logger.setLevel(logging.NOTSET)
+
+      streamlit.logger._loggers = {}
   `);
   // Then configure the logger.
-  const logCallback = (msg: string) => {
-    if (msg.startsWith("CRITICAL") || msg.startsWith("ERROR")) {
+  const logCallback = (levelno: number, msg: string) => {
+    if (levelno >= 40) {
       console.error(msg);
-    } else if (msg.startsWith("WARNING")) {
+    } else if (levelno >= 30) {
       console.warn(msg);
-    } else if (msg.startsWith("INFO")) {
+    } else if (levelno >= 20) {
       console.info(msg);
-    } else if (msg.startsWith("DEBUG")) {
-      console.debug(msg);
     } else {
-      console.log(msg);
+      console.debug(msg);
     }
   };
   self.__logCallback__ = logCallback;
   await pyodide.runPythonAsync(`
-      from js import __logCallback__
+def setup_loggers(streamlit_level, streamlit_message_format):
+    from js import __logCallback__
 
 
-      class JsHandler(logging.Handler):
-          def emit(self, record):
-              msg = self.format(record)
-              __logCallback__(msg)
+    class JsHandler(logging.Handler):
+        def emit(self, record):
+            msg = self.format(record)
+            __logCallback__(record.levelno, msg)
 
 
-      main_formatter = logging.Formatter("%(levelname)s:%(name)s:%(message)s")
+    root_message_format = "%(levelname)s:%(name)s:%(message)s"
 
-      js_handler = JsHandler()
-      js_handler.setFormatter(main_formatter)
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_formatter = logging.Formatter(root_message_format)
+    root_handler = JsHandler()
+    root_handler.setFormatter(root_formatter)
+    root_logger.addHandler(root_handler)
+    root_logger.setLevel(logging.DEBUG)
 
-      root_logger = logging.getLogger()
-      root_logger.handlers.clear()
-      root_logger.addHandler(js_handler)
-      root_logger.setLevel(logging.DEBUG)
-
-      streamlit_handler = logging.getLogger("streamlit")
-      streamlit_handler.setLevel(logging.DEBUG)
+    streamlit_logger = logging.getLogger("streamlit")
+    streamlit_logger.propagate = False
+    streamlit_logger.handlers.clear()
+    streamlit_formatter = logging.Formatter(streamlit_message_format)
+    streamlit_handler = JsHandler()
+    streamlit_handler.setFormatter(streamlit_formatter)
+    streamlit_logger.addHandler(streamlit_handler)
+    streamlit_logger.setLevel(streamlit_level.upper())
   `);
+  const streamlitLogLevel = (
+    streamlitConfig?.["logger.level"] ?? "INFO"
+  ).toString();
+  const streamlitLogMessageFormat =
+    streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
+  const setupLoggers = pyodide.globals.get("setup_loggers");
+  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat);
   console.debug("Set the loggers");
 
   postProgressMessage(

@@ -9,12 +9,12 @@ from streamlit.components.v1.components import ComponentRegistry
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
+from streamlit.runtime.caching.storage.dummy_cache_storage import (
+    MemoryCacheStorageManager,
+)
 from streamlit.runtime.memory_media_file_storage import MemoryMediaFileStorage
 from streamlit.runtime.memory_uploaded_file_manager import MemoryUploadedFileManager
 from streamlit.runtime.runtime_util import serialize_forward_msg
-from streamlit.web.cache_storage_manager_config import (
-    create_default_cache_storage_manager,
-)
 
 from .component_request_handler import ComponentRequestHandler
 from .handler import RequestHandler
@@ -48,7 +48,7 @@ class Server:
                 command_line=command_line,
                 media_file_storage=self._media_file_storage,
                 uploaded_file_manager=uploaded_file_mgr,
-                cache_storage_manager=create_default_cache_storage_manager(),
+                cache_storage_manager=MemoryCacheStorageManager(),
             ),
         )
 

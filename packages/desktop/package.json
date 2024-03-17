@@ -64,6 +64,7 @@
     "@stlite/common-react": "^0.48.0",
     "@stlite/kernel": "^0.48.0",
     "@streamlit/app": "1.32.2",
+    "@tauri-apps/cli": "^1.5.11",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",

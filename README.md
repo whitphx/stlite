@@ -366,6 +366,7 @@ data_in_bytes = await response.bytes()
 - [📖 "Python-Based Data Viz (With No Installation Required)", by Sam Minot](https://towardsdatascience.com/python-based-data-viz-with-no-installation-required-aaf2358c881)
 - [📖 "Converting Streamlit application to exe file", by Neelasha Sen](https://ploomber.io/blog/streamlit_exe/)
 - [📖 "Streamlit + Stlite: Beyond Data Science Applications", by Saumitra Panchal](https://medium.com/@saumitrapanchal/streamlit-stlite-beyond-data-science-applications-23de64648883)
+- [📖 "stlite: Serverless Streamlit — Run Your Apps in the Browser", by Alan Jones](https://medium.com/codefile/stlite-serverless-streamlit-d1dcf5be35f8)
 
 ## Samples
 

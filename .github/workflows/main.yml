@@ -531,7 +531,7 @@ jobs:
     - name: Install the tarball
       run: |
         mv stlite-desktop-v*.tgz stlite-desktop.tgz
-        yarn add file:stlite-desktop.tgz
+        npm install file:stlite-desktop.tgz
       working-directory: ${{ runner.temp }}/sample_app
 
     - run: yarn dump streamlit_app -r requirements.txt
@@ -541,7 +541,7 @@ jobs:
 
   publish-desktop:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
-    needs: [build-desktop, e2e-desktop]
+    needs: [e2e-desktop]
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions

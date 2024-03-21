@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/@lerna-lite/cli/schemas/lerna-schema.json",
   "version": "0.48.1",
-  "packages": ["packages/*"],
+  "packages": ["packages/*", "packages/desktop/samples/*"],
   "command": {
     "version": {
       "allowBranch": "main"

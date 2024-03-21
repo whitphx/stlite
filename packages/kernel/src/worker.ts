@@ -56,7 +56,7 @@ async function initPyodide(
 }
 
 const DEFAULT_PYODIDE_URL =
-  "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
+  "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
 
 /**
  * Load Pyodided and initialize the interpreter.

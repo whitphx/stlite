@@ -89,19 +89,50 @@ async function inspectUsedBuiltinPackages(
     .map(([name]) => name);
 }
 
-async function loadPyodideBuiltinPackageData(): Promise<
-  Record<
-    string,
-    { name: string; version: string; file_name: string; depends: string[] }
-  >
-> {
-  const url = makePyodideUrl("pyodide-lock.json");
+interface PackageInfo {
+  name: string;
+  version: string;
+  file_name: string;
+  depends: string[];
+}
+class PyodideBuiltinPackagesData {
+  private static _instance: PyodideBuiltinPackagesData;
+  private _data: Record<string, PackageInfo> | null = null;
 
-  console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
-  const res = await fetch(url);
-  const resJson = await res.json();
+  private constructor() {}
 
-  return resJson.packages;
+  private static async loadPyodideBuiltinPackageData(): Promise<
+    Record<string, PackageInfo>
+  > {
+    const url = makePyodideUrl("pyodide-lock.json");
+
+    console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
+    const res = await fetch(url);
+    const resJson = await res.json();
+
+    return resJson.packages;
+  }
+
+  static async getInstance(): Promise<PyodideBuiltinPackagesData> {
+    if (this._instance == null) {
+      this._instance = new PyodideBuiltinPackagesData();
+      this._instance._data = await this.loadPyodideBuiltinPackageData();
+    }
+    return this._instance;
+  }
+
+  public getPackageInfoByName(pkgName: string): PackageInfo {
+    if (this._data == null) {
+      throw new Error("The package data is not loaded yet.");
+    }
+    const pkgInfo = Object.values(this._data).find(
+      (pkg) => pkg.name === pkgName
+    );
+    if (pkgInfo == null) {
+      throw new Error(`Package ${pkgName} is not found in the lock file.`);
+    }
+    return pkgInfo;
+  }
 }
 
 async function prepareLocalWheel(
@@ -162,7 +193,8 @@ async function createSitePackagesSnapshot(
   await pyodide.loadPackage(["micropip"]);
   const micropip = pyodide.pyimport("micropip");
 
-  const pyodideBuiltinPackageMap = await loadPyodideBuiltinPackageData();
+  const pyodideBuiltinPackagesData =
+    await PyodideBuiltinPackagesData.getInstance();
 
   const mockedPackages: string[] = [];
   if (options.usedBuiltinPackages.length > 0) {
@@ -170,7 +202,7 @@ async function createSitePackagesSnapshot(
       "Mocking builtin packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
     options.usedBuiltinPackages.forEach((pkg) => {
-      const packageInfo = pyodideBuiltinPackageMap[pkg];
+      const packageInfo = pyodideBuiltinPackagesData.getPackageInfoByName(pkg);
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
@@ -275,9 +307,10 @@ interface DownloadPyodideBuiltinPackageWheelsOptions {
 async function downloadPyodideBuiltinPackageWheels(
   options: DownloadPyodideBuiltinPackageWheelsOptions
 ) {
-  const pyodideBuiltinPackages = await loadPyodideBuiltinPackageData();
-  const usedBuiltInPackages = options.packages.map(
-    (pkgName) => pyodideBuiltinPackages[pkgName]
+  const pyodideBuiltinPackagesData =
+    await PyodideBuiltinPackagesData.getInstance();
+  const usedBuiltInPackages = options.packages.map((pkgName) =>
+    pyodideBuiltinPackagesData.getPackageInfoByName(pkgName)
   );
   const usedBuiltinPackageUrls = usedBuiltInPackages.map((pkg) =>
     makePyodideUrl(pkg.file_name)

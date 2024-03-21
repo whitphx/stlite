@@ -10094,6 +10094,15 @@ electron@28.2.1:
     "@types/node" "^18.11.18"
     extract-zip "^2.0.1"
 
+electron@^28.2.1:
+  version "28.2.7"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-28.2.7.tgz#beec25bc62eea02743cd4eaed45c20e1c7dfcaf2"
+  integrity sha512-iEBTYNFuZtLpAS+8ql0ATUWBPAC9uMYqwNJtMLqlT3/zOzHj6aYpwoJILwWgIuTAx+/yTYgARS46Nr/RazxTpg==
+  dependencies:
+    "@electron/get" "^2.0.0"
+    "@types/node" "^18.11.18"
+    extract-zip "^2.0.1"
+
 element-size@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/element-size/-/element-size-1.1.1.tgz#64e5f159d97121631845bcbaecaf279c39b5e34e"

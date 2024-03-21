@@ -5,7 +5,8 @@
     "packages/*",
     "streamlit/frontend",
     "streamlit/frontend/app",
-    "streamlit/frontend/lib"
+    "streamlit/frontend/lib",
+    "packages/desktop/samples/*"
   ],
   "scripts": {
     "new-version": "lerna version --force-publish",

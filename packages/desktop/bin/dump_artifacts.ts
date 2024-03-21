@@ -17,6 +17,20 @@ import type { DesktopAppManifest } from "../electron/main";
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
 
+async function ensureLoadPackage(
+  pyodide: PyodideInterface,
+  packageName: string | string[]
+) {
+  const errorMessages: string[] = [];
+  const errorCallback = (message: string): void => {
+    errorMessages.push(message);
+  };
+  await pyodide.loadPackage(packageName, { errorCallback });
+  if (errorMessages.length > 0) {
+    throw new Error(errorMessages.join("\n"));
+  }
+}
+
 function makePyodideUrl(filename: string): string {
   return `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/${filename}`;
 }
@@ -157,7 +171,7 @@ async function installPackages(
   pyodide: PyodideInterface,
   options: InstallStreamlitWheelsOptions
 ) {
-  await pyodide.loadPackage(["micropip"]);
+  await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
 
   const requirements: string[] = [...options.requirements];
@@ -190,7 +204,7 @@ async function createSitePackagesSnapshot(
 
   const pyodide = await loadPyodide();
 
-  await pyodide.loadPackage(["micropip"]);
+  await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
 
   const pyodideBuiltinPackagesData =

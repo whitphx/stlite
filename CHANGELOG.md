@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.48.1] - 2024-03-21
+## [0.48.2] - 2024-03-21
 
 ### `@stlite/desktop`
 
 #### Fixed
 
 - Add the E2E test job to the CI workflow, [#795](https://github.com/whitphx/stlite/pull/795).
+
+## [0.48.1]
+
+Skipped.
 
 ## [0.48.0] - 2024-03-15
 

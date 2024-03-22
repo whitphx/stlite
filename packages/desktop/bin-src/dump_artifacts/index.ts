@@ -8,12 +8,17 @@ import fsExtra from "fs-extra";
 import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import { parseRequirementsTxt } from "@stlite/common";
-import type { DesktopAppManifest } from "../electron/main";
+import type { DesktopAppManifest } from "../../electron/main";
 import { makePyodideUrl } from "./url";
 import { PyodideBuiltinPackagesData } from "./pyodide_packages";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
+
+const pathFromScriptToBuild =
+  process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
+const pathFromScriptToWheels =
+  process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
 
 async function ensureLoadPackage(
   pyodide: PyodideInterface,
@@ -38,7 +43,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     "Copy the build directory (the bare built app files) to this directory..."
   );
 
-  const sourceDir = path.resolve(__dirname, "../build");
+  const sourceDir = path.resolve(__dirname, pathFromScriptToBuild);
   const sourceDirStat = await fsPromises.stat(sourceDir);
   if (!sourceDirStat.isDirectory()) {
     throw new Error(`The source ${sourceDir} does not exist.`);
@@ -124,7 +129,7 @@ async function installPackages(
 
   const requirements: string[] = [...options.requirements];
 
-  const wheelsDir = path.join(__dirname, "../wheels");
+  const wheelsDir = path.join(__dirname, pathFromScriptToWheels);
   const stliteServerWheel = await prepareLocalWheel(
     pyodide,
     path.join(wheelsDir, "stlite_server-0.1.0-py3-none-any.whl")

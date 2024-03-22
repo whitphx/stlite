@@ -5,7 +5,7 @@ const fs = require("fs");
 
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
 
-const inputFile = path.resolve(__dirname, "../bin-src/dump_artifacts.ts");
+const inputFile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
 const outputFile = path.resolve(__dirname, "../bin/dump_artifacts.js");
 
 require("esbuild")
@@ -20,6 +20,10 @@ require("esbuild")
       "fs-extra", // `fs-extra` and `yargs` will be installed at runtime anyway as the dependencies of `electron-builder`, so we don't have to bundle them here.
       "yargs", // Same as above, `fs-extra`.
     ],
+    define: {
+      "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),
+      "process.env.PATH_FROM_SCRIPT_TO_WHEELS": JSON.stringify("../wheels"),
+    },
     outfile: outputFile,
     logLevel: "info",
   })

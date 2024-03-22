@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 
+const path = require("path");
+const fs = require("fs");
+
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
+
+const inputFile = path.resolve(__dirname, "../bin-src/dump_artifacts.ts");
+const outputFile = path.resolve(__dirname, "../bin/dump_artifacts.js");
 
 require("esbuild")
   .build({
-    entryPoints: ["./bin/dump_artifacts.ts"],
+    entryPoints: [inputFile],
     bundle: true,
     minify: true,
     platform: "node",
@@ -14,7 +20,17 @@ require("esbuild")
       "fs-extra", // `fs-extra` and `yargs` will be installed at runtime anyway as the dependencies of `electron-builder`, so we don't have to bundle them here.
       "yargs", // Same as above, `fs-extra`.
     ],
-    outfile: "./bin/dump_artifacts.js",
+    outfile: outputFile,
     logLevel: "info",
+  })
+  .then(() => {
+    // Replace the shebang line in the output file
+    const data = fs.readFileSync(outputFile, "utf-8");
+
+    const matcher = /^#!.*$/my;
+    matcher.lastIndex = 0;
+    const result = data.replace(matcher, "#!/usr/bin/env node");
+
+    fs.writeFileSync(outputFile, result);
   })
   .catch(() => process.exit(1));

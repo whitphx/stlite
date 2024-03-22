@@ -5,12 +5,12 @@ const fs = require("fs");
 
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
 
-const inputFile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
-const outputFile = path.resolve(__dirname, "../bin/dump_artifacts.js");
+const infile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
+const outfile = path.resolve(__dirname, "../bin/dump_artifacts.js");
 
 require("esbuild")
   .build({
-    entryPoints: [inputFile],
+    entryPoints: [infile],
     bundle: true,
     minify: true,
     platform: "node",
@@ -24,17 +24,17 @@ require("esbuild")
       "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),
       "process.env.PATH_FROM_SCRIPT_TO_WHEELS": JSON.stringify("../wheels"),
     },
-    outfile: outputFile,
+    outfile,
     logLevel: "info",
   })
   .then(() => {
     // Replace the shebang line in the output file
-    const data = fs.readFileSync(outputFile, "utf-8");
+    const data = fs.readFileSync(outfile, "utf-8");
 
     const matcher = /^#!.*$/my;
     matcher.lastIndex = 0;
     const result = data.replace(matcher, "#!/usr/bin/env node");
 
-    fs.writeFileSync(outputFile, result);
+    fs.writeFileSync(outfile, result);
   })
   .catch(() => process.exit(1));

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.49.1] - 2024-03-22
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Catch errors during loading packages, [#798](https://github.com/whitphx/stlite/pull/798).
+
 ## [0.49.0] - 2024-03-21
 
 ### `@stlite/kernel`

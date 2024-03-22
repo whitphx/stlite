@@ -6,16 +6,19 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
-import {
-  loadPyodide,
-  type PyodideInterface,
-  version as pyodideVersion,
-} from "pyodide";
+import { loadPyodide, type PyodideInterface } from "pyodide";
 import { parseRequirementsTxt } from "@stlite/common";
-import type { DesktopAppManifest } from "../electron/main";
+import type { DesktopAppManifest } from "../../electron/main";
+import { makePyodideUrl } from "./url";
+import { PyodideBuiltinPackagesData } from "./pyodide_packages";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
+
+const pathFromScriptToBuild =
+  process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
+const pathFromScriptToWheels =
+  process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
 
 async function ensureLoadPackage(
   pyodide: PyodideInterface,
@@ -31,10 +34,6 @@ async function ensureLoadPackage(
   }
 }
 
-function makePyodideUrl(filename: string): string {
-  return `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/${filename}`;
-}
-
 interface CopyBuildDirectoryOptions {
   keepOld: boolean;
   copyTo: string;
@@ -44,7 +43,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     "Copy the build directory (the bare built app files) to this directory..."
   );
 
-  const sourceDir = path.resolve(__dirname, "../build");
+  const sourceDir = path.resolve(__dirname, pathFromScriptToBuild);
   const sourceDirStat = await fsPromises.stat(sourceDir);
   if (!sourceDirStat.isDirectory()) {
     throw new Error(`The source ${sourceDir} does not exist.`);
@@ -103,52 +102,6 @@ async function inspectUsedBuiltinPackages(
     .map(([name]) => name);
 }
 
-interface PackageInfo {
-  name: string;
-  version: string;
-  file_name: string;
-  depends: string[];
-}
-class PyodideBuiltinPackagesData {
-  private static _instance: PyodideBuiltinPackagesData;
-  private _data: Record<string, PackageInfo> | null = null;
-
-  private constructor() {}
-
-  private static async loadPyodideBuiltinPackageData(): Promise<
-    Record<string, PackageInfo>
-  > {
-    const url = makePyodideUrl("pyodide-lock.json");
-
-    console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
-    const res = await fetch(url);
-    const resJson = await res.json();
-
-    return resJson.packages;
-  }
-
-  static async getInstance(): Promise<PyodideBuiltinPackagesData> {
-    if (this._instance == null) {
-      this._instance = new PyodideBuiltinPackagesData();
-      this._instance._data = await this.loadPyodideBuiltinPackageData();
-    }
-    return this._instance;
-  }
-
-  public getPackageInfoByName(pkgName: string): PackageInfo {
-    if (this._data == null) {
-      throw new Error("The package data is not loaded yet.");
-    }
-    const pkgInfo = Object.values(this._data).find(
-      (pkg) => pkg.name === pkgName
-    );
-    if (pkgInfo == null) {
-      throw new Error(`Package ${pkgName} is not found in the lock file.`);
-    }
-    return pkgInfo;
-  }
-}
-
 async function prepareLocalWheel(
   pyodide: PyodideInterface,
   localPath: string
@@ -176,7 +129,7 @@ async function installPackages(
 
   const requirements: string[] = [...options.requirements];
 
-  const wheelsDir = path.join(__dirname, "../wheels");
+  const wheelsDir = path.join(__dirname, pathFromScriptToWheels);
   const stliteServerWheel = await prepareLocalWheel(
     pyodide,
     path.join(wheelsDir, "stlite_server-0.1.0-py3-none-any.whl")

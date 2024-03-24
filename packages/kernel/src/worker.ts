@@ -1,7 +1,6 @@
 import type Pyodide from "pyodide";
-import { PromiseDelegate } from "@stlite/common";
+import { PromiseDelegate, verifyRequirements } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
-import { verifyRequirements } from "./requirements";
 import { mockPyArrow } from "./mock";
 import type {
   WorkerInitialData,

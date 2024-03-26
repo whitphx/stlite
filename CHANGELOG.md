@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.49.3] - 2024-03-27
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Bundle and minify the Electron app files, [#810](https://github.com/whitphx/stlite/pull/810).
+
 ## [0.49.2] - 2024-03-24
 
 Internal updates. See the release page for details.

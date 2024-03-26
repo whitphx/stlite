@@ -2,11 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
-    "outDir": ".",
-    "rootDir": "..",
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true
-  },
-  "include": ["./bin", "./electron"],
-  "exclude": []
+  }
 }

@@ -12,6 +12,7 @@ const production = process.env.NODE_ENV === "production";
   entryPoints: [
     path.resolve(__dirname, "../electron/main.ts"),
     path.resolve(__dirname, "../electron/preload.ts"),
+    path.resolve(__dirname, "../electron/worker.ts"),
   ],
   bundle: true,
   minify: production,

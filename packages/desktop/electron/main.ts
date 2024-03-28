@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
+import workerThreads from "node:worker_threads";
 import { walkRead } from "./file";
-import { bootstrapWorker } from "@stlite/kernel/src/worker-runtime";
 
 if (process.env.NODE_ENV === "development") {
   console.log("Hot-reloading Electron enabled");
@@ -122,7 +122,7 @@ const createWindow = async () => {
     ipcMain.removeHandler("readStreamlitAppDirectory");
   });
 
-  let handleMessageToWorker: ReturnType<typeof bootstrapWorker> | null = null;
+  let worker: workerThreads.Worker | null = null;
   ipcMain.handle("initializeNodeJsWorker", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error("Invalid IPC sender");
@@ -134,35 +134,40 @@ const createWindow = async () => {
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
-    handleMessageToWorker = bootstrapWorker(
-      defaultPyodideUrl,
-      onMessageFromWorker
-    );
+    worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
+      env: {
+        PYODIDE_URL: defaultPyodideUrl,
+      },
+    });
+    worker.on("message", (value) => {
+      onMessageFromWorker(value);
+    });
   });
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error("Invalid IPC sender");
     }
 
-    if (handleMessageToWorker == null) {
+    if (worker == null) {
       return;
     }
 
-    const simPort = portId && {
-      postMessage: (arg: any) => {
-        ev.reply(`nodeJsWorker-portMessage-${portId}`, arg);
-      },
-    };
+    const channel = new workerThreads.MessageChannel();
 
-    const eventSim = { data, ports: simPort && [simPort] };
-    handleMessageToWorker(eventSim as any);
+    channel.port1.on("message", (e) => {
+      ev.reply(`nodeJsWorker-portMessage-${portId}`, e);
+    });
+
+    const eventSim = { data, port: channel.port2 };
+    worker.postMessage(eventSim, [channel.port2]);
   });
   ipcMain.handle("terminate", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error("Invalid IPC sender");
     }
 
-    handleMessageToWorker = null;
+    worker?.terminate();
+    worker = null;
   });
 
   mainWindow.on("closed", () => {

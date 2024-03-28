@@ -13,5 +13,6 @@ const handleMessage = bootstrapWorker(
 
 parentPort?.on("message", ({ data, port }) => {
   console.debug("[worker thread] parentPort.onMessage", { data, port });
-  handleMessage({ data, ports: [port] } as any);
+  const simEvent = { data, ports: [port] };
+  handleMessage(simEvent as any);
 });

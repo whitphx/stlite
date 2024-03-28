@@ -49,4 +49,5 @@ contextBridge.exposeInMainWorld("nodeJsWorkerAPI", {
       console.debug("nodeJsWorkerAPI.onMessage", value);
       callback(value);
     }),
+  terminate: () => ipcRenderer.invoke("terminateNodeJsWorker"),
 });

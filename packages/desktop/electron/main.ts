@@ -122,31 +122,53 @@ const createWindow = async () => {
     ipcMain.removeHandler("readStreamlitAppDirectory");
   });
 
+  let handleMessageToWorker: ReturnType<typeof bootstrapWorker> | null = null;
   ipcMain.handle("initializeNodeJsWorker", (ev) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
     const defaultPyodideUrl = path.resolve(__dirname, "../pyodide/pyodide.mjs");
 
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
-    const handleMessageToWorker = bootstrapWorker(
+    handleMessageToWorker = bootstrapWorker(
       defaultPyodideUrl,
       onMessageFromWorker
     );
-    ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
-      if (!isValidIpcSender(ev.senderFrame)) {
-        throw new Error("Invalid IPC sender");
-      }
+  });
+  ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
 
-      const simPort = portId && {
-        postMessage: (arg: any) => {
-          ev.reply(`nodeJsWorker-portMessage-${portId}`, arg);
-        },
-      };
+    if (handleMessageToWorker == null) {
+      return;
+    }
 
-      const eventSim = { data, ports: simPort && [simPort] };
-      handleMessageToWorker(eventSim as any);
-    });
+    const simPort = portId && {
+      postMessage: (arg: any) => {
+        ev.reply(`nodeJsWorker-portMessage-${portId}`, arg);
+      },
+    };
+
+    const eventSim = { data, ports: simPort && [simPort] };
+    handleMessageToWorker(eventSim as any);
+  });
+  ipcMain.handle("terminate", (ev, { data, portId }) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
+    handleMessageToWorker = null;
+  });
+
+  mainWindow.on("closed", () => {
+    ipcMain.removeHandler("initializeNodeJsWorker");
+    ipcMain.removeHandler("messageToNodeJsWorker");
+    ipcMain.removeHandler("terminate");
   });
 
   // Even when the entrypoint is a local file like the production build,

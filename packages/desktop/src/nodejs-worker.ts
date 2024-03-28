@@ -39,6 +39,8 @@ export class NodeJsWorkerMock {
   onmessage: ((e: MessageEventLike) => void) | null = null;
 
   terminate() {
-    console.warn("Worker.terminate() is not implemented.");
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.nodeJsWorkerAPI.terminate();
   }
 }

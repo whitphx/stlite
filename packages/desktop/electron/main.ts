@@ -18,6 +18,7 @@ if (process.env.NODE_ENV === "development") {
 
 export interface DesktopAppManifest {
   embed: boolean;
+  nodeJsWorker: boolean;
 }
 async function readManifest(): Promise<DesktopAppManifest> {
   const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
@@ -28,13 +29,12 @@ async function readManifest(): Promise<DesktopAppManifest> {
 
   return {
     embed: maybeManifestData.embed ?? false,
+    nodeJsWorker: maybeManifestData.nodeJsWorker ?? false,
   };
 }
 
 const createWindow = async () => {
   const manifest = await readManifest();
-
-  const useNodeJsWorker = true; // TODO: Read from the manifest file
 
   const mainWindow = new BrowserWindow({
     width: 1280,
@@ -42,7 +42,9 @@ const createWindow = async () => {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       sandbox: true, // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
-      additionalArguments: useNodeJsWorker && ["--nodejs-worker"],
+      additionalArguments: manifest.nodeJsWorker
+        ? ["--nodejs-worker"]
+        : undefined,
     },
   });
 

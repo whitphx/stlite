@@ -1,5 +1,5 @@
 pyodide/pyodide.asm.js
 pyodide/pyodide.asm.wasm
-pyodide/pyodide.js
+pyodide/pyodide.mjs
 pyodide/python_stdlib.zip
 pyodide/pyodide-lock.json

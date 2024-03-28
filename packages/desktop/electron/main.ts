@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, protocol } from "electron";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
 import { walkRead } from "./file";
+import { bootstrapWorker } from "@stlite/kernel/src/worker-runtime";
 
 if (process.env.NODE_ENV === "development") {
   console.log("Hot-reloading Electron enabled");
@@ -33,12 +34,15 @@ async function readManifest(): Promise<DesktopAppManifest> {
 const createWindow = async () => {
   const manifest = await readManifest();
 
+  const useNodeJsWorker = true; // TODO: Read from the manifest file
+
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       sandbox: true, // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
+      additionalArguments: useNodeJsWorker && ["--nodejs-worker"],
     },
   });
 
@@ -105,6 +109,33 @@ const createWindow = async () => {
     ipcMain.removeHandler("readSitePackagesSnapshot");
     ipcMain.removeHandler("readRequirements");
     ipcMain.removeHandler("readStreamlitAppDirectory");
+  });
+
+  ipcMain.handle("initializeNodeJsWorker", (ev) => {
+    // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
+    const defaultPyodideUrl = path.resolve(__dirname, "../pyodide/pyodide.mjs");
+
+    function onMessageFromWorker(value: any) {
+      mainWindow.webContents.send("messageFromNodeJsWorker", value);
+    }
+    const handleMessageToWorker = bootstrapWorker(
+      defaultPyodideUrl,
+      onMessageFromWorker
+    );
+    ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
+      if (!isValidIpcSender(ev.senderFrame)) {
+        throw new Error("Invalid IPC sender");
+      }
+
+      const simPort = portId && {
+        postMessage: (arg: any) => {
+          ev.reply(`nodeJsWorker-portMessage-${portId}`, arg);
+        },
+      };
+
+      const eventSim = { data, ports: simPort && [simPort] };
+      handleMessageToWorker(eventSim as any);
+    });
   });
 
   // Even when the entrypoint is a local file like the production build,

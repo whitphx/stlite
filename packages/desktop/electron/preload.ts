@@ -12,7 +12,7 @@ function getRandomInt() {
   return Math.floor(Math.random() * 1000000);
 }
 
-contextBridge.exposeInMainWorld("nodeJsWorkerAPI", {
+const nodeJsWorkerAPI = {
   USE_NODEJS_WORKER: process.argv.includes("--nodejs-worker"),
   initialize: () => ipcRenderer.invoke("initializeNodeJsWorker"),
   postMessage: ({
@@ -40,4 +40,6 @@ contextBridge.exposeInMainWorld("nodeJsWorkerAPI", {
       callback(value);
     }),
   terminate: () => ipcRenderer.invoke("terminateNodeJsWorker"),
-});
+};
+contextBridge.exposeInMainWorld("nodeJsWorkerAPI", nodeJsWorkerAPI);
+export type NodeJsWorkerAPI = typeof nodeJsWorkerAPI;

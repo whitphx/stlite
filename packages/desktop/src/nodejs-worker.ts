@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export const USE_NODEJS_WORKER = window.nodeJsWorkerAPI.USE_NODEJS_WORKER;
 
 interface MessageEventLike<T = any> {
@@ -10,12 +8,8 @@ export class NodeJsWorkerMock {
   private initializePromise: Promise<void>;
 
   constructor() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     this.initializePromise = window.nodeJsWorkerAPI.initialize();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     window.nodeJsWorkerAPI.onMessage((data) => {
       this.onmessage && this.onmessage({ data });
     });
@@ -30,8 +24,6 @@ export class NodeJsWorkerMock {
           port.postMessage(arg);
         });
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       window.nodeJsWorkerAPI.postMessage({ data, onPortMessage });
     });
   }
@@ -39,8 +31,6 @@ export class NodeJsWorkerMock {
   onmessage: ((e: MessageEventLike) => void) | null = null;
 
   terminate() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     window.nodeJsWorkerAPI.terminate();
   }
 }

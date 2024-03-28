@@ -10,6 +10,10 @@ module.exports = {
   },
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths }) => {
+      // Ref: https://github.com/electron-react-boilerplate/electron-react-boilerplate/blob/v4.6.0/.erb/configs/webpack.config.renderer.prod.ts#L33
+      // Note only ["web"] doesn't work due to https://gist.github.com/msafi/d1b8571aa921feaaa0f893ab24bb727b
+      webpackConfig.target = ["web", "electron-renderer"];
+
       const isEnvDevelopment = webpackEnv === "development";
       const isEnvProduction = webpackEnv === "production";
 

@@ -293,8 +293,9 @@ async function dumpManifest(options: DumpManifestOptions) {
 
   // TODO: Runtime type validation
   const manifestData: DesktopAppManifest = {
-    embed: stliteManifest.embed || false,
+    embed: stliteManifest.embed ?? false,
     idbfsMountpoints: stliteManifest.idbfsMountpoints,
+    nodeJsWorker: stliteManifest.nodeJsWorker ?? false,
   };
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);

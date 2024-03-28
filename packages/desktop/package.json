@@ -102,9 +102,7 @@
   "stlite": {
     "desktop": {
       "embed": true,
-      "idbfsMountpoints": [
-        "/mnt"
-      ]
+      "nodeJsWorker": true
     }
   }
 }

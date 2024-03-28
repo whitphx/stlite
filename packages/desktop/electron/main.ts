@@ -19,6 +19,7 @@ if (process.env.NODE_ENV === "development") {
 export interface DesktopAppManifest {
   embed: boolean;
   idbfsMountpoints: string[] | undefined;
+  nodeJsWorker: boolean;
 }
 async function readManifest(): Promise<DesktopAppManifest> {
   const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
@@ -31,19 +32,20 @@ async function readManifest(): Promise<DesktopAppManifest> {
   return {
     embed: maybeManifestData.embed ?? false,
     idbfsMountpoints: maybeManifestData.idbfsMountpoints,
+    nodeJsWorker: maybeManifestData.nodeJsWorker ?? false,
   };
 }
 
 const createWindow = async () => {
   const manifest = await readManifest();
 
-  const useNodeJsWorker = true; // TODO: Read from the manifest file
-
   const additionalArguments: string[] = [];
   if (manifest.idbfsMountpoints) {
-    additionalArguments.push(`--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`);
+    additionalArguments.push(
+      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`
+    );
   }
-  if (useNodeJsWorker) {
+  if (manifest.nodeJsWorker) {
     additionalArguments.push("--nodejs-worker");
   }
 

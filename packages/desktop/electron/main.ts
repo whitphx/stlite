@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
 import * as path from "path";
 import * as fsPromises from "fs/promises";
+import workerThreads from "node:worker_threads";
 import { walkRead } from "./file";
 
 if (process.env.NODE_ENV === "development") {
@@ -17,6 +18,7 @@ if (process.env.NODE_ENV === "development") {
 
 export interface DesktopAppManifest {
   embed: boolean;
+  nodeJsWorker: boolean;
 }
 async function readManifest(): Promise<DesktopAppManifest> {
   const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
@@ -27,6 +29,7 @@ async function readManifest(): Promise<DesktopAppManifest> {
 
   return {
     embed: maybeManifestData.embed ?? false,
+    nodeJsWorker: maybeManifestData.nodeJsWorker ?? false,
   };
 }
 
@@ -39,6 +42,9 @@ const createWindow = async () => {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       sandbox: true, // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
+      additionalArguments: manifest.nodeJsWorker
+        ? ["--nodejs-worker"]
+        : undefined,
     },
   });
 
@@ -105,6 +111,60 @@ const createWindow = async () => {
     ipcMain.removeHandler("readSitePackagesSnapshot");
     ipcMain.removeHandler("readRequirements");
     ipcMain.removeHandler("readStreamlitAppDirectory");
+  });
+
+  let worker: workerThreads.Worker | null = null;
+  ipcMain.handle("initializeNodeJsWorker", (ev) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
+    // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
+    const defaultPyodideUrl = path.resolve(__dirname, "../pyodide/pyodide.mjs");
+
+    function onMessageFromWorker(value: any) {
+      mainWindow.webContents.send("messageFromNodeJsWorker", value);
+    }
+    worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
+      env: {
+        PYODIDE_URL: defaultPyodideUrl,
+      },
+    });
+    worker.on("message", (value) => {
+      onMessageFromWorker(value);
+    });
+  });
+  ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
+    if (worker == null) {
+      return;
+    }
+
+    const channel = new workerThreads.MessageChannel();
+
+    channel.port1.on("message", (e) => {
+      ev.reply(`nodeJsWorker-portMessage-${portId}`, e);
+    });
+
+    const eventSim = { data, port: channel.port2 };
+    worker.postMessage(eventSim, [channel.port2]);
+  });
+  ipcMain.handle("terminate", (ev, { data, portId }) => {
+    if (!isValidIpcSender(ev.senderFrame)) {
+      throw new Error("Invalid IPC sender");
+    }
+
+    worker?.terminate();
+    worker = null;
+  });
+
+  mainWindow.on("closed", () => {
+    ipcMain.removeHandler("initializeNodeJsWorker");
+    ipcMain.removeHandler("messageToNodeJsWorker");
+    ipcMain.removeHandler("terminate");
   });
 
   // Even when the entrypoint is a local file like the production build,

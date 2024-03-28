@@ -1,3 +1,5 @@
+import type { NodeJsWorkerAPI } from "../electron/preload";
+
 export declare global {
   interface Window {
     archives: {
@@ -5,5 +7,6 @@ export declare global {
       readRequirements: () => Promise<string[]>;
       readStreamlitAppDirectory: () => Promise<Record<string, Buffer>>;
     };
+    nodeJsWorkerAPI: NodeJsWorkerAPI;
   }
 }

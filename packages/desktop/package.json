@@ -101,7 +101,8 @@
   },
   "stlite": {
     "desktop": {
-      "embed": true
+      "embed": true,
+      "nodeJsWorker": true
     }
   }
 }

@@ -291,7 +291,8 @@ async function dumpManifest(options: DumpManifestOptions) {
   const packageJson = require(options.packageJsonPath);
   const stliteManifest = packageJson.stlite?.desktop || {};
   const manifestData: DesktopAppManifest = {
-    embed: stliteManifest.embed || false,
+    embed: stliteManifest.embed ?? false,
+    nodeJsWorker: stliteManifest.nodeJsWorker ?? false,
   };
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);

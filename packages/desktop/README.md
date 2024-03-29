@@ -56,7 +56,9 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 To make your app secure, be sure to use the latest version of Electron.
 This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.
 
-## Hide the toolbar, hamburger menu, and the footer
+## Configure app
+
+### Hide the toolbar, hamburger menu, and the footer
 
 If you want to hide the toolbar, hamburger menu, and the footer, add the following to your `package.json` file and run the `dump` command again. By adding the `stlite.desktop.embed` field, the dumped Streamlit app will work in the [embed mode](https://docs.streamlit.io/streamlit-community-cloud/get-started/embed-your-app#embedding-with-iframes) which hides the toolbar, hamburger menu, and the footer.
 
@@ -71,13 +73,22 @@ If you want to hide the toolbar, hamburger menu, and the footer, add the followi
 }
 ```
 
-## Data persistence
+### File system
 
-You can mount the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) to the specified directories by adding the `stlite.desktop.idbfsMountpoints` field to your `package.json`. Note that you have to run the `dump` command again to apply the change.
+_stlite_ runs your Python code on [Pyodide](https://pyodide.org/), a CPython runtime compiled to Wasm, and Pyodide's backend, Emscripten, provides a virtual file system.
+When _stlite_ runs your app, it mounts the source files onto the virtual file system, and what your Python code can access (e.g. `open("/path/to/something")`) is files and directories on the virtual file system.
 
-The mounted file system is persistent across the app restarts, while the default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral.
+The default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral, so the files saved in the directories are lost when the app is restarted. If you want to persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) or mount directories on the host OS file system to directories on the virtual file system.
 
-In the example below, the IndexedDB-based file system is mounted to the `/mnt` directory so that the files saved in the directory are persistent.
+#### File persistence with IndexedDB backend
+
+You can mount the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) to directories on the virtual file system that your Python code can access, e.g. `open("/path/to/file")`.
+You can specify the mount points via the `stlite.desktop.idbfsMountpoints` field in your `package.json` like below.
+Note that you have to run the `dump` command again to apply the change.
+
+The mounted file system is backed by IndexedDB and its data is stored in the browser's IndexedDB, so the files saved in the directories are persistent across the app restarts.
+
+In the example below, the IndexedDB-based file system is mounted to the `/mnt` directory on the virtual file system, so that the files saved in the directory are persistent.
 
 ```json
 {
@@ -85,6 +96,50 @@ In the example below, the IndexedDB-based file system is mounted to the `/mnt` d
   "stlite": {
     "desktop": {
       "idbfsMountpoints": ["/mnt"]
+    }
+  }
+}
+```
+
+#### Local file access
+
+You can mount directories on the host OS file system to directories on the virtual file system.
+
+To do this, you have to enable the Node.js worker mode (see the next section for details) and specify the mount points via the `stlite.desktop.nodefsMountpoints` field in your `package.json` like below.
+
+The `nodefsMountpoints` field is an object that maps the virtual file system paths to the host OS paths.
+
+In the example below, `"."` on the host OS file system is mounted to the `/mnt` directory on the virtual file system, so your app can access the files in `"."` on the host OS by accessing the files in `/mnt` on the virtual file system.
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "nodeJsWorker": true,
+      "nodefsMountpoints": {
+        "/mnt": "."
+      }
+    }
+  }
+}
+```
+
+#### NodeJS worker mode
+
+`@stlite/desktop` runs your app on [Electron](https://www.electronjs.org/) as a desktop app.
+Electron apps have two processes: the main process which is a Node.js process running in the background, and the renderer process which is a Chromium (browser) process running the app's UI.
+
+By default, _stlite_ executes your Python code on Pyodide running in a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) dispatched by the renderer process, and the renderer process is a browser process so it's sandboxed from the host OS.
+
+When you set the `stlite.desktop.nodeJsWorker` field in your `package.json` to `true`, _stlite_ dispatches the worker as a [NodeJS worker](https://nodejs.org/api/worker_threads.html) that runs in the main process, which is not sandboxed, so you can mount the host OS file system to the virtual file system as described in the previous section.
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "nodeJsWorker": true
     }
   }
 }

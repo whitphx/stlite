@@ -115,6 +115,12 @@ export interface StliteKernelOptions {
   onLoad?: () => void;
 
   onError?: (error: Error) => void;
+
+  /**
+   * The worker to be used, which can be optionally passed.
+   * Desktop apps with NodeJS-backed worker is one of the use cases.
+   */
+  worker?: globalThis.Worker;
 }
 
 export class StliteKernel {
@@ -145,10 +151,14 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
 
-    // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-    // Read the comment in `cross-origin-worker.ts` for the detail.
-    const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
-    this._worker = workerMaker.worker;
+    if (options.worker) {
+      this._worker = options.worker;
+    } else {
+      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
+      // Read the comment in `cross-origin-worker.ts` for the detail.
+      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      this._worker = workerMaker.worker;
+    }
 
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);

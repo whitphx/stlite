@@ -1,4 +1,4 @@
-import type { AppConfig } from "../electron/preload";
+import type { AppConfig, NodeJsWorkerAPI } from "../electron/preload";
 
 export declare global {
   interface Window {
@@ -8,5 +8,6 @@ export declare global {
       readRequirements: () => Promise<string[]>;
       readStreamlitAppDirectory: () => Promise<Record<string, Buffer>>;
     };
+    nodeJsWorkerAPI: NodeJsWorkerAPI;
   }
 }

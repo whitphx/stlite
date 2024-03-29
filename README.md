@@ -282,6 +282,33 @@ stlite.mount(
 );
 ```
 
+### Data persistence
+
+You can mount the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) to the specified directories by passing the `idbfsMountpoints` option as below. The mounted file system is persistent across the page reloads and the browser sessions, while the default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral.
+
+```js
+stlite.mount(
+  {
+    idbfsMountpoints: ["/mnt"], // Mount the IndexedDB-based file system to the /mnt directory.
+    entrypoint: "streamlit_app.py",
+    files: {
+      "streamlit_app.py": `
+import datetime
+import streamlit as st
+
+with open("/mnt/data.txt", "a") as f:
+    f.write(f"{datetime.datetime.now()}\\n")
+
+with open("/mnt/data.txt", "r") as f:
+    st.code(f.read())
+`,
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
 ## HTTP requests
 
 To make HTTP requests, these libraries work on _stlite_.

@@ -13,4 +13,5 @@ declare module "*.whl" {
 interface Window {
   __logCallback__: (levelno: number, msg: string) => void;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
+  __scriptFinishedCallback__: () => void;
 }

@@ -51,6 +51,7 @@ export interface WorkerInitialData {
   };
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
+  idbfsMountpoints?: string[];
 }
 
 /**

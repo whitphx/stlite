@@ -108,6 +108,8 @@ export interface StliteKernelOptions {
    */
   streamlitConfig?: StreamlitConfig;
 
+  idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -188,6 +190,7 @@ export class StliteKernel {
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
+      idbfsMountpoints: options.idbfsMountpoints,
     };
   }
 

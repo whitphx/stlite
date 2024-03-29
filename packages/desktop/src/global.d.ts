@@ -1,13 +1,13 @@
-import type { AppConfig, NodeJsWorkerAPI } from "../electron/preload";
+import type {
+  AppConfig,
+  ArchivesAPI,
+  NodeJsWorkerAPI,
+} from "../electron/preload";
 
 export declare global {
   interface Window {
     appConfig: AppConfig;
-    archives: {
-      readSitePackagesSnapshot: () => Promise<Uint8Array>;
-      readRequirements: () => Promise<string[]>;
-      readStreamlitAppDirectory: () => Promise<Record<string, Buffer>>;
-    };
+    archives: ArchivesAPI;
     nodeJsWorkerAPI: NodeJsWorkerAPI;
   }
 }

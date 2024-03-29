@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.51.0] - 2024-03-30
+
+### `@stlite/desktop`
+
+#### Added
+
+- Support `NODEFS` to mount directories on the host OS file system to directories on the virtual file system, [#812](https://github.com/whitphx/stlite/pull/812).
+
 ## [0.50.0] - 2024-03-29
 
 ### `@stlite/kernel`, `@stlite/mountable`, `@stlite/desktop`

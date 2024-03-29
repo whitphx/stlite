@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "commonjs",
     "noEmit": true,
+    "strict": false,
     "esModuleInterop": true,
     "strictNullChecks": true,
     "skipLibCheck": true

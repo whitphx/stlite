@@ -24,9 +24,9 @@ function App() {
     let kernel: StliteKernel | null = null;
 
     Promise.all([
-      window.archives.readSitePackagesSnapshot(),
-      window.archives.readRequirements(),
-      window.archives.readStreamlitAppDirectory(),
+      window.archivesAPI.readSitePackagesSnapshot(),
+      window.archivesAPI.readRequirements(),
+      window.archivesAPI.readStreamlitAppDirectory(),
     ]).then(
       ([sitePackagesSnapshotFileBin, requirements, streamlitAppFiles]) => {
         if (unmounted) {

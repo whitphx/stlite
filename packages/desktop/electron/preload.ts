@@ -17,7 +17,7 @@ const archivesAPI = {
   readStreamlitAppDirectory: () =>
     ipcRenderer.invoke("readStreamlitAppDirectory"),
 };
-contextBridge.exposeInMainWorld("archives", archivesAPI);
+contextBridge.exposeInMainWorld("archivesAPI", archivesAPI);
 export type ArchivesAPI = typeof archivesAPI;
 
 function getRandomInt() {

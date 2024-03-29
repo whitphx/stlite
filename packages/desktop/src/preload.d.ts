@@ -7,7 +7,7 @@ import type {
 export declare global {
   interface Window {
     appConfig: AppConfig;
-    archives: ArchivesAPI;
+    archivesAPI: ArchivesAPI;
     nodeJsWorkerAPI: NodeJsWorkerAPI;
   }
 }

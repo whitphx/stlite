@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === "development") {
 
 export interface DesktopAppManifest {
   embed: boolean;
+  idbfsMountpoints: string[] | undefined;
 }
 async function readManifest(): Promise<DesktopAppManifest> {
   const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
@@ -25,8 +26,10 @@ async function readManifest(): Promise<DesktopAppManifest> {
   });
   const maybeManifestData = JSON.parse(manifestText);
 
+  // TODO: Runtime type validation
   return {
     embed: maybeManifestData.embed ?? false,
+    idbfsMountpoints: maybeManifestData.idbfsMountpoints,
   };
 }
 
@@ -39,6 +42,9 @@ const createWindow = async () => {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       sandbox: true, // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
+      additionalArguments: manifest.idbfsMountpoints
+        ? [`--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`]
+        : undefined,
     },
   });
 

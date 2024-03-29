@@ -4,6 +4,7 @@
     "module": "commonjs",
     "noEmit": true,
     "esModuleInterop": true,
+    "strictNullChecks": true,
     "skipLibCheck": true
   }
 }

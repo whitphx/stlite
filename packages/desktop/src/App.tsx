@@ -54,6 +54,7 @@ function App() {
           requirements,
           mountedSitePackagesSnapshotFilePath,
           pyodideUrl,
+          idbfsMountpoints: window.appConfig.idbfsMountpoints,
           ...makeToastKernelCallbacks(),
         });
         setKernel(kernel);

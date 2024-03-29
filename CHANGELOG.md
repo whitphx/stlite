@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.49.4] - 2024-03-29
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Build config [#813](https://github.com/whitphx/stlite/pull/813).
+
 ## [0.49.3] - 2024-03-27
 
 ### `@stlite/desktop`

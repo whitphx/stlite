@@ -76,6 +76,7 @@ async function loadPyodideAndPackages() {
     mountedSitePackagesSnapshotFilePath,
     pyodideUrl = DEFAULT_PYODIDE_URL,
     streamlitConfig,
+    idbfsMountpoints,
   } = await initDataPromiseDelegate.promise;
 
   postProgressMessage("Loading Pyodide.");
@@ -86,6 +87,26 @@ async function loadPyodideAndPackages() {
     stderr: console.error,
   });
   console.debug("Loaded Pyodide");
+
+  let useIdbfs = false;
+  if (idbfsMountpoints) {
+    useIdbfs = true;
+
+    idbfsMountpoints.forEach((mountpoint) => {
+      pyodide.FS.mkdir(mountpoint);
+      pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, mountpoint);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      pyodide.FS.syncfs(true, (err: Error) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 
   // Mount files
   postProgressMessage("Mounting files.");
@@ -300,6 +321,44 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
   `);
   console.debug("Mocked some Streamlit functions");
+
+  if (useIdbfs) {
+    postProgressMessage("Setting up the IndexedDB filesystem synchronizer.");
+    console.debug("Setting up the IndexedDB filesystem synchronizer");
+    // IDBFS needs to be synced by calling `pyodide.FS.syncfs`.
+    // Ref: https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs
+    let fsSyncing = false; // Sometimes `__scriptFinishedCallback__` is called many time at once so we avoid unnecessary simultaneous calls of `pyodide.FS.syncfs`.
+    self.__scriptFinishedCallback__ = () => {
+      console.debug("The script has finished. Syncing the filesystem.");
+      if (!fsSyncing) {
+        fsSyncing = true;
+        pyodide.FS.syncfs(false, (err: Error) => {
+          fsSyncing = false;
+          if (err) {
+            console.error(err);
+          }
+        });
+      }
+    };
+    // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `__scriptFinishedCallback__` when the script is finished.
+    await pyodide.runPythonAsync(`
+from streamlit.runtime.app_session import AppSession
+from streamlit.runtime.scriptrunner import ScriptRunnerEvent
+from js import __scriptFinishedCallback__
+
+def wrap_app_session_on_scriptrunner_event(original_method):
+    def wrapped(self, *args, **kwargs):
+        if "event" in kwargs:
+            event = kwargs["event"]
+            if event == ScriptRunnerEvent.SCRIPT_STOPPED_WITH_SUCCESS or event == ScriptRunnerEvent.SCRIPT_STOPPED_FOR_RERUN or event == ScriptRunnerEvent.SHUTDOWN:
+                __scriptFinishedCallback__()
+        return original_method(self, *args, **kwargs)
+    return wrapped
+
+AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
+  `);
+    console.debug("Set up the IndexedDB filesystem synchronizer");
+  }
 
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");

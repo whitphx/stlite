@@ -71,6 +71,25 @@ If you want to hide the toolbar, hamburger menu, and the footer, add the followi
 }
 ```
 
+## Data persistence
+
+You can mount the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) to the specified directories by adding the `stlite.desktop.idbfsMountpoints` field to your `package.json`. Note that you have to run the `dump` command again to apply the change.
+
+The mounted file system is persistent across the app restarts, while the default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral.
+
+In the example below, the IndexedDB-based file system is mounted to the `/mnt` directory so that the files saved in the directory are persistent.
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "idbfsMountpoints": ["/mnt"]
+    }
+  }
+}
+```
+
 ## Limitations
 
 - Navigation to external resources like `st.markdown("[link](https://streamlit.io/)")` does not work for security. See https://github.com/whitphx/stlite/pull/445 and let us know if you have use cases where you have to use such external links.

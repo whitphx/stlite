@@ -101,7 +101,10 @@
   },
   "stlite": {
     "desktop": {
-      "embed": true
+      "embed": true,
+      "idbfsMountpoints": [
+        "/mnt"
+      ]
     }
   }
 }

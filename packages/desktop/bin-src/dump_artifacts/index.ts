@@ -290,8 +290,11 @@ interface DumpManifestOptions {
 async function dumpManifest(options: DumpManifestOptions) {
   const packageJson = require(options.packageJsonPath);
   const stliteManifest = packageJson.stlite?.desktop || {};
+
+  // TODO: Runtime type validation
   const manifestData: DesktopAppManifest = {
     embed: stliteManifest.embed || false,
+    idbfsMountpoints: stliteManifest.idbfsMountpoints,
   };
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);

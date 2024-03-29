@@ -6,9 +6,10 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
+import * as s from "superstruct";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import { parseRequirementsTxt, verifyRequirements } from "@stlite/common";
-import type { DesktopAppManifest } from "../../electron/main";
+import { DesktopAppManifestStruct } from "../../electron/manifest";
 import { makePyodideUrl } from "./url";
 import { PyodideBuiltinPackagesData } from "./pyodide_packages";
 
@@ -289,15 +290,12 @@ interface DumpManifestOptions {
 }
 async function dumpManifest(options: DumpManifestOptions) {
   const packageJson = require(options.packageJsonPath);
-  const stliteManifest = packageJson.stlite?.desktop || {};
+  const packageJsonStliteField = packageJson.stlite?.desktop || {};
 
-  // TODO: Runtime type validation
-  const manifestData: DesktopAppManifest = {
-    embed: stliteManifest.embed ?? false,
-    idbfsMountpoints: stliteManifest.idbfsMountpoints,
-    nodeJsWorker: stliteManifest.nodeJsWorker ?? false,
-    nodefsMountpoints: stliteManifest.nodefsMountpoints,
-  };
+  const manifestData = s.create(
+    packageJsonStliteField,
+    DesktopAppManifestStruct
+  );
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
   console.log(`Dump the manifest file -> ${options.manifestFilePath}`);

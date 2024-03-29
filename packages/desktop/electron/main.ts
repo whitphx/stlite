@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fsPromises from "fs/promises";
 import workerThreads from "node:worker_threads";
 import { walkRead } from "./file";
+import { readManifest } from "./manifest";
 
 if (process.env.NODE_ENV === "development") {
   console.log("Hot-reloading Electron enabled");
@@ -14,28 +15,6 @@ if (process.env.NODE_ENV === "development") {
         : "../../node_modules/.bin/electron"
     ),
   });
-}
-
-export interface DesktopAppManifest {
-  embed: boolean;
-  idbfsMountpoints: string[] | undefined;
-  nodeJsWorker: boolean;
-  nodefsMountpoints: Record<string, string> | undefined;
-}
-async function readManifest(): Promise<DesktopAppManifest> {
-  const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
-  const manifestText = await fsPromises.readFile(manifestPath, {
-    encoding: "utf-8",
-  });
-  const maybeManifestData = JSON.parse(manifestText);
-
-  // TODO: Runtime type validation
-  return {
-    embed: maybeManifestData.embed ?? false,
-    idbfsMountpoints: maybeManifestData.idbfsMountpoints,
-    nodeJsWorker: maybeManifestData.nodeJsWorker ?? false,
-    nodefsMountpoints: maybeManifestData.nodefsMountpoints,
-  };
 }
 
 const createWindow = async () => {

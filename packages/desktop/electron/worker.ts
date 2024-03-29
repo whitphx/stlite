@@ -1,5 +1,5 @@
 import { parentPort } from "node:worker_threads";
-import { bootstrapWorker } from "@stlite/kernel/src/worker-runtime";
+import { startWorkerEnv } from "@stlite/kernel/src/worker-runtime";
 
 function postMessage(value: any) {
   console.debug("[worker thread] postMessage from worker", value);
@@ -10,7 +10,7 @@ function postMessage(value: any) {
 const nodefsMountpoints =
   process.env.NODEFS_MOUNTPOINTS && JSON.parse(process.env.NODEFS_MOUNTPOINTS);
 
-const handleMessage = bootstrapWorker(
+const handleMessage = startWorkerEnv(
   process.env.PYODIDE_URL as string,
   postMessage,
   {

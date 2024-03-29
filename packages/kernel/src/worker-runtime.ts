@@ -39,7 +39,7 @@ const self = global as typeof globalThis & {
   __scriptFinishedCallback__: () => void;
 };
 
-export function bootstrapWorker(
+export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: (message: OutMessage) => void,
   presetInitialData?: Partial<WorkerInitialData>

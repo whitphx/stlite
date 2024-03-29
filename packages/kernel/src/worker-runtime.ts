@@ -180,15 +180,15 @@ export function bootstrapWorker(
       // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
       // assuming these directories will be extracted from the snapshot archive.
       await pyodide.runPythonAsync(`
-      site_packages_dirs = site.getsitepackages()
-      for site_packages in site_packages_dirs:
-          shutil.rmtree(site_packages)
-    `);
+site_packages_dirs = site.getsitepackages()
+for site_packages in site_packages_dirs:
+    shutil.rmtree(site_packages)
+`);
       console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
       await pyodide.runPythonAsync(`
-      with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
-          tar_gz_file.extractall("/")
-    `);
+with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
+    tar_gz_file.extractall("/")
+`);
       console.debug("Restored the snapshot");
 
       postProgressMessage("Mocking some packages.");
@@ -237,9 +237,9 @@ export function bootstrapWorker(
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
     // at importing installed packages.
     await pyodide.runPythonAsync(`
-      import importlib
-      importlib.invalidate_caches()
-    `);
+import importlib
+importlib.invalidate_caches()
+`);
 
     postProgressMessage("Loading streamlit package.");
     console.debug("Loading the Streamlit package");
@@ -247,7 +247,7 @@ export function bootstrapWorker(
     // so we first run this step independently for clearer logs and easy exec-time profiling.
     // For https://github.com/whitphx/stlite/issues/427
     await pyodide.runPythonAsync(`
-      import streamlit.runtime
+import streamlit.runtime
     `);
     console.debug("Loaded the Streamlit package");
 
@@ -256,24 +256,24 @@ export function bootstrapWorker(
     // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
     // See https://github.com/streamlit/streamlit/issues/4742
     await pyodide.runPythonAsync(`
-      import logging
-      import streamlit.logger
+import logging
+import streamlit.logger
 
-      streamlit.logger.get_logger = logging.getLogger
-      streamlit.logger.setup_formatter = None
-      streamlit.logger.update_formatter = lambda *a, **k: None
-      streamlit.logger.set_log_level = lambda *a, **k: None
+streamlit.logger.get_logger = logging.getLogger
+streamlit.logger.setup_formatter = None
+streamlit.logger.update_formatter = lambda *a, **k: None
+streamlit.logger.set_log_level = lambda *a, **k: None
 
-      for name in streamlit.logger._loggers.keys():
-          if name == "root":
-              name = "streamlit"
-          logger = logging.getLogger(name)
-          logger.propagate = True
-          logger.handlers.clear()
-          logger.setLevel(logging.NOTSET)
+for name in streamlit.logger._loggers.keys():
+    if name == "root":
+        name = "streamlit"
+    logger = logging.getLogger(name)
+    logger.propagate = True
+    logger.handlers.clear()
+    logger.setLevel(logging.NOTSET)
 
-      streamlit.logger._loggers = {}
-    `);
+streamlit.logger._loggers = {}
+`);
     // Then configure the logger.
     const logCallback = (levelno: number, msg: string) => {
       if (levelno >= 40) {
@@ -316,7 +316,7 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     streamlit_handler.setFormatter(streamlit_formatter)
     streamlit_logger.addHandler(streamlit_handler)
     streamlit_logger.setLevel(streamlit_level.upper())
-    `);
+`);
     const streamlitLogLevel = (
       streamlitConfig?.["logger.level"] ?? "INFO"
     ).toString();
@@ -332,13 +332,13 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     console.debug("Mocking some Streamlit functions");
     // Disable caching. See https://github.com/whitphx/stlite/issues/495
     await pyodide.runPythonAsync(`
-    import streamlit
+import streamlit
 
-    def is_cacheable_msg(msg):
-        return False
+def is_cacheable_msg(msg):
+    return False
 
-    streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
-    `);
+streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
+`);
     console.debug("Mocked some Streamlit functions");
 
     if (useIdbfs) {
@@ -375,7 +375,7 @@ def wrap_app_session_on_scriptrunner_event(original_method):
     return wrapped
 
 AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
-    `);
+`);
       console.debug("Set up the IndexedDB filesystem synchronizer");
     }
 
@@ -389,22 +389,22 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
     };
     await pyodide.runPythonAsync(`
-    from stlite_server.bootstrap import load_config_options, prepare
-    from stlite_server.server import Server
-    from js import __streamlitFlagOptions__
+from stlite_server.bootstrap import load_config_options, prepare
+from stlite_server.server import Server
+from js import __streamlitFlagOptions__
 
-    flag_options = __streamlitFlagOptions__.to_py()
-    load_config_options(flag_options)
+flag_options = __streamlitFlagOptions__.to_py()
+load_config_options(flag_options)
 
-    main_script_path = "${entrypoint}"
-    command_line = None
-    args = []
+main_script_path = "${entrypoint}"
+command_line = None
+args = []
 
-    prepare(main_script_path, args)
+prepare(main_script_path, args)
 
-    server = Server(main_script_path, command_line)
-    server.start()
-    `);
+server = Server(main_script_path, command_line)
+server.start()
+`);
     console.debug("Booted up the Streamlit server");
 
     console.debug("Setting up the HTTP server");
@@ -573,9 +573,9 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
             .then(() => {
               if (requirements.includes("matplotlib")) {
                 return pyodide.runPythonAsync(`
-                from stlite_server.bootstrap import _fix_matplotlib_crash
-                _fix_matplotlib_crash()
-              `);
+from stlite_server.bootstrap import _fix_matplotlib_crash
+_fix_matplotlib_crash()
+`);
               }
             })
             .then(() => {

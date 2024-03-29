@@ -16,6 +16,7 @@ export interface SimplifiedStliteKernelOptions {
   hostConfig?: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
+  idbfsMountpoints?: StliteKernelOptions["idbfsMountpoints"];
 }
 
 function canonicalizeFiles(
@@ -117,6 +118,7 @@ export function parseMountOptions(options: MountOptions): {
       hostConfigResponse: options.hostConfig,
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
+      idbfsMountpoints: options.idbfsMountpoints,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

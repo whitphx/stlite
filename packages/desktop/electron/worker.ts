@@ -6,9 +6,16 @@ function postMessage(value: any) {
   parentPort?.postMessage(value);
 }
 
+// TODO: Runtime type validation
+const nodefsMountpoints =
+  process.env.NODEFS_MOUNTPOINTS && JSON.parse(process.env.NODEFS_MOUNTPOINTS);
+
 const handleMessage = bootstrapWorker(
   process.env.PYODIDE_URL as string,
-  postMessage
+  postMessage,
+  {
+    nodefsMountpoints,
+  }
 );
 
 parentPort?.on("message", ({ data, port }) => {

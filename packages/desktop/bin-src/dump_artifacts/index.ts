@@ -296,6 +296,7 @@ async function dumpManifest(options: DumpManifestOptions) {
     embed: stliteManifest.embed ?? false,
     idbfsMountpoints: stliteManifest.idbfsMountpoints,
     nodeJsWorker: stliteManifest.nodeJsWorker ?? false,
+    nodefsMountpoints: stliteManifest.nodefsMountpoints,
   };
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);

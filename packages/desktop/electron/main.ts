@@ -20,6 +20,7 @@ export interface DesktopAppManifest {
   embed: boolean;
   idbfsMountpoints: string[] | undefined;
   nodeJsWorker: boolean;
+  nodefsMountpoints: Record<string, string> | undefined;
 }
 async function readManifest(): Promise<DesktopAppManifest> {
   const manifestPath = path.resolve(__dirname, "../stlite-manifest.json");
@@ -33,6 +34,7 @@ async function readManifest(): Promise<DesktopAppManifest> {
     embed: maybeManifestData.embed ?? false,
     idbfsMountpoints: maybeManifestData.idbfsMountpoints,
     nodeJsWorker: maybeManifestData.nodeJsWorker ?? false,
+    nodefsMountpoints: maybeManifestData.nodefsMountpoints,
   };
 }
 
@@ -139,6 +141,7 @@ const createWindow = async () => {
     worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
       env: {
         PYODIDE_URL: defaultPyodideUrl,
+        NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
       },
     });
     worker.on("message", (value) => {

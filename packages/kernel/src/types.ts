@@ -52,6 +52,7 @@ export interface WorkerInitialData {
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
+  nodefsMountpoints?: Record<string, string>;
 }
 
 /**

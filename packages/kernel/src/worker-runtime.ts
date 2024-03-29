@@ -41,7 +41,8 @@ const self = global as typeof globalThis & {
 
 export function bootstrapWorker(
   defaultPyodideUrl: string,
-  postMessage: (message: OutMessage) => void
+  postMessage: (message: OutMessage) => void,
+  presetInitialData?: Partial<WorkerInitialData>
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -68,6 +69,12 @@ export function bootstrapWorker(
    *       https://github.com/jupyterlite/jupyterlite/pull/310
    */
   async function loadPyodideAndPackages() {
+    const initialDataFromMessage = await initDataPromiseDelegate.promise;
+    const initData = {
+      ...presetInitialData,
+      ...initialDataFromMessage,
+    };
+    console.debug("Initial data", initData);
     const {
       entrypoint,
       files,
@@ -78,7 +85,8 @@ export function bootstrapWorker(
       pyodideUrl = defaultPyodideUrl,
       streamlitConfig,
       idbfsMountpoints,
-    } = await initDataPromiseDelegate.promise;
+      nodefsMountpoints,
+    } = initData;
 
     postProgressMessage("Loading Pyodide.");
 
@@ -106,6 +114,16 @@ export function bootstrapWorker(
             resolve();
           }
         });
+      });
+    }
+    if (nodefsMountpoints) {
+      Object.entries(nodefsMountpoints).forEach(([mountpoint, path]) => {
+        pyodide.FS.mkdir(mountpoint);
+        pyodide.FS.mount(
+          pyodide.FS.filesystems.NODEFS,
+          { root: path },
+          mountpoint
+        );
       });
     }
 

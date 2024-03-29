@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.50.0] - 2024-03-29
+
+### `@stlite/kernel`, `@stlite/mountable`, `@stlite/desktop`
+
+#### Added
+
+- Support IndexedDB-backed file system, `IDBFS`, for data persistence, [#815](https://github.com/whitphx/stlite/pull/815).
+
 ## [0.49.4] - 2024-03-29
 
 ### `@stlite/desktop`

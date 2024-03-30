@@ -60,7 +60,8 @@
     "check:eslint": "eslint src --ext ts",
     "check:prettier": "prettier --check .",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. .",
-    "deploy": "vsce publish --yarn"
+    "deploy": "vsce publish --yarn",
+    "postinstall": "yarn playwright install"
   },
   "devDependencies": {
     "@stlite/common": "^0.51.0",

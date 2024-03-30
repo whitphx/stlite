@@ -6,12 +6,11 @@ import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
-import * as s from "superstruct";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import { parseRequirementsTxt, verifyRequirements } from "@stlite/common";
-import { DesktopAppManifestStruct } from "../../electron/manifest";
 import { makePyodideUrl } from "./url";
 import { PyodideBuiltinPackagesData } from "./pyodide_packages";
+import { dumpManifest } from "./manifest";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -282,27 +281,6 @@ async function downloadPyodideBuiltinPackageWheels(
       await fsPromises.writeFile(dstPath, Buffer.from(buf));
     })
   );
-}
-
-interface DumpManifestOptions {
-  packageJsonPath: string;
-  manifestFilePath: string;
-}
-async function dumpManifest(options: DumpManifestOptions) {
-  const packageJson = require(options.packageJsonPath);
-  const packageJsonStliteField = packageJson.stlite?.desktop || {};
-
-  const manifestData = s.create(
-    packageJsonStliteField,
-    DesktopAppManifestStruct
-  );
-
-  const manifestDataStr = JSON.stringify(manifestData, null, 2);
-  console.log(`Dump the manifest file -> ${options.manifestFilePath}`);
-  console.log(manifestDataStr);
-  await fsPromises.writeFile(options.manifestFilePath, manifestDataStr, {
-    encoding: "utf-8",
-  });
 }
 
 yargs(hideBin(process.argv))

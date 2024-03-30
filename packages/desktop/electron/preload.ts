@@ -10,13 +10,15 @@ const appConfig = {
 contextBridge.exposeInMainWorld("appConfig", appConfig);
 export type AppConfig = typeof appConfig;
 
-contextBridge.exposeInMainWorld("archives", {
+const archivesAPI = {
   readSitePackagesSnapshot: () =>
     ipcRenderer.invoke("readSitePackagesSnapshot"),
   readRequirements: () => ipcRenderer.invoke("readRequirements"),
   readStreamlitAppDirectory: () =>
     ipcRenderer.invoke("readStreamlitAppDirectory"),
-});
+};
+contextBridge.exposeInMainWorld("archivesAPI", archivesAPI);
+export type ArchivesAPI = typeof archivesAPI;
 
 function getRandomInt() {
   return Math.floor(Math.random() * 1000000);

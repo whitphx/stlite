@@ -134,16 +134,20 @@ module.exports = {
   },
   jest: {
     configure: (jestConfig, { env, paths, resolve, rootDir }) => {
-      jestConfig.roots = [...jestConfig.roots, "<rootDir>/electron"];
+      jestConfig.roots = [
+        ...jestConfig.roots,
+        "<rootDir>/electron",
+        "<rootDir>/bin-src",
+      ];
       jestConfig.collectCoverageFrom = [
         ...jestConfig.collectCoverageFrom,
-        "electron/**/*.{js,jsx,ts,tsx}",
-        "!electron/**/*.d.ts",
+        "{electron,bin-src}/**/*.{js,jsx,ts,tsx}",
+        "!{electron,bin-src}/**/*.d.ts",
       ];
       jestConfig.testMatch = [
         ...jestConfig.testMatch,
-        "<rootDir>/electron/**/__tests__/**/*.{js,jsx,ts,tsx}",
-        "<rootDir>/electron/**/*.{spec,test}.{js,jsx,ts,tsx}",
+        "<rootDir>/{electron,bin-src}/**/__tests__/**/*.{js,jsx,ts,tsx}",
+        "<rootDir>/{electron,bin-src}/**/*.{spec,test}.{js,jsx,ts,tsx}",
       ];
       return jestConfig;
     },

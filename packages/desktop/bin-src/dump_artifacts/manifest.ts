@@ -1,6 +1,29 @@
 import fsPromises from "fs/promises";
 import * as s from "superstruct";
-import { DesktopAppManifestStruct } from "../../electron/manifest";
+import {
+  type DesktopAppManifest,
+  DesktopAppManifestStruct,
+} from "../../electron/manifest";
+
+export function coerceDesktopAppManifest(obj: any): DesktopAppManifest {
+  const manifestData = s.create(obj ?? {}, DesktopAppManifestStruct);
+
+  if (manifestData.nodeJsWorker) {
+    if (manifestData.idbfsMountpoints != null) {
+      throw new Error(
+        "The `idbfsMountpoints` field is not allowed when `nodeJsWorker` is true."
+      );
+    }
+  } else {
+    if (manifestData.nodefsMountpoints != null) {
+      throw new Error(
+        "The `nodefsMountpoints` field is not allowed when `nodeJsWorker` is false."
+      );
+    }
+  }
+
+  return manifestData;
+}
 
 interface DumpManifestOptions {
   packageJsonPath: string;
@@ -8,12 +31,9 @@ interface DumpManifestOptions {
 }
 export async function dumpManifest(options: DumpManifestOptions) {
   const packageJson = require(options.packageJsonPath);
-  const packageJsonStliteField = packageJson.stlite?.desktop || {};
+  const packageJsonStliteField = packageJson.stlite?.desktop;
 
-  const manifestData = s.create(
-    packageJsonStliteField,
-    DesktopAppManifestStruct
-  );
+  const manifestData = coerceDesktopAppManifest(packageJsonStliteField);
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
   console.log(`Dump the manifest file -> ${options.manifestFilePath}`);

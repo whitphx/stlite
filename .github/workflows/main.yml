@@ -327,6 +327,7 @@ jobs:
     - uses: ./.github/actions/inform-npm-package-stats
       with:
         key: mountable
+        name: "@stlite/mountable"
         input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
 
   publish-mountable:
@@ -406,6 +407,7 @@ jobs:
     - uses: ./.github/actions/inform-npm-package-stats
       with:
         key: sharing
+        name: "stlite sharing"
         input-path: packages/sharing/build
 
   deploy-sharing:

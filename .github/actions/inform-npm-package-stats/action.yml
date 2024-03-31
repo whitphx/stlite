@@ -1,6 +1,8 @@
 inputs:
   key:
     required: true
+  name:
+    required: true
   input-path:
     required: true
 
@@ -38,6 +40,7 @@ runs:
       id: create-stats-json
       shell: bash
       run: |
+        export NAME="${{ inputs.name }}"
         export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
         export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
         export PACKAGE_FILES_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
@@ -47,6 +50,7 @@ runs:
 
         jq -n \
           '{
+            "name": env.NAME,
             "package": {
               "filename": env.PACKAGE_FILENAME,
               "sizeKib": env.PACKAGE_SIZE_KIB | tonumber
@@ -106,10 +110,7 @@ runs:
               const artifactFile = Object.values(zip.files)[0];
               const artifactContent = await artifactFile.async('string');
 
-              return {
-                name: artifact.name,
-                content: JSON.parse(artifactContent),
-              };
+              return JSON.parse(artifactContent);
             })
           );
 

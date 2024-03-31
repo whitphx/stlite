@@ -12,15 +12,15 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.input-path }}" == *.tgz ]]; then
-          file_name=$(basename "${{ inputs.input-path }}")
+          filename=$(basename "${{ inputs.input-path }}")
           package_dir="$RUNNER_TEMP/package"
-          package_path="$package_dir/$file_name"
+          package_path="$package_dir/$filename"
           files_dir="$RUNNER_TEMP/files"
           mkdir -p $package_dir $files_dir
           cp "${{ inputs.input-path }}" $package_dir
           tar -xzf "$package_path" -C $files_dir
 
-          echo "PACKAGE_FILE_PATH=$package_path" >> $GITHUB_OUTPUT
+          echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         elif [[ -d "${{ inputs.input-path }}" ]]; then
           dir_name=$(basename "${{ inputs.input-path }}")
@@ -31,13 +31,13 @@ runs:
           package_path="$package_dir/$dir_name.tgz"
           tar -czf "$package_path" -C $files_dir .
 
-          echo "PACKAGE_FILE_PATH=$package_path" >> $GITHUB_OUTPUT
+          echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         fi
     - shell: bash
       run: |
-        export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}")
-        export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}" | cut -f1)
+        export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
+        export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
         export PACKAGE_FILES_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
 
         output_filepath="npm-package-stats.${{ inputs.key }}.json"

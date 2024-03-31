@@ -49,6 +49,7 @@ runs:
       run: |
         echo "The input was not properly staged in the previous step."
         exit 1
+
     - name: Create the stats JSON
       id: create-stats-json
       shell: bash
@@ -56,7 +57,7 @@ runs:
         export NAME="${{ inputs.name }}"
         export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
         export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
-        export PACKAGE_FILES_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
+        export FILELIST_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
 
         output_filename="npm-package-stats.${{ inputs.key }}.json"
         output_filepath="$RUNNER_TEMP/$output_filename"
@@ -68,8 +69,8 @@ runs:
               "filename": env.PACKAGE_FILENAME,
               "sizeKib": env.PACKAGE_SIZE_KIB | tonumber
             },
-            "files": {
-              "tree": env.PACKAGE_FILES_TREE
+            "filelist": {
+              "tree": env.FILELIST_TREE
             }
           }' > $output_filepath
 
@@ -140,9 +141,11 @@ runs:
           \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
 
           <details>
-          <summary>Files</summary>
+          <summary>File List</summary>
 
-          \`\`\`\n${stat.files.tree}\n\`\`\`
+          #### Tree
+          \`\`\`\n${stat.filelist.tree}\n\`\`\`
+
           </details>
 
           `;

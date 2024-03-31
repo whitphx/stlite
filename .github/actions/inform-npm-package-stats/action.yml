@@ -34,13 +34,16 @@ runs:
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         fi
-    - shell: bash
+    - name: Create the stats JSON
+      id: create-stats-json
+      shell: bash
       run: |
         export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
         export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
         export PACKAGE_FILES_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
 
-        output_filepath="npm-package-stats.${{ inputs.key }}.json"
+        output_filename="npm-package-stats.${{ inputs.key }}.json"
+        output_filepath="$RUNNER_TEMP/$output_filename"
 
         jq -n \
           '{
@@ -51,8 +54,16 @@ runs:
             "files": {
               "tree": env.PACKAGE_FILES_TREE
             }
-          }' > "npm-package-stats.${{ inputs.key }}.json"
+          }' > $output_filepath
 
-        echo "OUTPUT_FILEPATH=$output_filepath" >> "$GITHUB_ENV"
+        echo "OUTPUT_FILEPATH=$output_filepath" >> "$GITHUB_OUTPUT"
+        echo "OUTPUT_FILENAME=$output_filename" >> "$GITHUB_OUTPUT"
 
         cat $output_filepath
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
+        name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}

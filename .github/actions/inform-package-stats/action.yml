@@ -20,35 +20,38 @@ runs:
       id: stage-files
       shell: bash
       run: |
-        if [[ "${{ inputs.input-path }}" == *.tgz || "${{ inputs.input-path }}" == *.whl ]]; then
+        if [[ -f "${{ inputs.input-path }}" ]]; then
           filename=$(basename "${{ inputs.input-path }}")
-          package_dir="$PACKAGE_STATS_WORKING_DIR/package"
-          package_path="$package_dir/$filename"
-          files_dir="$PACKAGE_STATS_WORKING_DIR/files"
-          mkdir -p $package_dir $files_dir
-          cp "${{ inputs.input-path }}" $package_dir
+          package_workdir="$PACKAGE_STATS_WORKING_DIR/package"
+          package_path="$package_workdir/$filename"
+          files_workdir="$PACKAGE_STATS_WORKING_DIR/files"
 
+          mkdir -p $package_workdir $files_workdir
+
+          cp "${{ inputs.input-path }}" $package_path
           if [[ $package_path == *.tgz ]]; then
-            tar -xzf "$package_path" -C $files_dir
+            tar -xzf "$package_path" -C $files_workdir
           else
-            pushd $files_dir
+            pushd $files_workdir
             unzip "$package_path"
             popd
           fi
 
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
-          echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_workdir" >> $GITHUB_OUTPUT
         elif [[ -d "${{ inputs.input-path }}" ]]; then
           dir_name=$(basename "${{ inputs.input-path }}")
-          files_dir="$PACKAGE_STATS_WORKING_DIR/files"
-          package_dir="$PACKAGE_STATS_WORKING_DIR/package"
-          mkdir -p $files_dir $package_dir
-          cp -r "${{ inputs.input-path }}" $files_dir
-          package_path="$package_dir/$dir_name.tgz"
-          tar -czf "$package_path" -C $files_dir .
+          files_workdir="$PACKAGE_STATS_WORKING_DIR/files"
+          package_workdir="$PACKAGE_STATS_WORKING_DIR/package"
+
+          mkdir -p $files_workdir $package_workdir
+
+          cp -r "${{ inputs.input-path }}" $files_workdir
+          package_path="$package_workdir/$dir_name.tgz"
+          tar -czf "$package_path" -C $files_workdir .
 
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
-          echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_workdir" >> $GITHUB_OUTPUT
         fi
     - name: Check the input and the staged files validity
       shell: bash

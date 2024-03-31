@@ -480,11 +480,13 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-sharing-editor:
-    if: ${{ false }}
-    # if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-build-common, test-sharing-editor, test-sharing-common, deploy-sharing]
 
     runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4
@@ -507,6 +509,11 @@ jobs:
       with:
         path: packages/sharing-editor/build
         name: stlite-sharing-editor
+    - uses: ./.github/actions/inform-package-stats
+      with:
+        key: sharing-editor
+        name: "stlite sharing editor"
+        input-path: packages/sharing-editor/build
 
   deploy-sharing-editor:
     if: ${{ false }}

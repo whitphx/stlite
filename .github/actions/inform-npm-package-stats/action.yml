@@ -78,7 +78,7 @@ runs:
         cd "$RUNNER_TEMP"
         npm install jszip
       shell: bash
-    - name: Gather JSON files for this commit
+    - name: Gather JSON files for this commit and generate a comment content
       uses: actions/github-script@v6
       with:
         script: |
@@ -114,8 +114,25 @@ runs:
             })
           );
 
+          const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
+
           console.log('Artifact contents:');
-          console.log(JSON.stringify(artifactContents, null, 2));
+          console.log(JSON.stringify(sortedStats, null, 2));
+
+          const stickyCommentHeader = `<!-- Sticky Stat Comment${context.sha} -->`;
+
+          let comment = "";
+          comment += stickyCommentHeader + "\n";
+          for (const stat of sortedStats) {
+            comment += `### ${stat.name}\n`;
+            comment += `\`${stat.package.filename}\` (${stat.package.sizeKib} kiB)\n`;
+            comment += `\`\`\`\n${stat.files.tree}\n\`\`\`\n`;
+            comment += "\n\n";
+          }
+
+          console.log(comment);
+
+          return comment
 
     - name: Post a message to Pull Request threads
       shell: bash

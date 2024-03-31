@@ -593,7 +593,7 @@ jobs:
         node-version-file: .nvmrc
         cache: 'yarn'
     - run: yarn config set network-timeout 300000  # https://github.com/yarnpkg/yarn/issues/8242
-    - run: yarn install --frozen-lockfile --ignore-scripts  # `--ignore-scripts` is necessary because the `postinstall` script of the desktop app sample project fails due to https://github.com/yarnpkg/yarn/issues/7694
+    - run: yarn install --frozen-lockfile
     - run: make common
     - name: Lint
       run: |

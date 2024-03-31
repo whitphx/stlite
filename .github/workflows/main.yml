@@ -267,6 +267,57 @@ jobs:
     - run: yarn typecheck
     - run: yarn test
 
+  build-wheels:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs: [test-stlite-server]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - uses: ./.github/actions/init-all
+      with:
+        python-version: ${{ env.python-version }}
+        node-version-file: .nvmrc
+
+    - name: Build @stlite/mountable
+      run: |
+        . .venv/bin/activate
+        make stlite-server-wheel
+        make streamlit-wheel
+
+    - name: Get the built wheel file path
+      id: get-wheel-file-path
+      working-directory:
+      run: |
+        pushd packages/kernel/py/stlite-server/dist
+        echo "STLITE_SERVER_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_server-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
+        popd
+
+        pushd packages/kernel/py/streamlit/lib/dist
+        echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
+        popd
+
+    - uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
+      with:
+        key: stlite-server-wheel
+        name: "stlite-server-wheel"
+        input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_SERVER_WHEEL_FILEPATH }}
+
+    - uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
+      with:
+        key: streamlit-wheel
+        name: "streamlit-wheel"
+        input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
+
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-kernel, test-stlite-server, test-mountable]
@@ -327,7 +378,8 @@ jobs:
         tar -czf $(pwd)/stlite-mountable-v0.0.1.tgz -C $(pwd) build
         echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-mountable-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
 
-    - uses: ./.github/actions/inform-npm-package-stats
+    - uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: mountable
         name: "@stlite/mountable"
@@ -410,7 +462,8 @@ jobs:
         mkdir -p $(pwd)/build
         echo "Hello World" > $(pwd)/build/hello.txt
 
-    - uses: ./.github/actions/inform-npm-package-stats
+    - uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: sharing
         name: "stlite sharing"

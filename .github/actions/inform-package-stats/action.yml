@@ -13,14 +13,21 @@ runs:
       id: stage-files
       shell: bash
       run: |
-        if [[ "${{ inputs.input-path }}" == *.tgz ]]; then
+        if [[ "${{ inputs.input-path }}" == *.tgz || "${{ inputs.input-path }}" == *.whl ]]; then
           filename=$(basename "${{ inputs.input-path }}")
           package_dir="$RUNNER_TEMP/package"
           package_path="$package_dir/$filename"
           files_dir="$RUNNER_TEMP/files"
           mkdir -p $package_dir $files_dir
           cp "${{ inputs.input-path }}" $package_dir
-          tar -xzf "$package_path" -C $files_dir
+
+          if [[ $package_path == *.tgz ]]; then
+            tar -xzf "$package_path" -C $files_dir
+          else
+            pushd $files_dir
+            unzip "$package_path"
+            popd
+          fi
 
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT

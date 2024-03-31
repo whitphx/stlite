@@ -15,6 +15,7 @@ runs:
         working_dir=$RUNNER_TEMP/stats-workspace/${{ inputs.key }}
         mkdir -p $working_dir
         echo "PACKAGE_STATS_WORKING_DIR=$working_dir" >> "$GITHUB_ENV"
+
     - name: Stage the files
       id: stage-files
       shell: bash
@@ -49,7 +50,7 @@ runs:
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         fi
-    - name: Check input validity
+    - name: Check the input and the staged files validity
       shell: bash
       if: ${{ steps.stage-files.outputs.PACKAGE_FILENAME == '' || steps.stage-files.outputs.FILES_DIR_PATH == '' }}
       run: |
@@ -155,9 +156,6 @@ runs:
           <summary>File Tree</summary>
 
           \`\`\`\n${stat.filelist.tree}\n\`\`\`
-
-          #### Sizes
-          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
 
           </details>
 

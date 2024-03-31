@@ -69,3 +69,17 @@ runs:
       with:
         path: ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
         name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}
+
+    - name: Post a message to Pull Request threads
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        CURRENT_COMMIT_SHA=${{ github.sha }}
+
+        PR_IDS=$(gh pr list --search "$CURRENT_COMMIT_SHA" --state open --json number --jq '.[].number')
+
+        for PR_ID in $PR_IDS
+        do
+          echo "Post a message to ${PR_ID}"
+        done

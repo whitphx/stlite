@@ -147,9 +147,6 @@ runs:
 
           const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
 
-          console.log('Artifact contents:');
-          console.log(JSON.stringify(sortedStats, null, 2));
-
           let comment = "";
           for (const stat of sortedStats) {
             comment += `### ${stat.name}

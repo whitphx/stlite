@@ -59,7 +59,9 @@ runs:
         echo "OUTPUT_FILEPATH=$output_filepath" >> "$GITHUB_OUTPUT"
         echo "OUTPUT_FILENAME=$output_filename" >> "$GITHUB_OUTPUT"
 
-        cat $output_filepath
+    - name: Preview the JSON
+      shell: bash
+      run: cat ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4

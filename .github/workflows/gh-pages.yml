@@ -1,10 +1,10 @@
 name: Build and Deploy GitHub Pages
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
 
 concurrency:
   # https://stackoverflow.com/a/72408109

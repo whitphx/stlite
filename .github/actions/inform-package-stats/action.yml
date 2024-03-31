@@ -9,15 +9,21 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Set up the working directory
+      shell: bash
+      run: |
+        working_dir=$RUNNER_TEMP/stats-workspace/${{ inputs.key }}
+        mkdir -p $working_dir
+        echo "PACKAGE_STATS_WORKING_DIR=$working_dir" >> "$GITHUB_ENV"
     - name: Stage the files
       id: stage-files
       shell: bash
       run: |
         if [[ "${{ inputs.input-path }}" == *.tgz || "${{ inputs.input-path }}" == *.whl ]]; then
           filename=$(basename "${{ inputs.input-path }}")
-          package_dir="$RUNNER_TEMP/package"
+          package_dir="$PACKAGE_STATS_WORKING_DIR/package"
           package_path="$package_dir/$filename"
-          files_dir="$RUNNER_TEMP/files"
+          files_dir="$PACKAGE_STATS_WORKING_DIR/files"
           mkdir -p $package_dir $files_dir
           cp "${{ inputs.input-path }}" $package_dir
 
@@ -33,8 +39,8 @@ runs:
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         elif [[ -d "${{ inputs.input-path }}" ]]; then
           dir_name=$(basename "${{ inputs.input-path }}")
-          files_dir="$RUNNER_TEMP/files"
-          package_dir="$RUNNER_TEMP/package"
+          files_dir="$PACKAGE_STATS_WORKING_DIR/files"
+          package_dir="$PACKAGE_STATS_WORKING_DIR/package"
           mkdir -p $files_dir $package_dir
           cp -r "${{ inputs.input-path }}" $files_dir
           package_path="$package_dir/$dir_name.tgz"
@@ -64,7 +70,7 @@ runs:
         popd
 
         output_filename="npm-package-stats.${{ inputs.key }}.json"
-        output_filepath="$RUNNER_TEMP/$output_filename"
+        output_filepath="$PACKAGE_STATS_WORKING_DIR/$output_filename"
 
         jq -n \
           '{
@@ -94,7 +100,7 @@ runs:
         name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}
 
     - run: |
-        cd "$RUNNER_TEMP"
+        cd "$PACKAGE_STATS_WORKING_DIR"
         npm install jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment content
@@ -102,7 +108,7 @@ runs:
       with:
         result-encoding: string
         script: |
-          process.chdir(process.env.RUNNER_TEMP);
+          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
 
           const fs = require("fs");
           const jszip = require('jszip');
@@ -173,7 +179,7 @@ runs:
       uses: actions/github-script@v6
       with:
         script: |
-          process.chdir(process.env.RUNNER_TEMP);
+          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
 
           const fs = require("fs");
 

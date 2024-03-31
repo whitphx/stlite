@@ -98,13 +98,13 @@ runs:
         npm install jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment content
-      id: gen-comment
       uses: actions/github-script@v6
       with:
         result-encoding: string
         script: |
-          process.chdir(process.env.RUNNER_TEMP)
+          process.chdir(process.env.RUNNER_TEMP);
 
+          const fs = require("fs");
           const jszip = require('jszip');
 
           const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -167,15 +167,17 @@ runs:
 
           console.log(comment);
 
-          return comment
+          fs.writeFileSync('comment.txt', comment);
 
     - name: Post a message to Pull Request threads
-      env:
-        COMMENT_CONTENT: ${{ steps.gen-comment.outputs.result }}
       uses: actions/github-script@v6
       with:
         script: |
-          process.chdir(process.env.RUNNER_TEMP)
+          process.chdir(process.env.RUNNER_TEMP);
+
+          const fs = require("fs");
+
+          const commentBody = fs.readFileSync('comment.txt');
 
           const pullRequests = await github.rest.repos.listPullRequestsAssociatedWithCommit({
             owner: context.repo.owner,
@@ -190,7 +192,7 @@ runs:
 
           for (const pr of pullRequests.data) {
             const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
-            const commentText = title + process.env.COMMENT_CONTENT;
+            const commentText = title + commentBody;
 
             const stickyCommentText = stickyCommentHeader + commentText
 

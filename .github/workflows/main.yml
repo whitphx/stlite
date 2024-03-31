@@ -305,14 +305,12 @@ jobs:
         popd
 
     - uses: ./.github/actions/inform-package-stats
-      continue-on-error: true
       with:
         key: stlite-server-wheel
         name: "stlite-server-wheel"
         input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_SERVER_WHEEL_FILEPATH }}
 
     - uses: ./.github/actions/inform-package-stats
-      continue-on-error: true
       with:
         key: streamlit-wheel
         name: "streamlit-wheel"
@@ -379,7 +377,6 @@ jobs:
         echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-mountable-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
 
     - uses: ./.github/actions/inform-package-stats
-      continue-on-error: true
       with:
         key: mountable
         name: "@stlite/mountable"
@@ -463,7 +460,6 @@ jobs:
         echo "Hello World" > $(pwd)/build/hello.txt
 
     - uses: ./.github/actions/inform-package-stats
-      continue-on-error: true
       with:
         key: sharing
         name: "stlite sharing"

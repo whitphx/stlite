@@ -535,11 +535,13 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:
-    if: ${{ false }}
-    # if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [test-build-common, test-kernel, test-stlite-server, test-desktop]
 
     runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4
@@ -565,19 +567,30 @@ jobs:
       working-directory: packages/desktop
       run: yarn pack
 
+    - name: Get the built package file path
+      id: get-package-file-path
+      working-directory: packages/desktop
+      run: echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-desktop-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
+
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
-        path: packages/desktop/stlite-desktop-v*.tgz
+        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
         name: stlite-desktop-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
       with:
-        path: packages/desktop/stlite-desktop-v*.tgz
+        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
         name: stlite-desktop-${{ github.ref_name }}.tgz
+
+    - uses: ./.github/actions/inform-package-stats
+      with:
+        key: desktop
+        name: "@stlite/desktop"
+        input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
 
   e2e-desktop:
     if: ${{ false }}

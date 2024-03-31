@@ -58,6 +58,7 @@ runs:
         export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
         export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
         export FILELIST_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
+        export FILELIST_SIZES=$(find "${{ steps.stage-files.outputs.FILES_DIR_PATH }}" -type f -printf "%10s %p\n")
 
         output_filename="npm-package-stats.${{ inputs.key }}.json"
         output_filepath="$RUNNER_TEMP/$output_filename"
@@ -70,7 +71,8 @@ runs:
               "sizeKib": env.PACKAGE_SIZE_KIB | tonumber
             },
             "filelist": {
-              "tree": env.FILELIST_TREE
+              "tree": env.FILELIST_TREE,
+              "sizes": env.FILELIST_SIZES
             }
           }' > $output_filepath
 
@@ -141,10 +143,19 @@ runs:
           \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
 
           <details>
-          <summary>File List</summary>
+          <summary>File Tree</summary>
 
-          #### Tree
           \`\`\`\n${stat.filelist.tree}\n\`\`\`
+
+          #### Sizes
+          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
+
+          </details>
+
+          <details>
+          <summary>File Sizes</summary>
+
+          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
 
           </details>
 

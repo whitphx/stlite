@@ -36,16 +36,23 @@ runs:
         fi
     - shell: bash
       run: |
-        file_name=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}")
-        package_size_kib=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}" | cut -f1)
-        package_files_tree=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
+        export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}")
+        export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}" | cut -f1)
+        export PACKAGE_FILES_TREE=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
 
-        echo "KEY=$key" >> $GITHUB_ENV
+        output_filepath="npm-package-stats.${{ inputs.key }}.json"
 
-        echo "PACKAGE_FILE_NAME=$file_name" >> $GITHUB_ENV
+        jq -n \
+          '{
+            "package": {
+              "filename": env.PACKAGE_FILENAME,
+              "sizeKib": env.PACKAGE_SIZE_KIB | tonumber
+            },
+            "files": {
+              "tree": env.PACKAGE_FILES_TREE
+            }
+          }' > "npm-package-stats.${{ inputs.key }}.json"
 
-        echo "PACKAGE_SIZE_KIB=$package_size_kib" >> $GITHUB_ENV
+        echo "OUTPUT_FILEPATH=$output_filepath" >> "$GITHUB_ENV"
 
-        echo "PACKAGE_FILES_TREE<<EOF" >> $GITHUB_ENV
-        echo "$package_files_tree" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+        cat $output_filepath

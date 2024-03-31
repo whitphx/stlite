@@ -123,10 +123,11 @@ runs:
 
           let comment = "";
           for (const stat of sortedStats) {
-            comment += `### ${stat.name}\n`;
-            comment += `\`${stat.package.filename}\` (${stat.package.sizeKib} kiB)\n`;
-            comment += `\`\`\`\n${stat.files.tree}\n\`\`\`\n`;
-            comment += "\n\n";
+            comment += `### ${stat.name}
+            \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
+
+            \`\`\`\n${stat.files.tree}\n\`\`\`
+            `;
           }
 
           console.log(comment);

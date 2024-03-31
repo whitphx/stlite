@@ -151,12 +151,14 @@ runs:
           console.log("Found PRs:")
           console.log(pullRequests.data)
 
-          const commentText = process.env.COMMENT_CONTENT
-
           const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
-          const stickyCommentText = stickyCommentHeader + commentText
 
           for (const pr of pullRequests.data) {
+            const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
+            const commentText = title + process.env.COMMENT_CONTENT;
+
+            const stickyCommentText = stickyCommentHeader + commentText
+
             const existingComments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

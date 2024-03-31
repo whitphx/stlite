@@ -117,43 +117,43 @@ jobs:
       with:
         submodules: true
 
-    # - uses: ./.github/actions/init-all
-    #   with:
-    #     python-version: ${{ env.python-version }}
-    #     node-version-file: .nvmrc
+    - uses: ./.github/actions/init-all
+      with:
+        python-version: ${{ env.python-version }}
+        node-version-file: .nvmrc
 
-    # - name: Install dependencies
-    #   shell: bash
-    #   run: |
-    #     . .venv/bin/activate
-    #     cd packages/kernel/py/stlite-server
-    #     poetry install
+    - name: Install dependencies
+      shell: bash
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/stlite-server
+        poetry install
 
-    # - name: Set up Streamlit and build proto
-    #   run: |
-    #     . .venv/bin/activate
-    #     make streamlit-proto
+    - name: Set up Streamlit and build proto
+      run: |
+        . .venv/bin/activate
+        make streamlit-proto
 
-    # - name: Run linter and code formatter to the test code module
-    #   run: |
-    #     . .venv/bin/activate
-    #     cd packages/kernel/py/stlite-server
-    #     poetry run black . --check
-    #     poetry run isort . --check
-    #     poetry run flake8
+    - name: Run linter and code formatter to the test code module
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/stlite-server
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8
 
-    # - name: Run mypy
-    #   run: |
-    #     . .venv/bin/activate
-    #     cd packages/kernel/py/stlite-server
-    #     poetry run mypy .
+    - name: Run mypy
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/stlite-server
+        poetry run mypy .
 
-    # - name: Run pytest
-    #   shell: bash
-    #   run: |
-    #     . .venv/bin/activate
-    #     cd packages/kernel/py/stlite-server
-    #     poetry run python -m pytest -v tests
+    - name: Run pytest
+      shell: bash
+      run: |
+        . .venv/bin/activate
+        cd packages/kernel/py/stlite-server
+        poetry run python -m pytest -v tests
 
   test-mountable:
     needs: changes

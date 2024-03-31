@@ -36,6 +36,12 @@ runs:
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
         fi
+    - name: Check input validity
+      shell: bash
+      if: ${{ steps.stage-files.outputs.PACKAGE_FILENAME == '' || steps.stage-files.outputs.FILES_DIR_PATH == '' }}
+      run: |
+        echo "The input was not properly staged in the previous step."
+        exit 1
     - name: Create the stats JSON
       id: create-stats-json
       shell: bash

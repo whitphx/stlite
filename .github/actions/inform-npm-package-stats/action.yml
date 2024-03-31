@@ -1,0 +1,51 @@
+inputs:
+  key:
+    required: true
+  input-path:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Stage the files
+      id: stage-files
+      shell: bash
+      run: |
+        if [[ "${{ inputs.input-path }}" == *.tgz ]]; then
+          file_name=$(basename "${{ inputs.input-path }}")
+          package_dir="$RUNNER_TEMP/package"
+          package_path="$package_dir/$file_name"
+          files_dir="$RUNNER_TEMP/files"
+          mkdir -p $package_dir $files_dir
+          cp "${{ inputs.input-path }}" $package_dir
+          tar -xzf "$package_path" -C $files_dir
+
+          echo "PACKAGE_FILE_PATH=$package_path" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
+        elif [[ -d "${{ inputs.input-path }}" ]]; then
+          dir_name=$(basename "${{ inputs.input-path }}")
+          files_dir="$RUNNER_TEMP/files"
+          package_dir="$RUNNER_TEMP/package"
+          mkdir -p $files_dir $package_dir
+          cp -r "${{ inputs.input-path }}" $files_dir
+          package_path="$package_dir/$dir_name.tgz"
+          tar -czf "$package_path" -C $files_dir .
+
+          echo "PACKAGE_FILE_PATH=$package_path" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_dir" >> $GITHUB_OUTPUT
+        fi
+    - shell: bash
+      run: |
+        file_name=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}")
+        package_size_kib=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILE_PATH }}" | cut -f1)
+        package_files_tree=$(tree "${{ steps.stage-files.outputs.FILES_DIR_PATH }}")
+
+        echo "KEY=$key" >> $GITHUB_ENV
+
+        echo "PACKAGE_FILE_NAME=$file_name" >> $GITHUB_ENV
+
+        echo "PACKAGE_SIZE_KIB=$package_size_kib" >> $GITHUB_ENV
+
+        echo "PACKAGE_FILES_TREE<<EOF" >> $GITHUB_ENV
+        echo "$package_files_tree" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV

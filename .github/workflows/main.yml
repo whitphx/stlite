@@ -273,6 +273,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      pull-requests: write
+
     steps:
     - uses: actions/checkout@v4
       with:
@@ -369,6 +372,9 @@ jobs:
     needs: [test-kernel, test-stlite-server, test-sharing-common]
 
     runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4

@@ -79,8 +79,10 @@ runs:
         npm install jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment content
+      id: gen-comment
       uses: actions/github-script@v6
       with:
+        result-encoding: string
         script: |
           process.chdir(process.env.RUNNER_TEMP)
 
@@ -119,10 +121,7 @@ runs:
           console.log('Artifact contents:');
           console.log(JSON.stringify(sortedStats, null, 2));
 
-          const stickyCommentHeader = `<!-- Sticky Stat Comment${context.sha} -->`;
-
           let comment = "";
-          comment += stickyCommentHeader + "\n";
           for (const stat of sortedStats) {
             comment += `### ${stat.name}\n`;
             comment += `\`${stat.package.filename}\` (${stat.package.sizeKib} kiB)\n`;
@@ -135,15 +134,53 @@ runs:
           return comment
 
     - name: Post a message to Pull Request threads
-      shell: bash
       env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        CURRENT_COMMIT_SHA=${{ github.sha }}
+        COMMENT_CONTENT: ${{ steps.gen-comment.outputs.result }}
+      uses: actions/github-script@v6
+      with:
+        script: |
+          process.chdir(process.env.RUNNER_TEMP)
 
-        PR_IDS=$(gh pr list --search "$CURRENT_COMMIT_SHA" --state open --json number --jq '.[].number')
+          const pullRequests = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+          });
 
-        for PR_ID in $PR_IDS
-        do
-          echo "Post a message to ${PR_ID}"
-        done
+          console.log("Found PRs:")
+          console.log(pullRequests.data)
+
+          const commentText = process.env.COMMENT_CONTENT
+
+          const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
+          const stickyCommentText = stickyCommentHeader + commentText
+
+          for (const pr of pullRequests.data) {
+            const existingComments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+
+            const existingComment = existingComments.data.find(comment =>
+              comment.body.startsWith(stickyCommentHeader) && comment.user.login === 'github-actions[bot]'
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: stickyCommentText,
+              });
+              console.log(`Updated comment on PR #${pr.number}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: stickyCommentText,
+              });
+              console.log(`Created comment on PR #${pr.number}`);
+            }
+          }

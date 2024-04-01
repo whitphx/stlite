@@ -112,8 +112,17 @@ runs:
         cd "$PACKAGE_STATS_WORKING_DIR"
         npm install jszip
       shell: bash
+    - name: Get the base run_id for diff
+      run: |
+        diff_base_branch='main'
+        current_workflow='${{ github.workflow }}'
+        run_id=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --limit 1 --json=databaseId,conclusion --jq ".[].databaseId")
+        echo "PACKAGE_STATS_DIFF_BASE_RUN_ID=$run_id" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
     - name: Gather JSON files for this commit and generate a comment content
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         result-encoding: string
         script: |
@@ -122,35 +131,46 @@ runs:
           const fs = require("fs");
           const jszip = require('jszip');
 
-          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            run_id: context.runId,
-          });
+          async function loadStatArtifactContents(runId) {
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
 
-          const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
-            artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
-          );
+            const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
+              artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
+            );
 
-          const artifactContents = await Promise.all(
-            filteredArtifacts.map(async (artifact) => {
-              const downloadResponse = await github.rest.actions.downloadArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: artifact.id,
-                archive_format: 'zip',
-              });
+            const artifactContents = await Promise.all(
+              filteredArtifacts.map(async (artifact) => {
+                const downloadResponse = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                  archive_format: 'zip',
+                });
 
-              const artifactZip = await downloadResponse.data;
-              const zip = await jszip.loadAsync(artifactZip);
-              const artifactFile = Object.values(zip.files)[0];
-              const artifactContent = await artifactFile.async('string');
+                const artifactZip = await downloadResponse.data;
+                const zip = await jszip.loadAsync(artifactZip);
+                const artifactFile = Object.values(zip.files)[0];
+                const artifactContent = await artifactFile.async('string');
 
-              return JSON.parse(artifactContent);
-            })
-          );
+                return JSON.parse(artifactContent);
+              })
+            );
+
+            return artifactContents;
+          }
+
+          const artifactContents = await loadStatArtifactContents(context.runId)
           core.startGroup('Artifact contents preview')
           console.log(artifactContents);
+          core.endGroup()
+
+          const baseArtifactContents = await loadStatArtifactContents(process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID)
+          core.startGroup('Base artifact contents preview')
+          console.log(baseArtifactContents);
           core.endGroup()
 
           const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
@@ -183,7 +203,7 @@ runs:
           fs.writeFileSync('comment.txt', comment);
 
     - name: Post a message to Pull Request threads
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);

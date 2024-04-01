@@ -96,7 +96,10 @@ runs:
 
     - name: Preview the JSON
       shell: bash
-      run: cat ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
+      run: |
+        echo "::group::Stats JSON preview"
+        cat ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
+        echo "::endgroup::"
 
     - name: Upload the JSON file as an artifact
       uses: actions/upload-artifact@v4
@@ -146,6 +149,9 @@ runs:
               return JSON.parse(artifactContent);
             })
           );
+          core.startGroup('Artifact contents preview')
+          console.log(artifactContents);
+          core.endGroup()
 
           const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -170,8 +176,9 @@ runs:
 
           `;
           }
-
-          console.log(comment);
+          core.startGroup('Comment preview')
+          core.info(comment);
+          core.endGroup()
 
           fs.writeFileSync('comment.txt', comment);
 
@@ -191,8 +198,9 @@ runs:
             commit_sha: context.sha,
           });
 
-          console.log("Found PRs:")
+          core.startGroup('Found PRs:')
           console.log(pullRequests.data)
+          core.endGroup()
 
           const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
 
@@ -219,7 +227,7 @@ runs:
                 comment_id: existingComment.id,
                 body: stickyCommentText,
               });
-              console.log(`Updated comment on PR #${pr.number}`);
+              core.info(`Updated comment on PR #${pr.number}`);
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -227,6 +235,6 @@ runs:
                 issue_number: pr.number,
                 body: stickyCommentText,
               });
-              console.log(`Created comment on PR #${pr.number}`);
+              core.info(`Created comment on PR #${pr.number}`);
             }
           }

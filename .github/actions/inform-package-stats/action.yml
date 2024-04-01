@@ -5,6 +5,8 @@ inputs:
     required: true
   input-path:
     required: true
+  stats-file-prefix:
+    default: "package-stats."
 
 runs:
   using: "composite"
@@ -73,7 +75,7 @@ runs:
         export FILELIST_SIZES=$(find . -type f -printf "%10s %p\n")
         popd
 
-        output_filename="npm-package-stats.${{ inputs.key }}.json"
+        output_filename="${{ inputs.stats-file-prefix }}${{ inputs.key }}.json"
         output_filepath="$PACKAGE_STATS_WORKING_DIR/$output_filename"
 
         jq -n \
@@ -124,7 +126,7 @@ runs:
           });
 
           const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
-            artifact.name.match(/^npm-package-stats\..+\.json$/)
+            artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
           );
 
           const artifactContents = await Promise.all(

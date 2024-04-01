@@ -194,8 +194,13 @@ runs:
             const baseContent = baseArtifactContents.find(b => b.key === key)?.content;
             console.log({ key, content, baseContent });
 
+            const sizeKiB = content.package.sizeKib;
+            const baseSizeKiB = baseContent?.package?.sizeKib;
+            const sizeDiffFormatter = new Intl.NumberFormat("en-US", { signDisplay: "always" });
+            const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB **${sizeDiffFormatter.format(sizeKiB - baseSizeKiB)} kiB**)` : "";
+
             comment += `### ${content.name}
-          \`${content.package.filename}\` (${content.package.sizeKib} kiB)
+          \`${content.package.filename}\`: ${sizeKiB} kiB ${sizeDiffStr}
 
           <details>
           <summary>File Tree</summary>

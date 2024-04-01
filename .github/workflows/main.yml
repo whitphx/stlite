@@ -286,7 +286,7 @@ jobs:
         python-version: ${{ env.python-version }}
         node-version-file: .nvmrc
 
-    - name: Build @stlite/mountable
+    - name: Build wheels for inspection
       run: |
         . .venv/bin/activate
         make stlite-server-wheel

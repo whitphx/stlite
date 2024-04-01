@@ -141,7 +141,9 @@ const createWindow = async () => {
     worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
       env: {
         PYODIDE_URL: defaultPyodideUrl,
-        NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
+        ...(manifest.nodefsMountpoints && {
+          NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
+        }),
       },
     });
     worker.on("message", (value) => {

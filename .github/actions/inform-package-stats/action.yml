@@ -189,6 +189,10 @@ runs:
           let comment = "";
           for (const artifactContent of sortedContents) {
             const { key, content } = artifactContent;
+
+            const baseContent = baseArtifactContents.find(b => b.key === key)?.content;
+            console.log({ key, content, baseContent });
+
             comment += `### ${content.name}
           \`${content.package.filename}\` (${content.package.sizeKib} kiB)
 

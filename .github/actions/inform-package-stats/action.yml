@@ -197,14 +197,15 @@ runs:
             repo: context.repo.repo,
             commit_sha: context.sha,
           });
+          const openPullRequests = pullRequests.filter(pr => pr.state === "open")
 
           core.startGroup('Found PRs:')
-          console.log(pullRequests.data)
+          console.log(openPullRequests.data)
           core.endGroup()
 
           const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
 
-          for (const pr of pullRequests.data) {
+          for (const pr of openPullRequests.data) {
             const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
             const commentText = title + commentBody;
 

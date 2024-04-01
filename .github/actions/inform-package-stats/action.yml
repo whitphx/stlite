@@ -131,6 +131,11 @@ runs:
           const fs = require("fs");
           const jszip = require('jszip');
 
+          function escapeRegex(string) {
+            // https://stackoverflow.com/a/3561711/13103190
+            return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
+          }
+
           async function loadStatArtifactContents(runId) {
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
@@ -138,12 +143,18 @@ runs:
               run_id: runId,
             });
 
-            const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
-              artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
-            );
+            const filteredArtifacts = artifacts.data.artifacts
+              .map(artifact => {
+                const match = artifact.name.match(new RegExp(`^(?<prefix>${escapeRegex("${{ inputs.stats-file-prefix }}")})(?<key>.+)\.json`));
+                if (match == null) {
+                  return null;
+                }
+                return { key: match.groups["key"], artifact };
+              })
+              .filter(a => a != null);
 
             const artifactContents = await Promise.all(
-              filteredArtifacts.map(async (artifact) => {
+              filteredArtifacts.map(async ({ key, artifact }) => {
                 const downloadResponse = await github.rest.actions.downloadArtifact({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -156,7 +167,7 @@ runs:
                 const artifactFile = Object.values(zip.files)[0];
                 const artifactContent = await artifactFile.async('string');
 
-                return JSON.parse(artifactContent);
+                return { key, content: JSON.parse(artifactContent) };
               })
             );
 
@@ -173,24 +184,25 @@ runs:
           console.log(baseArtifactContents);
           core.endGroup()
 
-          const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
+          const sortedContents = artifactContents.sort((a, b) => a.content.name.localeCompare(b.content.name));
 
           let comment = "";
-          for (const stat of sortedStats) {
-            comment += `### ${stat.name}
-          \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
+          for (const artifactContent of sortedContents) {
+            const { key, content } = artifactContent;
+            comment += `### ${content.name}
+          \`${content.package.filename}\` (${content.package.sizeKib} kiB)
 
           <details>
           <summary>File Tree</summary>
 
-          \`\`\`\n${stat.filelist.tree}\n\`\`\`
+          \`\`\`\n${content.filelist.tree}\n\`\`\`
 
           </details>
 
           <details>
           <summary>File Sizes</summary>
 
-          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
+          \`\`\`\n${content.filelist.sizes}\n\`\`\`
 
           </details>
 

@@ -1,0 +1,243 @@
+inputs:
+  key:
+    required: true
+  name:
+    required: true
+  input-path:
+    required: true
+  stats-file-prefix:
+    default: "package-stats."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up the working directory
+      shell: bash
+      run: |
+        working_dir=$RUNNER_TEMP/stats-workspace/${{ inputs.key }}
+        mkdir -p $working_dir
+        echo "PACKAGE_STATS_WORKING_DIR=$working_dir" >> "$GITHUB_ENV"
+
+    - name: Stage the files
+      id: stage-files
+      shell: bash
+      run: |
+        if [[ -f "${{ inputs.input-path }}" ]]; then
+          filename=$(basename "${{ inputs.input-path }}")
+          package_workdir="$PACKAGE_STATS_WORKING_DIR/package"
+          package_path="$package_workdir/$filename"
+          files_workdir="$PACKAGE_STATS_WORKING_DIR/files"
+
+          mkdir -p $package_workdir $files_workdir
+
+          cp "${{ inputs.input-path }}" $package_path
+          if [[ $package_path == *.tgz ]]; then
+            tar -xzf "$package_path" -C $files_workdir
+          else
+            pushd $files_workdir
+            unzip "$package_path"
+            popd
+          fi
+
+          echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_workdir" >> $GITHUB_OUTPUT
+        elif [[ -d "${{ inputs.input-path }}" ]]; then
+          dir_name=$(basename "${{ inputs.input-path }}")
+          files_workdir="$PACKAGE_STATS_WORKING_DIR/files"
+          package_workdir="$PACKAGE_STATS_WORKING_DIR/package"
+
+          mkdir -p $files_workdir $package_workdir
+
+          cp -r "${{ inputs.input-path }}" $files_workdir
+          package_path="$package_workdir/$dir_name.tgz"
+          tar -czf "$package_path" -C $files_workdir .
+
+          echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
+          echo "FILES_DIR_PATH=$files_workdir" >> $GITHUB_OUTPUT
+        fi
+    - name: Check the input and the staged files validity
+      shell: bash
+      if: ${{ steps.stage-files.outputs.PACKAGE_FILENAME == '' || steps.stage-files.outputs.FILES_DIR_PATH == '' }}
+      run: |
+        echo "The input was not properly staged in the previous step."
+        exit 1
+
+    - name: Create the stats JSON
+      id: create-stats-json
+      shell: bash
+      run: |
+        export NAME="${{ inputs.name }}"
+        export PACKAGE_FILENAME=$(basename "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}")
+        export PACKAGE_SIZE_KIB=$(du -k "${{ steps.stage-files.outputs.PACKAGE_FILENAME }}" | cut -f1)
+
+        pushd "${{ steps.stage-files.outputs.FILES_DIR_PATH }}"
+        export FILELIST_TREE=$(tree .)
+        export FILELIST_SIZES=$(find . -type f -printf "%10s %p\n")
+        popd
+
+        output_filename="${{ inputs.stats-file-prefix }}${{ inputs.key }}.json"
+        output_filepath="$PACKAGE_STATS_WORKING_DIR/$output_filename"
+
+        jq -n \
+          '{
+            "name": env.NAME,
+            "package": {
+              "filename": env.PACKAGE_FILENAME,
+              "sizeKib": env.PACKAGE_SIZE_KIB | tonumber
+            },
+            "filelist": {
+              "tree": env.FILELIST_TREE,
+              "sizes": env.FILELIST_SIZES
+            }
+          }' > $output_filepath
+
+        echo "OUTPUT_FILEPATH=$output_filepath" >> "$GITHUB_OUTPUT"
+        echo "OUTPUT_FILENAME=$output_filename" >> "$GITHUB_OUTPUT"
+
+    - name: Preview the JSON
+      shell: bash
+      run: |
+        echo "::group::Stats JSON preview"
+        cat ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
+        echo "::endgroup::"
+
+    - name: Upload the JSON file as an artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        path: ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
+        name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}
+
+    - run: |
+        cd "$PACKAGE_STATS_WORKING_DIR"
+        npm install jszip
+      shell: bash
+    - name: Gather JSON files for this commit and generate a comment content
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        script: |
+          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
+
+          const fs = require("fs");
+          const jszip = require('jszip');
+
+          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId,
+          });
+
+          const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
+            artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
+          );
+
+          const artifactContents = await Promise.all(
+            filteredArtifacts.map(async (artifact) => {
+              const downloadResponse = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+                archive_format: 'zip',
+              });
+
+              const artifactZip = await downloadResponse.data;
+              const zip = await jszip.loadAsync(artifactZip);
+              const artifactFile = Object.values(zip.files)[0];
+              const artifactContent = await artifactFile.async('string');
+
+              return JSON.parse(artifactContent);
+            })
+          );
+          core.startGroup('Artifact contents preview')
+          console.log(artifactContents);
+          core.endGroup()
+
+          const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
+
+          let comment = "";
+          for (const stat of sortedStats) {
+            comment += `### ${stat.name}
+          \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
+
+          <details>
+          <summary>File Tree</summary>
+
+          \`\`\`\n${stat.filelist.tree}\n\`\`\`
+
+          </details>
+
+          <details>
+          <summary>File Sizes</summary>
+
+          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
+
+          </details>
+
+          `;
+          }
+          core.startGroup('Comment preview')
+          core.info(comment);
+          core.endGroup()
+
+          fs.writeFileSync('comment.txt', comment);
+
+    - name: Post a message to Pull Request threads
+      uses: actions/github-script@v6
+      with:
+        script: |
+          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
+
+          const fs = require("fs");
+
+          const commentBody = fs.readFileSync('comment.txt');
+
+          const pullRequests = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+          });
+
+          core.startGroup('Found PRs:')
+          console.log(pullRequests.data)
+          core.endGroup()
+
+          const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
+
+          for (const pr of pullRequests.data) {
+            const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
+            const commentText = title + commentBody;
+
+            const stickyCommentText = stickyCommentHeader + commentText
+
+            const existingComments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+              }
+            );
+
+            const existingComment = existingComments.find(comment =>
+              comment.body.startsWith(stickyCommentHeader) && comment.user.login === 'github-actions[bot]'
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: stickyCommentText,
+              });
+              core.info(`Updated comment on PR #${pr.number}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: stickyCommentText,
+              });
+              core.info(`Created comment on PR #${pr.number}`);
+            }
+          }

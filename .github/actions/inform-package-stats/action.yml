@@ -178,12 +178,12 @@ runs:
 
           const artifactContents = await loadStatArtifactContents(context.runId)
           core.startGroup('Artifact contents preview')
-          console.log(artifactContents);
+          console.log(JSON.stringify(artifactContents, null, 2));
           core.endGroup()
 
           const baseArtifactContents = await loadStatArtifactContents(process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID)
           core.startGroup('Base artifact contents preview')
-          console.log(baseArtifactContents);
+          console.log(JSON.stringify(baseArtifactContents, null, 2));
           core.endGroup()
 
           const sortedContents = artifactContents.sort((a, b) => a.content.name.localeCompare(b.content.name));
@@ -224,7 +224,6 @@ runs:
             const { key, content } = artifactContent;
 
             const baseContent = baseArtifactContents.find(b => b.key === key)?.content;
-            console.log({ key, content, baseContent });
 
             const sizeKiB = content.package.sizeKib;
             const baseSizeKiB = baseContent?.package?.sizeKib;

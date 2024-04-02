@@ -56,7 +56,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
 To make your app secure, be sure to use the latest version of Electron.
 This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.
 
-## Configure app
+## Configure the app
 
 ### Hide the toolbar, hamburger menu, and the footer
 
@@ -125,7 +125,7 @@ In the example below, `"."` on the host OS file system is mounted to the `/mnt` 
 }
 ```
 
-#### NodeJS worker mode
+### NodeJS worker mode
 
 `@stlite/desktop` runs your app on [Electron](https://www.electronjs.org/) as a desktop app.
 Electron apps have two processes: the main process which is a Node.js process running in the background, and the renderer process which is a Chromium (browser) process running the app's UI.

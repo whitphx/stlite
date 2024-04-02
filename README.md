@@ -282,9 +282,20 @@ stlite.mount(
 );
 ```
 
-### Data persistence
+## File system
 
-You can mount the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) to the specified directories by passing the `idbfsMountpoints` option as below. The mounted file system is persistent across the page reloads and the browser sessions, while the default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral.
+_stlite_ executes your Python code on [Pyodide](https://pyodide.org/) in a browser, and Pyodide has its own Linux-like file system isolated from the host OS (see [Pyodide's](https://pyodide.org/en/stable/usage/file-system.html) or [Emscripten's](https://emscripten.org/docs/api_reference/Filesystem-API.html) documents about the FS for details).
+The source code and data files are mounted on the file system, and the Python code can access it. So, for example, what `open("path/to/file")` reads or writes is the file on the file system virtually existing in the browser, not a file on the host OS.
+
+The default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral, so the files saved in the directories are lost when the page is reloaded.
+The root `/` and some directories including home are mounted as `MEMFS`, the ephemeral file system, by default.
+
+### File persistence with IndexedDB backend
+
+To persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)). The files saved in the directories mounted with `IDBFS` are stored in the browser's IndexedDB, so they are persistent across the app restarts.
+
+In the case of `@stlite/mountable`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
+The mounted file system is persistent across the page reloads and the browser sessions.
 
 ```js
 stlite.mount(

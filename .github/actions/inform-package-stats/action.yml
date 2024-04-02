@@ -131,6 +131,7 @@ runs:
 
           const fs = require("fs");
           const jszip = require('jszip');
+          const { spawn } = require('child_process');
 
           function escapeRegex(string) {
             // https://stackoverflow.com/a/3561711/13103190
@@ -186,8 +187,6 @@ runs:
           core.endGroup()
 
           const sortedContents = artifactContents.sort((a, b) => a.content.name.localeCompare(b.content.name));
-
-          const { spawn } = require('child_process');
 
           function compareStrings(str1, str2) {
             fs.writeFileSync('temp1.txt', str1);

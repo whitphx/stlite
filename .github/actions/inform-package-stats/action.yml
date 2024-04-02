@@ -117,6 +117,7 @@ runs:
         commit_sha=$(echo $run_info | jq -r ".headSha")
         echo "PACKAGE_STATS_DIFF_BASE_RUN_ID=$run_id" >> $GITHUB_ENV
         echo "PACKAGE_STATS_DIFF_BASE_COMMIT_SHA=$commit_sha" >> $GITHUB_ENV
+        echo "PACKAGE_STATS_DIFF_BASE_BRANCH=$diff_base_branch" >> $GITHUB_ENV
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -224,7 +225,8 @@ runs:
 
           let comment = "";
           comment +=
-            `Diffs from [\`${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA.slice(0, 7)}\`](https://github.com/${{ github.repository }}/commit/${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA}) ` +
+            `Diffs are from [\`${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA.slice(0, 7)}\`](https://github.com/${{ github.repository }}/commit/${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA}) ` +
+            `on [\`${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH}\`](https://github.com/whitphx/stlite/tree/${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH})  ` +
             `(workflow run: [\`${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}\`](https://github.com/${{ github.repository }}/actions/runs/${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}))\n\n`;
 
           for (const artifactContent of sortedContents) {

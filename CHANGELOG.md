@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.51.1] - 2024-04-02
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix `nodefsMountpoints` parser, [#817](https://github.com/whitphx/stlite/pull/817).
+
 ## [0.51.0] - 2024-03-30
 
 ### `@stlite/desktop`

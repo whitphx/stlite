@@ -193,7 +193,17 @@ runs:
             fs.writeFileSync('temp1.txt', str1);
             fs.writeFileSync('temp2.txt', str2);
 
-            const diff = spawn('diff', ['-u', 'temp1.txt', 'temp2.txt']);
+            const diff = spawn(
+              'diff',
+              [
+                // Ref: https://stackoverflow.com/a/354590/13103190
+                '--new-line-format', '+%L',
+                '--old-line-format', '-%L',
+                '--unchanged-line-format', ' %L',
+                'temp1.txt',
+                'temp2.txt'
+              ]
+            );
 
             let output = '';
             diff.stdout.on('data', (data) => {

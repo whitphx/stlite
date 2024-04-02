@@ -110,7 +110,7 @@ runs:
 
     - name: Get the base run_id for diff
       run: |
-        diff_base_branch='main'
+        diff_base_branch='${{ github.event.repository.default_branch }}'
         current_workflow='${{ github.workflow }}'
         run_id=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --status success --limit 1 --json=databaseId,conclusion --jq ".[].databaseId")
         echo "PACKAGE_STATS_DIFF_BASE_RUN_ID=$run_id" >> $GITHUB_ENV

@@ -108,12 +108,22 @@ runs:
         path: ${{ steps.create-stats-json.outputs.OUTPUT_FILEPATH }}
         name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}
 
+    - name: Get the base run_id for diff
+      run: |
+        diff_base_branch='${{ github.event.repository.default_branch }}'
+        current_workflow='${{ github.workflow }}'
+        run_id=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --status success --limit 1 --json=databaseId,conclusion --jq ".[].databaseId")
+        echo "PACKAGE_STATS_DIFF_BASE_RUN_ID=$run_id" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+
     - run: |
         cd "$PACKAGE_STATS_WORKING_DIR"
         npm install jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment content
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         result-encoding: string
         script: |
@@ -121,56 +131,121 @@ runs:
 
           const fs = require("fs");
           const jszip = require('jszip');
+          const { spawn } = require('child_process');
 
-          const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            run_id: context.runId,
-          });
+          function escapeRegex(string) {
+            // https://stackoverflow.com/a/3561711/13103190
+            return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
+          }
 
-          const filteredArtifacts = artifacts.data.artifacts.filter(artifact =>
-            artifact.name.startsWith("${{ inputs.stats-file-prefix }}") && artifact.name.endsWith(".json")
-          );
+          async function loadStatArtifactContents(runId) {
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
 
-          const artifactContents = await Promise.all(
-            filteredArtifacts.map(async (artifact) => {
-              const downloadResponse = await github.rest.actions.downloadArtifact({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                artifact_id: artifact.id,
-                archive_format: 'zip',
-              });
+            const filteredArtifacts = artifacts.data.artifacts
+              .map(artifact => {
+                const match = artifact.name.match(new RegExp(`^(?<prefix>${escapeRegex("${{ inputs.stats-file-prefix }}")})(?<key>.+)\.json`));
+                if (match == null) {
+                  return null;
+                }
+                return { key: match.groups["key"], artifact };
+              })
+              .filter(a => a != null);
 
-              const artifactZip = await downloadResponse.data;
-              const zip = await jszip.loadAsync(artifactZip);
-              const artifactFile = Object.values(zip.files)[0];
-              const artifactContent = await artifactFile.async('string');
+            const artifactContents = await Promise.all(
+              filteredArtifacts.map(async ({ key, artifact }) => {
+                const downloadResponse = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                  archive_format: 'zip',
+                });
 
-              return JSON.parse(artifactContent);
-            })
-          );
+                const artifactZip = await downloadResponse.data;
+                const zip = await jszip.loadAsync(artifactZip);
+                const artifactFile = Object.values(zip.files)[0];
+                const artifactContent = await artifactFile.async('string');
+
+                return { key, content: JSON.parse(artifactContent) };
+              })
+            );
+
+            return artifactContents;
+          }
+
+          const artifactContents = await loadStatArtifactContents(context.runId)
           core.startGroup('Artifact contents preview')
-          console.log(artifactContents);
+          console.log(JSON.stringify(artifactContents, null, 2));
           core.endGroup()
 
-          const sortedStats = artifactContents.sort((a, b) => a.name.localeCompare(b.name));
+          const baseArtifactContents = await loadStatArtifactContents(process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID)
+          core.startGroup('Base artifact contents preview')
+          console.log(JSON.stringify(baseArtifactContents, null, 2));
+          core.endGroup()
+
+          const sortedContents = artifactContents.sort((a, b) => a.content.name.localeCompare(b.content.name));
+
+          function compareStrings(str1, str2) {
+            fs.writeFileSync('temp1.txt', str1);
+            fs.writeFileSync('temp2.txt', str2);
+
+            const diff = spawn(
+              'diff',
+              [
+                // Ref: https://stackoverflow.com/a/354590/13103190
+                '--new-line-format', '+%L',
+                '--old-line-format', '-%L',
+                '--unchanged-line-format', ' %L',
+                'temp1.txt',
+                'temp2.txt'
+              ]
+            );
+
+            let output = '';
+            diff.stdout.on('data', (data) => {
+              output += data.toString();
+            });
+
+            return new Promise((resolve, reject) => {
+              diff.on('close', (code) => {
+                fs.unlinkSync('temp1.txt');
+                fs.unlinkSync('temp2.txt');
+
+                resolve({ isDiff: code === 0, diff: output });
+              });
+            });
+          }
 
           let comment = "";
-          for (const stat of sortedStats) {
-            comment += `### ${stat.name}
-          \`${stat.package.filename}\` (${stat.package.sizeKib} kiB)
+          for (const artifactContent of sortedContents) {
+            const { key, content } = artifactContent;
+
+            const baseContent = baseArtifactContents.find(b => b.key === key)?.content;
+
+            const sizeKiB = content.package.sizeKib;
+            const baseSizeKiB = baseContent?.package?.sizeKib;
+            const sizeDiffFormatter = new Intl.NumberFormat("en-US", { signDisplay: "always" });
+            const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB **${sizeDiffFormatter.format(sizeKiB - baseSizeKiB)} kiB**)` : "";
+
+            const fileSizesCmp = await compareStrings(baseContent?.filelist?.sizes ?? "", content.filelist.sizes)
+
+            comment += `### ${content.name}
+          \`${content.package.filename}\`: ${sizeKiB} kiB ${sizeDiffStr}
 
           <details>
           <summary>File Tree</summary>
 
-          \`\`\`\n${stat.filelist.tree}\n\`\`\`
+          \`\`\`\n${content.filelist.tree}\n\`\`\`
 
           </details>
 
           <details>
           <summary>File Sizes</summary>
 
-          \`\`\`\n${stat.filelist.sizes}\n\`\`\`
+          \`\`\`diff\n${fileSizesCmp.diff}\n\`\`\`
 
           </details>
 
@@ -183,7 +258,7 @@ runs:
           fs.writeFileSync('comment.txt', comment);
 
     - name: Post a message to Pull Request threads
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);

@@ -112,8 +112,12 @@ runs:
       run: |
         diff_base_branch='${{ github.event.repository.default_branch }}'
         current_workflow='${{ github.workflow }}'
-        run_id=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --status success --limit 1 --json=databaseId,conclusion --jq ".[].databaseId")
+        run_info=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --status success --limit 1 --json=databaseId,headSha --jq ".[0]")
+        run_id=$(echo $run_info | jq -r ".databaseId")
+        commit_sha=$(echo $run_info | jq -r ".headSha")
         echo "PACKAGE_STATS_DIFF_BASE_RUN_ID=$run_id" >> $GITHUB_ENV
+        echo "PACKAGE_STATS_DIFF_BASE_COMMIT_SHA=$commit_sha" >> $GITHUB_ENV
+        echo "PACKAGE_STATS_DIFF_BASE_BRANCH=$diff_base_branch" >> $GITHUB_ENV
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -122,7 +126,7 @@ runs:
         cd "$PACKAGE_STATS_WORKING_DIR"
         npm install jszip
       shell: bash
-    - name: Gather JSON files for this commit and generate a comment content
+    - name: Gather JSON files for this commit and generate a comment body
       uses: actions/github-script@v7
       with:
         result-encoding: string
@@ -220,6 +224,11 @@ runs:
           }
 
           let comment = "";
+          comment +=
+            `Diffs are from [\`${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA.slice(0, 7)}\`](https://github.com/${{ github.repository }}/commit/${process.env.PACKAGE_STATS_DIFF_BASE_COMMIT_SHA}) ` +
+            `on [\`${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH}\`](https://github.com/whitphx/stlite/tree/${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH})  ` +
+            `(workflow run: [\`${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}\`](https://github.com/${{ github.repository }}/actions/runs/${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}))\n\n`;
+
           for (const artifactContent of sortedContents) {
             const { key, content } = artifactContent;
 

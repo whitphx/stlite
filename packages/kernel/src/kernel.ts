@@ -48,6 +48,13 @@ export interface StliteKernelOptions {
   requirements: string[];
 
   /**
+   * A list of prebuilt package names to be install at the booting-up phase via `pyodide.loadPackage()`.
+   * These packages basically can be installed via the `requirements` option,
+   * but some are only installable via this option such as `openssl`.
+   */
+  prebuiltPackageNames: string[];
+
+  /**
    * Files to mount.
    */
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
@@ -195,6 +202,7 @@ export class StliteKernel {
       files: options.files,
       archives: options.archives,
       requirements: options.requirements,
+      prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
       wheels,
       mountedSitePackagesSnapshotFilePath:

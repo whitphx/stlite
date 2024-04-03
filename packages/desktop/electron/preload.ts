@@ -13,7 +13,8 @@ export type AppConfig = typeof appConfig;
 const archivesAPI = {
   readSitePackagesSnapshot: () =>
     ipcRenderer.invoke("readSitePackagesSnapshot"),
-  readRequirements: () => ipcRenderer.invoke("readRequirements"),
+  readPrebuiltPackageNames: () =>
+    ipcRenderer.invoke("readPrebuiltPackageNames"),
   readStreamlitAppDirectory: () =>
     ipcRenderer.invoke("readStreamlitAppDirectory"),
 };

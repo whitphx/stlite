@@ -25,10 +25,14 @@ function App() {
 
     Promise.all([
       window.archivesAPI.readSitePackagesSnapshot(),
-      window.archivesAPI.readRequirements(),
+      window.archivesAPI.readPrebuiltPackageNames(),
       window.archivesAPI.readStreamlitAppDirectory(),
     ]).then(
-      ([sitePackagesSnapshotFileBin, requirements, streamlitAppFiles]) => {
+      ([
+        sitePackagesSnapshotFileBin,
+        prebuiltPackageNames,
+        streamlitAppFiles,
+      ]) => {
         if (unmounted) {
           return;
         }
@@ -52,7 +56,8 @@ function App() {
             },
           },
           archives: [],
-          requirements,
+          requirements: [],
+          prebuiltPackageNames,
           mountedSitePackagesSnapshotFilePath,
           pyodideUrl,
           idbfsMountpoints: window.appConfig.idbfsMountpoints,

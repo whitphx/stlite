@@ -7,13 +7,13 @@ interface PackageInfo {
   file_name: string;
   depends: string[];
 }
-export class PyodideBuiltinPackagesData {
-  private static _instance: PyodideBuiltinPackagesData;
+export class PyodidePrebuiltPackagesData {
+  private static _instance: PyodidePrebuiltPackagesData;
   private _data: Record<string, PackageInfo> | null = null;
 
   private constructor() {}
 
-  private static async loadPyodideBuiltinPackageData(): Promise<
+  private static async loadPyodidePrebuiltPackageData(): Promise<
     Record<string, PackageInfo>
   > {
     const url = makePyodideUrl("pyodide-lock.json");
@@ -25,10 +25,10 @@ export class PyodideBuiltinPackagesData {
     return resJson.packages;
   }
 
-  static async getInstance(): Promise<PyodideBuiltinPackagesData> {
+  static async getInstance(): Promise<PyodidePrebuiltPackagesData> {
     if (this._instance == null) {
-      this._instance = new PyodideBuiltinPackagesData();
-      this._instance._data = await this.loadPyodideBuiltinPackageData();
+      this._instance = new PyodidePrebuiltPackagesData();
+      this._instance._data = await this.loadPyodidePrebuiltPackageData();
     }
     return this._instance;
   }

@@ -3,17 +3,19 @@
 
 import type { ReactNode } from "react"
 
-import { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types"
-import type { BaseUriParts } from "@streamlit/lib/src/util/UriUtil"
-import { SessionInfo } from "@streamlit/lib/src/SessionInfo"
-import type { StreamlitEndpoints } from "@streamlit/lib/src/StreamlitEndpoints"
-import { BackMsg, ForwardMsg } from "@streamlit/lib/src/proto"
-import { ensureError } from "@streamlit/lib/src/util/ErrorHandling"
-
-import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
+import {
+  IHostConfigResponse,
+  type BaseUriParts,
+  SessionInfo,
+  type StreamlitEndpoints,
+  ensureError,
+  BackMsg,
+  ForwardMsg,
+} from "@streamlit/lib"
 import { ConnectionState } from "@streamlit/app/src/connection/ConnectionState"
 
 import type { StliteKernel } from "../../kernel"
+import { DUMMY_BASE_HOSTNAME, DUMMY_BASE_PORT } from "../../consts"
 
 interface MessageQueue {
   [index: number]: any
@@ -153,7 +155,8 @@ export class ConnectionManager {
   /**
    * No-op in stlite.
    */
-  public incrementMessageCacheRunCount(): void {
+  public incrementMessageCacheRunCount(maxMessageAge: number): void {
+    // eslint-disable-line @typescript-eslint/no-unused-vars
     // no-op.
     // Because caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }

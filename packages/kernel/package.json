@@ -11,8 +11,9 @@
     "py/**/*.whl"
   ],
   "scripts": {
-    "start": "tsc -w",
-    "build": "tsc",
+    "start": "tsc -b ../../streamlit/frontend/lib . -w",
+    "build": "tsc -b ../../streamlit/frontend/lib .",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

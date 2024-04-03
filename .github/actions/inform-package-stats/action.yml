@@ -72,7 +72,7 @@ runs:
 
         pushd "${{ steps.stage-files.outputs.FILES_DIR_PATH }}"
         export FILELIST_TREE=$(tree .)
-        export FILELIST_SIZES=$(find . -type f -printf "%10s %p\n")
+        export FILELIST_SIZES=$(find . -type f -printf "%10s %p\n" | sort -k 2)
         popd
 
         output_filename="${{ inputs.stats-file-prefix }}${{ inputs.key }}.json"

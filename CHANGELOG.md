@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.51.4] - 2024-04-03
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug at `matplotlib` installation, [#841](https://github.com/whitphx/stlite/pull/841).
+- Some refactoring.
+
 ## [0.51.3] - 2024-04-03
 
 ### `@stlite/desktop`

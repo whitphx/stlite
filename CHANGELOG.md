@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.51.5] - 2024-04-04
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal update, [#842](https://github.com/whitphx/stlite/pull/842).
+
 ## [0.51.4] - 2024-04-03
 
 ### `@stlite/kernel`

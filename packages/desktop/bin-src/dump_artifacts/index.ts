@@ -236,12 +236,12 @@ async function readRequirements(
   return parseRequirementsTxt(requirementsTxtData);
 }
 
-async function writeRequirements(
-  requirementsTxtPath: string,
-  requirements: string[]
+async function writePrebuiltPackagesTxt(
+  prebuiltPackagesTxtPath: string,
+  prebuiltPackages: string[]
 ): Promise<void> {
-  const requirementsTxtData = requirements.join("\n");
-  await fsPromises.writeFile(requirementsTxtPath, requirementsTxtData, {
+  const prebuiltPackagesTxtData = prebuiltPackages.join("\n");
+  await fsPromises.writeFile(prebuiltPackagesTxtPath, prebuiltPackagesTxtData, {
     encoding: "utf-8",
   });
 }
@@ -348,12 +348,14 @@ yargs(hideBin(process.argv))
       usedPrebuiltPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
-    // The `requirements.txt` file will be needed to call `micropip.install()` at runtime.
-    // The Pyodide-built packages will be vendored in the build artifact as wheel files
-    // and `micropip.install()` will install them at runtime,
-    // while the packages downloaded from PyPI will have been included in the site-packages snapshot.
-    await writeRequirements(
-      path.resolve(destDir, "./requirements.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
+    // These prebuilt packages will be vendored in the build artifact by `downloadPyodidePrebuiltPackageWheels()`
+    // and the package names will be saved in the `./prebuilt-packages.txt` file
+    // so that they will be read and passed to `pyodide.loadPackage()` at runtime to install them from the vendored files.
+    // While the packages downloaded from PyPI at build time will have been shipped in the site-packages snapshot by `createSitePackagesSnapshot()`,
+    // the prebuilt packages must be installed at runtime by `pyodide.loadPackage()` or `micropip.install()`
+    // to avoid problems such as https://github.com/whitphx/stlite/issues/564.
+    await writePrebuiltPackagesTxt(
+      path.resolve(destDir, "./prebuilt-packages.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
       usedPrebuiltPackages
     );
     await copyStreamlitAppDirectory({

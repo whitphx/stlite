@@ -80,6 +80,7 @@ export function startWorkerEnv(
       files,
       archives,
       requirements,
+      prebuiltPackageNames: prebuiltPackages,
       wheels,
       mountedSitePackagesSnapshotFilePath,
       pyodideUrl = defaultPyodideUrl,
@@ -209,6 +210,11 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
     // ===
     // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
     postProgressMessage("Installing packages.");
+
+    console.debug("Installing the prebuilt packages:", prebuiltPackages);
+    await pyodide.loadPackage(prebuiltPackages);
+    console.debug("Installed the prebuilt packages");
+
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
     if (wheels) {

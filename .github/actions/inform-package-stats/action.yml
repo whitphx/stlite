@@ -49,8 +49,8 @@ runs:
           mkdir -p $files_workdir $package_workdir
 
           cp -r "${{ inputs.input-path }}" $files_workdir
-          package_path="$package_workdir/$dir_name.tgz"
-          tar -czf "$package_path" -C $files_workdir .
+          package_path="$package_workdir/$dir_name.tar"
+          tar -cf "$package_path" -C $files_workdir .
 
           echo "PACKAGE_FILENAME=$package_path" >> $GITHUB_OUTPUT
           echo "FILES_DIR_PATH=$files_workdir" >> $GITHUB_OUTPUT

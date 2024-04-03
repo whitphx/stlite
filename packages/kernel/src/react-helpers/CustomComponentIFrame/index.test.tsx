@@ -74,6 +74,7 @@ describe("<CustomComponentIFrame />", () => {
       files: {},
       archives: [],
       requirements: [],
+      prebuiltPackageNames: [],
     });
     const { container } = render(
       <StliteKernelProvider kernel={kernel}>

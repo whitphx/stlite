@@ -84,6 +84,7 @@ describe("manipulateIFrameDocument", () => {
       files: {},
       archives: [],
       requirements: [],
+      prebuiltPackageNames: [],
     });
 
     await manipulateIFrameDocument(

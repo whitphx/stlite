@@ -1,4 +1,5 @@
 import type Pyodide from "pyodide";
+import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { verifyRequirements } from "@stlite/common/src/requirements";
@@ -55,7 +56,7 @@ export function startWorkerEnv(
 
   let pyodide: Pyodide.PyodideInterface;
 
-  let httpServer: any;
+  let httpServer: PyProxy;
 
   const initDataPromiseDelegate = new PromiseDelegate<WorkerInitialData>();
 
@@ -460,10 +461,11 @@ server.start()
 
           httpServer.start_websocket(
             path,
-            (messageProxy: any, binary: boolean) => {
+            (message: PyBuffer | string, binary: boolean) => {
               // XXX: Now there is no session mechanism
 
               if (binary) {
+                const messageProxy = message as PyBuffer;
                 const buffer = messageProxy.getBuffer("u8");
                 messageProxy.destroy();
                 const payload = new Uint8ClampedArray(
@@ -478,10 +480,11 @@ server.start()
                   },
                 });
               } else {
+                const messageStr = message as string;
                 postMessage({
                   type: "websocket:message",
                   data: {
-                    payload: messageProxy,
+                    payload: messageStr,
                   },
                 });
               }
@@ -508,8 +511,8 @@ server.start()
 
           const onResponse = (
             statusCode: number,
-            _headers: any,
-            _body: any
+            _headers: PyProxy,
+            _body: PyProxy
           ) => {
             const headers = _headers.toJs();
             const body = _body.toJs();

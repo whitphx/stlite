@@ -580,14 +580,6 @@ server.start()
           await micropip.install
             .callKwargs(requirements, { keep_going: true })
             .then(() => {
-              if (requirements.includes("matplotlib")) {
-                return pyodide.runPythonAsync(`
-from stlite_server.bootstrap import _fix_matplotlib_crash
-_fix_matplotlib_crash()
-`);
-              }
-            })
-            .then(() => {
               console.debug("Successfully installed");
               messagePort.postMessage({
                 type: "reply",

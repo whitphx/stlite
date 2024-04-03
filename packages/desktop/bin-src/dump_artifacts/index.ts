@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import { parseRequirementsTxt, verifyRequirements } from "@stlite/common";
 import { makePyodideUrl } from "./url";
-import { PyodidePrebuiltPackagesData } from "./pyodide_packages";
+import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 
 // @ts-ignore
@@ -160,8 +160,7 @@ async function createSitePackagesSnapshot(
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  const pyodidePrebuiltPackagesData =
-    await PyodidePrebuiltPackagesData.getInstance();
+  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
 
   const mockedPackages: string[] = [];
   if (options.usedPrebuiltPackages.length > 0) {
@@ -169,7 +168,7 @@ async function createSitePackagesSnapshot(
       "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
     options.usedPrebuiltPackages.forEach((pkg) => {
-      const packageInfo = pyodidePrebuiltPackagesData.getPackageInfoByName(pkg);
+      const packageInfo = prebuiltPackagesData.getPackageInfoByName(pkg);
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
@@ -246,17 +245,16 @@ async function writePrebuiltPackagesTxt(
   });
 }
 
-interface DownloadPyodidePrebuiltPackageWheelsOptions {
+interface DownloadPrebuiltPackageWheelsOptions {
   packages: string[];
   destDir: string;
 }
-async function downloadPyodidePrebuiltPackageWheels(
-  options: DownloadPyodidePrebuiltPackageWheelsOptions
+async function downloadPrebuiltPackageWheels(
+  options: DownloadPrebuiltPackageWheelsOptions
 ) {
-  const pyodidePrebuiltPackagesData =
-    await PyodidePrebuiltPackagesData.getInstance();
+  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
   const usedPrebuiltPackages = options.packages.map((pkgName) =>
-    pyodidePrebuiltPackagesData.getPackageInfoByName(pkgName)
+    prebuiltPackagesData.getPackageInfoByName(pkgName)
   );
   const usedPrebuiltPackageUrls = usedPrebuiltPackages.map((pkg) =>
     makePyodideUrl(pkg.file_name)
@@ -348,7 +346,7 @@ yargs(hideBin(process.argv))
       usedPrebuiltPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
-    // These prebuilt packages will be vendored in the build artifact by `downloadPyodidePrebuiltPackageWheels()`
+    // These prebuilt packages will be vendored in the build artifact by `downloadPrebuiltPackageWheels()`
     // and the package names will be saved in the `./prebuilt-packages.txt` file
     // so that they will be read and passed to `pyodide.loadPackage()` at runtime to install them from the vendored files.
     // While the packages downloaded from PyPI at build time will have been shipped in the site-packages snapshot by `createSitePackagesSnapshot()`,
@@ -358,13 +356,13 @@ yargs(hideBin(process.argv))
       path.resolve(destDir, "./prebuilt-packages.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
       usedPrebuiltPackages
     );
+    await downloadPrebuiltPackageWheels({
+      packages: usedPrebuiltPackages,
+      destDir,
+    });
     await copyStreamlitAppDirectory({
       sourceDir: args.appHomeDirSource,
       copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
-    });
-    await downloadPyodidePrebuiltPackageWheels({
-      packages: usedPrebuiltPackages,
-      destDir,
     });
     await dumpManifest({
       packageJsonPath: path.resolve(projectDir, "./package.json"),

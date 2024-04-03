@@ -155,7 +155,7 @@ export interface OutMessageLoadedEvent extends OutMessageBase {
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
-    payload: Uint8Array;
+    payload: Uint8Array | string;
   };
 }
 export type OutMessage =

@@ -49,7 +49,8 @@ export interface StliteKernelOptions {
 
   /**
    * A list of prebuilt package names to be install at the booting-up phase via `pyodide.loadPackage()`.
-   * These packages basically can be installed via the `requirements` option, but this option is for the packages that are not available in the PyPI.
+   * These packages basically can be installed via the `requirements` option,
+   * but some are only installable via this option such as `openssl`.
    */
   prebuiltPackageNames: string[];
 

@@ -2,7 +2,7 @@ import type Pyodide from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
-import { verifyRequirements } from "@stlite/common/src/requirements";
+import { validateRequirements } from "@stlite/common/src/requirements";
 import { mockPyArrow } from "./mock";
 import type {
   WorkerInitialData,
@@ -80,7 +80,7 @@ export function startWorkerEnv(
       entrypoint,
       files,
       archives,
-      requirements,
+      requirements: unvalidatedRequirements,
       prebuiltPackageNames: prebuiltPackages,
       wheels,
       mountedSitePackagesSnapshotFilePath,
@@ -89,6 +89,8 @@ export function startWorkerEnv(
       idbfsMountpoints,
       nodefsMountpoints,
     } = initData;
+
+    const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
 
     postProgressMessage("Loading Pyodide.");
 
@@ -199,7 +201,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       console.debug("Mocked pyarrow");
     }
 
-    verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
     // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
     // which satisfies the following two requirements:
     // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
@@ -571,12 +572,12 @@ server.start()
           break;
         }
         case "install": {
-          const { requirements } = msg.data;
+          const { requirements: unvalidatedRequirements } = msg.data;
 
           const micropip = pyodide.pyimport("micropip");
 
+          const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
           console.debug("Install the requirements:", requirements);
-          verifyRequirements(requirements); // Blocks the not allowed wheel URL schemes.
           await micropip.install
             .callKwargs(requirements, { keep_going: true })
             .then(() => {

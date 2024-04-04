@@ -7,7 +7,7 @@ import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { parseRequirementsTxt, verifyRequirements } from "@stlite/common";
+import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
 import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
@@ -326,23 +326,23 @@ yargs(hideBin(process.argv))
       throw new Error(`${args.appHomeDirSource} does not exist.`);
     }
 
-    let requirements = args.packages ?? [];
+    let unvalidatedRequirements = args.packages ?? [];
     for (const requirementTxtFilePath of args.requirement) {
-      requirements = requirements.concat(
+      unvalidatedRequirements = unvalidatedRequirements.concat(
         await readRequirements(requirementTxtFilePath)
       );
     }
-    verifyRequirements(requirements);
+    const requirements = validateRequirements(unvalidatedRequirements);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
-      requirements: requirements,
+      requirements,
     });
     console.log("The prebuilt packages loaded for the given requirements:");
     console.log(usedPrebuiltPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
-      requirements: requirements,
+      requirements,
       usedPrebuiltPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });

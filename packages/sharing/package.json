@@ -25,7 +25,7 @@
   },
   "scripts": {
     "start": "cross-env REACT_APP_EDITOR_APP_ORIGIN=http://localhost:3030 BROWSER=none craco start",
-    "build": "tsc && craco build",
+    "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },

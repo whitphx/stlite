@@ -14,7 +14,7 @@ describe("validateRequirements", () => {
     it(`allows http: and https: schemes (requirements=${JSON.stringify(
       requirements
     )})`, () => {
-      expect(() => validateRequirements(requirements)).not.toThrow();
+      expect(validateRequirements(requirements)).toEqual(requirements);
     });
   });
 

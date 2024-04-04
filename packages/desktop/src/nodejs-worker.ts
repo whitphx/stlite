@@ -10,7 +10,7 @@ export class NodeJsWorkerMock {
   constructor() {
     this.initializePromise = window.nodeJsWorkerAPI.initialize();
 
-    window.nodeJsWorkerAPI.onMessage((data) => {
+    window.nodeJsWorkerAPI.onMessage((data: unknown) => {
       this.onmessage && this.onmessage({ data });
     });
   }

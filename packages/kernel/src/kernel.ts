@@ -31,6 +31,8 @@ import { assertStreamlitConfig } from "./types";
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
 import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.31.0-cp311-none-any.whl";
+import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
+import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -160,6 +162,7 @@ export class StliteKernel {
       console.debug("Custom wheel URLs:", {
         STLITE_SERVER_WHEEL,
         STREAMLIT_WHEEL,
+        JEDI_WHEEL,
       });
       const stliteServerWheelUrl = makeAbsoluteWheelURL(
         STLITE_SERVER_WHEEL as unknown as string,
@@ -169,9 +172,14 @@ export class StliteKernel {
         STREAMLIT_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
+      const jediWheelUrl = makeAbsoluteWheelURL(
+        JEDI_WHEEL as unknown as string,
+        options.wheelBaseUrl
+      );
       wheels = {
         stliteServer: stliteServerWheelUrl,
         streamlit: streamlitWheelUrl,
+        jedi: jediWheelUrl,
       };
       console.debug("Custom wheel resolved URLs:", wheels);
     }
@@ -343,6 +351,10 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
+      case "language-server:autocomplete": {
+        postMessageToFusion(msg);
+        break;
+      }
     }
   }
 
@@ -378,6 +390,17 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
         "project" in event.data
       ) {
         sendTokenToWorker(event.data, worker);
+      }
+
+      // StreamLit app main thread, forward the message to the worker
+      // so that the kernel can process the request
+      if (
+        typeof event.data === "object" &&
+        "type" in event.data &&
+        "data" in event.data &&
+        event.data.type === "language-server:autocomplete"
+      ) {
+        worker.postMessage(event.data);
       }
     },
     false

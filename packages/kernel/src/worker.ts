@@ -9,6 +9,11 @@ import type {
   InMessage,
   ReplyMessageHttpResponse,
 } from "./types";
+import { LanguageServerEvents } from "./cognite/language-server-types";
+import {
+  get_code_completions,
+  importLanguageServerPythonLibraries,
+} from "./cognite/language-server-utils";
 
 let pyodide: Pyodide.PyodideInterface;
 
@@ -16,7 +21,7 @@ let tokenIsSet = false;
 
 let httpServer: any;
 
-interface StliteWorkerContext extends DedicatedWorkerGlobalScope {
+export interface StliteWorkerContext extends DedicatedWorkerGlobalScope {
   postMessage(message: OutMessage, transfer: Transferable[]): void;
   postMessage(message: OutMessage, options?: StructuredSerializeOptions): void;
 }
@@ -182,7 +187,7 @@ async function loadPyodideAndPackages() {
       requirements
     );
     await micropip.install.callKwargs(
-      [wheels.stliteServer, wheels.streamlit, ...requirements],
+      [wheels.stliteServer, wheels.streamlit, wheels.jedi, ...requirements],
       { keep_going: true }
     );
     console.debug("Installed the wheels and the requirements");
@@ -287,6 +292,9 @@ async function loadPyodideAndPackages() {
     streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
   `);
   console.debug("Mocked some Streamlit functions");
+
+  postProgressMessage("Importing Language Server");
+  await importLanguageServerPythonLibraries(pyodide, micropip);
 
   postProgressMessage("Booting up the Streamlit server.");
   console.debug("Booting up the Streamlit server");
@@ -550,5 +558,7 @@ const handleCogniteMessage = async (msg: InMessage) => {
 
       tokenIsSet = true;
     }
+  } else if (tokenIsSet && msg.type === LanguageServerEvents.autocomplete) {
+    get_code_completions(msg, pyodide, ctx);
   }
 };

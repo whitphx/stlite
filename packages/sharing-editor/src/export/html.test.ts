@@ -1,4 +1,8 @@
-import { exportAsHtml, RUNTIME_VERSION } from "./html";
+import {
+  exportAsHtml,
+  escapeTextForJsTemplateLiteral,
+  RUNTIME_VERSION,
+} from "./html";
 import { JSDOM } from "jsdom";
 import * as babelParser from "@babel/parser";
 import { AppData } from "@stlite/sharing-common/dist";
@@ -361,5 +365,20 @@ describe("exportAsHtml", () => {
         }),
       })
     );
+  });
+});
+
+describe("escapeTextForJsTemplateLiteral", () => {
+  [
+    "`hello`", // Backtick
+    // eslint-disable-next-line no-template-curly-in-string
+    "Hello ${world}!", // Placeholder
+    "\\hello\\", // Backslash
+  ].forEach((text) => {
+    it(`escapes ${text} correctly`, () => {
+      const escaped = escapeTextForJsTemplateLiteral(text);
+      const parsed = eval("`" + escaped + "`"); // eslint-disable-line no-eval
+      expect(parsed).toEqual(text);
+    });
   });
 });

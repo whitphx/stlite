@@ -1,22 +1,3 @@
-/**
- * https://jedi.readthedocs.io/en/latest/docs/api-classes.html#completion
- */
-export type CompletionItem = {
-  /** Name of variable/function/class/module. */
-  name: string;
-  /** The type of the definition. */
-  type: string;
-  /** A description of the Name object */
-  description: string;
-  /** Return a document string for this completion object. */
-  docstring: string;
-  /** Dot-separated path of this object. It is in the form of <module>[.<submodule>[...]][.<object>].  */
-  full_name: string;
-  /** Similar to name, but like name returns also the symbols, ex: param= */
-  name_with_symbols: string;
-  module_name: string;
-};
-
 export enum LanguageServerEvents {
   autocomplete = "language-server:autocomplete",
 }
@@ -24,6 +5,12 @@ export enum LanguageServerEvents {
 export interface OutMessageLangugeServerAutocomplete {
   type: LanguageServerEvents.autocomplete;
   data: {
-    suggestions: CompletionItem[];
+    /**
+     * Decided to use unknown to avoid importing whole package and bunch of stuff
+     * from monaco-editor package that we don't need it here at all
+     * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
+     *
+     */
+    items: unknown[];
   };
 }

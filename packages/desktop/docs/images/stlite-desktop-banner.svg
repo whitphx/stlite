@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="1.0019356"
-     inkscape:cx="404.71664"
-     inkscape:cy="222.5692"
+     inkscape:zoom="0.57836955"
+     inkscape:cx="521.293"
+     inkscape:cy="440.89458"
      inkscape:window-width="1392"
      inkscape:window-height="1027"
      inkscape:window-x="459"
@@ -52,41 +52,41 @@
     <text
        xml:space="preserve"
        style="font-size:14.1111px;line-height:1;white-space:pre;inline-size:150.552;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1"
-       x="4.8157883"
+       x="73.376579"
        y="14.193901"
        id="text2"
-       transform="translate(26.264512,7.7369565)"><tspan
-         x="4.8157883"
+       transform="translate(-48.831488,8.9744316)"><tspan
+         x="73.376579"
          y="14.193901"
          id="tspan4"><tspan
-           style="font-weight:bold;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold'"
+           style="font-weight:bold;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold';text-align:center;text-anchor:middle"
            id="tspan2">A faster way to build </tspan></tspan><tspan
-         x="4.8157883"
+         x="73.376579"
          y="28.699496"
          id="tspan7"><tspan
-           style="font-weight:bold;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold'"
+           style="font-weight:bold;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold';text-align:center;text-anchor:middle"
            id="tspan6">and share data apps</tspan></tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#ff5b5b;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:0.996016;paint-order:stroke fill markers"
-       d="m 45.623573,51.328244 c 7.305781,-9.470458 9.621066,-7.466067 14.777556,-7.550226 5.933382,-0.09684 25.063962,0.883962 29.766597,0.366975 4.138216,-0.454937 10.704654,-5.121815 10.704654,-5.121815 0.88166,7.208333 36.84261,18.57562 39.68256,20.468912 7.30577,4.870523 8.57292,10.375199 8.57292,10.375199"
+       d="m 45.094406,51.328244 c 7.305781,-9.470458 9.621066,-7.466067 14.777556,-7.550226 5.933382,-0.09684 25.063962,0.883962 29.766597,0.366975 4.138216,-0.454937 10.704651,-5.121815 10.704651,-5.121815 0.88166,7.208333 36.84261,18.57562 39.68256,20.468912 7.30577,4.870523 8.57292,10.375199 8.57292,10.375199"
        id="path5"
        sodipodi:nodetypes="csscsc" />
     <path
        id="rect6"
        style="fill:#ffacac;fill-opacity:1;stroke:#ffacac;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-       d="M 52.038727,54.472055 140.67216,69.112757 137.1828,86.148234 48.569207,68.858307 Z"
+       d="M 51.50956,54.472055 140.14299,69.112757 136.65363,86.148234 48.04004,68.858307 Z"
        sodipodi:nodetypes="ccccc" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:25.4px;line-height:1;font-family:Helvetica;-inkscape-font-specification:'Helvetica Bold';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
-       x="60.372223"
-       y="58.845734"
+       x="59.846889"
+       y="58.909302"
        id="text5"
        transform="rotate(6.8996162)"><tspan
          sodipodi:role="line"
          id="tspan5"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:25.4px;font-family:Noteworthy;-inkscape-font-specification:'Noteworthy Bold';fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
-         x="60.372223"
-         y="58.845734">desktop</tspan></text>
+         x="59.846889"
+         y="58.909302">desktop</tspan></text>
   </g>
 </svg>

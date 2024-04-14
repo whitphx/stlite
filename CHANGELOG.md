@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.52.2] - 2024-04-04
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Add a README banner, [#865](https://github.com/whitphx/stlite/pull/865).
+
 ## [0.52.1] - 2024-04-04
 
 ### `@stlite/desktop`

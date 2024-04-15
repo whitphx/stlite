@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeAll } from "vitest";
 import {
   get_hover,
   get_code_completions,

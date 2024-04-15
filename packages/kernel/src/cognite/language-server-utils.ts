@@ -2,7 +2,7 @@ import { InMessageAutocomplete, InMessageHover } from "../types";
 import type Pyodide from "pyodide";
 import {
   LanguageServerEvents,
-  OutMessageLangugeServerHover,
+  OutMessageLangugeServerAutocomplete,
 } from "./language-server-types";
 import { postMessageToStreamLitWorker } from "./streamlit-worker-communication-utils";
 import type { StliteWorkerContext } from "../worker";
@@ -177,7 +177,7 @@ export const handleAutoComplete = async (
     data: {
       items: [],
     },
-  };
+  } as OutMessageLangugeServerAutocomplete;
 
   try {
     autoCompleteResponse.data = await get_code_completions(msg, pyodide);

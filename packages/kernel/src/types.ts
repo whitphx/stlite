@@ -126,23 +126,20 @@ export interface InTokenMessage extends InMessageBase {
     email?: string;
   };
 }
+
+interface LanguageServerRequestPayload {
+  code: string;
+  currentLine: string;
+  currentLineNumber: number;
+  offset: number;
+}
 export interface InMessageAutocomplete extends InMessageBase {
   type: "language-server:autocomplete";
-  data: {
-    code: string;
-    currentLine: string;
-    currentLineNumber: number;
-    offset: number;
-  };
+  data: LanguageServerRequestPayload;
 }
 export interface InMessageHover extends InMessageBase {
   type: "language-server:hover";
-  data: {
-    code: string;
-    currentLine: string;
-    currentLineNumber: number;
-    offset: number;
-  };
+  data: LanguageServerRequestPayload;
 }
 
 export type InMessage =

@@ -24,8 +24,7 @@ export const importLanguageServerPythonLibraries = async (
 
 export const get_code_completions = async (
   msg: InMessageAutocomplete,
-  pyodide: Pyodide.PyodideInterface,
-  ctx: StliteWorkerContext
+  pyodide: Pyodide.PyodideInterface
 ) => {
   try {
     // Indentation is very important in python, don't change this!
@@ -154,18 +153,39 @@ ${msg.data.code}
 autocomplete()`
     );
 
-    const suggestions = JSON.parse(result);
+    if (!result) {
+      return { items: [] };
+    }
 
+    return JSON.parse(result);
+  } catch (err) {
+    console.error(err);
+    return { items: [] };
+  }
+};
+
+export const handleAutoComplete = async (
+  msg: InMessageAutocomplete,
+  pyodide: Pyodide.PyodideInterface,
+  ctx: StliteWorkerContext
+) => {
+  const autoCompleteResponse = {
+    type: LanguageServerEvents.autocomplete,
+    data: {
+      items: [],
+    },
+  };
+
+  try {
+    autoCompleteResponse.data = await get_code_completions(msg, pyodide);
     /**
      * This is happening inside a function in a web worker
      * we need to notify the worker that we processed the request
      * so that the Kernel can send the message to fusion
      */
-    postMessageToStreamLitWorker(ctx, {
-      type: LanguageServerEvents.autocomplete,
-      data: suggestions,
-    });
+    postMessageToStreamLitWorker(ctx, autoCompleteResponse);
   } catch (err) {
     console.error(err);
+    postMessageToStreamLitWorker(ctx, autoCompleteResponse);
   }
 };

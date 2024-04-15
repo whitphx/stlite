@@ -11,8 +11,8 @@ import type {
 } from "./types";
 import { LanguageServerEvents } from "./cognite/language-server-types";
 import {
-  get_code_completions,
   handleHover,
+  handleAutoComplete,
   importLanguageServerPythonLibraries,
 } from "./cognite/language-server-utils";
 
@@ -560,7 +560,7 @@ const handleCogniteMessage = async (msg: InMessage) => {
       tokenIsSet = true;
     }
   } else if (tokenIsSet && msg.type === LanguageServerEvents.autocomplete) {
-    get_code_completions(msg, pyodide, ctx);
+    handleAutoComplete(msg, pyodide, ctx);
   } else if (tokenIsSet && msg.type === LanguageServerEvents.hover) {
     handleHover(msg, pyodide, ctx);
   }

@@ -4,6 +4,7 @@ import { loadPyodide, PyodideInterface } from "pyodide";
 import { describe, expect, it, vi } from "vitest";
 import {
   get_hover,
+  get_code_completions,
   importLanguageServerPythonLibraries,
 } from "./language-server-utils";
 
@@ -52,6 +53,54 @@ describe("LanguageServerUtils test", () => {
 
     console.log("Importing Language Server");
     await importLanguageServerPythonLibraries(pyodide, micropip);
+  });
+
+  describe("Test Autocomplete", () => {
+    it("should return suggestions", async () => {
+      const code = `import math
+math.c
+`;
+      const autocompleteResults = await get_code_completions(
+        {
+          data: {
+            code: code,
+            currentLine: "math",
+            currentLineNumber: 2,
+            offset: 6,
+          },
+          type: "language-server:autocomplete",
+        },
+        pyodide
+      );
+
+      expect(autocompleteResults.items.map((item) => item.label)).toEqual(
+        expect.arrayContaining(["ceil", "comb", "copysign", "cos", "cosh"])
+      );
+    });
+
+    it("should handle invalid requests and return empty response", async () => {
+      const code = `import math
+      math.cos()
+      `;
+      const suggestions = await get_code_completions(
+        {
+          data: {
+            code: code,
+            currentLine: "math",
+            currentLineNumber: 3,
+            offset: 5,
+          },
+          type: "language-server:autocomplete",
+        },
+        pyodide
+      );
+
+      expect(suggestions).toEqual(
+        expect.objectContaining({
+          items: [],
+        })
+      );
+    });
   });
 
   describe("Test Hover", () => {

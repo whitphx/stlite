@@ -1,5 +1,6 @@
 export enum LanguageServerEvents {
   autocomplete = "language-server:autocomplete",
+  hover = "language-server:hover",
 }
 
 export interface OutMessageLangugeServerAutocomplete {
@@ -13,4 +14,8 @@ export interface OutMessageLangugeServerAutocomplete {
      */
     items: unknown[];
   };
+}
+export interface OutMessageLangugeServerHover {
+  type: LanguageServerEvents.hover;
+  data: string;
 }

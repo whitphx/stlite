@@ -2,6 +2,13 @@
   "name": "@stlite/desktop",
   "version": "0.52.2",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
   "homepage": "/",
   "main": "./build/electron/main.js",
   "files": [

@@ -172,6 +172,7 @@ export class StliteKernel {
         STREAMLIT_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
+      // COGNITE: needed for language server
       const jediWheelUrl = makeAbsoluteWheelURL(
         JEDI_WHEEL as unknown as string,
         options.wheelBaseUrl
@@ -351,6 +352,7 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
+      // COGNITE: needed for language server
       case "language-server:autocomplete": {
         postMessageToFusion(msg);
         break;

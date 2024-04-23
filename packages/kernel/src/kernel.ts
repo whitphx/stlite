@@ -353,6 +353,7 @@ export class StliteKernel {
         break;
       }
       // COGNITE: needed for language server
+      case "language-server:hover":
       case "language-server:autocomplete": {
         postMessageToFusion(msg);
         break;
@@ -400,7 +401,7 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
         typeof event.data === "object" &&
         "type" in event.data &&
         "data" in event.data &&
-        event.data.type === "language-server:autocomplete"
+        event.data.type.startsWith("language-server:")
       ) {
         worker.postMessage(event.data);
       }

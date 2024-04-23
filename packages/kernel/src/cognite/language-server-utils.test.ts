@@ -1,8 +1,9 @@
 // @vitest-environment node
 
 import { loadPyodide, PyodideInterface } from "pyodide";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeAll } from "vitest";
 import {
+  get_hover,
   get_code_completions,
   importLanguageServerPythonLibraries,
 } from "./language-server-utils";
@@ -97,6 +98,63 @@ math.c
       expect(suggestions).toEqual(
         expect.objectContaining({
           items: [],
+        })
+      );
+    });
+  });
+
+  describe("Test Hover", () => {
+    it("should provide hover information for modules and properties", async () => {
+      const code = `import math
+math.cos()
+`;
+      const hover = await get_hover(
+        {
+          data: {
+            code: code,
+            currentLine: "math",
+            currentLineNumber: 2,
+            offset: 5,
+          },
+          type: "language-server:hover",
+        },
+        pyodide
+      );
+
+      expect(hover).toEqual(
+        expect.objectContaining({
+          contents: {
+            kind: "markdown",
+            value:
+              "```python\ncos(x: SupportsFloat, /) -> float\n```\n\n```\nReturn the cosine of x (measured in radians).\n```",
+          },
+        })
+      );
+    });
+
+    it("should handle invalid requests and return empty response", async () => {
+      const code = `import math
+      math.cos()
+      `;
+      const hover = await get_hover(
+        {
+          data: {
+            code: code,
+            currentLine: "math",
+            currentLineNumber: 3,
+            offset: 5,
+          },
+          type: "language-server:hover",
+        },
+        pyodide
+      );
+
+      expect(hover).toEqual(
+        expect.objectContaining({
+          contents: {
+            kind: "markdown",
+            value: "",
+          },
         })
       );
     });

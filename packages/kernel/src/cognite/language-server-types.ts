@@ -1,5 +1,6 @@
 export enum LanguageServerEvents {
   autocomplete = "language-server:autocomplete",
+  hover = "language-server:hover",
 }
 
 export interface OutMessageLangugeServerAutocomplete {
@@ -12,5 +13,15 @@ export interface OutMessageLangugeServerAutocomplete {
      *
      */
     items: unknown[];
+  };
+}
+export interface OutMessageLangugeServerHover {
+  type: LanguageServerEvents.hover;
+  /**
+   * Decided to use unknown to avoid importing whole package and bunch of stuff
+   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.Hover.html
+   */
+  data: {
+    contents: { value: string };
   };
 }

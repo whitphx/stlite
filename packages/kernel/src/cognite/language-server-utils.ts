@@ -1,6 +1,9 @@
-import { InMessageAutocomplete } from "../types";
+import { InMessageAutocomplete, InMessageHover } from "../types";
 import type Pyodide from "pyodide";
-import { LanguageServerEvents } from "./language-server-types";
+import {
+  LanguageServerEvents,
+  OutMessageLangugeServerAutocomplete,
+} from "./language-server-types";
 import { postMessageToStreamLitWorker } from "./streamlit-worker-communication-utils";
 import type { StliteWorkerContext } from "../worker";
 
@@ -174,7 +177,7 @@ export const handleAutoComplete = async (
     data: {
       items: [],
     },
-  };
+  } as OutMessageLangugeServerAutocomplete;
 
   try {
     autoCompleteResponse.data = await get_code_completions(msg, pyodide);
@@ -188,5 +191,106 @@ export const handleAutoComplete = async (
     console.error(err);
     // TODO: send the errors to mixpanel or sentry
     postMessageToStreamLitWorker(ctx, autoCompleteResponse);
+  }
+};
+
+export const get_hover = async (
+  msg: InMessageHover,
+  pyodide: Pyodide.PyodideInterface
+) => {
+  try {
+    // Indentation is very important in python, don't change this!
+    const result = await pyodide.runPythonAsync(`import jedi;
+import re;
+import json;
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union
+from lsprotocol import converters, types
+from jedi.api.classes import Completion, Name  # type: ignore
+from inspect import Parameter
+
+def _docstring_markdown(name: Name) -> str:
+  doc = name.docstring()
+  if not doc:
+    return ''
+  if name.type in ['class', 'function']:
+    try:
+      sig, doc = doc.split("\\n\\n", 1)
+    except ValueError:
+      sig = doc
+      doc = False
+    sig = f"\`\`\`python\\n{sig}\\n\`\`\`"
+    if doc:
+      return f"{sig}\\n\\n\`\`\`\\n{doc}\\n\`\`\`"
+    return sig
+  return f"\`\`\`\\n{doc}\\n\`\`\`"
+
+def hover():
+
+  code = '''
+${msg.data.code}
+  '''
+    
+  script = jedi.Script(code)
+  cursor_line = ${msg.data.currentLineNumber}
+  cursor_character = ${msg.data.offset}
+  jediHoverFunction = script.help
+  hoverFunction = _docstring_markdown
+
+  names = script.help(cursor_line + 1, cursor_character)
+
+  result = '\\n\\n'.join(map(hoverFunction, names))
+
+  if result:
+    hover_result = types.Hover(
+      contents=types.MarkupContent(kind=types.MarkupKind.Markdown, value=result)
+    )
+    converter = converters.get_converter()
+    return json.dumps(converter.unstructure(hover_result, unstructure_as=types.Hover))
+
+  return None
+
+hover()`);
+
+    if (!result) {
+      return {
+        contents: {
+          kind: "markdown",
+          value: "",
+        },
+      };
+    }
+
+    const hover = JSON.parse(result);
+
+    return hover;
+  } catch (err) {
+    console.error(err);
+    return {
+      contents: {
+        kind: "markdown",
+        value: "",
+      },
+    };
+  }
+};
+
+export const handleHover = async (
+  msg: InMessageHover,
+  pyodide: Pyodide.PyodideInterface,
+  ctx: StliteWorkerContext
+) => {
+  try {
+    const hover = await get_hover(msg, pyodide);
+    /**
+     * This is happening inside a function in a web worker
+     * we need to notify the worker that we processed the request
+     * so that the Kernel can send the message to fusion
+     */
+    postMessageToStreamLitWorker(ctx, {
+      type: LanguageServerEvents.hover,
+      data: hover,
+    });
+  } catch (err) {
+    console.error(err);
   }
 };

@@ -189,6 +189,7 @@ export const handleAutoComplete = async (
     postMessageToStreamLitWorker(ctx, autoCompleteResponse);
   } catch (err) {
     console.error(err);
+    // TODO: send the errors to mixpanel or sentry
     postMessageToStreamLitWorker(ctx, autoCompleteResponse);
   }
 };

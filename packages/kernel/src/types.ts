@@ -1,4 +1,5 @@
 import type { PyodideInterface } from "pyodide";
+import { OutMessageLangugeServerAutocomplete } from "./cognite/language-server-types";
 
 export type PyodideConvertiblePrimitive =
   | string
@@ -48,6 +49,7 @@ export interface WorkerInitialData {
   wheels?: {
     stliteServer: string;
     streamlit: string;
+    jedi: string;
   };
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
@@ -121,6 +123,15 @@ export interface InTokenMessage extends InMessageBase {
     email?: string;
   };
 }
+export interface InMessageAutocomplete extends InMessageBase {
+  type: "language-server:autocomplete";
+  data: {
+    code: string;
+    currentLine: string;
+    currentLineNumber: number;
+    offset: number;
+  };
+}
 
 export type InMessage =
   | InMessageInitData
@@ -131,7 +142,8 @@ export type InMessage =
   | InMessageFileRename
   | InMessageFileUnlink
   | InMessageInstall
-  | InTokenMessage;
+  | InTokenMessage
+  | InMessageAutocomplete;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -174,7 +186,8 @@ export type OutMessage =
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
-  | OutMessageWebSocketBack;
+  | OutMessageWebSocketBack
+  | OutMessageLangugeServerAutocomplete;
 
 /**
  * Reply message to InMessage

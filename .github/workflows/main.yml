@@ -1,6 +1,11 @@
 name: Test, Build, and Publish
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
 
 concurrency:
   # https://stackoverflow.com/a/72408109

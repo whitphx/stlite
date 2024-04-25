@@ -7,7 +7,6 @@ import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
 import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
@@ -239,15 +238,6 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   );
 }
 
-async function readRequirements(
-  requirementsTxtPath: string
-): Promise<string[]> {
-  const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
-    encoding: "utf-8",
-  });
-  return parseRequirementsTxt(requirementsTxtData);
-}
-
 async function writePrebuiltPackagesTxt(
   prebuiltPackagesTxtPath: string,
   prebuiltPackages: string[]
@@ -321,6 +311,7 @@ yargs(hideBin(process.argv))
     type: "string",
     alias: "r",
     default: [],
+    deprecated: true,
   })
   .options("keepOldBuild", {
     type: "boolean",
@@ -335,9 +326,13 @@ yargs(hideBin(process.argv))
 
     const packageJsonPath = path.resolve(projectDir, "./package.json");
     const packageJson = require(packageJsonPath);
-    const { includes, entrypoint } = readConfig({
+    const { includes, entrypoint, dependencies } = await readConfig({
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
-      fallbackAppHomeDirSource: args.appHomeDirSource,
+      fallbacks: {
+        appHomeDirSource: args.appHomeDirSource,
+        packages: args.packages,
+        requirementTxtFilePaths: args.requirement,
+      },
     });
     console.log("Files to be included", includes);
     console.log("The entrypoint", entrypoint);
@@ -347,23 +342,15 @@ yargs(hideBin(process.argv))
       buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
 
-    let unvalidatedRequirements = args.packages ?? [];
-    for (const requirementTxtFilePath of args.requirement) {
-      unvalidatedRequirements = unvalidatedRequirements.concat(
-        await readRequirements(requirementTxtFilePath)
-      );
-    }
-    const requirements = validateRequirements(unvalidatedRequirements);
-
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
-      requirements,
+      requirements: dependencies,
     });
     console.log("The prebuilt packages loaded for the given requirements:");
     console.log(usedPrebuiltPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await createSitePackagesSnapshot({
-      requirements,
+      requirements: dependencies,
       usedPrebuiltPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });

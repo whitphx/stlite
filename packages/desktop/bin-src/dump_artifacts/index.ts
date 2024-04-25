@@ -11,6 +11,7 @@ import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
 import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
+import { readConfig } from "./config";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -214,16 +215,28 @@ async function createSitePackagesSnapshot(
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
-interface CopyHomeDirectoryOptions {
-  sourceDir: string;
-  copyTo: string;
+interface CopyAppDirectoryOptions {
+  rootDir: string;
+  includes: string[];
+  buildAppDirectory: string;
 }
-async function copyStreamlitAppDirectory(options: CopyHomeDirectoryOptions) {
+async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   console.info("Copy the Streamlit app directory...");
 
-  console.log(`Copy ${options.sourceDir} to ${options.copyTo}`);
-  await fsPromises.rm(options.copyTo, { recursive: true, force: true });
-  await fsExtra.copy(options.sourceDir, options.copyTo);
+  await Promise.all(
+    options.includes.map(async (include) => {
+      const includePath = path.resolve(options.rootDir, include);
+      try {
+        await fsPromises.access(includePath);
+      } catch {
+        throw new Error(`The include ${includePath} does not exist.`);
+      }
+
+      const destPath = path.resolve(options.buildAppDirectory, include);
+      console.log(`Copy ${includePath} to ${destPath}`);
+      await fsExtra.copy(includePath, destPath);
+    })
+  );
 }
 
 async function readRequirements(
@@ -283,7 +296,7 @@ async function downloadPrebuiltPackageWheels(
 
 yargs(hideBin(process.argv))
   .command(
-    "* <appHomeDirSource> [packages..]",
+    "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
     () => {},
     (argv) => {
@@ -292,12 +305,12 @@ yargs(hideBin(process.argv))
   )
   .positional("appHomeDirSource", {
     describe:
-      "The source directory of the user code and data that will be mounted in the Pyodide file system at app runtime",
+      "[Deprecated] The source directory of the user code and data that will be mounted in the Pyodide file system at app runtime",
     type: "string",
-    demandOption: true,
+    demandOption: false,
   })
   .positional("packages", {
-    describe: "Package names to install.",
+    describe: "[Deprecated] Package names to install.",
     type: "string",
     array: true,
   })
@@ -320,11 +333,19 @@ yargs(hideBin(process.argv))
     const projectDir = process.cwd();
     const destDir = path.resolve(projectDir, "./build");
 
-    try {
-      await fsPromises.access(args.appHomeDirSource);
-    } catch {
-      throw new Error(`${args.appHomeDirSource} does not exist.`);
-    }
+    const packageJsonPath = path.resolve(projectDir, "./package.json");
+    const packageJson = require(packageJsonPath);
+    const { includes, entrypoint } = readConfig({
+      packageJsonStliteDesktopField: packageJson.stlite?.desktop,
+      fallbackAppHomeDirSource: args.appHomeDirSource,
+    });
+    console.log("Files to be included", includes);
+    console.log("The entrypoint", entrypoint);
+    await copyAppDirectory({
+      rootDir: projectDir,
+      includes,
+      buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    });
 
     let unvalidatedRequirements = args.packages ?? [];
     for (const requirementTxtFilePath of args.requirement) {
@@ -360,12 +381,11 @@ yargs(hideBin(process.argv))
       packages: usedPrebuiltPackages,
       destDir,
     });
-    await copyStreamlitAppDirectory({
-      sourceDir: args.appHomeDirSource,
-      copyTo: path.resolve(destDir, "./streamlit_app"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
-    });
     await dumpManifest({
-      packageJsonPath: path.resolve(projectDir, "./package.json"),
+      packageJsonStliteDesktopField: {
+        ...packageJson.stlite?.desktop,
+        entrypoint, // Fallback to the `entrypoint` argument if the `stlite.desktop.entrypoint` field is not found in the `package.json`. This is for backward compatibility and will be deprecated in the future.
+      },
       manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
     });
   });

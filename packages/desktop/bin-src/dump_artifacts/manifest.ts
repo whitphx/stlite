@@ -5,8 +5,8 @@ import {
   DesktopAppManifestStruct,
 } from "../../electron/manifest";
 
-export function coerceDesktopAppManifest(obj: any): DesktopAppManifest {
-  const manifestData = s.create(obj ?? {}, DesktopAppManifestStruct);
+export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
+  const manifestData = s.mask(obj ?? {}, DesktopAppManifestStruct);
 
   if (manifestData.nodeJsWorker) {
     if (manifestData.idbfsMountpoints != null) {
@@ -26,14 +26,13 @@ export function coerceDesktopAppManifest(obj: any): DesktopAppManifest {
 }
 
 interface DumpManifestOptions {
-  packageJsonPath: string;
+  packageJsonStliteDesktopField: unknown;
   manifestFilePath: string;
 }
 export async function dumpManifest(options: DumpManifestOptions) {
-  const packageJson = require(options.packageJsonPath);
-  const packageJsonStliteField = packageJson.stlite?.desktop;
-
-  const manifestData = coerceDesktopAppManifest(packageJsonStliteField);
+  const manifestData = coerceDesktopAppManifest(
+    options.packageJsonStliteDesktopField
+  );
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
   console.log(`Dump the manifest file -> ${options.manifestFilePath}`);

@@ -11,6 +11,7 @@ import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
+import { validateRequirements } from "@stlite/common";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -333,7 +334,11 @@ yargs(hideBin(process.argv))
     const packageJsonPath = path.resolve(projectDir, "./package.json");
     const packageJson = require(packageJsonPath);
 
-    const { includes, entrypoint, dependencies } = await readConfig({
+    const {
+      includes,
+      entrypoint,
+      dependencies: unvalidatedDependencies,
+    } = await readConfig({
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       fallbacks: {
         appHomeDirSource: args.appHomeDirSource,
@@ -341,6 +346,7 @@ yargs(hideBin(process.argv))
         requirementTxtFilePaths: args.requirement,
       },
     });
+    const dependencies = validateRequirements(unvalidatedDependencies);
     console.log("Files/directories to be included:", includes);
     console.log("The entrypoint:", entrypoint);
     console.log("The dependencies:", dependencies);

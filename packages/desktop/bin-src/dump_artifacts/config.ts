@@ -1,6 +1,6 @@
 import fsPromises from "fs/promises";
 import * as s from "superstruct";
-import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
+import { parseRequirementsTxt } from "@stlite/common";
 
 interface ReadConfigOptions {
   packageJsonStliteDesktopField: any;
@@ -111,9 +111,7 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
           const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
           return parsedRequirements;
         })
-      ).then((parsedRequirements) =>
-        parsedRequirements.flatMap((x) => validateRequirements(x))
-      )
+      ).then((parsedRequirements) => parsedRequirements.flat())
     : [];
 
   const dependencies = [
@@ -127,7 +125,8 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     console.warn(
       "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
     );
-    requirementsFromDeprecatedArgs = validateRequirements(packagesFallback);
+    requirementsFromDeprecatedArgs =
+      requirementsFromDeprecatedArgs.concat(packagesFallback);
   }
   if (requirementTxtFilePathsFallback != null) {
     console.warn(
@@ -141,9 +140,8 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
         }
       );
       const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
-      requirementsFromDeprecatedArgs = requirementsFromDeprecatedArgs.concat(
-        validateRequirements(parsedRequirements)
-      );
+      requirementsFromDeprecatedArgs =
+        requirementsFromDeprecatedArgs.concat(parsedRequirements);
     }
   }
 

@@ -26,13 +26,18 @@ export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
 }
 
 interface DumpManifestOptions {
-  packageJsonStliteDesktopField: unknown;
+  packageJsonStliteDesktopField: any;
   manifestFilePath: string;
+  fallbacks?: Partial<{
+    // For backward compatibility for the deprecated command line options
+    entrypoint: string;
+  }>;
 }
 export async function dumpManifest(options: DumpManifestOptions) {
-  const manifestData = coerceDesktopAppManifest(
-    options.packageJsonStliteDesktopField
-  );
+  const manifestData = coerceDesktopAppManifest({
+    ...options.packageJsonStliteDesktopField,
+    ...options.fallbacks,
+  });
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
   console.log(`Dump the manifest file -> ${options.manifestFilePath}`);

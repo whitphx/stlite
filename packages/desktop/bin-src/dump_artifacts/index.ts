@@ -383,10 +383,10 @@ yargs(hideBin(process.argv))
       destDir,
     });
     await dumpManifest({
-      packageJsonStliteDesktopField: {
-        ...packageJson.stlite?.desktop,
+      packageJsonStliteDesktopField: packageJson.stlite?.desktop,
+      manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
+      fallbacks: {
         entrypoint, // Fallback to the `entrypoint` argument if the `stlite.desktop.entrypoint` field is not found in the `package.json`. This is for backward compatibility and will be deprecated in the future.
       },
-      manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
     });
   });

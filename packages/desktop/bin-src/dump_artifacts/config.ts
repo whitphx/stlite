@@ -92,11 +92,12 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     "The `stlite.desktop.dependencies` field must be an array of strings."
   );
 
-  const requirementsTxtPaths = packageJsonStliteDesktopField?.requirementsTxts;
+  const requirementsTxtPaths =
+    packageJsonStliteDesktopField?.requirementsTxtFiles;
   s.assert(
     requirementsTxtPaths,
     s.optional(s.array(s.string())),
-    "The `stlite.desktop.requirementsTxts` field must be an array of strings."
+    "The `stlite.desktop.requirementsTxtFiles` field must be an array of strings."
   );
   const dependenciesFromRequirementsTxt = requirementsTxtPaths
     ? await Promise.all(
@@ -130,7 +131,7 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
   }
   if (requirementTxtFilePathsFallback != null) {
     console.warn(
-      "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxts` in the package.json for that purpose."
+      "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
     );
     for (const requirementTxtFilePath of requirementTxtFilePathsFallback) {
       const requirementsTxtData = await fsPromises.readFile(

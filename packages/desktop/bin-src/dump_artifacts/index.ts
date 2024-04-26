@@ -12,6 +12,7 @@ import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
 import { validateRequirements } from "@stlite/common";
+import { glob } from "glob";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -216,27 +217,38 @@ async function createSitePackagesSnapshot(
 }
 
 interface CopyAppDirectoryOptions {
-  rootDir: string;
-  filePaths: string[];
+  cwd: string;
+  filePathPatterns: string[];
   buildAppDirectory: string;
 }
+
 async function copyAppDirectory(options: CopyAppDirectoryOptions) {
-  console.info("Copy the Streamlit app directory...");
+  console.info("Copy the app directory...");
 
   await Promise.all(
-    options.filePaths.map(async (filePath) => {
-      const canonicalizedFilePath = path.resolve(options.rootDir, filePath);
-      try {
-        await fsPromises.access(canonicalizedFilePath);
-      } catch {
-        throw new Error(`The file "${canonicalizedFilePath}" does not exist.`);
+    options.filePathPatterns.map(async (pattern) => {
+      const fileRelPaths = await glob(pattern, {
+        cwd: options.cwd,
+        absolute: false,
+      });
+
+      if (fileRelPaths.length === 0) {
+        console.warn(
+          `No files match the pattern "${pattern}" in "${options.cwd}".`
+        );
+        return;
       }
 
-      const destPath = path.resolve(options.buildAppDirectory, filePath);
-      console.log(`Copy ${canonicalizedFilePath} to ${destPath}`);
-      await fsExtra.copy(canonicalizedFilePath, destPath, {
-        errorOnExist: true,
-      });
+      await Promise.all(
+        fileRelPaths.map(async (relPath) => {
+          const srcPath = path.resolve(options.cwd, relPath);
+          const destPath = path.resolve(options.buildAppDirectory, relPath);
+          console.log(`Copy ${srcPath} to ${destPath}`);
+          await fsExtra.copy(srcPath, destPath, {
+            errorOnExist: true,
+          });
+        })
+      );
     })
   );
 }
@@ -349,7 +361,7 @@ yargs(hideBin(process.argv))
       },
     });
     const dependencies = validateRequirements(unvalidatedDependencies);
-    console.log("Files/directories to be included:", files);
+    console.log("File/directory patterns to be included:", files);
     console.log("The entrypoint:", entrypoint);
     console.log("The dependencies:", dependencies);
 
@@ -361,8 +373,8 @@ yargs(hideBin(process.argv))
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await copyAppDirectory({
-      rootDir: projectDir,
-      filePaths: files,
+      cwd: projectDir,
+      filePathPatterns: files,
       buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
     await createSitePackagesSnapshot({

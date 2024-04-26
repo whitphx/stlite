@@ -27,7 +27,7 @@
     "desktop": {
       "files": [
         "app.py",
-        "pages"
+        "pages/*.py"
       ],
       "entrypoint": "app.py",
       "requirementsTxtFiles": [

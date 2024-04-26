@@ -73,7 +73,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
 
   console.log(`Copy ${sourceDir} to ${options.copyTo}`);
   await fsPromises.rm(options.copyTo, { recursive: true, force: true });
-  await fsExtra.copy(sourceDir, options.copyTo);
+  await fsExtra.copy(sourceDir, options.copyTo, { errorOnExist: true });
 }
 
 interface InspectUsedPrebuiltPackagesOptions {
@@ -233,7 +233,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
 
       const destPath = path.resolve(options.buildAppDirectory, include);
       console.log(`Copy ${includePath} to ${destPath}`);
-      await fsExtra.copy(includePath, destPath);
+      await fsExtra.copy(includePath, destPath, { errorOnExist: true });
     })
   );
 }
@@ -304,6 +304,12 @@ yargs(hideBin(process.argv))
     type: "string",
     array: true,
   })
+  .options("project", {
+    describe: "The project directory",
+    type: "string",
+    alias: "p",
+    default: process.cwd(),
+  })
   .options("requirement", {
     describe:
       "Install from the given requirements file. This option can be used multiple times.",
@@ -321,11 +327,12 @@ yargs(hideBin(process.argv))
   })
   .parseAsync()
   .then(async (args) => {
-    const projectDir = process.cwd();
-    const destDir = path.resolve(projectDir, "./build");
+    const projectDir = args.project;
+    const destDir = path.resolve(args.project, "./build");
 
     const packageJsonPath = path.resolve(projectDir, "./package.json");
     const packageJson = require(packageJsonPath);
+
     const { includes, entrypoint, dependencies } = await readConfig({
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       fallbacks: {
@@ -334,13 +341,9 @@ yargs(hideBin(process.argv))
         requirementTxtFilePaths: args.requirement,
       },
     });
-    console.log("Files to be included", includes);
-    console.log("The entrypoint", entrypoint);
-    await copyAppDirectory({
-      rootDir: projectDir,
-      includes,
-      buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
-    });
+    console.log("Files/directories to be included:", includes);
+    console.log("The entrypoint:", entrypoint);
+    console.log("The dependencies:", dependencies);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
       requirements: dependencies,
@@ -349,6 +352,11 @@ yargs(hideBin(process.argv))
     console.log(usedPrebuiltPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
+    await copyAppDirectory({
+      rootDir: projectDir,
+      includes,
+      buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    });
     await createSitePackagesSnapshot({
       requirements: dependencies,
       usedPrebuiltPackages,

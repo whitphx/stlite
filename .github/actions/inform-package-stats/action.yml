@@ -276,9 +276,6 @@ runs:
 
           const commentBody = fs.readFileSync('comment.txt');
 
-          console.log("SHA:", context.sha)
-          console.log("Context:", context)
-
           async function getTargetPullRequests() {
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];

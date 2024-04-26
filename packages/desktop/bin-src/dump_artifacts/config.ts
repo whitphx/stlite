@@ -12,49 +12,49 @@ interface ReadConfigOptions {
   }>;
 }
 interface ReadConfigResult {
-  includes: string[];
+  files: string[];
   entrypoint: string;
   dependencies: string[];
 }
 export async function readConfig(
   options: ReadConfigOptions
 ): Promise<ReadConfigResult> {
-  const { includes, entrypoint } = readIncludesAndEntrypoint(options);
+  const { files, entrypoint } = readFilesAndEntrypoint(options);
   const dependencies = await readDependencies(options);
 
   return {
-    includes,
+    files,
     entrypoint,
     dependencies,
   };
 }
 
-function readIncludesAndEntrypoint(options: ReadConfigOptions) {
+function readFilesAndEntrypoint(options: ReadConfigOptions) {
   const {
     packageJsonStliteDesktopField,
     fallbacks: { appHomeDirSource: fallbackAppHomeDirSource },
   } = options;
-  let includes = packageJsonStliteDesktopField?.includes;
+  let files = packageJsonStliteDesktopField?.files;
   let entrypoint = packageJsonStliteDesktopField?.entrypoint;
-  if (includes == null || entrypoint == null) {
+  if (files == null || entrypoint == null) {
     console.warn(
-      "`stlite.desktop.includes` and `stlite.desktop.entrypoint` are not found in `package.json`. " +
+      "`stlite.desktop.files` and `stlite.desktop.entrypoint` are not found in `package.json`. " +
         "Read the `appHomeDirSource` argument as the app directory. " +
         "This behavior will be deprecated in the future."
     );
     const appHomeDirSource = fallbackAppHomeDirSource;
     if (typeof appHomeDirSource !== "string") {
       throw new Error(
-        "The `appHomeDirSource` argument is required when `stlite.desktop.includes` and `stlite.desktop.entrypoint` are not found in the package.json.\n" +
-          "Note that `appHomeDirSource` is deprecated and will be removed in the future, so please specify `stlite.desktop.includes` and `stlite.desktop.entrypoint` in the package.json."
+        "The `appHomeDirSource` argument is required when `stlite.desktop.files` and `stlite.desktop.entrypoint` are not found in the package.json.\n" +
+          "Note that `appHomeDirSource` is deprecated and will be removed in the future, so please specify `stlite.desktop.files` and `stlite.desktop.entrypoint` in the package.json."
       );
     }
-    includes = [appHomeDirSource];
+    files = [appHomeDirSource];
     entrypoint = `./${appHomeDirSource}/streamlit_app.py`;
   } else {
     if (fallbackAppHomeDirSource != null) {
       console.warn(
-        "`appHomeDirSource` is ignored because `stlite.desktop.includes` is found in `package.json`."
+        "`appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
       );
     }
   }
@@ -64,16 +64,13 @@ function readIncludesAndEntrypoint(options: ReadConfigOptions) {
       "The `stlite.desktop.entrypoint` field is not found in the package.json."
     );
   }
-  if (
-    !Array.isArray(includes) ||
-    !includes.every((x) => typeof x === "string")
-  ) {
+  if (!Array.isArray(files) || !files.every((x) => typeof x === "string")) {
     throw new Error(
-      "The `stlite.desktop.includes` field must be an array of strings."
+      "The `stlite.desktop.files` field must be an array of strings."
     );
   }
 
-  return { includes, entrypoint };
+  return { files, entrypoint };
 }
 
 async function readDependencies(options: ReadConfigOptions): Promise<string[]> {

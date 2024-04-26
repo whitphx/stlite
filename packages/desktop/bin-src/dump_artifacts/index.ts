@@ -217,24 +217,26 @@ async function createSitePackagesSnapshot(
 
 interface CopyAppDirectoryOptions {
   rootDir: string;
-  includes: string[];
+  filePaths: string[];
   buildAppDirectory: string;
 }
 async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   console.info("Copy the Streamlit app directory...");
 
   await Promise.all(
-    options.includes.map(async (include) => {
-      const includePath = path.resolve(options.rootDir, include);
+    options.filePaths.map(async (filePath) => {
+      const canonicalizedFilePath = path.resolve(options.rootDir, filePath);
       try {
-        await fsPromises.access(includePath);
+        await fsPromises.access(canonicalizedFilePath);
       } catch {
-        throw new Error(`The include ${includePath} does not exist.`);
+        throw new Error(`The file "${canonicalizedFilePath}" does not exist.`);
       }
 
-      const destPath = path.resolve(options.buildAppDirectory, include);
-      console.log(`Copy ${includePath} to ${destPath}`);
-      await fsExtra.copy(includePath, destPath, { errorOnExist: true });
+      const destPath = path.resolve(options.buildAppDirectory, filePath);
+      console.log(`Copy ${canonicalizedFilePath} to ${destPath}`);
+      await fsExtra.copy(canonicalizedFilePath, destPath, {
+        errorOnExist: true,
+      });
     })
   );
 }
@@ -335,7 +337,7 @@ yargs(hideBin(process.argv))
     const packageJson = require(packageJsonPath);
 
     const {
-      includes,
+      files,
       entrypoint,
       dependencies: unvalidatedDependencies,
     } = await readConfig({
@@ -347,7 +349,7 @@ yargs(hideBin(process.argv))
       },
     });
     const dependencies = validateRequirements(unvalidatedDependencies);
-    console.log("Files/directories to be included:", includes);
+    console.log("Files/directories to be included:", files);
     console.log("The entrypoint:", entrypoint);
     console.log("The dependencies:", dependencies);
 
@@ -360,7 +362,7 @@ yargs(hideBin(process.argv))
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
     await copyAppDirectory({
       rootDir: projectDir,
-      includes,
+      filePaths: files,
       buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     });
     await createSitePackagesSnapshot({

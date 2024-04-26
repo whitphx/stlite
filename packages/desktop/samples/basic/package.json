@@ -25,7 +25,7 @@
   },
   "stlite": {
     "desktop": {
-      "includes": [
+      "files": [
         "app.py",
         "pages"
       ],

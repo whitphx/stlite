@@ -253,6 +253,19 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   );
 }
 
+async function assertAppDirectoryContainsEntrypoint(
+  appDirectory: string,
+  entrypoint: string
+) {
+  try {
+    await fsPromises.access(path.resolve(appDirectory, entrypoint));
+  } catch {
+    throw new Error(
+      `The entrypoint file "${entrypoint}" is not included in the bundled files.`
+    );
+  }
+}
+
 async function writePrebuiltPackagesTxt(
   prebuiltPackagesTxtPath: string,
   prebuiltPackages: string[]
@@ -372,11 +385,15 @@ yargs(hideBin(process.argv))
     console.log(usedPrebuiltPackages);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
+
+    const buildAppDirectory = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     await copyAppDirectory({
       cwd: projectDir,
       filePathPatterns: files,
-      buildAppDirectory: path.resolve(destDir, "./app_files"), // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+      buildAppDirectory,
     });
+    assertAppDirectoryContainsEntrypoint(buildAppDirectory, entrypoint);
+
     await createSitePackagesSnapshot({
       requirements: dependencies,
       usedPrebuiltPackages,

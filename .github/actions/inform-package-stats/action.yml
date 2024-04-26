@@ -276,6 +276,8 @@ runs:
 
           const commentBody = fs.readFileSync('comment.txt');
 
+          console.log("SHA:", context.sha)
+          console.log("Context:", context)
           const pullRequests = (
             await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,

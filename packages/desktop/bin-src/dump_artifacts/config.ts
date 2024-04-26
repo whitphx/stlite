@@ -54,7 +54,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
   } else {
     if (fallbackAppHomeDirSource != null) {
       console.warn(
-        "`appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
+        "[Deprecated] `appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
       );
     }
   }

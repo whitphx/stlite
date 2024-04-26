@@ -22,5 +22,17 @@
     "cross-env": "^7.0.3",
     "electron": "^28.2.1",
     "electron-builder": "^24.9.1"
+  },
+  "stlite": {
+    "desktop": {
+      "includes": [
+        "app.py",
+        "pages"
+      ],
+      "entrypoint": "app.py",
+      "requirementsTxtFiles": [
+        "requirements.txt"
+      ]
+    }
   }
 }

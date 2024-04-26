@@ -276,22 +276,32 @@ runs:
 
           const commentBody = fs.readFileSync('comment.txt');
 
-          const pullRequests = (
-            await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-            })
-          ).data;
-          const openPullRequests = pullRequests.filter(pr => pr.state === "open")
+          async function getTargetPullRequests() {
+            if (context.eventName === "pull_request") {
+              return [context.payload.pull_request];
+            }
+            if (context.eventName === "push") {
+              const pullRequests = (
+                await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: context.sha,
+                })
+              ).data;
+              const openPullRequests = pullRequests.filter(pr => pr.state === "open")
+              return openPullRequests;
+            }
+            throw new Error(`Unsupported event type: ${context.eventName}`);
+          }
+          const targetPullRequests = await getTargetPullRequests();
 
           core.startGroup('Found PRs:')
-          console.log(openPullRequests)
+          console.log(targetPullRequests)
           core.endGroup()
 
           const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
 
-          for (const pr of openPullRequests) {
+          for (const pr of targetPullRequests) {
             const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
             const commentText = title + commentBody;
 

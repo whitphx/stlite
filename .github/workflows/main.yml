@@ -615,7 +615,7 @@ jobs:
         npm install file:stlite-desktop.tgz
       working-directory: ${{ runner.temp }}/sample_app
 
-    - run: yarn dump streamlit_app -r requirements.txt
+    - run: yarn dump
       working-directory: ${{ runner.temp }}/sample_app
 
     # TODO: Run `yarn serve` and check if the app doesn't show any error.

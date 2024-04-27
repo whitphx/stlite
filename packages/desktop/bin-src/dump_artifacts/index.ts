@@ -3,7 +3,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import path from "node:path";
-import fsPromises from "node:fs/promises";
+import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";

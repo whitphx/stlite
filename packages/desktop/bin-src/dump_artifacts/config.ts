@@ -84,9 +84,9 @@ async function readDependencies(
     fallbacks: { packages: packagesFallback },
   } = options;
 
-  let dependenciesFromPackageJson = packageJsonStliteDesktopField?.dependencies;
+  let dependencies = packageJsonStliteDesktopField?.dependencies;
   s.assert(
-    dependenciesFromPackageJson,
+    dependencies,
     s.optional(s.array(s.string())),
     "The `stlite.desktop.dependencies` field must be an array of strings."
   );
@@ -100,10 +100,7 @@ async function readDependencies(
     dependenciesFromDeprecatedArg = packagesFallback;
   }
 
-  return [
-    ...(dependenciesFromPackageJson ?? []),
-    ...dependenciesFromDeprecatedArg,
-  ];
+  return [...(dependencies ?? []), ...dependenciesFromDeprecatedArg];
 }
 
 async function readRequirementsTxtFilePaths(

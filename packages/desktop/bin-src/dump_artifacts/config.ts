@@ -32,7 +32,7 @@ export async function readConfig(
 function readFilesAndEntrypoint(options: ReadConfigOptions) {
   const {
     packageJsonStliteDesktopField,
-    fallbacks: { appHomeDirSource: fallbackAppHomeDirSource },
+    fallbacks: { appHomeDirSource: appHomeDirSourceFallback },
   } = options;
   let files = packageJsonStliteDesktopField?.files;
   let entrypoint = packageJsonStliteDesktopField?.entrypoint;
@@ -42,7 +42,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
         "Read the `appHomeDirSource` argument as the app directory. " +
         "This behavior will be deprecated in the future."
     );
-    const appHomeDirSource = fallbackAppHomeDirSource;
+    const appHomeDirSource = appHomeDirSourceFallback;
     if (typeof appHomeDirSource !== "string") {
       throw new Error(
         "The `appHomeDirSource` argument is required when `stlite.desktop.files` and `stlite.desktop.entrypoint` are not found in the package.json.\n" +
@@ -52,7 +52,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
     files = [appHomeDirSource];
     entrypoint = `./${appHomeDirSource}/streamlit_app.py`;
   } else {
-    if (fallbackAppHomeDirSource != null) {
+    if (appHomeDirSourceFallback != null) {
       console.warn(
         "[Deprecated] `appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
       );
@@ -78,7 +78,7 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     packageJsonStliteDesktopField,
     fallbacks: {
       packages: packagesFallback,
-      requirementsTxtFilePaths: requirementTxtFilePathsFallback,
+      requirementsTxtFilePaths: requirementsTxtFilePathsFallback,
     },
   } = options;
 
@@ -125,13 +125,13 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     requirementsFromDeprecatedArgs =
       requirementsFromDeprecatedArgs.concat(packagesFallback);
   }
-  if (requirementTxtFilePathsFallback != null) {
+  if (requirementsTxtFilePathsFallback != null) {
     console.warn(
       "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
     );
-    for (const requirementTxtFilePath of requirementTxtFilePathsFallback) {
+    for (const requirementsTxtFilePath of requirementsTxtFilePathsFallback) {
       const requirementsTxtData = await fsPromises.readFile(
-        requirementTxtFilePath,
+        requirementsTxtFilePath,
         {
           encoding: "utf-8",
         }

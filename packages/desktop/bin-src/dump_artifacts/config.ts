@@ -59,16 +59,16 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
     }
   }
 
-  if (entrypoint == null) {
-    throw new Error(
-      "The `stlite.desktop.entrypoint` field is not found in the package.json."
-    );
-  }
-  if (!Array.isArray(files) || !files.every((x) => typeof x === "string")) {
-    throw new Error(
-      "The `stlite.desktop.files` field must be an array of strings."
-    );
-  }
+  s.assert(
+    entrypoint,
+    s.string(),
+    "The `stlite.desktop.entrypoint` field must be a string."
+  );
+  s.assert(
+    files,
+    s.array(s.string()),
+    "The `stlite.desktop.files` field must be an array of strings."
+  );
 
   return { files, entrypoint };
 }

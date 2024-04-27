@@ -1,10 +1,8 @@
 import path from "node:path";
-import fsPromises from "node:fs/promises";
 import * as s from "superstruct";
-import { parseRequirementsTxt } from "@stlite/common";
 
 interface ReadConfigOptions {
-  cwd: string;
+  projectDir: string;
   packageJsonStliteDesktopField: any;
   fallbacks: Partial<{
     // For backward compatibility for the deprecated command line options
@@ -17,17 +15,20 @@ interface ReadConfigResult {
   files: string[];
   entrypoint: string;
   dependencies: string[];
+  requirementsTxtFiles: string[];
 }
 export async function readConfig(
   options: ReadConfigOptions
 ): Promise<ReadConfigResult> {
   const { files, entrypoint } = readFilesAndEntrypoint(options);
   const dependencies = await readDependencies(options);
+  const requirementsTxtFiles = await readRequirementsTxtFiles(options);
 
   return {
     files,
     entrypoint,
     dependencies,
+    requirementsTxtFiles,
   };
 }
 
@@ -75,14 +76,12 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
   return { files, entrypoint };
 }
 
-async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
+async function readDependencies(
+  options: ReadConfigOptions
+): Promise<ReadConfigResult["dependencies"]> {
   const {
-    cwd,
     packageJsonStliteDesktopField,
-    fallbacks: {
-      packages: packagesFallback,
-      requirementsTxtFilePaths: requirementsTxtFilePathsFallback,
-    },
+    fallbacks: { packages: packagesFallback },
   } = options;
 
   let dependenciesFromPackageJson = packageJsonStliteDesktopField?.dependencies;
@@ -92,6 +91,30 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     "The `stlite.desktop.dependencies` field must be an array of strings."
   );
 
+  // Below is for backward compatibility for the deprecated command line options
+  let requirementsFromDeprecatedArg: string[] = [];
+  if (packagesFallback != null) {
+    console.warn(
+      "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
+    );
+    requirementsFromDeprecatedArg = packagesFallback;
+  }
+
+  return [
+    ...(dependenciesFromPackageJson ?? []),
+    ...requirementsFromDeprecatedArg,
+  ];
+}
+
+async function readRequirementsTxtFiles(
+  options: ReadConfigOptions
+): Promise<ReadConfigResult["requirementsTxtFiles"]> {
+  const {
+    projectDir,
+    packageJsonStliteDesktopField,
+    fallbacks: { requirementsTxtFilePaths: requirementsTxtFilePathsFallback },
+  } = options;
+
   const requirementsTxtPaths =
     packageJsonStliteDesktopField?.requirementsTxtFiles;
   s.assert(
@@ -99,34 +122,12 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     s.optional(s.array(s.string())),
     "The `stlite.desktop.requirementsTxtFiles` field must be an array of strings."
   );
-  const dependenciesFromRequirementsTxt = requirementsTxtPaths
-    ? await Promise.all(
-        requirementsTxtPaths.map(async (requirementsTxtPath) => {
-          const requirementsTxtData = await fsPromises.readFile(
-            path.resolve(cwd, requirementsTxtPath),
-            {
-              encoding: "utf-8",
-            }
-          );
-          return parseRequirementsTxt(requirementsTxtData);
-        })
-      ).then((parsedRequirements) => parsedRequirements.flat())
-    : [];
-
-  const dependencies = [
-    ...(dependenciesFromPackageJson ?? []),
-    ...dependenciesFromRequirementsTxt,
-  ];
+  const resolvedRequirementsTxtPaths = requirementsTxtPaths?.map((p) =>
+    path.resolve(projectDir, p)
+  );
 
   // Below is for backward compatibility for the deprecated command line options
-  let requirementsFromDeprecatedArgs: string[] = [];
-  if (packagesFallback != null) {
-    console.warn(
-      "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
-    );
-    requirementsFromDeprecatedArgs =
-      requirementsFromDeprecatedArgs.concat(packagesFallback);
-  }
+  let requirementsTxtFilePathsFromDeprecatedArg: string[] = [];
   if (
     requirementsTxtFilePathsFallback != null &&
     requirementsTxtFilePathsFallback.length > 0
@@ -134,20 +135,13 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     console.warn(
       "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
     );
-    await Promise.all(
-      requirementsTxtFilePathsFallback.map(async (requirementsTxtFilePath) => {
-        const requirementsTxtData = await fsPromises.readFile(
-          path.resolve(cwd, requirementsTxtFilePath),
-          {
-            encoding: "utf-8",
-          }
-        );
-        const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
-        requirementsFromDeprecatedArgs =
-          requirementsFromDeprecatedArgs.concat(parsedRequirements);
-      })
-    );
+    // We don't need to resolve these paths because they are given as command line arguments which are assumed to be relative to the current working directory.
+    requirementsTxtFilePathsFromDeprecatedArg =
+      requirementsTxtFilePathsFallback;
   }
 
-  return [...dependencies, ...requirementsFromDeprecatedArgs];
+  return [
+    ...(resolvedRequirementsTxtPaths ?? []),
+    ...requirementsTxtFilePathsFromDeprecatedArg,
+  ];
 }

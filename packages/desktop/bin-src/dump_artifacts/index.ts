@@ -2,7 +2,7 @@
 
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import path from "path";
+import path from "node:path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
 import fetch from "node-fetch";
@@ -11,7 +11,7 @@ import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
-import { validateRequirements } from "@stlite/common";
+import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
 
 // @ts-ignore
@@ -266,6 +266,15 @@ async function assertAppDirectoryContainsEntrypoint(
   }
 }
 
+async function readRequirements(
+  requirementsTxtPath: string
+): Promise<string[]> {
+  const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
+    encoding: "utf-8",
+  });
+  return parseRequirementsTxt(requirementsTxtData);
+}
+
 async function writePrebuiltPackagesTxt(
   prebuiltPackagesTxtPath: string,
   prebuiltPackages: string[]
@@ -361,12 +370,8 @@ yargs(hideBin(process.argv))
     const packageJsonPath = path.resolve(projectDir, "./package.json");
     const packageJson = require(packageJsonPath);
 
-    const {
-      files,
-      entrypoint,
-      dependencies: unvalidatedDependencies,
-    } = await readConfig({
-      cwd: projectDir,
+    const config = await readConfig({
+      projectDir,
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       fallbacks: {
         appHomeDirSource: args.appHomeDirSource,
@@ -374,10 +379,21 @@ yargs(hideBin(process.argv))
         requirementsTxtFilePaths: args.requirement,
       },
     });
-    const dependencies = validateRequirements(unvalidatedDependencies);
-    console.log("File/directory patterns to be included:", files);
-    console.log("The entrypoint:", entrypoint);
-    console.log("The dependencies:", dependencies);
+    console.log("File/directory patterns to be included:", config.files);
+    console.log("The entrypoint:", config.entrypoint);
+    console.log("The dependencies:", config.dependencies);
+    console.log("The requirements.txt files:", config.requirementsTxtFiles);
+
+    const dependenciesFromRequirementsTxt = await Promise.all(
+      config.requirementsTxtFiles.map(async (requirementsTxtPath) => {
+        return readRequirements(requirementsTxtPath);
+      })
+    ).then((parsedRequirements) => parsedRequirements.flat());
+
+    const dependencies = validateRequirements([
+      ...config.dependencies,
+      ...dependenciesFromRequirementsTxt,
+    ]);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
       requirements: dependencies,
@@ -390,10 +406,10 @@ yargs(hideBin(process.argv))
     const buildAppDirectory = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     await copyAppDirectory({
       cwd: projectDir,
-      filePathPatterns: files,
+      filePathPatterns: config.files,
       buildAppDirectory,
     });
-    assertAppDirectoryContainsEntrypoint(buildAppDirectory, entrypoint);
+    assertAppDirectoryContainsEntrypoint(buildAppDirectory, config.entrypoint);
 
     await createSitePackagesSnapshot({
       requirements: dependencies,
@@ -418,7 +434,7 @@ yargs(hideBin(process.argv))
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
       fallbacks: {
-        entrypoint, // Fallback to the `entrypoint` argument if the `stlite.desktop.entrypoint` field is not found in the `package.json`. This is for backward compatibility and will be deprecated in the future.
+        entrypoint: config.entrypoint, // Fallback to the `entrypoint` argument if the `stlite.desktop.entrypoint` field is not found in the `package.json`. This is for backward compatibility and will be deprecated in the future.
       },
     });
   });

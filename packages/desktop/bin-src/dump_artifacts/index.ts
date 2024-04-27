@@ -366,6 +366,7 @@ yargs(hideBin(process.argv))
       entrypoint,
       dependencies: unvalidatedDependencies,
     } = await readConfig({
+      cwd: projectDir,
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       fallbacks: {
         appHomeDirSource: args.appHomeDirSource,

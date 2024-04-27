@@ -30,28 +30,65 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
        "cross-env": "^7.0.3",
        "electron": "^30.0.1",
        "electron-builder": "^24.13.3"
+     },
+     "stlite": {
+       "desktop": {
+         "files": ["app.py"],
+         "entrypoint": "app.py"
+       }
      }
    }
    ```
 2. Run `npm install` or `yarn install`.
-3. Create `streamlit_app` directory.
-   - Any directory name can be used here.
-4. Create `streamlit_app/streamlit_app.py`.
-   - Change the directory name if you used a different name in the previous step.
-5. Write your Streamlit app code in `streamlit_app/streamlit_app.py`.
-   - The file name `streamlit_app.py` is not configurable now.
-6. Optionally, you can add more contents in the directory, including `pages/*.py` for multi-page apps, any data files, and so on.
-7. Run `npm run dump streamlit_app` or `yarn dump streamlit_app`. The command argument `streamlit_app` is the directory name of the Streamlit app you have created in the previous steps. Change it if you used a different name.
-   - If installing some packages is needed, pass the package names following the directory name like `npm run dump streamlit_app <PackageName1> ... <PackageNameN>`.
-   - The `-r` option like the `pip` command is also available to specify the text files listing the package names to install like `npm run dump streamlit_app -- -r requirements.txt` (NPM) or `yarn dump streamlit_app -r requirements.txt` (Yarn). Note that if you are using NPM, you need to add `--` before options such as `-r` in the `run` command ([ref](https://stackoverflow.com/questions/43046885/what-does-do-when-running-an-npm-command)).
-   - This `dump` command creates `./build` directory. It includes
-     - The stlite bare app files.
-     - `streamlit_app` directory copied from the one you created in the previous steps.
-     - `site-packages-snapshot.tar.gz` that includes the installed package files.
-8. Run `npm run serve` or `yarn serve` for preview.
+3. Create `app.py` and write your Streamlit app code in it.
+   The file name `app.py` is specified both in the `stlite.desktop.files` field in the `package.json` and the `stlite.desktop.entrypoint` field. If you want to use a different file name, change the file name in both fields.
+   - `stlite.desktop.files` specifies the files and directories to be copied to the bundled desktop app.
+   - `stlite.desktop.entrypoint` specifies the entry point of the Streamlit app.
+4. You can add more files and directories, such as `pages/*.py` for multi-page apps, any data files, and so on, by adding them to the `stlite.desktop.files` field in the `package.json`.
+   ```json
+   {
+     // ...other fields...
+     "stlite": {
+       "desktop": {
+         // ...other fields...
+         "files": ["app.py", "pages/*.py", "assets"]
+       }
+     }
+   }
+   ```
+5. You can specify the packages to install in the desktop app by adding `stlite.desktop.dependencies` and/or `stlite.desktop.requirementsTxtFiles` fields in the `package.json`.
+   - `stlite.desktop.dependencies` is an array of package names to install.
+     ```json
+     {
+       // ...other fields...
+       "stlite": {
+         "desktop": {
+           // ...other fields...
+           "dependencies": ["numpy", "pandas"]
+         }
+       }
+     }
+     ```
+   - `stlite.desktop.requirementsTxtFiles` is an array of paths to `requirements.txt` files to install the packages listed in the files.
+     ```json
+     {
+       // ...other fields...
+       "stlite": {
+         "desktop": {
+           // ...other fields...
+           "requirementsTxtFiles": ["requirements.txt"]
+         }
+       }
+     }
+     ```
+6. Run `npm run dump` or `yarn dump`.
+   - This `dump` command creates `./build` directory that contains the copied Streamlit app files, dumped installed packages, Pyodide runtime, Electron app files, etc.
+7. Run `npm run serve` or `yarn serve` for preview.
    - This command is just a wrapper of `electron` command as you can see at the `"scripts"` field in the `package.json`. It launches Electron and starts the app with `./build/electron/main.js`, which is specified at the `"main"` field in the `package.json`.
-9. Run `npm run dist` or `yarn dist` for packaging.
+8. Run `npm run dist` or `yarn dist` for packaging.
    - This command bundles the `./build` directory created in the step above into application files (`.app`, `.exe`, `.dmg` etc.) in the `./dist` directory. To customize the built app, e.g. setting the icon, follow the [`electron-builder`](https://www.electron.build/) instructions.
+
+See the [./samples](./samples) directory for sample projects.
 
 ## Use the latest version of Electron
 

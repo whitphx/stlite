@@ -1,4 +1,4 @@
-import fsPromises from "fs/promises";
+import fsPromises from "node:fs/promises";
 import * as s from "superstruct";
 import {
   type DesktopAppManifest,

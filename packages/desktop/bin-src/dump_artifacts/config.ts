@@ -15,20 +15,20 @@ interface ReadConfigResult {
   files: string[];
   entrypoint: string;
   dependencies: string[];
-  requirementsTxtFiles: string[];
+  requirementsTxtFilePaths: string[];
 }
 export async function readConfig(
   options: ReadConfigOptions
 ): Promise<ReadConfigResult> {
   const { files, entrypoint } = readFilesAndEntrypoint(options);
   const dependencies = await readDependencies(options);
-  const requirementsTxtFiles = await readRequirementsTxtFiles(options);
+  const requirementsTxtFilePaths = await readRequirementsTxtFilePaths(options);
 
   return {
     files,
     entrypoint,
     dependencies,
-    requirementsTxtFiles,
+    requirementsTxtFilePaths,
   };
 }
 
@@ -106,9 +106,9 @@ async function readDependencies(
   ];
 }
 
-async function readRequirementsTxtFiles(
+async function readRequirementsTxtFilePaths(
   options: ReadConfigOptions
-): Promise<ReadConfigResult["requirementsTxtFiles"]> {
+): Promise<ReadConfigResult["requirementsTxtFilePaths"]> {
   const {
     projectDir,
     packageJsonStliteDesktopField,

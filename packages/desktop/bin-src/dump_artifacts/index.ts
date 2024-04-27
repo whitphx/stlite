@@ -380,12 +380,12 @@ yargs(hideBin(process.argv))
       },
     });
     console.log("File/directory patterns to be included:", config.files);
-    console.log("The entrypoint:", config.entrypoint);
-    console.log("The dependencies:", config.dependencies);
-    console.log("The requirements.txt files:", config.requirementsTxtFiles);
+    console.log("Entrypoint:", config.entrypoint);
+    console.log("Dependencies:", config.dependencies);
+    console.log("`requirements.txt` files:", config.requirementsTxtFilePaths);
 
     const dependenciesFromRequirementsTxt = await Promise.all(
-      config.requirementsTxtFiles.map(async (requirementsTxtPath) => {
+      config.requirementsTxtFilePaths.map(async (requirementsTxtPath) => {
         return readRequirements(requirementsTxtPath);
       })
     ).then((parsedRequirements) => parsedRequirements.flat());

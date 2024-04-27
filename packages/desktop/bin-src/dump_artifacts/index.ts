@@ -356,7 +356,7 @@ yargs(hideBin(process.argv))
   .parseAsync()
   .then(async (args) => {
     const projectDir = args.project;
-    const destDir = path.resolve(args.project, "./build");
+    const destDir = path.resolve(projectDir, "./build");
 
     const packageJsonPath = path.resolve(projectDir, "./package.json");
     const packageJson = require(packageJsonPath);

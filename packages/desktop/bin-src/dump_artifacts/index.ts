@@ -371,7 +371,7 @@ yargs(hideBin(process.argv))
     const packageJson = require(packageJsonPath);
 
     const config = await readConfig({
-      projectDir,
+      pathResolutionRoot: projectDir,
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       fallbacks: {
         appHomeDirSource: args.appHomeDirSource,

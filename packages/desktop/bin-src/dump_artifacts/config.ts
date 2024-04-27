@@ -2,7 +2,7 @@ import path from "node:path";
 import * as s from "superstruct";
 
 interface ReadConfigOptions {
-  projectDir: string;
+  pathResolutionRoot: string;
   packageJsonStliteDesktopField: any;
   fallbacks: Partial<{
     // For backward compatibility for the deprecated command line options
@@ -110,7 +110,7 @@ async function readRequirementsTxtFilePaths(
   options: ReadConfigOptions
 ): Promise<ReadConfigResult["requirementsTxtFilePaths"]> {
   const {
-    projectDir,
+    pathResolutionRoot,
     packageJsonStliteDesktopField,
     fallbacks: { requirementsTxtFilePaths: requirementsTxtFilePathsFallback },
   } = options;
@@ -123,7 +123,7 @@ async function readRequirementsTxtFilePaths(
     "The `stlite.desktop.requirementsTxtFiles` field must be an array of strings."
   );
   const resolvedRequirementsTxtPaths = requirementsTxtPaths?.map((p) =>
-    path.resolve(projectDir, p)
+    path.resolve(pathResolutionRoot, p)
   );
 
   // Below is for backward compatibility for the deprecated command line options

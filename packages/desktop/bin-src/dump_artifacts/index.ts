@@ -370,7 +370,7 @@ yargs(hideBin(process.argv))
       fallbacks: {
         appHomeDirSource: args.appHomeDirSource,
         packages: args.packages,
-        requirementTxtFilePaths: args.requirement,
+        requirementsTxtFilePaths: args.requirement,
       },
     });
     const dependencies = validateRequirements(unvalidatedDependencies);

@@ -8,7 +8,7 @@ interface ReadConfigOptions {
     // For backward compatibility for the deprecated command line options
     appHomeDirSource: string;
     packages: string[];
-    requirementTxtFilePaths: string[];
+    requirementsTxtFilePaths: string[];
   }>;
 }
 interface ReadConfigResult {
@@ -78,7 +78,7 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     packageJsonStliteDesktopField,
     fallbacks: {
       packages: packagesFallback,
-      requirementTxtFilePaths: requirementTxtFilePathsFallback,
+      requirementsTxtFilePaths: requirementTxtFilePathsFallback,
     },
   } = options;
 

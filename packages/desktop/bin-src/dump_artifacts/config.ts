@@ -105,8 +105,7 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
               encoding: "utf-8",
             }
           );
-          const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
-          return parsedRequirements;
+          return parseRequirementsTxt(requirementsTxtData);
         })
       ).then((parsedRequirements) => parsedRequirements.flat())
     : [];
@@ -129,17 +128,19 @@ async function readDependencies(options: ReadConfigOptions): Promise<string[]> {
     console.warn(
       "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
     );
-    for (const requirementsTxtFilePath of requirementsTxtFilePathsFallback) {
-      const requirementsTxtData = await fsPromises.readFile(
-        requirementsTxtFilePath,
-        {
-          encoding: "utf-8",
-        }
-      );
-      const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
-      requirementsFromDeprecatedArgs =
-        requirementsFromDeprecatedArgs.concat(parsedRequirements);
-    }
+    await Promise.all(
+      requirementsTxtFilePathsFallback.map(async (requirementsTxtFilePath) => {
+        const requirementsTxtData = await fsPromises.readFile(
+          requirementsTxtFilePath,
+          {
+            encoding: "utf-8",
+          }
+        );
+        const parsedRequirements = parseRequirementsTxt(requirementsTxtData);
+        requirementsFromDeprecatedArgs =
+          requirementsFromDeprecatedArgs.concat(parsedRequirements);
+      })
+    );
   }
 
   return [...dependencies, ...requirementsFromDeprecatedArgs];

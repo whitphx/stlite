@@ -389,11 +389,16 @@ yargs(hideBin(process.argv))
         return readRequirements(requirementsTxtPath);
       })
     ).then((parsedRequirements) => parsedRequirements.flat());
+    console.log(
+      "Dependencies from `requirements.txt` files:",
+      dependenciesFromRequirementsTxt
+    );
 
     const dependencies = validateRequirements([
       ...config.dependencies,
       ...dependenciesFromRequirementsTxt,
     ]);
+    console.log("Validated dependency list:", dependencies);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
       requirements: dependencies,

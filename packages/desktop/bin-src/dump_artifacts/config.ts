@@ -92,17 +92,17 @@ async function readDependencies(
   );
 
   // Below is for backward compatibility for the deprecated command line options
-  let requirementsFromDeprecatedArg: string[] = [];
+  let dependenciesFromDeprecatedArg: string[] = [];
   if (packagesFallback != null) {
     console.warn(
       "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
     );
-    requirementsFromDeprecatedArg = packagesFallback;
+    dependenciesFromDeprecatedArg = packagesFallback;
   }
 
   return [
     ...(dependenciesFromPackageJson ?? []),
-    ...requirementsFromDeprecatedArg,
+    ...dependenciesFromDeprecatedArg,
   ];
 }
 

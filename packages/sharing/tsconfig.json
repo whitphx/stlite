@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "../../streamlit/frontend/lib/src/**/*.d.ts"]
 }

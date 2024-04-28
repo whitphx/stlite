@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.52.5] - 2024-04-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal updates around `ConnectionManager`, [#846](https://github.com/whitphx/stlite/pull/846).
+
 ## [0.52.4] - 2024-04-16
 
 ### `@stlite/desktop`

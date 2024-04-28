@@ -33,7 +33,8 @@ export function downloadFileFromStlite(
           ? parseContentDispositionHeader(contentDispositionHeader)
           : "";
 
-      const blob = new Blob([body], { type: headers.get("Content-Type") });
+      const type = headers.get("Content-Type");
+      const blob = new Blob([body], type ? { type } : undefined);
       const objectUrl = URL.createObjectURL(blob);
 
       const link = document.createElement("a");

@@ -36,7 +36,8 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
           return;
         }
 
-        const blob = new Blob([body], { type: headers.get("Content-Type") });
+        const type = headers.get("Content-Type");
+        const blob = new Blob([body], type ? { type } : undefined);
         objectUrl = URL.createObjectURL(blob);
         setUrl(objectUrl);
       });
@@ -95,7 +96,8 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
             return obj;
           }
 
-          const blob = new Blob([body], { type: headers.get("Content-Type") });
+          const type = headers.get("Content-Type");
+          const blob = new Blob([body], type ? { type } : undefined);
           const objectUrl = URL.createObjectURL(blob);
           generatedObjectUrls.push(objectUrl);
           return {

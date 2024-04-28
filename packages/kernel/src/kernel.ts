@@ -251,7 +251,10 @@ export class StliteKernel {
       },
       "http:response"
     ).then((data) => {
-      return data.response;
+      return {
+        ...data.response,
+        headers: new Headers(Object.fromEntries(data.response.headers)),
+      };
     });
   }
 

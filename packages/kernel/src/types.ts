@@ -15,8 +15,11 @@ export interface HttpRequest {
 }
 export interface HttpResponse {
   statusCode: number;
-  headers: Map<string, string>;
+  headers: Headers;
   body: Uint8Array;
+}
+export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
+  headers: Map<string, string>;
 }
 export interface EmscriptenFile {
   data: string | ArrayBufferView;
@@ -176,7 +179,7 @@ interface ReplyMessageBase {
 export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";
   data: {
-    response: HttpResponse;
+    response: HttpResponseInMessage;
   };
 }
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {

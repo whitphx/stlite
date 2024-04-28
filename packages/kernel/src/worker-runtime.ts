@@ -338,7 +338,8 @@ def setup_loggers(streamlit_level, streamlit_message_format):
       "Mocking some Streamlit functions for the browser environment."
     );
     console.debug("Mocking some Streamlit functions");
-    // Disable caching. See https://github.com/whitphx/stlite/issues/495
+    // - Disable caching. See https://github.com/whitphx/stlite/issues/495
+    // - Disable the config file loading.
     await pyodide.runPythonAsync(`
 import streamlit
 
@@ -346,6 +347,8 @@ def is_cacheable_msg(msg):
     return False
 
 streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
+
+streamlit.config.CONFIG_FILENAMES = []
 `);
     console.debug("Mocked some Streamlit functions");
 

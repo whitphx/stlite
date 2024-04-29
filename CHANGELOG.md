@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.53.2] - 2024-04-29
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal refactoring: use the `Headers` class to parse the response headers of the emulated HTTP requests, [#888](https://github.com/whitphx/stlite/pull/888).
+
 ## [0.53.1] - 2024-04-29
 
 ### `@stlite/kernel`

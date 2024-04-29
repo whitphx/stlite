@@ -18578,10 +18578,10 @@ pure-color@^1.2.0:
   resolved "https://registry.yarnpkg.com/pure-color/-/pure-color-1.3.0.tgz#1fe064fb0ac851f0de61320a8bf796836422f33e"
   integrity sha512-QFADYnsVoBMw1srW7OVKEYjG+MbIa49s54w1MA1EDY6r2r/sTcKKYqRX1f4GYvnXP7eN/Pe9HFcX+hwzmrXRHA==
 
-pyodide@0.25.0:
-  version "0.25.0"
-  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.25.0.tgz#0c75d31ffbb65f7f2e2686dfeeb809c73e4d571a"
-  integrity sha512-RagtX3TfV2M0QAfThG2SMvwE31ikqAFDUXc5/4xhppEoVf4VbL7L0kbKOIdSNg7MbVsHELVxftk66WvT926GpA==
+pyodide@0.25.1:
+  version "0.25.1"
+  resolved "https://registry.yarnpkg.com/pyodide/-/pyodide-0.25.1.tgz#80114f84b8eaf7e7dc53477b96d71fb7b1bbf6ae"
+  integrity sha512-y0nJ/fLA3bxD2iZRzvVTbP2O+wp4Ewm2wThfV4HF0BytQ6hsoqTJFLNY4usLOcCVBrK8TTWqFqrmsVPzHe4rsw==
   dependencies:
     base-64 "^1.0.0"
     ws "^8.5.0"

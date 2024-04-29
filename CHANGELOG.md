@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.54.0] - 2024-04-29
+
+### `@stlite/desktop`
+
+#### Changed
+
+- [DEPRECATED] The app files to be bundled, the entrypoint, and the dependencies are now specified in the `package.json` file, and the command line arguments of the `dump` commands for that purpose are deprecated, [#878](https://github.com/whitphx/stlite/pull/878).
+- A new `--project` option is added to the `dump` command to specify the project directory, [#878](https://github.com/whitphx/stlite/pull/878).
+
 ## [0.53.2] - 2024-04-29
 
 ### `@stlite/kernel`

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.54.1] - 2024-04-29
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Update the sample `package.json` in the README, [`38b1227`](https://github.com/whitphx/stlite/commit/38b12278649d2c8571f45a467f8e846e2dc1dbf9).
+
 ## [0.54.0] - 2024-04-29
 
 ### `@stlite/desktop`

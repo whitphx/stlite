@@ -1,5 +1,6 @@
 import path from "node:path";
 import * as s from "superstruct";
+import { logger } from "./logger";
 
 interface ReadConfigOptions {
   pathResolutionRoot: string;
@@ -40,7 +41,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
   let files = packageJsonStliteDesktopField?.files;
   let entrypoint = packageJsonStliteDesktopField?.entrypoint;
   if (files == null || entrypoint == null) {
-    console.warn(
+    logger.warn(
       "`stlite.desktop.files` and `stlite.desktop.entrypoint` are not found in `package.json`. " +
         "Read the `appHomeDirSource` argument as the app directory. " +
         "This behavior will be deprecated in the future."
@@ -56,7 +57,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
     entrypoint = `./${appHomeDirSource}/streamlit_app.py`;
   } else {
     if (appHomeDirSourceFallback != null) {
-      console.warn(
+      logger.warn(
         "[Deprecated] `appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
       );
     }
@@ -94,7 +95,7 @@ async function readDependencies(
   // Below is for backward compatibility for the deprecated command line options
   let dependenciesFromDeprecatedArg: string[] = [];
   if (packagesFallback != null) {
-    console.warn(
+    logger.warn(
       "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
     );
     dependenciesFromDeprecatedArg = packagesFallback;
@@ -129,7 +130,7 @@ async function readRequirementsTxtFilePaths(
     requirementsTxtFilePathsFallback != null &&
     requirementsTxtFilePathsFallback.length > 0
   ) {
-    console.warn(
+    logger.warn(
       "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
     );
     // We don't need to resolve these paths because they are given as command line arguments which are assumed to be relative to the current working directory.

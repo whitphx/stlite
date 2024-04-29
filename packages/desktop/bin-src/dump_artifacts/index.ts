@@ -13,6 +13,7 @@ import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
+import { logger } from "./logger";
 
 // @ts-ignore
 global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
@@ -22,6 +23,9 @@ const pathFromScriptToBuild =
 const pathFromScriptToWheels =
   process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
 
+/**
+ * Ensure that the given package is loaded by throwing an error if any error occurs in the loadPackage() function.
+ */
 async function ensureLoadPackage(
   pyodide: PyodideInterface,
   packageName: string | string[]
@@ -41,7 +45,7 @@ interface CopyBuildDirectoryOptions {
   copyTo: string;
 }
 async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
-  console.info(
+  logger.info(
     "Copy the build directory (the bare built app files) to this directory..."
   );
 
@@ -52,7 +56,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   }
 
   if (sourceDir === options.copyTo) {
-    console.warn(
+    logger.warn(
       `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`
     );
     return;
@@ -61,9 +65,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   if (options.keepOld) {
     try {
       await fsPromises.access(options.copyTo);
-      console.info(
-        `${options.copyTo} already exists. Use it and skip copying.`
-      );
+      logger.info(`${options.copyTo} already exists. Use it and skip copying.`);
       return;
     } catch {
       // If the destination directory does not exist
@@ -73,7 +75,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     }
   }
 
-  console.log(`Copy ${sourceDir} to ${options.copyTo}`);
+  logger.debug(`Copy ${sourceDir} to ${options.copyTo}`);
   await fsPromises.rm(options.copyTo, { recursive: true, force: true });
   await fsExtra.copy(sourceDir, options.copyTo, { errorOnExist: true });
 }
@@ -108,14 +110,14 @@ async function prepareLocalWheel(
   pyodide: PyodideInterface,
   localPath: string
 ): Promise<string> {
-  console.log(`Preparing the local wheel ${localPath}`);
+  logger.debug(`Preparing the local wheel: %s`, localPath);
 
   const data = await fsPromises.readFile(localPath);
   const emfsPath = "/tmp/" + path.basename(localPath);
   pyodide.FS.writeFile(emfsPath, data);
 
   const requirement = `emfs:${emfsPath}`;
-  console.log(`The local wheel ${localPath} is prepared as ${requirement}`);
+  logger.debug(`The local wheel %s is prepared as %s`, localPath, requirement);
   return requirement;
 }
 
@@ -143,7 +145,7 @@ async function installPackages(
   );
   requirements.push(streamlitWheel);
 
-  console.log("Install the packages:", requirements);
+  logger.info("Install the packages: %j", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
 }
 
@@ -155,7 +157,7 @@ interface CreateSitePackagesSnapshotOptions {
 async function createSitePackagesSnapshot(
   options: CreateSitePackagesSnapshotOptions
 ) {
-  console.info("Create the site-packages snapshot file...");
+  logger.info("Create the site-packages snapshot file...");
 
   const pyodide = await loadPyodide();
 
@@ -166,7 +168,7 @@ async function createSitePackagesSnapshot(
 
   const mockedPackages: string[] = [];
   if (options.usedPrebuiltPackages.length > 0) {
-    console.log(
+    logger.info(
       "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
     options.usedPrebuiltPackages.forEach((pkg) => {
@@ -175,24 +177,22 @@ async function createSitePackagesSnapshot(
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
 
-      console.log(`Mock ${packageInfo.name} ${packageInfo.version}`);
+      logger.debug(`Mock ${packageInfo.name} ${packageInfo.version}`);
       micropip.add_mock_package(packageInfo.name, packageInfo.version);
       mockedPackages.push(packageInfo.name);
     });
   }
 
-  console.log(
-    `Install the requirements ${JSON.stringify(options.requirements)}`
-  );
+  logger.info(`Install the requirements %j`, options.requirements);
 
   await installPackages(pyodide, {
     requirements: options.requirements,
   });
 
-  console.log("Remove the mocked packages", mockedPackages);
+  logger.info("Remove the mocked packages: %j", mockedPackages);
   mockedPackages.forEach((pkg) => micropip.remove_mock_package(pkg));
 
-  console.log("Archive the site-packages director(y|ies)");
+  logger.info("Archive the site-packages director(y|ies)");
   const archiveFilePath = "/tmp/site-packages-snapshot.tar.gz";
   await pyodide.runPythonAsync(`
     import os
@@ -209,10 +209,10 @@ async function createSitePackagesSnapshot(
             gzf.add(site_packages)
   `);
 
-  console.log("Extract the archive file from EMFS");
+  logger.info("Extract the archive file from EMFS");
   const archiveBin = pyodide.FS.readFile(archiveFilePath);
 
-  console.log(`Save the archive file (${options.saveTo})`);
+  logger.info(`Save the archive file (${options.saveTo})`);
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
@@ -223,7 +223,7 @@ interface CopyAppDirectoryOptions {
 }
 
 async function copyAppDirectory(options: CopyAppDirectoryOptions) {
-  console.info("Copy the app directory...");
+  logger.info("Copy the app directory...");
 
   await Promise.all(
     options.filePathPatterns.map(async (pattern) => {
@@ -233,7 +233,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
       });
 
       if (fileRelPaths.length === 0) {
-        console.warn(
+        logger.warn(
           `No files match the pattern "${pattern}" in "${options.cwd}".`
         );
         return;
@@ -243,7 +243,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
         fileRelPaths.map(async (relPath) => {
           const srcPath = path.resolve(options.cwd, relPath);
           const destPath = path.resolve(options.buildAppDirectory, relPath);
-          console.log(`Copy ${srcPath} to ${destPath}`);
+          logger.debug(`Copy ${srcPath} to ${destPath}`);
           await fsExtra.copy(srcPath, destPath, {
             errorOnExist: true,
           });
@@ -300,7 +300,7 @@ async function downloadPrebuiltPackageWheels(
     makePyodideUrl(pkg.file_name)
   );
 
-  console.log("Downloading the used prebuilt packages...");
+  logger.info("Downloading the used prebuilt packages...");
   await Promise.all(
     usedPrebuiltPackageUrls.map(async (pkgUrl) => {
       const dstPath = path.resolve(
@@ -308,7 +308,7 @@ async function downloadPrebuiltPackageWheels(
         "./pyodide",
         path.basename(pkgUrl)
       );
-      console.log(`Download ${pkgUrl} to ${dstPath}`);
+      logger.debug(`Download ${pkgUrl} to ${dstPath}`);
       const res = await fetch(pkgUrl);
       if (!res.ok) {
         throw new Error(
@@ -325,10 +325,7 @@ yargs(hideBin(process.argv))
   .command(
     "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
-    () => {},
-    (argv) => {
-      console.info(argv);
-    }
+    () => {}
   )
   .positional("appHomeDirSource", {
     describe:
@@ -362,8 +359,18 @@ yargs(hideBin(process.argv))
     alias: "k",
     describe: "Keep the existing build directory contents except appHomeDir.",
   })
+  .options("logLevel", {
+    type: "string",
+    default: "info",
+    describe: "The log level",
+    choices: ["debug", "info", "warn", "error"],
+  })
   .parseAsync()
   .then(async (args) => {
+    logger.level = args.logLevel;
+
+    logger.debug(`Command line arguments: %j`, args);
+
     const projectDir = args.project;
     const destDir = path.resolve(projectDir, "./build");
 
@@ -379,18 +386,21 @@ yargs(hideBin(process.argv))
         requirementsTxtFilePaths: args.requirement,
       },
     });
-    console.log("File/directory patterns to be included:", config.files);
-    console.log("Entrypoint:", config.entrypoint);
-    console.log("Dependencies:", config.dependencies);
-    console.log("`requirements.txt` files:", config.requirementsTxtFilePaths);
+    logger.info(`File/directory patterns to be included: %j`, config.files);
+    logger.info(`Entrypoint: %s`, config.entrypoint);
+    logger.info(`Dependencies: %j`, config.dependencies);
+    logger.info(
+      `\`requirements.txt\` files: %j`,
+      config.requirementsTxtFilePaths
+    );
 
     const dependenciesFromRequirementsTxt = await Promise.all(
       config.requirementsTxtFilePaths.map(async (requirementsTxtPath) => {
         return readRequirements(requirementsTxtPath);
       })
     ).then((parsedRequirements) => parsedRequirements.flat());
-    console.log(
-      "Dependencies from `requirements.txt` files:",
+    logger.info(
+      "Dependencies from `requirements.txt` files: %j",
       dependenciesFromRequirementsTxt
     );
 
@@ -398,13 +408,15 @@ yargs(hideBin(process.argv))
       ...config.dependencies,
       ...dependenciesFromRequirementsTxt,
     ]);
-    console.log("Validated dependency list:", dependencies);
+    logger.info("Validated dependency list: %j", dependencies);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
       requirements: dependencies,
     });
-    console.log("The prebuilt packages loaded for the given requirements:");
-    console.log(usedPrebuiltPackages);
+    logger.info(
+      "The prebuilt packages loaded for the given requirements: %j",
+      usedPrebuiltPackages
+    );
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
 

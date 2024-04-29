@@ -4,6 +4,7 @@ import {
   type DesktopAppManifest,
   DesktopAppManifestStruct,
 } from "../../electron/manifest";
+import { logger } from "./logger";
 
 export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
   const manifestData = s.mask(obj ?? {}, DesktopAppManifestStruct);
@@ -38,10 +39,10 @@ export async function dumpManifest(options: DumpManifestOptions) {
     ...options.packageJsonStliteDesktopField,
     ...options.fallbacks,
   });
+  logger.info(`App manifest: %j`, manifestData);
 
   const manifestDataStr = JSON.stringify(manifestData, null, 2);
-  console.log(`Dump the manifest file -> ${options.manifestFilePath}`);
-  console.log(manifestDataStr);
+  logger.info(`Dump the manifest file -> ${options.manifestFilePath}`);
   await fsPromises.writeFile(options.manifestFilePath, manifestDataStr, {
     encoding: "utf-8",
   });

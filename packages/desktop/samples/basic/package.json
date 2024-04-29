@@ -1,6 +1,6 @@
 {
   "name": "stlite-desktop-sample-basic",
-  "version": "0.53.1",
+  "version": "0.53.2",
   "license": "Apache-2.0",
   "main": "./build/electron/main.js",
   "scripts": {
@@ -18,7 +18,7 @@
     }
   },
   "devDependencies": {
-    "@stlite/desktop": "^0.53.1",
+    "@stlite/desktop": "^0.53.2",
     "cross-env": "^7.0.3",
     "electron": "^28.2.1",
     "electron-builder": "^24.9.1"

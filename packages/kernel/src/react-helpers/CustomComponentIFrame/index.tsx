@@ -41,7 +41,8 @@ const InnerIFrame = React.forwardRef<
           return;
         }
 
-        const blob = new Blob([body], { type: headers.get("Content-Type") });
+        const type = headers.get("Content-Type");
+        const blob = new Blob([body], type ? { type } : undefined);
         blob.text().then((text) => {
           if (released) {
             return;

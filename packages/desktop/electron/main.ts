@@ -21,6 +21,9 @@ const createWindow = async () => {
   const manifest = await readManifest();
 
   const additionalArguments: string[] = [];
+  additionalArguments.push(
+    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`
+  );
   if (manifest.idbfsMountpoints) {
     additionalArguments.push(
       `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`
@@ -100,8 +103,8 @@ const createWindow = async () => {
         throw new Error("Invalid IPC sender");
       }
 
-      const streamlitAppDir = path.resolve(__dirname, "../streamlit_app");
-      return walkRead(streamlitAppDir);
+      const appDir = path.resolve(__dirname, "../app_files");
+      return walkRead(appDir);
     }
   );
 

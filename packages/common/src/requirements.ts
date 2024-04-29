@@ -38,7 +38,7 @@ export function validateRequirements(requirements: string[]): string[] {
     const isStreamlit = getPackageName(req) === "streamlit";
     if (isStreamlit) {
       console.warn(
-        `Streamlit is specified in the requirements (${req}), but it will be ignored. A built-in version of Streamlit will be used.`
+        `Streamlit is specified in the requirements ("${req}"), but it will be ignored. A built-in version of Streamlit will be used.`
       );
       return false;
     }

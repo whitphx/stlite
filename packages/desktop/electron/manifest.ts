@@ -3,6 +3,7 @@ import * as fsPromises from "fs/promises";
 import * as s from "superstruct";
 
 export const DesktopAppManifestStruct = s.object({
+  entrypoint: s.string(),
   embed: s.defaulted(s.boolean(), false),
   idbfsMountpoints: s.optional(s.array(s.string())),
   nodeJsWorker: s.defaulted(s.boolean(), false),

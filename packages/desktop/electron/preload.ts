@@ -1,10 +1,18 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+const entrypointArg = process.argv
+  .find((arg) => arg.startsWith("--entrypoint="))
+  ?.split("=")[1];
+const entrypoint = entrypointArg && JSON.parse(entrypointArg);
+if (typeof entrypoint !== "string") {
+  throw new Error("The `entrypoint` field must be a string.");
+}
 const idbfsMountpointsArg = process.argv
   .find((arg) => arg.startsWith("--idbfs-mountpoints="))
   ?.split("=")[1];
 const idbfsMountpoints = idbfsMountpointsArg && JSON.parse(idbfsMountpointsArg);
 const appConfig = {
+  entrypoint,
   idbfsMountpoints,
 };
 contextBridge.exposeInMainWorld("appConfig", appConfig);

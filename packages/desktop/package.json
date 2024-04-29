@@ -84,6 +84,7 @@
     "electron-builder": "^24.9.1",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.20.0",
+    "glob": "^10.3.12",
     "parquet-wasm": "^0.4.0",
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",

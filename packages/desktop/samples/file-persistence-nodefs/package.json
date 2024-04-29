@@ -25,6 +25,10 @@
   },
   "stlite": {
     "desktop": {
+      "files": [
+        "app.py"
+      ],
+      "entrypoint": "app.py",
       "nodeJsWorker": true,
       "nodefsMountpoints": {
         "/mnt": "."

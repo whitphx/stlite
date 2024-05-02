@@ -37,7 +37,8 @@ export function manipulateIFrameDocument(
         if (statusCode !== 200) {
           return;
         }
-        const blob = new Blob([body], { type: headers.get("Content-Type") });
+        const type = headers.get("Content-Type");
+        const blob = new Blob([body], type ? { type } : undefined);
         return blob.text().then((text) => {
           const newScriptTag = document.createElement("script");
           newScriptTag.text = text;
@@ -75,7 +76,8 @@ export function manipulateIFrameDocument(
         if (statusCode !== 200) {
           return;
         }
-        const blob = new Blob([body], { type: headers.get("Content-Type") });
+        const type = headers.get("Content-Type");
+        const blob = new Blob([body], type ? { type } : undefined);
         return blob.text().then((text) => {
           const newStyleTag = document.createElement("style");
           newStyleTag.innerHTML = text;

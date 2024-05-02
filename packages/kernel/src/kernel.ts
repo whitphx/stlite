@@ -30,7 +30,8 @@ import { assertStreamlitConfig } from "./types";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.31.0-cp311-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.33.0-cp311-none-any.whl";
+// COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
 
@@ -48,6 +49,13 @@ export interface StliteKernelOptions {
    * A list of package names to be install at the booting-up phase.
    */
   requirements: string[];
+
+  /**
+   * A list of prebuilt package names to be install at the booting-up phase via `pyodide.loadPackage()`.
+   * These packages basically can be installed via the `requirements` option,
+   * but some are only installable via this option such as `openssl`.
+   */
+  prebuiltPackageNames: string[];
 
   /**
    * Files to mount.
@@ -110,11 +118,19 @@ export interface StliteKernelOptions {
    */
   streamlitConfig?: StreamlitConfig;
 
+  idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
 
   onError?: (error: Error) => void;
+
+  /**
+   * The worker to be used, which can be optionally passed.
+   * Desktop apps with NodeJS-backed worker is one of the use cases.
+   */
+  worker?: globalThis.Worker;
 }
 
 export class StliteKernel {
@@ -145,16 +161,20 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
 
-    // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-    // Read the comment in `cross-origin-worker.ts` for the detail.
-    const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
-    this._worker = workerMaker.worker;
+    if (options.worker) {
+      this._worker = options.worker;
+    } else {
+      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
+      // Read the comment in `cross-origin-worker.ts` for the detail.
+      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      this._worker = workerMaker.worker;
+    }
 
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
 
-    // Cognite auth
+    // COGNITE: Cognite auth
     initTokenStorageAndAuthHandler(this._worker);
 
     let wheels: WorkerInitialData["wheels"] = undefined;
@@ -195,11 +215,13 @@ export class StliteKernel {
       files: options.files,
       archives: options.archives,
       requirements: options.requirements,
+      prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
+      idbfsMountpoints: options.idbfsMountpoints,
     };
   }
 
@@ -242,7 +264,10 @@ export class StliteKernel {
       },
       "http:response"
     ).then((data) => {
-      return data.response;
+      return {
+        ...data.response,
+        headers: new Headers(Object.fromEntries(data.response.headers)),
+      };
     });
   }
 

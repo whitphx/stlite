@@ -9,7 +9,9 @@
 //@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const webpack = require("webpack");
 
 /** @type WebpackConfig */
@@ -37,6 +39,7 @@ const webExtensionConfig = {
       // see https://webpack.js.org/configuration/resolve/#resolvefallback
       // for the list of Node.js core module polyfills.
       assert: require.resolve("assert"),
+      path: require.resolve("path-browserify"),
     },
   },
   module: {

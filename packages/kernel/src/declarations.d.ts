@@ -8,9 +8,3 @@ declare module "*.whl" {
   const res: string;
   return res;
 }
-
-// Declarations for the `self` object in worker.ts some of whose properties are used to share values with the Python environment.
-interface Window {
-  __logCallback__: (msg: string) => void;
-  __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
-}

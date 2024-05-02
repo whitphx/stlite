@@ -1,18 +1,17 @@
-import { InMessageAutocomplete, InMessageHover } from "../types";
+import { InMessageAutocomplete, InMessageHover, OutMessage } from "../types";
 import type Pyodide from "pyodide";
+import type { PyProxy } from "pyodide/ffi";
 import {
   LanguageServerEvents,
   OutMessageLangugeServerAutocomplete,
 } from "./language-server-types";
-import { postMessageToStreamLitWorker } from "./streamlit-worker-communication-utils";
-import type { StliteWorkerContext } from "../worker";
 
 /**
  * Imports the necessary python packages to enable language server features
  */
 export const importLanguageServerPythonLibraries = async (
   pyodide: Pyodide.PyodideInterface,
-  micropip: Pyodide.PyProxy
+  micropip: PyProxy
 ) => {
   try {
     await micropip.install.callKwargs(["jedi", "lsprotocol"], {
@@ -168,9 +167,9 @@ autocomplete()`
 };
 
 export const handleAutoComplete = async (
+  postMessage: (message: OutMessage) => void,
   msg: InMessageAutocomplete,
-  pyodide: Pyodide.PyodideInterface,
-  ctx: StliteWorkerContext
+  pyodide: Pyodide.PyodideInterface
 ) => {
   const autoCompleteResponse = {
     type: LanguageServerEvents.autocomplete,
@@ -181,16 +180,17 @@ export const handleAutoComplete = async (
 
   try {
     autoCompleteResponse.data = await get_code_completions(msg, pyodide);
+  } catch (err) {
+    console.error(err);
+    // TODO: send the errors to mixpanel or sentry
+  } finally {
     /**
      * This is happening inside a function in a web worker
      * we need to notify the worker that we processed the request
      * so that the Kernel can send the message to fusion
      */
-    postMessageToStreamLitWorker(ctx, autoCompleteResponse);
-  } catch (err) {
-    console.error(err);
-    // TODO: send the errors to mixpanel or sentry
-    postMessageToStreamLitWorker(ctx, autoCompleteResponse);
+    postMessage(autoCompleteResponse);
+    // postMessageToStreamLitWorker(ctx, autoCompleteResponse);
   }
 };
 
@@ -275,9 +275,9 @@ hover()`);
 };
 
 export const handleHover = async (
+  postMessage: (message: OutMessage) => void,
   msg: InMessageHover,
-  pyodide: Pyodide.PyodideInterface,
-  ctx: StliteWorkerContext
+  pyodide: Pyodide.PyodideInterface
 ) => {
   try {
     const hover = await get_hover(msg, pyodide);
@@ -286,7 +286,11 @@ export const handleHover = async (
      * we need to notify the worker that we processed the request
      * so that the Kernel can send the message to fusion
      */
-    postMessageToStreamLitWorker(ctx, {
+    // postMessageToStreamLitWorker(ctx, {
+    //   type: LanguageServerEvents.hover,
+    //   data: hover,
+    // });
+    postMessage({
       type: LanguageServerEvents.hover,
       data: hover,
     });

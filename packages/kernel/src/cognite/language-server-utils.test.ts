@@ -73,7 +73,9 @@ math.c
         pyodide
       );
 
-      expect(autocompleteResults.items.map((item) => item.label)).toEqual(
+      expect(
+        autocompleteResults.items.map((item: { label: any }) => item.label)
+      ).toEqual(
         expect.arrayContaining(["ceil", "comb", "copysign", "cos", "cosh"])
       );
     });

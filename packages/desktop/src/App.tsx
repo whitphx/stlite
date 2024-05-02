@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import StreamlitApp from "./StreamlitApp";
 import { makeToastKernelCallbacks } from "@stlite/common-react";
+import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
 let pyodideUrl: string | undefined;
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production" && !USE_NODEJS_WORKER) {
   // The `pyodide` directory including `pyodide.js` is downloaded
   // to the build target directory at the build time for production release.
   // See the "build:pyodide" NPM script.
@@ -13,7 +14,7 @@ if (process.env.NODE_ENV === "production") {
   // We set the path here to be loaded in the worker via `importScript()`.
   const currentURL = window.location.href;
   const parentURL = currentURL.split("/").slice(0, -1).join("/") + "/";
-  pyodideUrl = parentURL + "pyodide/pyodide.js";
+  pyodideUrl = parentURL + "pyodide/pyodide.mjs";
 }
 
 function App() {
@@ -23,11 +24,15 @@ function App() {
     let kernel: StliteKernel | null = null;
 
     Promise.all([
-      window.archives.readSitePackagesSnapshot(),
-      window.archives.readRequirements(),
-      window.archives.readStreamlitAppDirectory(),
+      window.archivesAPI.readSitePackagesSnapshot(),
+      window.archivesAPI.readPrebuiltPackageNames(),
+      window.archivesAPI.readStreamlitAppDirectory(),
     ]).then(
-      ([sitePackagesSnapshotFileBin, requirements, streamlitAppFiles]) => {
+      ([
+        sitePackagesSnapshotFileBin,
+        prebuiltPackageNames,
+        streamlitAppFiles,
+      ]) => {
         if (unmounted) {
           return;
         }
@@ -43,7 +48,7 @@ function App() {
         const mountedSitePackagesSnapshotFilePath =
           "/tmp/site-packages-snapshot.tar.gz";
         kernel = new StliteKernel({
-          entrypoint: "streamlit_app.py",
+          entrypoint: window.appConfig.entrypoint,
           files: {
             ...files,
             [mountedSitePackagesSnapshotFilePath]: {
@@ -51,9 +56,14 @@ function App() {
             },
           },
           archives: [],
-          requirements,
+          requirements: [],
+          prebuiltPackageNames,
           mountedSitePackagesSnapshotFilePath,
           pyodideUrl,
+          idbfsMountpoints: window.appConfig.idbfsMountpoints,
+          worker: USE_NODEJS_WORKER
+            ? (new NodeJsWorkerMock() as unknown as Worker)
+            : undefined,
           ...makeToastKernelCallbacks(),
         });
         setKernel(kernel);

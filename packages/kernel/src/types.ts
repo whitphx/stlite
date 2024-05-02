@@ -19,8 +19,11 @@ export interface HttpRequest {
 }
 export interface HttpResponse {
   statusCode: number;
-  headers: Map<string, string>;
+  headers: Headers;
   body: Uint8Array;
+}
+export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
+  headers: Map<string, string>;
 }
 export interface EmscriptenFile {
   data: string | ArrayBufferView;
@@ -48,6 +51,7 @@ export interface WorkerInitialData {
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
+  prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
     stliteServer: string;
@@ -56,6 +60,8 @@ export interface WorkerInitialData {
   };
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
+  idbfsMountpoints?: string[];
+  nodefsMountpoints?: Record<string, string>;
 }
 
 /**
@@ -188,7 +194,7 @@ export interface OutMessageLoadedEvent extends OutMessageBase {
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
-    payload: Uint8Array;
+    payload: Uint8Array | string;
   };
 }
 export type OutMessage =
@@ -199,7 +205,6 @@ export type OutMessage =
   | OutMessageWebSocketBack
   | OutMessageLangugeServerAutocomplete
   | OutMessageLangugeServerHover;
-
 /**
  * Reply message to InMessage
  */
@@ -211,7 +216,7 @@ interface ReplyMessageBase {
 export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";
   data: {
-    response: HttpResponse;
+    response: HttpResponseInMessage;
   };
 }
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {

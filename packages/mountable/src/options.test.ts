@@ -63,11 +63,12 @@ describe("parseMountOptions()", () => {
         },
       },
       requirements: [],
+      prebuiltPackageNames: [],
       archives: [],
     });
   });
 
-  it("fills `command`, `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
+  it("fills `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
     const { kernelOptions } = parseMountOptions({
       files: {
         "streamlit_app.py": "foo",
@@ -82,6 +83,7 @@ describe("parseMountOptions()", () => {
     expect(kernelOptions).toEqual({
       entrypoint: "streamlit_app.py",
       requirements: [],
+      prebuiltPackageNames: [],
       files: {
         "streamlit_app.py": {
           data: "foo",
@@ -120,6 +122,7 @@ describe("parseMountOptions()", () => {
     expect(kernelOptions).toEqual({
       entrypoint: "streamlit_app.py",
       requirements: [],
+      prebuiltPackageNames: [],
       files: {},
       archives: [
         {
@@ -151,6 +154,7 @@ describe("parseMountOptions()", () => {
     expect(kernelOptions).toEqual({
       entrypoint: "foo.py",
       requirements: [],
+      prebuiltPackageNames: [],
       files: {
         "streamlit_app.py": {
           data: "foo",
@@ -166,6 +170,20 @@ describe("parseMountOptions()", () => {
     });
     expect(kernelOptions).toEqual({
       requirements: ["matplotlib"],
+      prebuiltPackageNames: [],
+      entrypoint: "streamlit_app.py",
+      files: {},
+      archives: [],
+    });
+  });
+
+  it("preserves the `prebuiltPackageNames` option if specified", () => {
+    const { kernelOptions } = parseMountOptions({
+      prebuiltPackageNames: ["openssl"],
+    });
+    expect(kernelOptions).toEqual({
+      requirements: [],
+      prebuiltPackageNames: ["openssl"],
       entrypoint: "streamlit_app.py",
       files: {},
       archives: [],

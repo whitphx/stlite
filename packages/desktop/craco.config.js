@@ -10,6 +10,10 @@ module.exports = {
   },
   webpack: {
     configure: (webpackConfig, { env: webpackEnv, paths }) => {
+      // Ref: https://github.com/electron-react-boilerplate/electron-react-boilerplate/blob/v4.6.0/.erb/configs/webpack.config.renderer.prod.ts#L33
+      // Note only ["web"] doesn't work due to https://gist.github.com/msafi/d1b8571aa921feaaa0f893ab24bb727b
+      webpackConfig.target = ["web", "electron-renderer"];
+
       const isEnvDevelopment = webpackEnv === "development";
       const isEnvProduction = webpackEnv === "production";
 
@@ -81,12 +85,6 @@ module.exports = {
       tsRule.include = undefined;
       tsRule.exclude = /node_modules/;
 
-      /* To resolve the alias streamlit/frontend uses */
-      webpackConfig.resolve.alias = {
-        ...webpackConfig.resolve.alias,
-        src: path.resolve(__dirname, "../../streamlit/frontend/src"),
-      };
-
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
       webpackConfig.resolve.mainFields = ["module", "main"];
       // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module
@@ -136,16 +134,24 @@ module.exports = {
   },
   jest: {
     configure: (jestConfig, { env, paths, resolve, rootDir }) => {
-      jestConfig.roots = [...jestConfig.roots, "<rootDir>/electron"];
+      jestConfig.roots = [
+        ...jestConfig.roots,
+        "<rootDir>/electron",
+        "<rootDir>/bin-src",
+      ];
       jestConfig.collectCoverageFrom = [
         ...jestConfig.collectCoverageFrom,
         "electron/**/*.{js,jsx,ts,tsx}",
         "!electron/**/*.d.ts",
+        "bin-src/**/*.{js,jsx,ts,tsx}",
+        "!bin-src/**/*.d.ts",
       ];
       jestConfig.testMatch = [
         ...jestConfig.testMatch,
         "<rootDir>/electron/**/__tests__/**/*.{js,jsx,ts,tsx}",
         "<rootDir>/electron/**/*.{spec,test}.{js,jsx,ts,tsx}",
+        "<rootDir>/bin-src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+        "<rootDir>/bin-src/**/*.{spec,test}.{js,jsx,ts,tsx}",
       ];
       return jestConfig;
     },

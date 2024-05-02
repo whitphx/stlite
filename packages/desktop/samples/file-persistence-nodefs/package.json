@@ -1,0 +1,38 @@
+{
+  "name": "stlite-desktop-sample-file-persistence-nodefs",
+  "version": "0.54.1",
+  "license": "Apache-2.0",
+  "main": "./build/electron/main.js",
+  "scripts": {
+    "dump": "dump-stlite-desktop-artifacts",
+    "serve": "cross-env NODE_ENV=production electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "devDependencies": {
+    "@stlite/desktop": "^0.54.1",
+    "cross-env": "^7.0.3",
+    "electron": "^28.2.1",
+    "electron-builder": "^24.9.1"
+  },
+  "stlite": {
+    "desktop": {
+      "files": [
+        "app.py"
+      ],
+      "entrypoint": "app.py",
+      "nodeJsWorker": true,
+      "nodefsMountpoints": {
+        "/mnt": "."
+      }
+    }
+  }
+}

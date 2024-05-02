@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+node_modules
+build/
+dist/
+hello.txt

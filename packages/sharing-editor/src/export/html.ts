@@ -10,6 +10,13 @@ function makeEntrypointLiteral(entrypoint: AppData["entrypoint"]): string {
   return '"' + entrypoint + '"';
 }
 
+export function escapeTextForJsTemplateLiteral(text: string): string {
+  return text
+    .replaceAll("\\", "\\\\")
+    .replaceAll("`", "\\`")
+    .replaceAll("${", "\\${");
+}
+
 function makeFilesLiteral(files: AppData["files"]): {
   filesLiteral: string;
   isBase64DecoderRequired: boolean;
@@ -21,7 +28,8 @@ function makeFilesLiteral(files: AppData["files"]): {
     content += `"${fileName}": `;
     const fileContent = files[fileName].content;
     if (fileContent?.$case === "text") {
-      content += "`" + fileContent.text.replaceAll("`", "\\`") + "`,\n";
+      content +=
+        "`" + escapeTextForJsTemplateLiteral(fileContent.text) + "`,\n";
     } else if (fileContent?.$case === "data") {
       const b64 = u8aToBase64(fileContent.data);
       content += `${base64ToU8A.name}("${b64}"),\n`;

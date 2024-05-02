@@ -37,7 +37,7 @@ vi.mock("../../kernel", () => {
       if (htmlResponse) {
         return Promise.resolve({
           statusCode: 200,
-          headers: new Map([["Content-Type", htmlResponse.contentType]]),
+          headers: new Headers([["Content-Type", htmlResponse.contentType]]),
           body: new TextEncoder().encode(htmlResponse.body),
         });
       } else {
@@ -74,6 +74,7 @@ describe("<CustomComponentIFrame />", () => {
       files: {},
       archives: [],
       requirements: [],
+      prebuiltPackageNames: [],
     });
     const { container } = render(
       <StliteKernelProvider kernel={kernel}>

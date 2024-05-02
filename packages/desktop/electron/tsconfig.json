@@ -2,11 +2,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "commonjs",
-    "sourceMap": false,
-    "outDir": "../build",
-    "rootDir": "../",
+    "noEmit": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
     "skipLibCheck": true
-  },
-  "include": ["."],
-  "exclude": ["./**/*.test.*", "./**/__tests__"]
+  }
 }

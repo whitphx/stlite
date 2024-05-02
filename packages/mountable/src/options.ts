@@ -8,6 +8,7 @@ import type { MakeToastKernelCallbacksOptions } from "@stlite/common-react";
 export interface SimplifiedStliteKernelOptions {
   entrypoint?: string;
   requirements?: StliteKernelOptions["requirements"];
+  prebuiltPackageNames?: StliteKernelOptions["prebuiltPackageNames"];
   files?: Record<
     string,
     EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
@@ -16,6 +17,7 @@ export interface SimplifiedStliteKernelOptions {
   hostConfig?: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl?: StliteKernelOptions["pyodideUrl"];
   streamlitConfig?: StliteKernelOptions["streamlitConfig"];
+  idbfsMountpoints?: StliteKernelOptions["idbfsMountpoints"];
 }
 
 function canonicalizeFiles(
@@ -97,6 +99,7 @@ export function parseMountOptions(options: MountOptions): {
         },
         archives: [],
         requirements: [],
+        prebuiltPackageNames: [],
       },
       toastCallbackOptions: {
         disableProgressToasts: false,
@@ -114,9 +117,11 @@ export function parseMountOptions(options: MountOptions): {
       files,
       archives,
       requirements: options.requirements || [],
+      prebuiltPackageNames: options.prebuiltPackageNames || [],
       hostConfigResponse: options.hostConfig,
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
+      idbfsMountpoints: options.idbfsMountpoints,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

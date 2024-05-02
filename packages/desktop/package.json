@@ -1,7 +1,15 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.47.0",
+  "version": "0.54.1",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/desktop"
+  },
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
   "homepage": "/",
   "main": "./build/electron/main.js",
   "files": [
@@ -18,16 +26,16 @@
     "build:web": "craco build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
     "test": "craco test",
     "eject": "craco eject",
-    "start:electron": "tsc -p electron -w",
-    "build:electron": "tsc -p electron",
-    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.24.1/pyodide-core-0.24.1.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
-    "build:bin": "./scripts/build_bin.js && sed -i'' -e '1 s/^#!.*$/#!\\/usr\\/bin\\/env node/' ./bin/*.js",
+    "start:electron": "tsc -p electron && cross-env NODE_ENV=development concurrently \"./scripts/build_electron.js --watch\" \"electron .\"",
+    "build:electron": "tsc -p electron && cross-env NODE_ENV=production ./scripts/build_electron.js",
+    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.25.1/pyodide-core-0.25.1.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
+    "build:bin": "tsc -p bin-src && ./scripts/build_bin.js",
     "build:wheels": "./scripts/copy_wheels.js",
     "typecheck": "yarn tsc --noEmit -p electron",
-    "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\" \"wait-on http://localhost:3000 && tsc -p electron && cross-env NODE_ENV=\"development\" electron .\"",
+    "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:wheels && yarn build:bin",
-    "dump:dev": "ts-node ./bin/dump_artifacts.ts",
+    "dump:dev": "ts-node ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
     "pack": "electron-builder --dir",
@@ -53,21 +61,22 @@
   },
   "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
-    "fs-extra": "^10.1.0",
+    "fs-extra": "^11.2.0",
     "node-fetch": "2",
-    "pyodide": "0.24.1",
+    "pyodide": "0.25.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@craco/craco": "^7.0.0",
-    "@stlite/common": "^0.47.0",
-    "@stlite/common-react": "^0.47.0",
-    "@stlite/kernel": "^0.47.0",
-    "@streamlit/app": "1.31.0",
-    "@testing-library/react": "^12.1.4",
+    "@stlite/common": "^0.54.1",
+    "@stlite/common-react": "^0.54.1",
+    "@stlite/kernel": "^0.54.1",
+    "@streamlit/app": "1.33.0",
+    "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",
     "@types/node": "^16.18.12",
+    "@types/node-fetch": "^2.6.11",
     "@types/react": "^17.0.7",
     "@types/react-dom": "^17.0.5",
     "@types/yargs": "^17.0.32",
@@ -75,12 +84,14 @@
     "electron-builder": "^24.9.1",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.20.0",
+    "glob": "^10.3.12",
     "parquet-wasm": "^0.4.0",
     "raw-loader": "^4.0.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "react-toastify": "^9.1.1",
+    "superstruct": "^1.0.4",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"
   },
@@ -97,11 +108,6 @@
     ],
     "directories": {
       "buildResources": "assets"
-    }
-  },
-  "stlite": {
-    "desktop": {
-      "embed": true
     }
   }
 }

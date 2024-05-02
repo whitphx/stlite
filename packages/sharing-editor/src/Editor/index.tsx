@@ -122,7 +122,7 @@ function Editor({
   );
 
   const [addedFileName, setAddedFileName] = useState<string>();
-  const focusTabNext = useCallback((fileName) => {
+  const focusTabNext = useCallback((fileName: string) => {
     setCurrentFileName(fileName);
     setAddedFileName(fileName);
   }, []);
@@ -145,7 +145,7 @@ function Editor({
   );
 
   const handleFileDelete = useCallback(
-    (fileName) => {
+    (fileName: string) => {
       const confirmed = window.confirm(`Delete ${fileName}?`);
       if (!confirmed) {
         return;

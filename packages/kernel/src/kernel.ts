@@ -434,9 +434,7 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
     false
   );
   // communicate if in iframe to parent (top)
-  if (window.top) {
-    window.top.postMessage("getToken", "*");
-  }
+  postMessageToFusion("getToken");
 };
 
 const sendTokenToWorker = (

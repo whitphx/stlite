@@ -10,3 +10,9 @@ export const logger = winston.createLogger({
     }),
   ],
 });
+
+export function deprecationWarning(message: string) {
+  process.emitWarning(message, {
+    type: "DeprecationWarning",
+  });
+}

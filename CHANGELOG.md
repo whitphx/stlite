@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.54.2] - 2024-05-02
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Prettify the CLI log output of the `dump` command, [#890](https://github.com/whitphx/stlite/pull/890).
+
 ## [0.54.1] - 2024-04-29
 
 ### `@stlite/desktop`

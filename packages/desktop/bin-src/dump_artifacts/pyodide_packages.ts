@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import { makePyodideUrl } from "./url";
+import { logger } from "./logger";
 
 interface PackageInfo {
   name: string;
@@ -18,7 +19,7 @@ export class PrebuiltPackagesData {
   > {
     const url = makePyodideUrl("pyodide-lock.json");
 
-    console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
+    logger.info(`Load the Pyodide pyodide-lock.json from ${url}`);
     const res = await fetch(url, undefined);
     const resJson = await res.json();
 

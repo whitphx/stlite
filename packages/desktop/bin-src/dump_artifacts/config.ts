@@ -56,8 +56,11 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
     entrypoint = `./${appHomeDirSource}/streamlit_app.py`;
   } else {
     if (appHomeDirSourceFallback != null) {
-      console.warn(
-        "[Deprecated] `appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`."
+      process.emitWarning(
+        "`appHomeDirSource` is ignored because `stlite.desktop.files` is found in `package.json`.",
+        {
+          type: "DeprecationWarning",
+        }
       );
     }
   }
@@ -94,8 +97,11 @@ async function readDependencies(
   // Below is for backward compatibility for the deprecated command line options
   let dependenciesFromDeprecatedArg: string[] = [];
   if (packagesFallback != null) {
-    console.warn(
-      "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose."
+    process.emitWarning(
+      "The `packages` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.dependencies` in the package.json for that purpose.",
+      {
+        type: "DeprecationWarning",
+      }
     );
     dependenciesFromDeprecatedArg = packagesFallback;
   }
@@ -129,8 +135,11 @@ async function readRequirementsTxtFilePaths(
     requirementsTxtFilePathsFallback != null &&
     requirementsTxtFilePathsFallback.length > 0
   ) {
-    console.warn(
-      "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose."
+    process.emitWarning(
+      "The `requirement` argument is deprecated and will be removed in the future. Please specify `stlite.desktop.requirementsTxtFiles` in the package.json for that purpose.",
+      {
+        type: "DeprecationWarning",
+      }
     );
     // We don't need to resolve these paths because they are given as command line arguments which are assumed to be relative to the current working directory.
     requirementsTxtFilePathsFromDeprecatedArg =

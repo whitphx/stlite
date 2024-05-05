@@ -45,6 +45,10 @@ export function startWorkerEnv(
   postMessage: (message: OutMessage) => void,
   presetInitialData?: Partial<WorkerInitialData>
 ) {
+  console.debug("Worker is starting.", {
+    defaultPyodideUrl,
+    presetInitialData,
+  });
   function postProgressMessage(message: string): void {
     postMessage({
       type: "event:progress",
@@ -98,6 +102,7 @@ export function startWorkerEnv(
     pyodide = await initPyodide(pyodideUrl, {
       stdout: console.log,
       stderr: console.error,
+      packages: prebuiltPackages,
     });
     console.debug("Loaded Pyodide");
 
@@ -212,10 +217,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
     // ===
     // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
     postProgressMessage("Installing packages.");
-
-    console.debug("Installing the prebuilt packages:", prebuiltPackages);
-    await pyodide.loadPackage(prebuiltPackages);
-    console.debug("Installed the prebuilt packages");
 
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");

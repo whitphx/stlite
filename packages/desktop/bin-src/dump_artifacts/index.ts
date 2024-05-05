@@ -2,12 +2,12 @@
 
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { version as pyodideVersion } from "pyodide";
 import path from "node:path";
 import fsPromises from "node:fs/promises";
 import fsExtra from "fs-extra";
 import { loadPyodide, type PyodideInterface } from "pyodide";
-import { makePyodideUrl } from "./url";
-import { PrebuiltPackagesData } from "./pyodide_packages";
+import { PyodideResourceLoader } from "./pyodide-resource-loader";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
@@ -78,6 +78,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
 
 interface InspectUsedPrebuiltPackagesOptions {
   requirements: string[];
+  pyodideIndexUrl?: string;
 }
 /**
  * Get the list of the prebuilt packages used by the given requirements.
@@ -91,7 +92,9 @@ async function inspectUsedPrebuiltPackages(
     return [];
   }
 
-  const pyodide = await loadPyodide();
+  const pyodide = await loadPyodide({
+    indexURL: options.pyodideIndexUrl,
+  });
 
   await installPackages(pyodide, {
     requirements: options.requirements,
@@ -146,6 +149,8 @@ async function installPackages(
 }
 
 interface CreateSitePackagesSnapshotOptions {
+  resourceLoader: PyodideResourceLoader;
+  pyodideIndexUrl?: string;
   requirements: string[];
   usedPrebuiltPackages: string[];
   saveTo: string;
@@ -155,20 +160,22 @@ async function createSitePackagesSnapshot(
 ) {
   logger.info("Create the site-packages snapshot file...");
 
-  const pyodide = await loadPyodide();
+  const pyodide = await loadPyodide({
+    indexURL: options.pyodideIndexUrl,
+  });
 
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
-
-  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
 
   const mockedPackages: string[] = [];
   if (options.usedPrebuiltPackages.length > 0) {
     logger.info(
       "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
-    options.usedPrebuiltPackages.forEach((pkg) => {
-      const packageInfo = prebuiltPackagesData.getPackageInfoByName(pkg);
+    for (const pkg of options.usedPrebuiltPackages) {
+      const packageInfo = await options.resourceLoader.getPackageInfoByName(
+        pkg
+      );
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
@@ -176,7 +183,7 @@ async function createSitePackagesSnapshot(
       logger.debug(`Mock ${packageInfo.name} ${packageInfo.version}`);
       micropip.add_mock_package(packageInfo.name, packageInfo.version);
       mockedPackages.push(packageInfo.name);
-    });
+    }
   }
 
   logger.info(`Install the requirements %j`, options.requirements);
@@ -282,37 +289,24 @@ async function writePrebuiltPackagesTxt(
 }
 
 interface DownloadPrebuiltPackageWheelsOptions {
+  resourceLoader: PyodideResourceLoader;
   packages: string[];
   destDir: string;
 }
 async function downloadPrebuiltPackageWheels(
   options: DownloadPrebuiltPackageWheelsOptions
 ) {
-  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
-  const usedPrebuiltPackages = options.packages.map((pkgName) =>
-    prebuiltPackagesData.getPackageInfoByName(pkgName)
-  );
-  const usedPrebuiltPackageUrls = usedPrebuiltPackages.map((pkg) =>
-    makePyodideUrl(pkg.file_name)
+  const usedPrebuiltPackages = await Promise.all(
+    options.packages.map((pkgName) =>
+      options.resourceLoader.getPackageInfoByName(pkgName)
+    )
   );
 
   logger.info("Downloading the used prebuilt packages...");
+  const dstPyodideDir = path.resolve(options.destDir, "./pyodide");
   await Promise.all(
-    usedPrebuiltPackageUrls.map(async (pkgUrl) => {
-      const dstPath = path.resolve(
-        options.destDir,
-        "./pyodide",
-        path.basename(pkgUrl)
-      );
-      logger.debug(`Download ${pkgUrl} to ${dstPath}`);
-      const res = await fetch(pkgUrl);
-      if (!res.ok) {
-        throw new Error(
-          `Failed to download ${pkgUrl}: ${res.status} ${res.statusText}`
-        );
-      }
-      const buf = await res.arrayBuffer();
-      await fsPromises.writeFile(dstPath, Buffer.from(buf));
+    usedPrebuiltPackages.map(async (pkg) => {
+      await options.resourceLoader.download(pkg.file_name, dstPyodideDir);
     })
   );
 }
@@ -354,6 +348,17 @@ yargs(hideBin(process.argv))
     default: false,
     alias: "k",
     describe: "Keep the existing build directory contents except appHomeDir.",
+  })
+  .options("pyodideIndexUrl", {
+    type: "string",
+    describe:
+      "The URL of the pyodide.js that is used as the index URL option of `loadPyodide()`",
+  })
+  .options("pyodideWheelBaseUrl", {
+    type: "string",
+    default: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
+    describe:
+      "The base URL of the wheel files of the Pyodide's prebuilt packages",
   })
   .options("logLevel", {
     type: "string",
@@ -407,6 +412,7 @@ yargs(hideBin(process.argv))
     logger.info("Validated dependency list: %j", dependencies);
 
     const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
+      pyodideIndexUrl: args.pyodideIndexUrl,
       requirements: dependencies,
     });
     logger.info(
@@ -424,7 +430,11 @@ yargs(hideBin(process.argv))
     });
     assertAppDirectoryContainsEntrypoint(buildAppDirectory, config.entrypoint);
 
+    const resourceLoader = new PyodideResourceLoader(args.pyodideWheelBaseUrl);
+
     await createSitePackagesSnapshot({
+      resourceLoader,
+      pyodideIndexUrl: args.pyodideIndexUrl,
       requirements: dependencies,
       usedPrebuiltPackages,
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
@@ -440,6 +450,7 @@ yargs(hideBin(process.argv))
       usedPrebuiltPackages
     );
     await downloadPrebuiltPackageWheels({
+      resourceLoader,
       packages: usedPrebuiltPackages,
       destDir,
     });

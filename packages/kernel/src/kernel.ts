@@ -117,6 +117,8 @@ export interface StliteKernelOptions {
 
   idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
 
+  autoInstall?: WorkerInitialData["autoInstall"];
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -209,6 +211,7 @@ export class StliteKernel {
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
+      autoInstall: options.autoInstall ?? false,
     };
   }
 

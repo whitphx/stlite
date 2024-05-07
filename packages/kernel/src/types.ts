@@ -57,6 +57,7 @@ export interface WorkerInitialData {
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
+  autoInstall: boolean;
 }
 
 /**

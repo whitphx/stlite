@@ -1456,13 +1456,13 @@ snowflake = ["snowflake-connector-python (>=2.8.0)", "snowflake-snowpark-python 
 
 [[package]]
 name = "streamlit-aggrid"
-version = "1.0.2"
+version = "1.0.5"
 description = "Streamlit component implementation of ag-grid"
 optional = false
 python-versions = "!=2.7.*,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,!=3.7.*,>=3.8"
 files = [
-    {file = "streamlit_aggrid-1.0.2-py3-none-any.whl", hash = "sha256:2afd859cd1935581a7c7389f78ff1b877f4692e3730e905a1b458c949acaad9a"},
-    {file = "streamlit_aggrid-1.0.2.tar.gz", hash = "sha256:9896145ff5e43dfdb4b475bf940d412c2b03da7d435924475e266e96b178c05e"},
+    {file = "streamlit_aggrid-1.0.5-py3-none-any.whl", hash = "sha256:ac0a58c1d39418d139da5623c4c8a0a3aa86463c217a41c837e2ef52c8537a34"},
+    {file = "streamlit_aggrid-1.0.5.tar.gz", hash = "sha256:12e17f88d66e110e5d68504614a4b933f7dca31e40448396252d889a10e761b6"},
 ]
 
 [package.dependencies]
@@ -1680,4 +1680,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10, <3.12"
-content-hash = "847fd059dd14d82ae726587ec9ad36bc2a1df0ee1d6764eac9c877a77b89e904"
+content-hash = "66c5449a65d55dc7992e5bc65a66c393991049f543b123d7fa7e4beb9c670c37"

@@ -286,10 +286,6 @@ export const handleHover = async (
      * we need to notify the worker that we processed the request
      * so that the Kernel can send the message to fusion
      */
-    // postMessageToStreamLitWorker(ctx, {
-    //   type: LanguageServerEvents.hover,
-    //   data: hover,
-    // });
     postMessage({
       type: LanguageServerEvents.hover,
       data: hover,

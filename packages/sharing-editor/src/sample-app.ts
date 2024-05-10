@@ -4,7 +4,16 @@ import sampleAppManifests from "./sample-app-manifests.json"; // This file is ge
 
 const sampleAppBasePath = "/samples";
 
-const TEXT_EXTS = [".py", ".txt", ".csv", ".md"];
+const TEXT_EXTS = [
+  ".py",
+  ".txt",
+  ".csv",
+  ".md",
+  ".json",
+  ".yml",
+  ".yaml",
+  ".toml",
+];
 async function loadFiles(
   fileNames: string[],
   sampleAppDirName: string

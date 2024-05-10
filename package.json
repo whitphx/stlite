@@ -5,7 +5,8 @@
     "packages/*",
     "streamlit/frontend",
     "streamlit/frontend/app",
-    "streamlit/frontend/lib"
+    "streamlit/frontend/lib",
+    "packages/desktop/samples/*"
   ],
   "scripts": {
     "new-version": "lerna version --force-publish",
@@ -13,6 +14,7 @@
   },
   "devDependencies": {
     "@lerna-lite/cli": "^3.3.0",
+    "@lerna-lite/version": "^3.3.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
@@ -22,12 +24,12 @@
     "npm-run-all": "^4.1.5",
     "prettier": "2.7.1",
     "rimraf": "^5.0.5",
-    "wait-on": "^6.0.1"
+    "wait-on": "^7.2.0"
   },
   "resolutions": {
     "immutable": "4.2.3",
     "webpack": "5.76.0",
-    "@types/react": "17.*"
+    "@types/react": "^18.2.0"
   },
   "version": "0.2.0"
 }

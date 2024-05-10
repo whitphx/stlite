@@ -40,12 +40,12 @@ Here is a sample HTML file.
     <title>stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.52.1/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.52.1/build/stlite.js"></script>
     <script>
       stlite.mount(
         `
@@ -158,7 +158,7 @@ stlite.mount(
 
 #### Passing an object with options (advanced)
 
-stlite runs on [Pyodide](https://pyodide.org/), and [it has a file system provided by Emscripten](https://pyodide.org/en/stable/usage/file-system.html).
+_stlite_ runs on [Pyodide](https://pyodide.org/), and [it has a file system provided by Emscripten](https://pyodide.org/en/stable/usage/file-system.html).
 The files specified via the `files` option are mounted on the file system, and [Emscripten's `FS.writeFile()` function](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.writeFile) is used internally for it.
 You can specify the options (`opts`) for the `FS.writeFile(path, data, opts)` function as below.
 
@@ -247,7 +247,7 @@ st.title("Page 2")
 
 ### Different stlite versions
 
-In the example above, the stlite script is loaded via the `<script>` tag with the versioned URL.
+In the example above, the _stlite_ script is loaded via the `<script>` tag with the versioned URL.
 You can use another version by changing the version number in the URL.
 
 The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
@@ -270,7 +270,7 @@ This URL points to the head of the main branch which is usually ahead of the rel
 
 ### Different Pyodide distributions
 
-_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for the CDN access.
+_stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for CDN access.
 
 ```js
 stlite.mount(
@@ -281,6 +281,59 @@ stlite.mount(
   document.getElementById("root")
 );
 ```
+
+## File system
+
+_stlite_ executes your Python code on [Pyodide](https://pyodide.org/) in a browser, and Pyodide has its own Linux-like file system isolated from the host OS (see [Pyodide's](https://pyodide.org/en/stable/usage/file-system.html) or [Emscripten's](https://emscripten.org/docs/api_reference/Filesystem-API.html) documents about the FS for details).
+The source code and data files are mounted on the file system, and the Python code can access it. So, for example, what `open("path/to/file")` reads or writes is the file on the file system virtually existing in the browser, not a file on the host OS.
+
+The default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral, so the files saved in the directories are lost when the page is reloaded.
+The root `/` and some directories including home are mounted as `MEMFS`, the ephemeral file system, by default.
+
+### File persistence with IndexedDB backend
+
+To persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)). The files saved in the directories mounted with `IDBFS` are stored in the browser's IndexedDB, so they are persistent across the app restarts.
+
+In the case of `@stlite/mountable`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
+The mounted file system is persistent across the page reloads and the browser sessions.
+
+```js
+stlite.mount(
+  {
+    idbfsMountpoints: ["/mnt"], // Mount the IndexedDB-based file system to the /mnt directory.
+    entrypoint: "streamlit_app.py",
+    files: {
+      "streamlit_app.py": `
+import datetime
+import streamlit as st
+
+with open("/mnt/data.txt", "a") as f:
+    f.write(f"{datetime.datetime.now()}\\n")
+
+with open("/mnt/data.txt", "r") as f:
+    st.code(f.read())
+`,
+    },
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+## HTTP requests
+
+To make HTTP requests, these libraries work on _stlite_.
+
+- `requests` (only [these classes and methods](https://github.com/koenvo/pyodide-http?tab=readme-ov-file#supported-packages))
+- `urllib` (only [these classes and methods](https://github.com/koenvo/pyodide-http?tab=readme-ov-file#supported-packages))
+- `urllib3` ([since 2.2.0](<(https://urllib3.readthedocs.io/en/stable/reference/contrib/emscripten.html)>))
+- [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) and [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url)
+  - See also the following section about top-level await to know how to use the async method `pyodide.http.pyfetch()`.
+
+_stlite_ automatically enables [`koenvo/pyodide-http`](https://github.com/koenvo/pyodide-http)'s patches to make `requests` and `urllib` work,
+while the networking libraries do not work in general on the Pyodide runtime (Python in browser) as written in [this doc](https://pyodide.org/en/stable/project/roadmap.html#http-client-limit) and Pyodide provides its standard alternative methods to make HTTP requests, `pyodide.http.pyfetch()` and `pyodide.http.open_url()`.
+
+Also, `urllib3` supports Pyodide since 2.2.0 as [this document](https://urllib3.readthedocs.io/en/stable/reference/contrib/emscripten.html) says.
 
 ## Limitations
 
@@ -295,8 +348,7 @@ As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/)
     ```
 - `st.bokeh_chart()` does not work since Pyodide uses Bokeh version 3.x while Streamlit only supports 2.x. The 3.x support for Streamlit is tracked here: https://github.com/streamlit/streamlit/issues/5858
 - `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
-- There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that stlite uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
-- For URL access, `urllib` and `requests` don't work on Pyodide/stlite, so we have to use alternative methods provided by Pyodide, such as [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) or [`pyodide.http.open_url()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.open_url). See https://pyodide.org/en/stable/usage/faq.html#how-can-i-load-external-files-in-pyodide for the details. For `pyodide.http.pyfetch()`, see also the following section about top-level await.
+- There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that _stlite_ uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - Packages including binary extensions (e.g. C/Rust/Fortran/etc) that are not built for the Pyodide environment cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package for the details.
 
 Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues
@@ -306,13 +358,13 @@ If you find a new problem, please report it.
 
 TL;DR: Use top-level await instead of `asyncio.run()` on stlite.
 
-Unlike the original Streamlit, stlite supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, stlite runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
+Unlike the original Streamlit, _stlite_ supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, stlite runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
 
 Top-level await can be useful in various situations.
 
 ### Example 1: `asyncio.sleep()`
 
-One of the most common use cases is `asyncio.sleep()`. As mentioned in the previous section, `time.sleep()` is no-op on stlite because its blocking nature is not compatible with the single-threaded event loop in the web browser environment. Instead, `asyncio.sleep()`, which is non-blocking, can be used to pause the execution of a script for a specified amount of time.
+One of the most common use cases is `asyncio.sleep()`. As mentioned in the previous section, `time.sleep()` is no-op on _stlite_ because its blocking nature is not compatible with the single-threaded event loop in the web browser environment. Instead, `asyncio.sleep()`, which is non-blocking, can be used to pause the execution of a script for a specified amount of time.
 
 You can use top-level await either for `asyncio.sleep()` directly or for an async function that contains `asyncio.sleep()` like the following:
 
@@ -339,9 +391,9 @@ await main()
 
 ### Example 2: `pyodide.http.pyfetch()`
 
-Another common use case is accessing external resources. In the Pyodide environment, widely-used URL access methods in Python, such as `requests`, are not available. However, Pyodide provides [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) as an alternative for accessing external resources. Since this method is async, top-level await becomes handy for utilizing `pyodide.http.pyfetch()`.
+Another common use case is accessing external resources. Pyodide provides a Python wrapper of browser's [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch), [`pyodide.http.pyfetch()`](https://pyodide.org/en/stable/usage/api/python-api/http.html#pyodide.http.pyfetch) for making HTTP requests. Since this method is async, top-level await is sometimes used to handle the response.
 
-Here's a sample code snippet demonstrating the usage of top-level await with `pyodide.http.pyfetch()`:
+Here's an example:
 
 ```python
 import pyodide.http
@@ -366,12 +418,13 @@ data_in_bytes = await response.bytes()
 - [📖 "Python-Based Data Viz (With No Installation Required)", by Sam Minot](https://towardsdatascience.com/python-based-data-viz-with-no-installation-required-aaf2358c881)
 - [📖 "Converting Streamlit application to exe file", by Neelasha Sen](https://ploomber.io/blog/streamlit_exe/)
 - [📖 "Streamlit + Stlite: Beyond Data Science Applications", by Saumitra Panchal](https://medium.com/@saumitrapanchal/streamlit-stlite-beyond-data-science-applications-23de64648883)
+- [📖 "stlite: Serverless Streamlit — Run Your Apps in the Browser", by Alan Jones](https://medium.com/codefile/stlite-serverless-streamlit-d1dcf5be35f8)
 
 ## Samples
 
 ### ⚡️Serverless Image Processing App
 
-Image processing with OpenCV works on the client-side.
+Image processing with OpenCV works on the client side.
 
 - Repository📌: https://github.com/whitphx/stlite-image-processing-app
 - Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/

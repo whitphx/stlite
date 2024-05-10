@@ -9,15 +9,15 @@ license = "Apache-2.0"
 python = "^3.10, <3.12"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
+pytest = "^8.1.2"
 requests = "^2.31.0"
-black = "^24.2.0"
+black = "^24.4.2"
 flake8 = "^7.0.0"
 isort = "^5.13.2"
-mypy = "^1.8.0"
-streamlit-aggrid = "^0.3.4"
-pandas-stubs = "^2.1.4.231227"
-matplotlib = "^3.8.2"
+mypy = "^1.10.0"
+streamlit-aggrid = "^1.0.2"
+pandas-stubs = "^2.2.1.240316"
+matplotlib = "^3.8.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

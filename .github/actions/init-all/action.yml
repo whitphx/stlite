@@ -36,7 +36,7 @@ runs:
       shell: bash
 
     - name: Set up cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: cache
       with:
         path: .venv
@@ -52,7 +52,7 @@ runs:
       shell: bash
 
     ## Set up Node environment
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}
         cache: 'yarn'

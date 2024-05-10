@@ -1,6 +1,6 @@
 {
   "name": "@stlite/mountable",
-  "version": "0.47.0",
+  "version": "0.54.1",
   "description": "Mountable stlite application",
   "keywords": [
     "stlite",
@@ -29,12 +29,12 @@
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
-    "@stlite/common-react": "^0.47.0",
-    "@stlite/kernel": "^0.47.0",
-    "@streamlit/app": "1.31.0",
+    "@stlite/common-react": "^0.54.1",
+    "@stlite/kernel": "^0.54.1",
+    "@streamlit/app": "1.33.0",
     "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.12",
@@ -56,7 +56,7 @@
     "eslint-config-react-app": "^7.0.1",
     "eslint-webpack-plugin": "^3.1.1",
     "file-loader": "^6.2.0",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^11.2.0",
     "html-webpack-plugin": "^5.5.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.3",
@@ -68,12 +68,12 @@
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-loader": "^6.2.1",
     "postcss-normalize": "^10.0.1",
-    "postcss-preset-env": "^7.0.1",
+    "postcss-preset-env": "^9.4.0",
     "prompts": "^2.4.2",
-    "react": "^17.0.2",
+    "react": "^18.2.0",
     "react-app-polyfill": "^3.0.0",
     "react-dev-utils": "^12.0.1",
-    "react-dom": "^17.0.2",
+    "react-dom": "^18.2.0",
     "react-refresh": "^0.11.0",
     "react-toastify": "^9.1.1",
     "resolve": "^1.20.0",
@@ -173,5 +173,8 @@
     "presets": [
       "react-app"
     ]
+  },
+  "dependencies": {
+    "html2canvas": "^1.4.1"
   }
 }

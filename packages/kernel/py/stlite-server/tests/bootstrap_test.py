@@ -16,51 +16,9 @@
 # We copied necessary test cases from
 # streamlit/lib/tests/streamlit/web/bootstrap_test.py
 
-import sys
-from unittest.mock import Mock, patch
-
-import matplotlib
-import pytest
-from streamlit import config
+from unittest.mock import patch
 
 from stlite_server import bootstrap
-
-
-@pytest.mark.skip(
-    reason="The `runner.fixMatplotlib` option is deprecated since 2024-01-20 "
-    "and its fix has not been commited even to the upstream, "
-    "https://github.com/whitphx/stlite/pull/678#issuecomment-1901893049"
-)
-@patch("stlite_server.bootstrap._install_pages_watcher", Mock())
-def test_fix_matplotlib_crash():
-    """Test that bootstrap.run sets the matplotlib backend to
-    "Agg" if config.runner.fixMatplotlib=True.
-    """
-    config.get_config_options()
-
-    # TODO: Find a proper way to mock sys.platform
-    ORIG_PLATFORM = sys.platform
-
-    for platform, do_fix in [("darwin", True), ("linux2", True)]:
-        sys.platform = platform
-
-        matplotlib.use("pdf", force=True)
-
-        config._set_option("runner.fixMatplotlib", True, "test")
-        bootstrap.prepare("/not/a/script", [])
-        if do_fix:
-            assert "agg" == matplotlib.get_backend().lower()
-        else:
-            assert "pdf" == matplotlib.get_backend().lower()
-
-        # Reset
-        matplotlib.use("pdf", force=True)
-
-        config._set_option("runner.fixMatplotlib", False, "test")
-        bootstrap.prepare("/not/a/script", [])
-        assert "pdf" == matplotlib.get_backend().lower()
-
-    sys.platform = ORIG_PLATFORM
 
 
 @patch("streamlit.config.get_config_options")

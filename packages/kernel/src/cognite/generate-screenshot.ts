@@ -2,6 +2,9 @@
 // @ts-ignore
 import html2canvas from "html2canvas";
 
+/**
+ * Copy-paste code from GPT
+ */
 const Canvas2Image = () => {
   // check if support sth.
   const $support = (function () {
@@ -278,7 +281,6 @@ const Canvas2Image = () => {
 export const generateAppScreenshot = async () => {
   try {
     const el = document.querySelector(".stApp") as HTMLDivElement;
-    console.log(el);
     const canvas = await html2canvas(el, {
       allowTaint: true,
       x: 0,
@@ -287,11 +289,7 @@ export const generateAppScreenshot = async () => {
       scrollY: 0,
     });
 
-    console.log("el", el, "canvas", canvas);
-
-    const base64Img = Canvas2Image()!.convertToJPEG(canvas, 258, 150)!.src;
-    console.log("img", base64Img);
-    return base64Img;
+    return Canvas2Image()!.convertToJPEG(canvas, 258, 150)!.src;
   } catch (err) {
     console.error(err);
   }

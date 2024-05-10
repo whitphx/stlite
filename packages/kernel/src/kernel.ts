@@ -34,6 +34,7 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../p
 // COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
+import { generateAppScreenshot } from "./cognite/generate-screenshot";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -410,7 +411,7 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
   // todo need destroyer when unmounting
   window.addEventListener(
     "message",
-    (event) => {
+    async (event) => {
       if (
         typeof event.data === "object" &&
         "token" in event.data &&
@@ -418,6 +419,24 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
         "project" in event.data
       ) {
         sendTokenToWorker(event.data, worker);
+      }
+
+      // StreamLit app main thread, forward the message to the worker
+      // so that the kernel can process the request
+      if (
+        typeof event.data === "object" &&
+        "type" in event.data &&
+        "data" in event.data &&
+        event.data.type === "streamlit-app-generate-screenshot"
+      ) {
+        const appScreenshot = await generateAppScreenshot();
+        console.log("GeneratedApp screenshot", appScreenshot);
+
+        // communicate if in iframe to parent (top)
+        postMessageToFusion({
+          type: "streamlit-app-generate-screenshot",
+          data: appScreenshot,
+        });
       }
 
       // StreamLit app main thread, forward the message to the worker

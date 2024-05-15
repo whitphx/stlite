@@ -63,7 +63,7 @@ export const generateAppScreenshot = async () => {
       el,
       WIDTH,
       HEIGHT,
-      "image/jpeg",
+      "image/webp",
       quality
     );
     while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
@@ -75,7 +75,7 @@ export const generateAppScreenshot = async () => {
         el,
         WIDTH,
         HEIGHT,
-        "image/jpeg",
+        "image/webp",
         quality
       );
     }

@@ -53,6 +53,8 @@ export const generateAppScreenshot = async () => {
   const WIDTH = 308;
   const HEIGHT = 176;
   const MAX_SCREENSHOT_SIZE = 8 * 1024; // Generate screenshot that is max 8Kb
+  const IMAGE_TYPE = "image/webp";
+
   const el = document.querySelector(".block-container div") as HTMLDivElement;
   const elPadding = el.style.padding;
   el.style.paddingLeft = "32px";
@@ -63,7 +65,7 @@ export const generateAppScreenshot = async () => {
       el,
       WIDTH,
       HEIGHT,
-      "image/webp",
+      IMAGE_TYPE,
       quality
     );
     while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
@@ -71,13 +73,7 @@ export const generateAppScreenshot = async () => {
       console.warn(
         `Generated screenshot was ${result.length} bytes (>${MAX_SCREENSHOT_SIZE} bytes), reducing quality to ${quality} and trying again...`
       );
-      result = await generateScreenshot(
-        el,
-        WIDTH,
-        HEIGHT,
-        "image/webp",
-        quality
-      );
+      result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
     }
     return result;
   } finally {

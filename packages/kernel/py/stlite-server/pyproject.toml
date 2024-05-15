@@ -16,7 +16,7 @@ flake8 = "^7.0.0"
 isort = "^5.13.2"
 mypy = "^1.10.0"
 streamlit-aggrid = "^1.0.5"
-pandas-stubs = "^2.2.1.240316"
+pandas-stubs = "^2.2.2.240514"
 matplotlib = "^3.8.4"
 
 [build-system]

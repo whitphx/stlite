@@ -67,5 +67,5 @@ export const generateAppScreenshot = async () => {
     );
     result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
   }
+  return result;
 };
-return result;

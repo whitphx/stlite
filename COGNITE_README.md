@@ -40,39 +40,21 @@ yarn start
 
 This will serve the app at http://localhost:3000.
 
-`NOTE: If you are making any change in the kernel (/packages/kernel) make sure that you build both kernel and mountable before serving. Just run npm run build in both folders.`
+`NOTE: If you are making any change in the kernel (/packages/kernel) make sure that you build both kernel and mountable before serving. Just run `yarn build` in both folders.`
 
 ## Serving in Fusion
 
-Open a new terminal and clone the repo
+Using the development version of Fusion (or a local build), you can override the Streamlit URL.
 
-### Clone Fusion repository
+1. Open dev.fusion.cogniteapp.com and login to your project
+2. Before opening Streamlit, open the Chrome Devtools
+3. Go to Application tab
+4. Open Session storage and open the bucket for dev.fusion.cogniteapp.com
+5. Add a new key STREAMLIT_IFRAME with value http://localhost:3000
+6. Reload the page and open Streamlit
+7. Ensure Streamlit is hosted from localhost by inspecting network traffic in the Network tab
 
-```
-git clone git@github.com:cognitedata/fusion
-cd fusion
-```
+Approaches for browsers other than Chrome is left as an excercies to the reader.
 
-### Install packages
-
-```
-yarn
-```
-
-Modify `streamlit_origin` in https://github.com/cognitedata/fusion/blob/master/apps/notebook/src/pages/StreamLit/StreamLitApp.tsx#L44 to be http://localhost:3000
-
-### Serve Notebook subapp
-
-Streamlit is currently served using the notebook subapp. The reason for this is that we had maxed out number of Firebase deployment at the time when this was intially developed and we haven't fixed it since.
-
-```
-nx serve notebook
-```
-
-### Accept insecure certificate
-
-Open https://localhost:3015/index.js in the browser. Since we are serving using https, but don't have a secure certificate you must accept that this is ok.
-
-### Override Notebook subapp source code
-
-Open https://dev.fusion.cogniteapp.com/ and click the button with three dots in bottom right corner. Find the `@cognite/cdf-ui-notebook` module and override URL to be https://localhost:3015/index.js and refresh the page. You can now navigate to Streamlit in the menu and content will be served with content from this repository.
+See also [README](https://github.com/cognitedata/fusion/blob/master/apps/streamlit/README.md) for the Fusion subapp that includes
+the UI shell for the application.

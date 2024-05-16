@@ -15,7 +15,6 @@ async function generateScreenshot(
     scrollX: 0,
     scrollY: 0,
   })) as HTMLCanvasElement;
-  // return originalCanvas.toDataURL(type, quality / 10.0);
 
   // Code below for resizing image is by ChatGPT (https://chat.openai.com/share/0f6edbe5-3152-4040-9122-d78f8855ae8b)
 
@@ -38,7 +37,6 @@ async function generateScreenshot(
   // Draw the resized image onto the new canvas
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
-
   ctx.drawImage(
     originalCanvas,
     offsetX,

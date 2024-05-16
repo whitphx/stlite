@@ -5,7 +5,8 @@ async function generateScreenshot(
   width: number,
   height: number,
   type: string,
-  quality = 0.8
+  quality = 0.8,
+  paddingWidthFactor = 1.1
 ) {
   const originalCanvas = (await html2canvas(htmlElement, {
     allowTaint: true,
@@ -27,16 +28,15 @@ async function generateScreenshot(
   newCanvas.height = height;
 
   // Calculate the scaling factor
-  const scale = Math.max(
-    width / originalCanvas.width,
-    height / originalCanvas.height
-  );
+  const scale = width / (paddingWidthFactor * originalCanvas.width);
 
   // Calculate the position to draw the original canvas on the new canvas
   const offsetX = (width - originalCanvas.width * scale) / 2;
   const offsetY = 0; // Since we are "zooming" to the top middle, the Y-offset is 0
 
   // Draw the resized image onto the new canvas
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
   ctx.drawImage(
     originalCanvas,
     offsetX,
@@ -56,28 +56,14 @@ export const generateAppScreenshot = async () => {
   const IMAGE_TYPE = "image/webp";
 
   const el = document.querySelector(".block-container div") as HTMLDivElement;
-  const elPadding = el.style.padding;
-  el.style.paddingLeft = "32px";
-  el.style.paddingRight = "32px";
-  try {
-    let quality = 0.7;
-    let result = await generateScreenshot(
-      el,
-      WIDTH,
-      HEIGHT,
-      IMAGE_TYPE,
-      quality
+  let quality = 0.7;
+  let result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
+  while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
+    quality -= 0.1;
+    console.warn(
+      `Generated screenshot was ${result.length} bytes (>${MAX_SCREENSHOT_SIZE} bytes), reducing quality to ${quality} and trying again...`
     );
-    while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
-      quality -= 0.1;
-      console.warn(
-        `Generated screenshot was ${result.length} bytes (>${MAX_SCREENSHOT_SIZE} bytes), reducing quality to ${quality} and trying again...`
-      );
-      result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
-    }
-    return result;
-  } finally {
-    // Restore previous padding
-    el.style.padding = elPadding;
+    result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
   }
+  return result;
 };

@@ -58,28 +58,14 @@ export const generateAppScreenshot = async () => {
   const IMAGE_TYPE = "image/webp";
 
   const el = document.querySelector(".block-container div") as HTMLDivElement;
-  const elPadding = el.style.padding;
-  el.style.paddingLeft = "0px";
-  el.style.paddingRight = "0px";
-  try {
-    let quality = 0.7;
-    let result = await generateScreenshot(
-      el,
-      WIDTH,
-      HEIGHT,
-      IMAGE_TYPE,
-      quality
+  let quality = 0.7;
+  let result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
+  while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
+    quality -= 0.1;
+    console.warn(
+      `Generated screenshot was ${result.length} bytes (>${MAX_SCREENSHOT_SIZE} bytes), reducing quality to ${quality} and trying again...`
     );
-    while (quality > 0.1 && result.length > MAX_SCREENSHOT_SIZE) {
-      quality -= 0.1;
-      console.warn(
-        `Generated screenshot was ${result.length} bytes (>${MAX_SCREENSHOT_SIZE} bytes), reducing quality to ${quality} and trying again...`
-      );
-      result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
-    }
-    return result;
-  } finally {
-    // Restore previous padding
-    el.style.padding = elPadding;
+    result = await generateScreenshot(el, WIDTH, HEIGHT, IMAGE_TYPE, quality);
   }
 };
+return result;

@@ -5,7 +5,8 @@ async function generateScreenshot(
   width: number,
   height: number,
   type: string,
-  quality = 0.8
+  quality = 0.8,
+  paddingWidthFactor = 1.1
 ) {
   const originalCanvas = (await html2canvas(htmlElement, {
     allowTaint: true,
@@ -14,6 +15,7 @@ async function generateScreenshot(
     scrollX: 0,
     scrollY: 0,
   })) as HTMLCanvasElement;
+  // return originalCanvas.toDataURL(type, quality / 10.0);
 
   // Code below for resizing image is by ChatGPT (https://chat.openai.com/share/0f6edbe5-3152-4040-9122-d78f8855ae8b)
 
@@ -27,16 +29,16 @@ async function generateScreenshot(
   newCanvas.height = height;
 
   // Calculate the scaling factor
-  const scale = Math.max(
-    width / originalCanvas.width,
-    height / originalCanvas.height
-  );
+  const scale = width / (paddingWidthFactor * originalCanvas.width);
 
   // Calculate the position to draw the original canvas on the new canvas
   const offsetX = (width - originalCanvas.width * scale) / 2;
   const offsetY = 0; // Since we are "zooming" to the top middle, the Y-offset is 0
 
   // Draw the resized image onto the new canvas
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
   ctx.drawImage(
     originalCanvas,
     offsetX,
@@ -57,8 +59,8 @@ export const generateAppScreenshot = async () => {
 
   const el = document.querySelector(".block-container div") as HTMLDivElement;
   const elPadding = el.style.padding;
-  el.style.paddingLeft = "32px";
-  el.style.paddingRight = "32px";
+  el.style.paddingLeft = "0px";
+  el.style.paddingRight = "0px";
   try {
     let quality = 0.7;
     let result = await generateScreenshot(

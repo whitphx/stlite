@@ -242,7 +242,7 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
 
       postProgressMessage("Mocking some packages.");
       console.debug("Mock pyarrow");
-      //mockPyArrow(pyodide);
+      mockPyArrow(pyodide);
       console.debug("Mocked pyarrow");
     } else {
       console.debug("Installing the requirements:", requirements);

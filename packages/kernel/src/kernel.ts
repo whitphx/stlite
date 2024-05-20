@@ -30,7 +30,11 @@ import { assertStreamlitConfig } from "./types";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.31.0-cp311-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.33.0-cp311-none-any.whl";
+// COGNITE: code completion
+import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
+import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
+import { generateAppScreenshot } from "./cognite/generate-screenshot";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -46,6 +50,13 @@ export interface StliteKernelOptions {
    * A list of package names to be install at the booting-up phase.
    */
   requirements: string[];
+
+  /**
+   * A list of prebuilt package names to be install at the booting-up phase via `pyodide.loadPackage()`.
+   * These packages basically can be installed via the `requirements` option,
+   * but some are only installable via this option such as `openssl`.
+   */
+  prebuiltPackageNames: string[];
 
   /**
    * Files to mount.
@@ -108,11 +119,19 @@ export interface StliteKernelOptions {
    */
   streamlitConfig?: StreamlitConfig;
 
+  idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
 
   onError?: (error: Error) => void;
+
+  /**
+   * The worker to be used, which can be optionally passed.
+   * Desktop apps with NodeJS-backed worker is one of the use cases.
+   */
+  worker?: globalThis.Worker;
 }
 
 export class StliteKernel {
@@ -143,16 +162,20 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
 
-    // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-    // Read the comment in `cross-origin-worker.ts` for the detail.
-    const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
-    this._worker = workerMaker.worker;
+    if (options.worker) {
+      this._worker = options.worker;
+    } else {
+      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
+      // Read the comment in `cross-origin-worker.ts` for the detail.
+      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      this._worker = workerMaker.worker;
+    }
 
     this._worker.onmessage = (e) => {
       this._processWorkerMessage(e.data);
     };
 
-    // Cognite auth
+    // COGNITE: Cognite auth
     initTokenStorageAndAuthHandler(this._worker);
 
     let wheels: WorkerInitialData["wheels"] = undefined;
@@ -160,6 +183,7 @@ export class StliteKernel {
       console.debug("Custom wheel URLs:", {
         STLITE_SERVER_WHEEL,
         STREAMLIT_WHEEL,
+        JEDI_WHEEL,
       });
       const stliteServerWheelUrl = makeAbsoluteWheelURL(
         STLITE_SERVER_WHEEL as unknown as string,
@@ -169,9 +193,15 @@ export class StliteKernel {
         STREAMLIT_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
+      // COGNITE: needed for language server
+      const jediWheelUrl = makeAbsoluteWheelURL(
+        JEDI_WHEEL as unknown as string,
+        options.wheelBaseUrl
+      );
       wheels = {
         stliteServer: stliteServerWheelUrl,
         streamlit: streamlitWheelUrl,
+        jedi: jediWheelUrl,
       };
       console.debug("Custom wheel resolved URLs:", wheels);
     }
@@ -186,11 +216,13 @@ export class StliteKernel {
       files: options.files,
       archives: options.archives,
       requirements: options.requirements,
+      prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
       wheels,
       mountedSitePackagesSnapshotFilePath:
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
+      idbfsMountpoints: options.idbfsMountpoints,
     };
   }
 
@@ -233,7 +265,10 @@ export class StliteKernel {
       },
       "http:response"
     ).then((data) => {
-      return data.response;
+      return {
+        ...data.response,
+        headers: new Headers(Object.fromEntries(data.response.headers)),
+      };
     });
   }
 
@@ -343,6 +378,12 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
+      // COGNITE: needed for language server
+      case "language-server:hover":
+      case "language-server:autocomplete": {
+        postMessageToFusion(msg);
+        break;
+      }
     }
   }
 
@@ -370,7 +411,7 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
   // todo need destroyer when unmounting
   window.addEventListener(
     "message",
-    (event) => {
+    async (event) => {
       if (
         typeof event.data === "object" &&
         "token" in event.data &&
@@ -379,13 +420,40 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
       ) {
         sendTokenToWorker(event.data, worker);
       }
+
+      // StreamLit app main thread, forward the message to the worker
+      // so that the kernel can process the request
+      if (
+        typeof event.data === "object" &&
+        "type" in event.data &&
+        "data" in event.data &&
+        event.data.type === "streamlit-app-generate-screenshot"
+      ) {
+        const appScreenshot = await generateAppScreenshot();
+        console.log("GeneratedApp screenshot", appScreenshot);
+
+        // communicate if in iframe to parent (top)
+        postMessageToFusion({
+          type: "streamlit-app-generate-screenshot",
+          data: appScreenshot,
+        });
+      }
+
+      // StreamLit app main thread, forward the message to the worker
+      // so that the kernel can process the request
+      if (
+        typeof event.data === "object" &&
+        "type" in event.data &&
+        "data" in event.data &&
+        event.data.type.startsWith("language-server:")
+      ) {
+        worker.postMessage(event.data);
+      }
     },
     false
   );
   // communicate if in iframe to parent (top)
-  if (window.top) {
-    window.top.postMessage("getToken", "*");
-  }
+  postMessageToFusion("getToken");
 };
 
 const sendTokenToWorker = (

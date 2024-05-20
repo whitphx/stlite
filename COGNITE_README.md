@@ -40,6 +40,8 @@ yarn start
 
 This will serve the app at http://localhost:3000.
 
+`NOTE: If you are making any change in the kernel (/packages/kernel) make sure that you build both kernel and mountable before serving. Just run npm run build in both folders.`
+
 ## Serving in Fusion
 
 Open a new terminal and clone the repo

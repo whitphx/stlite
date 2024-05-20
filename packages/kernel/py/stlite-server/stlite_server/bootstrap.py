@@ -38,35 +38,6 @@ def _fix_sys_path(main_script_path: str) -> None:
     sys.path.insert(0, os.path.dirname(main_script_path))
 
 
-def _fix_matplotlib_crash() -> None:
-    """Set Matplotlib backend to avoid a crash.
-
-    The default Matplotlib backend crashes Python on OSX when run on a thread
-    that's not the main thread, so here we set a safer backend as a fix.
-    Users can always disable this behavior by setting the config
-    runner.fixMatplotlib = false.
-
-    This fix is OS-independent. We didn't see a good reason to make this
-    Mac-only. Consistency within Streamlit seemed more important.
-    """
-    if config.get_option("runner.fixMatplotlib"):
-        try:
-            # TODO: a better option may be to set
-            #  os.environ["MPLBACKEND"] = "Agg". We'd need to do this towards
-            #  the top of __init__.py, before importing anything that imports
-            #  pandas (which imports matplotlib). Alternately, we could set
-            #  this environment variable in a new entrypoint defined in
-            #  setup.py. Both of these introduce additional trickiness: they
-            #  need to run without consulting streamlit.config.get_option,
-            #  because this would import streamlit, and therefore matplotlib.
-            import matplotlib
-
-            matplotlib.use("Agg")
-        except ImportError:
-            # Matplotlib is not installed. No need to do anything.
-            pass
-
-
 def _fix_sys_argv(main_script_path: str, args: List[str]) -> None:
     """sys.argv needs to exclude streamlit arguments and parameters
     and be set to what a user's script may expect.
@@ -125,23 +96,54 @@ def _install_pages_watcher(main_script_path_str: str) -> None:
 
 
 def _fix_altair():
-    """Fix an issue with Altair and the mocked pyarrow module of stlite."""
-    try:
-        from altair.utils import _importers  # type: ignore[import]
+    """Install custom finder and importer to patch Altair when it's imported.
+    The patch fixes an issue with Altair and the mocked pyarrow module of stlite.
+    """
 
-        def _pyarrow_available():
-            return False
+    # The original patch is https://github.com/whitphx/stlite/blob/v0.47.0/packages/kernel/py/stlite-server/stlite_server/bootstrap.py#L127-L144.  # noqa: E501
+    # Since Streamlit 1.32.0, it lazy-loads the Altair module for performance reasons,
+    # so we introduced a custom finder and loader to execute the patch
+    # upon the lazy-import of Altair as below.
+    # NOTE: After I wrote this code, I found https://pypi.org/project/importhook/,
+    #       which is for this purpose.
+    #       While I keep this code for now because its implementation is simpler
+    #       and works well for our purpose,
+    #       we may want to consider using the library in the future.
+    from importlib.abc import MetaPathFinder
+    from importlib.machinery import PathFinder, SourceFileLoader
 
-        _importers.pyarrow_available = _pyarrow_available
+    class AltairCustomFinder(MetaPathFinder):
+        def find_spec(self, fullname, path, target=None):
+            if fullname == "altair.utils._importers":
+                spec = PathFinder.find_spec(fullname, path, target)
+                if spec is not None and spec.origin is not None:
+                    spec.loader = AltairCustomLoader(spec.name, spec.origin)
+                    return spec
 
-        def _import_pyarrow_interchange():
-            raise ImportError("Pyarrow is not available in stlite.")
+    class AltairCustomLoader(SourceFileLoader):
+        def create_module(self, spec):
+            # Return None to use the default module creation process
+            return None
 
-        _importers.import_pyarrow_interchange = _import_pyarrow_interchange
-    except ImportError:
-        pass
-    except Exception as e:
-        logger.error("Failed to fix Altair", exc_info=e)
+        def exec_module(self, module):
+            super().exec_module(module)
+
+            self.patch_module(module)
+            logger.debug(f"{module.__name__} has been patched.")
+
+        def patch_module(self, module):
+            def _pyarrow_available():
+                return False
+
+            module.pyarrow_available = _pyarrow_available
+
+            def _import_pyarrow_interchange():
+                raise ImportError("Pyarrow is not available in stlite.")
+
+            module.import_pyarrow_interchange = _import_pyarrow_interchange
+
+    finder = AltairCustomFinder()
+    sys.meta_path.insert(0, finder)
 
 
 def _fix_requests():
@@ -164,7 +166,6 @@ def prepare(
     but omitting the server initialization.
     """
     _fix_sys_path(main_script_path)
-    _fix_matplotlib_crash()
     _fix_altair()
     _fix_requests()
     _fix_sys_argv(main_script_path, args)

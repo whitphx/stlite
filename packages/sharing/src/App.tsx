@@ -81,6 +81,7 @@ st.write("Hello World")`,
           files: convertFiles(appData.files),
           archives: [],
           requirements: appData.requirements,
+          prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
         });
         _kernel = kernel;

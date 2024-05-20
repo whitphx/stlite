@@ -18,12 +18,6 @@ module.exports = {
       tsRule.include = undefined;
       tsRule.exclude = /node_modules/;
 
-      /* To resolve the alias streamlit/frontend uses */
-      webpackConfig.resolve.alias = {
-        ...webpackConfig.resolve.alias,
-        src: path.resolve(__dirname, "../../streamlit/frontend/src"),
-      };
-
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
       webpackConfig.resolve.mainFields = ["module", "main"];
       // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module

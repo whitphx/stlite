@@ -1,4 +1,8 @@
 import type { PyodideInterface } from "pyodide";
+import {
+  OutMessageLangugeServerAutocomplete,
+  OutMessageLangugeServerHover,
+} from "./cognite/language-server-types";
 
 export type PyodideConvertiblePrimitive =
   | string
@@ -15,8 +19,11 @@ export interface HttpRequest {
 }
 export interface HttpResponse {
   statusCode: number;
-  headers: Map<string, string>;
+  headers: Headers;
   body: Uint8Array;
+}
+export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
+  headers: Map<string, string>;
 }
 export interface EmscriptenFile {
   data: string | ArrayBufferView;
@@ -44,13 +51,17 @@ export interface WorkerInitialData {
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
+  prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
     stliteServer: string;
     streamlit: string;
+    jedi: string;
   };
   mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
+  idbfsMountpoints?: string[];
+  nodefsMountpoints?: Record<string, string>;
 }
 
 /**
@@ -122,6 +133,21 @@ export interface InTokenMessage extends InMessageBase {
   };
 }
 
+interface LanguageServerRequestPayload {
+  code: string;
+  currentLine: string;
+  currentLineNumber: number;
+  offset: number;
+}
+export interface InMessageAutocomplete extends InMessageBase {
+  type: "language-server:autocomplete";
+  data: LanguageServerRequestPayload;
+}
+export interface InMessageHover extends InMessageBase {
+  type: "language-server:hover";
+  data: LanguageServerRequestPayload;
+}
+
 export type InMessage =
   | InMessageInitData
   | InMessageWebSocketConnect
@@ -131,7 +157,9 @@ export type InMessage =
   | InMessageFileRename
   | InMessageFileUnlink
   | InMessageInstall
-  | InTokenMessage;
+  | InTokenMessage
+  | InMessageAutocomplete
+  | InMessageHover;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -166,7 +194,7 @@ export interface OutMessageLoadedEvent extends OutMessageBase {
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
-    payload: Uint8Array;
+    payload: Uint8Array | string;
   };
 }
 export type OutMessage =
@@ -174,8 +202,9 @@ export type OutMessage =
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
-  | OutMessageWebSocketBack;
-
+  | OutMessageWebSocketBack
+  | OutMessageLangugeServerAutocomplete
+  | OutMessageLangugeServerHover;
 /**
  * Reply message to InMessage
  */
@@ -187,7 +216,7 @@ interface ReplyMessageBase {
 export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";
   data: {
-    response: HttpResponse;
+    response: HttpResponseInMessage;
   };
 }
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {

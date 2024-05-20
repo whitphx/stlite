@@ -20,5 +20,7 @@ module.exports = {
     sourceType: "module",
   },
   plugins: ["react", "@typescript-eslint"],
-  rules: {},
+  rules: {
+    "no-useless-escape": "warn",
+  },
 };

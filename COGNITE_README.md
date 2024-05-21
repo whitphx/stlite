@@ -88,7 +88,7 @@ Releasing is done by merging changes to the `release-production` branch. This wi
 
 ```bash
 git checkout release-production
-git pull --recurse-submodules
+git pull
 git tag release-20240521 # Change date
 git push --tags
 ```

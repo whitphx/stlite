@@ -362,15 +362,27 @@ export class StliteKernel {
       }
       case "event:progress": {
         this.onProgress && this.onProgress(msg.data.message);
+        postMessageToFusion({
+          type: "progress",
+          data: { message: msg.data.message },
+        });
         break;
       }
       case "event:error": {
         this.onError && this.onError(msg.data.error);
+        postMessageToFusion({
+          type: "error",
+          data: { error: msg.data.error },
+        });
         break;
       }
       case "event:loaded": {
         this._loaded.resolve();
         this.onLoad && this.onLoad();
+        postMessageToFusion({
+          type: "loaded",
+          data: {},
+        });
         break;
       }
       case "websocket:message": {

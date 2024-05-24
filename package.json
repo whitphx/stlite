@@ -28,6 +28,7 @@
   },
   "resolutions": {
     "immutable": "4.2.3",
+    "protobufjs": "7.2.4",
     "webpack": "5.76.0",
     "@types/react": "^18.2.0"
   },

@@ -61,7 +61,9 @@ def setup_server():
         raise exception
     server = data_from_thread["server"]
 
-    add_script_run_ctx(threading.current_thread(), create_mock_script_run_ctx())
+    add_script_run_ctx(
+        threading.current_thread(), create_mock_script_run_ctx()
+    )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
 
     yield server
 

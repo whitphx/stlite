@@ -158,7 +158,7 @@ jobs:
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-server
-        poetry run python -m pytest -v tests
+        poetry run python -m pytest -v
 
   test-mountable:
     needs: changes

@@ -17012,11 +17012,6 @@ parquet-wasm@^0.4.0:
   resolved "https://registry.yarnpkg.com/parquet-wasm/-/parquet-wasm-0.4.0.tgz#1ecbba337d742948b67f8a097ba1d997aaecec4c"
   integrity sha512-oAKBE8CE88u/iKfW8afxogZAF/K9CvM9ttENkMuZvSSbXvwVdWa9p3gvHR8eaGwAG4hlakk1v0A2/UrjeLiJog==
 
-parquet-wasm@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/parquet-wasm/-/parquet-wasm-0.6.1.tgz#0877bc5a1f48546c63b4d47eb450e98e367bd5ea"
-  integrity sha512-wTM/9Y4EHny8i0qgcOlL9UHsTXftowwCqDsAD8axaZbHp0Opp3ue8oxexbzTVNhqBjFhyhLiU3MT0rnEYnYU0Q==
-
 parse-entities@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/parse-entities/-/parse-entities-2.0.0.tgz#53c6eb5b9314a1f4ec99fa0fdf7ce01ecda0cbe8"

@@ -40,3 +40,6 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = "../../../../streamlit/lib"

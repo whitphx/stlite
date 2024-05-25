@@ -38,7 +38,7 @@ def setup_server():
 
     async def init_server():
         """Mimic streamlit.web.bootstrap.run()"""
-        server = Server(filename, None)
+        server = Server(filename)
         await server.start()
         data_from_thread["server"] = server
         event.set()

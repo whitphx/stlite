@@ -5,7 +5,6 @@ import urllib.parse
 from typing import Callable, Final, cast
 
 import pyodide
-from streamlit.components.v1.components import ComponentRegistry
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
@@ -90,7 +89,7 @@ class Server:
             ),
             (
                 make_url_path_regex(base, "component/(.*)"),
-                ComponentRequestHandler(registry=ComponentRegistry.instance()),
+                ComponentRequestHandler(registry=self._runtime.component_registry),
             ),
         ]
         self._routes = [(re.compile(pattern), handler) for (pattern, handler) in routes]

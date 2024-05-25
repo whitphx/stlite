@@ -11,8 +11,10 @@ from streamlit import config
 from streamlit.components.v1.components import declare_component
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
+from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 
 from stlite_server.server import Server
+from tests.testutil import create_mock_script_run_ctx
 
 
 @pytest.fixture
@@ -58,6 +60,8 @@ def setup_server():
     if exception:
         raise exception
     server = data_from_thread["server"]
+
+    add_script_run_ctx(threading.current_thread(), create_mock_script_run_ctx())
 
     yield server
 

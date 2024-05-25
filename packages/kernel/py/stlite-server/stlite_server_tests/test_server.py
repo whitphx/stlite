@@ -12,9 +12,9 @@ from streamlit.components.v1.components import declare_component
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
+from tests.testutil import create_mock_script_run_ctx
 
 from stlite_server.server import Server
-from tests.testutil import create_mock_script_run_ctx
 
 
 @pytest.fixture

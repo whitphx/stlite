@@ -42,6 +42,7 @@ module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+pythonpath = "../../../../streamlit/lib"
 testpaths = [
     "stlite_server_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
 ]

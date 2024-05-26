@@ -34,7 +34,7 @@ check_untyped_defs = true
 mypy_path = "../../../../streamlit/lib"
 
 [[tool.mypy.overrides]]
-module = ["streamlit", "streamlit.*"]
+module = ["streamlit", "streamlit.*", "tests.*"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]
@@ -43,3 +43,6 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 pythonpath = "../../../../streamlit/lib"
+testpaths = [
+    "stlite_server_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
+]

@@ -1,17 +1,18 @@
 import logging
 import mimetypes
 import os
+from typing import Final
 
-from streamlit.components.v1.components import ComponentRegistry
+from streamlit.components.types.base_component_registry import BaseComponentRegistry
 
 from .handler import Request, RequestHandler, Response
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 # Mimic streamlit.web.server.component_request_handler.ComponentRequestHandler
 class ComponentRequestHandler(RequestHandler):
-    def __init__(self, registry: ComponentRegistry) -> None:
+    def __init__(self, registry: BaseComponentRegistry) -> None:
         self._registry = registry
 
     def get(self, request: Request, path: str) -> Response:  # type: ignore[override]
@@ -27,11 +28,7 @@ class ComponentRequestHandler(RequestHandler):
         abspath = os.path.realpath(os.path.join(component_root, filename))
 
         # Do NOT expose anything outside of the component root.
-        if os.path.commonprefix([component_root, abspath]) != component_root or (
-            not os.path.normpath(abspath).startswith(
-                component_root
-            )  # this is a recommendation from CodeQL, probably a bit redundant
-        ):
+        if os.path.commonpath([component_root, abspath]) != component_root:
             return Response(status_code=403, headers={}, body="forbidden")
 
         try:
@@ -54,7 +51,7 @@ class ComponentRequestHandler(RequestHandler):
         )
 
     @staticmethod
-    def get_content_type(abspath) -> str:
+    def get_content_type(abspath: str) -> str:
         """Returns the ``Content-Type`` header to be used for this request.
         From tornado.web.StaticFileHandler.
         """

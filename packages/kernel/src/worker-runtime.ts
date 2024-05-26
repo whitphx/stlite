@@ -405,12 +405,11 @@ flag_options = __streamlitFlagOptions__.to_py()
 load_config_options(flag_options)
 
 main_script_path = "${entrypoint}"
-command_line = None
 args = []
 
 prepare(main_script_path, args)
 
-server = Server(main_script_path, command_line)
+server = Server(main_script_path)
 server.start()
 `);
     console.debug("Booted up the Streamlit server");

@@ -11,6 +11,8 @@ from streamlit import config
 from streamlit.components.v1.components import declare_component
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
+from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
+from tests.testutil import create_mock_script_run_ctx
 
 from stlite_server.server import Server
 
@@ -36,7 +38,7 @@ def setup_server():
 
     async def init_server():
         """Mimic streamlit.web.bootstrap.run()"""
-        server = Server(filename, None)
+        server = Server(filename)
         await server.start()
         data_from_thread["server"] = server
         event.set()
@@ -58,6 +60,10 @@ def setup_server():
     if exception:
         raise exception
     server = data_from_thread["server"]
+
+    add_script_run_ctx(
+        threading.current_thread(), create_mock_script_run_ctx()
+    )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
 
     yield server
 

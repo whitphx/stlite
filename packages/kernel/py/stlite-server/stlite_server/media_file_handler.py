@@ -66,9 +66,11 @@ class MediaFileHandler(RequestHandler):
                 # Check that the value can be encoded in latin1. Latin1 is
                 # the default encoding for headers.
                 filename.encode("latin1")
-                file_expr = 'filename="{}"'.format(filename)
+                file_expr = f'filename="{filename}"'
             except UnicodeEncodeError:
-                file_expr = "filename*=UTF-8''{}".format(quote(filename))
+                # RFC5987 syntax.
+                # See: https://datatracker.ietf.org/doc/html/rfc5987
+                file_expr = f"filename*=utf-8''{quote(filename)}"
 
             headers["Content-Disposition"] = "attachment; " + file_expr
 

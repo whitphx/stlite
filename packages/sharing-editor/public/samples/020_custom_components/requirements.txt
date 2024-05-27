@@ -1,6 +1,5 @@
-hiplot
 stmol==0.0.7
-streamlit-aggrid
+streamlit-aggrid==0.3.4
 streamlit-agraph
 streamlit-cropper
 streamlit-d3-demo

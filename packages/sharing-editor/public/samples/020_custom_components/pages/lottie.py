@@ -3,7 +3,7 @@ This sample code has been copied from
 https://github.com/andfanilo/streamlit-lottie
 """
 
-import time
+import asyncio
 # import requests
 import json
 
@@ -28,5 +28,5 @@ st_lottie(lottie_hello, key="hello")
 
 if st.button("Download"):
     with st_lottie_spinner(lottie_download, key="download"):
-        time.sleep(5)
+        await asyncio.sleep(5)
     st.balloons()

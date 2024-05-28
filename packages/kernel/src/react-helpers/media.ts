@@ -1,5 +1,81 @@
 import { useEffect, useState } from "react";
+import type { StliteKernel } from "../kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
+import { Logo } from "@streamlit/lib";
+
+export async function resolveMediaObjectUrl(
+  kernel: StliteKernel,
+  rawUrl: string
+): Promise<string> {
+  if (!rawUrl.startsWith("/media")) {
+    return rawUrl;
+  }
+
+  const { statusCode, headers, body } = await kernel.sendHttpRequest({
+    method: "GET",
+    path: rawUrl,
+    headers: {},
+    body: "",
+  });
+
+  if (statusCode !== 200) {
+    throw new Error(`Failed to fetch media object: ${statusCode}`);
+  }
+
+  const type = headers.get("Content-Type");
+  const blob = new Blob([body], type ? { type } : undefined);
+  return URL.createObjectURL(blob);
+}
+
+export function resolveLogo(kernel: StliteKernel, logo: Logo): Promise<Logo> {
+  return Promise.all([
+    resolveMediaObjectUrl(kernel, logo.image),
+    resolveMediaObjectUrl(kernel, logo.iconImage),
+  ]).then(
+    ([image, iconImage]) =>
+      new Logo({
+        ...logo,
+        image,
+        iconImage,
+      })
+  );
+}
+
+export function useStliteResolvedLogo(logo: Logo | null): Logo | null {
+  const kernel = useStliteKernel();
+
+  const [resolvedLogo, setResolvedLogo] = useState<Logo | null>(null);
+  useEffect(() => {
+    let released = false;
+    let lastResolvedLogo: Logo | null = null;
+
+    if (logo == null) {
+      setResolvedLogo(null);
+    } else {
+      resolveLogo(kernel, logo).then((resolvedLogo) => {
+        if (released) {
+          return;
+        }
+        if (lastResolvedLogo != null) {
+          URL.revokeObjectURL(lastResolvedLogo.image);
+          URL.revokeObjectURL(lastResolvedLogo.iconImage);
+        }
+        lastResolvedLogo = resolvedLogo;
+        setResolvedLogo(resolvedLogo);
+      });
+    }
+
+    return () => {
+      if (lastResolvedLogo != null) {
+        URL.revokeObjectURL(lastResolvedLogo.image);
+        URL.revokeObjectURL(lastResolvedLogo.iconImage);
+      }
+      released = true;
+    };
+  }, [kernel, logo]);
+
+  return resolvedLogo;
+}
 
 /**
  * Converts a raw media URL into an object URL

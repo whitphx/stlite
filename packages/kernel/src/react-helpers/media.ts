@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
-import { Logo } from "@streamlit/lib";
 
 export async function resolveMediaObjectUrl(
   kernel: StliteKernel,
@@ -27,27 +26,29 @@ export async function resolveMediaObjectUrl(
   return URL.createObjectURL(blob);
 }
 
-export function resolveLogo(kernel: StliteKernel, logo: Logo): Promise<Logo> {
+export function resolveLogo<T extends { image: string; iconImage: string }>(
+  kernel: StliteKernel,
+  logo: T
+): Promise<T> {
   return Promise.all([
     resolveMediaObjectUrl(kernel, logo.image),
     resolveMediaObjectUrl(kernel, logo.iconImage),
-  ]).then(
-    ([image, iconImage]) =>
-      new Logo({
-        ...logo,
-        image,
-        iconImage,
-      })
-  );
+  ]).then(([image, iconImage]) => {
+    logo.image = image;
+    logo.iconImage = iconImage;
+    return logo;
+  });
 }
 
-export function useStliteResolvedLogo(logo: Logo | null): Logo | null {
+export function useStliteResolvedLogo<
+  T extends { image: string; iconImage: string }
+>(logo: T | null): T | null {
   const kernel = useStliteKernel();
 
-  const [resolvedLogo, setResolvedLogo] = useState<Logo | null>(null);
+  const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
     let released = false;
-    let lastResolvedLogo: Logo | null = null;
+    let lastResolvedLogo: T | null = null;
 
     if (logo == null) {
       setResolvedLogo(null);

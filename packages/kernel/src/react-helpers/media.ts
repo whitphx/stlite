@@ -2,18 +2,14 @@ import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
 
-export function resolveMediaUrl(
+function resolveStliteObjectUrl(
   kernel: StliteKernel,
-  rawUrl: string
+  path: string
 ): Promise<string> {
-  if (!rawUrl.startsWith("/media")) {
-    return Promise.resolve(rawUrl);
-  }
-
   return kernel
     .sendHttpRequest({
       method: "GET",
-      path: rawUrl,
+      path,
       headers: {},
       body: "",
     })
@@ -28,13 +24,23 @@ export function resolveMediaUrl(
     });
 }
 
+function resolveStliteObjectUrlIfNeeded(
+  kernel: StliteKernel,
+  rawUrl: string
+): Promise<string> {
+  if (!rawUrl.startsWith("/media")) {
+    return Promise.resolve(rawUrl);
+  }
+  return resolveStliteObjectUrl(kernel, rawUrl);
+}
+
 export function resolveLogo<T extends { image: string; iconImage: string }>(
   kernel: StliteKernel,
   logo: T
 ): Promise<T> {
   return Promise.all([
-    resolveMediaUrl(kernel, logo.image),
-    resolveMediaUrl(kernel, logo.iconImage),
+    resolveStliteObjectUrlIfNeeded(kernel, logo.image),
+    resolveStliteObjectUrlIfNeeded(kernel, logo.iconImage),
   ]).then(([image, iconImage]) => {
     logo.image = image;
     logo.iconImage = iconImage;
@@ -50,7 +56,7 @@ export function useStliteResolvedLogo<
   const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
     let released = false;
-    const resolvedMediaUrls: string[] = [];
+    const resolvedUrls: string[] = [];
 
     if (logo == null) {
       setResolvedLogo(null);
@@ -59,14 +65,14 @@ export function useStliteResolvedLogo<
         if (released) {
           return;
         }
-        resolvedMediaUrls.push(resolvedLogo.image);
-        resolvedMediaUrls.push(resolvedLogo.iconImage);
+        resolvedUrls.push(resolvedLogo.image);
+        resolvedUrls.push(resolvedLogo.iconImage);
         setResolvedLogo(resolvedLogo);
       });
     }
 
     return () => {
-      resolvedMediaUrls.forEach((objectUrl) => {
+      resolvedUrls.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
       });
       released = true;
@@ -95,18 +101,18 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
     }
 
     let released = false;
-    const resolvedMediaUrls: string[] = [];
-    resolveMediaUrl(kernel, rawUrl).then((resolvedUrl) => {
+    const resolvedUrls: string[] = [];
+    resolveStliteObjectUrl(kernel, rawUrl).then((resolvedUrl) => {
       if (released) {
         return;
       }
-      resolvedMediaUrls.push(resolvedUrl);
+      resolvedUrls.push(resolvedUrl);
       setUrl(resolvedUrl);
     });
 
     return () => {
       released = true;
-      resolvedMediaUrls.forEach((objectUrl) => {
+      resolvedUrls.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
       });
     };
@@ -133,7 +139,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
 
     let released = false;
 
-    const resolvedMediaUrls: string[] = [];
+    const resolvedUrls: string[] = [];
     const promises = inputMediaObjects.map((obj) => {
       if (obj.url == null) {
         return obj;
@@ -143,11 +149,11 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
         return obj;
       }
 
-      return resolveMediaUrl(kernel, obj.url).then((resolvedUrl) => {
+      return resolveStliteObjectUrl(kernel, obj.url).then((resolvedUrl) => {
         if (released) {
           return obj;
         }
-        resolvedMediaUrls.push(resolvedUrl);
+        resolvedUrls.push(resolvedUrl);
         return {
           ...obj,
           url: resolvedUrl,
@@ -164,7 +170,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
 
     return () => {
       released = true;
-      resolvedMediaUrls.forEach((objectUrl) => {
+      resolvedUrls.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
       });
     };

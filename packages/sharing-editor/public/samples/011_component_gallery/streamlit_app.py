@@ -14,7 +14,7 @@ of Streamlit built-in components!
 st.markdown("""
 ### Notes
 
-The page files (`pages/*`) are copied from [the Streamlit official document sample directory (`docs/python/api-examples-source`)](https://github.com/streamlit/docs/tree/4f1c7ce444b6c3e0a1bba473199c9ddb42ed6866/python/api-examples-source)
+The page files (`pages/*`) are copied from [the Streamlit official document sample directory (`docs/python/api-examples-source`)](https://github.com/streamlit/docs/tree/35426ae5443c8331853e316ceacf72b93ec6d977/python/api-examples-source)
 excluding the sub directories.
 
 The following files have been changed:

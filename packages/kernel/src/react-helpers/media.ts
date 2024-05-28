@@ -2,28 +2,30 @@ import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
 
-export async function resolveMediaObjectUrl(
+export function resolveMediaUrl(
   kernel: StliteKernel,
   rawUrl: string
 ): Promise<string> {
   if (!rawUrl.startsWith("/media")) {
-    return rawUrl;
+    return Promise.resolve(rawUrl);
   }
 
-  const { statusCode, headers, body } = await kernel.sendHttpRequest({
-    method: "GET",
-    path: rawUrl,
-    headers: {},
-    body: "",
-  });
+  return kernel
+    .sendHttpRequest({
+      method: "GET",
+      path: rawUrl,
+      headers: {},
+      body: "",
+    })
+    .then(({ statusCode, headers, body }) => {
+      if (statusCode !== 200) {
+        throw new Error(`Failed to fetch media object: ${statusCode}`);
+      }
 
-  if (statusCode !== 200) {
-    throw new Error(`Failed to fetch media object: ${statusCode}`);
-  }
-
-  const type = headers.get("Content-Type");
-  const blob = new Blob([body], type ? { type } : undefined);
-  return URL.createObjectURL(blob);
+      const type = headers.get("Content-Type");
+      const blob = new Blob([body], type ? { type } : undefined);
+      return URL.createObjectURL(blob);
+    });
 }
 
 export function resolveLogo<T extends { image: string; iconImage: string }>(
@@ -31,8 +33,8 @@ export function resolveLogo<T extends { image: string; iconImage: string }>(
   logo: T
 ): Promise<T> {
   return Promise.all([
-    resolveMediaObjectUrl(kernel, logo.image),
-    resolveMediaObjectUrl(kernel, logo.iconImage),
+    resolveMediaUrl(kernel, logo.image),
+    resolveMediaUrl(kernel, logo.iconImage),
   ]).then(([image, iconImage]) => {
     logo.image = image;
     logo.iconImage = iconImage;
@@ -48,7 +50,7 @@ export function useStliteResolvedLogo<
   const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
     let released = false;
-    let lastResolvedLogo: T | null = null;
+    const resolvedMediaUrls: string[] = [];
 
     if (logo == null) {
       setResolvedLogo(null);
@@ -57,20 +59,16 @@ export function useStliteResolvedLogo<
         if (released) {
           return;
         }
-        if (lastResolvedLogo != null) {
-          URL.revokeObjectURL(lastResolvedLogo.image);
-          URL.revokeObjectURL(lastResolvedLogo.iconImage);
-        }
-        lastResolvedLogo = resolvedLogo;
+        resolvedMediaUrls.push(resolvedLogo.image);
+        resolvedMediaUrls.push(resolvedLogo.iconImage);
         setResolvedLogo(resolvedLogo);
       });
     }
 
     return () => {
-      if (lastResolvedLogo != null) {
-        URL.revokeObjectURL(lastResolvedLogo.image);
-        URL.revokeObjectURL(lastResolvedLogo.iconImage);
-      }
+      resolvedMediaUrls.forEach((objectUrl) => {
+        URL.revokeObjectURL(objectUrl);
+      });
       released = true;
     };
   }, [kernel, logo]);
@@ -97,33 +95,20 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
     }
 
     let released = false;
-    let objectUrl: string | undefined;
-    kernel
-      .sendHttpRequest({
-        method: "GET",
-        path: rawUrl,
-        headers: {},
-        body: "",
-      })
-      .then(({ statusCode, headers, body }) => {
-        if (released) {
-          return;
-        }
-        if (statusCode !== 200) {
-          return;
-        }
-
-        const type = headers.get("Content-Type");
-        const blob = new Blob([body], type ? { type } : undefined);
-        objectUrl = URL.createObjectURL(blob);
-        setUrl(objectUrl);
-      });
+    const resolvedMediaUrls: string[] = [];
+    resolveMediaUrl(kernel, rawUrl).then((resolvedUrl) => {
+      if (released) {
+        return;
+      }
+      resolvedMediaUrls.push(resolvedUrl);
+      setUrl(resolvedUrl);
+    });
 
     return () => {
       released = true;
-      if (objectUrl != null) {
+      resolvedMediaUrls.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
-      }
+      });
     };
   }, [kernel, rawUrl]);
 
@@ -148,7 +133,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
 
     let released = false;
 
-    const generatedObjectUrls: string[] = [];
+    const resolvedMediaUrls: string[] = [];
     const promises = inputMediaObjects.map((obj) => {
       if (obj.url == null) {
         return obj;
@@ -158,30 +143,16 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
         return obj;
       }
 
-      return kernel
-        .sendHttpRequest({
-          method: "GET",
-          path: obj.url,
-          headers: {},
-          body: "",
-        })
-        .then(({ statusCode, headers, body }) => {
-          if (released) {
-            return obj;
-          }
-          if (statusCode !== 200) {
-            return obj;
-          }
-
-          const type = headers.get("Content-Type");
-          const blob = new Blob([body], type ? { type } : undefined);
-          const objectUrl = URL.createObjectURL(blob);
-          generatedObjectUrls.push(objectUrl);
-          return {
-            ...obj,
-            url: objectUrl,
-          };
-        });
+      return resolveMediaUrl(kernel, obj.url).then((resolvedUrl) => {
+        if (released) {
+          return obj;
+        }
+        resolvedMediaUrls.push(resolvedUrl);
+        return {
+          ...obj,
+          url: resolvedUrl,
+        };
+      });
     });
 
     Promise.all(promises).then((overriddenMediaObjects) => {
@@ -193,7 +164,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
 
     return () => {
       released = true;
-      generatedObjectUrls.forEach((objectUrl) => {
+      resolvedMediaUrls.forEach((objectUrl) => {
         URL.revokeObjectURL(objectUrl);
       });
     };

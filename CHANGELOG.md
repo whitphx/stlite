@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.55.1] - 2024-05-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix `st.logo()` to work, [#933](https://github.com/whitphx/stlite/pull/933).
+
 ## [0.55.0] - 2024-05-26
 
 ### `@stlite/kernel`

@@ -51,7 +51,7 @@ st.markdown("# Webcam Demo")
 st.sidebar.header("Webcam Demo")
 st.write(
     """This demo illustrates the use of the 
-    [`st.camera_input`](https://docs.streamlit.io/library/api-reference/widgets/st.camera_input) 
+    [`st.camera_input`](https://docs.streamlit.io/develop/api-reference/widgets/st.camera_input) 
     widget — which lets the user take an image through their webcam and upload it to the app — 
     to apply a filter to the uploaded image. Enjoy!"""
 )

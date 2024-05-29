@@ -5,7 +5,6 @@ import { hideBin } from "yargs/helpers";
 import path from "node:path";
 import fsPromises from "node:fs/promises";
 import fsExtra from "fs-extra";
-import fetch from "node-fetch";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import { makePyodideUrl } from "./url";
 import { PrebuiltPackagesData } from "./pyodide_packages";
@@ -14,9 +13,6 @@ import { readConfig } from "./config";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
 import { logger } from "./logger";
-
-// @ts-ignore
-global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";

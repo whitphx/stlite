@@ -11,23 +11,18 @@ python = "^3.12"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
 requests = "^2.32.2"
-black = "^24.4.2"
-flake8 = "^7.0.0"
-isort = "^5.13.2"
 mypy = "^1.10.0"
 streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240514"
 matplotlib = "^3.9.0"
+ruff = "^0.4.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.black]
-target-version = ['py310']
-
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+extend-select = ["I"]
 
 [tool.mypy]
 check_untyped_defs = true

@@ -139,13 +139,12 @@ jobs:
         . .venv/bin/activate
         make streamlit-proto
 
-    - name: Run linter and code formatter to the test code module
+    - name: Run Ruff
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-server
-        poetry run black . --check
-        poetry run isort . --check
-        poetry run flake8
+        poetry run ruff check --output-format=github .
+        poetry run ruff format . --check
 
     - name: Run mypy
       run: |

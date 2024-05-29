@@ -514,7 +514,7 @@ server.start()
             _headers: PyProxy,
             _body: PyProxy
           ) => {
-            const headers = _headers.toJs();
+            const headers = new Map<string, string>(_headers.toJs()); // Pyodide converts dict to LiteralMap, not Map, which can't be cloned and sent to the main thread. So we convert it to Map here. Ref: https://github.com/pyodide/pyodide/pull/4576
             const body = _body.toJs();
             console.debug({ statusCode, headers, body });
 

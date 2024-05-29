@@ -173,9 +173,7 @@ class Server:
         match = cast(re.Match[str], match)
         args = match.groups()
         kwargs = match.groupdict()
-        kwarg_indexes = (
-            path_regex.groupindex.values()
-        )  # These args are also captured in kwargs, so we remove them from args. Note that these indexes are 1-based.  # noqa: E501
+        kwarg_indexes = path_regex.groupindex.values()  # These args are also captured in kwargs, so we remove them from args. Note that these indexes are 1-based.  # noqa: E501
         args_no_dup = []
         for i, arg in enumerate(args):
             if (

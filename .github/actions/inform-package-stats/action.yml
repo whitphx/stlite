@@ -7,6 +7,8 @@ inputs:
     required: true
   stats-file-prefix:
     default: "package-stats."
+  size-diff-warning-threshold-kib:
+    default: 1024
 
 runs:
   using: "composite"
@@ -237,7 +239,7 @@ runs:
             const sizeKiB = content.package.sizeKib;
             const baseSizeKiB = baseContent?.package?.sizeKib;
             const sizeDiffKiB = sizeKiB - baseSizeKiB;
-            const shouldWarn = Math.abs(sizeDiffKiB) >= 1024;
+            const shouldWarn = Math.abs(sizeDiffKiB) >= ${{ inputs.size-diff-warning-threshold-kib }};
             const sizeDiffFormatter = new Intl.NumberFormat("en-US", { signDisplay: "always" });
             const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB ${shouldWarn ? '⚠️ ' : ''}**${sizeDiffFormatter.format(sizeDiffKiB)} kiB**)` : "";
 

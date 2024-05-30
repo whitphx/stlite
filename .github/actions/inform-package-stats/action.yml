@@ -236,8 +236,10 @@ runs:
 
             const sizeKiB = content.package.sizeKib;
             const baseSizeKiB = baseContent?.package?.sizeKib;
+            const sizeDiffKiB = sizeKiB - baseSizeKiB;
+            const shouldWarn = Math.abs(sizeDiffKiB) >= 1024;
             const sizeDiffFormatter = new Intl.NumberFormat("en-US", { signDisplay: "always" });
-            const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB **${sizeDiffFormatter.format(sizeKiB - baseSizeKiB)} kiB**)` : "";
+            const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB ${shouldWarn ? '⚠️ ' : ''}**${sizeDiffFormatter.format(sizeDiffKiB)} kiB**)` : "";
 
             const fileSizesCmp = await compareStrings(baseContent?.filelist?.sizes ?? "", content.filelist.sizes)
 

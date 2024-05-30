@@ -88,6 +88,7 @@ export function startWorkerEnv(
       streamlitConfig,
       idbfsMountpoints,
       nodefsMountpoints,
+      autoInstall,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -133,6 +134,7 @@ export function startWorkerEnv(
 
     // Mount files
     postProgressMessage("Mounting files.");
+    const pythonFilePaths: string[] = [];
     await Promise.all(
       Object.keys(files).map(async (path) => {
         const file = files[path];
@@ -150,6 +152,10 @@ export function startWorkerEnv(
 
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, data, opts);
+
+        if (path.endsWith(".py")) {
+          pythonFilePaths.push(path);
+        }
       })
     );
 
@@ -240,6 +246,22 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
+    }
+    if (autoInstall) {
+      const loadedPackageData: Pyodide.PackageData[] = [];
+      for (const path of pythonFilePaths) {
+        console.debug(`Auto install the requirements in ${path}`);
+        const code = pyodide.FS.readFile(path, { encoding: "utf8" });
+        const loadedPackageDataForThisFile =
+          await pyodide.loadPackagesFromImports(code);
+        loadedPackageData.push(...loadedPackageDataForThisFile);
+      }
+      postMessage({
+        type: "event:autoinstall:success",
+        data: {
+          packages: loadedPackageData,
+        },
+      });
     }
 
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -422,6 +444,8 @@ server.start()
     postMessage({
       type: "event:loaded",
     });
+
+    return initData;
   }
 
   const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
@@ -448,7 +472,7 @@ server.start()
       return;
     }
 
-    await pyodideReadyPromise;
+    const { autoInstall } = await pyodideReadyPromise;
 
     const messagePort = event.ports[0];
 
@@ -542,6 +566,26 @@ server.start()
         }
         case "file:write": {
           const { path, data: fileData, opts } = msg.data;
+
+          if (
+            autoInstall &&
+            typeof fileData === "string" &&
+            path.endsWith(".py")
+          ) {
+            // Auto-install must be done before writing the file
+            // because saving the file may triggers a rerun.
+            console.debug(`Auto install the requirements in ${path}`);
+
+            const loadedPackageData = await pyodide.loadPackagesFromImports(
+              fileData
+            );
+            postMessage({
+              type: "event:autoinstall:success",
+              data: {
+                packages: loadedPackageData,
+              },
+            });
+          }
 
           console.debug(`Write a file "${path}"`);
           writeFileWithParents(pyodide, path, fileData, opts);

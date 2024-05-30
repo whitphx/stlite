@@ -1,5 +1,5 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
-
+import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
@@ -119,6 +119,8 @@ export interface StliteKernelOptions {
 
   autoInstall?: WorkerInitialData["autoInstall"];
 
+  onAutoInstall?: (packages: PackageData[]) => void;
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -146,10 +148,9 @@ export class StliteKernel {
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
   private onProgress: StliteKernelOptions["onProgress"];
-
   private onLoad: StliteKernelOptions["onLoad"];
-
   private onError: StliteKernelOptions["onError"];
+  private onAutoInstall: StliteKernelOptions["onAutoInstall"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -159,6 +160,7 @@ export class StliteKernel {
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;
+    this.onAutoInstall = options.onAutoInstall;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -366,6 +368,10 @@ export class StliteKernel {
         const { payload } = msg.data;
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
+      }
+      case "event:autoinstall:success": {
+        const { packages } = msg.data;
+        this.onAutoInstall && this.onAutoInstall(packages);
       }
     }
   }

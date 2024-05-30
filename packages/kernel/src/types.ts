@@ -1,4 +1,4 @@
-import type { PyodideInterface } from "pyodide";
+import type { PyodideInterface, PackageData } from "pyodide";
 
 export type PyodideConvertiblePrimitive =
   | string
@@ -162,12 +162,19 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
     payload: Uint8Array | string;
   };
 }
+export interface OutMessageAutoInstallSuccessEvent extends OutMessageBase {
+  type: "event:autoinstall:success";
+  data: {
+    packages: PackageData[];
+  };
+}
 export type OutMessage =
   | OutMessageStartEvent
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
-  | OutMessageWebSocketBack;
+  | OutMessageWebSocketBack
+  | OutMessageAutoInstallSuccessEvent;
 
 /**
  * Reply message to InMessage

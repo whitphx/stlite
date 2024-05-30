@@ -7,6 +7,13 @@ import classNames from "classnames";
 import logo from "../logo.svg";
 import styles from "./index.module.scss";
 
+function DisableableLink(
+  props: React.ComponentProps<typeof Link> & { disabled?: boolean }
+) {
+  const { disabled, ...restProps } = props;
+  return disabled ? <span {...restProps} /> : <Link {...restProps} />;
+}
+
 interface SampleAppMenuProps {
   currentSampleAppId: string | null;
 }
@@ -20,10 +27,10 @@ function SampleAppMenu(props: SampleAppMenuProps) {
       <ol className={styles.list}>
         {sampleAppManifests.map((sampleAppManifest) => {
           const isActive = currentSampleAppId === sampleAppManifest.id;
-          const LinkComponent = isActive ? React.Fragment : Link;
           return (
-            <LinkComponent
+            <DisableableLink
               key={sampleAppManifest.id}
+              disabled={isActive}
               to={{
                 search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
               }}
@@ -35,7 +42,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
               >
                 {sampleAppManifest.title}
               </li>
-            </LinkComponent>
+            </DisableableLink>
           );
         })}
       </ol>

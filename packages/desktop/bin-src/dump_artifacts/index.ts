@@ -99,7 +99,6 @@ async function saveUsedPrebuiltPackages(
   }
 
   const pyodide = await loadPyodide({
-    indexURL: path.join(options.pyodideRuntimeDir, "pyodide.mjs"), // Use the Pyodide runtime placed in the build directory for environment consistency as it will be vendored in the app executable and loaded at runtime.
     packageCacheDir: options.pyodideRuntimeDir,
   });
   // @ts-ignore
@@ -170,7 +169,6 @@ async function createSitePackagesSnapshot(
   logger.info("Create the site-packages snapshot file...");
 
   const pyodide = await loadPyodide({
-    indexURL: path.join(options.pyodideRuntimeDir, "pyodide.mjs"), // Use the Pyodide runtime placed in the build directory for environment consistency as it will be vendored in the app executable and loaded at runtime.
     packageCacheDir: options.pyodideRuntimeDir,
   });
   // @ts-ignore

@@ -99,7 +99,7 @@ This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-
 
 ### Hide the toolbar, hamburger menu, and the footer
 
-If you want to hide the toolbar, hamburger menu, and the footer, add the following to your `package.json` file and run the `dump` command again. By adding the `stlite.desktop.embed` field, the dumped Streamlit app will work in the [embed mode](https://docs.streamlit.io/streamlit-community-cloud/get-started/embed-your-app#embedding-with-iframes) which hides the toolbar, hamburger menu, and the footer.
+If you want to hide the toolbar, hamburger menu, and footer, add the following to your `package.json` file and run the `dump` command again. By adding the `stlite.desktop.embed` field, the dumped Streamlit app will work in the [embed mode](https://docs.streamlit.io/streamlit-community-cloud/get-started/embed-your-app#embedding-with-iframes) which hides the toolbar, hamburger menu, and footer.
 
 ```json
 {

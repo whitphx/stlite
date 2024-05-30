@@ -299,6 +299,11 @@ jobs:
         . .venv/bin/activate
         make mountable
 
+    - name: "[TMP] create a large mock file"
+      run: |
+        mkdir -p packages/mountable/build
+        yes "Some text" | head -n 10000000 > packages/mountable/build/large_file.txt
+
     - name: Package
       working-directory: packages/mountable
       run: yarn pack

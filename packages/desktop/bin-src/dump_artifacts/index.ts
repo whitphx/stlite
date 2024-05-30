@@ -86,12 +86,12 @@ interface LoadUsedPrebuiltPackagesOptions {
 }
 /**
  * Load the Pyodide runtime and install the given requirements to load the prebuilt packages used by the requirements.
- * Those prebuilt packages will be downloaded/copied to a local directory, `pyodideRuntimeDir`.
- * It uses Pyodide's caching mechanism available in the Node environment as a downloader.
+ * Those prebuilt package wheels will be downloaded/copied to a local directory, `pyodideRuntimeDir`.
+ * Pyodide's caching mechanism available in the Node environment is used here as the wheel file downloader.
  * `pyodideRuntimeDir` should be "build/pyodide" so that the downloaded/copied files will be vendored in the app executable.
  * This vendoring and runtime-loading mechanism is necessary to avoid problems such as https://github.com/whitphx/stlite/issues/558
  */
-async function loadUsedPrebuiltPackages(
+async function saveUsedPrebuiltPackages(
   options: LoadUsedPrebuiltPackagesOptions
 ): Promise<string[]> {
   if (options.requirements.length === 0) {
@@ -236,7 +236,7 @@ async function createSitePackagesSnapshot(
 interface CopyAppDirectoryOptions {
   cwd: string;
   filePathPatterns: string[];
-  buildAppDirectory: string;
+  destAppDir: string;
 }
 
 async function copyAppDirectory(options: CopyAppDirectoryOptions) {
@@ -259,7 +259,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
       await Promise.all(
         fileRelPaths.map(async (relPath) => {
           const srcPath = path.resolve(options.cwd, relPath);
-          const destPath = path.resolve(options.buildAppDirectory, relPath);
+          const destPath = path.resolve(options.destAppDir, relPath);
           logger.debug(`Copy ${srcPath} to ${destPath}`);
           await fsExtra.copy(srcPath, destPath, {
             errorOnExist: true,
@@ -270,12 +270,12 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   );
 }
 
-async function assertAppDirectoryContainsEntrypoint(
-  appDirectory: string,
+async function assertAppDirContainsEntrypoint(
+  appDir: string,
   entrypoint: string
 ) {
   try {
-    await fsPromises.access(path.resolve(appDirectory, entrypoint));
+    await fsPromises.access(path.resolve(appDir, entrypoint));
   } catch {
     throw new Error(
       `The entrypoint file "${entrypoint}" is not included in the bundled files.`
@@ -405,7 +405,7 @@ yargs(hideBin(process.argv))
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
 
-    const usedPrebuiltPackages = await loadUsedPrebuiltPackages({
+    const usedPrebuiltPackages = await saveUsedPrebuiltPackages({
       pyodideSource: args.pyodideSource,
       pyodideRuntimeDir: path.resolve(destDir, "./pyodide"),
       requirements: dependencies,
@@ -415,13 +415,13 @@ yargs(hideBin(process.argv))
       usedPrebuiltPackages
     );
 
-    const destAppDirectory = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    const destAppDir = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     await copyAppDirectory({
       cwd: projectDir,
       filePathPatterns: config.files,
-      buildAppDirectory: destAppDirectory,
+      destAppDir,
     });
-    assertAppDirectoryContainsEntrypoint(destAppDirectory, config.entrypoint);
+    assertAppDirContainsEntrypoint(destAppDir, config.entrypoint);
 
     await createSitePackagesSnapshot({
       requirements: dependencies,

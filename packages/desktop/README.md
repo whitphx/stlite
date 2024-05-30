@@ -95,6 +95,19 @@ See the [./samples](./samples) directory for sample projects.
 To make your app secure, be sure to use the latest version of Electron.
 This is [announced](https://www.electronjs.org/docs/latest/tutorial/security#16-use-a-current-version-of-electron) as one of the security best practices in the Electron document too.
 
+## Use a custom Pyodide source
+
+The `dump` command downloads some Pyodide resources such as the prebuilt package wheel files from [the JsDelivr CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default.
+If you want to use a different Pyodide source, for example when accessing JsDelivr (`cdn.jsdelivr.net`) is restricted in your environment,
+you can specify a URL or a path to the Pyodide source by setting the `--pyodide-source` option of the `dump` command.
+
+For example, if you downloaded a Pyodide package from the [Pyodide releases](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#github-releases) and saved it in `/path/to/pyodide/`, you can specify the URL to the Pyodide package like below.
+
+```sh
+npm run dump -- --pyodide-source /path/to/pyodide/
+yarn dump --pyodide-source /path/to/pyodide/
+```
+
 ## Configure the app
 
 ### Hide the toolbar, hamburger menu, and the footer

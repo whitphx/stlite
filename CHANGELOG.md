@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.57.0] - 2024-05-02
+
+### `@stlite/desktop`
+
+#### Added
+
+- `--pyodide-source` option to use a different Pyodide package than the default CDN to fetch the prebuilt package wheels, [#937](https://github.com/whitphx/stlite/pull/937).
+
 ## [0.56.0] - 2024-05-29
 
 ### `@stlite/kernel`

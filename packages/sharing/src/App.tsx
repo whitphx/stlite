@@ -5,6 +5,7 @@ import {
   extractAppDataFromUrl,
   ForwardMessage,
   ReplyMessage,
+  AutoInstallSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import {
@@ -83,6 +84,19 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
+          autoInstall: true,
+          onAutoInstall: (packages) => {
+            window.parent.postMessage(
+              {
+                type: "autoInstalledSuccess",
+                data: {
+                  packages,
+                },
+                stlite: true,
+              } as AutoInstallSuccessMessage,
+              process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
+            );
+          },
         });
         _kernel = kernel;
         setKernel(kernel);

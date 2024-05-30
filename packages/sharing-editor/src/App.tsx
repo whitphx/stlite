@@ -1,12 +1,18 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import "./App.css";
-import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import {
+  embedAppDataToUrl,
+  AppData,
+  File,
+  BackwardMessage,
+} from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
+  StliteSharingIFrameProps,
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
-import Editor, { EditorProps } from "./Editor";
+import Editor, { EditorProps, EditorRef } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import {
@@ -83,6 +89,7 @@ function App() {
   }, [initialAppData, initializeAppData]);
 
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
+  const editorRef = useRef<EditorRef>(null);
 
   const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
     (path, value) => {
@@ -208,6 +215,26 @@ function App() {
     [updateAppData]
   );
 
+  const handleIframeMessage = useCallback<
+    StliteSharingIFrameProps["onMessage"]
+  >((e) => {
+    if (e.data.stlite !== true) {
+      return;
+    }
+    const msg = e.data as BackwardMessage;
+    switch (msg.type) {
+      case "autoInstalledSuccess": {
+        if (msg.data.packages.length > 0) {
+          const additionalRequirements = msg.data.packages.map(
+            (pkg) => pkg.name
+          );
+          editorRef.current?.addRequirements(additionalRequirements);
+        }
+        break;
+      }
+    }
+  }, []);
+
   return (
     <div className="App">
       {!embedMode && (
@@ -222,6 +249,7 @@ function App() {
           left={
             <Editor
               key={initAppDataKey}
+              ref={editorRef}
               appData={appData}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
@@ -246,6 +274,7 @@ function App() {
                   messageTargetOrigin={SHARING_APP_ORIGIN}
                   title="stlite app"
                   className="preview-iframe"
+                  onMessage={handleIframeMessage}
                 />
               )}
             </>

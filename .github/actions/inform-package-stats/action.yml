@@ -8,7 +8,7 @@ inputs:
   stats-file-prefix:
     default: "package-stats."
   size-diff-warning-threshold-kib:
-    default: 1024
+    default: 128
 
 runs:
   using: "composite"

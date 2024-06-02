@@ -21,6 +21,7 @@ import type {
   StliteWorker,
   WorkerInitialData,
   StreamlitConfig,
+  AutoInstallMessage,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -119,7 +120,7 @@ export interface StliteKernelOptions {
 
   autoInstall?: WorkerInitialData["autoInstall"];
 
-  onAutoInstall?: (packages: PackageData[]) => void;
+  onAutoInstall?: (installPromise: Promise<PackageData[]>) => void;
 
   onProgress?: (message: string) => void;
 
@@ -147,10 +148,10 @@ export class StliteKernel {
 
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
-  private onProgress: StliteKernelOptions["onProgress"];
-  private onLoad: StliteKernelOptions["onLoad"];
-  private onError: StliteKernelOptions["onError"];
-  private onAutoInstall: StliteKernelOptions["onAutoInstall"];
+  public onProgress: StliteKernelOptions["onProgress"];
+  public onLoad: StliteKernelOptions["onLoad"];
+  public onError: StliteKernelOptions["onError"];
+  public onAutoInstall: StliteKernelOptions["onAutoInstall"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -172,7 +173,8 @@ export class StliteKernel {
     }
 
     this._worker.onmessage = (e) => {
-      this._processWorkerMessage(e.data);
+      const messagePort: MessagePort | undefined = e.ports[0];
+      this._processWorkerMessage(e.data, messagePort);
     };
 
     let wheels: WorkerInitialData["wheels"] = undefined;
@@ -342,7 +344,7 @@ export class StliteKernel {
    *
    * @param msg The worker message to process.
    */
-  private _processWorkerMessage(msg: OutMessage): void {
+  private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
         this._worker.postMessage({
@@ -369,9 +371,25 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
-      case "event:autoinstall:success": {
-        const { packages } = msg.data;
-        this.onAutoInstall && this.onAutoInstall(packages);
+      case "event:autoinstall": {
+        if (port == null) {
+          throw new Error("Port is required for autoinstall event");
+        }
+        this.onAutoInstall &&
+          this.onAutoInstall(
+            new Promise((resolve, reject) => {
+              port.onmessage = (e) => {
+                const msg: AutoInstallMessage = e.data;
+                if (msg.type === "autoinstall:success") {
+                  resolve(msg.data.packages);
+                } else {
+                  reject(msg.error);
+                }
+                port.close();
+              };
+            })
+          );
+        break;
       }
     }
   }

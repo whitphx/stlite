@@ -162,11 +162,8 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
     payload: Uint8Array | string;
   };
 }
-export interface OutMessageAutoInstallSuccessEvent extends OutMessageBase {
-  type: "event:autoinstall:success";
-  data: {
-    packages: PackageData[];
-  };
+export interface OutMessageAutoInstallEvent extends OutMessageBase {
+  type: "event:autoinstall";
 }
 export type OutMessage =
   | OutMessageStartEvent
@@ -174,7 +171,22 @@ export type OutMessage =
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
   | OutMessageWebSocketBack
-  | OutMessageAutoInstallSuccessEvent;
+  | OutMessageAutoInstallEvent;
+
+export interface AutoInstallMessageBase {
+  type: string;
+}
+export interface AutoInstallSuccess extends AutoInstallMessageBase {
+  type: "autoinstall:success";
+  data: {
+    packages: PackageData[];
+  };
+}
+export interface AutoInstallError extends AutoInstallMessageBase {
+  type: "autoinstall:error";
+  error: Error;
+}
+export type AutoInstallMessage = AutoInstallSuccess | AutoInstallError;
 
 /**
  * Reply message to InMessage

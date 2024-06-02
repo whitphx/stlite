@@ -2,7 +2,7 @@ import { parentPort } from "node:worker_threads";
 import { startWorkerEnv } from "@stlite/kernel/src/worker-runtime";
 import { loadNodefsMountpoints } from "./worker-options";
 
-function postMessage(value: any) {
+function postMessage(value: any, port?: MessagePort) {
   console.debug("[worker thread] postMessage from worker", value);
   parentPort?.postMessage(value);
 }

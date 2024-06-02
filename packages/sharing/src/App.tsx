@@ -85,23 +85,32 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           autoInstall: true,
-          onAutoInstall: (packages) => {
-            window.parent.postMessage(
-              {
-                type: "autoInstalledSuccess",
-                data: {
-                  packages,
-                },
-                stlite: true,
-              } as AutoInstallSuccessMessage,
-              process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
-            );
-          },
         });
         _kernel = kernel;
         setKernel(kernel);
 
-        const kernelWithToast = new StliteKernelWithToast(kernel);
+        const kernelWithToast = new StliteKernelWithToast(kernel, {
+          onAutoInstall: (installPromise) => {
+            console.log("Auto install starts");
+            installPromise
+              .then((packages) => {
+                console.log("Auto install success", packages);
+                window.parent.postMessage(
+                  {
+                    type: "autoInstalledSuccess",
+                    data: {
+                      packages,
+                    },
+                    stlite: true,
+                  } as AutoInstallSuccessMessage,
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
+                );
+              })
+              .catch((error) => {
+                console.error("Auto install failed", error);
+              });
+          },
+        });
 
         // Handle messages from the editor
         onMessage = (event) => {

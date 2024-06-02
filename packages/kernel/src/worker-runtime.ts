@@ -4,6 +4,7 @@ import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { mockPyArrow } from "./mock";
+import { tryAutoInstall } from "./auto-install";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -42,7 +43,7 @@ const self = global as typeof globalThis & {
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
-  postMessage: (message: OutMessage) => void,
+  postMessage: (message: OutMessage, port?: MessagePort) => void,
   presetInitialData?: Partial<WorkerInitialData>
 ) {
   function postProgressMessage(message: string): void {
@@ -247,21 +248,12 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
     }
+    let autoInstallPromise: Promise<unknown> | undefined;
     if (autoInstall) {
-      const loadedPackageData: Pyodide.PackageData[] = [];
-      for (const path of pythonFilePaths) {
-        console.debug(`Auto install the requirements in ${path}`);
-        const code = pyodide.FS.readFile(path, { encoding: "utf8" });
-        const loadedPackageDataForThisFile =
-          await pyodide.loadPackagesFromImports(code);
-        loadedPackageData.push(...loadedPackageDataForThisFile);
-      }
-      postMessage({
-        type: "event:autoinstall:success",
-        data: {
-          packages: loadedPackageData,
-        },
-      });
+      const sources = pythonFilePaths.map((path) =>
+        pyodide.FS.readFile(path, { encoding: "utf8" })
+      );
+      autoInstallPromise = tryAutoInstall(pyodide, sources, postMessage);
     }
 
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -441,6 +433,8 @@ server.start()
     httpServer = pyodide.globals.get("server").copy();
     console.debug("Set up the HTTP server");
 
+    await autoInstallPromise;
+
     postMessage({
       type: "event:loaded",
     });
@@ -576,15 +570,7 @@ server.start()
             // because saving the file may triggers a rerun.
             console.debug(`Auto install the requirements in ${path}`);
 
-            const loadedPackageData = await pyodide.loadPackagesFromImports(
-              fileData
-            );
-            postMessage({
-              type: "event:autoinstall:success",
-              data: {
-                packages: loadedPackageData,
-              },
-            });
+            await tryAutoInstall(pyodide, [fileData], postMessage);
           }
 
           console.debug(`Write a file "${path}"`);

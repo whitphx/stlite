@@ -1,5 +1,5 @@
 import React from "react";
-import { StliteKernel } from "@stlite/kernel";
+import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import { toast } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 
@@ -37,8 +37,26 @@ function stliteStyledPromiseToast<TData>(
   );
 }
 
+export interface StliteKernelWithToastOptions {
+  onAutoInstall?: StliteKernelOptions["onAutoInstall"];
+}
 export class StliteKernelWithToast {
-  constructor(private kernel: StliteKernel) {}
+  constructor(
+    private kernel: StliteKernel,
+    options: StliteKernelWithToastOptions
+  ) {
+    kernel.onAutoInstall = (installPromise) => {
+      if (options.onAutoInstall) {
+        options.onAutoInstall(installPromise);
+      }
+
+      stliteStyledPromiseToast(installPromise, {
+        success: "Packages auto-loaded",
+        error: "Failed to auto-load packages",
+        pending: "Auto-loading packages",
+      });
+    };
+  }
 
   public writeFile(...args: Parameters<StliteKernel["writeFile"]>) {
     return stliteStyledPromiseToast<void>(this.kernel.writeFile(...args), {

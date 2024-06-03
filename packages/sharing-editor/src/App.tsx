@@ -75,7 +75,7 @@ function App() {
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
       window.location.origin + window.location.pathname, // window.location.search is excluded because it may include the sample app ID that conflicts the appData content.
-      appData
+      appData,
     );
     window.history.replaceState(null, "", newUrl);
   }, []);
@@ -124,7 +124,7 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleFileRename = useCallback<EditorProps["onFileRename"]>(
@@ -166,7 +166,7 @@ function App() {
         };
       });
     },
-    [appData, updateAppData]
+    [appData, updateAppData],
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
@@ -191,7 +191,7 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleRequirementsChange = useCallback<
@@ -212,38 +212,41 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleIframeMessage = useCallback<
     StliteSharingIFrameProps["onMessage"]
-  >((e) => {
-    if (e.data.stlite !== true) {
-      return;
-    }
-    const msg = e.data as BackwardMessage;
-    switch (msg.type) {
-      case "autoInstalledSuccess": {
-        if (msg.data.packages.length > 0) {
-          const additionalRequirements = msg.data.packages.map(
-            (pkg) => pkg.name
-          );
-          const editor = editorRef.current;
-          if (editor == null) {
-            return;
-          }
-          const requirements = editor.addRequirements(
-            additionalRequirements.map((r) => r + " # auto-loaded")
-          );
-          updateAppData((cur) => ({
-            ...cur,
-            requirements,
-          }));
-        }
-        break;
+  >(
+    (e) => {
+      if (e.data.stlite !== true) {
+        return;
       }
-    }
-  }, []);
+      const msg = e.data as BackwardMessage;
+      switch (msg.type) {
+        case "autoInstalledSuccess": {
+          if (msg.data.packages.length > 0) {
+            const additionalRequirements = msg.data.packages.map(
+              (pkg) => pkg.name,
+            );
+            const editor = editorRef.current;
+            if (editor == null) {
+              return;
+            }
+            const requirements = editor.addRequirements(
+              additionalRequirements.map((r) => r + " # auto-loaded"),
+            );
+            updateAppData((cur) => ({
+              ...cur,
+              requirements,
+            }));
+          }
+          break;
+        }
+      }
+    },
+    [updateAppData],
+  );
 
   return (
     <div className="App">

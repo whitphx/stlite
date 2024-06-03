@@ -36,6 +36,7 @@ export async function tryAutoInstall(
 ): Promise<PackageData[]> {
   await pyodide.runPythonAsync(pyCode);
   const findImportsFn = pyodide.globals.get("__find_imports__");
+
   const importsArr = sources.map(
     (source) => findImportsFn(source).toJs() as string[]
   );

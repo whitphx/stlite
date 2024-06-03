@@ -45,11 +45,11 @@ export interface StliteKernelWithToastOptions {
 export class StliteKernelWithToast {
   constructor(
     private kernel: StliteKernel,
-    options: StliteKernelWithToastOptions
+    options?: StliteKernelWithToastOptions
   ) {
     kernel.onAutoInstall = (installPromise) => {
-      if (options.onAutoInstall) {
-        options.onAutoInstall(installPromise);
+      if (options?.onAutoInstall) {
+        options?.onAutoInstall(installPromise);
       }
 
       stliteStyledPromiseToast(installPromise, {

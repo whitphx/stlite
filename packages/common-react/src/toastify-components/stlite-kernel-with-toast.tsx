@@ -1,34 +1,36 @@
 import React from "react";
 import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
-import { toast } from "react-toastify";
+import { toast, ToastPromiseParams } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 
-type ToastPromiseParams<TData> = Parameters<typeof toast.promise<TData>>;
-type ToastPromiseMessages<TData> = Partial<
-  Record<keyof ToastPromiseParams<TData>[1], string>
->;
-type ToastPromiseReturnType = ReturnType<typeof toast.promise>;
-function stliteStyledPromiseToast<TData>(
-  promise: ToastPromiseParams<TData>[0],
-  messages: ToastPromiseMessages<TData>
-): ToastPromiseReturnType {
+function stliteStyledPromiseToast<
+  TData = unknown,
+  TError extends Error | undefined = undefined,
+  TPending = unknown
+>(
+  promise: Promise<TData>,
+  messages: ToastPromiseParams<TData, TError, TPending>
+): ReturnType<typeof toast.promise> {
   const errorMessage = messages.error;
-  return toast.promise<TData, Error>(
+  return toast.promise<TData, TError, TPending>(
     promise,
     {
       pending: messages.pending,
       success: messages.success,
-      error: errorMessage && {
-        render({ data }) {
-          return data ? (
-            <ErrorToastContent message={errorMessage} error={data} />
-          ) : (
-            messages.error
-          );
-        },
-        autoClose: false,
-        closeOnClick: false,
-      },
+      error:
+        typeof errorMessage === "string"
+          ? {
+              render({ data }) {
+                return data ? (
+                  <ErrorToastContent message={errorMessage} error={data} />
+                ) : (
+                  <>messages.error</>
+                );
+              },
+              autoClose: false,
+              closeOnClick: false,
+            }
+          : errorMessage,
     },
     {
       hideProgressBar: true,
@@ -51,7 +53,13 @@ export class StliteKernelWithToast {
       }
 
       stliteStyledPromiseToast(installPromise, {
-        success: "Packages auto-loaded",
+        success: {
+          render({ data }) {
+            return `Auto-loaded${
+              data ? ": " + data.map((pkg) => pkg.name).join(", ") : " packages"
+            }`;
+          },
+        },
         error: "Failed to auto-load packages",
         pending: "Auto-loading packages",
       });

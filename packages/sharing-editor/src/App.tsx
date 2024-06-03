@@ -228,7 +228,17 @@ function App() {
           const additionalRequirements = msg.data.packages.map(
             (pkg) => pkg.name
           );
-          editorRef.current?.addRequirements(additionalRequirements);
+          const editor = editorRef.current;
+          if (editor == null) {
+            return;
+          }
+          const requirements = editor.addRequirements(
+            additionalRequirements.map((r) => r + " # auto-loaded")
+          );
+          updateAppData((cur) => ({
+            ...cur,
+            requirements,
+          }));
         }
         break;
       }

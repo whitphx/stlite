@@ -29,7 +29,7 @@ let newFileCount = 1;
 const REQUIREMENTS_FILENAME = "requirements";
 
 export interface EditorRef {
-  addRequirements: (requirements: string[]) => void;
+  addRequirements: (requirements: string[]) => string[];
 }
 export interface EditorProps {
   appData: AppData;
@@ -204,15 +204,25 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       [currentFileName, setMonacoEditorValues]
     );
 
-    useImperativeHandle(ref, () => ({
-      addRequirements(requirements) {
-        setMonacoEditorValues((cur) => ({
-          ...cur,
-          [REQUIREMENTS_FILENAME]:
-            cur[REQUIREMENTS_FILENAME] + "\n" + requirements.join("\n"),
-        }));
-      },
-    }));
+    useImperativeHandle(
+      ref,
+      () => ({
+        addRequirements(requirements) {
+          const curValue = monacoEditorValues[REQUIREMENTS_FILENAME] ?? "";
+          const lastLine = curValue.split("\n").pop();
+          const needLineBreak = lastLine !== "" && lastLine != null;
+          const newValue =
+            curValue + (needLineBreak ? "\n" : "") + requirements.join("\n");
+          setMonacoEditorValues((cur) => ({
+            ...cur,
+            [REQUIREMENTS_FILENAME]: newValue,
+          }));
+
+          return parseRequirementsTxt(newValue);
+        },
+      }),
+      [monacoEditorValues]
+    );
 
     return (
       <div className={styles.container}>

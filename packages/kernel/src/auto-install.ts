@@ -29,22 +29,22 @@ def __find_imports__(source: str) -> list[str]:
     return list(sorted(imports))
 `;
 
-export async function tryAutoInstall(
+export async function tryModuleAutoLoad(
   pyodide: PyodideInterface,
+  postMessage: (message: OutMessage, port: MessagePort) => void,
   sources: string[],
-  postMessage: (message: OutMessage, port: MessagePort) => void
 ): Promise<PackageData[]> {
   await pyodide.runPythonAsync(pyCode);
   const findImportsFn = pyodide.globals.get("__find_imports__");
 
   const importsArr = sources.map(
-    (source) => findImportsFn(source).toJs() as string[]
+    (source) => findImportsFn(source).toJs() as string[],
   );
   const imports = Array.from(new Set(importsArr.flat()));
 
   const notFoundImports = imports.filter(
     (name) =>
-      !pyodide.runPython(`__import__('importlib').util.find_spec('${name}')`)
+      !pyodide.runPython(`__import__('importlib').util.find_spec('${name}')`),
   );
 
   if (notFoundImports.length === 0) {
@@ -57,22 +57,49 @@ export async function tryAutoInstall(
         pyodide as unknown as {
           _api: { _import_name_to_package_name: Map<string, string> };
         }
-      )._api._import_name_to_package_name.get(name)
+      )._api._import_name_to_package_name.get(name),
     )
     .filter((name) => name) as string[];
 
-  const channel = new MessageChannel();
+  return executeModuleAutoLoad(pyodide, postMessage, packagesToLoad);
+}
 
+export async function executeModuleAutoLoad(
+  pyodide: PyodideInterface,
+  postMessage: (message: OutMessage, port: MessagePort) => void,
+  importName: string | string[],
+): Promise<PackageData[]> {
+  const importNames = Array.isArray(importName) ? importName : [importName];
+  console.debug(`Auto import the modules: ${importNames}`);
+  const packageNames = importNames
+    .map((importName) => {
+      const packageName = (
+        pyodide as unknown as {
+          _api: { _import_name_to_package_name: Map<string, string> };
+        }
+      )._api._import_name_to_package_name.get(importName);
+      if (packageName == null) {
+        console.warn(`The package name for ${importName} is not found.`);
+        return;
+      }
+      return packageName;
+    })
+    .filter((packageName) => packageName != null) as string[];
+  if (packageNames.length === 0) {
+    return [];
+  }
+
+  console.debug(`Auto install the packages: ${packageNames}`);
+  const channel = new MessageChannel();
   postMessage(
     {
       type: "event:autoinstall",
     },
-    channel.port2
+    channel.port2,
   );
 
   try {
-    const loadedPackages = await pyodide.loadPackage(packagesToLoad);
-
+    const loadedPackages = await pyodide.loadPackage(packageNames);
     channel.port1.postMessage({
       type: "autoinstall:success",
       data: {

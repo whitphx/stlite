@@ -118,7 +118,8 @@ export interface StliteKernelOptions {
 
   idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
 
-  autoInstall?: WorkerInitialData["autoInstall"];
+  moduleAutoLoadOnSave?: WorkerInitialData["moduleAutoLoadOnSave"];
+  moduleAutoLoadOnRun?: WorkerInitialData["moduleAutoLoadOnRun"];
 
   onAutoInstall?: (installPromise: Promise<PackageData[]>) => void;
 
@@ -185,11 +186,11 @@ export class StliteKernel {
       });
       const stliteServerWheelUrl = makeAbsoluteWheelURL(
         STLITE_SERVER_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
         STREAMLIT_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       wheels = {
         stliteServer: stliteServerWheelUrl,
@@ -215,7 +216,8 @@ export class StliteKernel {
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
-      autoInstall: options.autoInstall ?? false,
+      moduleAutoLoadOnSave: options.moduleAutoLoadOnSave ?? false,
+      moduleAutoLoadOnRun: options.moduleAutoLoadOnRun ?? false,
     };
   }
 
@@ -256,7 +258,7 @@ export class StliteKernel {
           request,
         },
       },
-      "http:response"
+      "http:response",
     ).then((data) => {
       return {
         ...data.response,
@@ -268,7 +270,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>
+    opts?: Record<string, unknown>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -309,15 +311,15 @@ export class StliteKernel {
   }
 
   private _asyncPostMessage(
-    message: InMessage
+    message: InMessage,
   ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
-    expectedReplyType: T
+    expectedReplyType: T,
   ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
   private _asyncPostMessage(
     message: InMessage,
-    expectedReplyType = "reply"
+    expectedReplyType = "reply",
   ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
@@ -387,7 +389,7 @@ export class StliteKernel {
                 }
                 port.close();
               };
-            })
+            }),
           );
         break;
       }

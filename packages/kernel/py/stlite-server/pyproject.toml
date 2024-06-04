@@ -13,7 +13,7 @@ pytest = "^8.2.1"
 requests = "^2.32.3"
 mypy = "^1.10.0"
 streamlit-aggrid = "^1.0.5"
-pandas-stubs = "^2.2.2.240514"
+pandas-stubs = "^2.2.2.240603"
 matplotlib = "^3.9.0"
 ruff = "^0.4.7"
 

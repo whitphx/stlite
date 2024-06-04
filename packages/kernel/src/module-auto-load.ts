@@ -55,7 +55,7 @@ export async function tryModuleAutoLoad(
     channel.port1.postMessage({
       type: "moduleAutoLoad:success",
       data: {
-        loadedPackages: loadedPackages,
+        loadedPackages,
       },
     } as ModuleAutoLoadMessage);
     channel.port1.close();

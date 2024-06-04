@@ -37,6 +37,13 @@ async function initPyodide(
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
+const self = global as typeof globalThis & {
+  __logCallback__: (levelno: number, msg: string) => void;
+  __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
+  __scriptFinishedCallback__: () => void;
+  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
+};
+
 function dispatchModuleAutoLoading(
   pyodide: Pyodide.PyodideInterface,
   postMessage: PostMessageFn,
@@ -52,13 +59,6 @@ from js import __moduleAutoLoadPromise__
 script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
-
-const self = global as typeof globalThis & {
-  __logCallback__: (levelno: number, msg: string) => void;
-  __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
-  __scriptFinishedCallback__: () => void;
-  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
-};
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,

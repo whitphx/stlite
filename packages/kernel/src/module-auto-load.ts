@@ -13,6 +13,8 @@ export async function tryModuleAutoLoad(
   postMessage: PostMessageFn,
   sources: string[]
 ): Promise<void> {
+  // Ref: `pyodide.loadPackagesFromImports` (https://github.com/pyodide/pyodide/blob/0.26.0/src/js/api.ts#L191)
+
   const importsArr = sources.map((source) => findImports(pyodide, source));
   const imports = Array.from(new Set(importsArr.flat()));
 

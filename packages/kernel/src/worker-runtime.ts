@@ -4,7 +4,7 @@ import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { mockPyArrow } from "./mock";
-import { tryAutoInstall } from "./auto-install";
+import { tryModuleAutoLoad } from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -15,7 +15,7 @@ import type {
 
 async function initPyodide(
   pyodideUrl: string,
-  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0]
+  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
 ): Promise<Pyodide.PyodideInterface> {
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
   const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
@@ -44,7 +44,7 @@ const self = global as typeof globalThis & {
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: (message: OutMessage, port?: MessagePort) => void,
-  presetInitialData?: Partial<WorkerInitialData>
+  presetInitialData?: Partial<WorkerInitialData>,
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -128,7 +128,7 @@ export function startWorkerEnv(
         pyodide.FS.mount(
           pyodide.FS.filesystems.NODEFS,
           { root: path },
-          mountpoint
+          mountpoint,
         );
       });
     }
@@ -157,7 +157,7 @@ export function startWorkerEnv(
         if (path.endsWith(".py")) {
           pythonFilePaths.push(path);
         }
-      })
+      }),
     );
 
     // Unpack archives
@@ -175,7 +175,7 @@ export function startWorkerEnv(
 
         console.debug(`Unpack an archive`, { format, options });
         pyodide.unpackArchive(buffer, format, options);
-      })
+      }),
     );
 
     if (!mountedSitePackagesSnapshotFilePath && !wheels) {
@@ -231,11 +231,11 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
         "Installing the wheels:",
         wheels,
         "and the requirements:",
-        requirements
+        requirements,
       );
       await micropip.install.callKwargs(
         [wheels.stliteServer, wheels.streamlit, ...requirements],
-        { keep_going: true }
+        { keep_going: true },
       );
       console.debug("Installed the wheels and the requirements");
 
@@ -251,9 +251,9 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
     let autoInstallPromise: Promise<unknown> | undefined;
     if (autoInstall) {
       const sources = pythonFilePaths.map((path) =>
-        pyodide.FS.readFile(path, { encoding: "utf8" })
+        pyodide.FS.readFile(path, { encoding: "utf8" }),
       );
-      autoInstallPromise = tryAutoInstall(pyodide, sources, postMessage);
+      autoInstallPromise = tryModuleAutoLoad(pyodide, sources, postMessage);
     }
 
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -349,7 +349,7 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     console.debug("Set the loggers");
 
     postProgressMessage(
-      "Mocking some Streamlit functions for the browser environment."
+      "Mocking some Streamlit functions for the browser environment.",
     );
     console.debug("Mocking some Streamlit functions");
     // Disable caching. See https://github.com/whitphx/stlite/issues/495
@@ -489,7 +489,7 @@ server.start()
                 const payload = new Uint8ClampedArray(
                   buffer.data.buffer,
                   buffer.data.byteOffset,
-                  buffer.data.byteLength
+                  buffer.data.byteLength,
                 );
                 postMessage({
                   type: "websocket:message",
@@ -506,7 +506,7 @@ server.start()
                   },
                 });
               }
-            }
+            },
           );
 
           messagePort.postMessage({
@@ -530,7 +530,7 @@ server.start()
           const onResponse = (
             statusCode: number,
             _headers: PyProxy,
-            _body: PyProxy
+            _body: PyProxy,
           ) => {
             const headers = new Map<string, string>(_headers.toJs()); // Pyodide converts dict to LiteralMap, not Map, which can't be cloned and sent to the main thread. So we convert it to Map here. Ref: https://github.com/pyodide/pyodide/pull/4576
             const body = _body.toJs();
@@ -554,7 +554,7 @@ server.start()
             decodeURIComponent(request.path),
             request.headers,
             request.body,
-            onResponse
+            onResponse,
           );
           break;
         }
@@ -570,7 +570,7 @@ server.start()
             // because saving the file may triggers a rerun.
             console.debug(`Auto install the requirements in ${path}`);
 
-            await tryAutoInstall(pyodide, [fileData], postMessage);
+            await tryModuleAutoLoad(pyodide, [fileData], postMessage);
           }
 
           console.debug(`Write a file "${path}"`);

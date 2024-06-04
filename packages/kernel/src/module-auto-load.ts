@@ -21,10 +21,6 @@ export async function tryModuleAutoLoad(
       !pyodide.runPython(`__import__('importlib').util.find_spec('${name}')`),
   );
 
-  if (notFoundImports.length === 0) {
-    return [];
-  }
-
   const packagesToLoad = notFoundImports
     .map((name) =>
       (
@@ -34,6 +30,10 @@ export async function tryModuleAutoLoad(
       )._api._import_name_to_package_name.get(name),
     )
     .filter((name) => name) as string[];
+
+  if (packagesToLoad.length === 0) {
+    return [];
+  }
 
   const channel = new MessageChannel();
 

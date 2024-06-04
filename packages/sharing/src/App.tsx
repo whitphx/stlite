@@ -91,7 +91,7 @@ st.write("Hello World")`,
 
         const kernelWithToast = new StliteKernelWithToast(kernel, {
           onModuleAutoLoad: (packagesToLoad, installPromise) => {
-            console.log("Module auto-load started");
+            console.log("Module auto-load started", packagesToLoad);
             installPromise
               .then((loadedPackages) => {
                 console.log("Module auto-load success", loadedPackages);
@@ -104,7 +104,7 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? "*" // TODO: Strictly set the parent window origin when REACT_APP_EDITOR_APP_ORIGIN is not set, i.e. in preview mode.
                 );
               })
               .catch((error) => {

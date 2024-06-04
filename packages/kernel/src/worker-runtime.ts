@@ -42,9 +42,9 @@ function dispatchModuleAutoLoading(
   postMessage: PostMessageFn,
   sources: string[],
 ): void {
-  const autoInstallPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
   // `autoInstallPromise` will be awaited in the script_runner on the Python side.
-  self.__moduleAutoLoadPromise__ = autoInstallPromise;
+  self.__moduleAutoLoadPromise__ = autoLoadPromise;
   pyodide.runPythonAsync(`
 from streamlit.runtime.scriptrunner import script_runner
 from js import __moduleAutoLoadPromise__
@@ -108,7 +108,7 @@ export function startWorkerEnv(
       streamlitConfig,
       idbfsMountpoints,
       nodefsMountpoints,
-      autoInstall,
+      moduleAutoLoad,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -267,7 +267,7 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
     }
-    if (autoInstall) {
+    if (moduleAutoLoad) {
       const sources = pythonFilePaths.map((path) =>
         pyodide.FS.readFile(path, { encoding: "utf8" }),
       );
@@ -482,7 +482,7 @@ server.start()
       return;
     }
 
-    const { autoInstall } = await pyodideReadyPromise;
+    const { moduleAutoLoad } = await pyodideReadyPromise;
 
     const messagePort = event.ports[0];
 
@@ -578,7 +578,7 @@ server.start()
           const { path, data: fileData, opts } = msg.data;
 
           if (
-            autoInstall &&
+            moduleAutoLoad &&
             typeof fileData === "string" &&
             path.endsWith(".py")
           ) {

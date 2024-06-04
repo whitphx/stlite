@@ -57,7 +57,7 @@ export interface WorkerInitialData {
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
-  autoInstall: boolean;
+  moduleAutoLoad: boolean;
 }
 
 /**
@@ -162,8 +162,8 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
     payload: Uint8Array | string;
   };
 }
-export interface OutMessageAutoInstallEvent extends OutMessageBase {
-  type: "event:autoinstall";
+export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
+  type: "event:moduleAutoLoad";
 }
 export type OutMessage =
   | OutMessageStartEvent
@@ -171,22 +171,22 @@ export type OutMessage =
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
   | OutMessageWebSocketBack
-  | OutMessageAutoInstallEvent;
+  | OutMessageModuleAutoLoadEvent;
 
-export interface AutoInstallMessageBase {
+export interface ModuleAutoLoadMessageBase {
   type: string;
 }
-export interface AutoInstallSuccess extends AutoInstallMessageBase {
-  type: "autoinstall:success";
+export interface ModuleAutoLoadSuccess extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:success";
   data: {
     packages: PackageData[];
   };
 }
-export interface AutoInstallError extends AutoInstallMessageBase {
-  type: "autoinstall:error";
+export interface ModuleAutoLoadError extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:error";
   error: Error;
 }
-export type AutoInstallMessage = AutoInstallSuccess | AutoInstallError;
+export type ModuleAutoLoadMessage = ModuleAutoLoadSuccess | ModuleAutoLoadError;
 
 /**
  * Reply message to InMessage
@@ -212,7 +212,7 @@ export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;
  * Validators
  */
 export function isPyodideConvertiblePrimitive(
-  value: unknown
+  value: unknown,
 ): value is PyodideConvertiblePrimitive {
   return (
     typeof value === "string" ||
@@ -228,12 +228,12 @@ export function isStreamlitConfig(value: unknown): value is StreamlitConfig {
     value != null &&
     Object.entries(value).every(
       ([key, value]) =>
-        typeof key === "string" && isPyodideConvertiblePrimitive(value)
+        typeof key === "string" && isPyodideConvertiblePrimitive(value),
     )
   );
 }
 export function assertStreamlitConfig(
-  value: unknown
+  value: unknown,
 ): asserts value is StreamlitConfig {
   if (!isStreamlitConfig(value)) {
     throw new Error(`Invalid streamlitConfig: ${value}`);

@@ -1,5 +1,5 @@
 import type { PackageData, PyodideInterface } from "pyodide";
-import type { AutoInstallMessage } from "./types";
+import type { ModuleAutoLoadMessage } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 
 function findImports(pyodide: PyodideInterface, source: string): string[] {
@@ -39,7 +39,7 @@ export async function tryModuleAutoLoad(
 
   postMessage(
     {
-      type: "event:autoinstall",
+      type: "event:moduleAutoLoad",
     },
     channel.port2,
   );
@@ -48,18 +48,18 @@ export async function tryModuleAutoLoad(
     const loadedPackages = await pyodide.loadPackage(packagesToLoad);
 
     channel.port1.postMessage({
-      type: "autoinstall:success",
+      type: "moduleAutoLoad:success",
       data: {
         packages: loadedPackages,
       },
-    } as AutoInstallMessage);
+    } as ModuleAutoLoadMessage);
     channel.port1.close();
     return loadedPackages;
   } catch (error) {
     channel.port1.postMessage({
-      type: "autoinstall:error",
+      type: "moduleAutoLoad:error",
       error: error as Error,
-    } as AutoInstallMessage);
+    } as ModuleAutoLoadMessage);
     channel.port1.close();
     throw error;
   }

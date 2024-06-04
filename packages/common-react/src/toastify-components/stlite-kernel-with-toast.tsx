@@ -6,10 +6,10 @@ import ErrorToastContent from "./ErrorToastContent";
 function stliteStyledPromiseToast<
   TData = unknown,
   TError extends Error | undefined = undefined,
-  TPending = unknown
+  TPending = unknown,
 >(
   promise: Promise<TData>,
-  messages: ToastPromiseParams<TData, TError, TPending>
+  messages: ToastPromiseParams<TData, TError, TPending>,
 ): ReturnType<typeof toast.promise> {
   const errorMessage = messages.error;
   return toast.promise<TData, TError, TPending>(
@@ -35,21 +35,21 @@ function stliteStyledPromiseToast<
     {
       hideProgressBar: true,
       position: toast.POSITION.BOTTOM_RIGHT,
-    }
+    },
   );
 }
 
 export interface StliteKernelWithToastOptions {
-  onAutoInstall?: StliteKernelOptions["onAutoInstall"];
+  onModuleAutoLoad?: StliteKernelOptions["onModuleAutoLoad"];
 }
 export class StliteKernelWithToast {
   constructor(
     private kernel: StliteKernel,
-    options?: StliteKernelWithToastOptions
+    options?: StliteKernelWithToastOptions,
   ) {
-    kernel.onAutoInstall = (installPromise) => {
-      if (options?.onAutoInstall) {
-        options?.onAutoInstall(installPromise);
+    kernel.onModuleAutoLoad = (installPromise) => {
+      if (options?.onModuleAutoLoad) {
+        options?.onModuleAutoLoad(installPromise);
       }
 
       stliteStyledPromiseToast(installPromise, {

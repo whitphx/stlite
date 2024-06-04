@@ -224,7 +224,7 @@ function App() {
       }
       const msg = e.data as BackwardMessage;
       switch (msg.type) {
-        case "autoInstalledSuccess": {
+        case "moduleAutoLoadSuccess": {
           if (msg.data.packages.length > 0) {
             const additionalRequirements = msg.data.packages.map(
               (pkg) => pkg.name,

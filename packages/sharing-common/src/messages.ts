@@ -55,11 +55,11 @@ export interface BackwardMessageBase {
   data?: unknown;
   stlite: true; // To distinguish from other messages such as from the Streamlit app like https://github.com/streamlit/streamlit/blob/1.35.0/frontend/lib/src/hostComm/types.ts#L49
 }
-export interface AutoInstallSuccessMessage extends BackwardMessageBase {
-  type: "autoInstalledSuccess";
+export interface ModuleAutoLoadSuccessMessage extends BackwardMessageBase {
+  type: "moduleAutoLoadSuccess";
   data: {
     packages: PackageData[];
   };
 }
 
-export type BackwardMessage = AutoInstallSuccessMessage;
+export type BackwardMessage = ModuleAutoLoadSuccessMessage;

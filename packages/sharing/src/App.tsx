@@ -5,7 +5,7 @@ import {
   extractAppDataFromUrl,
   ForwardMessage,
   ReplyMessage,
-  AutoInstallSuccessMessage,
+  ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import {
@@ -26,7 +26,7 @@ function isEditorOrigin(origin: string): boolean {
 }
 
 function convertFiles(
-  appDataFiles: AppData["files"]
+  appDataFiles: AppData["files"],
 ): StliteKernelOptions["files"] {
   let files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
@@ -84,26 +84,26 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
-          autoInstall: true,
+          moduleAutoLoad: true,
         });
         _kernel = kernel;
         setKernel(kernel);
 
         const kernelWithToast = new StliteKernelWithToast(kernel, {
-          onAutoInstall: (installPromise) => {
-            console.log("Auto install starts");
+          onModuleAutoLoad: (installPromise) => {
+            console.log("Module auto-load started");
             installPromise
               .then((packages) => {
-                console.log("Auto install success", packages);
+                console.log("Module auto-load success", packages);
                 window.parent.postMessage(
                   {
-                    type: "autoInstalledSuccess",
+                    type: "moduleAutoLoadSuccess",
                     data: {
                       packages,
                     },
                     stlite: true,
-                  } as AutoInstallSuccessMessage,
-                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
+                  } as ModuleAutoLoadSuccessMessage,
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? "",
                 );
               })
               .catch((error) => {
@@ -129,13 +129,13 @@ st.write("Hello World")`,
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
-                  msg.data.content
+                  msg.data.content,
                 );
               }
               case "file:rename": {
                 return kernelWithToast.renameFile(
                   msg.data.oldPath,
-                  msg.data.newPath
+                  msg.data.newPath,
                 );
               }
               case "file:unlink": {

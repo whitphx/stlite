@@ -21,7 +21,7 @@ import type {
   StliteWorker,
   WorkerInitialData,
   StreamlitConfig,
-  AutoInstallMessage,
+  ModuleAutoLoadMessage,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -118,9 +118,9 @@ export interface StliteKernelOptions {
 
   idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
 
-  autoInstall?: WorkerInitialData["autoInstall"];
+  moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
-  onAutoInstall?: (installPromise: Promise<PackageData[]>) => void;
+  onModuleAutoLoad?: (installPromise: Promise<PackageData[]>) => void;
 
   onProgress?: (message: string) => void;
 
@@ -151,7 +151,7 @@ export class StliteKernel {
   public onProgress: StliteKernelOptions["onProgress"];
   public onLoad: StliteKernelOptions["onLoad"];
   public onError: StliteKernelOptions["onError"];
-  public onAutoInstall: StliteKernelOptions["onAutoInstall"];
+  public onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -161,7 +161,7 @@ export class StliteKernel {
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;
-    this.onAutoInstall = options.onAutoInstall;
+    this.onModuleAutoLoad = options.onModuleAutoLoad;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -185,11 +185,11 @@ export class StliteKernel {
       });
       const stliteServerWheelUrl = makeAbsoluteWheelURL(
         STLITE_SERVER_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
         STREAMLIT_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       wheels = {
         stliteServer: stliteServerWheelUrl,
@@ -215,7 +215,7 @@ export class StliteKernel {
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
-      autoInstall: options.autoInstall ?? false,
+      moduleAutoLoad: options.moduleAutoLoad ?? false,
     };
   }
 
@@ -256,7 +256,7 @@ export class StliteKernel {
           request,
         },
       },
-      "http:response"
+      "http:response",
     ).then((data) => {
       return {
         ...data.response,
@@ -268,7 +268,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>
+    opts?: Record<string, unknown>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -309,15 +309,15 @@ export class StliteKernel {
   }
 
   private _asyncPostMessage(
-    message: InMessage
+    message: InMessage,
   ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
-    expectedReplyType: T
+    expectedReplyType: T,
   ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
   private _asyncPostMessage(
     message: InMessage,
-    expectedReplyType = "reply"
+    expectedReplyType = "reply",
   ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
@@ -371,23 +371,23 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
-      case "event:autoinstall": {
+      case "event:moduleAutoLoad": {
         if (port == null) {
-          throw new Error("Port is required for autoinstall event");
+          throw new Error("Port is required for moduleAutoLoad event");
         }
-        this.onAutoInstall &&
-          this.onAutoInstall(
+        this.onModuleAutoLoad &&
+          this.onModuleAutoLoad(
             new Promise((resolve, reject) => {
               port.onmessage = (e) => {
-                const msg: AutoInstallMessage = e.data;
-                if (msg.type === "autoinstall:success") {
+                const msg: ModuleAutoLoadMessage = e.data;
+                if (msg.type === "moduleAutoLoad:success") {
                   resolve(msg.data.packages);
                 } else {
                   reject(msg.error);
                 }
                 port.close();
               };
-            })
+            }),
           );
         break;
       }

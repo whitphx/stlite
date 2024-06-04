@@ -90,16 +90,17 @@ st.write("Hello World")`,
         setKernel(kernel);
 
         const kernelWithToast = new StliteKernelWithToast(kernel, {
-          onModuleAutoLoad: (installPromise) => {
+          onModuleAutoLoad: (packagesToLoad, installPromise) => {
             console.log("Module auto-load started");
             installPromise
-              .then((packages) => {
-                console.log("Module auto-load success", packages);
+              .then((loadedPackages) => {
+                console.log("Module auto-load success", loadedPackages);
                 window.parent.postMessage(
                   {
                     type: "moduleAutoLoadSuccess",
                     data: {
-                      packages,
+                      packagesToLoad,
+                      loadedPackages,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,

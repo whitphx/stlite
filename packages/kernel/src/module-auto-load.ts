@@ -12,7 +12,7 @@ export async function tryModuleAutoLoad(
   pyodide: PyodideInterface,
   postMessage: PostMessageFn,
   sources: string[],
-): Promise<PackageData[]> {
+): Promise<void> {
   const importsArr = sources.map((source) => findImports(pyodide, source));
   const imports = Array.from(new Set(importsArr.flat()));
 
@@ -32,7 +32,7 @@ export async function tryModuleAutoLoad(
     .filter((name) => name) as string[];
 
   if (packagesToLoad.length === 0) {
-    return [];
+    return;
   }
 
   const channel = new MessageChannel();
@@ -40,6 +40,9 @@ export async function tryModuleAutoLoad(
   postMessage(
     {
       type: "event:moduleAutoLoad",
+      data: {
+        packagesToLoad,
+      },
     },
     channel.port2,
   );
@@ -50,11 +53,11 @@ export async function tryModuleAutoLoad(
     channel.port1.postMessage({
       type: "moduleAutoLoad:success",
       data: {
-        packages: loadedPackages,
+        loadedPackages: loadedPackages,
       },
     } as ModuleAutoLoadMessage);
     channel.port1.close();
-    return loadedPackages;
+    return;
   } catch (error) {
     channel.port1.postMessage({
       type: "moduleAutoLoad:error",

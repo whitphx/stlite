@@ -57,8 +57,7 @@ export interface WorkerInitialData {
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
-  moduleAutoLoadOnSave: boolean;
-  moduleAutoLoadOnRun: boolean;
+  autoInstall: boolean;
 }
 
 /**
@@ -213,7 +212,7 @@ export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;
  * Validators
  */
 export function isPyodideConvertiblePrimitive(
-  value: unknown,
+  value: unknown
 ): value is PyodideConvertiblePrimitive {
   return (
     typeof value === "string" ||
@@ -229,12 +228,12 @@ export function isStreamlitConfig(value: unknown): value is StreamlitConfig {
     value != null &&
     Object.entries(value).every(
       ([key, value]) =>
-        typeof key === "string" && isPyodideConvertiblePrimitive(value),
+        typeof key === "string" && isPyodideConvertiblePrimitive(value)
     )
   );
 }
 export function assertStreamlitConfig(
-  value: unknown,
+  value: unknown
 ): asserts value is StreamlitConfig {
   if (!isStreamlitConfig(value)) {
     throw new Error(`Invalid streamlitConfig: ${value}`);

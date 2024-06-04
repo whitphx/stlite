@@ -422,12 +422,11 @@ flag_options = __streamlitFlagOptions__.to_py()
 load_config_options(flag_options)
 
 main_script_path = "${entrypoint}"
-command_line = None
 args = []
 
 prepare(main_script_path, args)
 
-server = Server(main_script_path, command_line)
+server = Server(main_script_path)
 server.start()
 `);
     console.debug("Booted up the Streamlit server");
@@ -540,7 +539,7 @@ server.start()
             _headers: PyProxy,
             _body: PyProxy
           ) => {
-            const headers = _headers.toJs();
+            const headers = new Map<string, string>(_headers.toJs()); // Pyodide converts dict to LiteralMap, not Map, which can't be cloned and sent to the main thread. So we convert it to Map here. Ref: https://github.com/pyodide/pyodide/pull/4576
             const body = _body.toJs();
             console.debug({ statusCode, headers, body });
 

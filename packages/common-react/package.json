@@ -1,6 +1,6 @@
 {
   "name": "@stlite/common-react",
-  "version": "0.54.1",
+  "version": "0.57.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
-    "@streamlit/lib": "1.33.0"
+    "@streamlit/lib": "1.35.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.49.0",

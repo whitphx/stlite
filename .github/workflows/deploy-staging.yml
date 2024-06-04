@@ -16,7 +16,7 @@ jobs:
         target: ["mountable"]
 
     env:
-      python-version: "3.11.2"
+      python-version: "3.12.1"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),

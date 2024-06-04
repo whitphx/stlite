@@ -1,9 +1,9 @@
 import streamlit as st
-import time
+import asyncio
 
 if st.button("Three cheers"):
     st.toast("Hip!")
-    time.sleep(0.5)
+    await asyncio.sleep(0.5)
     st.toast("Hip!")
-    time.sleep(0.5)
+    await asyncio.sleep(0.5)
     st.toast("Hooray!", icon="🎉")

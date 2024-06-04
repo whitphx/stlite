@@ -26,7 +26,7 @@ function isEditorOrigin(origin: string): boolean {
 }
 
 function convertFiles(
-  appDataFiles: AppData["files"],
+  appDataFiles: AppData["files"]
 ): StliteKernelOptions["files"] {
   let files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
@@ -104,7 +104,7 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? "",
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? ""
                 );
               })
               .catch((error) => {
@@ -130,13 +130,13 @@ st.write("Hello World")`,
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
-                  msg.data.content,
+                  msg.data.content
                 );
               }
               case "file:rename": {
                 return kernelWithToast.renameFile(
                   msg.data.oldPath,
-                  msg.data.newPath,
+                  msg.data.newPath
                 );
               }
               case "file:unlink": {

@@ -15,7 +15,7 @@ import type {
 
 async function initPyodide(
   pyodideUrl: string,
-  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
+  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0]
 ): Promise<Pyodide.PyodideInterface> {
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
   const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
@@ -40,7 +40,7 @@ export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 function dispatchModuleAutoLoading(
   pyodide: Pyodide.PyodideInterface,
   postMessage: PostMessageFn,
-  sources: string[],
+  sources: string[]
 ): void {
   const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
   // `autoInstallPromise` will be awaited in the script_runner on the Python side.
@@ -63,7 +63,7 @@ const self = global as typeof globalThis & {
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
-  presetInitialData?: Partial<WorkerInitialData>,
+  presetInitialData?: Partial<WorkerInitialData>
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -147,7 +147,7 @@ export function startWorkerEnv(
         pyodide.FS.mount(
           pyodide.FS.filesystems.NODEFS,
           { root: path },
-          mountpoint,
+          mountpoint
         );
       });
     }
@@ -176,7 +176,7 @@ export function startWorkerEnv(
         if (path.endsWith(".py")) {
           pythonFilePaths.push(path);
         }
-      }),
+      })
     );
 
     // Unpack archives
@@ -194,7 +194,7 @@ export function startWorkerEnv(
 
         console.debug(`Unpack an archive`, { format, options });
         pyodide.unpackArchive(buffer, format, options);
-      }),
+      })
     );
 
     if (!mountedSitePackagesSnapshotFilePath && !wheels) {
@@ -250,11 +250,11 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
         "Installing the wheels:",
         wheels,
         "and the requirements:",
-        requirements,
+        requirements
       );
       await micropip.install.callKwargs(
         [wheels.stliteServer, wheels.streamlit, ...requirements],
-        { keep_going: true },
+        { keep_going: true }
       );
       console.debug("Installed the wheels and the requirements");
 
@@ -269,7 +269,7 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
     }
     if (moduleAutoLoad) {
       const sources = pythonFilePaths.map((path) =>
-        pyodide.FS.readFile(path, { encoding: "utf8" }),
+        pyodide.FS.readFile(path, { encoding: "utf8" })
       );
       dispatchModuleAutoLoading(pyodide, postMessage, sources);
     }
@@ -367,7 +367,7 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     console.debug("Set the loggers");
 
     postProgressMessage(
-      "Mocking some Streamlit functions for the browser environment.",
+      "Mocking some Streamlit functions for the browser environment."
     );
     console.debug("Mocking some Streamlit functions");
     // Disable caching. See https://github.com/whitphx/stlite/issues/495
@@ -505,7 +505,7 @@ server.start()
                 const payload = new Uint8ClampedArray(
                   buffer.data.buffer,
                   buffer.data.byteOffset,
-                  buffer.data.byteLength,
+                  buffer.data.byteLength
                 );
                 postMessage({
                   type: "websocket:message",
@@ -522,7 +522,7 @@ server.start()
                   },
                 });
               }
-            },
+            }
           );
 
           messagePort.postMessage({
@@ -546,7 +546,7 @@ server.start()
           const onResponse = (
             statusCode: number,
             _headers: PyProxy,
-            _body: PyProxy,
+            _body: PyProxy
           ) => {
             const headers = new Map<string, string>(_headers.toJs()); // Pyodide converts dict to LiteralMap, not Map, which can't be cloned and sent to the main thread. So we convert it to Map here. Ref: https://github.com/pyodide/pyodide/pull/4576
             const body = _body.toJs();
@@ -570,7 +570,7 @@ server.start()
             decodeURIComponent(request.path),
             request.headers,
             request.body,
-            onResponse,
+            onResponse
           );
           break;
         }

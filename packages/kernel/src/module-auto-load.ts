@@ -11,14 +11,14 @@ function findImports(pyodide: PyodideInterface, source: string): string[] {
 export async function tryModuleAutoLoad(
   pyodide: PyodideInterface,
   postMessage: PostMessageFn,
-  sources: string[],
+  sources: string[]
 ): Promise<void> {
   const importsArr = sources.map((source) => findImports(pyodide, source));
   const imports = Array.from(new Set(importsArr.flat()));
 
   const notFoundImports = imports.filter(
     (name) =>
-      !pyodide.runPython(`__import__('importlib').util.find_spec('${name}')`),
+      !pyodide.runPython(`__import__('importlib').util.find_spec('${name}')`)
   );
 
   const packagesToLoad = notFoundImports
@@ -27,7 +27,7 @@ export async function tryModuleAutoLoad(
         pyodide as unknown as {
           _api: { _import_name_to_package_name: Map<string, string> };
         }
-      )._api._import_name_to_package_name.get(name),
+      )._api._import_name_to_package_name.get(name)
     )
     .filter((name) => name) as string[];
 
@@ -44,7 +44,7 @@ export async function tryModuleAutoLoad(
         packagesToLoad,
       },
     },
-    channel.port2,
+    channel.port2
   );
 
   try {

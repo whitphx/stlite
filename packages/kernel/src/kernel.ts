@@ -1,4 +1,5 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
+
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 

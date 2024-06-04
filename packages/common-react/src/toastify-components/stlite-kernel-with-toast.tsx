@@ -49,7 +49,7 @@ export class StliteKernelWithToast {
   ) {
     kernel.onModuleAutoLoad = (packagesToLoad, installPromise) => {
       if (options?.onModuleAutoLoad) {
-        options?.onModuleAutoLoad(packagesToLoad, installPromise);
+        options.onModuleAutoLoad(packagesToLoad, installPromise);
       }
 
       stliteStyledPromiseToast(installPromise, {

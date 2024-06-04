@@ -1,45 +1,18 @@
 import { PackageData, PyodideInterface } from "pyodide";
 import { OutMessage, AutoInstallMessage } from "./types";
 
-// Ref: https://github.com/pyodide/pyodide/blob/0.26.0/src/py/_pyodide/_base.py#L586
-const pyCode = `
-import ast
-from textwrap import dedent
-
-
-def __find_imports__(source: str) -> list[str]:
-    # handle mis-indented input from multi-line strings
-    source = dedent(source)
-
-    try:
-        mod = ast.parse(source)
-    except SyntaxError:
-        return []
-    imports = set()
-    for node in ast.walk(mod):
-        if isinstance(node, ast.Import):
-            for name in node.names:
-                node_name = name.name
-                imports.add(node_name.split(".")[0])
-        elif isinstance(node, ast.ImportFrom):
-            module_name = node.module
-            if module_name is None:
-                continue
-            imports.add(module_name.split(".")[0])
-    return list(sorted(imports))
-`;
+function findImports(pyodide: PyodideInterface, source: string): string[] {
+  return pyodide.pyodide_py.ffi._pyodide._base
+    .find_imports(source)
+    .toJs() as string[];
+}
 
 export async function tryModuleAutoLoad(
   pyodide: PyodideInterface,
   sources: string[],
   postMessage: (message: OutMessage, port: MessagePort) => void,
 ): Promise<PackageData[]> {
-  await pyodide.runPythonAsync(pyCode);
-  const findImportsFn = pyodide.globals.get("__find_imports__");
-
-  const importsArr = sources.map(
-    (source) => findImportsFn(source).toJs() as string[],
-  );
+  const importsArr = sources.map((source) => findImports(pyodide, source));
   const imports = Array.from(new Set(importsArr.flat()));
 
   const notFoundImports = imports.filter(

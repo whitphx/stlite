@@ -1,5 +1,6 @@
-import { PackageData, PyodideInterface } from "pyodide";
-import { OutMessage, AutoInstallMessage } from "./types";
+import type { PackageData, PyodideInterface } from "pyodide";
+import type { AutoInstallMessage } from "./types";
+import type { PostMessageFn } from "./worker-runtime";
 
 function findImports(pyodide: PyodideInterface, source: string): string[] {
   return pyodide.pyodide_py.ffi._pyodide._base
@@ -9,8 +10,8 @@ function findImports(pyodide: PyodideInterface, source: string): string[] {
 
 export async function tryModuleAutoLoad(
   pyodide: PyodideInterface,
+  postMessage: PostMessageFn,
   sources: string[],
-  postMessage: (message: OutMessage, port: MessagePort) => void,
 ): Promise<PackageData[]> {
   const importsArr = sources.map((source) => findImports(pyodide, source));
   const imports = Array.from(new Set(importsArr.flat()));

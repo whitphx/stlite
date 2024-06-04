@@ -35,15 +35,34 @@ async function initPyodide(
   return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
 }
 
+export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
+
+function dispatchModuleAutoLoading(
+  pyodide: Pyodide.PyodideInterface,
+  postMessage: PostMessageFn,
+  sources: string[],
+): void {
+  const autoInstallPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
+  self.__moduleAutoLoadPromise__ = autoInstallPromise;
+  pyodide.runPythonAsync(`
+from streamlit.runtime.scriptrunner import script_runner
+from js import __moduleAutoLoadPromise__
+
+script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
+`);
+}
+
 const self = global as typeof globalThis & {
   __logCallback__: (levelno: number, msg: string) => void;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
+  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
-  postMessage: (message: OutMessage, port?: MessagePort) => void,
+  postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>,
 ) {
   function postProgressMessage(message: string): void {
@@ -248,12 +267,11 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
     }
-    let autoInstallPromise: Promise<unknown> | undefined;
     if (autoInstall) {
       const sources = pythonFilePaths.map((path) =>
         pyodide.FS.readFile(path, { encoding: "utf8" }),
       );
-      autoInstallPromise = tryModuleAutoLoad(pyodide, sources, postMessage);
+      dispatchModuleAutoLoading(pyodide, postMessage, sources);
     }
 
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -433,8 +451,6 @@ server.start()
     httpServer = pyodide.globals.get("server").copy();
     console.debug("Set up the HTTP server");
 
-    await autoInstallPromise;
-
     postMessage({
       type: "event:loaded",
     });
@@ -566,11 +582,11 @@ server.start()
             typeof fileData === "string" &&
             path.endsWith(".py")
           ) {
-            // Auto-install must be done before writing the file
-            // because saving the file may triggers a rerun.
+            // Auto-install must be dispatched before writing the file
+            // because its promise should be set before saving the file triggers rerunning.
             console.debug(`Auto install the requirements in ${path}`);
 
-            await tryModuleAutoLoad(pyodide, [fileData], postMessage);
+            dispatchModuleAutoLoading(pyodide, postMessage, [fileData]);
           }
 
           console.debug(`Write a file "${path}"`);

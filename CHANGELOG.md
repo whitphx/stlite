@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.0] - 2024-06-06
+
+### `@stlite/kernel`
+
+#### Added
+
+- Experimentally added the `moduleAutoLoad` option, [#902](https://github.com/whitphx/stlite/pull/902).
+
 ## [0.57.0] - 2024-05-30
 
 ### `@stlite/desktop`

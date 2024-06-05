@@ -231,12 +231,12 @@ function App() {
             if (editor == null) {
               return;
             }
-            const requirements = editor.addRequirements(
+            editor.addRequirements(
               additionalRequirements.map((r) => r + " # auto-loaded")
             );
             updateAppData((cur) => ({
               ...cur,
-              requirements,
+              requirements: cur.requirements.concat(additionalRequirements),
             }));
           }
           break;

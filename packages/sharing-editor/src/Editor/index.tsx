@@ -27,7 +27,7 @@ let newFileCount = 1;
 const REQUIREMENTS_FILENAME = "requirements";
 
 export interface EditorRef {
-  addRequirements: (requirements: string[]) => string[];
+  addRequirements: (requirements: string[]) => void;
 }
 export interface EditorProps {
   appData: AppData;
@@ -183,42 +183,37 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       "editor-theme",
       isDarkMode()
     );
-    const [monacoEditorValues, setMonacoEditorValues] = useState<
-      Record<string, string>
-    >({});
-
-    const handleMonacoEditorValueChange = useCallback(
-      (value: string | undefined) => {
-        if (currentFileName) {
-          setMonacoEditorValues((prevValues) => ({
-            ...prevValues,
-            [currentFileName]: value ?? "",
-          }));
-        }
-      },
-      [currentFileName]
-    );
 
     useImperativeHandle(
       ref,
       () => ({
-        addRequirements: (additionalRequirements: string[]) => {
-          const curValue = monacoEditorValues[REQUIREMENTS_FILENAME] ?? "";
+        addRequirements: (additionalRequirements) => {
+          const monaco = monacoRef.current;
+          if (monaco == null) {
+            return;
+          }
+
+          // Handle Monaco Editor's model directly imperatively to update the value. Ref: https://github.com/suren-atoyan/monaco-react/blob/v4.6.0/src/utils/index.ts#L21
+          const uri = monaco.Uri.parse(REQUIREMENTS_FILENAME);
+          const model =
+            monaco.editor.getModel(uri) ??
+            monaco.editor.createModel(
+              defaultRequirementsTextValue,
+              "text",
+              uri
+            );
+
+          const curValue = model.getValue();
           const newLineNeeded = curValue !== "" && !curValue.endsWith("\n");
           const newValue =
             curValue +
             (newLineNeeded ? "\n" : "") +
             additionalRequirements.join("\n");
 
-          setMonacoEditorValues((prevValues) => ({
-            ...prevValues,
-            [REQUIREMENTS_FILENAME]: newValue,
-          }));
-
-          return parseRequirementsTxt(newValue);
+          model.setValue(newValue);
         },
       }),
-      [monacoEditorValues]
+      [defaultRequirementsTextValue]
     );
 
     return (
@@ -296,12 +291,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                   : undefined
               }
               onMount={handleEditorDitMount}
-              value={
-                currentFileName
-                  ? monacoEditorValues[currentFileName]
-                  : undefined
-              }
-              onChange={handleMonacoEditorValueChange}
               theme={isDarkTheme ? "vs-dark" : "vs"}
             />
           </div>

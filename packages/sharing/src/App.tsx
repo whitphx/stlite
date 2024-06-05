@@ -25,6 +25,8 @@ function isEditorOrigin(origin: string): boolean {
   return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
 }
 
+let communicatedEditorOrigin = "";
+
 function convertFiles(
   appDataFiles: AppData["files"]
 ): StliteKernelOptions["files"] {
@@ -104,7 +106,8 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  process.env.REACT_APP_EDITOR_APP_ORIGIN ?? "*" // TODO: Strictly set the parent window origin when REACT_APP_EDITOR_APP_ORIGIN is not set, i.e. in preview mode.
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ??
+                    communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
                 );
               })
               .catch((error) => {
@@ -118,6 +121,8 @@ st.write("Hello World")`,
           if (!isEditorOrigin(event.origin)) {
             return;
           }
+
+          communicatedEditorOrigin = event.origin;
 
           const port2 = event.ports[0];
           function postReplyMessage(msg: ReplyMessage) {

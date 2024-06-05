@@ -22,8 +22,6 @@ import ThemeSelect from "./components/ThemeSelect";
 import styles from "./Editor.module.scss";
 import { isDarkMode } from "../color-mode";
 
-type MonacoEditorProps = React.ComponentProps<typeof MonacoEditor>;
-
 let newFileCount = 1;
 
 const REQUIREMENTS_FILENAME = "requirements";
@@ -185,36 +183,35 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       "editor-theme",
       isDarkMode()
     );
-
     const [monacoEditorValues, setMonacoEditorValues] = useState<
-      Record<string, string | undefined>
+      Record<string, string>
     >({});
-    const handleMonacoEditorValueChange = useCallback<
-      NonNullable<MonacoEditorProps["onChange"]>
-    >(
-      (value, ev) => {
-        if (currentFileName == null) {
-          return;
+
+    const handleMonacoEditorValueChange = useCallback(
+      (value: string | undefined) => {
+        if (currentFileName) {
+          setMonacoEditorValues((prevValues) => ({
+            ...prevValues,
+            [currentFileName]: value ?? "",
+          }));
         }
-        setMonacoEditorValues((cur) => ({
-          ...cur,
-          [currentFileName]: value,
-        }));
       },
-      [currentFileName, setMonacoEditorValues]
+      [currentFileName]
     );
 
     useImperativeHandle(
       ref,
       () => ({
-        addRequirements(requirements) {
+        addRequirements: (additionalRequirements: string[]) => {
           const curValue = monacoEditorValues[REQUIREMENTS_FILENAME] ?? "";
-          const lastLine = curValue.split("\n").pop();
-          const needLineBreak = lastLine !== "" && lastLine != null;
+          const newLineNeeded = curValue !== "" && !curValue.endsWith("\n");
           const newValue =
-            curValue + (needLineBreak ? "\n" : "") + requirements.join("\n");
-          setMonacoEditorValues((cur) => ({
-            ...cur,
+            curValue +
+            (newLineNeeded ? "\n" : "") +
+            additionalRequirements.join("\n");
+
+          setMonacoEditorValues((prevValues) => ({
+            ...prevValues,
             [REQUIREMENTS_FILENAME]: newValue,
           }));
 
@@ -305,7 +302,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                   : undefined
               }
               onChange={handleMonacoEditorValueChange}
-              theme={isDarkTheme ? "vs-dark" : "light"}
+              theme={isDarkTheme ? "vs-dark" : "vs"}
             />
           </div>
           {currentFileName != null &&

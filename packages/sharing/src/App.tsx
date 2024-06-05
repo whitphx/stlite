@@ -5,6 +5,7 @@ import {
   extractAppDataFromUrl,
   ForwardMessage,
   ReplyMessage,
+  ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import {
@@ -23,6 +24,8 @@ function isEditorOrigin(origin: string): boolean {
 
   return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
 }
+
+let communicatedEditorOrigin = "";
 
 function convertFiles(
   appDataFiles: AppData["files"]
@@ -83,17 +86,43 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
+          moduleAutoLoad: true,
         });
         _kernel = kernel;
         setKernel(kernel);
 
-        const kernelWithToast = new StliteKernelWithToast(kernel);
+        const kernelWithToast = new StliteKernelWithToast(kernel, {
+          onModuleAutoLoad: (packagesToLoad, installPromise) => {
+            console.log("Module auto-load started", packagesToLoad);
+            installPromise
+              .then((loadedPackages) => {
+                console.log("Module auto-load success", loadedPackages);
+                window.parent.postMessage(
+                  {
+                    type: "moduleAutoLoadSuccess",
+                    data: {
+                      packagesToLoad,
+                      loadedPackages,
+                    },
+                    stlite: true,
+                  } as ModuleAutoLoadSuccessMessage,
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ??
+                    communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
+                );
+              })
+              .catch((error) => {
+                console.error("Auto install failed", error);
+              });
+          },
+        });
 
         // Handle messages from the editor
         onMessage = (event) => {
           if (!isEditorOrigin(event.origin)) {
             return;
           }
+
+          communicatedEditorOrigin = event.origin;
 
           const port2 = event.ports[0];
           function postReplyMessage(msg: ReplyMessage) {

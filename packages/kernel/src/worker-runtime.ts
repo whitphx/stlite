@@ -4,6 +4,7 @@ import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { mockPyArrow } from "./mock";
+import { tryModuleAutoLoad } from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -34,15 +35,34 @@ async function initPyodide(
   return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
 }
 
+export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
+
 const self = global as typeof globalThis & {
   __logCallback__: (levelno: number, msg: string) => void;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
+  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
+
+function dispatchModuleAutoLoading(
+  pyodide: Pyodide.PyodideInterface,
+  postMessage: PostMessageFn,
+  sources: string[]
+): void {
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
+  self.__moduleAutoLoadPromise__ = autoLoadPromise;
+  pyodide.runPythonAsync(`
+from streamlit.runtime.scriptrunner import script_runner
+from js import __moduleAutoLoadPromise__
+
+script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
+`);
+}
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
-  postMessage: (message: OutMessage) => void,
+  postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>
 ) {
   function postProgressMessage(message: string): void {
@@ -88,6 +108,7 @@ export function startWorkerEnv(
       streamlitConfig,
       idbfsMountpoints,
       nodefsMountpoints,
+      moduleAutoLoad,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -133,6 +154,7 @@ export function startWorkerEnv(
 
     // Mount files
     postProgressMessage("Mounting files.");
+    const pythonFilePaths: string[] = [];
     await Promise.all(
       Object.keys(files).map(async (path) => {
         const file = files[path];
@@ -150,6 +172,10 @@ export function startWorkerEnv(
 
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, data, opts);
+
+        if (path.endsWith(".py")) {
+          pythonFilePaths.push(path);
+        }
       })
     );
 
@@ -240,6 +266,12 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
+    }
+    if (moduleAutoLoad) {
+      const sources = pythonFilePaths.map((path) =>
+        pyodide.FS.readFile(path, { encoding: "utf8" })
+      );
+      dispatchModuleAutoLoading(pyodide, postMessage, sources);
     }
 
     // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -422,6 +454,8 @@ server.start()
     postMessage({
       type: "event:loaded",
     });
+
+    return initData;
   }
 
   const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
@@ -448,7 +482,7 @@ server.start()
       return;
     }
 
-    await pyodideReadyPromise;
+    const { moduleAutoLoad } = await pyodideReadyPromise;
 
     const messagePort = event.ports[0];
 
@@ -542,6 +576,18 @@ server.start()
         }
         case "file:write": {
           const { path, data: fileData, opts } = msg.data;
+
+          if (
+            moduleAutoLoad &&
+            typeof fileData === "string" &&
+            path.endsWith(".py")
+          ) {
+            // Auto-install must be dispatched before writing the file
+            // because its promise should be set before saving the file triggers rerunning.
+            console.debug(`Auto install the requirements in ${path}`);
+
+            dispatchModuleAutoLoading(pyodide, postMessage, [fileData]);
+          }
 
           console.debug(`Write a file "${path}"`);
           writeFileWithParents(pyodide, path, fileData, opts);

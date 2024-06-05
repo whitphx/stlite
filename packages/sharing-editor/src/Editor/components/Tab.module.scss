@@ -22,7 +22,7 @@
   border-top: var(--c-primary) var.$tab-highlight-height solid;
   margin-top: -(var.$tab-highlight-height);
   border-bottom: none;
-  position: relative
+  position: relative;
 }
 
 $tabPaddingLeft: 0.5rem;

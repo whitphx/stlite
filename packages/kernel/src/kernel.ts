@@ -1,5 +1,6 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
+import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
@@ -21,6 +22,7 @@ import type {
   StliteWorker,
   WorkerInitialData,
   StreamlitConfig,
+  ModuleAutoLoadMessage,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -117,6 +119,13 @@ export interface StliteKernelOptions {
 
   idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
 
+  moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
+
+  onModuleAutoLoad?: (
+    packagesToLoad: string[],
+    installPromise: Promise<PackageData[]>
+  ) => void;
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -143,11 +152,10 @@ export class StliteKernel {
 
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
-  private onProgress: StliteKernelOptions["onProgress"];
-
-  private onLoad: StliteKernelOptions["onLoad"];
-
-  private onError: StliteKernelOptions["onError"];
+  public onProgress: StliteKernelOptions["onProgress"];
+  public onLoad: StliteKernelOptions["onLoad"];
+  public onError: StliteKernelOptions["onError"];
+  public onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -157,6 +165,7 @@ export class StliteKernel {
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;
+    this.onModuleAutoLoad = options.onModuleAutoLoad;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -168,7 +177,8 @@ export class StliteKernel {
     }
 
     this._worker.onmessage = (e) => {
-      this._processWorkerMessage(e.data);
+      const messagePort: MessagePort | undefined = e.ports[0];
+      this._processWorkerMessage(e.data, messagePort);
     };
 
     let wheels: WorkerInitialData["wheels"] = undefined;
@@ -209,6 +219,7 @@ export class StliteKernel {
         options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
+      moduleAutoLoad: options.moduleAutoLoad ?? false,
     };
   }
 
@@ -337,7 +348,7 @@ export class StliteKernel {
    *
    * @param msg The worker message to process.
    */
-  private _processWorkerMessage(msg: OutMessage): void {
+  private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
         this._worker.postMessage({
@@ -362,6 +373,27 @@ export class StliteKernel {
       case "websocket:message": {
         const { payload } = msg.data;
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
+        break;
+      }
+      case "event:moduleAutoLoad": {
+        if (port == null) {
+          throw new Error("Port is required for moduleAutoLoad event");
+        }
+        this.onModuleAutoLoad &&
+          this.onModuleAutoLoad(
+            msg.data.packagesToLoad,
+            new Promise((resolve, reject) => {
+              port.onmessage = (e) => {
+                const msg: ModuleAutoLoadMessage = e.data;
+                if (msg.type === "moduleAutoLoad:success") {
+                  resolve(msg.data.loadedPackages);
+                } else {
+                  reject(msg.error);
+                }
+                port.close();
+              };
+            })
+          );
         break;
       }
     }

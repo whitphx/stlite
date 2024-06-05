@@ -1,4 +1,4 @@
-import type { PyodideInterface } from "pyodide";
+import type { PyodideInterface, PackageData } from "pyodide";
 
 export type PyodideConvertiblePrimitive =
   | string
@@ -57,6 +57,7 @@ export interface WorkerInitialData {
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
+  moduleAutoLoad: boolean;
 }
 
 /**
@@ -161,12 +162,34 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
     payload: Uint8Array | string;
   };
 }
+export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
+  type: "event:moduleAutoLoad";
+  data: {
+    packagesToLoad: string[];
+  };
+}
 export type OutMessage =
   | OutMessageStartEvent
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
-  | OutMessageWebSocketBack;
+  | OutMessageWebSocketBack
+  | OutMessageModuleAutoLoadEvent;
+
+export interface ModuleAutoLoadMessageBase {
+  type: string;
+}
+export interface ModuleAutoLoadSuccess extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:success";
+  data: {
+    loadedPackages: PackageData[];
+  };
+}
+export interface ModuleAutoLoadError extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:error";
+  error: Error;
+}
+export type ModuleAutoLoadMessage = ModuleAutoLoadSuccess | ModuleAutoLoadError;
 
 /**
  * Reply message to InMessage

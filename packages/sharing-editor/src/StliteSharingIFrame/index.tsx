@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useImperativeHandle } from "react";
+import React, { useRef, useMemo, useImperativeHandle, useEffect } from "react";
 import {
   AppData,
   embedAppDataToUrl,
@@ -15,13 +15,20 @@ export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
   sharingAppSrc: string;
   initialAppData: AppData;
   messageTargetOrigin: string;
+  onMessage: (event: MessageEvent) => void;
 }
 const StliteSharingIFrame = React.forwardRef<
   StliteSharingIFrameRef,
   StliteSharingIFrameProps
 >(
   (
-    { sharingAppSrc, initialAppData, messageTargetOrigin, ...iframeProps },
+    {
+      sharingAppSrc,
+      initialAppData,
+      messageTargetOrigin,
+      onMessage,
+      ...iframeProps
+    },
     ref
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -65,6 +72,19 @@ const StliteSharingIFrame = React.forwardRef<
       }),
       [messageTargetOrigin]
     );
+
+    useEffect(() => {
+      const windowMessageEventListener = (event: MessageEvent) => {
+        if (event.source === iframeRef.current?.contentWindow) {
+          onMessage(event);
+        }
+      };
+
+      window.addEventListener("message", windowMessageEventListener);
+      return () => {
+        window.removeEventListener("message", windowMessageEventListener);
+      };
+    }, [onMessage]);
 
     return (
       // eslint-disable-next-line jsx-a11y/iframe-has-title

@@ -29,7 +29,7 @@ function FileUploader({ onUpload }: FileUploaderProps) {
             name: file.name,
             type: file.type,
             data: new Uint8Array(arrayBuffer),
-          }))
+          })),
         );
       }
 
@@ -37,7 +37,7 @@ function FileUploader({ onUpload }: FileUploaderProps) {
 
       e.target.value = "";
     },
-    [onUpload]
+    [onUpload],
   );
 
   return <FileUploaderComponent onChange={handleFileChange} multiple />;

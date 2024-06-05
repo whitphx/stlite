@@ -90,7 +90,7 @@ describe("manipulateIFrameDocument", () => {
     await manipulateIFrameDocument(
       kernel,
       iframeDocument,
-      "/component/package.component"
+      "/component/package.component",
     );
 
     // Expect that the <script> tags with src attr have been replaced
@@ -107,7 +107,7 @@ describe("manipulateIFrameDocument", () => {
         `"This is an embedded script"`, // The script tags without src attr are not replaced
         `"This is foo.js"`,
         `"This is bar.js"`,
-      ])
+      ]),
     );
 
     // Expect that the stylesheets specified via <link> tags
@@ -120,7 +120,7 @@ describe("manipulateIFrameDocument", () => {
       styleTagHtmls.push(styleTag.innerHTML);
     }
     expect(styleTagHtmls).toEqual(
-      expect.arrayContaining([`// This is a CSS file`])
+      expect.arrayContaining([`// This is a CSS file`]),
     );
   });
 });

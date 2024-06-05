@@ -8,14 +8,14 @@ export function loadNodefsMountpoints(): Record<string, string> | undefined {
     nodefsMountpoints = JSON.parse(nodefsMountpointsJson);
   } catch (e) {
     console.error(
-      `Failed to parse NODEFS_MOUNTPOINTS as JSON: ${nodefsMountpointsJson}`
+      `Failed to parse NODEFS_MOUNTPOINTS as JSON: ${nodefsMountpointsJson}`,
     );
     return undefined;
   }
 
   if (typeof nodefsMountpoints !== "object") {
     console.error(
-      `NODEFS_MOUNTPOINTS is not an object: ${nodefsMountpointsJson}`
+      `NODEFS_MOUNTPOINTS is not an object: ${nodefsMountpointsJson}`,
     );
     return undefined;
   }
@@ -25,7 +25,7 @@ export function loadNodefsMountpoints(): Record<string, string> | undefined {
   }
   if (Object.keys(nodefsMountpoints).some((key) => typeof key !== "string")) {
     console.error(
-      `NODEFS_MOUNTPOINTS has non-string keys: ${nodefsMountpointsJson}`
+      `NODEFS_MOUNTPOINTS has non-string keys: ${nodefsMountpointsJson}`,
     );
     return undefined;
   }
@@ -33,7 +33,7 @@ export function loadNodefsMountpoints(): Record<string, string> | undefined {
     Object.values(nodefsMountpoints).some((value) => typeof value !== "string")
   ) {
     console.error(
-      `NODEFS_MOUNTPOINTS has non-string values: ${nodefsMountpointsJson}`
+      `NODEFS_MOUNTPOINTS has non-string values: ${nodefsMountpointsJson}`,
     );
     return undefined;
   }

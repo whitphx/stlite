@@ -36,7 +36,7 @@ export class CrossOriginWorkerMaker {
       this.worker = new Worker(url);
     } catch (e) {
       console.debug(
-        `Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`
+        `Failed to load a worker script from ${url.toString()}. Trying to load a cross-origin worker...`,
       );
       const workerBlobUrl = getWorkerBlobUrl(url);
       this.worker = new Worker(workerBlobUrl);

@@ -5,7 +5,7 @@ import { getRelativePath } from "./url";
 export function manipulateIFrameDocument(
   kernel: StliteKernel,
   document: Document,
-  basePath: string
+  basePath: string,
 ): Promise<void> {
   const promises = [];
 
@@ -18,7 +18,7 @@ export function manipulateIFrameDocument(
     const relPath = getRelativePath(
       window.location.host,
       window.location.pathname,
-      new URL(scriptTag.src)
+      new URL(scriptTag.src),
     );
     if (relPath == null) {
       continue;
@@ -51,13 +51,13 @@ export function manipulateIFrameDocument(
   }
 
   const stylesheetLinkTags = document.querySelectorAll<HTMLLinkElement>(
-    "link[rel=stylesheet]"
+    "link[rel=stylesheet]",
   );
   for (const stylesheetLinkTag of stylesheetLinkTags) {
     const relPath = getRelativePath(
       window.location.host,
       window.location.pathname,
-      new URL(stylesheetLinkTag.href)
+      new URL(stylesheetLinkTag.href),
     );
     if (relPath == null) {
       continue;

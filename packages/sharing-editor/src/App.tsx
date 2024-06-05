@@ -75,7 +75,7 @@ function App() {
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
       window.location.origin + window.location.pathname, // window.location.search is excluded because it may include the sample app ID that conflicts the appData content.
-      appData
+      appData,
     );
     window.history.replaceState(null, "", newUrl);
   }, []);
@@ -124,7 +124,7 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleFileRename = useCallback<EditorProps["onFileRename"]>(
@@ -166,7 +166,7 @@ function App() {
         };
       });
     },
-    [appData, updateAppData]
+    [appData, updateAppData],
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
@@ -191,7 +191,7 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleRequirementsChange = useCallback<
@@ -212,7 +212,7 @@ function App() {
         };
       });
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   const handleIframeMessage = useCallback<
@@ -232,7 +232,7 @@ function App() {
               return;
             }
             editor.addRequirements(
-              additionalRequirements.map((r) => r + " # auto-loaded")
+              additionalRequirements.map((r) => r + " # auto-loaded"),
             );
             updateAppData((cur) => ({
               ...cur,
@@ -243,7 +243,7 @@ function App() {
         }
       }
     },
-    [updateAppData]
+    [updateAppData],
   );
 
   return (

@@ -21,7 +21,7 @@ export interface SimplifiedStliteKernelOptions {
 }
 
 function canonicalizeFiles(
-  files: SimplifiedStliteKernelOptions["files"]
+  files: SimplifiedStliteKernelOptions["files"],
 ): NonNullable<StliteKernelOptions["files"]> {
   if (files == null) {
     return {};
@@ -58,7 +58,7 @@ export function resolveUrl(url: string): string {
 }
 
 function canonicalizeArchives(
-  archives: SimplifiedStliteKernelOptions["archives"]
+  archives: SimplifiedStliteKernelOptions["archives"],
 ): StliteKernelOptions["archives"] {
   if (archives == null) {
     return [];

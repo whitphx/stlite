@@ -33,7 +33,7 @@ if (
 
 export function mount(
   options: MountOptions,
-  container: HTMLElement = document.body
+  container: HTMLElement = document.body,
 ) {
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
@@ -47,7 +47,7 @@ export function mount(
       <StreamlitApp kernel={kernel} />
       <ToastContainer />
     </React.StrictMode>,
-    container
+    container,
   );
 
   const kernelWithToast = new StliteKernelWithToast(kernel);
@@ -63,7 +63,7 @@ export function mount(
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
-      opts?: Record<string, any>
+      opts?: Record<string, any>,
     ) => {
       return kernelWithToast.writeFile(path, data, opts);
     },
@@ -136,6 +136,6 @@ st.map(df)
       ],
       requirements: ["matplotlib"],
     },
-    document.getElementById("root") as HTMLElement
+    document.getElementById("root") as HTMLElement,
   );
 }

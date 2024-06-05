@@ -30,7 +30,7 @@ describe("writeFileWithParents()", () => {
 
         expect(pyodide.FS.analyzePath(path).exists).toBe(true);
         expect(pyodide.FS.readFile(path, { encoding: "utf8" })).toEqual(
-          "# Test"
+          "# Test",
         );
       }
     });
@@ -70,7 +70,7 @@ describe("renameWithParents", () => {
       expect(pyodide.FS.analyzePath(oldPath).exists).toBe(false);
       expect(pyodide.FS.analyzePath(newPath).exists).toBe(true);
       expect(pyodide.FS.readFile(newPath, { encoding: "utf8" })).toEqual(
-        "# Test"
+        "# Test",
       );
     });
   });

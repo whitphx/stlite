@@ -18,7 +18,7 @@ function FileNameForm({
   const [tmpFileName, setTmpFileName] = useState(defaultFileName);
   const submittable = useMemo(
     () => isValidFilePath(tmpFileName),
-    [tmpFileName]
+    [tmpFileName],
   );
 
   return (
@@ -30,7 +30,7 @@ function FileNameForm({
             onFinish(tmpFileName);
           }
         },
-        [submittable, onFinish, tmpFileName]
+        [submittable, onFinish, tmpFileName],
       )}
       onKeyDown={useCallback(
         (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -38,7 +38,7 @@ function FileNameForm({
             onCancel();
           }
         },
-        [onCancel]
+        [onCancel],
       )}
       className={styles.fileNameForm}
     >
@@ -50,7 +50,7 @@ function FileNameForm({
             setTmpFileName(e.target.value);
             onChange(e.target.value);
           },
-          [onChange]
+          [onChange],
         )}
         onBlur={onCancel}
         ref={useCallback<React.RefCallback<HTMLInputElement>>((input) => {
@@ -76,7 +76,7 @@ function SelectedTab({
   onFileNameChange,
 }: SelectedTabProps) {
   const [fileNameEditing, setFileNameEditing] = useState(
-    shouldBeEditingByDefault
+    shouldBeEditingByDefault,
   );
   const [tmpFileName, setTmpFileName] = useState(fileName);
 
@@ -87,7 +87,7 @@ function SelectedTab({
       setFileNameEditing(false);
       onFileNameChange(fileName);
     },
-    [onFileNameChange]
+    [onFileNameChange],
   );
 
   const handleEditCancel = useCallback(() => {

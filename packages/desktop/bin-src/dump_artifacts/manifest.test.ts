@@ -5,7 +5,7 @@ describe("coerceDesktopAppManifest", () => {
     expect(
       coerceDesktopAppManifest({
         entrypoint: "foo.py",
-      })
+      }),
     ).toEqual({ entrypoint: "foo.py", embed: false, nodeJsWorker: false });
   });
 
@@ -15,7 +15,7 @@ describe("coerceDesktopAppManifest", () => {
         entrypoint: "foo.py",
         nodeJsWorker: true,
         idbfsMountpoints: ["foo"],
-      })
+      }),
     ).toThrowError();
   });
 
@@ -25,7 +25,7 @@ describe("coerceDesktopAppManifest", () => {
         entrypoint: "foo.py",
         nodeJsWorker: false,
         nodefsMountpoints: { foo: "bar" },
-      })
+      }),
     ).toThrowError();
   });
 });

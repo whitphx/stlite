@@ -34,7 +34,7 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`,
     );
 
     const scriptTags = dom.body.getElementsByTagName("script");
@@ -42,7 +42,7 @@ describe("exportAsHtml", () => {
 
     const stliteLoaderScriptTag = scriptTags[0];
     expect(stliteLoaderScriptTag.src).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`,
     );
     expect(stliteLoaderScriptTag.text).toEqual("");
 
@@ -73,7 +73,7 @@ describe("exportAsHtml", () => {
             }),
           }),
         }),
-      })
+      }),
     );
     if (
       stliteMount.type !== "ExpressionStatement" ||
@@ -105,7 +105,7 @@ describe("exportAsHtml", () => {
             value: "root",
           }),
         ],
-      })
+      }),
     );
 
     const expectedRequirements = appData.requirements;
@@ -167,7 +167,7 @@ describe("exportAsHtml", () => {
             }),
           }),
         ],
-      })
+      }),
     );
   });
 
@@ -200,7 +200,7 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.css`,
     );
 
     const scriptTags = dom.body.getElementsByTagName("script");
@@ -208,7 +208,7 @@ describe("exportAsHtml", () => {
 
     const stliteLoaderScriptTag = scriptTags[0];
     expect(stliteLoaderScriptTag.src).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`
+      `https://cdn.jsdelivr.net/npm/@stlite/mountable@${RUNTIME_VERSION}/build/stlite.js`,
     );
     expect(stliteLoaderScriptTag.text).toEqual("");
 
@@ -239,7 +239,7 @@ describe("exportAsHtml", () => {
             }),
           }),
         }),
-      })
+      }),
     );
     if (
       stliteMount.type !== "ExpressionStatement" ||
@@ -271,7 +271,7 @@ describe("exportAsHtml", () => {
             value: "root",
           }),
         ],
-      })
+      }),
     );
 
     const expectedRequirements = appData.requirements;
@@ -353,7 +353,7 @@ describe("exportAsHtml", () => {
             }),
           }),
         ],
-      })
+      }),
     );
 
     expect(funcDef).toEqual(
@@ -363,7 +363,7 @@ describe("exportAsHtml", () => {
           type: "Identifier",
           name: "base64ToU8A",
         }),
-      })
+      }),
     );
   });
 });

@@ -5,7 +5,7 @@ export const logger = winston.createLogger({
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.splat(),
-        winston.format.cli()
+        winston.format.cli(),
       ),
     }),
   ],

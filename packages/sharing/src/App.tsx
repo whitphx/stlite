@@ -28,7 +28,7 @@ function isEditorOrigin(origin: string): boolean {
 let communicatedEditorOrigin = "";
 
 function convertFiles(
-  appDataFiles: AppData["files"]
+  appDataFiles: AppData["files"],
 ): StliteKernelOptions["files"] {
   let files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
@@ -107,7 +107,7 @@ st.write("Hello World")`,
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
                   process.env.REACT_APP_EDITOR_APP_ORIGIN ??
-                    communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
+                    communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
                 );
               })
               .catch((error) => {
@@ -135,13 +135,13 @@ st.write("Hello World")`,
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
-                  msg.data.content
+                  msg.data.content,
                 );
               }
               case "file:rename": {
                 return kernelWithToast.renameFile(
                   msg.data.oldPath,
-                  msg.data.newPath
+                  msg.data.newPath,
                 );
               }
               case "file:unlink": {

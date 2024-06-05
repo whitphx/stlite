@@ -16,7 +16,7 @@ const TEXT_EXTS = [
 ];
 async function loadFiles(
   fileNames: string[],
-  sampleAppDirName: string
+  sampleAppDirName: string,
 ): Promise<AppData["files"]> {
   const fileNameAndUrls = fileNames.map((fileName) => [
     fileName,
@@ -47,8 +47,8 @@ async function loadFiles(
             },
           ]);
         }
-      }
-    )
+      },
+    ),
   );
 
   const files: AppData["files"] = {};
@@ -67,7 +67,7 @@ export function getDefaultSampleAppId(): string {
 
 export async function loadSampleAppData(sampleAppId: string) {
   const sampleAppManifest = sampleAppManifests.find(
-    (manifest) => manifest.id === sampleAppId
+    (manifest) => manifest.id === sampleAppId,
   );
   if (sampleAppManifest == null) {
     throw new Error(`No sample app found for ${sampleAppId}`);
@@ -75,7 +75,7 @@ export async function loadSampleAppData(sampleAppId: string) {
 
   const files = await loadFiles(
     sampleAppManifest["files"],
-    sampleAppManifest.basePath
+    sampleAppManifest.basePath,
   );
 
   const appData: AppData = {

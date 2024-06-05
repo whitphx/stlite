@@ -79,7 +79,7 @@ describe("<CustomComponentIFrame />", () => {
     const { container } = render(
       <StliteKernelProvider kernel={kernel}>
         <CustomComponentIFrame src={src} />
-      </StliteKernelProvider>
+      </StliteKernelProvider>,
     );
 
     const getIFrame = () => container.getElementsByTagName("iframe")[0];
@@ -91,7 +91,7 @@ describe("<CustomComponentIFrame />", () => {
     expect(manipulateIFrameDocument).toBeCalledWith(
       kernel,
       expect.anything(),
-      "/component/foo.bar"
+      "/component/foo.bar",
     );
   });
 });

@@ -29,7 +29,7 @@ export function useStliteKernel(): StliteKernel {
   const value = useContext(StliteKernelContext);
   if (value == null) {
     throw new Error(
-      "useStliteKernel() must be inside <StliteKernelProvider />"
+      "useStliteKernel() must be inside <StliteKernelProvider />",
     );
   }
 

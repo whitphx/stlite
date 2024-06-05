@@ -7,7 +7,7 @@ import * as path from "path";
  * so this function is only expected to be called from `walkRead()` that converts the paths to be POSIX.
  */
 async function walkReadAbsPath(
-  dirPath: string
+  dirPath: string,
 ): Promise<Record<string, Buffer>> {
   const fileContents: Record<string, Buffer> = {};
   const childNames = await fsPromises.readdir(dirPath);
@@ -22,14 +22,14 @@ async function walkReadAbsPath(
         const fileBin = await fsPromises.readFile(childPath);
         fileContents[childPath] = fileBin;
       }
-    })
+    }),
   );
 
   return fileContents;
 }
 
 export async function walkRead(
-  dirPath: string
+  dirPath: string,
 ): Promise<Record<string, Buffer>> {
   const fileContents = await walkReadAbsPath(dirPath);
 

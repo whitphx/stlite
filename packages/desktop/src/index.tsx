@@ -9,5 +9,5 @@ ReactDOM.render(
     <App />
     <ToastContainer />
   </React.StrictMode>,
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );

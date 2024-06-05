@@ -18,11 +18,11 @@ async function main() {
   // TODO: Set the wheel file names dynamically
   const stliteServerWheelPath = path.join(
     stliteKernelPyDir,
-    "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"
+    "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl",
   );
   const streamlitWheelPath = path.join(
     stliteKernelPyDir,
-    "streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl"
+    "streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl",
   );
 
   // Create the `wheels` directory

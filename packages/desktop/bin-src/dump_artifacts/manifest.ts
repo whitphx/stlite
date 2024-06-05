@@ -12,13 +12,13 @@ export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
   if (manifestData.nodeJsWorker) {
     if (manifestData.idbfsMountpoints != null) {
       throw new Error(
-        "The `idbfsMountpoints` field is not allowed when `nodeJsWorker` is true."
+        "The `idbfsMountpoints` field is not allowed when `nodeJsWorker` is true.",
       );
     }
   } else {
     if (manifestData.nodefsMountpoints != null) {
       throw new Error(
-        "The `nodefsMountpoints` field is not allowed when `nodeJsWorker` is false."
+        "The `nodefsMountpoints` field is not allowed when `nodeJsWorker` is false.",
       );
     }
   }

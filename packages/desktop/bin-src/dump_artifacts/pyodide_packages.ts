@@ -31,7 +31,7 @@ export class PrebuiltPackagesDataReader {
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error(
-          `Failed to download ${url}: ${res.status} ${res.statusText}`
+          `Failed to download ${url}: ${res.status} ${res.statusText}`,
         );
       }
       return await res.json();

@@ -8,7 +8,7 @@ import logo from "../logo.svg";
 import styles from "./index.module.scss";
 
 function DisableableLink(
-  props: React.ComponentProps<typeof Link> & { disabled?: boolean }
+  props: React.ComponentProps<typeof Link> & { disabled?: boolean },
 ) {
   const { disabled, ...restProps } = props;
   return disabled ? <span {...restProps} /> : <Link {...restProps} />;

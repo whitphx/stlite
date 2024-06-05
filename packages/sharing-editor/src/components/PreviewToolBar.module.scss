@@ -125,7 +125,7 @@ $border-color: #ddd;
   flex-direction: column;
 
   /* Set the default hidden style for popup behavior */
-  display: none;  // This is overridden when hover is active
+  display: none; // This is overridden when hover is active
 
   /* Border styles adjusted to .card */
   background: $background-color;
@@ -163,5 +163,5 @@ $border-color: #ddd;
 }
 
 .cardItem ul {
-  margin: 0
+  margin: 0;
 }

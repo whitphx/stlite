@@ -4,7 +4,7 @@ import { useStliteKernel } from "./StliteKernelProvider";
 
 function resolveStliteObjectUrl(
   kernel: StliteKernel,
-  path: string
+  path: string,
 ): Promise<string> {
   return kernel
     .sendHttpRequest({
@@ -26,7 +26,7 @@ function resolveStliteObjectUrl(
 
 function resolveStliteObjectUrlIfNeeded(
   kernel: StliteKernel,
-  rawUrl: string
+  rawUrl: string,
 ): Promise<string> {
   if (!rawUrl.startsWith("/media")) {
     return Promise.resolve(rawUrl);
@@ -36,7 +36,7 @@ function resolveStliteObjectUrlIfNeeded(
 
 export function resolveLogo<T extends { image: string; iconImage: string }>(
   kernel: StliteKernel,
-  logo: T
+  logo: T,
 ): Promise<T> {
   return Promise.all([
     resolveStliteObjectUrlIfNeeded(kernel, logo.image),
@@ -49,7 +49,7 @@ export function resolveLogo<T extends { image: string; iconImage: string }>(
 }
 
 export function useStliteResolvedLogo<
-  T extends { image: string; iconImage: string }
+  T extends { image: string; iconImage: string },
 >(logo: T | null): T | null {
   const kernel = useStliteKernel();
 
@@ -127,7 +127,7 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
  * for in-memory resources.
  */
 export function useStliteMediaObjects<T extends { url?: string | null }>(
-  inputMediaObjects: T[]
+  inputMediaObjects: T[],
 ) {
   const [mediaObjects, setMediaObjects] = useState(inputMediaObjects);
 

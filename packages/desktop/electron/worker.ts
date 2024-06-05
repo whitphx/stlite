@@ -15,7 +15,7 @@ const handleMessage = startWorkerEnv(
   postMessage,
   {
     nodefsMountpoints: loadNodefsMountpoints(),
-  }
+  },
 );
 
 parentPort?.on("message", ({ data, port }) => {

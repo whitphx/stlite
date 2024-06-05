@@ -35,7 +35,7 @@ type AppDataDispatchers = {
   updateAppData: (updater: AppDataUpdater) => void;
 };
 export function useAppData(
-  onUpdate: (appData: AppData) => void
+  onUpdate: (appData: AppData) => void,
 ): [State, AppDataDispatchers] {
   const reducer = useCallback<React.Reducer<State, AppDataAction>>(
     (currentState, action) => {
@@ -59,7 +59,7 @@ export function useAppData(
         }
       }
     },
-    [onUpdate]
+    [onUpdate],
   );
 
   const [state, dispatch] = useReducer(reducer, {
@@ -79,7 +79,7 @@ export function useAppData(
           updater,
         }),
     }),
-    [dispatch]
+    [dispatch],
   );
 
   return [state, dispatchers];

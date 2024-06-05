@@ -10,7 +10,7 @@ const GITBLOB_RE = new RegExp(
   "(?<base>https://?(?<gist>gist.)?github.com/)" +
     "(?<account>([\\w.-]+/){1,2})" +
     "(?<blob_or_raw>(blob|raw))?/?" +
-    "(?<suffix>(.+)?)"
+    "(?<suffix>(.+)?)",
 );
 export function processGitblobUrl(url: string): string {
   const match = GITBLOB_RE.exec(url);
@@ -37,7 +37,7 @@ export function processGitblobUrl(url: string): string {
 }
 
 export function parseHash(
-  hashValue: string
+  hashValue: string,
 ):
   | { url: string; requirements: string[] }
   | { code: string; requirements: string[] }
@@ -59,7 +59,7 @@ export function parseHash(
   if (code) {
     if (url) {
       console.warn(
-        "Both 'url' and 'code' are specified in the URL hash. Ignoring 'url'."
+        "Both 'url' and 'code' are specified in the URL hash. Ignoring 'url'.",
       );
     }
     return { code, requirements };
@@ -71,7 +71,7 @@ export function parseHash(
 }
 
 async function compileMainScriptAndRequirementsFromHash(
-  hashValue: string
+  hashValue: string,
 ): Promise<{ code: string; filename: string; requirements: string[] } | null> {
   const parseResult = parseHash(hashValue);
   if (parseResult == null) {

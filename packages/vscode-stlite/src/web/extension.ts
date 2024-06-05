@@ -46,14 +46,14 @@ export function activate(context: vscode.ExtensionContext) {
         {
           enableScripts: true,
           retainContextWhenHidden: true,
-        }
+        },
       );
       panel.onDidDispose(
         () => {
           panel = undefined;
         },
         undefined,
-        context.subscriptions
+        context.subscriptions,
       );
 
       panelInitializedPromise = new PromiseDelegate();
@@ -86,14 +86,14 @@ export function activate(context: vscode.ExtensionContext) {
           }
         },
         undefined,
-        context.subscriptions
+        context.subscriptions,
       );
 
       vscode.workspace
         .findFiles(
           fileWatcherPattern,
           fileWatcherIgnorePattern,
-          maxEntrypointCandidates
+          maxEntrypointCandidates,
         )
         .then(async (fileUris) => {
           const files: { [fileName: string]: Uint8Array } = {};
@@ -109,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
 
               const relPath = path.relative(
                 workspaceFolder.uri.fsPath,
-                uri.fsPath
+                uri.fsPath,
               );
               const content = await vscode.workspace.fs.readFile(uri);
 
@@ -121,13 +121,13 @@ export function activate(context: vscode.ExtensionContext) {
                   label: relPath,
                 });
               }
-            })
+            }),
           );
 
           const requirements =
             requirementsTxtPath in files
               ? parseRequirementsTxt(
-                  new TextDecoder().decode(files[requirementsTxtPath])
+                  new TextDecoder().decode(files[requirementsTxtPath]),
                 )
               : [];
 
@@ -141,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
               const aBasename = aSegs[aSegs.length - 1];
               const bBasename = bSegs[bSegs.length - 1];
               return aBasename.localeCompare(bBasename);
-            }
+            },
           );
           const entrypoint = await vscode.window
             .showQuickPick(sortedEntrypointCandidates, {
@@ -169,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
           }; // NOTE: This must be JSON-encodable.
           initStlite(stliteMountOpts);
         });
-    })
+    }),
   );
 
   const fileWatcher =
@@ -221,7 +221,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (relPath === requirementsTxtPath) {
       const requirements = parseRequirementsTxt(
-        new TextDecoder().decode(content)
+        new TextDecoder().decode(content),
       );
 
       panel.webview.postMessage({

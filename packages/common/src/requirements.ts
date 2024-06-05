@@ -9,7 +9,7 @@ const RX_CHAR_FOLLOWING_NAME_WITHOUT_WSP = new RegExp(
     FIRST_CHAR_OF_VERSIONSPEC +
     FIRST_CHAR_OF_QUOTED_MARKER +
     FIRST_CHAR_OF_URLSPEC
-  }]`
+  }]`,
 );
 function getPackageName(req: string): string {
   const parts = req.split(RX_CHAR_FOLLOWING_NAME_WITHOUT_WSP);
@@ -29,7 +29,7 @@ export function validateRequirements(requirements: string[]): string[] {
     // Ref: The scheme checker in the micropip implementation is https://github.com/pyodide/micropip/blob/v0.1.0/micropip/_compat_in_pyodide.py#L23-L26
     if (url.protocol === "emfs:" || url.protocol === "file:") {
       throw new Error(
-        `"emfs:" and "file:" protocols are not allowed for the requirement (${req})`
+        `"emfs:" and "file:" protocols are not allowed for the requirement (${req})`,
       );
     }
   });
@@ -38,7 +38,7 @@ export function validateRequirements(requirements: string[]): string[] {
     const isStreamlit = getPackageName(req) === "streamlit";
     if (isStreamlit) {
       console.warn(
-        `Streamlit is specified in the requirements ("${req}"), but it will be ignored. A built-in version of Streamlit will be used.`
+        `Streamlit is specified in the requirements ("${req}"), but it will be ignored. A built-in version of Streamlit will be used.`,
       );
       return false;
     }

@@ -52,7 +52,7 @@ function BinaryFileEditor(props: BinaryFileEditorProps) {
         onChange(new Uint8Array(arrayBuffer));
       });
     },
-    [onChange]
+    [onChange],
   );
 
   return (

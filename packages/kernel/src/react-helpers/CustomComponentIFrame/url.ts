@@ -2,7 +2,7 @@ import { DUMMY_BASE_HOST } from "../../consts";
 
 export function extractCustomComponentPath(
   basePath: string, // basePath without leading and trailing slashes.
-  url: string
+  url: string,
 ): string | null {
   const baseHostAndPath = (DUMMY_BASE_HOST + "/" + basePath).replace(/\/$/, "");
   const regex = new RegExp(`https?://${baseHostAndPath}(/.*?$)`);
@@ -23,7 +23,7 @@ export function getParentPath(pathname: string): string {
 export function getRelativePath(
   baseHost: string,
   basePathname: string,
-  url: URL
+  url: URL,
 ): string | null {
   const baseDirPathname = getParentPath(basePathname);
   const isSubUrl =

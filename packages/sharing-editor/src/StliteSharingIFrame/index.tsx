@@ -29,7 +29,7 @@ const StliteSharingIFrame = React.forwardRef<
       onMessage,
       ...iframeProps
     },
-    ref
+    ref,
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -39,7 +39,7 @@ const StliteSharingIFrame = React.forwardRef<
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc]
+      [sharingAppSrc],
     );
 
     useImperativeHandle(
@@ -70,7 +70,7 @@ const StliteSharingIFrame = React.forwardRef<
           });
         },
       }),
-      [messageTargetOrigin]
+      [messageTargetOrigin],
     );
 
     useEffect(() => {
@@ -95,7 +95,7 @@ const StliteSharingIFrame = React.forwardRef<
         allow={ALLOWED_FEATURE_POLICY}
       />
     );
-  }
+  },
 );
 
 export default StliteSharingIFrame;

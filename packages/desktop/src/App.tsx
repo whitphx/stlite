@@ -67,7 +67,7 @@ function App() {
           ...makeToastKernelCallbacks(),
         });
         setKernel(kernel);
-      }
+      },
     );
 
     return () => {

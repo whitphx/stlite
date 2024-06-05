@@ -12,7 +12,7 @@ if (process.env.NODE_ENV === "development") {
       __dirname,
       process.platform === "win32"
         ? "../../node_modules/electron/dist/electron.exe"
-        : "../../node_modules/.bin/electron"
+        : "../../node_modules/.bin/electron",
     ),
   });
 }
@@ -22,11 +22,11 @@ const createWindow = async () => {
 
   const additionalArguments: string[] = [];
   additionalArguments.push(
-    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`
+    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`,
   );
   if (manifest.idbfsMountpoints) {
     additionalArguments.push(
-      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`
+      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`,
     );
   }
   if (manifest.nodeJsWorker) {
@@ -46,7 +46,7 @@ const createWindow = async () => {
   const indexUrlObj = new URL(
     app.isPackaged || process.env.NODE_ENV === "production"
       ? "file:///index.html"
-      : "http://localhost:3000/"
+      : "http://localhost:3000/",
   );
 
   const indexUrlParams = new URLSearchParams();
@@ -72,7 +72,7 @@ const createWindow = async () => {
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(
       __dirname,
-      "../site-packages-snapshot.tar.gz"
+      "../site-packages-snapshot.tar.gz",
     );
     return fsPromises.readFile(archiveFilePath);
   });
@@ -83,13 +83,13 @@ const createWindow = async () => {
 
     const prebuiltPackagesTxtPath = path.resolve(
       __dirname,
-      "../prebuilt-packages.txt"
+      "../prebuilt-packages.txt",
     );
     const prebuiltPackagesTxtData = await fsPromises.readFile(
       prebuiltPackagesTxtPath,
       {
         encoding: "utf-8",
-      }
+      },
     );
     return prebuiltPackagesTxtData
       .split("\n")
@@ -105,7 +105,7 @@ const createWindow = async () => {
 
       const appDir = path.resolve(__dirname, "../app_files");
       return walkRead(appDir);
-    }
+    },
   );
 
   mainWindow.on("closed", () => {

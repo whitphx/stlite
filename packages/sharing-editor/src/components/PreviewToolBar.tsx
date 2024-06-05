@@ -41,7 +41,7 @@ function UrlDisplay(props: UrlDisplayProps) {
 
   const byteLength = useMemo(
     () => new TextEncoder().encode(props.url).length,
-    [props.url]
+    [props.url],
   );
 
   return (
@@ -137,7 +137,7 @@ function SelfHostingCodeBox(props: SelfHostingCodeBoxProps) {
     const anchorElem = window.document.createElement("a");
     anchorElem.setAttribute(
       "href",
-      "data:text/html;charset=utf-8," + encodeURIComponent(htmlSource)
+      "data:text/html;charset=utf-8," + encodeURIComponent(htmlSource),
     );
     anchorElem.setAttribute("download", "stlite.html");
     anchorElem.click();
@@ -182,12 +182,12 @@ function PreviewToolBar(props: PreviewToolBarProps) {
       props.appData
         ? embedAppDataToUrl(props.sharingAppSrc, props.appData)
         : null,
-    [props.sharingAppSrc, props.appData]
+    [props.sharingAppSrc, props.appData],
   );
 
   const html = useMemo(
     () => (props.appData ? exportAsHtml(props.appData) : null),
-    [props.appData]
+    [props.appData],
   );
 
   return (

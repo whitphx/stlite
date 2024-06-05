@@ -70,7 +70,7 @@ const InnerIFrame = React.forwardRef<
 
       manipulateIFrameDocument(kernel, document, getParentPath(path));
     },
-    [kernel, path]
+    [kernel, path],
   );
 
   return (

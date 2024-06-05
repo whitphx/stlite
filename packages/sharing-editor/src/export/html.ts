@@ -1,7 +1,7 @@
 import { AppData, u8aToBase64, base64ToU8A } from "@stlite/sharing-common";
 
 function makeRequirementsLiteral(
-  requirements: AppData["requirements"]
+  requirements: AppData["requirements"],
 ): string {
   return "[" + requirements.map((r) => '"' + r + '"').join(", ") + "]";
 }
@@ -48,7 +48,7 @@ const DEBUG_COMMENT = `Generated from stlite sharing (https://edit.share.stlite.
 
 export function exportAsHtml(appData: AppData): string {
   const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
-    appData.files
+    appData.files,
   );
   const output = `<!DOCTYPE html>
 <html>

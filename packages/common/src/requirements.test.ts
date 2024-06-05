@@ -12,7 +12,7 @@ describe("validateRequirements", () => {
   ];
   allowedRequirements.forEach((requirements) => {
     it(`allows http: and https: schemes (requirements=${JSON.stringify(
-      requirements
+      requirements,
     )})`, () => {
       expect(validateRequirements(requirements)).toEqual(requirements);
     });
@@ -21,7 +21,7 @@ describe("validateRequirements", () => {
   const notAllowedRequirements = [["emfs:/tmp/foo.whl"], ["file:/tmp/foo.whl"]];
   notAllowedRequirements.forEach((requirements) => {
     it(`throws an error if the requirements include a not allowed scheme (requirements=${JSON.stringify(
-      requirements
+      requirements,
     )})`, () => {
       expect(() => validateRequirements(requirements)).toThrow();
     });
@@ -39,7 +39,7 @@ describe("validateRequirements", () => {
   ];
   streamlitRequirements.forEach((requirement) => {
     it(`filters out the 'streamlit' requirement (requirements=${JSON.stringify(
-      requirement
+      requirement,
     )})`, () => {
       expect(
         validateRequirements([
@@ -47,7 +47,7 @@ describe("validateRequirements", () => {
           "streamlit-xxx",
           "xxx-streamlit",
           "numpy",
-        ])
+        ]),
       ).toEqual(["streamlit-xxx", "xxx-streamlit", "numpy"]);
     });
   });

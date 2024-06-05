@@ -13,7 +13,7 @@ export function parseContentDispositionHeader(value: string): string {
 
 export function downloadFileFromStlite(
   stliteKernel: StliteKernel,
-  url: string
+  url: string,
 ) {
   stliteKernel
     .sendHttpRequest({

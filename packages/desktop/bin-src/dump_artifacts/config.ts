@@ -19,7 +19,7 @@ interface ReadConfigResult {
   requirementsTxtFilePaths: string[];
 }
 export async function readConfig(
-  options: ReadConfigOptions
+  options: ReadConfigOptions,
 ): Promise<ReadConfigResult> {
   const { files, entrypoint } = readFilesAndEntrypoint(options);
   const dependencies = await readDependencies(options);
@@ -44,13 +44,13 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
     deprecationWarning(
       "Missing `stlite.desktop.files` and `stlite.desktop.entrypoint` in `package.json`. " +
         "Falling back to the `appHomeDirSource` argument to determine the app directory. " +
-        "Please update your `package.json` as this fallback is deprecated and will be removed in a future release."
+        "Please update your `package.json` as this fallback is deprecated and will be removed in a future release.",
     );
     const appHomeDirSource = appHomeDirSourceFallback;
     if (typeof appHomeDirSource !== "string") {
       throw new Error(
         "The `appHomeDirSource` argument is required when `stlite.desktop.files` and `stlite.desktop.entrypoint` are not found in the package.json. " +
-          "Note that `appHomeDirSource` is deprecated and will be removed in the future, so please specify `stlite.desktop.files` and `stlite.desktop.entrypoint` in the package.json."
+          "Note that `appHomeDirSource` is deprecated and will be removed in the future, so please specify `stlite.desktop.files` and `stlite.desktop.entrypoint` in the package.json.",
       );
     }
     files = [appHomeDirSource];
@@ -58,7 +58,7 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
   } else {
     if (appHomeDirSourceFallback != null) {
       deprecationWarning(
-        "The `appHomeDirSource` argument is deprecated and has been ignored because `stlite.desktop.files` is specified in `package.json`."
+        "The `appHomeDirSource` argument is deprecated and has been ignored because `stlite.desktop.files` is specified in `package.json`.",
       );
     }
   }
@@ -66,19 +66,19 @@ function readFilesAndEntrypoint(options: ReadConfigOptions) {
   s.assert(
     entrypoint,
     s.string(),
-    "The `stlite.desktop.entrypoint` field must be a string."
+    "The `stlite.desktop.entrypoint` field must be a string.",
   );
   s.assert(
     files,
     s.array(s.string()),
-    "The `stlite.desktop.files` field must be an array of strings."
+    "The `stlite.desktop.files` field must be an array of strings.",
   );
 
   return { files, entrypoint };
 }
 
 async function readDependencies(
-  options: ReadConfigOptions
+  options: ReadConfigOptions,
 ): Promise<ReadConfigResult["dependencies"]> {
   const {
     packageJsonStliteDesktopField,
@@ -89,14 +89,14 @@ async function readDependencies(
   s.assert(
     dependencies,
     s.optional(s.array(s.string())),
-    "The `stlite.desktop.dependencies` field must be an array of strings."
+    "The `stlite.desktop.dependencies` field must be an array of strings.",
   );
 
   // Below is for backward compatibility for the deprecated command line options
   let dependenciesFromDeprecatedArg: string[] = [];
   if (packagesFallback != null) {
     deprecationWarning(
-      "The `packages` argument is deprecated and will be removed in a future release. Use `stlite.desktop.dependencies` in your `package.json` instead."
+      "The `packages` argument is deprecated and will be removed in a future release. Use `stlite.desktop.dependencies` in your `package.json` instead.",
     );
     dependenciesFromDeprecatedArg = packagesFallback;
   }
@@ -105,7 +105,7 @@ async function readDependencies(
 }
 
 async function readRequirementsTxtFilePaths(
-  options: ReadConfigOptions
+  options: ReadConfigOptions,
 ): Promise<ReadConfigResult["requirementsTxtFilePaths"]> {
   const {
     pathResolutionRoot,
@@ -118,10 +118,10 @@ async function readRequirementsTxtFilePaths(
   s.assert(
     requirementsTxtPaths,
     s.optional(s.array(s.string())),
-    "The `stlite.desktop.requirementsTxtFiles` field must be an array of strings."
+    "The `stlite.desktop.requirementsTxtFiles` field must be an array of strings.",
   );
   const resolvedRequirementsTxtPaths = requirementsTxtPaths?.map((p) =>
-    path.resolve(pathResolutionRoot, p)
+    path.resolve(pathResolutionRoot, p),
   );
 
   // Below is for backward compatibility for the deprecated command line options
@@ -131,7 +131,7 @@ async function readRequirementsTxtFilePaths(
     requirementsTxtFilePathsFallback.length > 0
   ) {
     deprecationWarning(
-      "The `requirement` argument is deprecated and will be removed in a future release. Use `stlite.desktop.requirementsTxtFiles` in your `package.json` instead."
+      "The `requirement` argument is deprecated and will be removed in a future release. Use `stlite.desktop.requirementsTxtFiles` in your `package.json` instead.",
     );
     // We don't need to resolve these paths because they are given as command line arguments which are assumed to be relative to the current working directory.
     requirementsTxtFilePathsFromDeprecatedArg =

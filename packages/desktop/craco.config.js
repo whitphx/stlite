@@ -19,7 +19,7 @@ module.exports = {
 
       // Set CSP following the best practice of Electron: https://www.electronjs.org/docs/latest/tutorial/security#7-define-a-content-security-policy
       const htmlWebpackPlugin = webpackConfig.plugins.find(
-        (plugin) => plugin instanceof HtmlWebpackPlugin
+        (plugin) => plugin instanceof HtmlWebpackPlugin,
       );
 
       const cspSourceForMap =
@@ -80,7 +80,7 @@ module.exports = {
       // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
       const oneOfRule = webpackConfig.module.rules.find((rule) => rule.oneOf);
       const tsRule = oneOfRule.oneOf.find((rule) =>
-        rule.test.toString().includes("ts|tsx")
+        rule.test.toString().includes("ts|tsx"),
       );
       tsRule.include = undefined;
       tsRule.exclude = /node_modules/;

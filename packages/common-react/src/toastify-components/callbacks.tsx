@@ -13,7 +13,7 @@ export interface ToastKernelCallbacks {
   onError: NonNullable<StliteKernelOptions["onError"]>;
 }
 export function makeToastKernelCallbacks(
-  options?: MakeToastKernelCallbacksOptions
+  options?: MakeToastKernelCallbacksOptions,
 ): ToastKernelCallbacks {
   const { disableProgressToasts = false, disableErrorToasts = false } =
     options ?? {};
@@ -57,7 +57,7 @@ export function makeToastKernelCallbacks(
         type: toast.TYPE.ERROR,
         autoClose: false,
         closeOnClick: false,
-      }
+      },
     );
   };
 

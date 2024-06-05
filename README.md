@@ -284,8 +284,8 @@ stlite.mount(
 
 ## File system
 
-_stlite_ executes your Python code on [Pyodide](https://pyodide.org/) in a browser, and Pyodide has its own Linux-like file system isolated from the host OS (see [Pyodide's](https://pyodide.org/en/stable/usage/file-system.html) or [Emscripten's](https://emscripten.org/docs/api_reference/Filesystem-API.html) documents about the FS for details).
-The source code and data files are mounted on the file system, and the Python code can access it. So, for example, what `open("path/to/file")` reads or writes is the file on the file system virtually existing in the browser, not a file on the host OS.
+_stlite_ executes your Python code on [Pyodide](https://pyodide.org/) in the browser, and Pyodide has its own Linux-like file system isolated from the host OS (see [Pyodide's](https://pyodide.org/en/stable/usage/file-system.html) or [Emscripten's](https://emscripten.org/docs/api_reference/Filesystem-API.html) documents about the FS for details).
+The source code and data files are mounted on the file system through the `files` and `archives` options as described above, and the Python code can access them. So, for example, what `open("path/to/file")` reads or writes is the file on the file system virtually existing in the browser, not a file on the host OS.
 
 The default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral, so the files saved in the directories are lost when the page is reloaded.
 The root `/` and some directories including home are mounted as `MEMFS`, the ephemeral file system, by default.

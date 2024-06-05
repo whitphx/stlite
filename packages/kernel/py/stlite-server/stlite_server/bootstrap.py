@@ -38,7 +38,7 @@ def _fix_sys_path(main_script_path: str) -> None:
     sys.path.insert(0, os.path.dirname(main_script_path))
 
 
-def _fix_sys_argv(main_script_path: str, args: List[str]) -> None:
+def _fix_sys_argv(main_script_path: str, args: list[str]) -> None:
     """sys.argv needs to exclude streamlit arguments and parameters
     and be set to what a user's script may expect.
     """

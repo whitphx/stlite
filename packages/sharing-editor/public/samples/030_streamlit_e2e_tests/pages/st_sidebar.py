@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,5 +24,6 @@ st.write("Value 2:", w2)
 
 x = st.sidebar.text("overwrite me")
 x.text("overwritten")
-
 y = st.sidebar.text_input("type here")
+
+# TODO: add more tests such as markdown elements and also a test that takes screenshot of complete app to verify alignment of elements

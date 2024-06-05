@@ -5,7 +5,6 @@ import urllib.parse
 from typing import Callable, Final, cast
 
 import pyodide
-from streamlit.components.v1.components import ComponentRegistry
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
@@ -23,7 +22,7 @@ from .media_file_handler import MediaFileHandler
 from .server_util import make_url_path_regex
 from .upload_file_request_handler import UploadFileRequestHandler
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 # These route definitions are copied from the original impl at https://github.com/streamlit/streamlit/blob/1.27.0/lib/streamlit/web/server/server.py#L83-L92  # noqa: E501
 MEDIA_ENDPOINT: Final = "/media"
@@ -35,7 +34,7 @@ HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
 class Server:
     _routes: list[tuple[re.Pattern, RequestHandler]] = []
 
-    def __init__(self, main_script_path: str, command_line: str | None) -> None:
+    def __init__(self, main_script_path: str) -> None:
         self._main_script_path = main_script_path
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
@@ -45,10 +44,11 @@ class Server:
         self._runtime = Runtime(
             RuntimeConfig(
                 script_path=main_script_path,
-                command_line=command_line,
+                command_line=None,
                 media_file_storage=self._media_file_storage,
                 uploaded_file_manager=uploaded_file_mgr,
                 cache_storage_manager=MemoryCacheStorageManager(),
+                is_hello=False,
             ),
         )
 
@@ -60,9 +60,9 @@ class Server:
         When this returns, Streamlit is ready to accept new sessions.
         """
 
-        LOGGER.debug("Starting server...")
+        _LOGGER.debug("Starting server...")
 
-        # In stlite, impl, we deal with WebSocket separately.
+        # In stlite, we deal with WebSocket separately.
         self._websocket_handler = WebSocketHandler(self._runtime)
 
         # Based on the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L221  # noqa: E501
@@ -90,7 +90,7 @@ class Server:
             ),
             (
                 make_url_path_regex(base, "component/(.*)"),
-                ComponentRequestHandler(registry=ComponentRegistry.instance()),
+                ComponentRequestHandler(registry=self._runtime.component_registry),
             ),
         ]
         self._routes = [(re.compile(pattern), handler) for (pattern, handler) in routes]
@@ -106,7 +106,7 @@ class Server:
         payload = payload_from_js.to_bytes()
 
         if not isinstance(payload, bytes):
-            LOGGER.warning(
+            _LOGGER.warning(
                 "The WebSocket payload is not of type bytes, but %s", type(payload)
             )
             return
@@ -145,7 +145,7 @@ class Server:
         body: str | bytes,
         on_response: Callable[[int, dict, bytes], None],
     ):
-        LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
+        _LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
 
         url_parse_result = urllib.parse.urlparse(path)
         path = url_parse_result.path
@@ -173,9 +173,7 @@ class Server:
         match = cast(re.Match[str], match)
         args = match.groups()
         kwargs = match.groupdict()
-        kwarg_indexes = (
-            path_regex.groupindex.values()
-        )  # These args are also captured in kwargs, so we remove them from args. Note that these indexes are 1-based.  # noqa: E501
+        kwarg_indexes = path_regex.groupindex.values()  # These args are also captured in kwargs, so we remove them from args. Note that these indexes are 1-based.  # noqa: E501
         args_no_dup = []
         for i, arg in enumerate(args):
             if (
@@ -271,10 +269,10 @@ class WebSocketHandler(SessionClient):
 
             msg = BackMsg()
             msg.ParseFromString(payload)
-            LOGGER.debug("Received the following back message:\n%s", msg)
+            _LOGGER.debug("Received the following back message:\n%s", msg)
 
         except Exception as ex:
-            LOGGER.error(ex)
+            _LOGGER.error(ex)
             self._runtime.handle_backmsg_deserialization_exception(self._session_id, ex)
             return
 

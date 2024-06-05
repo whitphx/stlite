@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,15 @@
 # limitations under the License.
 
 import io
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from PIL import Image, ImageDraw
 
 import streamlit as st
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 
 def create_gif(size, frames=1):
@@ -50,8 +54,6 @@ def create_gif(size, frames=1):
     return data.getvalue()
 
 
-import streamlit as st
-
 img = np.repeat(0, 10000).reshape(100, 100)
 img800 = np.repeat(0, 640000).reshape(800, 800)
 gif = create_gif(64, frames=32)
@@ -62,7 +64,7 @@ st.image(img, caption="Black Square as PNG", output_format="PNG", width=100)
 
 st.image(img, caption="Black Square with no output format specified", width=100)
 
-transparent_img = np.zeros((100, 100, 4), dtype=np.uint8)
+transparent_img: "npt.NDArray[Any]" = np.zeros((100, 100, 4), dtype=np.uint8)
 st.image(transparent_img, caption="Transparent Black Square", width=100)
 
 col1, col2, col3 = st.columns(3)
@@ -76,16 +78,6 @@ col2.image(img, use_column_width="always")  # column
 col2.image(img, use_column_width=True)  # column
 
 col2.image(img800, use_column_width="auto")  # column
-
-st.image(
-    """<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100">
-    <clipPath id="clipCircle">
-        <circle r="25" cx="25" cy="25"/>
-    </clipPath>
-    <image href="https://avatars.githubusercontent.com/karriebear" width="50" height="50" clipPath="url(#clipCircle)"/>
-</svg>
-"""
-)
 
 st.image(
     """

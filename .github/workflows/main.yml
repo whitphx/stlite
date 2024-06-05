@@ -442,7 +442,7 @@ jobs:
       deployments: write
     name: Deploy @stlite/sharing to Cloudflare Pages
     outputs:
-      url: ${{ steps.publish.outputs.url }}
+      deployment-url: ${{ steps.publish.outputs.deployment-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -450,15 +450,13 @@ jobs:
         with:
           name: stlite-sharing
           path: website
-      - name: Publish
-        uses: cloudflare/pages-action@1
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
         id: publish
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing
-          directory: website
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy website --project-name=stlite-sharing
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -480,7 +478,7 @@ jobs:
     - run: yarn install --frozen-lockfile
     - name: Set SHARING_APP_URL (preview)
       if: github.ref_name != github.event.repository.default_branch
-      run: echo "REACT_APP_SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
+      run: echo "REACT_APP_SHARING_APP_URL=${{needs.deploy-sharing.outputs.deployment-url}}" >> $GITHUB_ENV
     - name: Set SHARING_APP_URL (main branch)
       if: github.ref_name == github.event.repository.default_branch
       run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
@@ -513,14 +511,12 @@ jobs:
         with:
           name: stlite-sharing-editor
           path: website
-      - name: Publish
-        uses: cloudflare/pages-action@1
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing-editor
-          directory: website
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy website --project-name=stlite-sharing-editor
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4

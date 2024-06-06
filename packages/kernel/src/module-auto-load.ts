@@ -1,4 +1,4 @@
-import type { PackageData, PyodideInterface } from "pyodide";
+import type { PyodideInterface } from "pyodide";
 import type { ModuleAutoLoadMessage } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 
@@ -57,14 +57,14 @@ export async function tryModuleAutoLoad(
       data: {
         loadedPackages,
       },
-    } as ModuleAutoLoadMessage);
+    } satisfies ModuleAutoLoadMessage);
     channel.port1.close();
     return;
   } catch (error) {
     channel.port1.postMessage({
       type: "moduleAutoLoad:error",
       error: error as Error,
-    } as ModuleAutoLoadMessage);
+    } satisfies ModuleAutoLoadMessage);
     channel.port1.close();
     throw error;
   }

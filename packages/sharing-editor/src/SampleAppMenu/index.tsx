@@ -23,26 +23,25 @@ function SampleAppMenu(props: SampleAppMenuProps) {
   return (
     <div className={styles.container}>
       <img src={logo} alt="stlite sharing logo" className={styles.logo} />
-      <h2 className={styles.heading}>Samples</h2>
       <ol className={styles.list}>
         {sampleAppManifests.map((sampleAppManifest) => {
           const isActive = currentSampleAppId === sampleAppManifest.id;
           return (
-            <DisableableLink
-              key={sampleAppManifest.id}
-              disabled={isActive}
-              to={{
-                search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
-              }}
+            <li
+              className={classNames(styles.listItem, {
+                [styles.active]: isActive,
+              })}
             >
-              <li
-                className={classNames(styles.listItem, {
-                  [styles.active]: isActive,
-                })}
+              <DisableableLink
+                key={sampleAppManifest.id}
+                disabled={isActive}
+                to={{
+                  search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
+                }}
               >
                 {sampleAppManifest.title}
-              </li>
-            </DisableableLink>
+              </DisableableLink>
+            </li>
           );
         })}
       </ol>

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import "./App.css";
 import {
   embedAppDataToUrl,
@@ -68,9 +68,14 @@ const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 function App() {
   const {
     appData: initialAppData,
-    sampleAppId,
+    sampleAppId: initialSampleAppId,
     embedMode,
   } = useLoaderData() as AppLoaderData;
+
+  const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
+  useEffect(() => {
+    setSampleAppId(initialSampleAppId);
+  }, [initialSampleAppId]);
 
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
@@ -78,6 +83,7 @@ function App() {
       appData,
     );
     window.history.replaceState(null, "", newUrl);
+    setSampleAppId(null);
   }, []);
   const [
     { key: initAppDataKey, appData },

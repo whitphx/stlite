@@ -128,7 +128,7 @@ const createWindow = async () => {
     }
     worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
       env: {
-        PYODIDE_URL: "file://" + pyodideUrl,
+        PYODIDE_URL: "file://" + pyodideUrl, // `file://` is required. See https://github.com/whitphx/stlite/issues/957
         ...(manifest.nodefsMountpoints && {
           NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
         }),

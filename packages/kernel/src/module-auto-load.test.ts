@@ -37,6 +37,18 @@ from package import module as aliased_module
       ]),
     );
   });
+
+  it("finds only module-level imports", () => {
+    const pyCode = `
+import pandas as pd
+
+def foo():
+    import numpy as np
+`;
+
+    const imports = findImports(pyodide, pyCode);
+    expect(imports).toEqual(new Set(["pandas"]));
+  });
 });
 
 describe("unionSets", () => {

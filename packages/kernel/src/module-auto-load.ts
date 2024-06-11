@@ -22,16 +22,25 @@ def find_imports(source: str) -> list[str]:
   except SyntaxError:
       return []
   imports = set()
-  for node in ast.walk(mod):
-      if isinstance(node, ast.Import):
-          for name in node.names:
-              node_name = name.name
-              imports.add(node_name.split(".")[0])
-      elif isinstance(node, ast.ImportFrom):
-          module_name = node.module
-          if module_name is None:
-              continue
-          imports.add(module_name.split(".")[0])
+
+  class ASTVisitor(ast.NodeVisitor):
+      def visit(self, node):
+          if isinstance(node, ast.Module):
+              # Only visit the body of the module
+              self.generic_visit(node)
+          elif isinstance(node, ast.Import):
+              for name in node.names:
+                  node_name = name.name
+                  imports.add(node_name.split(".")[0])
+          elif isinstance(node, ast.ImportFrom):
+              module_name = node.module
+              if module_name is None:
+                  return
+              imports.add(module_name.split(".")[0])
+
+  visitor = ASTVisitor()
+  visitor.visit(mod)
+
   return imports
 `;
     pyodide.runPython(pyCode);

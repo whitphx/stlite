@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.1] - 2024-06-11
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fixed a bug in the NodeJS worker mode on Windows, [#959](https://github.com/whitphx/stlite/pull/959).
+
 ## [0.58.0] - 2024-06-06
 
 ### `@stlite/kernel`

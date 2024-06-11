@@ -36,7 +36,7 @@ describe("resolvePyodideUrl", () => {
   it("resolves an ESM local URL", async () => {
     const result = await resolvePyodideUrl("/path/to/pyodide.mjs");
     expect(result).toEqual({
-      scriptURL: "file:///path/to/pyodide.mjs",
+      scriptURL: "file:///path/to/pyodide.mjs", // import() requires the `file://` scheme on Windows
       pyodideIndexURL: "/path/to/",
       isESModule: true,
     });

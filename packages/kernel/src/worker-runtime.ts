@@ -22,14 +22,7 @@ async function initPyodide(
   let sep: string;
   if (isNode) {
     const nodePath = await import(/* webpackIgnore: true */ "node:path");
-    const nodeUrl = await import(/* webpackIgnore: true */ "node:url");
-
     sep = nodePath.sep;
-
-    const possiblyLocalFilePath = !pyodideUrl.includes("://");
-    if (possiblyLocalFilePath && nodePath.isAbsolute(pyodideUrl)) {
-      pyodideUrl = nodeUrl.pathToFileURL(pyodideUrl).href; // `file://` is required for import() on Windows. See https://github.com/whitphx/stlite/issues/957
-    }
   } else {
     sep = "/"; // URL path separator
   }
@@ -40,6 +33,15 @@ async function initPyodide(
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
   let loadPyodide: typeof Pyodide.loadPyodide;
   if (pyodideUrl.endsWith(".mjs")) {
+    if (isNode) {
+      // Special care for Node.js on Windows because the `file://` scheme is required in the URL passed to import() on Windows. See https://github.com/whitphx/stlite/issues/957
+      const nodePath = await import(/* webpackIgnore: true */ "node:path");
+      const nodeUrl = await import(/* webpackIgnore: true */ "node:url");
+      const possiblyLocalFilePath = !pyodideUrl.includes("://");
+      if (possiblyLocalFilePath && nodePath.isAbsolute(pyodideUrl)) {
+        pyodideUrl = nodeUrl.pathToFileURL(pyodideUrl).href;
+      }
+    }
     // note: this does not work at all in firefox
     const pyodideModule: typeof Pyodide = await import(
       /* webpackIgnore: true */ pyodideUrl

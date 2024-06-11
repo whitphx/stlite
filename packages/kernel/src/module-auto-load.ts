@@ -4,7 +4,10 @@ import type { ModuleAutoLoadMessage } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 
 let findImportsPyFn: ((source: string) => PyProxy) | undefined;
-function findImports(pyodide: PyodideInterface, source: string): string[] {
+export function findImports(
+  pyodide: PyodideInterface,
+  source: string,
+): Set<string> {
   if (!findImportsPyFn) {
     // Ref: https://github.com/pyodide/pyodide/blob/10b484cfe427e076c929a55dc35cfff01ea8d3bc/src/py/_pyodide/_base.py#L586
     const pyCode = `
@@ -29,14 +32,24 @@ def find_imports(source: str) -> list[str]:
           if module_name is None:
               continue
           imports.add(module_name.split(".")[0])
-  return list(sorted(imports))
+  return imports
 `;
     pyodide.runPython(pyCode);
     findImportsPyFn = pyodide.globals.get("find_imports") as (
       source: string,
     ) => PyProxy;
   }
-  return findImportsPyFn(source).toJs() as string[];
+  return findImportsPyFn(source).toJs();
+}
+
+export function unionSets<T>(sets: Set<T>[]): Set<T> {
+  const union = new Set<T>();
+  for (const set of sets) {
+    for (const item of set) {
+      union.add(item);
+    }
+  }
+  return union;
 }
 
 export async function tryModuleAutoLoad(
@@ -47,7 +60,8 @@ export async function tryModuleAutoLoad(
   // Ref: `pyodide.loadPackagesFromImports` (https://github.com/pyodide/pyodide/blob/0.26.0/src/js/api.ts#L191)
 
   const importsArr = sources.map((source) => findImports(pyodide, source));
-  const imports = Array.from(new Set(importsArr.flat()));
+  const importsSet = unionSets(importsArr);
+  const imports = Array.from(importsSet);
 
   const notFoundImports = imports.filter(
     (name) =>

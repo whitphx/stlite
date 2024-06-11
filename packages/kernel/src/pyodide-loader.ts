@@ -1,9 +1,13 @@
 import type Pyodide from "pyodide";
 
-export async function initPyodide(
+interface ResolvePyodideUrlResult {
+  scriptURL: string;
+  pyodideIndexURL: string;
+  isESModule: boolean;
+}
+export async function resolvePyodideUrl(
   pyodideUrl: string,
-  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
-): Promise<Pyodide.PyodideInterface> {
+): Promise<ResolvePyodideUrlResult> {
   const isNode = typeof process !== "undefined" && process.versions?.node;
 
   let sep: string;
@@ -15,10 +19,9 @@ export async function initPyodide(
   }
 
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
-  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf(sep) + 1);
+  const pyodideIndexURL = pyodideUrl.slice(0, pyodideUrl.lastIndexOf(sep) + 1);
 
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
-  let loadPyodide: typeof Pyodide.loadPyodide;
   if (pyodideUrl.endsWith(".mjs")) {
     if (isNode) {
       // Special care for Node.js on Windows because the `file://` scheme is required in the URL passed to import() on Windows. See https://github.com/whitphx/stlite/issues/957
@@ -29,14 +32,38 @@ export async function initPyodide(
         pyodideUrl = nodeUrl.pathToFileURL(pyodideUrl).href;
       }
     }
+    return {
+      scriptURL: pyodideUrl,
+      pyodideIndexURL,
+      isESModule: true,
+    };
+  } else {
+    return {
+      scriptURL: pyodideUrl,
+      pyodideIndexURL,
+      isESModule: false,
+    };
+  }
+}
+
+export async function initPyodide(
+  pyodideUrl: string,
+  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
+): Promise<Pyodide.PyodideInterface> {
+  const { scriptURL, pyodideIndexURL, isESModule } =
+    await resolvePyodideUrl(pyodideUrl);
+
+  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
+  let loadPyodide: typeof Pyodide.loadPyodide;
+  if (isESModule) {
     // note: this does not work at all in firefox
     const pyodideModule: typeof Pyodide = await import(
-      /* webpackIgnore: true */ pyodideUrl
+      /* webpackIgnore: true */ scriptURL
     );
     loadPyodide = pyodideModule.loadPyodide;
   } else {
-    importScripts(pyodideUrl);
+    importScripts(scriptURL);
     loadPyodide = (self as any).loadPyodide;
   }
-  return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
+  return loadPyodide({ ...loadPyodideOptions, indexURL: pyodideIndexURL });
 }

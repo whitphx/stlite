@@ -17,8 +17,25 @@ async function initPyodide(
   pyodideUrl: string,
   loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
 ): Promise<Pyodide.PyodideInterface> {
+  const isNode = typeof process !== "undefined" && process.versions?.node;
+
+  let sep: string;
+  if (isNode) {
+    const nodePath = await import(/* webpackIgnore: true */ "node:path");
+    const nodeUrl = await import(/* webpackIgnore: true */ "node:url");
+
+    sep = nodePath.sep;
+
+    const possiblyLocalFilePath = !pyodideUrl.includes("://");
+    if (possiblyLocalFilePath && nodePath.isAbsolute(pyodideUrl)) {
+      pyodideUrl = nodeUrl.pathToFileURL(pyodideUrl).href; // `file://` is required for import() on Windows. See https://github.com/whitphx/stlite/issues/957
+    }
+  } else {
+    sep = "/"; // URL path separator
+  }
+
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
-  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
+  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf(sep) + 1);
 
   // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
   let loadPyodide: typeof Pyodide.loadPyodide;

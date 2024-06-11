@@ -3,6 +3,7 @@ import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
+import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
 import { tryModuleAutoLoad } from "./module-auto-load";
 import type {
@@ -12,28 +13,6 @@ import type {
   ReplyMessageHttpResponse,
   PyodideConvertiblePrimitive,
 } from "./types";
-
-async function initPyodide(
-  pyodideUrl: string,
-  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0],
-): Promise<Pyodide.PyodideInterface> {
-  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
-  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
-
-  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
-  let loadPyodide: typeof Pyodide.loadPyodide;
-  if (pyodideUrl.endsWith(".mjs")) {
-    // note: this does not work at all in firefox
-    const pyodideModule: typeof Pyodide = await import(
-      /* webpackIgnore: true */ pyodideUrl
-    );
-    loadPyodide = pyodideModule.loadPyodide;
-  } else {
-    importScripts(pyodideUrl);
-    loadPyodide = (self as any).loadPyodide;
-  }
-  return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
-}
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 

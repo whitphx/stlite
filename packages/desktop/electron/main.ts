@@ -121,14 +121,14 @@ const createWindow = async () => {
     }
 
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
-    const defaultPyodideUrl = path.resolve(__dirname, "../pyodide/pyodide.mjs");
+    const pyodidePath = path.resolve(__dirname, "..", "pyodide", "pyodide.mjs"); // For Windows compatibility, rely on path.resolve() to join the path elements.
 
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
-    worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
+    worker = new workerThreads.Worker(path.resolve(__dirname, "worker.js"), {
       env: {
-        PYODIDE_URL: defaultPyodideUrl,
+        PYODIDE_URL: pyodidePath,
         ...(manifest.nodefsMountpoints && {
           NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
         }),

@@ -15,33 +15,24 @@ import ast
 from textwrap import dedent
 
 def find_imports(source: str) -> list[str]:
-  source = dedent(source)
+    source = dedent(source)
 
-  try:
-      mod = ast.parse(source)
-  except SyntaxError:
-      return []
-  imports = set()
-
-  class ASTVisitor(ast.NodeVisitor):
-      def visit(self, node):
-          if isinstance(node, ast.Module):
-              # Only visit the body of the module
-              self.generic_visit(node)
-          elif isinstance(node, ast.Import):
-              for name in node.names:
-                  node_name = name.name
-                  imports.add(node_name.split(".")[0])
-          elif isinstance(node, ast.ImportFrom):
-              module_name = node.module
-              if module_name is None:
-                  return
-              imports.add(module_name.split(".")[0])
-
-  visitor = ASTVisitor()
-  visitor.visit(mod)
-
-  return imports
+    try:
+        mod = ast.parse(source)
+    except SyntaxError:
+        return []
+    imports = set()
+    for node in mod.body:
+        if isinstance(node, ast.Import):
+            for name in node.names:
+                node_name = name.name
+                imports.add(node_name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            module_name = node.module
+            if module_name is None:
+                continue
+            imports.add(module_name.split(".")[0])
+    return imports
 `;
     pyodide.runPython(pyCode);
     findImportsPyFn = pyodide.globals.get("find_imports") as (

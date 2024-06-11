@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.2] - 2024-06-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+Module auto-load only finds module-level modules, [#961](https://github.com/whitphx/stlite/pull/961).
+
 ## [0.58.1] - 2024-06-11
 
 ### `@stlite/desktop`

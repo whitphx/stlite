@@ -438,28 +438,22 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
       if (
         typeof event.data === "object" &&
         "type" in event.data &&
-        "data" in event.data &&
-        event.data.type === "streamlit-app-generate-screenshot"
+        "data" in event.data
       ) {
-        const appScreenshot = await generateAppScreenshot();
-        console.log("GeneratedApp screenshot", appScreenshot);
-
-        // communicate if in iframe to parent (top)
-        postMessageToFusion({
-          type: "streamlit-app-generate-screenshot",
-          data: appScreenshot,
-        });
-      }
-
-      // StreamLit app main thread, forward the message to the worker
-      // so that the kernel can process the request
-      if (
-        typeof event.data === "object" &&
-        "type" in event.data &&
-        "data" in event.data &&
-        event.data.type.startsWith("language-server:")
-      ) {
-        worker.postMessage(event.data);
+        if (event.data.type === "streamlit-app-generate-screenshot") {
+          const appScreenshot = await generateAppScreenshot();
+          // send generated screenshot if in iframe to parent (top)
+          postMessageToFusion({
+            type: "streamlit-app-generate-screenshot",
+            data: appScreenshot,
+          });
+        } else if (event.data.type === "streamlit-app-print") {
+          window.print();
+        } else if (event.data.type.startsWith("language-server:")) {
+          // StreamLit app main thread, forward the message to the worker
+          // so that the kernel can process the request
+          worker.postMessage(event.data);
+        }
       }
     },
     false

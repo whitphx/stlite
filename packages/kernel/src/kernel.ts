@@ -448,7 +448,10 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
             data: appScreenshot,
           });
         } else if (event.data.type === "streamlit-app-print") {
-          window.print();
+          // Workaround for https://issues.chromium.org/issues/40094746
+          setTimeout(() => {
+            window.print();
+          }, 0);
         } else if (event.data.type.startsWith("language-server:")) {
           // StreamLit app main thread, forward the message to the worker
           // so that the kernel can process the request

@@ -34,7 +34,7 @@ cd stlite
 ## Building and serving
 
 ```
-USE_CONSTRAINT_FILE=false make mountable
+USE_CONSTRAINTS_FILE=false make mountable
 cd packages/mountable
 yarn start
 ```

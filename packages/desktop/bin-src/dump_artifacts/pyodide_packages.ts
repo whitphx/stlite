@@ -1,5 +1,6 @@
-import fetch from "node-fetch";
-import { makePyodideUrl } from "./url";
+import path from "node:path";
+import fsPromises from "node:fs/promises";
+import { logger } from "./logger";
 
 interface PackageInfo {
   name: string;
@@ -7,39 +8,57 @@ interface PackageInfo {
   file_name: string;
   depends: string[];
 }
-export class PrebuiltPackagesData {
-  private static _instance: PrebuiltPackagesData;
+export class PrebuiltPackagesDataReader {
+  private sourceUrl: string;
+  private isRemote: boolean;
   private _data: Record<string, PackageInfo> | null = null;
 
-  private constructor() {}
+  constructor(sourceUrl: string) {
+    // These path logics are based on https://github.com/pyodide/pyodide/blob/0.25.1/src/js/compat.ts#L122
+    if (sourceUrl.startsWith("file://")) {
+      // handle file:// with filesystem operations rather than with fetch.
+      sourceUrl = sourceUrl.slice("file://".length);
+    }
+    this.sourceUrl = sourceUrl;
+    this.isRemote = sourceUrl.includes("://");
+  }
 
-  private static async loadPrebuiltPackageData(): Promise<
+  private async readJson(filepath: string): Promise<any> {
+    const url = path.join(this.sourceUrl, filepath);
+
+    if (this.isRemote) {
+      logger.debug(`Fetching ${url}`);
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(
+          `Failed to download ${url}: ${res.status} ${res.statusText}`
+        );
+      }
+      return await res.json();
+    } else {
+      logger.debug(`Reading ${url}`);
+      const buf = await fsPromises.readFile(url);
+      return JSON.parse(buf.toString());
+    }
+  }
+
+  private async loadPrebuiltPackageData(): Promise<
     Record<string, PackageInfo>
   > {
-    const url = makePyodideUrl("pyodide-lock.json");
+    if (this._data != null) {
+      return this._data;
+    }
 
-    console.log(`Load the Pyodide pyodide-lock.json from ${url}`);
-    const res = await fetch(url, undefined);
-    const resJson = await res.json();
+    logger.info(`Load pyodide-lock.json`);
+    const lockJson = await this.readJson("pyodide-lock.json");
 
-    return resJson.packages;
+    this._data = lockJson.packages;
+    return lockJson.packages;
   }
 
-  static async getInstance(): Promise<PrebuiltPackagesData> {
-    if (this._instance == null) {
-      this._instance = new PrebuiltPackagesData();
-      this._instance._data = await this.loadPrebuiltPackageData();
-    }
-    return this._instance;
-  }
-
-  public getPackageInfoByName(pkgName: string): PackageInfo {
-    if (this._data == null) {
-      throw new Error("The package data is not loaded yet.");
-    }
-    const pkgInfo = Object.values(this._data).find(
-      (pkg) => pkg.name === pkgName
-    );
+  public async getPackageInfoByName(pkgName: string): Promise<PackageInfo> {
+    const data = await this.loadPrebuiltPackageData();
+    const pkgInfo = Object.values(data).find((pkg) => pkg.name === pkgName);
     if (pkgInfo == null) {
       throw new Error(`Package ${pkgName} is not found in the lock file.`);
     }

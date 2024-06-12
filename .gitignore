@@ -297,6 +297,7 @@ tags
 
 ### Others
 .pyodide-xbuildenv/
+.pyodide-xbuildenv-*/
 
 # sed backup files on macOS
 *.*-e

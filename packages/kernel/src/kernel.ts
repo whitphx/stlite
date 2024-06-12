@@ -30,7 +30,7 @@ import { assertStreamlitConfig } from "./types";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.33.0-cp311-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl";
 // COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
@@ -362,15 +362,27 @@ export class StliteKernel {
       }
       case "event:progress": {
         this.onProgress && this.onProgress(msg.data.message);
+        postMessageToFusion({
+          type: "progress",
+          data: { message: msg.data.message },
+        });
         break;
       }
       case "event:error": {
         this.onError && this.onError(msg.data.error);
+        postMessageToFusion({
+          type: "error",
+          data: { error: msg.data.error },
+        });
         break;
       }
       case "event:loaded": {
         this._loaded.resolve();
         this.onLoad && this.onLoad();
+        postMessageToFusion({
+          type: "loaded",
+          data: {},
+        });
         break;
       }
       case "websocket:message": {
@@ -426,28 +438,22 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
       if (
         typeof event.data === "object" &&
         "type" in event.data &&
-        "data" in event.data &&
-        event.data.type === "streamlit-app-generate-screenshot"
+        "data" in event.data
       ) {
-        const appScreenshot = await generateAppScreenshot();
-        console.log("GeneratedApp screenshot", appScreenshot);
-
-        // communicate if in iframe to parent (top)
-        postMessageToFusion({
-          type: "streamlit-app-generate-screenshot",
-          data: appScreenshot,
-        });
-      }
-
-      // StreamLit app main thread, forward the message to the worker
-      // so that the kernel can process the request
-      if (
-        typeof event.data === "object" &&
-        "type" in event.data &&
-        "data" in event.data &&
-        event.data.type.startsWith("language-server:")
-      ) {
-        worker.postMessage(event.data);
+        if (event.data.type === "streamlit-app-generate-screenshot") {
+          const appScreenshot = await generateAppScreenshot();
+          // send generated screenshot if in iframe to parent (top)
+          postMessageToFusion({
+            type: "streamlit-app-generate-screenshot",
+            data: appScreenshot,
+          });
+        } else if (event.data.type === "streamlit-app-print") {
+          window.print();
+        } else if (event.data.type.startsWith("language-server:")) {
+          // StreamLit app main thread, forward the message to the worker
+          // so that the kernel can process the request
+          worker.postMessage(event.data);
+        }
       }
     },
     false

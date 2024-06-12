@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.57.0] - 2024-05-02
+
+### `@stlite/desktop`
+
+#### Added
+
+- `--pyodide-source` option to use a different Pyodide package than the default CDN to fetch the prebuilt package wheels, [#937](https://github.com/whitphx/stlite/pull/937).
+
+## [0.56.0] - 2024-05-29
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Pyodide to 0.26.0, [#934](https://github.com/whitphx/stlite/pull/934).
+
+## [0.55.1] - 2024-05-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix `st.logo()` to work, [#933](https://github.com/whitphx/stlite/pull/933).
+
+## [0.55.0] - 2024-05-26
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.35.0, [#920](https://github.com/whitphx/stlite/pull/920).
+
+## [0.54.2] - 2024-05-02
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Prettify the CLI log output of the `dump` command, [#890](https://github.com/whitphx/stlite/pull/890).
+
 ## [0.54.1] - 2024-04-29
 
 ### `@stlite/desktop`

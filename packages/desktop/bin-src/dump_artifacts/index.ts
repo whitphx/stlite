@@ -5,23 +5,26 @@ import { hideBin } from "yargs/helpers";
 import path from "node:path";
 import fsPromises from "node:fs/promises";
 import fsExtra from "fs-extra";
-import fetch from "node-fetch";
-import { loadPyodide, type PyodideInterface } from "pyodide";
-import { makePyodideUrl } from "./url";
-import { PrebuiltPackagesData } from "./pyodide_packages";
+import {
+  loadPyodide,
+  version as pyodideVersion,
+  type PyodideInterface,
+} from "pyodide";
+import { PrebuiltPackagesDataReader } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
-
-// @ts-ignore
-global.fetch = fetch; // The global `fetch()` is necessary for micropip.install() to load the remote packages.
+import { logger } from "./logger";
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
 const pathFromScriptToWheels =
   process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
 
+/**
+ * Ensure that the given package is loaded by throwing an error if any error occurs in the loadPackage() function.
+ */
 async function ensureLoadPackage(
   pyodide: PyodideInterface,
   packageName: string | string[]
@@ -41,7 +44,7 @@ interface CopyBuildDirectoryOptions {
   copyTo: string;
 }
 async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
-  console.info(
+  logger.info(
     "Copy the build directory (the bare built app files) to this directory..."
   );
 
@@ -52,7 +55,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   }
 
   if (sourceDir === options.copyTo) {
-    console.warn(
+    logger.warn(
       `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`
     );
     return;
@@ -61,9 +64,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   if (options.keepOld) {
     try {
       await fsPromises.access(options.copyTo);
-      console.info(
-        `${options.copyTo} already exists. Use it and skip copying.`
-      );
+      logger.info(`${options.copyTo} already exists. Use it and skip copying.`);
       return;
     } catch {
       // If the destination directory does not exist
@@ -73,27 +74,35 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     }
   }
 
-  console.log(`Copy ${sourceDir} to ${options.copyTo}`);
+  logger.debug(`Copy ${sourceDir} to ${options.copyTo}`);
   await fsPromises.rm(options.copyTo, { recursive: true, force: true });
   await fsExtra.copy(sourceDir, options.copyTo, { errorOnExist: true });
 }
 
-interface InspectUsedPrebuiltPackagesOptions {
+interface LoadUsedPrebuiltPackagesOptions {
+  pyodideSource: string;
+  pyodideRuntimeDir: string;
   requirements: string[];
 }
 /**
- * Get the list of the prebuilt packages used by the given requirements.
- * These package files (`pyodide/*.whl`) will be vendored in the app executable
- * and loaded at runtime to avoid problems such as https://github.com/whitphx/stlite/issues/558
+ * Load the Pyodide runtime and install the given requirements to load the prebuilt packages used by the requirements.
+ * Those prebuilt package wheels will be downloaded/copied to a local directory, `pyodideRuntimeDir`.
+ * Pyodide's caching mechanism available in the Node environment is used here as the wheel file downloader.
+ * `pyodideRuntimeDir` should be "build/pyodide" so that the downloaded/copied files will be vendored in the app executable.
+ * This vendoring and runtime-loading mechanism is necessary to avoid problems such as https://github.com/whitphx/stlite/issues/558
  */
-async function inspectUsedPrebuiltPackages(
-  options: InspectUsedPrebuiltPackagesOptions
+async function saveUsedPrebuiltPackages(
+  options: LoadUsedPrebuiltPackagesOptions
 ): Promise<string[]> {
   if (options.requirements.length === 0) {
     return [];
   }
 
-  const pyodide = await loadPyodide();
+  const pyodide = await loadPyodide({
+    packageCacheDir: options.pyodideRuntimeDir,
+  });
+  // @ts-ignore
+  pyodide._api.setCdnUrl(options.pyodideSource);
 
   await installPackages(pyodide, {
     requirements: options.requirements,
@@ -108,14 +117,14 @@ async function prepareLocalWheel(
   pyodide: PyodideInterface,
   localPath: string
 ): Promise<string> {
-  console.log(`Preparing the local wheel ${localPath}`);
+  logger.debug(`Preparing the local wheel: %s`, localPath);
 
   const data = await fsPromises.readFile(localPath);
   const emfsPath = "/tmp/" + path.basename(localPath);
   pyodide.FS.writeFile(emfsPath, data);
 
   const requirement = `emfs:${emfsPath}`;
-  console.log(`The local wheel ${localPath} is prepared as ${requirement}`);
+  logger.debug(`The local wheel %s is prepared as %s`, localPath, requirement);
   return requirement;
 }
 
@@ -139,60 +148,68 @@ async function installPackages(
   requirements.push(stliteServerWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.33.0-cp311-none-any.whl")
+    path.join(wheelsDir, "streamlit-1.35.0-cp312-none-any.whl")
   );
   requirements.push(streamlitWheel);
 
-  console.log("Install the packages:", requirements);
+  logger.info("Install the packages: %j", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
 }
 
 interface CreateSitePackagesSnapshotOptions {
   requirements: string[];
   usedPrebuiltPackages: string[];
+  pyodideRuntimeDir: string;
+  pyodideSource: string;
   saveTo: string;
 }
 async function createSitePackagesSnapshot(
   options: CreateSitePackagesSnapshotOptions
 ) {
-  console.info("Create the site-packages snapshot file...");
+  logger.info("Create the site-packages snapshot file...");
 
-  const pyodide = await loadPyodide();
+  const pyodide = await loadPyodide({
+    packageCacheDir: options.pyodideRuntimeDir,
+  });
+  // @ts-ignore
+  pyodide._api.setCdnUrl(options.pyodideSource);
 
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
+  const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
+    options.pyodideSource
+  );
 
   const mockedPackages: string[] = [];
   if (options.usedPrebuiltPackages.length > 0) {
-    console.log(
+    logger.info(
       "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
     );
-    options.usedPrebuiltPackages.forEach((pkg) => {
-      const packageInfo = prebuiltPackagesData.getPackageInfoByName(pkg);
+    for (const pkg of options.usedPrebuiltPackages) {
+      const packageInfo = await prebuiltPackagesDataReader.getPackageInfoByName(
+        pkg
+      );
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
 
-      console.log(`Mock ${packageInfo.name} ${packageInfo.version}`);
+      logger.debug(`Mock ${packageInfo.name} ${packageInfo.version}`);
       micropip.add_mock_package(packageInfo.name, packageInfo.version);
       mockedPackages.push(packageInfo.name);
-    });
+    }
   }
 
-  console.log(
-    `Install the requirements ${JSON.stringify(options.requirements)}`
-  );
+  logger.info(`Install the requirements %j`, options.requirements);
 
   await installPackages(pyodide, {
     requirements: options.requirements,
   });
 
-  console.log("Remove the mocked packages", mockedPackages);
+  logger.info("Remove the mocked packages: %j", mockedPackages);
   mockedPackages.forEach((pkg) => micropip.remove_mock_package(pkg));
 
-  console.log("Archive the site-packages director(y|ies)");
+  logger.info("Archive the site-packages director(y|ies)");
   const archiveFilePath = "/tmp/site-packages-snapshot.tar.gz";
   await pyodide.runPythonAsync(`
     import os
@@ -209,21 +226,21 @@ async function createSitePackagesSnapshot(
             gzf.add(site_packages)
   `);
 
-  console.log("Extract the archive file from EMFS");
+  logger.info("Extract the archive file from EMFS");
   const archiveBin = pyodide.FS.readFile(archiveFilePath);
 
-  console.log(`Save the archive file (${options.saveTo})`);
+  logger.info(`Save the archive file (${options.saveTo})`);
   await fsPromises.writeFile(options.saveTo, archiveBin);
 }
 
 interface CopyAppDirectoryOptions {
   cwd: string;
   filePathPatterns: string[];
-  buildAppDirectory: string;
+  destAppDir: string;
 }
 
 async function copyAppDirectory(options: CopyAppDirectoryOptions) {
-  console.info("Copy the app directory...");
+  logger.info("Copy the app directory...");
 
   await Promise.all(
     options.filePathPatterns.map(async (pattern) => {
@@ -233,7 +250,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
       });
 
       if (fileRelPaths.length === 0) {
-        console.warn(
+        logger.warn(
           `No files match the pattern "${pattern}" in "${options.cwd}".`
         );
         return;
@@ -242,8 +259,8 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
       await Promise.all(
         fileRelPaths.map(async (relPath) => {
           const srcPath = path.resolve(options.cwd, relPath);
-          const destPath = path.resolve(options.buildAppDirectory, relPath);
-          console.log(`Copy ${srcPath} to ${destPath}`);
+          const destPath = path.resolve(options.destAppDir, relPath);
+          logger.debug(`Copy ${srcPath} to ${destPath}`);
           await fsExtra.copy(srcPath, destPath, {
             errorOnExist: true,
           });
@@ -253,12 +270,12 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
   );
 }
 
-async function assertAppDirectoryContainsEntrypoint(
-  appDirectory: string,
+async function assertAppDirContainsEntrypoint(
+  appDir: string,
   entrypoint: string
 ) {
   try {
-    await fsPromises.access(path.resolve(appDirectory, entrypoint));
+    await fsPromises.access(path.resolve(appDir, entrypoint));
   } catch {
     throw new Error(
       `The entrypoint file "${entrypoint}" is not included in the bundled files.`
@@ -285,50 +302,11 @@ async function writePrebuiltPackagesTxt(
   });
 }
 
-interface DownloadPrebuiltPackageWheelsOptions {
-  packages: string[];
-  destDir: string;
-}
-async function downloadPrebuiltPackageWheels(
-  options: DownloadPrebuiltPackageWheelsOptions
-) {
-  const prebuiltPackagesData = await PrebuiltPackagesData.getInstance();
-  const usedPrebuiltPackages = options.packages.map((pkgName) =>
-    prebuiltPackagesData.getPackageInfoByName(pkgName)
-  );
-  const usedPrebuiltPackageUrls = usedPrebuiltPackages.map((pkg) =>
-    makePyodideUrl(pkg.file_name)
-  );
-
-  console.log("Downloading the used prebuilt packages...");
-  await Promise.all(
-    usedPrebuiltPackageUrls.map(async (pkgUrl) => {
-      const dstPath = path.resolve(
-        options.destDir,
-        "./pyodide",
-        path.basename(pkgUrl)
-      );
-      console.log(`Download ${pkgUrl} to ${dstPath}`);
-      const res = await fetch(pkgUrl);
-      if (!res.ok) {
-        throw new Error(
-          `Failed to download ${pkgUrl}: ${res.status} ${res.statusText}`
-        );
-      }
-      const buf = await res.arrayBuffer();
-      await fsPromises.writeFile(dstPath, Buffer.from(buf));
-    })
-  );
-}
-
 yargs(hideBin(process.argv))
   .command(
     "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
-    () => {},
-    (argv) => {
-      console.info(argv);
-    }
+    () => {}
   )
   .positional("appHomeDirSource", {
     describe:
@@ -362,8 +340,30 @@ yargs(hideBin(process.argv))
     alias: "k",
     describe: "Keep the existing build directory contents except appHomeDir.",
   })
+  .options("pyodideSource", {
+    type: "string",
+    describe:
+      "The base URL or path of the Pyodide files to download or copy, such as the prebuild package wheels and pyodide-lock.json",
+    default: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
+    coerce: (urlOrPath) => {
+      if (!urlOrPath.endsWith("/")) {
+        urlOrPath += "/";
+      }
+      return urlOrPath;
+    },
+  })
+  .options("logLevel", {
+    type: "string",
+    default: "info",
+    describe: "The log level",
+    choices: ["debug", "info", "warn", "error"],
+  })
   .parseAsync()
   .then(async (args) => {
+    logger.level = args.logLevel;
+
+    logger.debug(`Command line arguments: %j`, args);
+
     const projectDir = args.project;
     const destDir = path.resolve(projectDir, "./build");
 
@@ -379,18 +379,21 @@ yargs(hideBin(process.argv))
         requirementsTxtFilePaths: args.requirement,
       },
     });
-    console.log("File/directory patterns to be included:", config.files);
-    console.log("Entrypoint:", config.entrypoint);
-    console.log("Dependencies:", config.dependencies);
-    console.log("`requirements.txt` files:", config.requirementsTxtFilePaths);
+    logger.info(`File/directory patterns to be included: %j`, config.files);
+    logger.info(`Entrypoint: %s`, config.entrypoint);
+    logger.info(`Dependencies: %j`, config.dependencies);
+    logger.info(
+      `\`requirements.txt\` files: %j`,
+      config.requirementsTxtFilePaths
+    );
 
     const dependenciesFromRequirementsTxt = await Promise.all(
       config.requirementsTxtFilePaths.map(async (requirementsTxtPath) => {
         return readRequirements(requirementsTxtPath);
       })
     ).then((parsedRequirements) => parsedRequirements.flat());
-    console.log(
-      "Dependencies from `requirements.txt` files:",
+    logger.info(
+      "Dependencies from `requirements.txt` files: %j",
       dependenciesFromRequirementsTxt
     );
 
@@ -398,27 +401,33 @@ yargs(hideBin(process.argv))
       ...config.dependencies,
       ...dependenciesFromRequirementsTxt,
     ]);
-    console.log("Validated dependency list:", dependencies);
-
-    const usedPrebuiltPackages = await inspectUsedPrebuiltPackages({
-      requirements: dependencies,
-    });
-    console.log("The prebuilt packages loaded for the given requirements:");
-    console.log(usedPrebuiltPackages);
+    logger.info("Validated dependency list: %j", dependencies);
 
     await copyBuildDirectory({ copyTo: destDir, keepOld: args.keepOldBuild });
 
-    const buildAppDirectory = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
+    const usedPrebuiltPackages = await saveUsedPrebuiltPackages({
+      pyodideSource: args.pyodideSource,
+      pyodideRuntimeDir: path.resolve(destDir, "./pyodide"),
+      requirements: dependencies,
+    });
+    logger.info(
+      "The prebuilt packages loaded for the given requirements: %j",
+      usedPrebuiltPackages
+    );
+
+    const destAppDir = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
     await copyAppDirectory({
       cwd: projectDir,
       filePathPatterns: config.files,
-      buildAppDirectory,
+      destAppDir,
     });
-    assertAppDirectoryContainsEntrypoint(buildAppDirectory, config.entrypoint);
+    assertAppDirContainsEntrypoint(destAppDir, config.entrypoint);
 
     await createSitePackagesSnapshot({
       requirements: dependencies,
       usedPrebuiltPackages,
+      pyodideSource: args.pyodideSource,
+      pyodideRuntimeDir: path.resolve(destDir, "./pyodide"),
       saveTo: path.resolve(destDir, "./site-packages-snapshot.tar.gz"), // This path will be loaded in the `readSitePackagesSnapshot` handler in electron/main.ts.
     });
     // These prebuilt packages will be vendored in the build artifact by `downloadPrebuiltPackageWheels()`
@@ -431,10 +440,6 @@ yargs(hideBin(process.argv))
       path.resolve(destDir, "./prebuilt-packages.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
       usedPrebuiltPackages
     );
-    await downloadPrebuiltPackageWheels({
-      packages: usedPrebuiltPackages,
-      destDir,
-    });
     await dumpManifest({
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,
       manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),

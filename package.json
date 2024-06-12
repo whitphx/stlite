@@ -13,8 +13,8 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@lerna-lite/cli": "^3.3.0",
-    "@lerna-lite/version": "^3.3.1",
+    "@lerna-lite/cli": "^3.4.0",
+    "@lerna-lite/version": "^3.4.0",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
@@ -28,6 +28,7 @@
   },
   "resolutions": {
     "immutable": "4.2.3",
+    "protobufjs": "7.2.5",
     "webpack": "5.76.0",
     "@types/react": "^18.2.0"
   },

@@ -8,7 +8,7 @@ on:
 env:
   GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
   USE_CONSTRAINTS_FILE: false # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
-      
+
 jobs:
   build:
     strategy:
@@ -16,7 +16,7 @@ jobs:
         target: ["mountable"]
 
     env:
-      python-version: "3.11.2"
+      python-version: "3.12.1"
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
       # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
       # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -26,89 +26,89 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: true
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
 
-    ## Set up Python and Poetry environment
-    - name: Set up Python ${{ env.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.python-version }}
+      ## Set up Python and Poetry environment
+      - name: Set up Python ${{ env.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
 
-    # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
-    - name: Get full Python version
-      id: full-python-version
-      run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
+      # The following steps are based on https://github.com/python-poetry/poetry/blob/def1ee8f3ae00c307ca028da53d2347615c5c32b/.github/workflows/main.yml#L51-L84
+      - name: Get full Python version
+        id: full-python-version
+        run: echo version=$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))") >> $GITHUB_OUTPUT
 
-    - name: Bootstrap poetry
-      run: |
-        curl -sL https://install.python-poetry.org | python - -y
+      - name: Bootstrap poetry
+        run: |
+          curl -sL https://install.python-poetry.org | python - -y
 
-    - name: Update PATH
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Update PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Configure poetry
-      run: poetry config virtualenvs.in-project false
+      - name: Configure poetry
+        run: poetry config virtualenvs.in-project false
 
-    - name: Set up cache
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Set up cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
 
-    - name: Ensure cache is healthy
-      if: steps.cache.outputs.cache-hit == 'true'
-      run: timeout 10s pip --version || rm -rf .venv
+      - name: Ensure cache is healthy
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: timeout 10s pip --version || rm -rf .venv
 
-    - name: Create virtualenv
-      run: python -m venv .venv
+      - name: Create virtualenv
+        run: python -m venv .venv
 
-    ## Set up Node environment
-    - uses: actions/setup-node@v3
-      with:
-        node-version-file: .nvmrc
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
+      ## Set up Node environment
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
 
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
-    - name: Set up
-      run: make init
-    
-    ## Build and deploy @stlite/mountable
-    # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
-    - if: matrix.target == 'mountable'
-      name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=." >> $GITHUB_ENV
-    
-    - if: matrix.target == 'mountable'
-      name: Build @stlite/mountable
-      run: |
-        . .venv/bin/activate
-        make mountable 
+      # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
+      # Actions are running as of 2023.05.03 - doesn't have recent versions
+      # of protoc in its package repository.
+      # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
+      # So we download the precompiled binary from the release page and install it,
+      # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
+      - name: Install protoc
+        run: |
+          curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
+          unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        env:
+          PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
+      - name: Set up
+        run: make init
 
-    - if: matrix.target == 'mountable'
-      name: Copy firebase.json
-      run: cp firebase.json packages/mountable/build/
-    - if: matrix.target == 'mountable'
-      name: Upload the built files as an artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: stlite-mountable
-        path: packages/mountable/build
+      ## Build and deploy @stlite/mountable
+      # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
+      - if: matrix.target == 'mountable'
+        name: Set PUBLIC_URL
+        run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+
+      - if: matrix.target == 'mountable'
+        name: Build @stlite/mountable
+        run: |
+          . .venv/bin/activate
+          make mountable
+
+      - if: matrix.target == 'mountable'
+        name: Copy firebase.json
+        run: cp firebase.json packages/mountable/build/
+      - if: matrix.target == 'mountable'
+        name: Upload the built files as an artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: stlite-mountable
+          path: packages/mountable/build
 
   deploy:
     environment: CD
@@ -123,21 +123,21 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: stlite-mountable
-        path: mountable
-    - name: Copy firebase.json to the root directory
-      run: |
-        cp -r ./mountable/firebase.json $(pwd)
-    - name: Rename the manifest file
-      run: |
-        mv ./mountable/asset-manifest.json ./mountable/manifest.json
-    # Deploying to Firebase
-    - uses: FirebaseExtended/action-hosting-deploy@v0
-      with:
-        repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        firebaseServiceAccount: '${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}'
-        channelId: live
-        projectId: fusion-217032465111
-        target: cognite-stlite-standalone-production
+      - uses: actions/download-artifact@v3
+        with:
+          name: stlite-mountable
+          path: mountable
+      - name: Copy firebase.json to the root directory
+        run: |
+          cp -r ./mountable/firebase.json $(pwd)
+      - name: Rename the manifest file
+        run: |
+          mv ./mountable/asset-manifest.json ./mountable/manifest.json
+      # Deploying to Firebase
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_HOSTING_DEPLOY_SA }}"
+          channelId: live
+          projectId: fusion-217032465111
+          target: cognite-stlite-standalone-production

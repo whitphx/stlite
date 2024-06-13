@@ -61,12 +61,16 @@ const createWindow = async () => {
   // following the security best practice, "17. Validate the sender of all IPC messages."
   // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
   const isValidIpcSender = (frame: Electron.WebFrameMain): boolean => {
-    return frame.url === indexUrl;
+    // In MPA, `frame.url` can include a sub path like `file:///index.html/sub_page_name`,
+    // so we use `startsWith()` instead of `===`.
+    return frame.url.startsWith(indexUrl);
   };
 
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`,
+      );
     }
 
     // This archive file has to be created by ./bin/dump_snapshot.ts
@@ -78,7 +82,9 @@ const createWindow = async () => {
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`,
+      );
     }
 
     const prebuiltPackagesTxtPath = path.resolve(
@@ -100,7 +106,9 @@ const createWindow = async () => {
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
       if (!isValidIpcSender(ev.senderFrame)) {
-        throw new Error("Invalid IPC sender");
+        throw new Error(
+          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`,
+        );
       }
 
       const appDir = path.resolve(__dirname, "../app_files");
@@ -117,7 +125,9 @@ const createWindow = async () => {
   let worker: workerThreads.Worker | null = null;
   ipcMain.handle("initializeNodeJsWorker", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`,
+      );
     }
 
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
@@ -140,7 +150,9 @@ const createWindow = async () => {
   });
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`,
+      );
     }
 
     if (worker == null) {
@@ -158,7 +170,7 @@ const createWindow = async () => {
   });
   ipcMain.handle("terminate", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(`Invalid IPC sender (terminate) ${ev.senderFrame.url}`);
     }
 
     worker?.terminate();

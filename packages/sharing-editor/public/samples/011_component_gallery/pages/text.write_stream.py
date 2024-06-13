@@ -1,4 +1,4 @@
-import time
+import asyncio
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -10,10 +10,10 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """
 
 
-def stream_data():
+async def stream_data():
     for word in _LOREM_IPSUM.split(" "):
         yield word + " "
-        time.sleep(0.02)
+        await asyncio.sleep(0.02)
 
     yield pd.DataFrame(
         np.random.randn(5, 10),
@@ -22,7 +22,7 @@ def stream_data():
 
     for word in _LOREM_IPSUM.split(" "):
         yield word + " "
-        time.sleep(0.02)
+        await asyncio.sleep(0.02)
 
 
 if st.button("Stream data"):

@@ -339,15 +339,26 @@ Also, `urllib3` supports Pyodide since 2.2.0 as [this document](https://urllib3.
 
 As _stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.
 
-- `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because stlite runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
-  - If you want to show a spinner with a blocking method, add a 0.1 second sleep before the blocking method call, although this will definitely add an empty 0.1 second wait to the execution.
+- `st.spinner()` does not work with blocking methods like `pyodide.http.open_url()` because _stlite_ runs on a single-threaded environment, so `st.spinner()` can't execute its code to start showing the spinner during the blocking method occupies the only event loop.
+  - If you want to show a spinner with a blocking method, add a 0.1-second sleep before the blocking method call, although this will definitely add an empty 0.1-second wait to the execution.
     ```python
     with st.spinner("Running a blocking method..."):
         await asyncio.sleep(0.1)  # Add this line to wait for the spinner to start showing
         some_blocking_method()
     ```
 - `st.bokeh_chart()` does not work since Pyodide uses Bokeh version 3.x while Streamlit only supports 2.x. The 3.x support for Streamlit is tracked here: https://github.com/streamlit/streamlit/issues/5858
-- `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on stlite.
+- `time.sleep()` is no-op. Use `asyncio.sleep()` instead. This is a restriction from Pyodide runtime. See https://github.com/pyodide/pyodide/issues/2354. The following section about top-level await may also help to know how to use async functions on _stlite_.
+- `st.write_stream()` should be used with an async generator function rather than a normal generator function. Due to the same reason as `st.spinner()` above, the normal generator function does not work well in the browser environment, while it still can be passed to `st.write_stream()`. The following is an example of `st.write_stream()` with an async generator function.
+
+  ```python
+  async def stream():
+      for i in range(10):
+          yield i
+          await asyncio.sleep(1)
+
+  st.write_stream(stream)
+  ```
+
 - There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that _stlite_ uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - Packages including binary extensions (e.g. C/Rust/Fortran/etc) that are not built for the Pyodide environment cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package for the details.
 

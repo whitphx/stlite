@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.4] - 2024-06-14
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- `st.write_stream()` is made async and normal function calls of it are automatically converted to be awaited under the hood, [#965](https://github.com/whitphx/stlite/pull/965).
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix IPC sender check to fix a bug that paginations from sub pages do not work in the NodeJS worker mode, [#972](https://github.com/whitphx/stlite/pull/972).
+
 ## [0.58.3] - 2024-06-12
 
 ### `@stlite/kernel`

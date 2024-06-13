@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
-import * as path from "path";
-import * as fsPromises from "fs/promises";
+import * as path from "node:path";
+import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
+import { isDescendantURL } from "./ipc-utils";
 import { walkRead } from "./file";
 import { readManifest } from "./manifest";
 
@@ -62,8 +63,8 @@ const createWindow = async () => {
   // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
   const isValidIpcSender = (frame: Electron.WebFrameMain): boolean => {
     // In MPA, `frame.url` can include a sub path like `file:///index.html/sub_page_name`,
-    // so we use `startsWith()` instead of `===`.
-    return frame.url.startsWith(indexUrl);
+    // so we need to check if the URL is a descendant of the index URL.
+    return isDescendantURL(indexUrl, frame.url);
   };
 
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {

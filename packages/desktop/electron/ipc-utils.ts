@@ -6,5 +6,10 @@ export function isDescendantURL(
   const ancestorUrl = new URL(ancestorURL);
   const descendantUrl = new URL(descendantURL);
 
+  ancestorUrl.search = "";
+  ancestorUrl.hash = "";
+  descendantUrl.search = "";
+  descendantUrl.hash = "";
+
   return descendantUrl.toString().startsWith(ancestorUrl.toString());
 }

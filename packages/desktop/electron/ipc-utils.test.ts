@@ -30,7 +30,7 @@ describe("isDescendantURL", () => {
       },
     ] as const
   ).forEach(({ ancestor, descendant, expected }) => {
-    it(`should return ${expected} for ${ancestor} and ${descendant}, dealing with relative paths including ".." correctly`, () => {
+    it(`should deal with relative paths including ".." correctly to return ${expected} for ${ancestor} and ${descendant}`, () => {
       expect(isDescendantURL(ancestor, descendant)).toBe(expected);
     });
   });
@@ -99,7 +99,21 @@ describe("isDescendantURL", () => {
       },
     ] as const
   ).forEach(({ ancestor, descendant, expected }) => {
-    it(`should return ${expected} for ${ancestor} and ${descendant}, dealing with each part of the URLs correctly`, () => {
+    it(`should dealing with each part of the URLs correctly to return ${expected} for ${ancestor} and ${descendant}`, () => {
+      expect(isDescendantURL(ancestor, descendant)).toBe(expected);
+    });
+  });
+
+  (
+    [
+      {
+        ancestor: "http://example.com/foo/bar?qux=quux#corge",
+        descendant: "http://example.com/foo/bar/baz",
+        expected: true,
+      },
+    ] as const
+  ).forEach(({ ancestor, descendant, expected }) => {
+    it(`should ignore query and fragment in the ancestor URL to return ${expected} for ${ancestor} and ${descendant}`, () => {
       expect(isDescendantURL(ancestor, descendant)).toBe(expected);
     });
   });

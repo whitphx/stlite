@@ -34,7 +34,10 @@ import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../p
 // COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
-import { generateAppScreenshot } from "./cognite/generate-screenshot";
+import {
+  generateAppScreenshot,
+  generateFullAppScreenshot,
+} from "./cognite/generate-screenshot";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -445,6 +448,13 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
           // send generated screenshot if in iframe to parent (top)
           postMessageToFusion({
             type: "streamlit-app-generate-screenshot",
+            data: appScreenshot,
+          });
+        } else if (event.data.type === "streamlit-app-full-screenshot") {
+          const appScreenshot = await generateFullAppScreenshot();
+          // send generated screenshot if in iframe to parent (top)
+          postMessageToFusion({
+            type: "streamlit-app-full-screenshot",
             data: appScreenshot,
           });
         } else if (event.data.type === "streamlit-app-print") {

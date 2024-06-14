@@ -49,6 +49,12 @@ async function generateScreenshot(
   return newCanvas.toDataURL(type, quality);
 }
 
+/**
+ * Generates a small screenshot suitable for use as a preview. The
+ * screenshot is guaranteed to be less than 8Kb in size.
+ *
+ * @returns A image URL encoded as image/webp
+ */
 export const generateAppScreenshot = async () => {
   const WIDTH = 308;
   const HEIGHT = 176;
@@ -68,12 +74,17 @@ export const generateAppScreenshot = async () => {
   return result;
 };
 
+/**
+ * Generate a screenshot of the running app in full resolution
+ * Note that this screenshot includes content not currently visible on screen (i.e.
+ * content that you would need to scroll to see)
+ * @returns Image URL encoded as image/webp.
+ */
 export const generateFullAppScreenshot = async () => {
   const IMAGE_TYPE = "image/webp";
   const el = document.querySelector(".block-container div") as HTMLDivElement;
   const originalCanvas = (await html2canvas(el, {
     allowTaint: true,
-    // foreignObjectRendering: true,
     x: 0,
     y: 0,
     scrollX: 0,

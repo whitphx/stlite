@@ -82,13 +82,17 @@ export const generateAppScreenshot = async () => {
  */
 export const generateFullAppScreenshot = async () => {
   const IMAGE_TYPE = "image/webp";
-  const el = document.querySelector(".block-container div") as HTMLDivElement;
-  const originalCanvas = (await html2canvas(el, {
+  const rootDomElement = document.querySelector(
+    ".block-container div"
+  ) as HTMLDivElement;
+
+  const originalCanvas = (await html2canvas(rootDomElement, {
     allowTaint: true,
     x: 0,
     y: 0,
     scrollX: 0,
     scrollY: 0,
   })) as HTMLCanvasElement;
+
   return originalCanvas.toDataURL(IMAGE_TYPE);
 };

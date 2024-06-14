@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.5] - 2024-06-14
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Work around Parquet serialization by `fastparquet` so that data frames including NumPy arrays or datetime values can be serialized, [#975](https://github.com/whitphx/stlite/pull/975).
+
 ## [0.58.4] - 2024-06-14
 
 ### `@stlite/kernel`

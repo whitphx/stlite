@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.58.6] - 2024-06-17
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug at patching `st.write_stream()` which was introduced in 0.58.4, [#981](https://github.com/whitphx/stlite/pull/981).
+
 ## [0.58.5] - 2024-06-14
 
 ### `@stlite/kernel`

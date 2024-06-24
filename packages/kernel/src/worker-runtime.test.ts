@@ -1,6 +1,6 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { suite, test, expect, vitest } from "vitest";
+import { suite, test, expect, vitest, afterEach } from "vitest";
 import type { PyodideInterface } from "pyodide";
 import { startWorkerEnv, type PostMessageFn } from "./worker-runtime";
 import * as pyodideLoader from "./pyodide-loader";
@@ -120,6 +120,10 @@ const TEST_SOURCES: {
 ];
 
 suite("Worker intergration test running an app", async () => {
+  afterEach(() => {
+    vitest.restoreAllMocks();
+  });
+
   for (const testSource of TEST_SOURCES) {
     test(
       `Running ${testSource.entrypoint}`,

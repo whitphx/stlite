@@ -1,8 +1,9 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { suite, test } from "vitest";
+import { suite, test, expect, vitest } from "vitest";
 import type { PyodideInterface } from "pyodide";
-import { startWorkerEnv, PostMessageFn } from "./worker-runtime";
+import { startWorkerEnv, type PostMessageFn } from "./worker-runtime";
+import * as pyodideLoader from "./pyodide-loader";
 import { WorkerInitialData } from "./types";
 import stliteServerWheelUrl from "stlite_server.whl"; // This is the alias from vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is the alias from vitest.config.ts
@@ -26,22 +27,25 @@ function initializeWorkerEnv(
 ): Promise<PyodideInterface> {
   return new Promise<PyodideInterface>((resolve, reject) => {
     let pyodide: PyodideInterface;
+
+    const originalInitPyodide = pyodideLoader.initPyodide;
+    const spiedInitPyodide = vitest
+      .spyOn(pyodideLoader, "initPyodide")
+      .mockImplementation(async (...args) => {
+        const loadedPyodide = await originalInitPyodide(...args);
+        pyodide = loadedPyodide;
+        return loadedPyodide;
+      });
+
     const postMessage: PostMessageFn = (message) => {
       if (message.type === "event:loaded") {
+        expect(spiedInitPyodide).toHaveBeenCalled();
         resolve(pyodide);
       } else if (message.type === "event:error") {
         reject(message.data.error);
       }
     };
-    const onPyodideLoaded = (loadedPyodide: PyodideInterface) => {
-      pyodide = loadedPyodide;
-    };
-    const onMessage = startWorkerEnv(
-      pyodideUrl,
-      postMessage,
-      undefined,
-      onPyodideLoaded,
-    );
+    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
     onMessage(
       new MessageEvent("message", {
         data: {

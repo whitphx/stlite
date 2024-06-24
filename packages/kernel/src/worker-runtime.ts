@@ -43,7 +43,6 @@ export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>,
-  onPyodideLoaded?: (pyodide: Pyodide.PyodideInterface) => void, // An escape hatch for testing
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -100,9 +99,6 @@ export function startWorkerEnv(
       stdout: console.log,
       stderr: console.error,
     });
-    if (onPyodideLoaded) {
-      onPyodideLoaded(pyodide);
-    }
     console.debug("Loaded Pyodide");
 
     let useIdbfs = false;

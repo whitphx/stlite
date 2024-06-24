@@ -99,6 +99,11 @@ $(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit
 	yarn build
 	@touch $@
 
+.PHONY: kernel-test
+kernel-test: packages/kernel/src/*.ts $(stlite-server-wheel) $(streamlit_wheel)
+	cd packages/kernel; \
+	yarn test
+
 .PHONY: stlite-server-wheel
 stlite-server-wheel: $(stlite-server-wheel)
 $(stlite-server-wheel): venv packages/kernel/py/stlite-server/stlite_server/*.py

@@ -83,6 +83,9 @@ st.write("Hello, world!")
       },
     });
 
+    // The code above setting up the worker env is good enough to check if the worker is set up correctly,
+    // but it doesn't check the error occurred inside the Streamlit app running in the worker.
+    // So, we use the code below to test if the Streamlit app runs without any error.
     await pyodide.runPythonAsync(`
 from streamlit.testing.v1 import AppTest
 

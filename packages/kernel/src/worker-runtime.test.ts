@@ -119,7 +119,7 @@ const TEST_SOURCES: {
   },
 ];
 
-suite("E2E test running an app", async () => {
+suite("Worker intergration test running an app", async () => {
   for (const testSource of TEST_SOURCES) {
     test(
       `Running ${testSource.entrypoint}`,

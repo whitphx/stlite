@@ -5,6 +5,7 @@ import path from "node:path";
 
 export default defineConfig({
   test: {
+    include: ["**/*.{test,spec,e2e}.?(c|m)[jt]s?(x)"],
     environment: "jsdom", // We use jsdom because happy-dom does not work well with iframe.
     setupFiles: ["./setupTests.ts"],
   },

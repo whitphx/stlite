@@ -28,6 +28,7 @@ function initializeWorkerEnv(
   return new Promise<PyodideInterface>((resolve, reject) => {
     let pyodide: PyodideInterface;
 
+    // Get the Pyodide instance from the initializer called in the worker by spying on it.
     const originalInitPyodide = pyodideLoader.initPyodide;
     const spiedInitPyodide = vitest
       .spyOn(pyodideLoader, "initPyodide")
@@ -45,7 +46,10 @@ function initializeWorkerEnv(
         reject(message.data.error);
       }
     };
+
     const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
+
+    // Send the initializer message to the worker.
     onMessage(
       new MessageEvent("message", {
         data: {

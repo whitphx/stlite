@@ -68,39 +68,78 @@ function initializeWorkerEnv(
   });
 }
 
-const TEST_SOURCES: { filepath: string; requirements?: string[] }[] = [
+const TEST_SOURCES: {
+  files: Record<string, string>;
+  entrypoint: string;
+  requirements?: string[];
+}[] = [
   {
-    filepath: path.resolve(
-      __dirname,
-      "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py",
-    ),
+    entrypoint: "data.column_config.py",
     requirements: ["faker"],
+    files: {
+      "data.column_config.py": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py",
+      ),
+    },
+  },
+  {
+    entrypoint: "chat.echo.py",
+    files: {
+      "chat.echo.py": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.echo.py",
+      ),
+    },
+  },
+  {
+    entrypoint: "media.logo.py",
+    files: {
+      "media.logo.py": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/media.logo.py",
+      ),
+      "pages/images/horizontal_red.png": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/horizontal_red.png",
+      ),
+      "pages/images/icon_red.png": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/icon_red.png",
+      ),
+    },
   },
 ];
 
 suite("E2E test running an app", async () => {
   for (const testSource of TEST_SOURCES) {
     test(
-      `Running ${testSource.filepath}`,
+      `Running ${testSource.entrypoint}`,
       async () => {
-        const { filepath, requirements } = testSource;
-        const content = await fsPromises.readFile(filepath);
-        const entrypoint = path.basename(filepath);
+        const fileNamesContentsObj = Object.fromEntries(
+          await Promise.all(
+            Object.entries(testSource.files).map(
+              async ([filename, filepath]) => {
+                const content = await fsPromises.readFile(filepath);
+                return [filename, { data: content }];
+              },
+            ),
+          ),
+        );
 
         const pyodide = await initializeWorkerEnv({
-          entrypoint,
-          files: {
-            [entrypoint]: {
-              data: content,
-            },
-          },
-          requirements,
+          entrypoint: testSource.entrypoint,
+          files: fileNamesContentsObj,
+          requirements: testSource.requirements,
         });
 
+        // The code above setting up the worker env is good enough to check if the worker is set up correctly,
+        // but it doesn't check the error occurred inside the Streamlit app running in the worker.
+        // So, we use the code below to test if the Streamlit app runs without any error.
         await pyodide.runPythonAsync(`
 from streamlit.testing.v1 import AppTest
 
-at = AppTest.from_file("${entrypoint}")
+at = AppTest.from_file("${testSource.entrypoint}")
 
 await at.run()
 

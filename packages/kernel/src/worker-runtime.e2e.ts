@@ -1,5 +1,6 @@
 import path from "node:path";
-import { test } from "vitest";
+import fsPromises from "node:fs/promises";
+import { suite, test } from "vitest";
 import type { PyodideInterface } from "pyodide";
 import { startWorkerEnv, PostMessageFn } from "./worker-runtime";
 import { WorkerInitialData } from "./types";
@@ -18,6 +19,7 @@ function getWheelInstallPath(wheelImportUrl: string): string {
 interface InitializeWorkerEnvOptions {
   entrypoint: string;
   files: WorkerInitialData["files"];
+  requirements?: WorkerInitialData["requirements"];
 }
 function initializeWorkerEnv(
   options: InitializeWorkerEnvOptions,
@@ -56,7 +58,7 @@ function initializeWorkerEnv(
               ),
             },
             archives: [],
-            requirements: [],
+            requirements: options.requirements ?? [],
             moduleAutoLoad: false,
             prebuiltPackageNames: [],
           },
@@ -66,27 +68,36 @@ function initializeWorkerEnv(
   });
 }
 
-test(
-  "E2E test running an app",
-  async () => {
-    const entrypoint = "app.py";
+const TEST_SOURCES: { filepath: string; requirements?: string[] }[] = [
+  {
+    filepath: path.resolve(
+      __dirname,
+      "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py",
+    ),
+    requirements: ["faker"],
+  },
+];
 
-    const pyodide = await initializeWorkerEnv({
-      entrypoint,
-      files: {
-        [entrypoint]: {
-          data: `
-import streamlit as st
-st.write("Hello, world!")
-`,
-        },
-      },
-    });
+suite("E2E test running an app", async () => {
+  for (const testSource of TEST_SOURCES) {
+    test(
+      `Running ${testSource.filepath}`,
+      async () => {
+        const { filepath, requirements } = testSource;
+        const content = await fsPromises.readFile(filepath);
+        const entrypoint = path.basename(filepath);
 
-    // The code above setting up the worker env is good enough to check if the worker is set up correctly,
-    // but it doesn't check the error occurred inside the Streamlit app running in the worker.
-    // So, we use the code below to test if the Streamlit app runs without any error.
-    await pyodide.runPythonAsync(`
+        const pyodide = await initializeWorkerEnv({
+          entrypoint,
+          files: {
+            [entrypoint]: {
+              data: content,
+            },
+          },
+          requirements,
+        });
+
+        await pyodide.runPythonAsync(`
 from streamlit.testing.v1 import AppTest
 
 at = AppTest.from_file("${entrypoint}")
@@ -94,9 +105,11 @@ at = AppTest.from_file("${entrypoint}")
 await at.run()
 
 assert not at.exception, f"Exception occurred: {at.exception}"
-    `);
-  },
-  {
-    timeout: 60000,
-  },
-);
+        `);
+      },
+      {
+        timeout: 10 * 1000,
+      },
+    );
+  }
+});

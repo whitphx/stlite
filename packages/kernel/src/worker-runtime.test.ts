@@ -125,7 +125,7 @@ suite("Worker intergration test running an app", async () => {
   });
 
   for (const testSource of TEST_SOURCES) {
-    test(
+    test.concurrent(
       `Running ${testSource.entrypoint}`,
       async () => {
         const fileNamesContentsObj = Object.fromEntries(

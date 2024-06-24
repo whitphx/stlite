@@ -22,9 +22,9 @@ VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: requirements.dev.txt
+venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install

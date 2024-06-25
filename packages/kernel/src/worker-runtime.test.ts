@@ -5,8 +5,8 @@ import type { PyodideInterface } from "pyodide";
 import { startWorkerEnv, type PostMessageFn } from "./worker-runtime";
 import * as pyodideLoader from "./pyodide-loader";
 import { WorkerInitialData } from "./types";
-import stliteServerWheelUrl from "stlite_server.whl"; // This is the alias from vitest.config.ts
-import streamlitWheelUrl from "streamlit.whl"; // This is the alias from vitest.config.ts
+import stliteServerWheelUrl from "stlite_server.whl"; // This is an alias configured in vitest.config.ts
+import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
 
 const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
 
@@ -128,7 +128,7 @@ suite("Worker intergration test running an app", async () => {
     test.concurrent(
       `Running ${testSource.entrypoint}`,
       async () => {
-        const fileNamesContentsObj = Object.fromEntries(
+        const files = Object.fromEntries(
           await Promise.all(
             Object.entries(testSource.files).map(
               async ([filename, filepath]) => {
@@ -141,7 +141,7 @@ suite("Worker intergration test running an app", async () => {
 
         const pyodide = await initializeWorkerEnv({
           entrypoint: testSource.entrypoint,
-          files: fileNamesContentsObj,
+          files,
           requirements: testSource.requirements,
         });
 

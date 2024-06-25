@@ -148,7 +148,7 @@ async function installPackages(
   requirements.push(stliteServerWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.35.0-cp312-none-any.whl"),
+    path.join(wheelsDir, "streamlit-1.36.0-cp312-none-any.whl"),
   );
   requirements.push(streamlitWheel);
 

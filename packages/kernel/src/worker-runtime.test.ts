@@ -32,7 +32,7 @@ function initializeWorkerEnv(
     const originalInitPyodide = pyodideLoader.initPyodide;
     const spiedInitPyodide = vitest
       .spyOn(pyodideLoader, "initPyodide")
-      .mockImplementation(async (...args) => {
+      .mockImplementationOnce(async (...args) => {
         const loadedPyodide = await originalInitPyodide(...args);
         pyodide = loadedPyodide;
         return loadedPyodide;
@@ -41,6 +41,7 @@ function initializeWorkerEnv(
     const postMessage: PostMessageFn = (message) => {
       if (message.type === "event:loaded") {
         expect(spiedInitPyodide).toHaveBeenCalled();
+        spiedInitPyodide.mockRestore();
         resolve(pyodide);
       } else if (message.type === "event:error") {
         reject(message.data.error);

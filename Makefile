@@ -11,7 +11,7 @@ streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 
-export USE_CONSTRAINTS_FILE := false
+export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 .PHONY: all
 all: init mountable sharing sharing-editor

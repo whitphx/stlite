@@ -111,9 +111,14 @@ export function parseMountOptions(options: MountOptions): {
   const files = canonicalizeFiles(options.files);
   const archives = canonicalizeArchives(options.archives);
 
+  const entrypoint = options.entrypoint;
+  if (entrypoint == null) {
+    throw new Error("entrypoint is required");
+  }
+
   return {
     kernelOptions: {
-      entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
+      entrypoint,
       files,
       archives,
       requirements: options.requirements || [],

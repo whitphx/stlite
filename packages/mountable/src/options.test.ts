@@ -68,8 +68,15 @@ describe("parseMountOptions()", () => {
     });
   });
 
-  it("fills `entrypoint`, and `requirements` fields and converts the `files` into the canonical form", () => {
+  it("throws an error if the `entrypoint` option is not provided", () => {
+    expect(() => parseMountOptions({})).toThrowError(
+      "The `entrypoint` field is required.",
+    );
+  });
+
+  it("fills the `requirements` field and converts the `files` into the canonical form", () => {
     const { kernelOptions } = parseMountOptions({
+      entrypoint: "streamlit_app.py",
       files: {
         "streamlit_app.py": "foo",
         "foo.txt": {
@@ -101,6 +108,7 @@ describe("parseMountOptions()", () => {
 
   it("normalizes the archives field", () => {
     const { kernelOptions } = parseMountOptions({
+      entrypoint: "app.py",
       archives: [
         {
           url: "./foo.zip",
@@ -120,7 +128,7 @@ describe("parseMountOptions()", () => {
       ],
     });
     expect(kernelOptions).toEqual({
-      entrypoint: "streamlit_app.py",
+      entrypoint: "app.py",
       requirements: [],
       prebuiltPackageNames: [],
       files: {},
@@ -167,11 +175,12 @@ describe("parseMountOptions()", () => {
   it("preserves the `requirements` option if specified", () => {
     const { kernelOptions } = parseMountOptions({
       requirements: ["matplotlib"],
+      entrypoint: "app.py",
     });
     expect(kernelOptions).toEqual({
       requirements: ["matplotlib"],
       prebuiltPackageNames: [],
-      entrypoint: "streamlit_app.py",
+      entrypoint: "app.py",
       files: {},
       archives: [],
     });
@@ -180,11 +189,12 @@ describe("parseMountOptions()", () => {
   it("preserves the `prebuiltPackageNames` option if specified", () => {
     const { kernelOptions } = parseMountOptions({
       prebuiltPackageNames: ["openssl"],
+      entrypoint: "foo.py",
     });
     expect(kernelOptions).toEqual({
       requirements: [],
       prebuiltPackageNames: ["openssl"],
-      entrypoint: "streamlit_app.py",
+      entrypoint: "foo.py",
       files: {},
       archives: [],
     });
@@ -200,6 +210,7 @@ describe("parseMountOptions()", () => {
 
   it("passes the toast callback options", () => {
     const { toastCallbackOptions } = parseMountOptions({
+      entrypoint: "foo.py",
       disableProgressToasts: true,
       disableErrorToasts: true,
     });

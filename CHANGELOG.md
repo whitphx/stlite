@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.59.0] - 2024-06-25
+
+### `@stlite/mountable`
+
+#### Changed
+
+- Throw an error if the `entrypoint` option is not provided, instead of using the default value, [#991](https://github.com/whitphx/stlite/pull/991).
+
 ## [0.58.7] - 2024-06-25
 
 ### `@stlite/kernel`

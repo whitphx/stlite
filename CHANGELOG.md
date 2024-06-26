@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.60.1] - 2024-06-27
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Replace deprecated Pandas APIs in the arrow serialization process, [#996](https://github.com/whitphx/stlite/pull/996).
+
 ## [0.60.0] - 2024-06-26
 
 ### `@stlite/kernel`

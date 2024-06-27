@@ -130,7 +130,7 @@ const TEST_SOURCES: {
     },
     additionalAppTestCode: `
 at.button[0].click()
-await at.run()
+await at.run(timeout=10)
 `,
   },
 ];

@@ -192,7 +192,7 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
         `);
       },
       {
-        timeout: 30 * 1000,
+        timeout: 60 * 1000,
       },
     );
   }

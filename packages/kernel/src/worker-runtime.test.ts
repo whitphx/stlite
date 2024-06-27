@@ -133,6 +133,16 @@ at.button[0].click()
 await at.run(timeout=10)
 `,
   },
+  {
+    // Checks if the Parquet serializer's auto-fixing of non-string column names works. Ref: https://github.com/whitphx/stlite/issues/978
+    entrypoint: "layout.columns2.py",
+    files: {
+      "layout.columns2.py": path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/layout.columns2.py",
+      ),
+    },
+  },
 ];
 
 suite("Worker intergration test running an app", async () => {

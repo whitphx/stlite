@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.60.2] - 2024-06-27
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix the Parquet serialization to deal with non-string column names, [#1000](https://github.com/whitphx/stlite/pull/1000).
+
 ## [0.60.1] - 2024-06-27
 
 ### `@stlite/kernel`

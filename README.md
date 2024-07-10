@@ -12,23 +12,23 @@ A port of [Streamlit](https://streamlit.io/) to WebAssembly, powered by [Pyodide
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers.
 
-## Try it out
+## Try it out online (_stlite sharing_)
 
 Visit [stlite sharing](https://edit.share.stlite.net/).
 
 [<img src="https://edit.share.stlite.net/ogp.png" height="180" >](https://edit.share.stlite.net/)
 
-## Create a desktop app
+## Create a desktop app (`@stlite/desktop`)
 
 See [`@stlite/desktop`](./packages/desktop/README.md).
 
-## Use stlite on your web page
+## Use _stlite_ on your web page (`@stlite/mountable`)
 
 You can use _stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
 Here is a sample HTML file.
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -40,12 +40,12 @@ Here is a sample HTML file.
     <title>stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.52.1/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.2/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.52.1/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.2/build/stlite.js"></script>
     <script>
       stlite.mount(
         `
@@ -54,7 +54,7 @@ import streamlit as st
 name = st.text_input('Your name')
 st.write("Hello,", name or "world")
 `,
-        document.getElementById("root")
+        document.getElementById("root"),
       );
     </script>
   </body>
@@ -63,10 +63,10 @@ st.write("Hello,", name or "world")
 
 In this sample,
 
-- stlite library is imported with the first script tag, then the global `stlite` object becomes available.
+- _stlite_ library is imported with the first script tag, then the global `stlite` object becomes available.
 - `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
-> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in `` st.mount(` ... `) ``. To avoid this, you can escape them with with a preceding backslash `\`.
+> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
 >
 > ```html
 > <script>
@@ -76,7 +76,7 @@ In this sample,
 > 
 > st.markdown("This is an inline code format: \`code\`")
 > `,
->     document.getElementById("root")
+>     document.getElementById("root"),
 >   );
 > </script>
 > ```
@@ -105,14 +105,18 @@ ax.hist(arr, bins=20)
 st.pyplot(fig)
 `,
     },
+    streamlitConfig: {
+      // Streamlit configuration
+      "client.toolbarMode": "viewer",
+    },
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
-### Various ways to load files
+### Various ways to load files (`files` option)
 
-You can pass an object to the `files` option to mount files, whose keys are file paths, and you can specify the values in various ways as below.
+You can pass an object to the `files` option to mount files onto the file system, whose keys are file paths, and you can specify the values in various ways as below. See also the [File system](#file-system) section for more details.
 
 #### Passing string or binary data
 
@@ -129,7 +133,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -152,7 +156,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -181,11 +185,11 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
-### Loading archive files
+### Loading archive files (`archives` option)
 
 You can load archive files such as zip files, unpack them, and mount the unpacked files to the file system by using the `archives` option.
 
@@ -206,7 +210,7 @@ mount(
     ],
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -241,7 +245,29 @@ st.title("Page 2")
 `,
     },
   },
-  document.getElementById("root")
+  document.getElementById("root"),
+);
+```
+
+### Customizing the Streamlit configuration (`streamlitConfig` option)
+
+You can pass the Streamlit configuration options to the `streamlitConfig` field as key-value pairs as below. Unlike the original Streamlit configuration, the options are passed as a flat object with the keys separated by dots.
+
+```js
+stlite.mount(
+  {
+    streamlitConfig: {
+      "theme.base": "dark",
+      "theme.primaryColor": "#00b4d8",
+      "theme.backgroundColor": "#03045e",
+      "theme.secondaryBackgroundColor": "#0077b6",
+      "theme.textColor": "#caf0f8",
+      "client.toolbarMode": "viewer",
+      "client.showErrorDetails": false,
+    },
+    // ... other options ...
+  },
+  document.getElementById("root"),
 );
 ```
 
@@ -258,7 +284,7 @@ The following URLs are also available, while our recommendation is to use the ve
 <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
 ```
 
-You can use the latest version of the published stlite package with this URL.
+You can use the latest version of the published _stlite_ package with this URL.
 
 #### The head of the main branch
 
@@ -268,7 +294,7 @@ You can use the latest version of the published stlite package with this URL.
 
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
 
-### Different Pyodide distributions
+### Different Pyodide distributions (`pyodideUrl` option)
 
 _stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for CDN access.
 
@@ -278,9 +304,13 @@ stlite.mount(
     pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
+
+Pyodide provides two distribution types, full and core, and you should serve the full distribution in this case.
+_stlite_ loads some packages from the Pyodide distribution such as `micropip` and they are not included in the core distribution.
+Even with the full distribution whose size is quite large (+200MB), only the necessary packages are loaded on demand, so the actual size of loaded resources is smaller and you don't have to choose the core distribution worrying about the size. Ref: [#1007](https://github.com/whitphx/stlite/issues/1007#issuecomment-2214434028).
 
 ## File system
 
@@ -316,7 +346,7 @@ with open("/mnt/data.txt", "r") as f:
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 

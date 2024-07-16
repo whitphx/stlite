@@ -1,5 +1,7 @@
 # Stlite: In-browser Streamlit
 
+**Serverless [Streamlit](https://streamlit.io/) Running Entirely in Your Browser**
+
 [![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
@@ -7,8 +9,6 @@
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
 <img src="./docs/images/logo.svg" style="background: white;" >
-
-Serverless [Streamlit](https://streamlit.io/) Running Entirely in Your Browser
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers with the power of [Pyodide](https://pyodide.org/), WebAssembly (Wasm)-ported Python.
 

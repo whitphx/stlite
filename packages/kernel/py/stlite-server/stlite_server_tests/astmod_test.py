@@ -182,6 +182,20 @@ match x:
         await st.write_stream("Hello, world!")
 """,
         ),
+        #         (
+        #             """
+        # import streamlit as st
+        # def foo(name):
+        #     st.write_stream("Hello " + name)
+        # foo("John")
+        # """,
+        #             """
+        # import streamlit as st
+        # async def foo(name):
+        #     await st.write_stream("Hello " + name)
+        # await foo("John")
+        # """,
+        #         ),
     ],
 )
 def test_convert_st_write_stream(test_input, expected):
@@ -307,6 +321,17 @@ import time
 
 f = lambda: time.sleep(1)
 f()
+""",
+# When the `sleep` object is called in a normal function. FunctionDef can't have await.
+# We should convert sync function to async function. as well in the future,
+# but leave it as is for now because it's a bit complicated.
+        """
+import time
+
+def foo():
+    time.sleep()
+
+foo()
 """,
     ],
 )

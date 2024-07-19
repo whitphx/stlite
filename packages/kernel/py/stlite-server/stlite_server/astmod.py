@@ -97,6 +97,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def _visit_target_call(self, node: ast.Call, target: Target) -> ast.Call:
         if target.module == "time" and target.method == "sleep":
+            # Convert the node to `await asyncio.sleep(...)`
             if "asyncio" in self.imported_modules:
                 asyncio_imported_module_name = self.imported_modules["asyncio"]
             else:
@@ -114,6 +115,7 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             )
         elif target.module == "streamlit" and target.method == "write_stream":
+            # Convert the node to `await st.write_stream(...)`
             if "streamlit" in self.imported_modules:
                 st_imported_module_name = self.imported_modules["streamlit"]
             else:
@@ -130,3 +132,12 @@ class NodeTransformer(ast.NodeTransformer):
                     keywords=node.keywords,
                 )
             )
+
+    def visit_Lambda(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        # Lambda can't have await, so stop the traversal
+        return node
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        # FunctionDef can't have await, so stop the traversal
+        # TODO: Convert sync function to async function
+        return node

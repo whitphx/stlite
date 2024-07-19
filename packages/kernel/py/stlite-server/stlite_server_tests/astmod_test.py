@@ -10,6 +10,18 @@ from stlite_server.astmod import patch
     [
         (
             """
+import streamlit
+
+streamlit.write_stream("Hello, world!")
+""",
+            """
+import streamlit
+
+await streamlit.write_stream("Hello, world!")
+""",
+        ),
+        (
+            """
 import streamlit as st
 
 st.write_stream("Hello, world!")
@@ -18,6 +30,18 @@ st.write_stream("Hello, world!")
 import streamlit as st
 
 await st.write_stream("Hello, world!")
+""",
+        ),
+        (
+            """
+import streamlit as foo
+
+foo.write_stream("Hello, world!")
+""",
+            """
+import streamlit as foo
+
+await foo.write_stream("Hello, world!")
 """,
         ),
         (
@@ -238,6 +262,22 @@ import time as t
 await asyncio.sleep(1)
 """,
         ),
+        (
+            # When `time.sleep` is called in an async function, it can be converted to `await asyncio.sleep` straight away.
+            """
+import time
+
+async def foo():
+    time.sleep(1)
+""",
+            """
+import asyncio
+import time
+
+async def foo():
+    await asyncio.sleep(1)
+""",
+        ),
     ],
 )
 def test_convert_time_sleep_to_asyncio_sleep(test_input, expected):
@@ -248,16 +288,25 @@ def test_convert_time_sleep_to_asyncio_sleep(test_input, expected):
 @pytest.mark.parametrize(
     "test_input",
     [
+        # When the `sleep` object is not `time.sleep`.
         """
 def sleep(x):
     pass
 
 sleep(1)
 """,
+        # When the `sleep` object is not `time.sleep`.
         """
 import third_party_time as time
 
 time.sleep(1)
+""",
+        # When the `sleep` object is called in a lambda function. Lambda can't have await.
+        """
+import time
+
+f = lambda: time.sleep(1)
+f()
 """,
     ],
 )

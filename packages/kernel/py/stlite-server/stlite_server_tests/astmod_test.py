@@ -322,9 +322,9 @@ import time
 f = lambda: time.sleep(1)
 f()
 """,
-# When the `sleep` object is called in a normal function. FunctionDef can't have await.
-# We should convert sync function to async function. as well in the future,
-# but leave it as is for now because it's a bit complicated.
+        # When the `sleep` object is called in a normal function. FunctionDef can't have await.
+        # We should convert sync function to async function. as well in the future,
+        # but leave it as is for now because it's a bit complicated.
         """
 import time
 

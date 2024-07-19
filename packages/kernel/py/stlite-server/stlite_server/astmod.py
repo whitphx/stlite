@@ -1,4 +1,5 @@
 import ast
+from dataclasses import dataclass
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -14,12 +15,50 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     return tree
 
 
+@dataclass
+class Target:
+    module: str
+    method: str
+    module_imported_name: str | None
+    method_imported_name: str | None
+
+
 class NodeTransformer(ast.NodeTransformer):
     def __init__(self) -> None:
         super().__init__()
 
         self.appeared_imports = set()
         self.required_imports = set()
+
+        self.targets = [
+            Target(
+                module="streamlit",
+                method="write_stream",
+                module_imported_name=None,
+                method_imported_name=None,
+            ),
+            Target(
+                module="time",
+                method="sleep",
+                module_imported_name=None,
+                method_imported_name=None,
+            ),
+        ]
+
+    def _get_module_imported_name(self, original_module_name: str) -> str | None:
+        for target in self.targets:
+            if target.module == original_module_name:
+                return target.module_imported_name
+
+    def _get_method_imported_name(
+        self, original_module_name: str, original_method_name: str
+    ) -> str | None:
+        for target in self.targets:
+            if (
+                target.module == original_module_name
+                and target.method == original_method_name
+            ):
+                return target.method_imported_name
 
     def transform(self, tree: ast.Module) -> ast.Module:
         new_tree = self.visit(tree)
@@ -32,7 +71,24 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Import(self, node: ast.Import) -> ast.Import:
         for alias in node.names:
+            # Example:
+            # `import streamlit`: alias.name = "streamlit", alias.asname = None
+            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
+            for target in self.targets:
+                if alias.name == target.module:
+                    target.module_imported_name = alias.asname or alias.name
+
             self.appeared_imports.add(alias.name)
+        return node
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
+        for alias in node.names:
+            # Example:
+            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
+            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
+            for target in self.targets:
+                if node.module == target.module and alias.name == target.method:
+                    target.method_imported_name = alias.asname or alias.name
         return node
 
     def visit_With(self, node: ast.With) -> ast.With:
@@ -75,7 +131,7 @@ class NodeTransformer(ast.NodeTransformer):
         if type(node.value) is ast.Call:
             called_func = node.value.func
             if type(called_func) is ast.Name:
-                if called_func.id == "sleep":
+                if called_func.id == self._get_method_imported_name("time", "sleep"):
                     # `time.sleep()` -> `await asyncio.sleep()`
                     node.value.func = ast.Attribute(
                         value=ast.Name(id="asyncio", ctx=ast.Load()),
@@ -92,11 +148,17 @@ class NodeTransformer(ast.NodeTransformer):
             ):
                 module = called_func.value.id
                 method = called_func.attr
-                if (module, method) == ("st", "write_stream"):
+                if (module, method) == (
+                    self._get_module_imported_name("streamlit"),
+                    "write_stream",
+                ):
                     # `st.write_stream()` -> `await st.write_stream()`
                     node.value = ast.Await(value=node.value)
-                elif (module, method) == ("time", "sleep"):
-                    # C`time.sleep()` -> `await asyncio.sleep()`
+                elif (module, method) == (
+                    self._get_module_imported_name("time"),
+                    "sleep",
+                ):
+                    # `time.sleep()` -> `await asyncio.sleep()`
                     called_func.value.id = "asyncio"
                     called_func.attr = "sleep"
                     node.value = ast.Await(value=node.value)

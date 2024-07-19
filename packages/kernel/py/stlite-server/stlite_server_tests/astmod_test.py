@@ -212,8 +212,8 @@ await asyncio.sleep(1)
 import asyncio
 """,
         ),
-        (
-            """  # Case of FromImport
+        (  # Case of FromImport
+            """
 from time import sleep
 
 sleep(1)
@@ -225,8 +225,42 @@ from time import sleep
 await asyncio.sleep(1)
 """,
         ),
+        (  # Case of import as
+            """
+import time as t
+
+t.sleep(1)
+""",
+            """
+import asyncio
+import time as t
+
+await asyncio.sleep(1)
+""",
+        ),
     ],
 )
 def test_convert_time_sleep_to_asyncio_sleep(test_input, expected):
     tree = patch(test_input, "test.py")
     assert ast.dump(tree) == ast.dump(ast.parse(expected, "test.py", "exec"))
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        """
+def sleep(x):
+    pass
+
+sleep(1)
+""",
+        """
+import third_party_time as time
+
+time.sleep(1)
+""",
+    ],
+)
+def test_not_convert_sleep(test_input):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree) == ast.dump(ast.parse(test_input, "test.py", "exec"))

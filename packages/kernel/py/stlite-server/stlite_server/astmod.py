@@ -27,8 +27,8 @@ class NodeTransformer(ast.NodeTransformer):
     def __init__(self) -> None:
         super().__init__()
 
-        self.imported_modules = dict()
-        self.required_imports = set()
+        self.imported_modules: dict[str, str] = dict()
+        self.required_imports: set[str] = set()
 
         self.targets = [
             Target(
@@ -76,7 +76,7 @@ class NodeTransformer(ast.NodeTransformer):
                     target.method_imported_name = alias.asname or alias.name
         return node
 
-    def visit_Call(self, node: ast.Call) -> ast.Call:
+    def visit_Call(self, node: ast.Call) -> ast.AST:
         called_func = node.func
         if type(called_func) is ast.Name:
             for target in self.targets:
@@ -95,7 +95,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         return node
 
-    def _visit_target_call(self, node: ast.Call, target: Target) -> ast.Call:
+    def _visit_target_call(self, node: ast.Call, target: Target) -> ast.AST:
         if target.module == "time" and target.method == "sleep":
             # Convert the node to `await asyncio.sleep(...)`
             if "asyncio" in self.imported_modules:
@@ -133,7 +133,9 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             )
 
-    def visit_Lambda(self, node: ast.FunctionDef) -> ast.FunctionDef:
+        return node
+
+    def visit_Lambda(self, node: ast.Lambda) -> ast.Lambda:
         # Lambda can't have await, so stop the traversal
         return node
 

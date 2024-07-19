@@ -27,7 +27,7 @@ class NodeTransformer(ast.NodeTransformer):
     def __init__(self) -> None:
         super().__init__()
 
-        self.appeared_imports = set()
+        self.imported_modules = dict()
         self.required_imports = set()
 
         self.targets = [
@@ -44,21 +44,6 @@ class NodeTransformer(ast.NodeTransformer):
                 method_imported_name=None,
             ),
         ]
-
-    def _get_module_imported_name(self, original_module_name: str) -> str | None:
-        for target in self.targets:
-            if target.module == original_module_name:
-                return target.module_imported_name
-
-    def _get_method_imported_name(
-        self, original_module_name: str, original_method_name: str
-    ) -> str | None:
-        for target in self.targets:
-            if (
-                target.module == original_module_name
-                and target.method == original_method_name
-            ):
-                return target.method_imported_name
 
     def transform(self, tree: ast.Module) -> ast.Module:
         new_tree = self.visit(tree)
@@ -78,7 +63,7 @@ class NodeTransformer(ast.NodeTransformer):
                 if alias.name == target.module:
                     target.module_imported_name = alias.asname or alias.name
 
-            self.appeared_imports.add(alias.name)
+            self.imported_modules[alias.name] = alias.asname or alias.name
         return node
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
@@ -94,16 +79,9 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Call(self, node: ast.Call) -> ast.Call:
         called_func = node.func
         if type(called_func) is ast.Name:
-            if called_func.id == self._get_method_imported_name("time", "sleep"):
-                # `time.sleep()` -> `await asyncio.sleep()`
-                node.func = ast.Attribute(
-                    value=ast.Name(id="asyncio", ctx=ast.Load()),
-                    attr="sleep",
-                    ctx=ast.Load(),
-                )
-                node = ast.Await(value=node)
-                if "asyncio" not in self.appeared_imports:
-                    self.required_imports.add("asyncio")
+            for target in self.targets:
+                if called_func.id == target.method_imported_name:
+                    return self._visit_target_call(node, target)
         if (
             type(called_func) is ast.Attribute
             and type(called_func.value) is ast.Name
@@ -111,21 +89,44 @@ class NodeTransformer(ast.NodeTransformer):
         ):
             module = called_func.value.id
             method = called_func.attr
-            if (module, method) == (
-                self._get_module_imported_name("streamlit"),
-                "write_stream",
-            ):
-                # `st.write_stream()` -> `await st.write_stream()`
-                node = ast.Await(value=node)
-            elif (module, method) == (
-                self._get_module_imported_name("time"),
-                "sleep",
-            ):
-                # `time.sleep()` -> `await asyncio.sleep()`
-                called_func.value.id = "asyncio"
-                called_func.attr = "sleep"
-                node = ast.Await(value=node)
-                if "asyncio" not in self.appeared_imports:
-                    self.required_imports.add("asyncio")
+            for target in self.targets:
+                if module == target.module_imported_name and method == target.method:
+                    return self._visit_target_call(node, target)
 
         return node
+
+    def _visit_target_call(self, node: ast.Call, target: Target) -> ast.Call:
+        if target.module == "time" and target.method == "sleep":
+            if "asyncio" in self.imported_modules:
+                asyncio_imported_module_name = self.imported_modules["asyncio"]
+            else:
+                asyncio_imported_module_name = "asyncio"
+                self.required_imports.add("asyncio")
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=asyncio_imported_module_name, ctx=ast.Load()),
+                        attr="sleep",
+                        ctx=ast.Load(),
+                    ),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
+            )
+        elif target.module == "streamlit" and target.method == "write_stream":
+            if "streamlit" in self.imported_modules:
+                st_imported_module_name = self.imported_modules["streamlit"]
+            else:
+                st_imported_module_name = "streamlit"
+                self.required_imports.add("streamlit")
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=st_imported_module_name, ctx=ast.Load()),
+                        attr="write_stream",
+                        ctx=ast.Load(),
+                    ),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
+            )

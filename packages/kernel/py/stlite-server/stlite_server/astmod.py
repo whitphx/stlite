@@ -91,78 +91,41 @@ class NodeTransformer(ast.NodeTransformer):
                     target.method_imported_name = alias.asname or alias.name
         return node
 
-    def visit_With(self, node: ast.With) -> ast.With:
-        self.generic_visit(node)
-        return node
-
-    def visit_For(self, node: ast.For) -> ast.For:
-        self.generic_visit(node)
-        return node
-
-    def visit_While(self, node: ast.While) -> ast.While:
-        self.generic_visit(node)
-        return node
-
-    def visit_Try(self, node: ast.Try) -> ast.Try:
-        self.generic_visit(node)
-        return node
-
-    def visit_TryStar(self, node: ast.TryStar) -> ast.TryStar:
-        self.generic_visit(node)
-        return node
-
-    def visit_If(self, node: ast.If) -> ast.If:
-        self.generic_visit(node)
-        return node
-
-    def visit_Match(self, node: ast.Match) -> ast.Match:
-        self.generic_visit(node)
-        return node
-
-    def visit_Expr(self, node: ast.Expr) -> ast.Expr:
-        return self._visit_Expr_and_Assign(node)
-
-    def visit_Assign(self, node: ast.Assign) -> ast.Assign:
-        return self._visit_Expr_and_Assign(node)
-
-    def _visit_Expr_and_Assign(
-        self, node: ast.Expr | ast.Assign
-    ) -> ast.Expr | ast.Assign:
-        if type(node.value) is ast.Call:
-            called_func = node.value.func
-            if type(called_func) is ast.Name:
-                if called_func.id == self._get_method_imported_name("time", "sleep"):
-                    # `time.sleep()` -> `await asyncio.sleep()`
-                    node.value.func = ast.Attribute(
-                        value=ast.Name(id="asyncio", ctx=ast.Load()),
-                        attr="sleep",
-                        ctx=ast.Load(),
-                    )
-                    node.value = ast.Await(value=node.value)
-                    if "asyncio" not in self.appeared_imports:
-                        self.required_imports.add("asyncio")
-            if (
-                type(called_func) is ast.Attribute
-                and type(called_func.value) is ast.Name
-                and isinstance(called_func.value.ctx, ast.Load)
+    def visit_Call(self, node: ast.Call) -> ast.Call:
+        called_func = node.func
+        if type(called_func) is ast.Name:
+            if called_func.id == self._get_method_imported_name("time", "sleep"):
+                # `time.sleep()` -> `await asyncio.sleep()`
+                node.func = ast.Attribute(
+                    value=ast.Name(id="asyncio", ctx=ast.Load()),
+                    attr="sleep",
+                    ctx=ast.Load(),
+                )
+                node = ast.Await(value=node)
+                if "asyncio" not in self.appeared_imports:
+                    self.required_imports.add("asyncio")
+        if (
+            type(called_func) is ast.Attribute
+            and type(called_func.value) is ast.Name
+            and isinstance(called_func.value.ctx, ast.Load)
+        ):
+            module = called_func.value.id
+            method = called_func.attr
+            if (module, method) == (
+                self._get_module_imported_name("streamlit"),
+                "write_stream",
             ):
-                module = called_func.value.id
-                method = called_func.attr
-                if (module, method) == (
-                    self._get_module_imported_name("streamlit"),
-                    "write_stream",
-                ):
-                    # `st.write_stream()` -> `await st.write_stream()`
-                    node.value = ast.Await(value=node.value)
-                elif (module, method) == (
-                    self._get_module_imported_name("time"),
-                    "sleep",
-                ):
-                    # `time.sleep()` -> `await asyncio.sleep()`
-                    called_func.value.id = "asyncio"
-                    called_func.attr = "sleep"
-                    node.value = ast.Await(value=node.value)
-                    if "asyncio" not in self.appeared_imports:
-                        self.required_imports.add("asyncio")
-        self.generic_visit(node)
+                # `st.write_stream()` -> `await st.write_stream()`
+                node = ast.Await(value=node)
+            elif (module, method) == (
+                self._get_module_imported_name("time"),
+                "sleep",
+            ):
+                # `time.sleep()` -> `await asyncio.sleep()`
+                called_func.value.id = "asyncio"
+                called_func.attr = "sleep"
+                node = ast.Await(value=node)
+                if "asyncio" not in self.appeared_imports:
+                    self.required_imports.add("asyncio")
+
         return node

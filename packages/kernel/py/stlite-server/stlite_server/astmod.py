@@ -31,22 +31,22 @@ def _modify_ast_subtree(
         if node_type is ast.Import:
             for alias in node.names:
                 appeared_imports.add(alias.name)
-        elif (
-            node_type is ast.With
-            or node_type is ast.For
-            or node_type is ast.While
-            or node_type is ast.Try
-        ):
+        elif node_type is ast.With:
             _modify_ast_subtree(node)
-        elif node_type is ast.Try:
-            for j, inner_node in enumerate(node.handlers):
-                node.handlers[j] = _modify_ast_subtree(inner_node)
-            finally_node = _modify_ast_subtree(node, body_attr="finalbody")
-            node.finalbody = finally_node.finalbody
+        elif node_type is ast.For or node_type is ast.While:
             _modify_ast_subtree(node)
+            _modify_ast_subtree(node, "orelse")
+        elif node_type is ast.Try or node_type is ast.TryStar:
+            for handler_node in node.handlers:
+                _modify_ast_subtree(handler_node)
+            _modify_ast_subtree(node)
+            _modify_ast_subtree(node, "finalbody")
         elif node_type is ast.If:
             _modify_ast_subtree(node)
             _modify_ast_subtree(node, "orelse")
+        elif node_type is ast.Match:
+            for case in node.cases:
+                _modify_ast_subtree(case)
         elif node_type is ast.Expr or node_type is ast.Assign:
             if type(node.value) is ast.Call:
                 called_func = node.value.func

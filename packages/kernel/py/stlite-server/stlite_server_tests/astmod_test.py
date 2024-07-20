@@ -302,6 +302,63 @@ async def foo():
     await asyncio.sleep(1)
 """,
         ),
+        (
+            """
+from __future__ import annotations
+import time
+
+time.sleep(1)
+""",
+            """
+from __future__ import annotations  # Keep the `from __future__ import annotations` at the very top.
+import asyncio
+import time
+
+await asyncio.sleep(1)
+""",
+        ),
+        (
+            """
+\"\"\"Docstring
+\"\"\"
+from __future__ import annotations
+import time
+
+time.sleep(1)
+""",
+            """
+\"\"\"Docstring
+\"\"\"
+from __future__ import annotations  # Keep the docstring and `from __future__ import annotations` at the very top.
+import asyncio
+import time
+
+await asyncio.sleep(1)
+""",
+        ),
+        (
+            """
+\"\"\"Docstring
+\"\"\"
+\"\"\"Docstring2
+\"\"\"
+from __future__ import annotations
+import time
+
+time.sleep(1)
+""",
+            """
+\"\"\"Docstring
+\"\"\"
+\"\"\"Docstring2
+\"\"\"
+from __future__ import annotations  # Keep the multiple docstrings and `from __future__ import annotations` at the very top.
+import asyncio
+import time
+
+await asyncio.sleep(1)
+""",
+        ),
     ],
 )
 def test_convert_time_sleep_to_asyncio_sleep(test_input, expected):

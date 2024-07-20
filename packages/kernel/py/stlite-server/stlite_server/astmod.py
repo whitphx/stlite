@@ -32,9 +32,7 @@ class NodeTransformer(ast.NodeTransformer):
     def transform(self, tree: ast.Module) -> ast.Module:
         new_tree = self.visit(tree)
 
-        for import_name in self.required_imports:
-            import_node = ast.Import(names=[ast.alias(name=import_name, asname=None)])
-            new_tree.body.insert(0, import_node)
+        _insert_import_statement(new_tree, self.required_imports)
 
         return new_tree
 
@@ -233,3 +231,22 @@ class NodeTransformer(ast.NodeTransformer):
 
         self.generic_visit(node)
         return node
+
+
+def _insert_import_statement(tree: ast.Module, module_names: list[str]) -> None:
+    """Insert an import statement of `module_names` at the top(ish) of the tree."""
+
+    if not module_names:
+        return
+
+    import_node = ast.Import(
+        names=[ast.alias(name=module_name, asname=None) for module_name in module_names]
+    )
+
+    # Search __future__ imports. If they exist, insert the import statement after them. If not, insert the import statement at the top.
+    insert_index = 0
+    for i, node in enumerate(tree.body):
+        if isinstance(node, ast.ImportFrom) and node.module == "__future__":
+            insert_index = i + 1
+
+    tree.body.insert(insert_index, import_node)

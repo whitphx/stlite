@@ -227,10 +227,10 @@ import time
 time.sleep(1)
 """,
             """
-import asyncio
+import asyncio as __asyncio__
 import time
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 """,
         ),
         (
@@ -242,10 +242,10 @@ time.sleep(1)
 import asyncio
 """,
             """
-import asyncio  # Add `asyncio` import before the converted `asyncio.sleep` call
+import asyncio as __asyncio__  # Add `asyncio` import before the converted `asyncio.sleep` call
 import time
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 
 import asyncio
 """,
@@ -262,10 +262,10 @@ def sleep(x):
 sleep(1)  # This `sleep` is no longer the imported `time.sleep`, so not converted.
 """,
             """
-import asyncio
+import asyncio as __asyncio__
 from time import sleep
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 
 def sleep(x):
     pass
@@ -280,10 +280,10 @@ import time as t
 t.sleep(1)
 """,
             """
-import asyncio
+import asyncio as __asyncio__
 import time as t
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 """,
         ),
         (
@@ -295,11 +295,11 @@ async def foo():
     time.sleep(1)
 """,
             """
-import asyncio
+import asyncio as __asyncio__
 import time
 
 async def foo():
-    await asyncio.sleep(1)
+    await __asyncio__.sleep(1)
 """,
         ),
         (
@@ -311,10 +311,10 @@ time.sleep(1)
 """,
             """
 from __future__ import annotations  # Keep the `from __future__ import annotations` at the very top.
-import asyncio
+import asyncio as __asyncio__
 import time
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 """,
         ),
         (
@@ -330,10 +330,10 @@ time.sleep(1)
 \"\"\"Docstring
 \"\"\"
 from __future__ import annotations  # Keep the docstring and `from __future__ import annotations` at the very top.
-import asyncio
+import asyncio as __asyncio__
 import time
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 """,
         ),
         (
@@ -353,10 +353,10 @@ time.sleep(1)
 \"\"\"Docstring2
 \"\"\"
 from __future__ import annotations  # Keep the multiple docstrings and `from __future__ import annotations` at the very top.
-import asyncio
+import asyncio as __asyncio__
 import time
 
-await asyncio.sleep(1)
+await __asyncio__.sleep(1)
 """,
         ),
     ],

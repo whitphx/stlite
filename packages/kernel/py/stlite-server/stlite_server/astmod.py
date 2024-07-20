@@ -19,7 +19,7 @@ class NodeTransformer(ast.NodeTransformer):
         super().__init__()
 
         self.imported_modules: dict[str, str] = dict()
-        self.required_imports: set[str] = set()
+        self.required_imports: set[tuple[str, str]] = set()
 
         self.names: dict[str, str] = {}  # name -> fully qualified name
         self.invalidated_names: set[str] = set()
@@ -93,14 +93,14 @@ class NodeTransformer(ast.NodeTransformer):
         if target == "time.sleep":
             # Convert the node to `await asyncio.sleep(...)`
             if "asyncio" in self.imported_modules:
-                asyncio_imported_module_name = self.imported_modules["asyncio"]
+                asyncio_as_name = self.imported_modules["asyncio"]
             else:
-                asyncio_imported_module_name = "asyncio"
-                self.required_imports.add("asyncio")
+                asyncio_as_name = "__asyncio__"
+                self.required_imports.add(("asyncio", asyncio_as_name))
             return ast.Await(
                 value=ast.Call(
                     func=ast.Attribute(
-                        value=ast.Name(id=asyncio_imported_module_name, ctx=ast.Load()),
+                        value=ast.Name(id=asyncio_as_name, ctx=ast.Load()),
                         attr="sleep",
                         ctx=ast.Load(),
                     ),
@@ -111,14 +111,14 @@ class NodeTransformer(ast.NodeTransformer):
         elif target == "streamlit.write_stream":
             # Convert the node to `await st.write_stream(...)`
             if "streamlit" in self.imported_modules:
-                st_imported_module_name = self.imported_modules["streamlit"]
+                streamlit_as_name = self.imported_modules["streamlit"]
             else:
-                st_imported_module_name = "streamlit"
-                self.required_imports.add("streamlit")
+                streamlit_as_name = "streamlit"
+                self.required_imports.add(("streamlit", streamlit_as_name))
             return ast.Await(
                 value=ast.Call(
                     func=ast.Attribute(
-                        value=ast.Name(id=st_imported_module_name, ctx=ast.Load()),
+                        value=ast.Name(id=streamlit_as_name, ctx=ast.Load()),
                         attr="write_stream",
                         ctx=ast.Load(),
                     ),
@@ -233,14 +233,16 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
 
-def _insert_import_statement(tree: ast.Module, module_names: list[str]) -> None:
+def _insert_import_statement(
+    tree: ast.Module, module_names: set[tuple[str, str]]
+) -> None:
     """Insert an import statement of `module_names` at the top(ish) of the tree."""
 
     if not module_names:
         return
 
     import_node = ast.Import(
-        names=[ast.alias(name=module_name, asname=None) for module_name in module_names]
+        names=[ast.alias(name=name, asname=asname) for name, asname in module_names]
     )
 
     # Search __future__ imports. If they exist, insert the import statement after them. If not, insert the import statement at the top.

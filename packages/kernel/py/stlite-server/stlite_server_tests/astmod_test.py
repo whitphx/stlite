@@ -250,17 +250,27 @@ await asyncio.sleep(1)
 import asyncio
 """,
         ),
-        (  # Case of FromImport
+        (  # Case of from-import
             """
 from time import sleep
 
 sleep(1)
+
+def sleep(x):
+    pass
+
+sleep(1)  # This `sleep` is no longer the imported `time.sleep`, so not converted.
 """,
             """
 import asyncio
 from time import sleep
 
 await asyncio.sleep(1)
+
+def sleep(x):
+    pass
+
+sleep(1)
 """,
         ),
         (  # Case of import as
@@ -332,6 +342,29 @@ def foo():
     time.sleep()
 
 foo()
+""",
+        """
+from time import sleep
+
+del sleep
+
+sleep(1)
+""",
+        """
+from time import sleep
+
+for sleep in [1, 2, 3]:
+    pass
+
+sleep(1)
+""",
+        """
+from time import sleep
+
+if sleep := True:
+    pass
+
+sleep(1)
 """,
     ],
 )

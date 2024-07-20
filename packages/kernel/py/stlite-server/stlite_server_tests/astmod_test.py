@@ -366,6 +366,13 @@ if sleep := True:
 
 sleep(1)
 """,
+        """
+import time
+
+time.sleep = lambda x: x
+
+time.sleep(1)
+""",
     ],
 )
 def test_not_convert_sleep(test_input):

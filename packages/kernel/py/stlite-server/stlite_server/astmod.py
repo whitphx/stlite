@@ -24,6 +24,7 @@ class NodeTransformer(ast.NodeTransformer):
         self.required_imports: set[str] = set()
 
         self.names: dict[str, str] = {}  # name -> fully qualified name
+        self.invalidated_names: set[str] = set()
 
         self.targets = {
             "time.sleep",
@@ -55,12 +56,14 @@ class NodeTransformer(ast.NodeTransformer):
             # Example:
             # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
             # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
-            name = alias.asname or alias.name
-            self.names[name] = node.module + "." + alias.name
+            if node.module:
+                name = alias.asname or alias.name
+                self.names[name] = node.module + "." + alias.name
         return node
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
         called_func = node.func
+        func_fully_qual_name = None
         if type(called_func) is ast.Name:
             func_name = called_func.id
             func_fully_qual_name = self.names.get(func_name)
@@ -71,15 +74,21 @@ class NodeTransformer(ast.NodeTransformer):
         ):
             module = called_func.value.id
             method = called_func.attr
-            top_level_module, *rest_modules = module.split(".")
-            top_level_module_full_name = self.names.get(top_level_module)
-            module_full_name = ".".join([top_level_module_full_name, *rest_modules])
-            func_fully_qual_name = module_full_name + "." + method
-        else:
+            mod_first_segment, *mod_rest_segments = module.split(".")
+            if mod_first_segment_full_name := self.names.get(mod_first_segment):
+                module_full_name = ".".join(
+                    [mod_first_segment_full_name, *mod_rest_segments]
+                )
+                func_fully_qual_name = module_full_name + "." + method
+
+        if func_fully_qual_name is None:
             return node
 
         for target in self.targets:
-            if target == func_fully_qual_name:
+            if (
+                target == func_fully_qual_name
+                and func_fully_qual_name not in self.invalidated_names
+            ):
                 return self._visit_target_call(node, target)
 
         return node
@@ -129,7 +138,8 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
     # Below are node visitor methods to capture name bindings
-    def _register_name(self, node: ast.Name | ast.Tuple | ast.List) -> None:
+    def _register_name(self, node: ast.expr) -> None:
+        # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(node, ast.Name):
             name = node.id
             self.names[name] = name
@@ -139,6 +149,15 @@ class NodeTransformer(ast.NodeTransformer):
         elif isinstance(node, ast.List):
             for elt in node.elts:
                 self._register_name(elt)
+        elif isinstance(node, ast.Starred):
+            self._register_name(node.value)
+        elif isinstance(node, ast.Attribute):
+            if isinstance(node.value, ast.Name):
+                invalidated_name = node.value.id + "." + node.attr
+                self.invalidated_names.add(invalidated_name)
+        elif isinstance(node, ast.Subscript):
+            # The `a[b] = c` doesn't matter for the purpose of this visitor
+            pass
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
         self.names[node.name] = node.name
@@ -147,7 +166,7 @@ class NodeTransformer(ast.NodeTransformer):
         # TODO: Convert sync function to async function
         return node
 
-    def visit_AsyncFunctionDef(self, node: ast.ClassDef) -> Any:
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> Any:
         self.names[node.name] = node.name
 
         self.generic_visit(node)
@@ -159,7 +178,7 @@ class NodeTransformer(ast.NodeTransformer):
         self.generic_visit(node)
         return node
 
-    def visit_Delete(self, node: ast.Del) -> Any:
+    def visit_Delete(self, node: ast.Delete) -> Any:
         for target in node.targets:
             if isinstance(target, ast.Name):
                 del self.names[target.id]
@@ -174,13 +193,13 @@ class NodeTransformer(ast.NodeTransformer):
         self.generic_visit(node)
         return node
 
-    def visit_TypeAlias(self, node: ast.ClassDef) -> Any:
+    def visit_TypeAlias(self, node: ast.TypeAlias) -> Any:
         self._register_name(node.name)
 
         self.generic_visit(node)
         return node
 
-    def visit_AugAssign(self, node: ast.Assign) -> Any:
+    def visit_AugAssign(self, node: ast.AugAssign) -> Any:
         self._register_name(node.target)
 
         self.generic_visit(node)
@@ -198,14 +217,15 @@ class NodeTransformer(ast.NodeTransformer):
         self.generic_visit(node)
         return node
 
-    def visit_AsyncFor(self, node: ast.For) -> Any:
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> Any:
         self._register_name(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_withitem(self, node: ast.withitem) -> Any:
-        self._register_name(node.optional_vars)
+        if node.optional_vars:
+            self._register_name(node.optional_vars)
 
         self.generic_visit(node)
         return node

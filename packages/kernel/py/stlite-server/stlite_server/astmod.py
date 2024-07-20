@@ -25,10 +25,10 @@ class NodeTransformer(ast.NodeTransformer):
 
         self.names: dict[str, str] = {}  # name -> fully qualified name
 
-        self.targets = [
+        self.targets = {
             "time.sleep",
             "streamlit.write_stream",
-        ]
+        }
 
     def transform(self, tree: ast.Module) -> ast.Module:
         new_tree = self.visit(tree)

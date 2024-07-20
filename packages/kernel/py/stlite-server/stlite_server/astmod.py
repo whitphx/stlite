@@ -1,6 +1,4 @@
 import ast
-from _ast import NamedExpr
-from typing import Any
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -159,26 +157,26 @@ class NodeTransformer(ast.NodeTransformer):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
         self.names[node.name] = node.name
 
         # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
         # TODO: Convert sync function to async function
         return node
 
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> Any:
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
         self.names[node.name] = node.name
 
         self.generic_visit(node)
         return node
 
-    def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+    def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
         self.names[node.name] = node.name
 
         self.generic_visit(node)
         return node
 
-    def visit_Delete(self, node: ast.Delete) -> Any:
+    def visit_Delete(self, node: ast.Delete) -> ast.AST:
         for target in node.targets:
             if isinstance(target, ast.Name):
                 del self.names[target.id]
@@ -186,51 +184,51 @@ class NodeTransformer(ast.NodeTransformer):
         self.generic_visit(node)
         return node
 
-    def visit_Assign(self, node: ast.Assign) -> Any:
+    def visit_Assign(self, node: ast.Assign) -> ast.AST:
         for assign_target in node.targets:
             self._register_name(assign_target)
 
         self.generic_visit(node)
         return node
 
-    def visit_TypeAlias(self, node: ast.TypeAlias) -> Any:
+    def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
         self._register_name(node.name)
 
         self.generic_visit(node)
         return node
 
-    def visit_AugAssign(self, node: ast.AugAssign) -> Any:
+    def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
         self._register_name(node.target)
 
         self.generic_visit(node)
         return node
 
-    def visit_AnnAssign(self, node: ast.AnnAssign) -> Any:
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
         self._register_name(node.target)
 
         self.generic_visit(node)
         return node
 
-    def visit_For(self, node: ast.For) -> Any:
+    def visit_For(self, node: ast.For) -> ast.AST:
         self._register_name(node.target)
 
         self.generic_visit(node)
         return node
 
-    def visit_AsyncFor(self, node: ast.AsyncFor) -> Any:
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
         self._register_name(node.target)
 
         self.generic_visit(node)
         return node
 
-    def visit_withitem(self, node: ast.withitem) -> Any:
+    def visit_withitem(self, node: ast.withitem) -> ast.AST:
         if node.optional_vars:
             self._register_name(node.optional_vars)
 
         self.generic_visit(node)
         return node
 
-    def visit_NamedExpr(self, node: NamedExpr) -> Any:
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
         self._register_name(node.target)
 
         self.generic_visit(node)

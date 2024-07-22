@@ -15,7 +15,7 @@ mypy = "^1.11.0"
 streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240603"
 matplotlib = "^3.9.0"
-ruff = "^0.5.2"
+ruff = "^0.5.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

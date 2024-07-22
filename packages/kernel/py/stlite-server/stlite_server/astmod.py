@@ -1,4 +1,5 @@
 import ast
+from typing import Self
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -14,14 +15,69 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     return tree
 
 
+NAME_DELETED = 1
+
+
+class Scope:
+    def __init__(self, name: str, parent: Self | None = None) -> None:
+        self.bindings: dict[str, str | NAME_DELETED] = dict()
+        self.name = parent.name + "." + name if parent else name
+        self.parent = parent
+
+    def add_binding(self, name: str, fully_qualified_name: str) -> None:
+        self.bindings[name] = fully_qualified_name
+
+    def delete_binding(self, name: str) -> None:
+        self.bindings[name] = NAME_DELETED
+
+    def resolve_name(self, name: str) -> str | None:
+        name_in_scope = self.bindings.get(name)
+        if name_in_scope is NAME_DELETED:
+            return None
+        elif name_in_scope:
+            return name_in_scope
+
+        if self.parent:
+            return self.parent.resolve_name(name)
+        return None
+
+
+class ScopeStack:
+    def __init__(self) -> None:
+        self.scopes: list[Scope] = [Scope(name="__main__")]
+
+    def push(self, name: str) -> None:
+        scope = Scope(name=name, parent=self.scopes[-1])
+        self.scopes.append(scope)
+
+    def pop(self) -> None:
+        self.scopes.pop()
+
+    def get_scope_name(self) -> str:
+        return self.scopes[-1].name
+
+    def add_binding(self, name: str, fully_qualified_name: str) -> None:
+        self.scopes[-1].add_binding(name, fully_qualified_name)
+
+    def add_local_binding(self, name: str) -> None:
+        self.scopes[-1].add_binding(name, self.get_scope_name() + "." + name)
+
+    def delete_binding(self, name: str) -> None:
+        self.scopes[-1].delete_binding(name)
+
+    def resolve_name(self, name: str) -> str | None:
+        return self.scopes[-1].resolve_name(name)
+
+
 class NodeTransformer(ast.NodeTransformer):
     def __init__(self) -> None:
         super().__init__()
 
+        self.scope_stack = ScopeStack()
+
         self.imported_modules: dict[str, str] = dict()
         self.required_imports: set[tuple[str, str]] = set()
 
-        self.names: dict[str, str] = {}  # name -> fully qualified name
         self.invalidated_names: set[str] = set()
 
         self.targets = {
@@ -42,7 +98,7 @@ class NodeTransformer(ast.NodeTransformer):
             # `import streamlit`: alias.name = "streamlit", alias.asname = None
             # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
             name = alias.asname or alias.name.split(".")[0]
-            self.names[name] = alias.name
+            self.scope_stack.add_binding(name, alias.name)
 
             self.imported_modules[alias.name] = alias.asname or alias.name
         return node
@@ -53,8 +109,17 @@ class NodeTransformer(ast.NodeTransformer):
             # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
             # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
             if node.module:
-                name = alias.asname or alias.name
-                self.names[name] = node.module + "." + alias.name
+                if alias.name == "*":
+                    # TODO:
+                    if node.module == "streamlit":
+                        self.scope_stack.add_binding(
+                            "write_stream", "streamlit.write_stream"
+                        )
+                    if node.module == "time":
+                        self.scope_stack.add_binding("sleep", "time.sleep")
+                else:
+                    name = alias.asname or alias.name
+                    self.scope_stack.add_binding(name, node.module + "." + alias.name)
         return node
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
@@ -62,7 +127,7 @@ class NodeTransformer(ast.NodeTransformer):
         func_fully_qual_name = None
         if type(called_func) is ast.Name:
             func_name = called_func.id
-            func_fully_qual_name = self.names.get(func_name)
+            func_fully_qual_name = self.scope_stack.resolve_name(func_name)
         elif (
             type(called_func) is ast.Attribute
             and type(called_func.value) is ast.Name
@@ -71,7 +136,9 @@ class NodeTransformer(ast.NodeTransformer):
             module = called_func.value.id
             method = called_func.attr
             mod_first_segment, *mod_rest_segments = module.split(".")
-            if mod_first_segment_full_name := self.names.get(mod_first_segment):
+            if mod_first_segment_full_name := self.scope_stack.resolve_name(
+                mod_first_segment
+            ):
                 module_full_name = ".".join(
                     [mod_first_segment_full_name, *mod_rest_segments]
                 )
@@ -138,7 +205,7 @@ class NodeTransformer(ast.NodeTransformer):
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(node, ast.Name):
             name = node.id
-            self.names[name] = name
+            self.scope_stack.add_local_binding(name)
         elif isinstance(node, ast.Tuple):
             for elt in node.elts:
                 self._register_name(elt)
@@ -156,28 +223,53 @@ class NodeTransformer(ast.NodeTransformer):
             pass
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
-        self.names[node.name] = node.name
+        self.scope_stack.add_local_binding(node.name)
 
         # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
         # TODO: Convert sync function to async function
         return node
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
-        self.names[node.name] = node.name
+        self.scope_stack.add_local_binding(node.name)
+
+        self.scope_stack.push(node.name)
+
+        for arg in node.args.args:
+            self.scope_stack.add_local_binding(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self.scope_stack.add_local_binding(arg.arg)
+        for arg in node.args.posonlyargs:
+            self.scope_stack.add_local_binding(arg.arg)
+        if node.args.vararg:
+            self.scope_stack.add_local_binding(
+                node.args.vararg,
+            )
+        if node.args.kwarg:
+            self.scope_stack.add_local_binding(
+                node.args.kwarg,
+            )
 
         self.generic_visit(node)
+
+        self.scope_stack.pop()
+
         return node
 
     def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
-        self.names[node.name] = node.name
+        self.scope_stack.add_local_binding(node.name)
+
+        self.scope_stack.push(node.name)
 
         self.generic_visit(node)
+
+        self.scope_stack.pop()
+
         return node
 
     def visit_Delete(self, node: ast.Delete) -> ast.AST:
         for target in node.targets:
             if isinstance(target, ast.Name):
-                del self.names[target.id]
+                self.scope_stack.delete_binding(target.id)
 
         self.generic_visit(node)
         return node

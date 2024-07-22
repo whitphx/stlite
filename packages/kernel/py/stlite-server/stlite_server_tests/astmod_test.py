@@ -273,6 +273,29 @@ def sleep(x):
 sleep(1)
 """,
         ),
+        (  # Case of from-import with a wildcard
+            """
+from time import *
+
+sleep(1)
+
+def sleep(x):
+    pass
+
+sleep(1)  # This `sleep` is no longer the imported `time.sleep`, so not converted.
+""",
+            """
+import asyncio as __asyncio__
+from time import *
+
+await __asyncio__.sleep(1)
+
+def sleep(x):
+    pass
+
+sleep(1)
+""",
+        ),
         (  # Case of import as
             """
 import time as t
@@ -288,6 +311,7 @@ await __asyncio__.sleep(1)
         ),
         (
             # When `time.sleep` is called in an async function, it can be converted to `await asyncio.sleep` straight away.
+            # Test the case with `import time`.
             """
 import time
 
@@ -297,6 +321,23 @@ async def foo():
             """
 import asyncio as __asyncio__
 import time
+
+async def foo():
+    await __asyncio__.sleep(1)
+""",
+        ),
+        (
+            # When `time.sleep` is called in an async function, it can be converted to `await asyncio.sleep` straight away.
+            # Test the case with `from time import sleep`.
+            """
+from time import sleep
+
+async def foo():
+    sleep(1)
+""",
+            """
+import asyncio as __asyncio__
+from time import sleep
 
 async def foo():
     await __asyncio__.sleep(1)
@@ -429,6 +470,23 @@ import time
 time.sleep = lambda x: x
 
 time.sleep(1)
+""",
+        """
+from time import sleep
+
+async def foo(sleep):  # The name `sleep` is bound to the function argument, so not converted.
+    sleep(1)
+
+foo()
+""",
+        """
+from time import sleep
+
+async def foo():
+    sleep = 1  # The name `sleep` is bound to the variable, so not converted.
+    sleep(1)
+
+foo()
 """,
     ],
 )

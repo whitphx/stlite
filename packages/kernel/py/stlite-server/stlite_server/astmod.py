@@ -1,6 +1,5 @@
 import ast
-from enum import Enum
-from typing import Self
+from typing import Literal, Self
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -16,13 +15,12 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     return tree
 
 
-class ResolvedNameType(Enum):
-    DELETED = 1
+DELETED_NAME: Literal[1] = 1
 
 
 class Scope:
     def __init__(self, name: str, parent: Self | None = None) -> None:
-        self.bindings: dict[str, str | ResolvedNameType] = dict()
+        self.bindings: dict[str, str | Literal[1]] = dict()
         self.name: str = parent.name + "." + name if parent else name
         self.parent = parent
 
@@ -30,11 +28,11 @@ class Scope:
         self.bindings[name] = fully_qualified_name
 
     def delete_binding(self, name: str) -> None:
-        self.bindings[name] = ResolvedNameType.DELETED
+        self.bindings[name] = DELETED_NAME
 
     def resolve_name(self, name: str) -> str | None:
         name_in_scope = self.bindings.get(name)
-        if name_in_scope is ResolvedNameType.DELETED:
+        if name_in_scope == DELETED_NAME:
             return None
         elif name_in_scope:
             return name_in_scope

@@ -90,8 +90,8 @@ class NodeTransformer(ast.NodeTransformer):
     def transform(self, tree: ast.Module) -> ast.Module:
         for is_pre_search in [True, False]:
             # Run the visitor twice for the same scope:
-            # once to collect the names in the scope,
-            # and once for the AST transformation that depends on the collected name info
+            # once to collect the name bindings in the scope to correctly determine the nearest enclosing scope for each name,
+            # and once for the AST transformation that depends on the collected info
             # for the correct name resolution.
             self.scope_stack.get_current_scope().is_pre_search = is_pre_search
             new_tree = self.visit(tree)

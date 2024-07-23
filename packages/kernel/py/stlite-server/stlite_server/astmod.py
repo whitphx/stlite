@@ -201,27 +201,27 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
     # Below are node visitor methods to capture name bindings
-    def _register_name(self, node: ast.expr, resolved_name: str | None = None) -> None:
+    def _bind_name(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
-        if isinstance(node, ast.Name):
-            name = node.id
-            if resolved_name:
-                self.scope_stack.add_binding(name, resolved_name)
+        if isinstance(target, ast.Name):
+            name = target.id
+            if bound_to:
+                self.scope_stack.add_binding(name, bound_to)
             else:
                 self.scope_stack.add_local_binding(name)
-        elif isinstance(node, ast.Tuple):
-            for elt in node.elts:
-                self._register_name(elt, resolved_name)
-        elif isinstance(node, ast.List):
-            for elt in node.elts:
-                self._register_name(elt, resolved_name)
-        elif isinstance(node, ast.Starred):
-            self._register_name(node.value, resolved_name)
-        elif isinstance(node, ast.Attribute):
-            if isinstance(node.value, ast.Name):
-                invalidated_name = node.value.id + "." + node.attr
+        elif isinstance(target, ast.Tuple):
+            for elt in target.elts:
+                self._bind_name(elt, bound_to)
+        elif isinstance(target, ast.List):
+            for elt in target.elts:
+                self._bind_name(elt, bound_to)
+        elif isinstance(target, ast.Starred):
+            self._bind_name(target.value, bound_to)
+        elif isinstance(target, ast.Attribute):
+            if isinstance(target.value, ast.Name):
+                invalidated_name = target.value.id + "." + target.attr
                 self.invalidated_names.add(invalidated_name)
-        elif isinstance(node, ast.Subscript):
+        elif isinstance(target, ast.Subscript):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
@@ -284,50 +284,50 @@ class NodeTransformer(ast.NodeTransformer):
             else None
         )
         for assign_target in node.targets:
-            self._register_name(assign_target, resolved_name=resolved_name)
+            self._bind_name(assign_target, bound_to=resolved_name)
 
         self.generic_visit(node)
         return node
 
     def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
-        self._register_name(node.name)
+        self._bind_name(node.name)
 
         self.generic_visit(node)
         return node
 
     def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
-        self._register_name(node.target)
+        self._bind_name(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
-        self._register_name(node.target)
+        self._bind_name(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_For(self, node: ast.For) -> ast.AST:
-        self._register_name(node.target)
+        self._bind_name(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
-        self._register_name(node.target)
+        self._bind_name(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_withitem(self, node: ast.withitem) -> ast.AST:
         if node.optional_vars:
-            self._register_name(node.optional_vars)
+            self._bind_name(node.optional_vars)
 
         self.generic_visit(node)
         return node
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
-        self._register_name(node.target)
+        self._bind_name(node.target)
 
         self.generic_visit(node)
         return node

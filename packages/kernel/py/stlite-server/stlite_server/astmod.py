@@ -110,13 +110,14 @@ class NodeTransformer(ast.NodeTransformer):
             # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
             if node.module:
                 if alias.name == "*":
-                    # TODO:
-                    if node.module == "streamlit":
-                        self.scope_stack.add_binding(
-                            "write_stream", "streamlit.write_stream"
-                        )
-                    if node.module == "time":
-                        self.scope_stack.add_binding("sleep", "time.sleep")
+                    # For a wild-card import, add a binding for a target whose module name is matched.
+                    for target in self.targets:
+                        target_segments = target.split(".")
+                        if len(target_segments) >= 2:
+                            target_module = ".".join(target_segments[:-1])
+                            target_name = target_segments[-1]
+                            if node.module == target_module:
+                                self.scope_stack.add_binding(target_name, target)
                 else:
                     name = alias.asname or alias.name
                     self.scope_stack.add_binding(name, node.module + "." + alias.name)

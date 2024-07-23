@@ -310,9 +310,9 @@ await __asyncio__.sleep(1)
 """,
         ),
         (
-            # When `time.sleep` is called in an async function, it can be converted to `await asyncio.sleep` straight away.
-            # Test the case with `import time`.
             """
+# When `time.sleep` is called in an async function, it can be converted to `await asyncio.sleep` straight away.
+# Test the case with `import time`.
 import time
 
 async def foo():
@@ -500,6 +500,15 @@ from time import sleep
 async def foo():
     sleep = 1  # The name `sleep` is bound to the variable, so not converted.
     sleep(1)
+
+foo()
+""",
+        """
+from time import sleep
+
+async def foo():
+    sleep(1)
+    sleep = 1  # The name `sleep` is bound to this scope, even if the variable is defined after the call, so not converted.
 
 foo()
 """,

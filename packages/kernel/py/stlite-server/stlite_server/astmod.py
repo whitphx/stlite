@@ -24,6 +24,8 @@ class Scope:
         self.name: str = parent.name + "." + name if parent else name
         self.parent = parent
 
+        self.is_pre_search: bool = False
+
     def add_binding(self, name: str, fully_qualified_name: str) -> None:
         self.bindings[name] = fully_qualified_name
 
@@ -53,14 +55,14 @@ class ScopeStack:
     def pop(self) -> None:
         self.scopes.pop()
 
-    def get_scope_name(self) -> str:
-        return self.scopes[-1].name
+    def get_current_scope(self) -> Scope:
+        return self.scopes[-1]
 
     def add_binding(self, name: str, fully_qualified_name: str) -> None:
         self.scopes[-1].add_binding(name, fully_qualified_name)
 
     def add_local_binding(self, name: str) -> None:
-        self.scopes[-1].add_binding(name, self.get_scope_name() + "." + name)
+        self.scopes[-1].add_binding(name, self.get_current_scope().name + "." + name)
 
     def delete_binding(self, name: str) -> None:
         self.scopes[-1].delete_binding(name)
@@ -86,7 +88,13 @@ class NodeTransformer(ast.NodeTransformer):
         }
 
     def transform(self, tree: ast.Module) -> ast.Module:
-        new_tree = self.visit(tree)
+        for is_pre_search in [True, False]:
+            # Run the visitor twice for the same scope:
+            # once to collect the names in the scope,
+            # and once for the AST transformation that depends on the collected name info
+            # for the correct name resolution.
+            self.scope_stack.get_current_scope().is_pre_search = is_pre_search
+            new_tree = self.visit(tree)
 
         _insert_import_statement(new_tree, self.required_imports)
 
@@ -100,7 +108,8 @@ class NodeTransformer(ast.NodeTransformer):
             name = alias.asname or alias.name.split(".")[0]
             self.scope_stack.add_binding(name, alias.name)
 
-            self.imported_modules[alias.name] = alias.asname or alias.name
+            if not self.scope_stack.get_current_scope().is_pre_search:
+                self.imported_modules[alias.name] = alias.asname or alias.name
         return node
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
@@ -124,6 +133,9 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
+        if self.scope_stack.get_current_scope().is_pre_search:
+            return node
+
         called_func = node.func
         func_fully_qual_name = None
         if type(called_func) is ast.Name:
@@ -237,23 +249,25 @@ class NodeTransformer(ast.NodeTransformer):
         self.scope_stack.add_local_binding(node.name)
 
         self.scope_stack.push(node.name)
+        for is_pre_search in [True, False]:
+            self.scope_stack.get_current_scope().is_pre_search = is_pre_search
 
-        for arg in node.args.args:
-            self.scope_stack.add_local_binding(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self.scope_stack.add_local_binding(arg.arg)
-        for arg in node.args.posonlyargs:
-            self.scope_stack.add_local_binding(arg.arg)
-        if node.args.vararg:
-            self.scope_stack.add_local_binding(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self.scope_stack.add_local_binding(
-                node.args.kwarg.arg,
-            )
+            for arg in node.args.args:
+                self.scope_stack.add_local_binding(arg.arg)
+            for arg in node.args.kwonlyargs:
+                self.scope_stack.add_local_binding(arg.arg)
+            for arg in node.args.posonlyargs:
+                self.scope_stack.add_local_binding(arg.arg)
+            if node.args.vararg:
+                self.scope_stack.add_local_binding(
+                    node.args.vararg.arg,
+                )
+            if node.args.kwarg:
+                self.scope_stack.add_local_binding(
+                    node.args.kwarg.arg,
+                )
 
-        self.generic_visit(node)
+            self.generic_visit(node)
 
         self.scope_stack.pop()
 

@@ -1,5 +1,5 @@
 import ast
-from typing import Self
+from typing import Any, Self
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -201,19 +201,22 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
     # Below are node visitor methods to capture name bindings
-    def _register_name(self, node: ast.expr) -> None:
+    def _register_name(self, node: ast.expr, resolved_name: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(node, ast.Name):
             name = node.id
-            self.scope_stack.add_local_binding(name)
+            if resolved_name:
+                self.scope_stack.add_binding(name, resolved_name)
+            else:
+                self.scope_stack.add_local_binding(name)
         elif isinstance(node, ast.Tuple):
             for elt in node.elts:
-                self._register_name(elt)
+                self._register_name(elt, resolved_name)
         elif isinstance(node, ast.List):
             for elt in node.elts:
-                self._register_name(elt)
+                self._register_name(elt, resolved_name)
         elif isinstance(node, ast.Starred):
-            self._register_name(node.value)
+            self._register_name(node.value, resolved_name)
         elif isinstance(node, ast.Attribute):
             if isinstance(node.value, ast.Name):
                 invalidated_name = node.value.id + "." + node.attr
@@ -275,8 +278,13 @@ class NodeTransformer(ast.NodeTransformer):
         return node
 
     def visit_Assign(self, node: ast.Assign) -> ast.AST:
+        resolved_name = (
+            self.scope_stack.resolve_name(node.value.id)
+            if isinstance(node.value, ast.Name)
+            else None
+        )
         for assign_target in node.targets:
-            self._register_name(assign_target)
+            self._register_name(assign_target, resolved_name=resolved_name)
 
         self.generic_visit(node)
         return node

@@ -345,6 +345,21 @@ async def foo():
         ),
         (
             """
+from time import sleep
+
+sl = sleep
+sl(1)
+""",
+            """
+import asyncio as __asyncio__
+from time import sleep
+
+sl = sleep
+await __asyncio__.sleep(1)
+""",
+        ),
+        (
+            """
 from __future__ import annotations
 import time
 

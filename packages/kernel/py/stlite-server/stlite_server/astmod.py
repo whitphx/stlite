@@ -1,5 +1,6 @@
 import ast
-from typing import Any, Self
+from enum import Enum
+from typing import Self
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -15,24 +16,25 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     return tree
 
 
-NAME_DELETED = 1
+class ResolvedNameType(Enum):
+    DELETED = 1
 
 
 class Scope:
     def __init__(self, name: str, parent: Self | None = None) -> None:
-        self.bindings: dict[str, str | NAME_DELETED] = dict()
-        self.name = parent.name + "." + name if parent else name
+        self.bindings: dict[str, str | ResolvedNameType] = dict()
+        self.name: str = parent.name + "." + name if parent else name
         self.parent = parent
 
     def add_binding(self, name: str, fully_qualified_name: str) -> None:
         self.bindings[name] = fully_qualified_name
 
     def delete_binding(self, name: str) -> None:
-        self.bindings[name] = NAME_DELETED
+        self.bindings[name] = ResolvedNameType.DELETED
 
     def resolve_name(self, name: str) -> str | None:
         name_in_scope = self.bindings.get(name)
-        if name_in_scope is NAME_DELETED:
+        if name_in_scope is ResolvedNameType.DELETED:
             return None
         elif name_in_scope:
             return name_in_scope
@@ -245,11 +247,11 @@ class NodeTransformer(ast.NodeTransformer):
             self.scope_stack.add_local_binding(arg.arg)
         if node.args.vararg:
             self.scope_stack.add_local_binding(
-                node.args.vararg,
+                node.args.vararg.arg,
             )
         if node.args.kwarg:
             self.scope_stack.add_local_binding(
-                node.args.kwarg,
+                node.args.kwarg.arg,
             )
 
         self.generic_visit(node)

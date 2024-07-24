@@ -319,10 +319,10 @@ async def foo():
     time.sleep(1)
 """,
             """
-import asyncio as __asyncio__
 import time
 
 async def foo():
+    import asyncio as __asyncio__
     await __asyncio__.sleep(1)
 """,
         ),
@@ -336,10 +336,10 @@ async def foo():
     sleep(1)
 """,
             """
-import asyncio as __asyncio__
 from time import sleep
 
 async def foo():
+    import asyncio as __asyncio__
     await __asyncio__.sleep(1)
 """,
         ),
@@ -509,6 +509,16 @@ from time import sleep
 async def foo():
     sleep(1)
     sleep = 1  # The name `sleep` is bound to this scope, even if the variable is defined after the call, so not converted.
+
+foo()
+""",
+        """
+from time import sleep
+
+async def foo():
+    sleep(1)  # What this `sleep` can be resolved to is not clear, so not converted.
+
+sleep = 1
 
 foo()
 """,

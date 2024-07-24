@@ -1,5 +1,10 @@
 import ast
-from typing import Self
+from enum import Enum
+from typing import Self, cast
+
+# These units defines "code block" in Python. See https://docs.python.org/3/reference/executionmodel.html#structure-of-a-program
+CodeBlockNode = ast.Module | ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+ChildCodeBlockNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -14,64 +19,146 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         ("time", "sleep"),
         ("streamlit", "write_stream"),
     }
-    nes_finder = NesFinder(tree, targets)
-    tree = ast.fix_missing_locations(
-        NodeTransformer(nes_finder=nes_finder, targets=targets).transform(tree)
-    )
+    scanner = CodeBlockStaticScanner("__main__", None, targets)
+    node_scanner_map = scanner.process(tree)
+    transformer = CodeBlockTransformer("__main__", None, targets, node_scanner_map)
+    new_tree = transformer.process(tree)
+    new_tree = ast.fix_missing_locations(new_tree)
 
-    return tree
-
-
-type CodeBlockName = str
+    return cast(ast.Module, new_tree)
 
 
-class CodeBlock:
-    def __init__(self, name: str, parent: Self | None = None) -> None:
-        self.name = name
-        self.bound_names: set[str] = set()
-        self.parent = parent
-
-    def get_nearest_enclosing_scope(self, name: str) -> CodeBlockName | None:
-        if name in self.bound_names:
-            return self.name
-        if self.parent:
-            return self.parent.get_nearest_enclosing_scope(name)
-        return None
+class SpecialNameToken(Enum):
+    DELETED = 1
 
 
-class CodeBlockStack:
-    def __init__(self) -> None:
-        root_code_block = CodeBlock(name="__main__")
-        self.stack = [root_code_block]
-        self.code_blocks: dict[CodeBlockName, CodeBlock] = {
-            root_code_block.name: root_code_block
-        }
-
-    def push(self, name: str) -> None:
-        code_block = CodeBlock(
-            name=self.get_current_code_block().name + "." + name,
-            parent=self.get_current_code_block(),
-        )
-        self.stack.append(code_block)
-        self.code_blocks[code_block.name] = code_block
-
-    def pop(self) -> None:
-        self.stack.pop()
-
-    def get_current_code_block(self) -> CodeBlock:
-        return self.stack[-1]
-
-    def bind_name(self, name: str) -> None:
-        self.get_current_code_block().bound_names.add(name)
+class StaticNameResolutionStatus(Enum):
+    BOUND = 1
+    BOUND_BUT_AMBIGUOUS = 2
+    BOUND_BUT_DELETED = 3
+    NOT_FOUND = 4
 
 
-class CodeBlockNameBindingVisitor(ast.NodeVisitor):
-    def __init__(self, targets: set[tuple[str, str]]) -> None:
+class CodeBlockStaticScanner(ast.NodeVisitor):
+    def __init__(
+        self,
+        code_block_name: str,
+        parent_scanner: Self | None,
+        wildcard_import_targets: set[tuple[str, str]],
+    ) -> None:
+        """Scan a code block.
+        The `process()` method recursively instantiates this class and scans the child code blocks
+        to get the information about name bindings in the code block.
+        It's for emulating the name resolution behavior of the Python interpreter (https://docs.python.org/3/reference/executionmodel.html#resolution-of-names).
+        """
         super().__init__()
 
-        self.code_block_stack = CodeBlockStack()
+        self.parent_scanner = parent_scanner
 
-        self.wildcard_import_targets = targets
+        self.wildcard_import_targets = wildcard_import_targets
+
+        self.code_block_full_name: str
+        if parent_scanner:
+            self.code_block_full_name = (
+                parent_scanner.code_block_full_name + "." + code_block_name
+            )
+        else:
+            self.code_block_full_name = code_block_name
+        self.name_bindings: dict[str, list[str | SpecialNameToken]] = dict()
+        self.child_code_blocks: list[ChildCodeBlockNode] = []
+
+        self.code_block_node: CodeBlockNode
+
+        self._processed = False
+
+    def __repr__(self) -> str:
+        return f"<CodeBlockStaticScanner(code_block_name={self.code_block_full_name}, name_bindings={self.name_bindings})>"
+
+    def process(
+        self, tree: CodeBlockNode
+    ) -> dict[CodeBlockNode, "CodeBlockStaticScanner"]:
+        self.code_block_node = tree
+
+        if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for arg in tree.args.args:
+                self._bind_name(arg.arg)
+            for arg in tree.args.kwonlyargs:
+                self._bind_name(arg.arg)
+            for arg in tree.args.posonlyargs:
+                self._bind_name(arg.arg)
+            if tree.args.vararg:
+                self._bind_name(
+                    tree.args.vararg.arg,
+                )
+            if tree.args.kwarg:
+                self._bind_name(
+                    tree.args.kwarg.arg,
+                )
+
+        self.generic_visit(tree)
+
+        node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner] = dict()
+
+        node_scanner_map[tree] = self
+        for child_block in self.child_code_blocks:
+            scanner = CodeBlockStaticScanner(
+                child_block.name, self, self.wildcard_import_targets
+            )
+            node_scanner_map[child_block] = scanner
+
+            child_node_scanner_map = scanner.process(child_block)
+            node_scanner_map.update(child_node_scanner_map)
+
+        self._processed = True
+
+        return node_scanner_map
+
+    def find_nearest_enclosing_scope(self, name: str) -> Self | None:
+        if not self._processed:
+            raise ValueError(
+                "The code block scanner hasn't processed the code block yet."
+            )
+
+        status, _ = self.resolve_name_local_static(name)
+        if status == StaticNameResolutionStatus.NOT_FOUND:
+            return (
+                self.parent_scanner.find_nearest_enclosing_scope(name)
+                if self.parent_scanner
+                else None
+            )
+        return self
+
+    def resolve_name_local_static(
+        self, name: str
+    ) -> tuple[StaticNameResolutionStatus, str | None]:
+        if not self._processed:
+            raise ValueError(
+                "The code block scanner hasn't processed the code block yet."
+            )
+
+        bind_history = self.name_bindings.get(name)
+        if bind_history is None or len(bind_history) == 0:
+            return StaticNameResolutionStatus.NOT_FOUND, None
+        if len(bind_history) > 1:
+            return StaticNameResolutionStatus.BOUND_BUT_AMBIGUOUS, None
+        resolved = bind_history[0]
+        if resolved == SpecialNameToken.DELETED:
+            return StaticNameResolutionStatus.BOUND_BUT_DELETED, None
+        return StaticNameResolutionStatus.BOUND, resolved
+
+    def _bind_name(self, name, bound_to=None):
+        if bound_to is None:
+            bound_to = self.code_block_full_name + "." + name
+        self.name_bindings.setdefault(name, []).append(bound_to)
+
+    def _resolve_name_local_dynamic(self, name: str) -> str | None:
+        bind_history = self.name_bindings.get(name)
+        if bind_history is None or len(bind_history) == 0:
+            return None
+        resolved = bind_history[-1]
+        if resolved == SpecialNameToken.DELETED:
+            return None
+        return resolved
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
@@ -79,7 +166,7 @@ class CodeBlockNameBindingVisitor(ast.NodeVisitor):
             # `import streamlit`: alias.name = "streamlit", alias.asname = None
             # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
             name = alias.asname or alias.name.split(".")[0]
-            self.code_block_stack.bind_name(name)
+            self._bind_name(name, alias.name)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         for alias in node.names:
@@ -91,10 +178,10 @@ class CodeBlockNameBindingVisitor(ast.NodeVisitor):
                     # For a wild-card import, add a binding for a target whose module name is matched.
                     for module, name in self.wildcard_import_targets:
                         if node.module == module:
-                            self.code_block_stack.bind_name(name)
+                            self._bind_name(name, module + "." + name)
                 else:
                     name = alias.asname or alias.name
-                    self.code_block_stack.bind_name(name)
+                    self._bind_name(name, node.module + "." + alias.name)
 
     def visit_Lambda(self, node: ast.Lambda) -> None:
         # Lambda can't have await, so we can ignore them for the purpose of this visitor.
@@ -102,76 +189,37 @@ class CodeBlockNameBindingVisitor(ast.NodeVisitor):
         pass
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        self.code_block_stack.bind_name(node.name)
+        full_qual_name = self.code_block_full_name + "." + node.name
 
-        self.code_block_stack.push(node.name)
-
-        for arg in node.args.args:
-            self.code_block_stack.bind_name(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self.code_block_stack.bind_name(arg.arg)
-        for arg in node.args.posonlyargs:
-            self.code_block_stack.bind_name(arg.arg)
-        if node.args.vararg:
-            self.code_block_stack.bind_name(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self.code_block_stack.bind_name(
-                node.args.kwarg.arg,
-            )
-
-        self.generic_visit(node)
-
-        self.code_block_stack.pop()
+        self._bind_name(node.name, full_qual_name)
+        self.child_code_blocks.append(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        self.code_block_stack.bind_name(node.name)
+        full_qual_name = self.code_block_full_name + "." + node.name
 
-        self.code_block_stack.push(node.name)
-
-        for arg in node.args.args:
-            self.code_block_stack.bind_name(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self.code_block_stack.bind_name(arg.arg)
-        for arg in node.args.posonlyargs:
-            self.code_block_stack.bind_name(arg.arg)
-        if node.args.vararg:
-            self.code_block_stack.bind_name(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self.code_block_stack.bind_name(
-                node.args.kwarg.arg,
-            )
-
-        self.generic_visit(node)
-
-        self.code_block_stack.pop()
+        self._bind_name(node.name, full_qual_name)
+        self.child_code_blocks.append(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        self.code_block_stack.bind_name(node.name)
+        full_qual_name = self.code_block_full_name + "." + node.name
 
-        self.code_block_stack.push(node.name)
-
-        self.generic_visit(node)
-
-        self.code_block_stack.pop()
+        self._bind_name(node.name, full_qual_name)
+        self.child_code_blocks.append(node)
 
     # Below are node visitor methods to capture name bindings
-    def _bind_name(self, target: ast.expr) -> None:
+    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
             name = target.id
-            self.code_block_stack.bind_name(name)
+            self._bind_name(name, bound_to=bound_to)
         elif isinstance(target, ast.Tuple):
             for elt in target.elts:
-                self._bind_name(elt)
+                self._bind_expr(elt, bound_to=bound_to)
         elif isinstance(target, ast.List):
             for elt in target.elts:
-                self._bind_name(elt)
+                self._bind_expr(elt, bound_to=bound_to)
         elif isinstance(target, ast.Starred):
-            self._bind_name(target.value)
+            self._bind_expr(target.value, bound_to=bound_to)
         elif isinstance(target, ast.Attribute):
             # The `a.b = c` doesn't update the binding of `a`, so not necessary to bind the name.
             pass
@@ -182,185 +230,189 @@ class CodeBlockNameBindingVisitor(ast.NodeVisitor):
     def visit_Delete(self, node: ast.Delete) -> None:
         for target in node.targets:
             if isinstance(target, ast.Name):
-                self.code_block_stack.bind_name(target.id)
+                self._bind_name(target.id, SpecialNameToken.DELETED)
 
         self.generic_visit(node)
 
     def visit_Assign(self, node: ast.Assign) -> ast.AST:
+        resolved_name = (
+            self._resolve_name_local_dynamic(node.value.id)
+            if isinstance(node.value, ast.Name)
+            else None
+        )
         for assign_target in node.targets:
-            self._bind_name(assign_target)
+            self._bind_expr(assign_target, bound_to=resolved_name)
 
         self.generic_visit(node)
         return node
 
     def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
-        self._bind_name(node.name)
+        self._bind_expr(node.name)
 
         self.generic_visit(node)
         return node
 
     def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_For(self, node: ast.For) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_withitem(self, node: ast.withitem) -> ast.AST:
         if node.optional_vars:
-            self._bind_name(node.optional_vars)
+            self._bind_expr(node.optional_vars)
 
         self.generic_visit(node)
         return node
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
 
-class NesFinder:
-    def __init__(self, tree: ast.Module, targets: set[tuple[str, str]]) -> None:
-        self.visitor = CodeBlockNameBindingVisitor(targets=targets)
-        self.visitor.visit(tree)
-
-    def find(self, code_block_name: CodeBlockName, name: str) -> CodeBlockName | None:
-        code_block = self.visitor.code_block_stack.code_blocks.get(code_block_name)
-        if not code_block:
-            raise ValueError(
-                f"Code block {code_block_name} not found. NesFinder() didn't visit the code block."
-            )
-        return code_block.get_nearest_enclosing_scope(name)
-
-
-class Scope:
-    def __init__(self, name: str, parent: Self | None = None) -> None:
-        self.bindings: dict[str, str] = dict()
-        self.name: str = name
-        self.parent = parent
-
-    def add_binding(self, name: str, fully_qualified_name: str) -> None:
-        self.bindings[name] = fully_qualified_name
-
-    def delete_binding(self, name: str) -> None:
-        del self.bindings[name]
-
-
-class ScopeStack:
-    def __init__(self, nes_finder: NesFinder) -> None:
-        root_scope = Scope(name="__main__")
-        self.scope_stack: list[Scope] = [root_scope]
-        self.scopes: dict[str, Scope] = {root_scope.name: root_scope}
-
-        self.nes_finder = nes_finder
-
-    def push(self, name: str) -> None:
-        scope = Scope(
-            name=self.get_current_scope().name + "." + name, parent=self.scope_stack[-1]
-        )
-        self.scope_stack.append(scope)
-        self.scopes[scope.name] = scope
-
-    def pop(self) -> None:
-        self.scope_stack.pop()
-
-    def get_current_scope(self) -> Scope:
-        return self.scope_stack[-1]
-
-    def add_binding(self, name: str, fully_qualified_name: str) -> None:
-        self.scope_stack[-1].add_binding(name, fully_qualified_name)
-
-    def add_local_binding(self, name: str) -> None:
-        self.scope_stack[-1].add_binding(
-            name, self.get_current_scope().name + "." + name
-        )
-
-    def delete_binding(self, name: str) -> None:
-        self.scope_stack[-1].delete_binding(name)
-
-    def resolve_name(self, name: str) -> str | None:
-        nes_name = self.nes_finder.find(self.get_current_scope().name, name)
-        if not nes_name:
-            # NameError
-            return None
-        scope = self.scopes[nes_name]
-        if not scope:
-            # unexpected
-            return None
-        return scope.bindings.get(name)
-
-
-class NodeTransformer(ast.NodeTransformer):
-    def __init__(self, nes_finder: NesFinder, targets: set[tuple[str, str]]) -> None:
+class CodeBlockTransformer(ast.NodeTransformer):
+    def __init__(
+        self,
+        code_block_name: str,
+        parent_transformer: Self | None,
+        targets: set[tuple[str, str]],
+        node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
+    ) -> None:
         super().__init__()
 
-        self.scope_stack = ScopeStack(nes_finder=nes_finder)
+        self._code_block_node: CodeBlockNode
+
+        self._node_scanner_map = node_scanner_map
+
+        self.parent_transformer = parent_transformer
+
+        self.targets = targets
+
+        self.code_block_full_name: str
+        if parent_transformer:
+            self.code_block_full_name = (
+                parent_transformer.code_block_full_name + "." + code_block_name
+            )
+        else:
+            self.code_block_full_name = code_block_name
+
+        self.name_bindings: dict[str, str] = (
+            dict()
+        )  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran.
 
         self.imported_modules: dict[str, str] = dict()
         self.required_imports: set[tuple[str, str]] = set()
 
         self.invalidated_names: set[str] = set()
 
-        self.targets: set[tuple[str, str]] = targets
+    def process(self, tree: CodeBlockNode) -> CodeBlockNode:
+        self._code_block_node = tree
 
-    def transform(self, tree: ast.Module) -> ast.Module:
-        new_tree = self.visit(tree)
+        if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            for arg in tree.args.args:
+                self._bind_name(arg.arg)
+            for arg in tree.args.kwonlyargs:
+                self._bind_name(arg.arg)
+            for arg in tree.args.posonlyargs:
+                self._bind_name(arg.arg)
+            if tree.args.vararg:
+                self._bind_name(
+                    tree.args.vararg.arg,
+                )
+            if tree.args.kwarg:
+                self._bind_name(
+                    tree.args.kwarg.arg,
+                )
+
+        new_tree = self.generic_visit(tree)
+        new_tree = cast(CodeBlockNode, new_tree)
 
         _insert_import_statement(new_tree, self.required_imports)
 
+        self._processed = True
+
         return new_tree
 
-    def visit_Import(self, node: ast.Import) -> ast.Import:
-        for alias in node.names:
-            # Example:
-            # `import streamlit`: alias.name = "streamlit", alias.asname = None
-            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
-            name = alias.asname or alias.name.split(".")[0]
-            self.scope_stack.add_binding(name, alias.name)
+    def _bind_name(self, name, bound_to=None):
+        if bound_to is None:
+            bound_to = self.code_block_full_name + "." + name
+        if bound_to == SpecialNameToken.DELETED:
+            self.name_bindings.pop(name, None)
+        else:
+            self.name_bindings[name] = bound_to
 
-            self.imported_modules[alias.name] = alias.asname or alias.name
-        return node
+    def _resolve_name_local_dynamic(self, name: str) -> str | None:
+        return self.name_bindings.get(name)
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
-        for alias in node.names:
-            # Example:
-            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
-            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
-            if node.module:
-                if alias.name == "*":
-                    # For a wild-card import, add a binding for a target whose module name is matched.
-                    for module, name in self.targets:
-                        if node.module == module:
-                            self.scope_stack.add_binding(name, module + "." + name)
-                else:
-                    name = alias.asname or alias.name
-                    self.scope_stack.add_binding(name, node.module + "." + alias.name)
-        return node
+    def _resolve_name(self, name: str) -> str | None:
+        scanner = self._node_scanner_map[self._code_block_node]
+        if scanner is None:
+            raise ValueError(
+                "The code block scanner hasn't processed the code block yet."
+            )
+        nes_scanner = scanner.find_nearest_enclosing_scope(name)
+        if nes_scanner is None:
+            # NameError or UnboundLocalError
+            return None
+
+        if nes_scanner.code_block_node is self._code_block_node:
+            # The case where the name is not a free variable,
+            # which means it's used and defined in the same code block (see https://docs.python.org/3/reference/executionmodel.html#binding-of-names).
+            # In this case, now this transformer is very running or traversing
+            # in the code block AST where the name is bound, `self._code_block_node`.
+            # So we use the dynamic name resolver of this class in this case
+            # because the AST traversal is like the actual code execution of Python at runtime
+            # so the name resolution based on it should be better than the static one below.
+            return self._resolve_name_local_dynamic(name)
+
+        static_resolution_status, resolved = nes_scanner.resolve_name_local_static(name)
+        # XXX: Here we use the statically resolved name.
+        # This is different from the actual runtime behavior of Python interpreter
+        # in that the runtime dynamically resolves name of free variables at runtime (https://docs.python.org/3/reference/executionmodel.html#interaction-with-dynamic-features).
+        # However, we believe this is a good approximation enough for most cases
+        # to provide a kinder support of the code auto-conversion
+        # while it may be false-positive in some cases.
+        # Actually existing static analyzers e.g. Pylance behave similarly.
+        # One example of the false-positive case is the following code:
+        # ```
+        # def foo():
+        #     sleep(1)
+        # foo()
+        # from time import sleep
+        # ```
+        # In this case, the name `sleep` is resolved to the function `time.sleep` statically
+        # but when `foo()` is called at runtime, it raises a NameError
+        # because the name `sleep` is not bound to any value at the time.
+        if static_resolution_status == StaticNameResolutionStatus.BOUND:
+            return resolved
+        return None
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
         called_func = node.func
         func_fully_qual_name = None
         if type(called_func) is ast.Name:
             func_name = called_func.id
-            func_fully_qual_name = self.scope_stack.resolve_name(func_name)
+            func_fully_qual_name = self._resolve_name(func_name)
         elif (
             type(called_func) is ast.Attribute
             and type(called_func.value) is ast.Name
@@ -369,9 +421,7 @@ class NodeTransformer(ast.NodeTransformer):
             module = called_func.value.id
             method = called_func.attr
             mod_first_segment, *mod_rest_segments = module.split(".")
-            if mod_first_segment_full_name := self.scope_stack.resolve_name(
-                mod_first_segment
-            ):
+            if mod_first_segment_full_name := self._resolve_name(mod_first_segment):
                 module_full_name = ".".join(
                     [mod_first_segment_full_name, *mod_rest_segments]
                 )
@@ -429,27 +479,81 @@ class NodeTransformer(ast.NodeTransformer):
 
         return node
 
-    def visit_Lambda(self, node: ast.Lambda) -> ast.Lambda:
-        # Lambda can't have await, so stop the traversal by not calling generic_visit().
+    def visit_Import(self, node: ast.Import) -> ast.Import:
+        for alias in node.names:
+            # Example:
+            # `import streamlit`: alias.name = "streamlit", alias.asname = None
+            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
+            name = alias.asname or alias.name.split(".")[0]
+            self._bind_name(name, alias.name)
+
+            self.imported_modules[alias.name] = alias.asname or alias.name
         return node
 
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
+        for alias in node.names:
+            # Example:
+            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
+            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
+            if node.module:
+                if alias.name == "*":
+                    # For a wild-card import, add a binding for a target whose module name is matched.
+                    for module, name in self.targets:
+                        if node.module == module:
+                            self._bind_name(name, module + "." + name)
+                else:
+                    name = alias.asname or alias.name
+                    self._bind_name(name, node.module + "." + alias.name)
+        return node
+
+    def visit_Lambda(self, node: ast.Lambda) -> ast.Lambda:
+        # Lambda can't have await, so we can ignore them for the purpose of this visitor.
+        # Stop the traversal by not calling generic_visit().
+        return node
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> CodeBlockNode:
+        full_qual_name = self.code_block_full_name + "." + node.name
+
+        self._bind_name(node.name, full_qual_name)
+
+        # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
+        # TODO: Convert sync function to async function
+        return node
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> CodeBlockNode:
+        full_qual_name = self.code_block_full_name + "." + node.name
+
+        self._bind_name(node.name, full_qual_name)
+
+        transformer = CodeBlockTransformer(
+            node.name, self, self.targets, self._node_scanner_map
+        )
+        return transformer.process(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> CodeBlockNode:
+        full_qual_name = self.code_block_full_name + "." + node.name
+
+        self._bind_name(node.name, full_qual_name)
+
+        transformer = CodeBlockTransformer(
+            node.name, self, self.targets, self._node_scanner_map
+        )
+        return transformer.process(node)
+
     # Below are node visitor methods to capture name bindings
-    def _bind_name(self, target: ast.expr, bound_to: str | None = None) -> None:
+    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
             name = target.id
-            if bound_to:
-                self.scope_stack.add_binding(name, bound_to)
-            else:
-                self.scope_stack.add_local_binding(name)
+            self._bind_name(name, bound_to=bound_to)
         elif isinstance(target, ast.Tuple):
             for elt in target.elts:
-                self._bind_name(elt, bound_to)
+                self._bind_expr(elt, bound_to=bound_to)
         elif isinstance(target, ast.List):
             for elt in target.elts:
-                self._bind_name(elt, bound_to)
+                self._bind_expr(elt, bound_to=bound_to)
         elif isinstance(target, ast.Starred):
-            self._bind_name(target.value, bound_to)
+            self._bind_expr(target.value, bound_to=bound_to)
         elif isinstance(target, ast.Attribute):
             if isinstance(target.value, ast.Name):
                 invalidated_name = target.value.id + "." + target.attr
@@ -458,116 +562,72 @@ class NodeTransformer(ast.NodeTransformer):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> ast.AST:
-        self.scope_stack.add_local_binding(node.name)
-
-        # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
-        # TODO: Convert sync function to async function
-        return node
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> ast.AST:
-        self.scope_stack.add_local_binding(node.name)
-
-        self.scope_stack.push(node.name)
-
-        for arg in node.args.args:
-            self.scope_stack.add_local_binding(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self.scope_stack.add_local_binding(arg.arg)
-        for arg in node.args.posonlyargs:
-            self.scope_stack.add_local_binding(arg.arg)
-        if node.args.vararg:
-            self.scope_stack.add_local_binding(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self.scope_stack.add_local_binding(
-                node.args.kwarg.arg,
-            )
-
-        self.generic_visit(node)
-
-        self.scope_stack.pop()
-
-        return node
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> ast.AST:
-        self.scope_stack.add_local_binding(node.name)
-
-        self.scope_stack.push(node.name)
-
-        self.generic_visit(node)
-
-        self.scope_stack.pop()
-
-        return node
-
     def visit_Delete(self, node: ast.Delete) -> ast.AST:
         for target in node.targets:
             if isinstance(target, ast.Name):
-                self.scope_stack.delete_binding(target.id)
+                self._bind_name(target.id, SpecialNameToken.DELETED)
 
         self.generic_visit(node)
         return node
 
     def visit_Assign(self, node: ast.Assign) -> ast.AST:
         resolved_name = (
-            self.scope_stack.resolve_name(node.value.id)
+            self._resolve_name_local_dynamic(node.value.id)
             if isinstance(node.value, ast.Name)
             else None
         )
         for assign_target in node.targets:
-            self._bind_name(assign_target, bound_to=resolved_name)
+            self._bind_expr(assign_target, bound_to=resolved_name)
 
         self.generic_visit(node)
         return node
 
     def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
-        self._bind_name(node.name)
+        self._bind_expr(node.name)
 
         self.generic_visit(node)
         return node
 
     def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_For(self, node: ast.For) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
     def visit_withitem(self, node: ast.withitem) -> ast.AST:
         if node.optional_vars:
-            self._bind_name(node.optional_vars)
+            self._bind_expr(node.optional_vars)
 
         self.generic_visit(node)
         return node
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
-        self._bind_name(node.target)
+        self._bind_expr(node.target)
 
         self.generic_visit(node)
         return node
 
 
 def _insert_import_statement(
-    tree: ast.Module, module_names: set[tuple[str, str]]
+    tree: CodeBlockNode, module_names: set[tuple[str, str]]
 ) -> None:
     """Insert an import statement of `module_names` at the top(ish) of the tree."""
 

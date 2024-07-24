@@ -1,5 +1,5 @@
 import ast
-from typing import Literal, Self
+from typing import Self
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -10,91 +10,319 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     else:
         raise ValueError("code must be a string or an ast.Module")
 
-    tree = ast.fix_missing_locations(NodeTransformer().transform(tree))
+    targets = {
+        ("time", "sleep"),
+        ("streamlit", "write_stream"),
+    }
+    nes_finder = NesFinder(tree, targets)
+    tree = ast.fix_missing_locations(
+        NodeTransformer(nes_finder=nes_finder, targets=targets).transform(tree)
+    )
 
     return tree
 
 
-DELETED_NAME: Literal[1] = 1
+type CodeBlockName = str
+
+
+class CodeBlock:
+    def __init__(self, name: str, parent: Self | None = None) -> None:
+        self.name = name
+        self.bound_names: set[str] = set()
+        self.parent = parent
+
+    def get_nearest_enclosing_scope(self, name: str) -> CodeBlockName | None:
+        if name in self.bound_names:
+            return self.name
+        if self.parent:
+            return self.parent.get_nearest_enclosing_scope(name)
+        return None
+
+
+class CodeBlockStack:
+    def __init__(self) -> None:
+        root_code_block = CodeBlock(name="__main__")
+        self.stack = [root_code_block]
+        self.code_blocks: dict[CodeBlockName, CodeBlock] = {
+            root_code_block.name: root_code_block
+        }
+
+    def push(self, name: str) -> None:
+        code_block = CodeBlock(
+            name=self.get_current_code_block().name + "." + name,
+            parent=self.get_current_code_block(),
+        )
+        self.stack.append(code_block)
+        self.code_blocks[code_block.name] = code_block
+
+    def pop(self) -> None:
+        self.stack.pop()
+
+    def get_current_code_block(self) -> CodeBlock:
+        return self.stack[-1]
+
+    def bind_name(self, name: str) -> None:
+        self.get_current_code_block().bound_names.add(name)
+
+
+class CodeBlockNameBindingVisitor(ast.NodeVisitor):
+    def __init__(self, targets: set[tuple[str, str]]) -> None:
+        super().__init__()
+
+        self.code_block_stack = CodeBlockStack()
+
+        self.wildcard_import_targets = targets
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            # Example:
+            # `import streamlit`: alias.name = "streamlit", alias.asname = None
+            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
+            name = alias.asname or alias.name.split(".")[0]
+            self.code_block_stack.bind_name(name)
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        for alias in node.names:
+            # Example:
+            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
+            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
+            if node.module:
+                if alias.name == "*":
+                    # For a wild-card import, add a binding for a target whose module name is matched.
+                    for module, name in self.wildcard_import_targets:
+                        if node.module == module:
+                            self.code_block_stack.bind_name(name)
+                else:
+                    name = alias.asname or alias.name
+                    self.code_block_stack.bind_name(name)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        # Lambda can't have await, so we can ignore them for the purpose of this visitor.
+        # Stop the traversal by not calling generic_visit().
+        pass
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.code_block_stack.bind_name(node.name)
+
+        self.code_block_stack.push(node.name)
+
+        for arg in node.args.args:
+            self.code_block_stack.bind_name(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self.code_block_stack.bind_name(arg.arg)
+        for arg in node.args.posonlyargs:
+            self.code_block_stack.bind_name(arg.arg)
+        if node.args.vararg:
+            self.code_block_stack.bind_name(
+                node.args.vararg.arg,
+            )
+        if node.args.kwarg:
+            self.code_block_stack.bind_name(
+                node.args.kwarg.arg,
+            )
+
+        self.generic_visit(node)
+
+        self.code_block_stack.pop()
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self.code_block_stack.bind_name(node.name)
+
+        self.code_block_stack.push(node.name)
+
+        for arg in node.args.args:
+            self.code_block_stack.bind_name(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self.code_block_stack.bind_name(arg.arg)
+        for arg in node.args.posonlyargs:
+            self.code_block_stack.bind_name(arg.arg)
+        if node.args.vararg:
+            self.code_block_stack.bind_name(
+                node.args.vararg.arg,
+            )
+        if node.args.kwarg:
+            self.code_block_stack.bind_name(
+                node.args.kwarg.arg,
+            )
+
+        self.generic_visit(node)
+
+        self.code_block_stack.pop()
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self.code_block_stack.bind_name(node.name)
+
+        self.code_block_stack.push(node.name)
+
+        self.generic_visit(node)
+
+        self.code_block_stack.pop()
+
+    # Below are node visitor methods to capture name bindings
+    def _bind_name(self, target: ast.expr) -> None:
+        # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
+        if isinstance(target, ast.Name):
+            name = target.id
+            self.code_block_stack.bind_name(name)
+        elif isinstance(target, ast.Tuple):
+            for elt in target.elts:
+                self._bind_name(elt)
+        elif isinstance(target, ast.List):
+            for elt in target.elts:
+                self._bind_name(elt)
+        elif isinstance(target, ast.Starred):
+            self._bind_name(target.value)
+        elif isinstance(target, ast.Attribute):
+            # The `a.b = c` doesn't update the binding of `a`, so not necessary to bind the name.
+            pass
+        elif isinstance(target, ast.Subscript):
+            # The `a[b] = c` doesn't matter for the purpose of this visitor
+            pass
+
+    def visit_Delete(self, node: ast.Delete) -> None:
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                self.code_block_stack.bind_name(target.id)
+
+        self.generic_visit(node)
+
+    def visit_Assign(self, node: ast.Assign) -> ast.AST:
+        for assign_target in node.targets:
+            self._bind_name(assign_target)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
+        self._bind_name(node.name)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
+        self._bind_name(node.target)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
+        self._bind_name(node.target)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_For(self, node: ast.For) -> ast.AST:
+        self._bind_name(node.target)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
+        self._bind_name(node.target)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_withitem(self, node: ast.withitem) -> ast.AST:
+        if node.optional_vars:
+            self._bind_name(node.optional_vars)
+
+        self.generic_visit(node)
+        return node
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
+        self._bind_name(node.target)
+
+        self.generic_visit(node)
+        return node
+
+
+class NesFinder:
+    def __init__(self, tree: ast.Module, targets: set[tuple[str, str]]) -> None:
+        self.visitor = CodeBlockNameBindingVisitor(targets=targets)
+        self.visitor.visit(tree)
+
+    def find(self, code_block_name: CodeBlockName, name: str) -> CodeBlockName | None:
+        code_block = self.visitor.code_block_stack.code_blocks.get(code_block_name)
+        if not code_block:
+            raise ValueError(
+                f"Code block {code_block_name} not found. NesFinder() didn't visit the code block."
+            )
+        return code_block.get_nearest_enclosing_scope(name)
 
 
 class Scope:
     def __init__(self, name: str, parent: Self | None = None) -> None:
-        self.bindings: dict[str, str | Literal[1]] = dict()
-        self.name: str = parent.name + "." + name if parent else name
+        self.bindings: dict[str, str] = dict()
+        self.name: str = name
         self.parent = parent
-
-        self.is_pre_search: bool = False
 
     def add_binding(self, name: str, fully_qualified_name: str) -> None:
         self.bindings[name] = fully_qualified_name
 
     def delete_binding(self, name: str) -> None:
-        self.bindings[name] = DELETED_NAME
-
-    def resolve_name(self, name: str) -> str | None:
-        name_in_scope = self.bindings.get(name)
-        if name_in_scope == DELETED_NAME:
-            return None
-        elif name_in_scope:
-            return name_in_scope
-
-        if self.parent:
-            return self.parent.resolve_name(name)
-        return None
+        del self.bindings[name]
 
 
 class ScopeStack:
-    def __init__(self) -> None:
-        self.scopes: list[Scope] = [Scope(name="__main__")]
+    def __init__(self, nes_finder: NesFinder) -> None:
+        root_scope = Scope(name="__main__")
+        self.scope_stack: list[Scope] = [root_scope]
+        self.scopes: dict[str, Scope] = {root_scope.name: root_scope}
+
+        self.nes_finder = nes_finder
 
     def push(self, name: str) -> None:
-        scope = Scope(name=name, parent=self.scopes[-1])
-        self.scopes.append(scope)
+        scope = Scope(
+            name=self.get_current_scope().name + "." + name, parent=self.scope_stack[-1]
+        )
+        self.scope_stack.append(scope)
+        self.scopes[scope.name] = scope
 
     def pop(self) -> None:
-        self.scopes.pop()
+        self.scope_stack.pop()
 
     def get_current_scope(self) -> Scope:
-        return self.scopes[-1]
+        return self.scope_stack[-1]
 
     def add_binding(self, name: str, fully_qualified_name: str) -> None:
-        self.scopes[-1].add_binding(name, fully_qualified_name)
+        self.scope_stack[-1].add_binding(name, fully_qualified_name)
 
     def add_local_binding(self, name: str) -> None:
-        self.scopes[-1].add_binding(name, self.get_current_scope().name + "." + name)
+        self.scope_stack[-1].add_binding(
+            name, self.get_current_scope().name + "." + name
+        )
 
     def delete_binding(self, name: str) -> None:
-        self.scopes[-1].delete_binding(name)
+        self.scope_stack[-1].delete_binding(name)
 
     def resolve_name(self, name: str) -> str | None:
-        return self.scopes[-1].resolve_name(name)
+        nes_name = self.nes_finder.find(self.get_current_scope().name, name)
+        if not nes_name:
+            # NameError
+            return None
+        scope = self.scopes[nes_name]
+        if not scope:
+            # unexpected
+            return None
+        return scope.bindings.get(name)
 
 
 class NodeTransformer(ast.NodeTransformer):
-    def __init__(self) -> None:
+    def __init__(self, nes_finder: NesFinder, targets: set[tuple[str, str]]) -> None:
         super().__init__()
 
-        self.scope_stack = ScopeStack()
+        self.scope_stack = ScopeStack(nes_finder=nes_finder)
 
         self.imported_modules: dict[str, str] = dict()
         self.required_imports: set[tuple[str, str]] = set()
 
         self.invalidated_names: set[str] = set()
 
-        self.targets = {
-            "time.sleep",
-            "streamlit.write_stream",
-        }
+        self.targets: set[tuple[str, str]] = targets
 
     def transform(self, tree: ast.Module) -> ast.Module:
-        for is_pre_search in [True, False]:
-            # Run the visitor twice for the same scope:
-            # once to collect the name bindings in the scope to correctly determine the nearest enclosing scope for each name,
-            # and once for the AST transformation that depends on the collected info
-            # for the correct name resolution.
-            self.scope_stack.get_current_scope().is_pre_search = is_pre_search
-            new_tree = self.visit(tree)
+        new_tree = self.visit(tree)
 
         _insert_import_statement(new_tree, self.required_imports)
 
@@ -108,8 +336,7 @@ class NodeTransformer(ast.NodeTransformer):
             name = alias.asname or alias.name.split(".")[0]
             self.scope_stack.add_binding(name, alias.name)
 
-            if not self.scope_stack.get_current_scope().is_pre_search:
-                self.imported_modules[alias.name] = alias.asname or alias.name
+            self.imported_modules[alias.name] = alias.asname or alias.name
         return node
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
@@ -120,22 +347,15 @@ class NodeTransformer(ast.NodeTransformer):
             if node.module:
                 if alias.name == "*":
                     # For a wild-card import, add a binding for a target whose module name is matched.
-                    for target in self.targets:
-                        target_segments = target.split(".")
-                        if len(target_segments) >= 2:
-                            target_module = ".".join(target_segments[:-1])
-                            target_name = target_segments[-1]
-                            if node.module == target_module:
-                                self.scope_stack.add_binding(target_name, target)
+                    for module, name in self.targets:
+                        if node.module == module:
+                            self.scope_stack.add_binding(name, module + "." + name)
                 else:
                     name = alias.asname or alias.name
                     self.scope_stack.add_binding(name, node.module + "." + alias.name)
         return node
 
     def visit_Call(self, node: ast.Call) -> ast.AST:
-        if self.scope_stack.get_current_scope().is_pre_search:
-            return node
-
         called_func = node.func
         func_fully_qual_name = None
         if type(called_func) is ast.Name:
@@ -162,15 +382,15 @@ class NodeTransformer(ast.NodeTransformer):
 
         for target in self.targets:
             if (
-                target == func_fully_qual_name
+                ".".join(target) == func_fully_qual_name
                 and func_fully_qual_name not in self.invalidated_names
             ):
                 return self._visit_target_call(node, target)
 
         return node
 
-    def _visit_target_call(self, node: ast.Call, target: str) -> ast.AST:
-        if target == "time.sleep":
+    def _visit_target_call(self, node: ast.Call, target: tuple[str, str]) -> ast.AST:
+        if target == ("time", "sleep"):
             # Convert the node to `await asyncio.sleep(...)`
             if "asyncio" in self.imported_modules:
                 asyncio_as_name = self.imported_modules["asyncio"]
@@ -188,7 +408,7 @@ class NodeTransformer(ast.NodeTransformer):
                     keywords=node.keywords,
                 )
             )
-        elif target == "streamlit.write_stream":
+        elif target == ("streamlit", "write_stream"):
             # Convert the node to `await st.write_stream(...)`
             if "streamlit" in self.imported_modules:
                 streamlit_as_name = self.imported_modules["streamlit"]
@@ -249,25 +469,23 @@ class NodeTransformer(ast.NodeTransformer):
         self.scope_stack.add_local_binding(node.name)
 
         self.scope_stack.push(node.name)
-        for is_pre_search in [True, False]:
-            self.scope_stack.get_current_scope().is_pre_search = is_pre_search
 
-            for arg in node.args.args:
-                self.scope_stack.add_local_binding(arg.arg)
-            for arg in node.args.kwonlyargs:
-                self.scope_stack.add_local_binding(arg.arg)
-            for arg in node.args.posonlyargs:
-                self.scope_stack.add_local_binding(arg.arg)
-            if node.args.vararg:
-                self.scope_stack.add_local_binding(
-                    node.args.vararg.arg,
-                )
-            if node.args.kwarg:
-                self.scope_stack.add_local_binding(
-                    node.args.kwarg.arg,
-                )
+        for arg in node.args.args:
+            self.scope_stack.add_local_binding(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self.scope_stack.add_local_binding(arg.arg)
+        for arg in node.args.posonlyargs:
+            self.scope_stack.add_local_binding(arg.arg)
+        if node.args.vararg:
+            self.scope_stack.add_local_binding(
+                node.args.vararg.arg,
+            )
+        if node.args.kwarg:
+            self.scope_stack.add_local_binding(
+                node.args.kwarg.arg,
+            )
 
-            self.generic_visit(node)
+        self.generic_visit(node)
 
         self.scope_stack.pop()
 

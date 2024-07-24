@@ -39,6 +39,9 @@ class StaticNameResolutionStatus(Enum):
     NOT_FOUND = 4
 
 
+NameBoundTo = str | SpecialNameToken
+
+
 class CodeBlockStaticScanner(ast.NodeVisitor):
     def __init__(
         self,
@@ -64,7 +67,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             )
         else:
             self.code_block_full_name = code_block_name
-        self.name_bindings: dict[str, list[str | SpecialNameToken]] = dict()
+        self.name_bindings: dict[str, list[NameBoundTo]] = dict()
         self.child_code_blocks: list[ChildCodeBlockNode] = []
 
         self.code_block_node: CodeBlockNode
@@ -146,7 +149,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             return StaticNameResolutionStatus.BOUND_BUT_DELETED, None
         return StaticNameResolutionStatus.BOUND, resolved
 
-    def _bind_name(self, name, bound_to=None):
+    def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
         if bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
@@ -316,7 +319,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         else:
             self.code_block_full_name = code_block_name
 
-        self.name_bindings: dict[str, str] = (
+        self.name_bindings: dict[str, NameBoundTo] = (
             dict()
         )  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran.
 
@@ -353,16 +356,16 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         return new_tree
 
-    def _bind_name(self, name, bound_to=None):
+    def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
         if bound_to is None:
             bound_to = self.code_block_full_name + "." + name
-        if bound_to == SpecialNameToken.DELETED:
-            self.name_bindings.pop(name, None)
-        else:
-            self.name_bindings[name] = bound_to
+        self.name_bindings[name] = bound_to
 
     def _resolve_name_local_dynamic(self, name: str) -> str | None:
-        return self.name_bindings.get(name)
+        bound_to = self.name_bindings.get(name)
+        if bound_to == SpecialNameToken.DELETED:
+            return None
+        return bound_to
 
     def _resolve_name(self, name: str) -> str | None:
         scanner = self._node_scanner_map[self._code_block_node]

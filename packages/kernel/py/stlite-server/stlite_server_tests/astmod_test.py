@@ -206,6 +206,26 @@ def test_convert_st_write_stream(test_input, expected):
 
 
 @pytest.mark.parametrize(
+    "test_input",
+    [
+        pytest.param(
+            """
+import streamlit as st
+
+await st.write_stream("Hello, world!")
+""",
+            id="already awaited call",
+        ),
+    ],
+)
+def test_not_convert_st_write_stream(test_input):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(test_input, "test.py", "exec"), indent=4
+    )
+
+
+@pytest.mark.parametrize(
     "test_input,expected",
     [
         (

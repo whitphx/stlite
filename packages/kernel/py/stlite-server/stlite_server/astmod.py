@@ -521,8 +521,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
             if isinstance(node, ast.Call):
                 return self.handle_Call(node)
 
-            if isinstance(node, ast.Lambda):
+            if isinstance(node, (ast.Lambda, ast.Await)):
                 # Lambda can't have await, so we can ignore them for the purpose of this visitor.
+                # Already awaited expression doesn't need to be processed by this visitor.
                 # Stop the traversal by not calling generic_visit().
                 return node
 

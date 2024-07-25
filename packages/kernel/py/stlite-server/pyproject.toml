@@ -33,6 +33,10 @@ mypy_path = "../../../../streamlit/lib"
 module = ["streamlit", "streamlit.*", "tests.*"]
 ignore_errors = true
 
+[[tool.mypy.overrides]]
+module = ["st_aggrid"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 pythonpath = "../../../../streamlit/lib"
 testpaths = [

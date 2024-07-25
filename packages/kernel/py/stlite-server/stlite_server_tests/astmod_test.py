@@ -200,7 +200,9 @@ match x:
 )
 def test_convert_st_write_stream(test_input, expected):
     tree = patch(test_input, "test.py")
-    assert ast.dump(tree) == ast.dump(ast.parse(expected, "test.py", "exec"))
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(expected, "test.py", "exec"), indent=4
+    )
 
 
 @pytest.mark.parametrize(
@@ -349,10 +351,28 @@ from time import sleep
 
 sl = sleep
 sl(1)
+
+for _ in [1, 2]:
+    sl(1)
+    sl = lambda x: x
+
+sl(1)
+
+sl = sleep
+sl(1)
 """,
             """
 import asyncio as __asyncio__
 from time import sleep
+
+sl = sleep
+await __asyncio__.sleep(1)
+
+for _ in [1, 2]:
+    sl(1)  # The resolution of `sl` that is assigned in the control flow is not deterministic, so not converted.
+    sl = lambda x: x
+
+sl(1)
 
 sl = sleep
 await __asyncio__.sleep(1)
@@ -419,7 +439,9 @@ await __asyncio__.sleep(1)
 )
 def test_convert_time_sleep_to_asyncio_sleep(test_input, expected):
     tree = patch(test_input, "test.py")
-    assert ast.dump(tree) == ast.dump(ast.parse(expected, "test.py", "exec"))
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(expected, "test.py", "exec"), indent=4
+    )
 
 
 @pytest.mark.parametrize(
@@ -462,6 +484,37 @@ from time import sleep
 del sleep
 
 sleep(1)
+""",
+        """
+from time import sleep
+
+if x:
+    sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+
+sl(1)
+""",
+        """
+from time import sleep
+
+def foo():
+    sl()
+
+for _ in []:
+    for _ in []:
+        pass
+    sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+
+sl(1)
+""",
+        """
+from time import sleep
+
+while x:
+    while y:
+        pass
+    sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+
+sl(1)
 """,
         """
 from time import sleep
@@ -526,4 +579,6 @@ foo()
 )
 def test_not_convert_sleep(test_input):
     tree = patch(test_input, "test.py")
-    assert ast.dump(tree) == ast.dump(ast.parse(test_input, "test.py", "exec"))
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(test_input, "test.py", "exec"), indent=4
+    )

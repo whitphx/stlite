@@ -1,4 +1,5 @@
 import ast
+from contextlib import contextmanager
 from enum import Enum
 from typing import Self, cast
 
@@ -30,6 +31,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
 
 class SpecialNameToken(Enum):
     DELETED = 1
+    UNDERMINISTIC = 2
 
 
 class StaticNameResolutionStatus(Enum):
@@ -328,6 +330,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         self.invalidated_names: set[str] = set()
 
+        self._control_flow_depth = 0
+
     def process(self, tree: CodeBlockNode) -> CodeBlockNode:
         self._code_block_node = tree
 
@@ -365,6 +369,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         bound_to = self.name_bindings.get(name)
         if bound_to == SpecialNameToken.DELETED:
             return None
+        elif bound_to == SpecialNameToken.UNDERMINISTIC:
+            return None
         return bound_to
 
     def _resolve_name(self, name: str) -> str | None:
@@ -378,7 +384,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
             # NameError or UnboundLocalError
             return None
 
-        if nes_scanner.code_block_node is self._code_block_node:
+        is_local = nes_scanner.code_block_node is self._code_block_node
+        if is_local and not self._inside_control_flow:
             # The case where the name is not a free variable,
             # which means it's used and defined in the same code block (see https://docs.python.org/3/reference/executionmodel.html#binding-of-names).
             # In this case, now this transformer is very running or traversing
@@ -543,6 +550,16 @@ class CodeBlockTransformer(ast.NodeTransformer):
         )
         return transformer.process(node)
 
+    @contextmanager
+    def _control_flow_context(self):
+        self._control_flow_depth += 1
+        yield
+        self._control_flow_depth -= 1
+
+    @property
+    def _inside_control_flow(self):
+        return self._control_flow_depth > 0
+
     # Below are node visitor methods to capture name bindings
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
@@ -574,13 +591,16 @@ class CodeBlockTransformer(ast.NodeTransformer):
         return node
 
     def visit_Assign(self, node: ast.Assign) -> ast.AST:
-        resolved_name = (
-            self._resolve_name_local_dynamic(node.value.id)
-            if isinstance(node.value, ast.Name)
-            else None
-        )
+        if self._inside_control_flow:
+            bound_to = SpecialNameToken.UNDERMINISTIC
+        else:
+            bound_to = (
+                self._resolve_name_local_dynamic(node.value.id)
+                if isinstance(node.value, ast.Name)
+                else None
+            )
         for assign_target in node.targets:
-            self._bind_expr(assign_target, bound_to=resolved_name)
+            self._bind_expr(assign_target, bound_to=bound_to)
 
         self.generic_visit(node)
         return node
@@ -606,13 +626,45 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def visit_For(self, node: ast.For) -> ast.AST:
         self._bind_expr(node.target)
 
-        self.generic_visit(node)
+        with self._control_flow_context():
+            self.generic_visit(node)
         return node
 
     def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
         self._bind_expr(node.target)
 
-        self.generic_visit(node)
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_While(self, node: ast.While) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_If(self, node: ast.If) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_With(self, node: ast.With) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_Try(self, node: ast.Try) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
+        return node
+
+    def visit_TryStar(self, node: ast.TryStar) -> ast.AST:
+        with self._control_flow_context():
+            self.generic_visit(node)
         return node
 
     def visit_withitem(self, node: ast.withitem) -> ast.AST:

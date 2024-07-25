@@ -87,20 +87,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         self.code_block_node = tree
 
         if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            for arg in tree.args.args:
-                self._bind_name(arg.arg)
-            for arg in tree.args.kwonlyargs:
-                self._bind_name(arg.arg)
-            for arg in tree.args.posonlyargs:
-                self._bind_name(arg.arg)
-            if tree.args.vararg:
-                self._bind_name(
-                    tree.args.vararg.arg,
-                )
-            if tree.args.kwarg:
-                self._bind_name(
-                    tree.args.kwarg.arg,
-                )
+            self._bind_func_params(tree)
 
         self.generic_visit(tree)
 
@@ -159,6 +146,22 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
+
+    def _bind_func_params(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        for arg in node.args.args:
+            self._bind_name(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self._bind_name(arg.arg)
+        for arg in node.args.posonlyargs:
+            self._bind_name(arg.arg)
+        if node.args.vararg:
+            self._bind_name(
+                node.args.vararg.arg,
+            )
+        if node.args.kwarg:
+            self._bind_name(
+                node.args.kwarg.arg,
+            )
 
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
@@ -326,20 +329,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self._code_block_node = tree
 
         if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            for arg in tree.args.args:
-                self._bind_name(arg.arg)
-            for arg in tree.args.kwonlyargs:
-                self._bind_name(arg.arg)
-            for arg in tree.args.posonlyargs:
-                self._bind_name(arg.arg)
-            if tree.args.vararg:
-                self._bind_name(
-                    tree.args.vararg.arg,
-                )
-            if tree.args.kwarg:
-                self._bind_name(
-                    tree.args.kwarg.arg,
-                )
+            self._bind_func_params(tree)
 
         new_tree = self.generic_visit(tree)
         new_tree = cast(CodeBlockNode, new_tree)
@@ -354,6 +344,22 @@ class CodeBlockTransformer(ast.NodeTransformer):
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings[name] = bound_to
+
+    def _bind_func_params(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        for arg in node.args.args:
+            self._bind_name(arg.arg)
+        for arg in node.args.kwonlyargs:
+            self._bind_name(arg.arg)
+        for arg in node.args.posonlyargs:
+            self._bind_name(arg.arg)
+        if node.args.vararg:
+            self._bind_name(
+                node.args.vararg.arg,
+            )
+        if node.args.kwarg:
+            self._bind_name(
+                node.args.kwarg.arg,
+            )
 
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)

@@ -87,7 +87,8 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         self.code_block_node = tree
 
         if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            self._bind_func_params(tree)
+            for arg in _get_func_args(tree):
+                self._bind_name(arg)
 
         self.generic_visit(tree)
 
@@ -146,22 +147,6 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
-
-    def _bind_func_params(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        for arg in node.args.args:
-            self._bind_name(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self._bind_name(arg.arg)
-        for arg in node.args.posonlyargs:
-            self._bind_name(arg.arg)
-        if node.args.vararg:
-            self._bind_name(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self._bind_name(
-                node.args.kwarg.arg,
-            )
 
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
@@ -329,7 +314,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self._code_block_node = tree
 
         if isinstance(tree, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            self._bind_func_params(tree)
+            for arg in _get_func_args(tree):
+                self._bind_name(arg)
 
         new_tree = self.generic_visit(tree)
         new_tree = cast(CodeBlockNode, new_tree)
@@ -344,22 +330,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings[name] = bound_to
-
-    def _bind_func_params(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
-        for arg in node.args.args:
-            self._bind_name(arg.arg)
-        for arg in node.args.kwonlyargs:
-            self._bind_name(arg.arg)
-        for arg in node.args.posonlyargs:
-            self._bind_name(arg.arg)
-        if node.args.vararg:
-            self._bind_name(
-                node.args.vararg.arg,
-            )
-        if node.args.kwarg:
-            self._bind_name(
-                node.args.kwarg.arg,
-            )
 
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
@@ -634,3 +604,22 @@ def _insert_import_statement(
             insert_index = i + 1
 
     tree.body.insert(insert_index, import_node)
+
+
+def _get_func_args(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
+    params: list[str] = []
+    for arg in node.args.args:
+        params.append(arg.arg)
+    for arg in node.args.kwonlyargs:
+        params.append(arg.arg)
+    for arg in node.args.posonlyargs:
+        params.append(arg.arg)
+    if node.args.vararg:
+        params.append(
+            node.args.vararg.arg,
+        )
+    if node.args.kwarg:
+        params.append(
+            node.args.kwarg.arg,
+        )
+    return params

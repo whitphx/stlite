@@ -139,6 +139,8 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         resolved = bind_history[0]
         if resolved == SpecialNameToken.DELETED:
             return StaticNameResolutionStatus.BOUND_BUT_DELETED, None
+        if resolved == SpecialNameToken.NONDETERMINISTIC:
+            return StaticNameResolutionStatus.BOUND_BUT_AMBIGUOUS, None
         return StaticNameResolutionStatus.BOUND, resolved
 
     def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
@@ -148,7 +150,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
 
-    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
+    def _bind_expr(self, target: ast.expr, bound_to: NameBoundTo | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
             name = target.id
@@ -256,7 +258,6 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             assignment_occurs = isinstance(
                 node,
                 (
-                    ast.TypeAlias,
                     ast.AugAssign,
                     ast.AnnAssign,
                     ast.For,
@@ -269,6 +270,8 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             elif isinstance(node, ast.withitem):
                 if node.optional_vars:
                     self._bind_expr(node.optional_vars)
+            elif isinstance(node, ast.TypeAlias):
+                self._bind_expr(node.name)
 
             self.generic_visit(node)
 
@@ -331,7 +334,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings[name] = bound_to
 
-    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
+    def _bind_expr(self, target: ast.expr, bound_to: NameBoundTo | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
             name = target.id
@@ -568,7 +571,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
             assignment_occurs = isinstance(
                 node,
                 (
-                    ast.TypeAlias,
                     ast.AugAssign,
                     ast.AnnAssign,
                     ast.For,
@@ -581,6 +583,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
             elif isinstance(node, ast.withitem):
                 if node.optional_vars:
                     self._bind_expr(node.optional_vars)
+            elif isinstance(node, ast.TypeAlias):
+                self._bind_expr(node.name)
 
             self.generic_visit(node)
             return node

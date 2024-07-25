@@ -74,6 +74,8 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
 
         self.code_block_node: CodeBlockNode
 
+        self._control_flow_depth = 0
+
         self._processed = False
 
     def __repr__(self) -> str:
@@ -152,66 +154,12 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         return StaticNameResolutionStatus.BOUND, resolved
 
     def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
-        if bound_to is None:
+        if self._inside_control_flow:
+            bound_to = SpecialNameToken.UNDERMINISTIC
+        elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
 
-    def _resolve_name_local_dynamic(self, name: str) -> str | None:
-        bind_history = self.name_bindings.get(name)
-        if bind_history is None or len(bind_history) == 0:
-            return None
-        resolved = bind_history[-1]
-        if resolved == SpecialNameToken.DELETED:
-            return None
-        return resolved
-
-    def visit_Import(self, node: ast.Import) -> None:
-        for alias in node.names:
-            # Example:
-            # `import streamlit`: alias.name = "streamlit", alias.asname = None
-            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
-            name = alias.asname or alias.name.split(".")[0]
-            self._bind_name(name, alias.name)
-
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
-        for alias in node.names:
-            # Example:
-            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
-            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
-            if node.module:
-                if alias.name == "*":
-                    # For a wild-card import, add a binding for a target whose module name is matched.
-                    for module, name in self.wildcard_import_targets:
-                        if node.module == module:
-                            self._bind_name(name, module + "." + name)
-                else:
-                    name = alias.asname or alias.name
-                    self._bind_name(name, node.module + "." + alias.name)
-
-    def visit_Lambda(self, node: ast.Lambda) -> None:
-        # Lambda can't have await, so we can ignore them for the purpose of this visitor.
-        # Stop the traversal by not calling generic_visit().
-        pass
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-        self.child_code_blocks.append(node)
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-        self.child_code_blocks.append(node)
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-        self.child_code_blocks.append(node)
-
-    # Below are node visitor methods to capture name bindings
     def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
@@ -232,67 +180,109 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
-    def visit_Delete(self, node: ast.Delete) -> None:
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                self._bind_name(target.id, SpecialNameToken.DELETED)
+    def _resolve_name_local_dynamic(self, name: str) -> str | None:
+        bind_history = self.name_bindings.get(name)
+        if bind_history is None or len(bind_history) == 0:
+            return None
+        resolved = bind_history[-1]
+        if resolved == SpecialNameToken.DELETED:
+            return None
+        if resolved == SpecialNameToken.UNDERMINISTIC:
+            return None
+        return resolved
 
-        self.generic_visit(node)
+    @contextmanager
+    def _control_flow_flag(self, is_control_flow_syntax):
+        if is_control_flow_syntax:
+            self._control_flow_depth += 1
+        yield
+        if is_control_flow_syntax:
+            self._control_flow_depth -= 1
 
-    def visit_Assign(self, node: ast.Assign) -> ast.AST:
-        resolved_name = (
-            self._resolve_name_local_dynamic(node.value.id)
-            if isinstance(node.value, ast.Name)
-            else None
+    @property
+    def _inside_control_flow(self):
+        return self._control_flow_depth > 0
+
+    def visit(self, node: ast.AST) -> None:
+        is_control_flow = isinstance(
+            node,
+            (
+                ast.For,
+                ast.AsyncFor,
+                ast.While,
+                ast.If,
+                ast.With,
+                ast.AsyncWith,
+                ast.Try,
+                ast.TryStar,
+            ),
         )
-        for assign_target in node.targets:
-            self._bind_expr(assign_target, bound_to=resolved_name)
+        with self._control_flow_flag(is_control_flow):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                full_qual_name = self.code_block_full_name + "." + node.name
 
-        self.generic_visit(node)
-        return node
+                self._bind_name(node.name, full_qual_name)
+                self.child_code_blocks.append(node)
+                return
 
-    def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
-        self._bind_expr(node.name)
+            if isinstance(node, ast.Lambda):
+                # Lambda can't have await, so we can ignore them for the purpose of this visitor.
+                # Stop the traversal by not calling generic_visit().
+                return
 
-        self.generic_visit(node)
-        return node
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    # Example:
+                    # `import streamlit`: alias.name = "streamlit", alias.asname = None
+                    # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
+                    name = alias.asname or alias.name.split(".")[0]
+                    self._bind_name(name, alias.name)
+                return
+            if isinstance(node, ast.ImportFrom):
+                for alias in node.names:
+                    # Example:
+                    # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
+                    # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
+                    if node.module:
+                        if alias.name == "*":
+                            # For a wild-card import, add a binding for a target whose module name is matched.
+                            for module, name in self.wildcard_import_targets:
+                                if node.module == module:
+                                    self._bind_name(name, module + "." + name)
+                        else:
+                            name = alias.asname or alias.name
+                            self._bind_name(name, node.module + "." + alias.name)
+                return
 
-    def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
-        self._bind_expr(node.target)
+            if isinstance(node, (ast.Assign, ast.Delete)):
+                if isinstance(node, ast.Delete):
+                    bound_to = SpecialNameToken.DELETED
+                else:
+                    bound_to = (
+                        self._resolve_name_local_dynamic(node.value.id)
+                        if isinstance(node.value, ast.Name)
+                        else None
+                    )
+                for target in node.targets:
+                    self._bind_expr(target, bound_to=bound_to)
+            assignment_occurs = isinstance(
+                node,
+                (
+                    ast.TypeAlias,
+                    ast.AugAssign,
+                    ast.AnnAssign,
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.NamedExpr,
+                ),
+            )
+            if assignment_occurs:
+                self._bind_expr(node.target)
+            elif isinstance(node, ast.withitem):
+                if node.optional_vars:
+                    self._bind_expr(node.optional_vars)
 
-        self.generic_visit(node)
-        return node
-
-    def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_For(self, node: ast.For) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_withitem(self, node: ast.withitem) -> ast.AST:
-        if node.optional_vars:
-            self._bind_expr(node.optional_vars)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
+            self.generic_visit(node)
 
 
 class CodeBlockTransformer(ast.NodeTransformer):
@@ -356,14 +346,35 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         _insert_import_statement(new_tree, self.required_imports)
 
-        self._processed = True
-
         return new_tree
 
     def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
-        if bound_to is None:
+        if self._inside_control_flow:
+            bound_to = SpecialNameToken.UNDERMINISTIC
+        elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings[name] = bound_to
+
+    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
+        # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
+        if isinstance(target, ast.Name):
+            name = target.id
+            self._bind_name(name, bound_to=bound_to)
+        elif isinstance(target, ast.Tuple):
+            for elt in target.elts:
+                self._bind_expr(elt, bound_to=bound_to)
+        elif isinstance(target, ast.List):
+            for elt in target.elts:
+                self._bind_expr(elt, bound_to=bound_to)
+        elif isinstance(target, ast.Starred):
+            self._bind_expr(target.value, bound_to=bound_to)
+        elif isinstance(target, ast.Attribute):
+            if isinstance(target.value, ast.Name):
+                invalidated_name = target.value.id + "." + target.attr
+                self.invalidated_names.add(invalidated_name)
+        elif isinstance(target, ast.Subscript):
+            # The `a[b] = c` doesn't matter for the purpose of this visitor
+            pass
 
     def _resolve_name_local_dynamic(self, name: str) -> str | None:
         bound_to = self.name_bindings.get(name)
@@ -417,7 +428,19 @@ class CodeBlockTransformer(ast.NodeTransformer):
             return resolved
         return None
 
-    def visit_Call(self, node: ast.Call) -> ast.AST:
+    @contextmanager
+    def _control_flow_flag(self, is_control_flow_syntax):
+        if is_control_flow_syntax:
+            self._control_flow_depth += 1
+        yield
+        if is_control_flow_syntax:
+            self._control_flow_depth -= 1
+
+    @property
+    def _inside_control_flow(self):
+        return self._control_flow_depth > 0
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
         called_func = node.func
         func_fully_qual_name = None
         if type(called_func) is ast.Name:
@@ -445,11 +468,11 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 ".".join(target) == func_fully_qual_name
                 and func_fully_qual_name not in self.invalidated_names
             ):
-                return self._visit_target_call(node, target)
+                return self._handle_target_call(node, target)
 
         return node
 
-    def _visit_target_call(self, node: ast.Call, target: tuple[str, str]) -> ast.AST:
+    def _handle_target_call(self, node: ast.Call, target: tuple[str, str]) -> ast.AST:
         if target == ("time", "sleep"):
             # Convert the node to `await asyncio.sleep(...)`
             if "asyncio" in self.imported_modules:
@@ -489,196 +512,101 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         return node
 
-    def visit_Import(self, node: ast.Import) -> ast.Import:
-        for alias in node.names:
-            # Example:
-            # `import streamlit`: alias.name = "streamlit", alias.asname = None
-            # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
-            name = alias.asname or alias.name.split(".")[0]
-            self._bind_name(name, alias.name)
+    def visit(self, node: ast.AST) -> ast.AST:
+        is_control_flow = isinstance(
+            node,
+            (
+                ast.For,
+                ast.AsyncFor,
+                ast.While,
+                ast.If,
+                ast.With,
+                ast.AsyncWith,
+                ast.Try,
+                ast.TryStar,
+            ),
+        )
+        with self._control_flow_flag(is_control_flow):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                full_qual_name = self.code_block_full_name + "." + node.name
 
-            self.imported_modules[alias.name] = alias.asname or alias.name
-        return node
+                self._bind_name(node.name, full_qual_name)
 
-    def visit_ImportFrom(self, node: ast.ImportFrom) -> ast.ImportFrom:
-        for alias in node.names:
-            # Example:
-            # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
-            # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
-            if node.module:
-                if alias.name == "*":
-                    # For a wild-card import, add a binding for a target whose module name is matched.
-                    for module, name in self.targets:
-                        if node.module == module:
-                            self._bind_name(name, module + "." + name)
+                if isinstance(node, ast.FunctionDef):
+                    # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
+                    # TODO: Convert sync function to async function
+                    return node
+
+                transformer = CodeBlockTransformer(
+                    node.name, self, self.targets, self._node_scanner_map
+                )
+                return transformer.process(node)
+
+            if isinstance(node, ast.Call):
+                return self.handle_Call(node)
+
+            if isinstance(node, ast.Lambda):
+                # Lambda can't have await, so we can ignore them for the purpose of this visitor.
+                # Stop the traversal by not calling generic_visit().
+                return node
+
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    # Example:
+                    # `import streamlit`: alias.name = "streamlit", alias.asname = None
+                    # `import streamlit as st`: alias.name = "streamlit", alias.asname = "st"
+                    name = alias.asname or alias.name.split(".")[0]
+                    self._bind_name(name, alias.name)
+
+                    self.imported_modules[alias.name] = alias.asname or alias.name
+                return node
+
+            if isinstance(node, ast.ImportFrom):
+                for alias in node.names:
+                    # Example:
+                    # `from time import sleep`: node.module = "time", alias.name = "sleep", alias.asname = None
+                    # `from time import sleep as ts`: node.module = "time", alias.name = "sleep", alias.asname = "ts"
+                    if node.module:
+                        if alias.name == "*":
+                            # For a wild-card import, add a binding for a target whose module name is matched.
+                            for module, name in self.targets:
+                                if node.module == module:
+                                    self._bind_name(name, module + "." + name)
+                        else:
+                            name = alias.asname or alias.name
+                            self._bind_name(name, node.module + "." + alias.name)
+                return node
+
+            if isinstance(node, (ast.Assign, ast.Delete)):
+                if isinstance(node, ast.Delete):
+                    bound_to = SpecialNameToken.DELETED
                 else:
-                    name = alias.asname or alias.name
-                    self._bind_name(name, node.module + "." + alias.name)
-        return node
-
-    def visit_Lambda(self, node: ast.Lambda) -> ast.Lambda:
-        # Lambda can't have await, so we can ignore them for the purpose of this visitor.
-        # Stop the traversal by not calling generic_visit().
-        return node
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> CodeBlockNode:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-
-        # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
-        # TODO: Convert sync function to async function
-        return node
-
-    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> CodeBlockNode:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-
-        transformer = CodeBlockTransformer(
-            node.name, self, self.targets, self._node_scanner_map
-        )
-        return transformer.process(node)
-
-    def visit_ClassDef(self, node: ast.ClassDef) -> CodeBlockNode:
-        full_qual_name = self.code_block_full_name + "." + node.name
-
-        self._bind_name(node.name, full_qual_name)
-
-        transformer = CodeBlockTransformer(
-            node.name, self, self.targets, self._node_scanner_map
-        )
-        return transformer.process(node)
-
-    @contextmanager
-    def _control_flow_context(self):
-        self._control_flow_depth += 1
-        yield
-        self._control_flow_depth -= 1
-
-    @property
-    def _inside_control_flow(self):
-        return self._control_flow_depth > 0
-
-    # Below are node visitor methods to capture name bindings
-    def _bind_expr(self, target: ast.expr, bound_to: str | None = None) -> None:
-        # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
-        if isinstance(target, ast.Name):
-            name = target.id
-            self._bind_name(name, bound_to=bound_to)
-        elif isinstance(target, ast.Tuple):
-            for elt in target.elts:
-                self._bind_expr(elt, bound_to=bound_to)
-        elif isinstance(target, ast.List):
-            for elt in target.elts:
-                self._bind_expr(elt, bound_to=bound_to)
-        elif isinstance(target, ast.Starred):
-            self._bind_expr(target.value, bound_to=bound_to)
-        elif isinstance(target, ast.Attribute):
-            if isinstance(target.value, ast.Name):
-                invalidated_name = target.value.id + "." + target.attr
-                self.invalidated_names.add(invalidated_name)
-        elif isinstance(target, ast.Subscript):
-            # The `a[b] = c` doesn't matter for the purpose of this visitor
-            pass
-
-    def visit_Delete(self, node: ast.Delete) -> ast.AST:
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                self._bind_name(target.id, SpecialNameToken.DELETED)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_Assign(self, node: ast.Assign) -> ast.AST:
-        if self._inside_control_flow:
-            bound_to = SpecialNameToken.UNDERMINISTIC
-        else:
-            bound_to = (
-                self._resolve_name_local_dynamic(node.value.id)
-                if isinstance(node.value, ast.Name)
-                else None
+                    bound_to = (
+                        self._resolve_name_local_dynamic(node.value.id)
+                        if isinstance(node.value, ast.Name)
+                        else None
+                    )
+                for target in node.targets:
+                    self._bind_expr(target, bound_to=bound_to)
+            assignment_occurs = isinstance(
+                node,
+                (
+                    ast.TypeAlias,
+                    ast.AugAssign,
+                    ast.AnnAssign,
+                    ast.For,
+                    ast.AsyncFor,
+                    ast.NamedExpr,
+                ),
             )
-        for assign_target in node.targets:
-            self._bind_expr(assign_target, bound_to=bound_to)
+            if assignment_occurs:
+                self._bind_expr(node.target)
+            elif isinstance(node, ast.withitem):
+                if node.optional_vars:
+                    self._bind_expr(node.optional_vars)
 
-        self.generic_visit(node)
-        return node
-
-    def visit_TypeAlias(self, node: ast.TypeAlias) -> ast.AST:
-        self._bind_expr(node.name)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_AugAssign(self, node: ast.AugAssign) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_AnnAssign(self, node: ast.AnnAssign) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_For(self, node: ast.For) -> ast.AST:
-        self._bind_expr(node.target)
-
-        with self._control_flow_context():
             self.generic_visit(node)
-        return node
-
-    def visit_AsyncFor(self, node: ast.AsyncFor) -> ast.AST:
-        self._bind_expr(node.target)
-
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_While(self, node: ast.While) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_If(self, node: ast.If) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_With(self, node: ast.With) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_AsyncWith(self, node: ast.AsyncWith) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_Try(self, node: ast.Try) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_TryStar(self, node: ast.TryStar) -> ast.AST:
-        with self._control_flow_context():
-            self.generic_visit(node)
-        return node
-
-    def visit_withitem(self, node: ast.withitem) -> ast.AST:
-        if node.optional_vars:
-            self._bind_expr(node.optional_vars)
-
-        self.generic_visit(node)
-        return node
-
-    def visit_NamedExpr(self, node: ast.NamedExpr) -> ast.AST:
-        self._bind_expr(node.target)
-
-        self.generic_visit(node)
-        return node
+            return node
 
 
 def _insert_import_statement(

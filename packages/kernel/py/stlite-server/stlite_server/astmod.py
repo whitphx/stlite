@@ -31,7 +31,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
 
 class SpecialNameToken(Enum):
     DELETED = 1
-    UNDERMINISTIC = 2
+    NONDETERMINISTIC = 2
 
 
 class StaticNameResolutionStatus(Enum):
@@ -142,7 +142,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
 
     def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
         if self._inside_control_flow:
-            bound_to = SpecialNameToken.UNDERMINISTIC
+            bound_to = SpecialNameToken.NONDETERMINISTIC
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings.setdefault(name, []).append(bound_to)
@@ -190,7 +190,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         resolved = bind_history[-1]
         if resolved == SpecialNameToken.DELETED:
             return None
-        if resolved == SpecialNameToken.UNDERMINISTIC:
+        if resolved == SpecialNameToken.NONDETERMINISTIC:
             return None
         return resolved
 
@@ -340,7 +340,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
     def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
         if self._inside_control_flow:
-            bound_to = SpecialNameToken.UNDERMINISTIC
+            bound_to = SpecialNameToken.NONDETERMINISTIC
         elif bound_to is None:
             bound_to = self.code_block_full_name + "." + name
         self.name_bindings[name] = bound_to
@@ -386,7 +386,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         bound_to = self.name_bindings.get(name)
         if bound_to == SpecialNameToken.DELETED:
             return None
-        elif bound_to == SpecialNameToken.UNDERMINISTIC:
+        elif bound_to == SpecialNameToken.NONDETERMINISTIC:
             return None
         return bound_to
 

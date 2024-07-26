@@ -1127,6 +1127,17 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pyodide-py"
+version = "0.26.1"
+description = "A Python package providing core interpreter functionality for Pyodide"
+optional = false
+python-versions = ">=3.12"
+files = [
+    {file = "pyodide_py-0.26.1-py3-none-any.whl", hash = "sha256:7b7a1be1c1faa5bfc642cf4bf6a8497793e5aa874f7fa8b53d1840c92dc2a13e"},
+    {file = "pyodide_py-0.26.1.tar.gz", hash = "sha256:02f2e20f8babe016920e43d63dbae6e253954362d02de9059eb48fe669f017a6"},
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.1.2"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -1613,4 +1624,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "af05719fc03dd79cf7aea92ff35d93670eccc83ed19063b254a43dc772b2248b"
+content-hash = "550f036d16912d4223d6c0b634544924dadbf7587840ce5e556b7ded90d6e25c"

@@ -16,6 +16,7 @@ streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240603"
 matplotlib = "^3.9.0"
 ruff = "^0.5.2"
+pyodide-py = "^0.26.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -33,7 +34,7 @@ module = ["streamlit", "streamlit.*", "tests.*"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]
+module = ["st_aggrid"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

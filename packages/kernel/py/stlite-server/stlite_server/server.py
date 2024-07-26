@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from typing import Callable, Final, cast
 
-import pyodide
+import pyodide.ffi
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
@@ -102,7 +102,10 @@ class Server:
             raise RuntimeError("Invalid WebSocket endpoint")
         self._websocket_handler.open(on_message)
 
-    def receive_websocket_from_js(self, payload_from_js: pyodide.ffi.JsProxy):
+    def receive_websocket_from_js(
+        self,
+        payload_from_js: pyodide.ffi.JsBuffer,  # Unit8Array value is passed from JS
+    ):
         payload = payload_from_js.to_bytes()
 
         if not isinstance(payload, bytes):
@@ -120,14 +123,16 @@ class Server:
         self,
         method: str,
         path: str,
-        headers: pyodide.ffi.JsProxy,
-        body: str | pyodide.ffi.JsProxy,
+        headers_proxy: pyodide.ffi.JsProxy,  # object is passed from JS
+        body_proxy: str
+        | pyodide.ffi.JsBuffer,  # string or ArrayBuffer value is passed from JS
         on_response: Callable[[int, dict, bytes], None],
     ):
-        headers = headers.to_py()
+        headers: dict = headers_proxy.to_py()
 
-        if isinstance(body, pyodide.ffi.JsProxy):
-            body = body.to_bytes()
+        body: str | bytes = (
+            body_proxy if isinstance(body_proxy, str) else body_proxy.to_bytes()
+        )
 
         return self.receive_http(
             method=method,
@@ -153,11 +158,10 @@ class Server:
         # Find the handler for the path and method.
         handler = None
         for path_regex, handler_candidate in self._routes:
-            match = path_regex.match(path)
-            if match:
+            if match := path_regex.match(path):
                 handler = handler_candidate
                 break
-        if handler is None:
+        else:
             on_response(404, {}, b"No handler found")
             return
         method_name = method.lower()

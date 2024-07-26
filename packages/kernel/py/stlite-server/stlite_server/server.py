@@ -125,7 +125,7 @@ class Server:
         path: str,
         headers_proxy: pyodide.ffi.JsProxy,
         body_proxy: str
-        | pyodide.ffi.JsBuffer,  # string of ArrayBuffer value is passed from JS
+        | pyodide.ffi.JsBuffer,  # string or ArrayBuffer value is passed from JS
         on_response: Callable[[int, dict, bytes], None],
     ):
         headers: dict = headers_proxy.to_py()

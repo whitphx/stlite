@@ -9,13 +9,15 @@ license = "Apache-2.0"
 python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.2.2"
+pytest = "^8.3.2"
 requests = "^2.32.3"
-mypy = "^1.10.1"
+mypy = "^1.11.0"
 streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240603"
-matplotlib = "^3.9.0"
-ruff = "^0.5.2"
+matplotlib = "^3.9.1"
+ruff = "^0.5.5"
+pyodide-py = "^0.26.1"
+pyright = "^1.1.373"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -33,8 +35,12 @@ module = ["streamlit", "streamlit.*", "tests.*"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = ["pyodide", "pyodide.*", "matplotlib", "st_aggrid"]
+module = ["st_aggrid"]
 ignore_missing_imports = true
+
+[tool.pyright]
+include = ["stlite_server"]
+extraPaths = ["../../../../streamlit/lib"]
 
 [tool.pytest.ini_options]
 pythonpath = "../../../../streamlit/lib"

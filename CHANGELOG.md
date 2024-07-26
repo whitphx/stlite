@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.60.3] - 2024-07-26
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix HTTP header parser, [#1027](https://github.com/whitphx/stlite/pull/1027).
+- Introduce Pyright, [#1031](https://github.com/whitphx/stlite/pull/1031).
+- Internal package updates.
+
 ## [0.60.2] - 2024-06-27
 
 ### `@stlite/kernel`

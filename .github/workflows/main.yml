@@ -148,11 +148,10 @@ jobs:
         poetry run ruff check --output-format=github .
         poetry run ruff format . --check
 
-    - name: Run mypy and pyright
+    - name: Run pyright
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-server
-        poetry run mypy .
         poetry run pyright
 
     - name: Run pytest

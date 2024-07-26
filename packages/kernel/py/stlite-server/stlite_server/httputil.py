@@ -1,11 +1,23 @@
 # `parse_body_arguments()` whose original impl was in tornado.httputil
 # and its dependent functions are copied from Tornado to here, with some modifications.
 
+import collections.abc
 import email.utils
 import logging
+import typing
 import urllib.parse
 from functools import lru_cache
-from typing import Dict, Generator, List, Optional, Tuple, TypedDict, Union
+from typing import (
+    Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+    cast,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -30,6 +42,7 @@ def parse_qs_bytes(
     # Latin1 is the universal donor of character encodings.
     if isinstance(qs, bytes):
         qs = qs.decode("latin1")
+    qs = cast(str, qs)
     result = urllib.parse.parse_qs(
         qs, keep_blank_values, strict_parsing, encoding="latin1", errors="strict"
     )
@@ -124,7 +137,7 @@ def parse_multipart_form_data(
         if eoh == -1:
             LOGGER.warning("multipart/form-data missing headers")
             continue
-        headers = HTTPHeaders_parse(part[:eoh].decode("utf-8"))
+        headers = HTTPHeaders.parse(part[:eoh].decode("utf-8"))
         disp_header = headers.get("Content-Disposition", "")
         disposition, disp_params = _parse_header(disp_header)
         if disposition != "form-data" or not part.endswith(b"\r\n"):
@@ -156,52 +169,97 @@ def _normalize_header(name: str) -> str:
     return "-".join([w.capitalize() for w in name.split("-")])
 
 
-def HTTPHeaders_parse_line(line: str) -> Tuple[str, str]:
-    """Updates the dictionary with a single header line.
+class HTTPInputError(Exception):
+    """Exception class for malformed HTTP requests or responses
+    from remote sources.
 
-    >>> h = HTTPHeaders()
-    >>> h.parse_line("Content-Type: text/html")
-    >>> h.get('content-type')
-    'text/html'
+    .. versionadded:: 4.0
     """
-    _last_key = None
-    if line[0].isspace():
-        # continuation of a multi-line header
-        if _last_key is None:
-            raise RuntimeError("first header line cannot start with whitespace")
-    else:
-        try:
-            name, value = line.split(":", 1)
-        except ValueError:
-            raise RuntimeError("no colon in header line")
+
+    pass
+
+
+class HTTPHeaders(collections.abc.MutableMapping[str, str]):
+    def __init__(self) -> None:
+        self._dict: Dict[str, str] = {}
+        self._last_key: Optional[str] = None
+
+    # new public methods
+
+    def add(self, name: str, value: str) -> None:
+        """Adds a new value for the given key."""
         norm_name = _normalize_header(name)
-        _last_key = norm_name
-        return norm_name, value.strip()
+        self._last_key = norm_name
+        if norm_name in self:
+            self._dict[norm_name] = (
+                native_str(self[norm_name]) + "," + native_str(value)
+            )
+        else:
+            self[norm_name] = value
 
+    def parse_line(self, line: str) -> None:
+        """Updates the dictionary with a single header line.
 
-def HTTPHeaders_parse(headers: str) -> Dict:
-    """Returns a dictionary from HTTP header text.
+        >>> h = HTTPHeaders()
+        >>> h.parse_line("Content-Type: text/html")
+        >>> h.get('content-type')
+        'text/html'
+        """
+        if line[0].isspace():
+            # continuation of a multi-line header
+            if self._last_key is None:
+                raise HTTPInputError("first header line cannot start with whitespace")
+            new_part = " " + line.lstrip()
+            self._dict[self._last_key] += new_part
+        else:
+            try:
+                name, value = line.split(":", 1)
+            except ValueError:
+                raise HTTPInputError("no colon in header line")
+            self.add(name, value.strip())
 
-    >>> h = HTTPHeaders.parse("Content-Type: text/html\\r\\nContent-Length: 42\\r\\n")
-    >>> sorted(h.items())
-    [('Content-Length', '42'), ('Content-Type', 'text/html')]
+    @classmethod
+    def parse(cls, headers: str) -> "HTTPHeaders":
+        """Returns a dictionary from HTTP header text.
 
-    .. versionchanged:: 5.1
+        >>> h = HTTPHeaders.parse("Content-Type: text/html\\r\\nContent-Length: 42\\r\\n")
+        >>> sorted(h.items())
+        [('Content-Length', '42'), ('Content-Type', 'text/html')]
 
-        Raises `HTTPInputError` on malformed headers instead of a
-        mix of `KeyError`, and `ValueError`.
+        .. versionchanged:: 5.1
 
-    """
-    h = dict()
-    # RFC 7230 section 3.5: a recipient MAY recognize a single LF as a line
-    # terminator and ignore any preceding CR.
-    for line in headers.split("\n"):
-        if line.endswith("\r"):
-            line = line[:-1]
-        if line:
-            name, value = HTTPHeaders_parse_line(line)
-            h[name] = value
-    return h
+           Raises `HTTPInputError` on malformed headers instead of a
+           mix of `KeyError`, and `ValueError`.
+
+        """
+        h = cls()
+        # RFC 7230 section 3.5: a recipient MAY recognize a single LF as a line
+        # terminator and ignore any preceding CR.
+        for line in headers.split("\n"):
+            if line.endswith("\r"):
+                line = line[:-1]
+            if line:
+                h.parse_line(line)
+        return h
+
+    # MutableMapping abstract method implementations.
+
+    def __setitem__(self, name: str, value: str) -> None:
+        norm_name = _normalize_header(name)
+        self._dict[norm_name] = value
+
+    def __getitem__(self, name: str) -> str:
+        return self._dict[_normalize_header(name)]
+
+    def __delitem__(self, name: str) -> None:
+        norm_name = _normalize_header(name)
+        del self._dict[norm_name]
+
+    def __len__(self) -> int:
+        return len(self._dict)
+
+    def __iter__(self) -> Iterator[typing.Any]:
+        return iter(self._dict)
 
 
 def _parseparam(s: str) -> Generator[str, None, None]:

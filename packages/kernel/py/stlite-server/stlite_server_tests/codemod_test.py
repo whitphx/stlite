@@ -2,7 +2,7 @@ import ast
 
 import pytest
 
-from stlite_server.astmod import patch
+from stlite_server.codemod import patch
 
 
 @pytest.mark.parametrize(

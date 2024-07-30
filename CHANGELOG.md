@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.61.0] - 2024-07-30
+
+### `@stlite/kernel`
+
+#### Added
+
+- Runtime AST transformation to convert `time.sleep()` to `await asyncio.sleep()`, [#1021](https://github.com/whitphx/stlite/pull/1021).
+
 ## [0.60.3] - 2024-07-26
 
 ### `@stlite/kernel`

@@ -11,7 +11,6 @@ python = "^3.12"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
 requests = "^2.32.3"
-mypy = "^1.11.0"
 streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240603"
 matplotlib = "^3.9.1"
@@ -25,18 +24,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff.lint]
 extend-select = ["I"]
-
-[tool.mypy]
-check_untyped_defs = true
-mypy_path = "../../../../streamlit/lib"
-
-[[tool.mypy.overrides]]
-module = ["streamlit", "streamlit.*", "tests.*"]
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = ["st_aggrid"]
-ignore_missing_imports = true
 
 [tool.pyright]
 include = ["stlite_server"]

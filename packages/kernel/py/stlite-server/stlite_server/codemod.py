@@ -1,11 +1,22 @@
 import ast
 from contextlib import contextmanager
 from enum import Enum
-from typing import Self, cast
+from typing import NamedTuple, Self, cast
 
 # These units defines "code block" in Python. See https://docs.python.org/3/reference/executionmodel.html#structure-of-a-program
 CodeBlockNode = ast.Module | ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
 ChildCodeBlockNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
+
+
+class ModuleFunction(NamedTuple):
+    module: str
+    func: str
+
+
+class AsyncMethodCallReplacement(NamedTuple):
+    module: str
+    func: str
+    module_alias_for_new_import: str
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -16,13 +27,23 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     else:
         raise ValueError("code must be a string or an ast.Module")
 
-    targets = {
-        ("time", "sleep"),
-        ("streamlit", "write_stream"),
+    rules = {
+        ModuleFunction(module="time", func="sleep"): AsyncMethodCallReplacement(
+            module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
+        ),
+        ModuleFunction(
+            module="streamlit", func="write_stream"
+        ): AsyncMethodCallReplacement(
+            module="streamlit",
+            func="write_stream",
+            module_alias_for_new_import="__streamlit__",  # This shouldn't be used because the queried module is the same as the replaced module
+        ),
     }
+    targets = set(rules.keys())
+
     scanner = CodeBlockStaticScanner("__main__", None, targets)
     node_scanner_map = scanner.process(tree)
-    transformer = CodeBlockTransformer("__main__", None, targets, node_scanner_map)
+    transformer = CodeBlockTransformer("__main__", None, rules, node_scanner_map)
     new_tree = transformer.process(tree)
     new_tree = ast.fix_missing_locations(new_tree)
 
@@ -49,7 +70,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         self,
         code_block_name: str,
         parent_scanner: Self | None,
-        wildcard_import_targets: set[tuple[str, str]],
+        wildcard_import_targets: set[ModuleFunction],
     ) -> None:
         """Scan a code block.
         The `process()` method recursively instantiates this class and scans the child code blocks
@@ -281,7 +302,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self,
         code_block_name: str,
         parent_transformer: Self | None,
-        targets: set[tuple[str, str]],
+        rules: dict[ModuleFunction, AsyncMethodCallReplacement],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
     ) -> None:
         super().__init__()
@@ -292,7 +313,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         self.parent_transformer = parent_transformer
 
-        self.targets = targets
+        self.rules = rules
 
         self.code_block_full_name: str
         if parent_transformer:
@@ -442,54 +463,34 @@ class CodeBlockTransformer(ast.NodeTransformer):
         if func_fully_qual_name is None:
             return node
 
-        for target in self.targets:
+        for target, replacement in self.rules.items():
             if (
                 ".".join(target) == func_fully_qual_name
                 and func_fully_qual_name not in self.invalidated_names
             ):
-                return self._handle_target_call(node, target)
+                return self._handle_target_call(node, replacement)
 
         return node
 
-    def _handle_target_call(self, node: ast.Call, target: tuple[str, str]) -> ast.AST:
-        if target == ("time", "sleep"):
-            # Convert the node to `await asyncio.sleep(...)`
-            if "asyncio" in self.imported_modules:
-                asyncio_as_name = self.imported_modules["asyncio"]
-            else:
-                asyncio_as_name = "__asyncio__"
-                self.required_imports.add(("asyncio", asyncio_as_name))
-            return ast.Await(
-                value=ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id=asyncio_as_name, ctx=ast.Load()),
-                        attr="sleep",
-                        ctx=ast.Load(),
-                    ),
-                    args=node.args,
-                    keywords=node.keywords,
-                )
+    def _handle_target_call(
+        self, node: ast.Call, replacement: AsyncMethodCallReplacement
+    ) -> ast.AST:
+        if replacement.module in self.imported_modules:
+            module_as_name = self.imported_modules[replacement.module]
+        else:
+            module_as_name = replacement.module_alias_for_new_import
+            self.required_imports.add((replacement.module, module_as_name))
+        return ast.Await(
+            value=ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                    attr=replacement.func,
+                    ctx=ast.Load(),
+                ),
+                args=node.args,
+                keywords=node.keywords,
             )
-        elif target == ("streamlit", "write_stream"):
-            # Convert the node to `await st.write_stream(...)`
-            if "streamlit" in self.imported_modules:
-                streamlit_as_name = self.imported_modules["streamlit"]
-            else:
-                streamlit_as_name = "streamlit"
-                self.required_imports.add(("streamlit", streamlit_as_name))
-            return ast.Await(
-                value=ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id=streamlit_as_name, ctx=ast.Load()),
-                        attr="write_stream",
-                        ctx=ast.Load(),
-                    ),
-                    args=node.args,
-                    keywords=node.keywords,
-                )
-            )
-
-        return node
+        )
 
     def visit(self, node: ast.AST) -> ast.AST:
         is_control_flow = isinstance(
@@ -517,7 +518,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     return node
 
                 transformer = CodeBlockTransformer(
-                    node.name, self, self.targets, self._node_scanner_map
+                    node.name, self, self.rules, self._node_scanner_map
                 )
                 return transformer.process(node)
 
@@ -549,7 +550,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     if node.module:
                         if alias.name == "*":
                             # For a wild-card import, add a binding for a target whose module name is matched.
-                            for module, name in self.targets:
+                            for module, name in self.rules.keys():
                                 if node.module == module:
                                     self._bind_name(name, module + "." + name)
                         else:

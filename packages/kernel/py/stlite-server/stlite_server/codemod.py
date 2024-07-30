@@ -12,6 +12,10 @@ class ModuleFunction(NamedTuple):
     module: str
     func: str
 
+    @property
+    def full_name(self) -> str:
+        return self.module + "." + self.func
+
 
 class AsyncMethodCallReplacement(NamedTuple):
     module: str
@@ -257,9 +261,9 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
                     if node.module:
                         if alias.name == "*":
                             # For a wild-card import, add a binding for a target whose module name is matched.
-                            for module, name in self.wildcard_import_targets:
-                                if node.module == module:
-                                    self._bind_name(name, module + "." + name)
+                            for target in self.wildcard_import_targets:
+                                if node.module == target.module:
+                                    self._bind_name(target.func, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)
@@ -550,9 +554,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     if node.module:
                         if alias.name == "*":
                             # For a wild-card import, add a binding for a target whose module name is matched.
-                            for module, name in self.rules.keys():
-                                if node.module == module:
-                                    self._bind_name(name, module + "." + name)
+                            for target in self.rules.keys():
+                                if node.module == target.module:
+                                    self._bind_name(target.func, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)

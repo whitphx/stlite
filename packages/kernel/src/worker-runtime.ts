@@ -4,7 +4,7 @@ import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
-import { mockPyArrow, mockToml } from "./mock";
+import { mockPyArrow } from "./mock";
 import { tryModuleAutoLoad } from "./module-auto-load";
 import type {
   WorkerInitialData,
@@ -204,9 +204,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       console.debug("Mock pyarrow");
       mockPyArrow(pyodide);
       console.debug("Mocked pyarrow");
-      console.debug("Mocking toml");
-      mockToml(pyodide);
-      console.debug("Mocked toml");
     }
 
     // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
@@ -244,9 +241,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
       console.debug("Mock pyarrow");
       mockPyArrow(pyodide);
       console.debug("Mocked pyarrow");
-      console.debug("Mock toml");
-      mockToml(pyodide);
-      console.debug("Mocked toml");
     } else {
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });

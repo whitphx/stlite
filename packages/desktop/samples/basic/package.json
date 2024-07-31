@@ -27,7 +27,8 @@
     "desktop": {
       "files": [
         "app.py",
-        "pages/*.py"
+        "pages/*.py",
+        ".streamlit/config.toml"
       ],
       "entrypoint": "app.py",
       "requirementsTxtFiles": [

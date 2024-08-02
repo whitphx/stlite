@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.62.0] - 2024-07-31
+## [0.62.1] - 2024-08-02
 
 ### `@stlite/kernel`
 
 #### Added
 
 - Use `tomllib` for config parsing, [#1037](https://github.com/whitphx/stlite/pull/1037).
+
+## [0.62.0]
+
+Skipped due to GitHub Actions issue.
 
 ## [0.61.0] - 2024-07-30
 

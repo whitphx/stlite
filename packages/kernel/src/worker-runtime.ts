@@ -183,16 +183,8 @@ export function startWorkerEnv(
     mockPyArrow(pyodide);
     console.debug("Mocked pyarrow");
 
-    // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
-    // which satisfies the following two requirements:
-    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    // ===
-    // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
+    // NOTE: Installing packages must be AFTER restoring the archives
+    // because they may contain packages to be restored into the site-packages directory.
     postProgressMessage("Installing packages.");
 
     console.debug("Installing the prebuilt packages:", prebuiltPackages);
@@ -206,6 +198,15 @@ export function startWorkerEnv(
         "and the requirements:",
         requirements,
       );
+      // NOTE: It's important to install the user-specified requirements
+      // and the custom Streamlit and stlite wheels in the same `micropip.install` call,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
       await micropip.install.callKwargs(
         [wheels.stliteServer, wheels.streamlit, ...requirements],
         { keep_going: true },

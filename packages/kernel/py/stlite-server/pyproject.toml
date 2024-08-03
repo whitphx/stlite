@@ -16,7 +16,7 @@ pandas-stubs = "^2.2.2.240603"
 matplotlib = "^3.9.1"
 ruff = "^0.5.5"
 pyodide-py = "^0.26.1"
-pyright = "^1.1.373"
+pyright = "^1.1.374"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

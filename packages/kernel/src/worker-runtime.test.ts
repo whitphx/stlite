@@ -151,7 +151,8 @@ suite("Worker intergration test running an app", async () => {
   });
 
   for (const testSource of TEST_SOURCES) {
-    test.concurrent(
+    test(
+      // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
       `Running ${testSource.entrypoint}`,
       async () => {
         const files = Object.fromEntries(

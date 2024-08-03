@@ -82,7 +82,6 @@ export function startWorkerEnv(
       requirements: unvalidatedRequirements,
       prebuiltPackageNames: prebuiltPackages,
       wheels,
-      mountedSitePackagesSnapshotFilePath,
       pyodideUrl = defaultPyodideUrl,
       streamlitConfig,
       idbfsMountpoints,
@@ -176,35 +175,13 @@ export function startWorkerEnv(
       }),
     );
 
-    if (!mountedSitePackagesSnapshotFilePath && !wheels) {
-      throw new Error(`Neither snapshot nor wheel files are provided.`);
-    }
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
 
-    if (mountedSitePackagesSnapshotFilePath) {
-      // Restore the site-packages director(y|ies) from the mounted snapshot file.
-      postProgressMessage("Restoring the snapshot.");
-
-      await pyodide.runPythonAsync(`import tarfile, shutil, site`);
-
-      // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
-      // assuming these directories will be extracted from the snapshot archive.
-      await pyodide.runPythonAsync(`
-site_packages_dirs = site.getsitepackages()
-for site_packages in site_packages_dirs:
-    shutil.rmtree(site_packages)
-`);
-      console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
-      await pyodide.runPythonAsync(`
-with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
-    tar_gz_file.extractall("/")
-`);
-      console.debug("Restored the snapshot");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
-    }
+    postProgressMessage("Mocking some packages.");
+    console.debug("Mock pyarrow");
+    mockPyArrow(pyodide);
+    console.debug("Mocked pyarrow");
 
     // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
     // which satisfies the following two requirements:
@@ -222,8 +199,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
     await pyodide.loadPackage(prebuiltPackages);
     console.debug("Installed the prebuilt packages");
 
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
     if (wheels) {
       console.debug(
         "Installing the wheels:",
@@ -236,11 +211,6 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
         { keep_going: true },
       );
       console.debug("Installed the wheels and the requirements");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
     } else {
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });

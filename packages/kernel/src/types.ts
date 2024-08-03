@@ -53,7 +53,6 @@ export interface WorkerInitialData {
     stliteServer: string;
     streamlit: string;
   };
-  mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;

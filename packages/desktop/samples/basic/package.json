@@ -28,6 +28,7 @@
       "files": [
         "app.py",
         "pages/*.py",
+        "data",
         ".streamlit/config.toml"
       ],
       "entrypoint": "app.py",

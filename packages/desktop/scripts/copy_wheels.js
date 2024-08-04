@@ -16,9 +16,9 @@ async function main() {
   const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
 
   // TODO: Set the wheel file names dynamically
-  const stliteServerWheelPath = path.join(
+  const stliteLibWheelPath = path.join(
     stliteKernelPyDir,
-    "stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl",
+    "stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
   );
   const streamlitWheelPath = path.join(
     stliteKernelPyDir,
@@ -35,7 +35,7 @@ async function main() {
   await fsPromises.mkdir(wheelsDir);
 
   // Copy the wheels to the `wheels` directory
-  await copyFileToDir(stliteServerWheelPath, wheelsDir);
+  await copyFileToDir(stliteLibWheelPath, wheelsDir);
   await copyFileToDir(streamlitWheelPath, wheelsDir);
 }
 

@@ -208,7 +208,7 @@ export function startWorkerEnv(
       // which avoids the problem of https://github.com/whitphx/stlite/issues/675
       // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
       await micropip.install.callKwargs(
-        [wheels.stliteServer, wheels.streamlit, ...requirements],
+        [wheels.stliteLib, wheels.streamlit, ...requirements],
         { keep_going: true },
       );
       console.debug("Installed the wheels and the requirements");
@@ -379,8 +379,8 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
     };
     await pyodide.runPythonAsync(`
-from stlite_server.bootstrap import load_config_options, prepare
-from stlite_server.server import Server
+from stlite_lib.bootstrap import load_config_options, prepare
+from stlite_lib.server import Server
 from js import __streamlitFlagOptions__
 
 flag_options = __streamlitFlagOptions__.to_py()

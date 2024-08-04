@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "stlite-server"
+name = "stlite-lib"
 version = "0.1.0"
 description = ""
 authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]
@@ -26,11 +26,11 @@ build-backend = "poetry.core.masonry.api"
 extend-select = ["I"]
 
 [tool.pyright]
-include = ["stlite_server"]
+include = ["stlite_lib"]
 extraPaths = ["../../../../streamlit/lib"]
 
 [tool.pytest.ini_options]
 pythonpath = "../../../../streamlit/lib"
 testpaths = [
-    "stlite_server_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
+    "stlite_lib_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
 ]

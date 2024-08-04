@@ -27,8 +27,8 @@ jobs:
     outputs:
       common: ${{ steps.filter.outputs.common == 'true' || env.RUN_ALL_TESTS == 'true' }}
       kernel: ${{ steps.filter.outputs.kernel == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      # stlite-server: ${{ steps.filter.outputs.stlite-server == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      stlite-server: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-server job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      stlite-lib: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       mountable: ${{ steps.filter.outputs.mountable == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || env.RUN_ALL_TESTS == 'true' }}
@@ -45,8 +45,8 @@ jobs:
           kernel:
             - 'packages/kernel/**/*'
             # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
-          # stlite-server:  # We run this job anytime. See above.
-          #   - 'packages/kernel/py/stlite-server/**/*'
+          # stlite-lib:  # We run this job anytime. See above.
+          #   - 'packages/kernel/py/stlite-lib/**/*'
           #   - 'streamlit/**/*'
           mountable:
             - 'packages/mountable/**/*'
@@ -113,9 +113,9 @@ jobs:
     - run: make kernel-test
       working-directory: .
 
-  test-stlite-server:
+  test-stlite-lib:
     needs: changes
-    if: ${{ needs.changes.outputs.stlite-server == 'true' }}
+    if: ${{ needs.changes.outputs.stlite-lib == 'true' }}
 
     runs-on: ubuntu-latest
 
@@ -133,7 +133,7 @@ jobs:
       shell: bash
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/stlite-server
+        cd packages/kernel/py/stlite-lib
         poetry install
 
     - name: Set up Streamlit and build proto
@@ -144,21 +144,21 @@ jobs:
     - name: Run Ruff
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/stlite-server
+        cd packages/kernel/py/stlite-lib
         poetry run ruff check --output-format=github .
         poetry run ruff format . --check
 
     - name: Run pyright
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/stlite-server
+        cd packages/kernel/py/stlite-lib
         poetry run pyright
 
     - name: Run pytest
       shell: bash
       run: |
         . .venv/bin/activate
-        cd packages/kernel/py/stlite-server
+        cd packages/kernel/py/stlite-lib
         poetry run python -m pytest -v
 
   test-mountable:
@@ -275,7 +275,7 @@ jobs:
 
   build-mountable:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-server, test-mountable]
+    needs: [test-kernel, test-stlite-lib, test-mountable]
 
     runs-on: ubuntu-latest
 
@@ -331,24 +331,24 @@ jobs:
         name: "@stlite/mountable"
         input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
 
-    # Also get stats of the built wheel files of stlite-server and streamlit in this job.
+    # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
     - name: Get the built wheel file path
       id: get-wheel-file-path
       working-directory:
       run: |
-        pushd packages/kernel/py/stlite-server/dist
-        echo "STLITE_SERVER_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_server-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
+        pushd packages/kernel/py/stlite-lib/dist
+        echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
         popd
 
         pushd packages/kernel/py/streamlit/lib/dist
         echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
         popd
-    - name: "Inform the package stats of stlite-server wheel"
+    - name: "Inform the package stats of stlite-lib wheel"
       uses: ./.github/actions/inform-package-stats
       with:
-        key: stlite-server-wheel
-        name: "stlite-server wheel (built as a part of @stlite/mountable)"
-        input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_SERVER_WHEEL_FILEPATH }}
+        key: stlite-lib-wheel
+        name: "stlite-lib wheel (built as a part of @stlite/mountable)"
+        input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
     - name: "Inform the package stats of streamlit wheel"
       uses: ./.github/actions/inform-package-stats
       with:
@@ -392,7 +392,7 @@ jobs:
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-server, test-sharing-common]
+    needs: [test-kernel, test-stlite-lib, test-sharing-common]
 
     runs-on: ubuntu-latest
 
@@ -526,7 +526,7 @@ jobs:
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-build-common, test-kernel, test-stlite-server, test-desktop]
+    needs: [test-build-common, test-kernel, test-stlite-lib, test-desktop]
 
     runs-on: ubuntu-latest
 

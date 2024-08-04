@@ -50,7 +50,7 @@ export interface WorkerInitialData {
   prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
-    stliteServer: string;
+    stliteLib: string;
     streamlit: string;
   };
   streamlitConfig?: StreamlitConfig;

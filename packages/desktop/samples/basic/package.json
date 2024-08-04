@@ -33,8 +33,7 @@
       "entrypoint": "app.py",
       "requirementsTxtFiles": [
         "requirements.txt"
-      ],
-      "nodeJsWorker": true
+      ]
     }
   }
 }

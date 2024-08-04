@@ -77,11 +77,7 @@ export interface StliteKernelOptions {
    */
   wheelBaseUrl?: string;
 
-  /**
-   * If specified, the worker restores the site-packages directories from this archive file
-   * and skip installing the wheels and required packages.
-   */
-  mountedSitePackagesSnapshotFilePath?: string;
+  skipStliteWheelsInstall?: boolean;
 
   /**
    * In the original Streamlit, the `hostConfig` endpoint returns a value of this type
@@ -182,7 +178,7 @@ export class StliteKernel {
     };
 
     let wheels: WorkerInitialData["wheels"] = undefined;
-    if (options.mountedSitePackagesSnapshotFilePath == null) {
+    if (!options.skipStliteWheelsInstall) {
       console.debug("Custom wheel URLs:", {
         STLITE_SERVER_WHEEL,
         STREAMLIT_WHEEL,
@@ -215,8 +211,6 @@ export class StliteKernel {
       prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
       wheels,
-      mountedSitePackagesSnapshotFilePath:
-        options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,

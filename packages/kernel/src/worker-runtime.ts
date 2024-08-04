@@ -82,7 +82,6 @@ export function startWorkerEnv(
       requirements: unvalidatedRequirements,
       prebuiltPackageNames: prebuiltPackages,
       wheels,
-      mountedSitePackagesSnapshotFilePath,
       pyodideUrl = defaultPyodideUrl,
       streamlitConfig,
       idbfsMountpoints,
@@ -176,54 +175,22 @@ export function startWorkerEnv(
       }),
     );
 
-    if (!mountedSitePackagesSnapshotFilePath && !wheels) {
-      throw new Error(`Neither snapshot nor wheel files are provided.`);
-    }
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
 
-    if (mountedSitePackagesSnapshotFilePath) {
-      // Restore the site-packages director(y|ies) from the mounted snapshot file.
-      postProgressMessage("Restoring the snapshot.");
+    postProgressMessage("Mocking some packages.");
+    console.debug("Mock pyarrow");
+    mockPyArrow(pyodide);
+    console.debug("Mocked pyarrow");
 
-      await pyodide.runPythonAsync(`import tarfile, shutil, site`);
-
-      // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
-      // assuming these directories will be extracted from the snapshot archive.
-      await pyodide.runPythonAsync(`
-site_packages_dirs = site.getsitepackages()
-for site_packages in site_packages_dirs:
-    shutil.rmtree(site_packages)
-`);
-      console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
-      await pyodide.runPythonAsync(`
-with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
-    tar_gz_file.extractall("/")
-`);
-      console.debug("Restored the snapshot");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
-    }
-
-    // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
-    // which satisfies the following two requirements:
-    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    // ===
-    // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
+    // NOTE: Installing packages must be AFTER restoring the archives
+    // because they may contain packages to be restored into the site-packages directory.
     postProgressMessage("Installing packages.");
 
     console.debug("Installing the prebuilt packages:", prebuiltPackages);
     await pyodide.loadPackage(prebuiltPackages);
     console.debug("Installed the prebuilt packages");
 
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
     if (wheels) {
       console.debug(
         "Installing the wheels:",
@@ -231,16 +198,20 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
         "and the requirements:",
         requirements,
       );
+      // NOTE: It's important to install the user-specified requirements
+      // and the custom Streamlit and stlite wheels in the same `micropip.install` call,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
       await micropip.install.callKwargs(
         [wheels.stliteServer, wheels.streamlit, ...requirements],
         { keep_going: true },
       );
       console.debug("Installed the wheels and the requirements");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
     } else {
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });

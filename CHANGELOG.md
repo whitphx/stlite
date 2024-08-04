@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.62.2] - 2024-08-04
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Remove the `mountedSitePackagesSnapshotFilePath` option, [#1041](https://github.com/whitphx/stlite/pull/1041).
+- Internal package updates.
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Use the `archives` option instead of `mountedSitePackagesSnapshotFilePath`, [#1041](https://github.com/whitphx/stlite/pull/1041).
+
 ## [0.62.1] - 2024-08-02
 
 ### `@stlite/kernel`

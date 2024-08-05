@@ -11,9 +11,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "stlite_server.whl": path.resolve(
+      "stlite_lib.whl": path.resolve(
         __dirname,
-        "./py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl",
+        "./py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
       ),
       "streamlit.whl": path.resolve(
         __dirname,

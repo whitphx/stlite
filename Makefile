@@ -6,7 +6,7 @@ sharing-common := packages/sharing-common/dist/*
 sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
-stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
+stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.36.0-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
@@ -96,21 +96,21 @@ $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/deskto
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel; \
 	yarn build
 	@touch $@
 
 .PHONY: kernel-test
-kernel-test: packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel)
+kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
 
-.PHONY: stlite-server-wheel
-stlite-server-wheel: $(stlite-server-wheel)
-$(stlite-server-wheel): venv packages/kernel/py/stlite-server/stlite_server/*.py
+.PHONY: stlite-lib-wheel
+stlite-lib-wheel: $(stlite-lib-wheel)
+$(stlite-lib-wheel): venv packages/kernel/py/stlite-lib/stlite_lib/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/kernel/py/stlite-server && \
+	cd packages/kernel/py/stlite-lib && \
 	poetry build
 	@touch $@
 
@@ -144,4 +144,4 @@ $(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) stream
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:
-	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(stlite-server-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
+	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

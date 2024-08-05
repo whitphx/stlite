@@ -18,7 +18,7 @@
 
 from unittest.mock import patch
 
-from stlite_server import bootstrap
+from stlite_lib import bootstrap
 
 
 @patch("streamlit.config.get_config_options")
@@ -49,8 +49,8 @@ def test_load_config_options(patched_get_config_options):
     )
 
 
-@patch("stlite_server.bootstrap.invalidate_pages_cache")
-@patch("stlite_server.bootstrap.watch_dir")
+@patch("stlite_lib.bootstrap.invalidate_pages_cache")
+@patch("stlite_lib.bootstrap.watch_dir")
 def test_install_pages_watcher(patched_watch_dir, patched_invalidate_pages_cache):
     bootstrap._install_pages_watcher("/foo/bar/streamlit_app.py")
 

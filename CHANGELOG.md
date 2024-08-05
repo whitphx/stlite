@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.62.3] - 2024-08-05
+
+### `@stlite/kernel`
+
+#### Fixed
+
+Rename `stlite-server` to `stlite-lib`, [#1047](https://github.com/whitphx/stlite/pull/1047).
+
 ## [0.62.2] - 2024-08-04
 
 ### `@stlite/kernel`

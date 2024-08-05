@@ -3,7 +3,7 @@ import streamlit as st
 st.title("Sub page")
 
 st.markdown("""
-_stlite_ supports **Multi Page Apps (MPA)**, of course!
+_Stlite_ supports **Multi Page Apps (MPA)**, of course!
 
 Create `pages/*.py` like this file to add new pages.
 

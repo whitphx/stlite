@@ -20643,7 +20643,7 @@ source-map-explorer@^2.5.3:
     temp "^0.9.4"
     yargs "^16.2.0"
 
-"source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.1, source-map-js@^1.2.0:
+"source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.1, source-map-js@^1.0.2, source-map-js@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.0.tgz#16b809c162517b5b8c3e7dcd315a2a5c2612b2af"
   integrity sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==
@@ -20656,6 +20656,14 @@ source-map-loader@^3.0.0:
     abab "^2.0.5"
     iconv-lite "^0.6.3"
     source-map-js "^1.0.1"
+
+source-map-loader@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/source-map-loader/-/source-map-loader-5.0.0.tgz#f593a916e1cc54471cfc8851b905c8a845fc7e38"
+  integrity sha512-k2Dur7CbSLcAH73sBcIkV5xjPV4SzqO1NJ7+XaQl8if3VODDUj3FNchNGpqgJSKbvUfJuhVdv8K2Eu8/TNl2eA==
+  dependencies:
+    iconv-lite "^0.6.3"
+    source-map-js "^1.0.2"
 
 source-map-support@^0.5.19, source-map-support@^0.5.6, source-map-support@~0.5.20:
   version "0.5.21"

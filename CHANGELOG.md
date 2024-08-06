@@ -7,26 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.62.4] - 2024-08-06
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Pyodide to 0.26.2, [#1051](https://github.com/whitphx/stlite/pull/1051).
+
 ## [0.62.3] - 2024-08-05
 
 ### `@stlite/kernel`
 
-#### Fixed
+#### Changed
 
-Rename `stlite-server` to `stlite-lib`, [#1047](https://github.com/whitphx/stlite/pull/1047).
+- Rename `stlite-server` to `stlite-lib`, [#1047](https://github.com/whitphx/stlite/pull/1047).
 
 ## [0.62.2] - 2024-08-04
 
 ### `@stlite/kernel`
 
-#### Fixed
+#### Changed
 
 - Remove the `mountedSitePackagesSnapshotFilePath` option, [#1041](https://github.com/whitphx/stlite/pull/1041).
 - Internal package updates.
 
 ### `@stlite/desktop`
 
-#### Fixed
+#### Changed
 
 - Use the `archives` option instead of `mountedSitePackagesSnapshotFilePath`, [#1041](https://github.com/whitphx/stlite/pull/1041).
 

@@ -221,8 +221,8 @@ export function startWorkerEnv(
 
       const DEFAULT_CHANNEL = "default channel";
 
+      const promises: Promise<void>[] = [];
       for (const path of prebuiltPackagePaths) {
-        console.debug(`Prepare the prebuilt package: ${path}`);
         const pkgData = uriToPackageData(path);
         console.log({ pkgData });
         if (!pkgData) {
@@ -257,8 +257,9 @@ export function startWorkerEnv(
           });
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        await pyodide._api.loadDynlibsFromPackage(pkg, dynlibs);
+        promises.push(pyodide._api.loadDynlibsFromPackage(pkg, dynlibs));
       }
+      await Promise.all(promises);
       console.debug("Loaded the prebuilt packages snapshot");
     }
 

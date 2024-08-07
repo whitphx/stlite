@@ -39,6 +39,28 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
+// Regexp for validating package name and URI
+const packageUriRegex = /^.*?([^/]*)\.whl$/;
+
+/**
+ * Extract package name from a wheel URI.
+ * TODO: validate if the URI is a valid wheel URI.
+ * @param packageUri The wheel URI.
+ * @returns The package name.
+ * @private
+ */
+function uriToPackageData(packageUri: string) {
+  const match = packageUriRegex.exec(packageUri);
+  if (match) {
+    const wheelName = match[1].toLowerCase().split("-");
+    return {
+      name: wheelName[0],
+      version: wheelName[1],
+      fileName: wheelName.join("-") + ".whl",
+    };
+  }
+}
+
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
@@ -82,6 +104,7 @@ export function startWorkerEnv(
       requirements: unvalidatedRequirements,
       prebuiltPackageNames: prebuiltPackages,
       wheels,
+      prebuiltPackagesArchiveUrl,
       pyodideUrl = defaultPyodideUrl,
       streamlitConfig,
       idbfsMountpoints,
@@ -177,6 +200,67 @@ export function startWorkerEnv(
 
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
+
+    if (prebuiltPackagesArchiveUrl) {
+      console.debug(
+        "Loading the prebuilt packages snapshot",
+        prebuiltPackagesArchiveUrl,
+      );
+      const sitePackagesSnapshot = await fetch(prebuiltPackagesArchiveUrl)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => new Uint8Array(buffer));
+      pyodide.unpackArchive(sitePackagesSnapshot, "gztar", {
+        extractDir: "/tmp/pyodide-prebuilt-packages",
+      });
+      const downloadedPrebuiltPackages = pyodide.FS.readdir(
+        "/tmp/pyodide-prebuilt-packages/pyodide",
+      ).filter((name: string) => name.endsWith(".whl")); // The file list includes "." and ".." so we filter them out.
+      const prebuiltPackagePaths = downloadedPrebuiltPackages.map(
+        (name: string) => `/tmp/pyodide-prebuilt-packages/pyodide/${name}`,
+      );
+
+      const DEFAULT_CHANNEL = "default channel";
+
+      for (const path of prebuiltPackagePaths) {
+        console.debug(`Prepare the prebuilt package: ${path}`);
+        const pkgData = uriToPackageData(path);
+        console.log({ pkgData });
+        if (!pkgData) {
+          console.error(`Invalid package URI: ${path}`);
+          continue;
+        }
+        const normalizedName = pkgData.name;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const pkg = pyodide._api.lockfile_packages[normalizedName];
+        if (!pkg) {
+          console.error(
+            `Package ${normalizedName} is not found in the lock file.`,
+          );
+          continue;
+        }
+        const buffer: Uint8Array = pyodide.FS.readFile(path, {
+          encoding: "binary",
+        });
+        const filename = pkg.file_name;
+        const channel = pkg.name;
+        const dynlibs: string[] =
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          pyodide._api.package_loader.unpack_buffer.callKwargs({
+            buffer,
+            filename,
+            target: pkg.install_dir,
+            calculate_dynlibs: true,
+            installer: "pyodide.loadPackage",
+            source: channel === DEFAULT_CHANNEL ? "pyodide" : channel,
+          });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        await pyodide._api.loadDynlibsFromPackage(pkg, dynlibs);
+      }
+      console.debug("Loaded the prebuilt packages snapshot");
+    }
 
     postProgressMessage("Mocking some packages.");
     console.debug("Mock pyarrow");

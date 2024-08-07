@@ -53,6 +53,7 @@ export interface WorkerInitialData {
     stliteLib: string;
     streamlit: string;
   };
+  prebuiltPackagesArchiveUrl?: string;
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;

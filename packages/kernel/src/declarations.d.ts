@@ -8,3 +8,8 @@ declare module "*.whl" {
   const res: string;
   return res;
 }
+
+declare module "*.tar.gz" {
+  const res: string;
+  return res;
+}

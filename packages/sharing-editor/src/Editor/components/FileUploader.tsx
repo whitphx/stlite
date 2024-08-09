@@ -1,13 +1,17 @@
 import React from "react";
-import { RiUpload2Line } from "react-icons/ri";
+import { RiUpload2Line, RiFolderUploadLine } from "react-icons/ri";
 import styles from "./FileUploader.module.scss";
 
 type InputProps = JSX.IntrinsicElements["input"];
-function FileUploader(props: InputProps) {
+interface FileUploaderProps extends InputProps {
+  directoryIcon?: boolean;
+}
+function FileUploader(props: FileUploaderProps) {
+  const { directoryIcon, ...inputProps } = props;
   return (
     <label className={styles.label}>
-      <RiUpload2Line />
-      <input type="file" {...props} className={styles.fileInput} />
+      {directoryIcon ? <RiFolderUploadLine /> : <RiUpload2Line />}
+      <input type="file" {...inputProps} className={styles.fileInput} />
     </label>
   );
 }

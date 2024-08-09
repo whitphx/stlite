@@ -15,7 +15,10 @@ import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
 import ResizableHeader from "./components/ResizableHeader";
 import BinaryFileEditor from "./BinaryFileEditor";
-import FileUploader, { FileUploaderProps } from "./FileUploader";
+import FileUploader, {
+  FileUploaderProps,
+  isDirectoryUploadSupported,
+} from "./FileUploader";
 import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
 import ThemeSelect from "./components/ThemeSelect";
@@ -244,6 +247,9 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
               <div className={styles.controlButtonGroup}>
                 <AddButton onClick={handleCreateFile} />
                 <FileUploader onUpload={handleFileUpload} />
+                {isDirectoryUploadSupported && (
+                  <FileUploader onUpload={handleFileUpload} directory />
+                )}
               </div>
 
               <div className={styles.requirementsTabContainer}>

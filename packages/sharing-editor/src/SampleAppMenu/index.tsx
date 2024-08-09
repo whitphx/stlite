@@ -28,6 +28,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
           const isActive = currentSampleAppId === sampleAppManifest.id;
           return (
             <li
+              key={sampleAppManifest.id}
               className={classNames(styles.listItem, {
                 [styles.active]: isActive,
               })}

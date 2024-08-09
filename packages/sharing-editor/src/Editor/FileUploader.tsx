@@ -40,7 +40,16 @@ function FileUploader({ onUpload }: FileUploaderProps) {
     [onUpload],
   );
 
-  return <FileUploaderComponent onChange={handleFileChange} multiple />;
+  return (
+    <FileUploaderComponent
+      onChange={handleFileChange}
+      multiple
+      // Allow selecting directories. Ref: https://stackoverflow.com/a/55615518/13103190
+      /* @ts-expect-error */
+      directory=""
+      webkitdirectory=""
+    />
+  );
 }
 
 export default FileUploader;

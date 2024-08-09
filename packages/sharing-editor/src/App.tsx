@@ -223,14 +223,21 @@ function App() {
 
   const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
     (entrypoint) => {
-      // TODO
-      appData &&
-        initializeAppData({
-          ...appData,
+      iframeRef.current?.postMessage({
+        type: "reboot",
+        data: {
           entrypoint,
-        });
+        },
+      });
+
+      updateAppData((cur) => {
+        return {
+          ...cur,
+          entrypoint,
+        };
+      });
     },
-    [initializeAppData, appData],
+    [updateAppData],
   );
 
   const handleIframeMessage = useCallback<

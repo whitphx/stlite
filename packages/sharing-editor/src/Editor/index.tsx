@@ -237,6 +237,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                 return (
                   <Tab
                     key={fileName}
+                    isEntrypoint={isEntrypoint}
                     selected={fileName === currentFileName}
                     fileNameEditable
                     initInEditingModeIfSelected={fileName === addedFileName}
@@ -279,6 +280,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
               <div className={styles.requirementsTabContainer}>
                 <Tab
+                  isEntrypoint={false}
                   selected={currentFileName === REQUIREMENTS_FILENAME}
                   fileNameEditable={false}
                   initInEditingModeIfSelected={false}

@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
+import { AiTwotonePlaySquare } from "react-icons/ai";
 import { PiDotsThreeOutlineVertical } from "react-icons/pi";
 import { isValidFilePath } from "../../path";
 import styles from "./Tab.module.scss";
@@ -72,16 +73,16 @@ function FileNameForm({
 }
 
 const WHITESPACE = "\u00A0";
-interface SelectedTabProps {
+interface EditableTabBodyProps {
   fileName: string;
   shouldBeEditingByDefault: boolean;
   onFileNameChange: (fileName: string) => void;
 }
-function SelectedTab({
+function EditableTabBody({
   fileName,
   shouldBeEditingByDefault,
   onFileNameChange,
-}: SelectedTabProps) {
+}: EditableTabBodyProps) {
   const [fileNameEditing, setFileNameEditing] = useState(
     shouldBeEditingByDefault,
   );
@@ -106,8 +107,8 @@ function SelectedTab({
   const displayFileNameNoSpace =
     displayFileName.length > 0 ? displayFileName : WHITESPACE;
   return (
-    <span className={styles.selectedTab}>
-      <span className={styles.selectedTabInner}>
+    <span className={styles.editableTabBody}>
+      <span className={styles.editableTabBodyInner}>
         <span onClick={startFileNameEditing}>{displayFileNameNoSpace}</span>
         {fileNameEditing && (
           <FileNameForm
@@ -132,7 +133,11 @@ function DropdownMenu(props: DropdownMenuProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleButtonClick = () => {
+  const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (
+    event,
+  ) => {
+    event.stopPropagation(); // To prevent the dropdown from closing immediately by the document click event caught by `handleClickOutside` below.
+
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setPosition({ top: rect.bottom, left: rect.left });
@@ -191,6 +196,7 @@ function DropdownMenu(props: DropdownMenuProps) {
 }
 
 interface TabProps {
+  isEntrypoint: boolean;
   fileName: string;
   selected: boolean;
   fileNameEditable: boolean;
@@ -202,6 +208,7 @@ interface TabProps {
 }
 
 function Tab({
+  isEntrypoint,
   fileName,
   selected,
   fileNameEditable,
@@ -211,25 +218,31 @@ function Tab({
   onFileNameChange,
   onSetEntrypoint,
 }: TabProps) {
-  return (
-    <div
-      className={`${styles.tabFrame} ${selected && styles.tabFrameSelected}`}
-    >
-      {fileNameEditable && selected ? (
-        <SelectedTab
+  return React.createElement(
+    selected ? "div" : "button",
+    {
+      className: `${styles.tabFrame} ${selected && styles.tabFrameSelected}`,
+      onClick: selected ? undefined : onSelect,
+    },
+    [
+      isEntrypoint && (
+        <span className={styles.entrypointIndicator}>
+          <AiTwotonePlaySquare />
+        </span>
+      ),
+      fileNameEditable && selected ? (
+        <EditableTabBody
           fileName={fileName}
           shouldBeEditingByDefault={initInEditingModeIfSelected}
           onFileNameChange={onFileNameChange}
         />
       ) : (
-        <button onClick={onSelect} className={styles.tabButton}>
-          {fileName}
-        </button>
-      )}
-      {(onDelete || onSetEntrypoint) && (
+        fileName
+      ),
+      (onDelete || onSetEntrypoint) && (
         <DropdownMenu onDelete={onDelete} onSetEntrypoint={onSetEntrypoint} />
-      )}
-    </div>
+      ),
+    ],
   );
 }
 

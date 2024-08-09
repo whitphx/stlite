@@ -2,6 +2,8 @@
 @use "mixins";
 
 .tabFrame {
+  @include mixins.reset-button;
+
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -10,9 +12,8 @@
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.05);
   border: rgba(0, 0, 0, 0.1) 1px solid;
-  padding-top: var.$tab-highlight-height;
   height: var.$tab-height;
-  padding: 0 0.5rem;
+  padding: var.$tab-highlight-height 0.5rem 0 0.5rem;
 }
 
 .tabFrame:hover {
@@ -25,19 +26,19 @@
   border-bottom: rgba(255,255,255,0) 1px solid;
 }
 
-.tabButton {
-  @include mixins.reset-button;
-
-  width: 100%;
-  height: 100%;
-}
-
-.selectedTab {
+.editableTabBody {
   display: inline-block;
 }
 
-.selectedTabInner {
+.editableTabBodyInner {
   position: relative;
+}
+
+.entrypointIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.3rem;
 }
 
 .fileNameForm {
@@ -61,8 +62,11 @@
 .dropdownButton {
   @include mixins.reset-button;
 
+  display: flex;
   width: 1rem;
-  margin: auto -0.3rem auto 0;
+  align-items: center;
+  justify-content: center;
+  margin-right: -0.3rem;
 
   font-size: 0.6rem;
   cursor: pointer;

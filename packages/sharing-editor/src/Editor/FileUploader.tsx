@@ -31,7 +31,9 @@ function FileUploader({ onUpload, directory = false }: FileUploaderProps) {
       for (let idx = 0; idx < e.target.files.length; ++idx) {
         const file = e.target.files[idx];
 
-        const name = directory ? file.webkitRelativePath : file.name;
+        const name = directory
+          ? file.webkitRelativePath.split("/").slice(1).join("/") // Remove the first segment of the path to get rid of the directory name.
+          : file.name;
 
         fileReadPromises.push(
           readArrayBuffer(file).then((arrayBuffer) => ({

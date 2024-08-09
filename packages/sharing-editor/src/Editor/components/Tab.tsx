@@ -1,7 +1,14 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { RiDeleteBinLine } from "react-icons/ri";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
+import { PiDotsThreeOutlineVertical } from "react-icons/pi";
 import { isValidFilePath } from "../../path";
 import styles from "./Tab.module.scss";
+import ReactDOM from "react-dom";
 
 interface FileNameFormProps {
   defaultFileName: string;
@@ -115,20 +122,71 @@ function SelectedTab({
   );
 }
 
-interface DeleteButtonProps {
-  onClick: () => void;
-  disabled: boolean;
+interface DropdownMenuProps {
+  onDelete?: () => void;
+  onSetEntrypoint?: () => void;
 }
-function DeleteButton(props: DeleteButtonProps) {
+function DropdownMenu(props: DropdownMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleButtonClick = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({ top: rect.bottom, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (buttonRef.current && buttonRef.current.contains(event.target as Node)) {
+      return;
+    }
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <button
-      onClick={props.onClick}
-      disabled={props.disabled}
-      tabIndex={-1}
-      className={styles.deleteButton}
-    >
-      <RiDeleteBinLine />
-    </button>
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleButtonClick}
+        className={styles.dropdownButton}
+      >
+        <PiDotsThreeOutlineVertical />
+      </button>
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div
+            className={styles.dropdownContent}
+            ref={dropdownRef}
+            style={{
+              position: "absolute",
+              top: position.top,
+              left: position.left,
+            }}
+          >
+            {props.onDelete && <button onClick={props.onDelete}>Delete</button>}
+            {props.onSetEntrypoint && (
+              <button onClick={props.onSetEntrypoint}>Set as entrypoint</button>
+            )}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -138,8 +196,9 @@ interface TabProps {
   fileNameEditable: boolean;
   initInEditingModeIfSelected: boolean;
   onSelect: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onFileNameChange: (fileName: string) => void;
+  onSetEntrypoint?: () => void;
 }
 
 function Tab({
@@ -150,6 +209,7 @@ function Tab({
   onSelect,
   onDelete,
   onFileNameChange,
+  onSetEntrypoint,
 }: TabProps) {
   return (
     <div
@@ -166,9 +226,9 @@ function Tab({
           {fileName}
         </button>
       )}
-      <div className={styles.deleteButtonContainer}>
-        <DeleteButton onClick={onDelete} disabled={!fileNameEditable} />
-      </div>
+      {(onDelete || onSetEntrypoint) && (
+        <DropdownMenu onDelete={onDelete} onSetEntrypoint={onSetEntrypoint} />
+      )}
     </div>
   );
 }

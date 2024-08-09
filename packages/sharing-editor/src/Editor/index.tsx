@@ -38,11 +38,19 @@ export interface EditorProps {
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
   onRequirementsChange: (requirements: string[]) => void;
+  onEntrypointChange: (entrypoint: string) => void;
 }
 
 const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
-    { appData, onFileWrite, onFileRename, onFileDelete, onRequirementsChange },
+    {
+      appData,
+      onFileWrite,
+      onFileRename,
+      onFileDelete,
+      onRequirementsChange,
+      onEntrypointChange,
+    },
     ref,
   ) => {
     // Keep the tab order
@@ -232,7 +240,11 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                   initInEditingModeIfSelected={fileName === addedFileName}
                   fileName={fileName}
                   onSelect={() => setCurrentFileName(fileName)}
-                  onDelete={() => handleFileDelete(fileName)}
+                  onDelete={
+                    fileName !== appData.entrypoint
+                      ? () => handleFileDelete(fileName)
+                      : undefined
+                  }
                   onFileNameChange={(newPath) => {
                     onFileRename(fileName, newPath);
                     setTabFileNames((cur) =>
@@ -242,6 +254,13 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                       setCurrentFileName(newPath);
                     }
                   }}
+                  onSetEntrypoint={
+                    fileName !== appData.entrypoint && fileName.endsWith(".py")
+                      ? () => {
+                          onEntrypointChange(fileName);
+                        }
+                      : undefined
+                  }
                 />
               ))}
               <div className={styles.controlButtonGroup}>
@@ -259,7 +278,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                   initInEditingModeIfSelected={false}
                   fileName={REQUIREMENTS_FILENAME}
                   onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
-                  onDelete={() => null}
                   onFileNameChange={() => null}
                 />
               </div>

@@ -10,7 +10,9 @@
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.05);
   border: rgba(0, 0, 0, 0.1) 1px solid;
+  padding-top: var.$tab-highlight-height;
   height: var.$tab-height;
+  padding: 0 0.5rem;
 }
 
 .tabFrame:hover {
@@ -20,51 +22,18 @@
 .tabFrameSelected {
   background: initial;
   border-top: var(--c-primary) var.$tab-highlight-height solid;
-  margin-top: -(var.$tab-highlight-height);
-  border-bottom: none;
-  position: relative;
+  border-bottom: rgba(255,255,255,0) 1px solid;
 }
-
-$tabPaddingLeft: 0.5rem;
-$deleteButtonSpaceWidth: 1.2rem;
 
 .tabButton {
   @include mixins.reset-button;
 
   width: 100%;
   height: 100%;
-  padding-left: $tabPaddingLeft;
-  padding-right: $deleteButtonSpaceWidth;
-}
-
-.deleteButtonContainer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  padding-top: var.$tab-highlight-height;
-  pointer-events: none;
-}
-
-.deleteButton {
-  @include mixins.reset-button;
-
-  font-size: 0.6rem;
-
-  padding: 0.2rem;
-
-  pointer-events: initial;
-}
-.deleteButton:not([disabled]):hover {
-  color: var(--c-primary);
 }
 
 .selectedTab {
   display: inline-block;
-  padding-left: $tabPaddingLeft;
-  padding-right: $deleteButtonSpaceWidth;
 }
 
 .selectedTabInner {
@@ -87,4 +56,38 @@ $deleteButtonSpaceWidth: 1.2rem;
 }
 .fileNameInputError {
   border: red 1px solid;
+}
+
+.dropdownButton {
+  @include mixins.reset-button;
+
+  width: 1rem;
+  margin: auto -0.3rem auto 0;
+
+  font-size: 0.6rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--c-primary);
+  }
+}
+
+.dropdownContent {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+
+  button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+
+    &:hover {
+      background-color: #f1f1f1;
+    }
+  }
 }

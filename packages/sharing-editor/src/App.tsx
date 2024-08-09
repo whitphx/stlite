@@ -221,6 +221,18 @@ function App() {
     [updateAppData],
   );
 
+  const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
+    (entrypoint) => {
+      // TODO
+      appData &&
+        initializeAppData({
+          ...appData,
+          entrypoint,
+        });
+    },
+    [initializeAppData, appData],
+  );
+
   const handleIframeMessage = useCallback<
     StliteSharingIFrameProps["onMessage"]
   >(
@@ -272,6 +284,7 @@ function App() {
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}
               onRequirementsChange={handleRequirementsChange}
+              onEntrypointChange={handleEntrypointChange}
             />
           }
           right={

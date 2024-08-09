@@ -7,6 +7,12 @@ export interface ForwardMessageBase {
   type: string;
   data?: unknown;
 }
+export interface RebootMessage extends ForwardMessageBase {
+  type: "reboot";
+  data: {
+    entrypoint: string;
+  };
+}
 export interface FileWriteMessage extends ForwardMessageBase {
   type: "file:write";
   data: {
@@ -34,6 +40,7 @@ export interface InstallMessage extends ForwardMessageBase {
   };
 }
 export type ForwardMessage =
+  | RebootMessage
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage

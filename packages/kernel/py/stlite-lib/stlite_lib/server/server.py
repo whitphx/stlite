@@ -5,6 +5,7 @@ import urllib.parse
 from typing import Callable, Final, cast
 
 import pyodide.ffi
+from streamlit import source_util
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
@@ -210,7 +211,17 @@ class Server:
 
     def stop(self):
         self._websocket_handler.on_close()
+
+        # `Runtime.stop()` doesn't stop the running tasks immediately,
+        # but we don't need to wait for them to finish for the current use case,
+        # e.g. booting up a new server and replacing the old one.
         self._runtime.stop()
+        Runtime._instance = None
+
+        # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
+        # to resolve the page info, caches the pages in the module-level variable, `source_util._cached_pages`.
+        # We need to invalidate this cache to avoid using the old cache when booting up a new server.
+        source_util.invalidate_pages_cache()
 
 
 class WebSocketHandler(SessionClient):

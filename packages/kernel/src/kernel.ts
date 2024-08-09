@@ -306,6 +306,15 @@ export class StliteKernel {
     });
   }
 
+  public reboot(entrypoint: string): Promise<void> {
+    return this._asyncPostMessage({
+      type: "reboot",
+      data: {
+        entrypoint,
+      },
+    });
+  }
+
   private _asyncPostMessage(
     message: InMessage,
   ): Promise<ReplyMessageGeneralReply["data"]>;

@@ -438,6 +438,32 @@ server.start()
 
     try {
       switch (msg.type) {
+        case "reboot": {
+          console.debug("Reboot the Streamlit server", msg.data);
+
+          const { entrypoint } = msg.data;
+
+          httpServer.stop();
+
+          await pyodide.runPythonAsync(`
+from stlite_lib.server import Server
+
+main_script_path = "${entrypoint}"
+
+server = Server(main_script_path)
+server.start()
+`);
+          console.debug("Booted up the Streamlit server");
+
+          console.debug("Setting up the HTTP server");
+          httpServer = pyodide.globals.get("server").copy();
+          console.debug("Set up the HTTP server");
+
+          messagePort.postMessage({
+            type: "reply",
+          });
+          break;
+        }
         case "websocket:connect": {
           console.debug("websocket:connect", msg.data);
 

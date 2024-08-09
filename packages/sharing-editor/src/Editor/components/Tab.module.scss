@@ -2,6 +2,8 @@
 @use "mixins";
 
 .tabFrame {
+  @include mixins.reset-button;
+
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -11,6 +13,7 @@
   background: rgba(0, 0, 0, 0.05);
   border: rgba(0, 0, 0, 0.1) 1px solid;
   height: var.$tab-height;
+  padding: var.$tab-highlight-height 0.5rem 0 0.5rem;
 }
 
 .tabFrame:hover {
@@ -20,55 +23,45 @@
 .tabFrameSelected {
   background: initial;
   border-top: var(--c-primary) var.$tab-highlight-height solid;
-  margin-top: -(var.$tab-highlight-height);
-  border-bottom: none;
+  border-bottom: rgba(255,255,255,0) 1px solid;
+}
+
+.editableTabBody {
+  display: inline-block;
+}
+
+.editableTabBodyInner {
   position: relative;
 }
 
-$tabPaddingLeft: 0.5rem;
-$deleteButtonSpaceWidth: 1.2rem;
-
-.tabButton {
-  @include mixins.reset-button;
-
-  width: 100%;
-  height: 100%;
-  padding-left: $tabPaddingLeft;
-  padding-right: $deleteButtonSpaceWidth;
-}
-
-.deleteButtonContainer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
+.entrypointIndicator {
   display: flex;
   align-items: center;
-  padding-top: var.$tab-highlight-height;
-  pointer-events: none;
-}
-
-.deleteButton {
-  @include mixins.reset-button;
-
-  font-size: 0.6rem;
-
-  padding: 0.2rem;
-
-  pointer-events: initial;
-}
-.deleteButton:not([disabled]):hover {
-  color: var(--c-primary);
-}
-
-.selectedTab {
-  display: inline-block;
-  padding-left: $tabPaddingLeft;
-  padding-right: $deleteButtonSpaceWidth;
-}
-
-.selectedTabInner {
+  justify-content: center;
+  margin-right: 0.3rem;
   position: relative;
+
+  .tooltip {
+    display: none;
+
+    position: absolute;
+    top: 0;
+    transform: translate(0, -50%);
+    left: 100%;
+    z-index: 1;
+    font-size: 0.7rem;
+    text-align: center;
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    background-color: rgba(0,0,0,0.6);
+    color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    pointer-events: none;
+  }
+
+  &:hover .tooltip {
+    display: block;
+  }
 }
 
 .fileNameForm {
@@ -87,4 +80,41 @@ $deleteButtonSpaceWidth: 1.2rem;
 }
 .fileNameInputError {
   border: red 1px solid;
+}
+
+.dropdownButton {
+  @include mixins.reset-button;
+
+  display: flex;
+  width: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-right: -0.3rem;
+
+  font-size: 0.6rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--c-primary);
+  }
+}
+
+.dropdownContent {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--c-background);
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+
+  button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+
+    &:hover {
+      background-color: var(--c-background-hover);
+    }
+  }
 }

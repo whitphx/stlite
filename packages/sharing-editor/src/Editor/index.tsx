@@ -232,37 +232,43 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         <ResizableHeader
           resizableArea={
             <TabBar>
-              {fileNames.map((fileName) => (
-                <Tab
-                  key={fileName}
-                  selected={fileName === currentFileName}
-                  fileNameEditable={fileName !== appData.entrypoint}
-                  initInEditingModeIfSelected={fileName === addedFileName}
-                  fileName={fileName}
-                  onSelect={() => setCurrentFileName(fileName)}
-                  onDelete={
-                    fileName !== appData.entrypoint
-                      ? () => handleFileDelete(fileName)
-                      : undefined
-                  }
-                  onFileNameChange={(newPath) => {
-                    onFileRename(fileName, newPath);
-                    setTabFileNames((cur) =>
-                      cur.map((f) => (f === fileName ? newPath : f)),
-                    );
-                    if (fileName === currentFileName) {
-                      setCurrentFileName(newPath);
+              {fileNames.map((fileName) => {
+                const isEntrypoint = fileName === appData.entrypoint;
+                return (
+                  <Tab
+                    key={fileName}
+                    selected={fileName === currentFileName}
+                    fileNameEditable
+                    initInEditingModeIfSelected={fileName === addedFileName}
+                    fileName={fileName}
+                    onSelect={() => setCurrentFileName(fileName)}
+                    onDelete={
+                      !isEntrypoint
+                        ? () => handleFileDelete(fileName)
+                        : undefined
                     }
-                  }}
-                  onSetEntrypoint={
-                    fileName !== appData.entrypoint && fileName.endsWith(".py")
-                      ? () => {
-                          onEntrypointChange(fileName);
-                        }
-                      : undefined
-                  }
-                />
-              ))}
+                    onFileNameChange={(newPath) => {
+                      onFileRename(fileName, newPath);
+                      setTabFileNames((cur) =>
+                        cur.map((f) => (f === fileName ? newPath : f)),
+                      );
+                      if (fileName === currentFileName) {
+                        setCurrentFileName(newPath);
+                      }
+                      if (isEntrypoint) {
+                        onEntrypointChange(newPath);
+                      }
+                    }}
+                    onSetEntrypoint={
+                      !isEntrypoint && fileName.endsWith(".py")
+                        ? () => {
+                            onEntrypointChange(fileName);
+                          }
+                        : undefined
+                    }
+                  />
+                );
+              })}
               <div className={styles.controlButtonGroup}>
                 <AddButton onClick={handleCreateFile} />
                 <FileUploader onUpload={handleFileUpload} />

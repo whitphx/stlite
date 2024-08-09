@@ -228,6 +228,7 @@ function Tab({
       isEntrypoint && (
         <span className={styles.entrypointIndicator}>
           <AiTwotonePlaySquare />
+          <span className={styles.tooltip}>Entrypoint</span>
         </span>
       ),
       fileNameEditable && selected ? (

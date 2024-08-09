@@ -39,6 +39,29 @@
   align-items: center;
   justify-content: center;
   margin-right: 0.3rem;
+  position: relative;
+
+  .tooltip {
+    display: none;
+
+    position: absolute;
+    top: 0;
+    transform: translate(0, -50%);
+    left: 100%;
+    z-index: 1;
+    font-size: 0.7rem;
+    text-align: center;
+    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    background-color: rgba(0,0,0,0.6);
+    color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    pointer-events: none;
+  }
+
+  &:hover .tooltip {
+    display: block;
+  }
 }
 
 .fileNameForm {
@@ -79,7 +102,7 @@
 .dropdownContent {
   display: flex;
   flex-direction: column;
-  background-color: white;
+  background-color: var(--c-background);
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 
   button {
@@ -91,7 +114,7 @@
     width: 100%;
 
     &:hover {
-      background-color: #f1f1f1;
+      background-color: var(--c-background-hover);
     }
   }
 }

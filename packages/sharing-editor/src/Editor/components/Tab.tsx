@@ -108,17 +108,15 @@ function EditableTabBody({
     displayFileName.length > 0 ? displayFileName : WHITESPACE;
   return (
     <span className={styles.editableTabBody}>
-      <span className={styles.editableTabBodyInner}>
-        <span onClick={startFileNameEditing}>{displayFileNameNoSpace}</span>
-        {fileNameEditing && (
-          <FileNameForm
-            defaultFileName={fileName}
-            onChange={setTmpFileName}
-            onFinish={handleEditFinish}
-            onCancel={handleEditCancel}
-          />
-        )}
-      </span>
+      <span onClick={startFileNameEditing}>{displayFileNameNoSpace}</span>
+      {fileNameEditing && (
+        <FileNameForm
+          defaultFileName={fileName}
+          onChange={setTmpFileName}
+          onFinish={handleEditFinish}
+          onCancel={handleEditCancel}
+        />
+      )}
     </span>
   );
 }

@@ -11,9 +11,10 @@
   margin-bottom: 4px;
   font-size: 0.8rem;
   background: rgba(0, 0, 0, 0.05);
-  border: rgba(0, 0, 0, 0.1) 1px solid;
+  border: rgba(0, 0, 0, 0.1) var.$border-width solid;
   height: var.$tab-height;
-  padding: var.$tab-highlight-height 0.5rem 0 0.5rem;
+  padding: 0 0.5rem;
+  line-height: normal;
 }
 
 .tabFrame:hover {
@@ -22,12 +23,39 @@
 
 .tabFrameSelected {
   background: initial;
-  border-top: var(--c-primary) var.$tab-highlight-height solid;
-  border-bottom: rgba(255,255,255,0) 1px solid;
+  border-bottom: rgba(255,255,255,0) var.$border-width solid;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: - var.$border-width;
+    left: 0;
+    width: 100%;
+    height: var.$tab-highlight-height;
+    background-color: var(--c-primary);
+  }
 }
 
 .editableTabBody {
   display: inline-block;
+  position: relative;
+
+  .fileNameForm {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+  }
+
+  .fileNameInput {
+    @include mixins.reset-input;
+
+    display: inline-block;
+    width: 100%;
+  }
+  .fileNameInputError {
+    border: red 1px solid;
+  }
 }
 
 .editableTabBodyInner {
@@ -62,24 +90,6 @@
   &:hover .tooltip {
     display: block;
   }
-}
-
-.fileNameForm {
-  display: inline-block;
-  position: absolute;
-  width: 100%;
-  left: 0;
-  top: 0;
-}
-
-.fileNameInput {
-  @include mixins.reset-input;
-
-  display: inline-block;
-  width: 100%;
-}
-.fileNameInputError {
-  border: red 1px solid;
 }
 
 .dropdownButton {

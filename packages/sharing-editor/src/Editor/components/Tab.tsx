@@ -221,14 +221,14 @@ function Tab({
       "aria-selected": selected,
       onClick: selected ? undefined : onSelect,
     },
-    [
-      isEntrypoint && (
+    <>
+      {isEntrypoint && (
         <span className={styles.entrypointIndicator}>
           <AiTwotonePlaySquare />
           <span className={styles.tooltip}>Entrypoint</span>
         </span>
-      ),
-      fileNameEditable && selected ? (
+      )}
+      {fileNameEditable && selected ? (
         <EditableTabBody
           fileName={fileName}
           shouldBeEditingByDefault={initInEditingModeIfSelected}
@@ -236,11 +236,11 @@ function Tab({
         />
       ) : (
         fileName
-      ),
-      (onDelete || onEntrypointSet) && (
+      )}
+      {(onDelete || onEntrypointSet) && (
         <DropdownMenu onDelete={onDelete} onSetEntrypoint={onEntrypointSet} />
-      ),
-    ],
+      )}
+    </>,
   );
 }
 

@@ -200,7 +200,7 @@ interface TabProps {
   onSelect: () => void;
   onDelete?: () => void;
   onFileNameChange: (fileName: string) => void;
-  onSetEntrypoint?: () => void;
+  onEntrypointSet?: () => void;
 }
 function Tab({
   isEntrypoint,
@@ -211,7 +211,7 @@ function Tab({
   onSelect,
   onDelete,
   onFileNameChange,
-  onSetEntrypoint,
+  onEntrypointSet,
 }: TabProps) {
   return React.createElement(
     selected ? "div" : "button",
@@ -237,8 +237,8 @@ function Tab({
       ) : (
         fileName
       ),
-      (onDelete || onSetEntrypoint) && (
-        <DropdownMenu onDelete={onDelete} onSetEntrypoint={onSetEntrypoint} />
+      (onDelete || onEntrypointSet) && (
+        <DropdownMenu onDelete={onDelete} onSetEntrypoint={onEntrypointSet} />
       ),
     ],
   );

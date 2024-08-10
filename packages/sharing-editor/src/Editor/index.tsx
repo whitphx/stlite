@@ -260,7 +260,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                         onEntrypointChange(newPath);
                       }
                     }}
-                    onSetEntrypoint={
+                    onEntrypointSet={
                       !isEntrypoint && fileName.endsWith(".py")
                         ? () => {
                             onEntrypointChange(fileName);

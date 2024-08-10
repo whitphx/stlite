@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.63.0] - 2024-08-10
+
+### `@stlite/kernel`
+
+#### Added
+
+- `StliteKernel.reboot()` method, [#1061](https://github.com/whitphx/stlite/pull/1061).
+
 ## [0.62.4] - 2024-08-06
 
 ### `@stlite/kernel`

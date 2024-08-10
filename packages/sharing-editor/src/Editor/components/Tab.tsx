@@ -133,19 +133,17 @@ function DropdownMenu(props: DropdownMenuProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (
-    event,
-  ) => {
-    event.stopPropagation(); // To prevent the dropdown from closing immediately by the document click event caught by `handleClickOutside` below.
+  const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> =
+    useCallback((event) => {
+      event.stopPropagation(); // To prevent the dropdown from closing immediately by the document click event caught by `handleClickOutside` below.
 
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+      const clickedButton = event.currentTarget;
+      const rect = clickedButton.getBoundingClientRect();
       setPosition({ top: rect.bottom, left: rect.left });
-    }
-    setIsOpen(!isOpen);
-  };
+      setIsOpen((cur) => !cur);
+    }, []);
 
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback((event: MouseEvent) => {
     if (buttonRef.current && buttonRef.current.contains(event.target as Node)) {
       return;
     }
@@ -155,14 +153,14 @@ function DropdownMenu(props: DropdownMenuProps) {
     ) {
       setIsOpen(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [handleClickOutside]);
 
   return (
     <>

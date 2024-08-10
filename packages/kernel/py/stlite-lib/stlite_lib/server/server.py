@@ -219,8 +219,8 @@ class Server:
         Runtime._instance = None
 
         # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
-        # to resolve the page info, caches the pages in the module-level variable, `source_util._cached_pages`.
-        # We need to invalidate this cache to avoid using the old cache when booting up a new server.
+        # to resolve the pages info, caches the pages in the module-level variable `source_util._cached_pages`.
+        # We need to invalidate this cache to avoid using the old pages info when booting up a new server.
         source_util.invalidate_pages_cache()
 
 

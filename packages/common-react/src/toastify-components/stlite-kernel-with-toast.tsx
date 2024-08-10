@@ -91,4 +91,12 @@ export class StliteKernelWithToast {
       error: "Failed to install",
     });
   }
+
+  public reboot(...args: Parameters<StliteKernel["reboot"]>) {
+    return stliteStyledPromiseToast<void>(this.kernel.reboot(...args), {
+      pending: "Rebooting",
+      success: "Successfully rebooted",
+      error: "Failed to reboot",
+    });
+  }
 }

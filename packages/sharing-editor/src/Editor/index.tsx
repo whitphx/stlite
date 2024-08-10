@@ -38,11 +38,19 @@ export interface EditorProps {
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
   onRequirementsChange: (requirements: string[]) => void;
+  onEntrypointChange: (entrypoint: string) => void;
 }
 
 const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
-    { appData, onFileWrite, onFileRename, onFileDelete, onRequirementsChange },
+    {
+      appData,
+      onFileWrite,
+      onFileRename,
+      onFileDelete,
+      onRequirementsChange,
+      onEntrypointChange,
+    },
     ref,
   ) => {
     // Keep the tab order
@@ -224,26 +232,44 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         <ResizableHeader
           resizableArea={
             <TabBar>
-              {fileNames.map((fileName) => (
-                <Tab
-                  key={fileName}
-                  selected={fileName === currentFileName}
-                  fileNameEditable={fileName !== appData.entrypoint}
-                  initInEditingModeIfSelected={fileName === addedFileName}
-                  fileName={fileName}
-                  onSelect={() => setCurrentFileName(fileName)}
-                  onDelete={() => handleFileDelete(fileName)}
-                  onFileNameChange={(newPath) => {
-                    onFileRename(fileName, newPath);
-                    setTabFileNames((cur) =>
-                      cur.map((f) => (f === fileName ? newPath : f)),
-                    );
-                    if (fileName === currentFileName) {
-                      setCurrentFileName(newPath);
+              {fileNames.map((fileName) => {
+                const isEntrypoint = fileName === appData.entrypoint;
+                return (
+                  <Tab
+                    key={fileName}
+                    isEntrypoint={isEntrypoint}
+                    selected={fileName === currentFileName}
+                    fileNameEditable
+                    initInEditingModeIfSelected={fileName === addedFileName}
+                    fileName={fileName}
+                    onSelect={() => setCurrentFileName(fileName)}
+                    onDelete={
+                      !isEntrypoint
+                        ? () => handleFileDelete(fileName)
+                        : undefined
                     }
-                  }}
-                />
-              ))}
+                    onFileNameChange={(newPath) => {
+                      onFileRename(fileName, newPath);
+                      setTabFileNames((cur) =>
+                        cur.map((f) => (f === fileName ? newPath : f)),
+                      );
+                      if (fileName === currentFileName) {
+                        setCurrentFileName(newPath);
+                      }
+                      if (isEntrypoint) {
+                        onEntrypointChange(newPath);
+                      }
+                    }}
+                    onEntrypointSet={
+                      !isEntrypoint && fileName.endsWith(".py")
+                        ? () => {
+                            onEntrypointChange(fileName);
+                          }
+                        : undefined
+                    }
+                  />
+                );
+              })}
               <div className={styles.controlButtonGroup}>
                 <AddButton onClick={handleCreateFile} />
                 <FileUploader onUpload={handleFileUpload} />
@@ -254,12 +280,12 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
               <div className={styles.requirementsTabContainer}>
                 <Tab
+                  isEntrypoint={false}
                   selected={currentFileName === REQUIREMENTS_FILENAME}
                   fileNameEditable={false}
                   initInEditingModeIfSelected={false}
                   fileName={REQUIREMENTS_FILENAME}
                   onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
-                  onDelete={() => null}
                   onFileNameChange={() => null}
                 />
               </div>

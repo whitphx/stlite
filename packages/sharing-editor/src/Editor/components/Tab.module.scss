@@ -15,24 +15,24 @@
   height: var.$tab-height;
   padding: 0 0.5rem;
   line-height: normal;
-}
 
-.tabFrame:hover {
-  background: initial;
-}
+  &:hover {
+    background: initial;
+  }
 
-.tabFrameSelected {
-  background: initial;
-  border-bottom: rgba(255,255,255,0) var.$border-width solid;
+  &[aria-selected=true] {
+    background: initial;
+    border-bottom: rgba(255,255,255,0) var.$border-width solid;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: - var.$border-width;
-    left: 0;
-    width: 100%;
-    height: var.$tab-highlight-height;
-    background-color: var(--c-primary);
+    &::before {
+      content: '';
+      position: absolute;
+      top: - var.$border-width;
+      left: 0;
+      width: 100%;
+      height: var.$tab-highlight-height;
+      background-color: var(--c-primary);
+    }
   }
 }
 

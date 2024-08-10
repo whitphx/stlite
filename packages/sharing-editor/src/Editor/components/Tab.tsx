@@ -216,7 +216,9 @@ function Tab({
   return React.createElement(
     selected ? "div" : "button",
     {
-      className: `${styles.tabFrame} ${selected && styles.tabFrameSelected}`,
+      className: styles.tabFrame,
+      role: "tab",
+      "aria-selected": selected,
       onClick: selected ? undefined : onSelect,
     },
     [

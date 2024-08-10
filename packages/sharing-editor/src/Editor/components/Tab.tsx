@@ -213,34 +213,34 @@ function Tab({
   onFileNameChange,
   onEntrypointSet,
 }: TabProps) {
-  return React.createElement(
-    selected ? "div" : "button",
-    {
-      className: styles.tabFrame,
-      role: "tab",
-      "aria-selected": selected,
-      onClick: selected ? undefined : onSelect,
-    },
-    <>
-      {isEntrypoint && (
-        <span className={styles.entrypointIndicator}>
-          <AiTwotonePlaySquare />
-          <span className={styles.tooltip}>Entrypoint</span>
-        </span>
-      )}
-      {fileNameEditable && selected ? (
-        <EditableTabBody
-          fileName={fileName}
-          shouldBeEditingByDefault={initInEditingModeIfSelected}
-          onFileNameChange={onFileNameChange}
-        />
-      ) : (
-        fileName
-      )}
+  return (
+    <div className={styles.tab}>
+      <button
+        className={styles.tabButton}
+        role="tab"
+        aria-selected={selected}
+        onClick={onSelect}
+      >
+        {isEntrypoint && (
+          <span className={styles.entrypointIndicator}>
+            <AiTwotonePlaySquare />
+            <span className={styles.tooltip}>Entrypoint</span>
+          </span>
+        )}
+        {fileNameEditable && selected ? (
+          <EditableTabBody
+            fileName={fileName}
+            shouldBeEditingByDefault={initInEditingModeIfSelected}
+            onFileNameChange={onFileNameChange}
+          />
+        ) : (
+          fileName
+        )}
+      </button>
       {(onDelete || onEntrypointSet) && (
         <DropdownMenu onDelete={onDelete} onSetEntrypoint={onEntrypointSet} />
       )}
-    </>,
+    </div>
   );
 }
 

@@ -308,7 +308,7 @@ export class StliteKernel {
 
   /**
    * Reboot the Streamlit server.
-   * Note that you also need to refresh (rerender) the frontend after calling this method
+   * Note that we also need to refresh (rerender) the frontend app after calling this method
    * to reflect the changes on the user-facing side.
    */
   public reboot(entrypoint: string): Promise<void> {

@@ -370,8 +370,8 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     }
 
     postProgressMessage("Booting up the Streamlit server.");
-    console.debug("Booting up the Streamlit server");
     // The following Python code is based on streamlit.web.cli.main_run().
+    console.debug("Setting up the Streamlit configuration");
     self.__streamlitFlagOptions__ = {
       // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
       "browser.gatherUsageStats": false,
@@ -380,7 +380,6 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     };
     await pyodide.runPythonAsync(`
 from stlite_lib.bootstrap import load_config_options, prepare
-from stlite_lib.server import Server
 from js import __streamlitFlagOptions__
 
 flag_options = __streamlitFlagOptions__.to_py()
@@ -390,16 +389,14 @@ main_script_path = "${entrypoint}"
 args = []
 
 prepare(main_script_path, args)
-
-server = Server(main_script_path)
-server.start()
 `);
-    console.debug("Booted up the Streamlit server");
+    console.debug("Set up the Streamlit configuration");
 
-    console.debug("Setting up the HTTP server");
-    // Pull the http server instance from Python world to JS world and set up it.
-    httpServer = pyodide.globals.get("server").copy();
-    console.debug("Set up the HTTP server");
+    console.debug("Booting up the Streamlit server");
+    const Server = pyodide.pyimport("stlite_lib.server.Server");
+    httpServer = Server(entrypoint);
+    httpServer.start();
+    console.debug("Booted up the Streamlit server");
 
     postMessage({
       type: "event:loaded",
@@ -445,19 +442,11 @@ server.start()
 
           httpServer.stop();
 
-          await pyodide.runPythonAsync(`
-from stlite_lib.server import Server
-
-main_script_path = "${entrypoint}"
-
-server = Server(main_script_path)
-server.start()
-`);
+          console.debug("Booting up the Streamlit server");
+          const Server = pyodide.pyimport("stlite_lib.server.Server");
+          httpServer = Server(entrypoint);
+          httpServer.start();
           console.debug("Booted up the Streamlit server");
-
-          console.debug("Setting up the HTTP server");
-          httpServer = pyodide.globals.get("server").copy();
-          console.debug("Set up the HTTP server");
 
           messagePort.postMessage({
             type: "reply",

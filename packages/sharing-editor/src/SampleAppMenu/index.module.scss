@@ -38,7 +38,7 @@ $indicator-width: 2px;
 
   a {
     text-decoration: none;
-    color: #333;
+    color: var(--c-text);
     display: block;
     width: 100%;
     height: 100%;
@@ -57,11 +57,11 @@ $kofi-widget-height: 65px; // See https://storage.ko-fi.com/cdn/scripts/overlay-
   margin-bottom: calc(6px + $kofi-widget-height);
 }
 
-.githubIconLink {
+a.githubIconLink {
   display: inline-flex;
   align-items: center;
   font-size: 36px;
-  color: #333;
+  color: var(--c-text);
 
   &:hover {
     animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;

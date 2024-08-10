@@ -8,8 +8,8 @@
   box-sizing: border-box;
   margin-bottom: 4px;
   font-size: 0.8rem;
-  background: rgba(0, 0, 0, 0.05);
-  border: rgba(0, 0, 0, 0.1) var.$border-width solid;
+  background: var(--c-button-background);
+  border: var(--c-border) var.$border-width solid;
   height: var.$tab-height;
   line-height: normal;
 
@@ -116,6 +116,7 @@
 .dropdownContent {
   display: flex;
   flex-direction: column;
+  color: var(--c-text);
   background-color: var(--c-background);
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 

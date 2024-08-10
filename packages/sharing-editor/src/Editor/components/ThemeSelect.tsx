@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "./ThemeSelect.module.scss";
 
 interface ThemeSelectProps {
   isDark: boolean;
@@ -9,6 +10,7 @@ function ThemeSelect(props: ThemeSelectProps) {
     <select
       value={props.isDark ? "dark" : "light"}
       onChange={(ev) => props.onChange(ev.target.value === "dark")}
+      className={styles.themeSelect}
     >
       <option value="dark">Dark</option>
       <option value="light">Light</option>

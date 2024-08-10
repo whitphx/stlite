@@ -5,11 +5,11 @@ import React, {
   useEffect,
   useRef,
 } from "react";
+import ReactDOM from "react-dom";
 import { AiTwotonePlaySquare } from "react-icons/ai";
 import { PiDotsThreeOutlineVertical } from "react-icons/pi";
 import { isValidFilePath } from "../../path";
 import styles from "./Tab.module.scss";
-import ReactDOM from "react-dom";
 
 interface FileNameFormProps {
   defaultFileName: string;
@@ -204,7 +204,6 @@ interface TabProps {
   onFileNameChange: (fileName: string) => void;
   onSetEntrypoint?: () => void;
 }
-
 function Tab({
   isEntrypoint,
   fileName,

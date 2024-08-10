@@ -6,6 +6,7 @@ import { URL_SEARCH_KEY_SAMPLE_APP_ID } from "../url";
 import classNames from "classnames";
 import logo from "../logo.svg";
 import styles from "./index.module.scss";
+import ColorSchemeSelector from "../ColorScheme/ColorSchemeSelector";
 
 function DisableableLink(
   props: React.ComponentProps<typeof Link> & { disabled?: boolean },
@@ -47,6 +48,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
         })}
       </ol>
       <div className={styles.footer}>
+        <ColorSchemeSelector />
         <a
           href="https://github.com/whitphx/stlite"
           target="_blank"

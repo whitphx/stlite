@@ -874,17 +874,17 @@ xml = ["lxml (>=4.9.2)"]
 
 [[package]]
 name = "pandas-stubs"
-version = "2.2.2.240805"
+version = "2.2.2.240807"
 description = "Type annotations for pandas"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pandas_stubs-2.2.2.240805-py3-none-any.whl", hash = "sha256:6413687e85851c7962e99f4d629ed86d0a3d91d4bd5fec269c8d871b30552172"},
-    {file = "pandas_stubs-2.2.2.240805.tar.gz", hash = "sha256:881a1a642a1fb8ec3b3787e036b0650d2bf0953f4e0ad1907eea164dc671ecee"},
+    {file = "pandas_stubs-2.2.2.240807-py3-none-any.whl", hash = "sha256:893919ad82be4275f0d07bb47a95d08bae580d3fdea308a7acfcb3f02e76186e"},
+    {file = "pandas_stubs-2.2.2.240807.tar.gz", hash = "sha256:64a559725a57a449f46225fbafc422520b7410bff9252b661a225b5559192a93"},
 ]
 
 [package.dependencies]
-numpy = {version = ">=2.0.0", markers = "python_version >= \"3.12\" and python_version < \"3.13\""}
+numpy = ">=1.23.5"
 types-pytz = ">=2022.1.1"
 
 [[package]]
@@ -1623,4 +1623,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "faf5d37739fb6c999e3d55e0bcab0b3c32ff8f5ce365ec972a6ffde127857e3e"
+content-hash = "a4504146ee23d1391ef0c86396ab6c8ed5c75116fa01bb4367df6f659ca375e2"

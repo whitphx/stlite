@@ -1,5 +1,7 @@
 @use "../mixins";
 
+$divider-width: 16px;
+
 .outerContainer {
   width: 100vw;
   overflow-x: hidden;
@@ -34,9 +36,9 @@
   top: 0;
   left: 50%;
   transform: translateX(-100%);
-  width: 16px;
+  width: $divider-width;
   height: 100%;
-  background-color: #000;
+  background-color: var(--c-background-inverted);
   z-index: 1;
   display: flex;
   justify-content: center;
@@ -60,8 +62,10 @@
 
 .leftResizableContainer {
   width: 100vw;
+  padding-right: $divider-width;
   @include mixins.responsive(md) {
     width: 50%;
+    padding: 0;
   }
 
   height: 100%;
@@ -69,8 +73,10 @@
 
 .rightContainer {
   width: 100vw;
+  padding-left: $divider-width;
   @include mixins.responsive(md) {
     width: initial;
+    padding: 0;
   }
 
   flex-grow: 1;

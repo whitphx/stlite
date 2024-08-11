@@ -15,25 +15,12 @@ function getAppColorSchemePreference(): ColorScheme {
   return "auto";
 }
 
-export const useDarkMode = (): boolean => {
-  const [systemDarkMode, setSystemDarkMode] = useState<boolean>(
-    window.matchMedia("(prefers-color-scheme: dark)").matches,
-  );
+export function useAppColorSchemePreference(): ColorScheme {
   const [appColorScheme, setAppColorScheme] = useState<ColorScheme>(
     getAppColorSchemePreference(),
   );
 
   useEffect(() => {
-    // Listen to the system color mode change
-    const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    );
-    const darkModeChangeListener = () =>
-      setSystemDarkMode(darkModeMediaQuery.matches);
-    darkModeMediaQuery.addEventListener("change", darkModeChangeListener);
-    darkModeChangeListener();
-
-    // Listen to the app color mode change
     const bodyClassListChangeListener = () => {
       setAppColorScheme(getAppColorSchemePreference());
     };
@@ -47,10 +34,38 @@ export const useDarkMode = (): boolean => {
     bodyClassListChangeListener();
 
     return () => {
-      darkModeMediaQuery.removeEventListener("change", darkModeChangeListener);
       bodyClassListObserver.disconnect();
     };
   }, []);
+
+  return appColorScheme;
+}
+
+export function useSystemColorSchemePreference(): "dark" | "light" {
+  const [systemDarkMode, setSystemDarkMode] = useState<boolean>(
+    window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
+
+  useEffect(() => {
+    const darkModeMediaQuery = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    );
+    const darkModeChangeListener = () =>
+      setSystemDarkMode(darkModeMediaQuery.matches);
+    darkModeMediaQuery.addEventListener("change", darkModeChangeListener);
+    darkModeChangeListener();
+
+    return () => {
+      darkModeMediaQuery.removeEventListener("change", darkModeChangeListener);
+    };
+  }, []);
+
+  return systemDarkMode ? "dark" : "light";
+}
+
+export const useDarkMode = (): boolean => {
+  const appColorScheme = useAppColorSchemePreference();
+  const systemColorScheme = useSystemColorSchemePreference();
 
   if (appColorScheme === "dark") {
     return true;
@@ -58,5 +73,5 @@ export const useDarkMode = (): boolean => {
   if (appColorScheme === "light") {
     return false;
   }
-  return systemDarkMode ?? false;
+  return systemColorScheme === "dark";
 };

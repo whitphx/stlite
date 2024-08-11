@@ -9,18 +9,20 @@ import React, {
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
 import { parseRequirementsTxt } from "@stlite/common";
-import { useLocalStorage } from "usehooks-ts";
 import TabBar from "./components/TabBar";
 import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
 import ResizableHeader from "./components/ResizableHeader";
 import BinaryFileEditor from "./BinaryFileEditor";
-import FileUploader, { FileUploaderProps } from "./FileUploader";
+import FileUploader, {
+  FileUploaderProps,
+  isDirectoryUploadSupported,
+} from "./FileUploader";
 import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
-import ThemeSelect from "./components/ThemeSelect";
 import styles from "./Editor.module.scss";
-import { isDarkMode } from "../color-mode";
+// import { isDarkMode } from "../color-mode";
+import { useDarkMode } from "../ColorScheme/hooks";
 
 let newFileCount = 1;
 
@@ -35,11 +37,19 @@ export interface EditorProps {
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
   onRequirementsChange: (requirements: string[]) => void;
+  onEntrypointChange: (entrypoint: string) => void;
 }
 
 const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
-    { appData, onFileWrite, onFileRename, onFileDelete, onRequirementsChange },
+    {
+      appData,
+      onFileWrite,
+      onFileRename,
+      onFileDelete,
+      onRequirementsChange,
+      onEntrypointChange,
+    },
     ref,
   ) => {
     // Keep the tab order
@@ -179,11 +189,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       [appData.requirements],
     );
 
-    const [isDarkTheme, setIsDarkTheme] = useLocalStorage(
-      "editor-theme",
-      isDarkMode(),
-    );
-
     useImperativeHandle(
       ref,
       () => ({
@@ -216,44 +221,67 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       [defaultRequirementsTextValue],
     );
 
+    const isDarkMode = useDarkMode();
+
     return (
       <div className={styles.container}>
         <ResizableHeader
           resizableArea={
             <TabBar>
-              {fileNames.map((fileName) => (
-                <Tab
-                  key={fileName}
-                  selected={fileName === currentFileName}
-                  fileNameEditable={fileName !== appData.entrypoint}
-                  initInEditingModeIfSelected={fileName === addedFileName}
-                  fileName={fileName}
-                  onSelect={() => setCurrentFileName(fileName)}
-                  onDelete={() => handleFileDelete(fileName)}
-                  onFileNameChange={(newPath) => {
-                    onFileRename(fileName, newPath);
-                    setTabFileNames((cur) =>
-                      cur.map((f) => (f === fileName ? newPath : f)),
-                    );
-                    if (fileName === currentFileName) {
-                      setCurrentFileName(newPath);
+              {fileNames.map((fileName) => {
+                const isEntrypoint = fileName === appData.entrypoint;
+                return (
+                  <Tab
+                    key={fileName}
+                    isEntrypoint={isEntrypoint}
+                    selected={fileName === currentFileName}
+                    fileNameEditable
+                    initInEditingModeIfSelected={fileName === addedFileName}
+                    fileName={fileName}
+                    onSelect={() => setCurrentFileName(fileName)}
+                    onDelete={
+                      !isEntrypoint
+                        ? () => handleFileDelete(fileName)
+                        : undefined
                     }
-                  }}
-                />
-              ))}
+                    onFileNameChange={(newPath) => {
+                      onFileRename(fileName, newPath);
+                      setTabFileNames((cur) =>
+                        cur.map((f) => (f === fileName ? newPath : f)),
+                      );
+                      if (fileName === currentFileName) {
+                        setCurrentFileName(newPath);
+                      }
+                      if (isEntrypoint) {
+                        onEntrypointChange(newPath);
+                      }
+                    }}
+                    onEntrypointSet={
+                      !isEntrypoint && fileName.endsWith(".py")
+                        ? () => {
+                            onEntrypointChange(fileName);
+                          }
+                        : undefined
+                    }
+                  />
+                );
+              })}
               <div className={styles.controlButtonGroup}>
                 <AddButton onClick={handleCreateFile} />
                 <FileUploader onUpload={handleFileUpload} />
+                {isDirectoryUploadSupported && (
+                  <FileUploader onUpload={handleFileUpload} directory />
+                )}
               </div>
 
               <div className={styles.requirementsTabContainer}>
                 <Tab
+                  isEntrypoint={false}
                   selected={currentFileName === REQUIREMENTS_FILENAME}
                   fileNameEditable={false}
                   initInEditingModeIfSelected={false}
                   fileName={REQUIREMENTS_FILENAME}
                   onSelect={() => setCurrentFileName(REQUIREMENTS_FILENAME)}
-                  onDelete={() => null}
                   onFileNameChange={() => null}
                 />
               </div>
@@ -263,7 +291,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
             showTextEditor && (
               <Toolbar>
                 <SaveButton onClick={handleSave} />
-                <ThemeSelect isDark={isDarkTheme} onChange={setIsDarkTheme} />
               </Toolbar>
             )
           }
@@ -291,7 +318,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                     : undefined
               }
               onMount={handleEditorDitMount}
-              theme={isDarkTheme ? "vs-dark" : "vs"}
+              theme={isDarkMode ? "vs-dark" : "vs"}
             />
           </div>
           {currentFileName != null &&

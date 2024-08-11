@@ -70,6 +70,12 @@ export interface InMessageInitData extends InMessageBase {
   type: "initData";
   data: WorkerInitialData;
 }
+export interface InMessageReboot extends InMessageBase {
+  type: "reboot";
+  data: {
+    entrypoint: string;
+  };
+}
 export interface InMessageWebSocketConnect extends InMessageBase {
   type: "websocket:connect";
   data: {
@@ -117,6 +123,7 @@ export interface InMessageInstall extends InMessageBase {
 }
 export type InMessage =
   | InMessageInitData
+  | InMessageReboot
   | InMessageWebSocketConnect
   | InMessageWebSocketSend
   | InMessageHttpRequest

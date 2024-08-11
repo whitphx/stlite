@@ -15,6 +15,7 @@ export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
   sharingAppSrc: string;
   initialAppData: AppData;
   messageTargetOrigin: string;
+  theme: "light" | "dark" | null;
   onMessage: (event: MessageEvent) => void;
 }
 const StliteSharingIFrame = React.forwardRef<
@@ -27,6 +28,7 @@ const StliteSharingIFrame = React.forwardRef<
       initialAppData,
       messageTargetOrigin,
       onMessage,
+      theme,
       ...iframeProps
     },
     ref,
@@ -34,12 +36,23 @@ const StliteSharingIFrame = React.forwardRef<
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const iframeSrc = useMemo(
-      () => embedAppDataToUrl(sharingAppSrc, initialAppData),
+      () => {
+        const urlParams = new URLSearchParams();
+        urlParams.append("embed", "true");
+        urlParams.append("embed_options", "show_toolbar");
+        if (theme) {
+          urlParams.append("embed_options", `${theme}_theme`);
+        }
+        return embedAppDataToUrl(
+          sharingAppSrc + "?" + urlParams.toString(),
+          initialAppData,
+        );
+      },
       // NOTE: `iframeSrc` should be calculated only for the initial `appData` and be persistent.
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc],
+      [sharingAppSrc, theme],
     );
 
     useImperativeHandle(

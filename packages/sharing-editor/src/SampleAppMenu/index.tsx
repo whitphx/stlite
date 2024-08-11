@@ -5,7 +5,10 @@ import { Link } from "react-router-dom";
 import { URL_SEARCH_KEY_SAMPLE_APP_ID } from "../url";
 import classNames from "classnames";
 import logo from "../logo.svg";
+import logoDark from "../logo_dark.svg";
 import styles from "./index.module.scss";
+import ColorSchemeSelector from "../ColorScheme/ColorSchemeSelector";
+import { useDarkMode } from "../ColorScheme/hooks";
 
 function DisableableLink(
   props: React.ComponentProps<typeof Link> & { disabled?: boolean },
@@ -20,14 +23,21 @@ interface SampleAppMenuProps {
 function SampleAppMenu(props: SampleAppMenuProps) {
   const { currentSampleAppId } = props;
 
+  const isDarkMode = useDarkMode();
+
   return (
     <div className={styles.container}>
-      <img src={logo} alt="stlite sharing logo" className={styles.logo} />
+      <img
+        src={isDarkMode ? logoDark : logo}
+        alt="stlite sharing logo"
+        className={styles.logo}
+      />
       <ol className={styles.list}>
         {sampleAppManifests.map((sampleAppManifest) => {
           const isActive = currentSampleAppId === sampleAppManifest.id;
           return (
             <li
+              key={sampleAppManifest.id}
               className={classNames(styles.listItem, {
                 [styles.active]: isActive,
               })}
@@ -46,6 +56,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
         })}
       </ol>
       <div className={styles.footer}>
+        <ColorSchemeSelector />
         <a
           href="https://github.com/whitphx/stlite"
           target="_blank"

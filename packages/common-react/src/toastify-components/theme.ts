@@ -1,6 +1,13 @@
 import { darkTheme } from "@streamlit/lib/src/theme/themeConfigs";
-import { getDefaultTheme } from "@streamlit/lib/src/theme/utils";
+import {
+  getDefaultTheme,
+  AUTO_THEME_NAME,
+} from "@streamlit/lib/src/theme/utils";
 
 export function isDarkTheme(): boolean {
-  return getDefaultTheme().name === darkTheme.name;
+  const themeName = getDefaultTheme().name;
+  if (themeName === AUTO_THEME_NAME) {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  return themeName === darkTheme.name;
 }

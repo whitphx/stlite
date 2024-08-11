@@ -22,7 +22,7 @@ import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 // import { isDarkMode } from "../color-mode";
-import { useDarkMode } from "../ColorScheme/color-scheme";
+import { useDarkMode } from "../ColorScheme/hooks";
 
 let newFileCount = 1;
 

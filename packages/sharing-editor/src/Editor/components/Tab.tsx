@@ -134,12 +134,30 @@ function DropdownMenu(props: DropdownMenuProps) {
   const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> =
     useCallback((event) => {
       event.stopPropagation(); // To prevent the dropdown from closing immediately by the document click event caught by `handleClickOutside` below.
-
-      const clickedButton = event.currentTarget;
-      const rect = clickedButton.getBoundingClientRect();
-      setPosition({ top: rect.bottom, left: rect.left });
       setIsOpen((cur) => !cur);
     }, []);
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current && dropdownRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      let top = rect.bottom;
+      let left = rect.left;
+
+      const dropdownHeight = dropdownRef.current.offsetHeight;
+      const dropdownWidth = dropdownRef.current.offsetWidth;
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+
+      if (top + dropdownHeight > viewportHeight) {
+        top = rect.top - dropdownHeight;
+      }
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth;
+      }
+
+      setPosition({ top, left });
+    }
+  }, [isOpen]);
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (buttonRef.current && buttonRef.current.contains(event.target as Node)) {

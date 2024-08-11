@@ -123,6 +123,8 @@
   button {
     @include mixins.reset-button;
 
+    display: flex;
+    white-space: nowrap;
     padding: 8px 16px;
     text-align: left;
     cursor: pointer;

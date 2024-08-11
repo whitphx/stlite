@@ -9,7 +9,6 @@ import React, {
 import MonacoEditor, { OnMount } from "@monaco-editor/react";
 import { AppData } from "@stlite/sharing-common";
 import { parseRequirementsTxt } from "@stlite/common";
-import { useLocalStorage } from "usehooks-ts";
 import TabBar from "./components/TabBar";
 import Tab from "./components/Tab";
 import Toolbar from "./components/Toolbar";
@@ -21,9 +20,9 @@ import FileUploader, {
 } from "./FileUploader";
 import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
-import ThemeSelect from "./components/ThemeSelect";
 import styles from "./Editor.module.scss";
-import { isDarkMode } from "../color-mode";
+// import { isDarkMode } from "../color-mode";
+import { useDarkMode } from "../ColorScheme/hooks";
 
 let newFileCount = 1;
 
@@ -190,11 +189,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       [appData.requirements],
     );
 
-    const [isDarkTheme, setIsDarkTheme] = useLocalStorage(
-      "editor-theme",
-      isDarkMode(),
-    );
-
     useImperativeHandle(
       ref,
       () => ({
@@ -226,6 +220,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       }),
       [defaultRequirementsTextValue],
     );
+
+    const isDarkMode = useDarkMode();
 
     return (
       <div className={styles.container}>
@@ -295,7 +291,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
             showTextEditor && (
               <Toolbar>
                 <SaveButton onClick={handleSave} />
-                <ThemeSelect isDark={isDarkTheme} onChange={setIsDarkTheme} />
               </Toolbar>
             )
           }
@@ -323,7 +318,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                     : undefined
               }
               onMount={handleEditorDitMount}
-              theme={isDarkTheme ? "vs-dark" : "vs"}
+              theme={isDarkMode ? "vs-dark" : "vs"}
             />
           </div>
           {currentFileName != null &&

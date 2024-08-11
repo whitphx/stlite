@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: center;
   padding: 0 0.6rem;
-  color: #333;
-  background: rgba(0, 0, 0, 0.05);
+  color: var(--c-text);
+  background: var(--c-button-background);
   border: rgba(0, 0, 0, 0.1) 1px solid;
 }
 

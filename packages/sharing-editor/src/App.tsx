@@ -25,6 +25,7 @@ import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 import { URL_SEARCH_KEY_SAMPLE_APP_ID, URL_SEARCH_KEY_EMBED_MODE } from "./url";
+import { useAppColorSchemePreference } from "./ColorScheme/hooks";
 
 interface AppLoaderData {
   appData: AppData;
@@ -271,6 +272,8 @@ function App() {
     [updateAppData],
   );
 
+  const appColorSchemePreference = useAppColorSchemePreference();
+
   return (
     <div className="App">
       {!embedMode && (
@@ -312,6 +315,11 @@ function App() {
                   title="stlite app"
                   className="preview-iframe"
                   onMessage={handleIframeMessage}
+                  theme={
+                    appColorSchemePreference === "auto"
+                      ? null
+                      : appColorSchemePreference
+                  }
                 />
               )}
             </>

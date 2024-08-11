@@ -1,5 +1,6 @@
 @mixin reset-button {
-  background: none;
+  background: initial;
+  color: inherit;
   outline: none;
   border: 0;
   padding: 0;
@@ -17,4 +18,6 @@
   font-size: inherit;
   font-family: inherit;
   box-sizing: border-box;
+  background: initial;
+  color: inherit;
 }

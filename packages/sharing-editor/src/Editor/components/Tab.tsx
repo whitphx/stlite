@@ -189,7 +189,7 @@ function DropdownMenu(props: DropdownMenuProps) {
       </button>
       {isOpen &&
         ReactDOM.createPortal(
-          <div
+          <menu
             className={styles.dropdownContent}
             ref={dropdownRef}
             style={{
@@ -198,11 +198,19 @@ function DropdownMenu(props: DropdownMenuProps) {
               left: position.left,
             }}
           >
-            {props.onDelete && <button onClick={props.onDelete}>Delete</button>}
-            {props.onSetEntrypoint && (
-              <button onClick={props.onSetEntrypoint}>Set as entrypoint</button>
+            {props.onDelete && (
+              <li>
+                <button onClick={props.onDelete}>Delete</button>
+              </li>
             )}
-          </div>,
+            {props.onSetEntrypoint && (
+              <li>
+                <button onClick={props.onSetEntrypoint}>
+                  Set as entrypoint
+                </button>
+              </li>
+            )}
+          </menu>,
           document.body,
         )}
     </>

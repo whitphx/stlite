@@ -19,7 +19,7 @@ function PreviewToolBar(props: PreviewToolBarProps) {
         onClick={() => setIsModalOpen(true)}
       >
         <ShareIcon />
-        Share
+        Share App
       </button>
       <Modal
         title="Share App"

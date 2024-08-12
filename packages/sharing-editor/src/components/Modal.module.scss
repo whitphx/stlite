@@ -25,12 +25,12 @@
   box-sizing: border-box;
   padding: 0;
   border-radius: 5px;
-  position: relative;
+  width: 100%;
   max-width: 720px;
   max-height: 100%;
-  overflow-y: scroll;
-  overflow-x: hidden;
-
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalHeader {
@@ -39,25 +39,29 @@
   align-items: center;
   padding: 10px 0 10px 20px;
   border-bottom: var(--c-border) 1px solid;
-}
 
-.modalTitle {
-  font-size: 1.2rem;
-  margin: 0;
-  padding: 0;
-}
+  .modalTitle {
+    font-size: 1.2rem;
+    margin: 0;
+    padding: 0;
+  }
 
-.modalClose {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--c-text);
+  .modalClose {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--c-text);
+  }
 }
 
 .modalBody {
+  flex-grow: 1;
+  display: block;
   padding: 0 20px 10px;
+  box-sizing: border-box;
+  overflow: scroll;
 }

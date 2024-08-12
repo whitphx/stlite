@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { AppData, embedAppDataToUrl } from "@stlite/sharing-common";
 import UrlDisplay from "./UrlDisplay";
 import CodePreview from "./CodePreview";
-import { exportAsHtml } from "../export/html";
-import ExternalLink from "./ExternalLink";
+import { exportAsHtml } from "../../export/html";
+import ExternalLink from "../ExternalLink";
 import styles from "./ShareModalContent.module.scss";
 
 interface ShareModalContentProps {

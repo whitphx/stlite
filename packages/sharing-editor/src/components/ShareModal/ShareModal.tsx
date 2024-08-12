@@ -14,8 +14,7 @@ function PreviewToolBar(props: PreviewToolBarProps) {
 
   return (
     <>
-      <ToolbarButton onClick={() => setIsModalOpen(true)}>
-        <ShareIcon />
+      <ToolbarButton onClick={() => setIsModalOpen(true)} icon={<ShareIcon />}>
         Share App
       </ToolbarButton>
       <Modal

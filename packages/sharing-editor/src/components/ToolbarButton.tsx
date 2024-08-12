@@ -1,7 +1,17 @@
 import styles from "./ToolbarButton.module.scss";
 
-function Button(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button {...props} className={styles.button} />;
+interface ToolbarButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: React.ReactNode;
 }
 
-export default Button;
+function ToolbarButton({ children, icon, ...restProps }: ToolbarButtonProps) {
+  return (
+    <button {...restProps} className={styles.button}>
+      {icon ? <span className={styles.icon}>{icon}</span> : null}
+      {children}
+    </button>
+  );
+}
+
+export default ToolbarButton;

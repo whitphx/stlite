@@ -18,4 +18,9 @@
   &:active {
     background: var(--c-button-background-active);
   }
+
+  .icon {
+    display: inline-flex;
+    color: var(--c-primary);
+  }
 }

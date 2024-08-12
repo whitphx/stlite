@@ -13,8 +13,7 @@ function AppOpenButton(props: AppOpenButtonProps) {
     window.open(url, "_blank", "noopener,noreferrer");
   }, [props.appData, props.sharingAppSrc]);
   return (
-    <ToolbarButton onClick={handleClick}>
-      <FaExternalLinkAlt />
+    <ToolbarButton onClick={handleClick} icon={<FaExternalLinkAlt />}>
       Open App
     </ToolbarButton>
   );

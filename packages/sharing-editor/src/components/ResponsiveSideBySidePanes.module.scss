@@ -38,7 +38,7 @@ $divider-width: 16px;
   transform: translateX(-100%);
   width: $divider-width;
   height: 100%;
-  background-color: #000;
+  background-color: rgba($color: (#808080), $alpha: 0.9);
   z-index: 1;
   display: flex;
   justify-content: center;

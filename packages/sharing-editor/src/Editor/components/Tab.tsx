@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import ReactDOM from "react-dom";
-import { AiTwotonePlaySquare } from "react-icons/ai";
+import { AiTwotonePlaySquare, AiOutlineDelete } from "react-icons/ai";
 import { PiDotsThreeOutlineVertical } from "react-icons/pi";
 import { isValidFilePath } from "../../path";
 import styles from "./Tab.module.scss";
@@ -127,7 +127,7 @@ interface DropdownMenuProps {
 }
 function DropdownMenu(props: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -141,7 +141,7 @@ function DropdownMenu(props: DropdownMenuProps) {
     if (isOpen && buttonRef.current && dropdownRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       let top = rect.bottom;
-      let left = rect.left;
+      let right = window.innerWidth - rect.right;
 
       const dropdownHeight = dropdownRef.current.offsetHeight;
       const dropdownWidth = dropdownRef.current.offsetWidth;
@@ -151,11 +151,11 @@ function DropdownMenu(props: DropdownMenuProps) {
       if (top + dropdownHeight > viewportHeight) {
         top = rect.top - dropdownHeight;
       }
-      if (left + dropdownWidth > viewportWidth) {
-        left = viewportWidth - dropdownWidth;
+      if (right + dropdownWidth > viewportWidth) {
+        right = viewportWidth - dropdownWidth;
       }
 
-      setPosition({ top, left });
+      setPosition({ top, right });
     }
   }, [isOpen]);
 
@@ -195,17 +195,21 @@ function DropdownMenu(props: DropdownMenuProps) {
             style={{
               position: "absolute",
               top: position.top,
-              left: position.left,
+              right: position.right,
             }}
           >
             {props.onDelete && (
               <li>
-                <button onClick={props.onDelete}>Delete</button>
+                <button onClick={props.onDelete}>
+                  <AiOutlineDelete />
+                  Delete
+                </button>
               </li>
             )}
             {props.onSetEntrypoint && (
               <li>
                 <button onClick={props.onSetEntrypoint}>
+                  <AiTwotonePlaySquare />
                   Set as entrypoint
                 </button>
               </li>

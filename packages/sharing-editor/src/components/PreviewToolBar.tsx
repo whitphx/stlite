@@ -26,12 +26,10 @@ function PreviewToolBar(props: PreviewToolBarProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       >
-        {isModalOpen && (
-          <ShareModalContent
-            appData={props.appData}
-            sharingAppSrc={props.sharingAppSrc}
-          />
-        )}
+        <ShareModalContent
+          appData={props.appData}
+          sharingAppSrc={props.sharingAppSrc}
+        />
       </Modal>
     </div>
   );

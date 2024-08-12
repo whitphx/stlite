@@ -12,10 +12,10 @@ function UrlDisplay(props: UrlDisplayProps) {
   );
 
   return (
-    <div className={styles.container}>
+    <span className={styles.container}>
       <TextLineDisplay text={props.url} />
       <span className={styles.displayBytes}>({byteLength} bytes)</span>
-    </div>
+    </span>
   );
 }
 

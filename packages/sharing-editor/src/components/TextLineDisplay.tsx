@@ -20,9 +20,9 @@ function TextLineDisplay(props: TextLineDisplayProps) {
   }, [props.text]);
 
   return (
-    <div className={styles.container}>
+    <span className={styles.container}>
       <input ref={inputRef} defaultValue={props.text} readOnly />
-      <div className={styles.clipboardButtonContainer}>
+      <span className={styles.clipboardButtonContainer}>
         <button onClick={copyToClipboard} className={styles.clipboardButton}>
           <RiClipboardLine />
         </button>
@@ -31,8 +31,8 @@ function TextLineDisplay(props: TextLineDisplayProps) {
             <span className={styles.copiedToast}>Copied</span>
           </span>
         )}
-      </div>
-    </div>
+      </span>
+    </span>
   );
 }
 

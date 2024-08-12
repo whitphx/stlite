@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { AppData } from "@stlite/sharing-common";
-import styles from "./ShareModal.module.scss";
 import Modal from "../Modal";
 import ShareModalContent from "./ShareModalContent";
+import ToolbarButton from "../ToolbarButton";
 import ShareIcon from "./ShareIcon";
 
 interface PreviewToolBarProps {
@@ -14,13 +14,10 @@ function PreviewToolBar(props: PreviewToolBarProps) {
 
   return (
     <>
-      <button
-        className={styles.shareButton}
-        onClick={() => setIsModalOpen(true)}
-      >
+      <ToolbarButton onClick={() => setIsModalOpen(true)}>
         <ShareIcon />
         Share App
-      </button>
+      </ToolbarButton>
       <Modal
         title="Share App"
         isOpen={isModalOpen}

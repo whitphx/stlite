@@ -12,10 +12,7 @@ interface ShareModalContentProps {
 }
 function ShareModalContent(props: ShareModalContentProps) {
   const url = useMemo(
-    () =>
-      props.appData
-        ? embedAppDataToUrl(props.sharingAppSrc, props.appData)
-        : undefined,
+    () => embedAppDataToUrl(props.sharingAppSrc, props.appData),
     [props.sharingAppSrc, props.appData],
   );
 

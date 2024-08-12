@@ -32,7 +32,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
         alt="stlite sharing logo"
         className={styles.logo}
       />
-      <ol className={styles.list}>
+      <menu className={styles.list}>
         {sampleAppManifests.map((sampleAppManifest) => {
           const isActive = currentSampleAppId === sampleAppManifest.id;
           return (
@@ -54,7 +54,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
             </li>
           );
         })}
-      </ol>
+      </menu>
       <div className={styles.footer}>
         <ColorSchemeSelector />
         <a

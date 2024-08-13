@@ -8,7 +8,7 @@ interface ExternalLinkProps
 }
 function ExternalLink({ href, children, ...restProps }: ExternalLinkProps) {
   return (
-    <a href={href} {...restProps} target="_blank" rel="noreferrer">
+    <a href={href} {...restProps} target="_blank" rel="noreferrer noopener">
       {children}
       <RiExternalLinkLine />
     </a>

@@ -37,15 +37,15 @@ Here is a sample HTML file.
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>stlite app</title>
+    <title>Stlite App</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.2/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.2/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.js"></script>
     <script>
       stlite.mount(
         `
@@ -397,9 +397,9 @@ If you find a new problem, please report it.
 
 ## Top-level await
 
-TL;DR: Use top-level await instead of `asyncio.run()` on stlite.
+TL;DR: Use top-level await instead of `asyncio.run()` on _Stlite_.
 
-Unlike the original Streamlit, _Stlite_ supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, stlite runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
+Unlike the original Streamlit, _Stlite_ supports top-level await due to the differences in their execution models. Streamlit runs in a standard Python environment, allowing the use of `asyncio.run()` when an async function needs to be executed within a script. In contrast, _Stlite_ runs in a web browser, operating in an environment where the only event loop is always in a running state. This makes it impossible to use `asyncio.run()` within a script, necessitating the support for top-level await.
 
 Top-level await can be useful in various situations.
 

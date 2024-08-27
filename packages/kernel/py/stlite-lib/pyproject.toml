@@ -7,6 +7,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+pyodide-http = "^0.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

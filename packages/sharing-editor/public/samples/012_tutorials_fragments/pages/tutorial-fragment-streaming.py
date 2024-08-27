@@ -46,7 +46,7 @@ else:
     run_every = None
 
 
-@st.experimental_fragment(run_every=run_every)
+@st.fragment(run_every=run_every)
 def show_latest_data():
     last_timestamp = st.session_state.data.index[-1]
     st.session_state.data = pd.concat(

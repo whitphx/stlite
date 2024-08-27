@@ -22,7 +22,7 @@ async function main() {
   );
   const streamlitWheelPath = path.join(
     stliteKernelPyDir,
-    "streamlit/lib/dist/streamlit-1.36.0-cp312-none-any.whl",
+    "streamlit/lib/dist/streamlit-1.37.1-cp312-none-any.whl",
   );
 
   // Create the `wheels` directory

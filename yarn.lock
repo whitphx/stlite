@@ -4356,7 +4356,7 @@
     "@svgr/plugin-jsx" "8.1.0"
     "@svgr/plugin-svgo" "8.1.0"
 
-"@swc/helpers@^0.5.2":
+"@swc/helpers@^0.5.10":
   version "0.5.12"
   resolved "https://registry.yarnpkg.com/@swc/helpers/-/helpers-0.5.12.tgz#37aaca95284019eb5d2207101249435659709f4b"
   integrity sha512-KMZNXiGibsW9kvZAO1Pam2JPTDBm+KSHMMHWdsyI/1DbIZjT2A6Gy3hblVXUMEDvUAKq+e0vL0X0o54owWji7g==
@@ -4662,12 +4662,12 @@
   resolved "https://registry.yarnpkg.com/@types/clone/-/clone-2.1.4.tgz#9680f886c935dcf596273f1218abb71efb01531a"
   integrity sha512-NKRWaEGaVGVLnGLB2GazvDaZnyweW9FJLLFL5LhywGJB3aqGMT9R/EUoJoSRP4nzofYnZysuDmrEJtJdAqUOtQ==
 
-"@types/command-line-args@^5.2.1":
+"@types/command-line-args@^5.2.3":
   version "5.2.3"
   resolved "https://registry.yarnpkg.com/@types/command-line-args/-/command-line-args-5.2.3.tgz#553ce2fd5acf160b448d307649b38ffc60d39639"
   integrity sha512-uv0aG6R0Y8WHZLTamZwtfsDLVRnOa+n+n5rEvFWL5Na5gZ8V2Teab/duDPFzIIIhs9qizDpcavCusCLJZu62Kw==
 
-"@types/command-line-usage@^5.0.2":
+"@types/command-line-usage@^5.0.4":
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@types/command-line-usage/-/command-line-usage-5.0.4.tgz#374e4c62d78fbc5a670a0f36da10235af879a0d5"
   integrity sha512-BwR5KP3Es/CSht0xqBcUXS3qCAUVXwpRKsV2+arxeb65atasuXG9LykC9Ab10Cw3s2raH92ZqOeILaQbsB2ACg==
@@ -5236,12 +5236,19 @@
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@^20.6.0", "@types/node@^20.9.0":
+"@types/node@^20.12.7":
   version "20.16.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.1.tgz#0b44b15271d0e2191ca68faf1fbe506e06aed732"
   integrity sha512-zJDo7wEadFtSyNz5QITDfRcrhqDvQI1xQNQ0VoizPjM/dVAODqqIUWbJPkvsxmTI0MYRGRikcdjMPhOssnPejQ==
   dependencies:
     undici-types "~6.19.2"
+
+"@types/node@^20.9.0":
+  version "20.12.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.12.12.tgz#7cbecdf902085cec634fdb362172dfe12b8f2050"
+  integrity sha512-eWLDGF/FOSPtAvEqeRAQ4C8LSA7M1I7i0ky1I8U7kD1J5ITyW3AsRhQrKVoWf5pFKZ2kILsEGJhsI9r93PYnOw==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/normalize-package-data@^2.4.1", "@types/normalize-package-data@^2.4.3":
   version "2.4.4"
@@ -6240,18 +6247,18 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-apache-arrow@^15.0.0:
-  version "15.0.2"
-  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-15.0.2.tgz#d87c6447d64d6fab34aa70119362680b6617ce63"
-  integrity sha512-RvwlFxLRpO405PLGffx4N2PYLiF7FD86Q1hHl6J2XCWiq+tTCzpb9ngFw0apFDcXZBMpCzMuwAvA7hjyL1/73A==
+apache-arrow@^16.1.0:
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/apache-arrow/-/apache-arrow-16.1.0.tgz#7aa8d0d436dd0995d9dc5c36febf380d5b207209"
+  integrity sha512-G6GiM6tzPDdGnKUnVkvVr1Nt5+hUaCMBISiasMSiJwI5L5GKDv5Du7Avc2kxlFfB/LEK2LTqh2GKSxutMdf8vQ==
   dependencies:
-    "@swc/helpers" "^0.5.2"
-    "@types/command-line-args" "^5.2.1"
-    "@types/command-line-usage" "^5.0.2"
-    "@types/node" "^20.6.0"
+    "@swc/helpers" "^0.5.10"
+    "@types/command-line-args" "^5.2.3"
+    "@types/command-line-usage" "^5.0.4"
+    "@types/node" "^20.12.7"
     command-line-args "^5.2.1"
     command-line-usage "^7.0.1"
-    flatbuffers "^23.5.26"
+    flatbuffers "^24.3.25"
     json-bignum "^0.0.3"
     tslib "^2.6.2"
 
@@ -11694,10 +11701,10 @@ flat@^5.0.2:
   resolved "https://registry.yarnpkg.com/flat/-/flat-5.0.2.tgz#8ca6fe332069ffa9d324c327198c598259ceb241"
   integrity sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==
 
-flatbuffers@^23.5.26:
-  version "23.5.26"
-  resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-23.5.26.tgz#01358e272a61239f0faf3bfbe4e014f3ace9d746"
-  integrity sha512-vE+SI9vrJDwi1oETtTIFldC/o9GsVKRM+s6EL0nQgxXlYV1Vc4Tk30hj4xGICftInKQKj1F3up2n8UbIVobISQ==
+flatbuffers@^24.3.25:
+  version "24.3.25"
+  resolved "https://registry.yarnpkg.com/flatbuffers/-/flatbuffers-24.3.25.tgz#e2f92259ba8aa53acd0af7844afb7c7eb95e7089"
+  integrity sha512-3HDgPbgiwWMI9zVB7VYBHaMrbOO7Gm0v+yD2FV/sCKj+9NDeVL7BOBYUuhWAQGKWOzBo8S9WdMvV0eixO233XQ==
 
 flatted@^3.2.9:
   version "3.3.1"

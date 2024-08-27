@@ -22,7 +22,7 @@ async def orange_cats():
     st.markdown("🐾 🐾 🐾 🐾")
 
 
-@st.experimental_fragment
+@st.fragment
 async def herd_black_cats(card_a, card_b, card_c):
     st.button("Herd the black cats")
     container_a = card_a.container()
@@ -36,7 +36,7 @@ async def herd_black_cats(card_a, card_b, card_c):
         await black_cats()
 
 
-@st.experimental_fragment
+@st.fragment
 async def herd_orange_cats(card_a, card_b, card_c):
     st.button("Herd the orange cats")
     container_a = card_a.container()

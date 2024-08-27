@@ -23,7 +23,7 @@ def get_data():
     return data
 
 
-@st.experimental_fragment
+@st.fragment
 async def show_daily_sales(data):
     await asyncio.sleep(1)
     with st.container(height=100):

@@ -38,6 +38,7 @@ cp -r $SOURCE_REPO_DIR/python/api-examples-source/mpa-hello/* $SAMPLES_DIR/012_m
 patch $SAMPLES_DIR/012_mpa-hello/pages/1_📈_Plotting_Demo.py $DIFF_DIR/012_mpa-hello/pages/1_📈_Plotting_Demo.py
 patch $SAMPLES_DIR/012_mpa-hello/pages/3_📊_DataFrame_Demo.py $DIFF_DIR/012_mpa-hello/pages/3_📊_DataFrame_Demo.py
 sed -i '' 's/==.*//' $SAMPLES_DIR/012_mpa-hello/requirements.txt
+sed -i '' 's/opencv-python-headless/opencv-python/' $SAMPLES_DIR/012_mpa-hello/requirements.txt  # Only opencv-python is available on Pyodide.
 
 mkdir -p $SAMPLES_DIR/012_tutorials_custom-navigation
 cp -r $SOURCE_REPO_DIR/python/api-examples-source/tutorials/custom-navigation/* $SAMPLES_DIR/012_tutorials_custom-navigation/.

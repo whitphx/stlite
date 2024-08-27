@@ -5,7 +5,7 @@ if "app_runs" not in st.session_state:
     st.session_state.fragment_runs = 0
 
 
-@st.experimental_fragment
+@st.fragment
 def fragment():
     st.session_state.fragment_runs += 1
     st.button("Rerun fragment")

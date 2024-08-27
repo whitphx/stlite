@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.64.0] - 2024-08-27
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.37.1, [#1084](https://github.com/whitphx/stlite/pull/1084).
+- Move `pyodide-http` package from `streamlit`'s deps to `stlite-lib`'s, [#1087](https://github.com/whitphx/stlite/pull/1087).
+
 ## [0.63.1] - 2024-08-11
 
 ### `@stlite/mountable`

@@ -3,5 +3,5 @@ numpy
 scipy
 altair
 pydeck
-opencv-python-headless
+opencv-python
 streamlit>=1.37.0

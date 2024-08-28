@@ -1,5 +1,5 @@
 import React, { useMemo, useContext } from "react";
-import { StliteKernel } from "../kernel";
+import type { StliteKernel } from "../kernel";
 
 export interface StliteKernelContextValue {
   kernel: StliteKernel;

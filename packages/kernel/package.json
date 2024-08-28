@@ -22,6 +22,7 @@
   "devDependencies": {
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
+    "@types/react": "^17.0.7",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "eslint": "^8.33.0",
@@ -35,6 +36,7 @@
     "@jupyterlab/coreutils": "^5.4.2",
     "@stlite/common": "^0.64.1",
     "@streamlit/lib": "1.37.1",
-    "path-browserify": "^1.0.1"
+    "path-browserify": "^1.0.1",
+    "react": "^18.2.0"
   }
 }

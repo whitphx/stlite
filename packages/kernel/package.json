@@ -23,8 +23,7 @@
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^17.0.7",
-    "pyodide": "0.26.2",
-    "vitest": "^1.2.2"
+    "pyodide": "0.26.2"
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",

@@ -22,8 +22,5 @@
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
     "check:prettier": "prettier --check ."
-  },
-  "devDependencies": {
-    "vitest": "^1.2.2"
   }
 }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.64.1] - 2024-08-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal Streamlit submodule update, [#1090](https://github.com/whitphx/stlite/pull/1090).
+
 ## [0.64.0] - 2024-08-27
 
 ### `@stlite/kernel`

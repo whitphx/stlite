@@ -1,4 +1,4 @@
-import { DUMMY_BASE_HOST } from "../../consts";
+import { DUMMY_BASE_HOST } from "@stlite/kernel";
 
 export function extractCustomComponentPath(
   basePath: string, // basePath without leading and trailing slashes.

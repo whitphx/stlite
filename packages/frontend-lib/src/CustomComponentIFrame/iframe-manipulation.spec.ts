@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { StliteKernel } from "../../kernel";
+import { StliteKernel } from "@stlite/kernel";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
 const mockIframeSrcDoc = `
@@ -39,7 +39,7 @@ const mockHtmlResponses: Record<string, { contentType: string; body: string }> =
     },
   };
 
-vi.mock("../../kernel", () => {
+vi.mock("@stlite/kernel", () => {
   const StliteKernel = vi.fn();
 
   StliteKernel.prototype.sendHttpRequest = vi

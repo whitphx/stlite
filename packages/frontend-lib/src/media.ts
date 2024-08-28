@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { StliteKernel } from "../kernel";
+import type { StliteKernel } from "@stlite/kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
 
 function resolveStliteObjectUrl(

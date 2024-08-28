@@ -1,5 +1,5 @@
 import { URLExt } from "@jupyterlab/coreutils";
-import { StliteKernel } from "../../kernel";
+import type { StliteKernel } from "@stlite/kernel";
 import { getRelativePath } from "./url";
 
 export function manipulateIFrameDocument(

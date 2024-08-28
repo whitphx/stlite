@@ -6,6 +6,7 @@ sharing-common := packages/sharing-common/dist/*
 sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
+frontend-lib := packages/frontend-lib/dist/*
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.37.1-cp312-none-any.whl
@@ -61,14 +62,14 @@ $(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react) $(streamlit_frontend_lib_prod)
+$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common-react) $(frontend-lib) $(streamlit_frontend_lib_prod)
 	cd packages/mountable; \
 	yarn build
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react) $(streamlit_frontend_lib_prod)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react) $(frontend-lib) $(streamlit_frontend_lib_prod)
 	cd packages/sharing; \
 	yarn build
 	@touch $@
@@ -89,7 +90,7 @@ $(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react) $(streamlit_frontend_lib_prod)
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react) $(frontend-lib) $(streamlit_frontend_lib_prod)
 	cd packages/desktop; \
 	yarn build
 	@touch $@
@@ -105,6 +106,13 @@ $(kernel): packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wh
 kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
+
+.PHONY: frontend-lib
+frontend-lib: $(frontend-lib)
+$(frontend-lib): packages/frontend-lib/src/*.ts yarn_install $(kernel)
+	cd packages/frontend-lib; \
+	yarn build
+	@touch $@
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
@@ -140,8 +148,8 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 
 .PHONY: streamlit-frontend-lib
 streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
-$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
+$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(frontend-lib) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:
-	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
+	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(frontend-lib) $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

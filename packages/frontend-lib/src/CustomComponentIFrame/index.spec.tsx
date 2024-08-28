@@ -1,7 +1,7 @@
 import React from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
-import { StliteKernel } from "../../kernel";
+import { StliteKernel } from "@stlite/kernel";
 import { StliteKernelProvider } from "../StliteKernelProvider";
 import CustomComponentIFrame from ".";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
@@ -27,7 +27,7 @@ const mockHtmlResponses: Record<string, { contentType: string; body: string }> =
     },
   };
 
-vi.mock("../../kernel", () => {
+vi.mock("@stlite/kernel", () => {
   const StliteKernel = vi.fn();
 
   StliteKernel.prototype.sendHttpRequest = vi

@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "ts-proto": "^1.125.0",
-    "typescript": "^4.9.4",
     "vitest": "^1.2.2"
   }
 }

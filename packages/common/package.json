@@ -24,7 +24,6 @@
     "check:prettier": "prettier --check ."
   },
   "devDependencies": {
-    "typescript": "^4.9.4",
     "vitest": "^1.2.2"
   }
 }

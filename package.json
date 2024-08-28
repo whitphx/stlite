@@ -39,6 +39,5 @@
     "protobufjs": "7.2.5",
     "webpack": "5.76.0",
     "@types/react": "^18.2.0"
-  },
-  "version": "0.2.0"
+  }
 }

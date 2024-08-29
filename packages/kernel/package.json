@@ -22,7 +22,8 @@
   "devDependencies": {
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
-    "@types/react": "^17.0.7",
+    "@types/node": "^18.11.17",
+    "@types/react": "^18.2.0",
     "pyodide": "0.26.2"
   },
   "dependencies": {

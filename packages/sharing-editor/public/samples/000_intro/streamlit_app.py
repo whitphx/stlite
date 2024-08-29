@@ -21,7 +21,7 @@ You can start writing code right out of the box on this online editor 👈!
 Navigate to the editor mode: https://edit.share.stlite.net/)
 
 ### Stlite Sharing
-This page is built on **stlite sharing**, an online code editor & sharing platform for _Stlite_. \\
+This page is built on **Stlite Sharing**, an online code editor & sharing platform for _Stlite_. \\
 If you see the editor and preview panes side by side, you are in the editor mode, https://edit.share.stlite.net/. \\
 If you see only this Streamlit app, you are in the sharing mode, https://share.stlite.net/.
 (If you want to edit the app, please go to the [editor mode](https://edit.share.stlite.net/)!)

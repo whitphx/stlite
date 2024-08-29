@@ -1,6 +1,6 @@
 import React from "react";
 
-import { StliteKernel, StliteKernelProvider } from "@stlite/kernel";
+import { type StliteKernel, StliteKernelProvider } from "@stlite/kernel";
 
 import ThemedApp from "@streamlit/app/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";

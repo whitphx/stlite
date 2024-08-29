@@ -21,7 +21,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@stlite/sharing-common": "^0.63.1",
+    "@stlite/sharing-common": "^0.64.2",
     "@types/yargs": "^17.0.32",
     "yargs": "^17.7.2"
   }

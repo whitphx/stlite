@@ -11,7 +11,7 @@ from streamlit import config
 from streamlit.components.v1.components import declare_component
 from streamlit.hello import Hello
 from streamlit.runtime.runtime import Runtime
-from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
+from streamlit.runtime.scriptrunner_utils.script_run_context import add_script_run_ctx
 from tests.testutil import create_mock_script_run_ctx
 
 from stlite_lib.server import Server

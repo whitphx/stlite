@@ -15,7 +15,7 @@ requests = "^2.32.3"
 streamlit-aggrid = "^1.0.5"
 pandas-stubs = "^2.2.2.240807"
 matplotlib = "^3.9.2"
-ruff = "^0.6.2"
+ruff = "^0.6.3"
 pyodide-py = "^0.26.2"
 pyright = "^1.1.377"
 

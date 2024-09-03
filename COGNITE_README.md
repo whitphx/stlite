@@ -13,7 +13,46 @@ We are using this in the Fusion app, where the Streamlit app is loaded and rende
 - Code completion support
 - GitHub actions to do deployment to Firebase
 
-# Local development
+## How to update to latest upstream
+
+This is currently a fork of the [upstream repository](https://github.com/whitphx/stlite). The process of updating to latest version is to just merge in the latest changes and fix merge conflicts
+
+```
+git remote add upstream https://github.com/whitphx/stlite
+git fetch upstream
+git checkout -b update-stlite-branch-name
+git merge upstream/main
+```
+
+Now you will likely get a set of merge conflicts. The typical repeating pattern is the github workflows (we have deleted a couple of them and modified some of them). The goal in 2025 is to move all fork functionalities into upstream repository so no fork is required.
+
+## Local development
+
+The dev setup is a bit cumbersome. We have tried to set up dev containers, but due to some strict package rules, typically an exact version
+of the same Python environment as the running Pyodide instance is required (see [DEVELOPMENT.md](DEVELOPMENT.md)). There is no devcontainer image
+that fullfils this requirement, so all attempts have failed. Feel free to help out if you know how!
+
+For general development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md). In addition, you need to have set up JFROG for private packages:
+
+TL;DR: make sure you have the right environment and run `USE_CONSTRAINTS_FILE=false make mountable`.
+
+### JFROG Authentication
+
+In order to install private packages we need to authenticate. We use jFrog for our internal registry.
+
+#### 1. Generate a jFrog token
+
+- Go to [jFrog](https://cognite.jfrog.io/ui/) and log in with your Cognite credentials
+- Click on your username in the top right corner and select "Edit Profile"
+- Click on "Generate an Identity Token"
+- Give the token a meaningful description like "npm registry" and click "Next". ⚠️ IMPORTANT: Copy the generated token and store it somewhere temporarily. You won't be able to see it again.
+
+#### 2. Authenticate with the jFrog token
+
+- Run `yarn npm login` in the terminal
+- Enter the following information when prompted:
+  - Username: your jFrog username(usually name.lastname)
+  - Password: the token you generated in Step 1
 
 ## Prerequisites
 

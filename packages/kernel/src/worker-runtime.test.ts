@@ -7,6 +7,10 @@ import * as pyodideLoader from "./pyodide-loader";
 import { WorkerInitialData } from "./types";
 import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
+const JEDI_WHEEL = new URL(
+  "../../py/jedi/jedi-0.19.1-py2.py3-none-any.whl",
+  import.meta.url
+).href;
 
 const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
 
@@ -65,6 +69,7 @@ function initializeWorkerEnv(
               streamlit: getWheelInstallPath(
                 streamlitWheelUrl as unknown as string
               ),
+              jedi: getWheelInstallPath(JEDI_WHEEL as unknown as string),
             },
             archives: [],
             requirements: options.requirements ?? [],

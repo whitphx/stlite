@@ -5,20 +5,23 @@ import type {
 } from "@stlite/kernel";
 import type { MakeToastKernelCallbacksOptions } from "@stlite/common-react";
 
-export interface SimplifiedStliteKernelOptions {
-  entrypoint?: string;
-  requirements?: StliteKernelOptions["requirements"];
-  prebuiltPackageNames?: StliteKernelOptions["prebuiltPackageNames"];
-  files?: Record<
+// Simplified version of StliteKernelOptions for the mount function.
+// This is exposed to non-typed consumers of the mount function,
+// so all fields are typed as optional.
+export type SimplifiedStliteKernelOptions = Partial<{
+  entrypoint: string;
+  requirements: StliteKernelOptions["requirements"];
+  prebuiltPackageNames: StliteKernelOptions["prebuiltPackageNames"];
+  files: Record<
     string,
     EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
   >;
-  archives?: StliteKernelOptions["archives"];
-  hostConfig?: StliteKernelOptions["hostConfigResponse"];
-  pyodideUrl?: StliteKernelOptions["pyodideUrl"];
-  streamlitConfig?: StliteKernelOptions["streamlitConfig"];
-  idbfsMountpoints?: StliteKernelOptions["idbfsMountpoints"];
-}
+  archives: StliteKernelOptions["archives"];
+  hostConfig: StliteKernelOptions["hostConfigResponse"];
+  pyodideUrl: StliteKernelOptions["pyodideUrl"];
+  streamlitConfig: StliteKernelOptions["streamlitConfig"];
+  idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
+}>;
 
 function canonicalizeFiles(
   files: SimplifiedStliteKernelOptions["files"]
@@ -111,9 +114,15 @@ export function parseMountOptions(options: MountOptions): {
   const files = canonicalizeFiles(options.files);
   const archives = canonicalizeArchives(options.archives);
 
+  // TODO: Validate the options object using superstruct.
+  const entrypoint = options.entrypoint;
+  if (entrypoint == null) {
+    throw new Error("The `entrypoint` field is required.");
+  }
+
   return {
     kernelOptions: {
-      entrypoint: options.entrypoint || DEFAULT_ENTRYPOINT,
+      entrypoint,
       files,
       archives,
       requirements: options.requirements || [],

@@ -1,4 +1,4 @@
-import { StliteKernel } from "../kernel";
+import type { StliteKernel } from "../kernel";
 
 export function parseContentDispositionHeader(value: string): string {
   // Extract a filename string from a ContentDisposition header value like `attachment; filename="StreamlitApp_2022-08-12_14-44-14.bin"`.

@@ -1,17 +1,14 @@
 import streamlit as st
 from PIL import Image
-from cognite.client import CogniteClient
-client = CogniteClient()
-assets = client.assets.list(limit=10).to_pandas()
-st.dataframe(assets)
-st.title("stlite sharing: Serverless Streamlit app platform")
+
+st.title("Stlite Sharing: Serverless Streamlit app platform")
 
 image = Image.open('data/logo.png')
-st.image(image, caption='stlite logo')
+st.image(image, caption='Stlite logo')
 
 st.markdown("""
-### stlite
-**stlite** is a port of _Streamlit_ to Wasm, powered by Pyodide,
+### Stlite
+**Stlite** is a port of _Streamlit_ to Wasm, powered by Pyodide,
 that runs completely on web browsers.
 
 The official repository is [🔗 here](https://github.com/whitphx/stlite).
@@ -23,8 +20,8 @@ You can start writing code right out of the box on this online editor 👈!
 (If there is not an editor on the left, you are seeing the shared app.
 Navigate to the editor mode: https://edit.share.stlite.net/)
 
-### stlite sharing
-This page is built on **stlite sharing**, an online code editor & sharing platform for _stlite_. \\
+### Stlite Sharing
+This page is built on **Stlite Sharing**, an online code editor & sharing platform for _Stlite_. \\
 If you see the editor and preview panes side by side, you are in the editor mode, https://edit.share.stlite.net/. \\
 If you see only this Streamlit app, you are in the sharing mode, https://share.stlite.net/.
 (If you want to edit the app, please go to the [editor mode](https://edit.share.stlite.net/)!)
@@ -37,10 +34,10 @@ You can switch the editor and sharing modes by replacing the host naem in the UR
 `edit.share.stlite.net` and `share.stlite.net`.
 
 ### Tell your story!
-When you create some apps with _stlite_, please share it!
+When you create some apps with _Stlite_, please share it!
 All you need to do is copy and paste the URL 👍
 
-* **stlite** GitHub Discussions [🔗 here](https://github.com/whitphx/stlite/discussions/categories/show-and-tell)
+* **Stlite** GitHub Discussions [🔗 here](https://github.com/whitphx/stlite/discussions/categories/show-and-tell)
 * Streamlit community forum [🔗 here](https://discuss.streamlit.io/)
 """)
 

@@ -5,7 +5,11 @@ interface TabBarProps {
   children: React.ReactNode;
 }
 function TabBar(props: TabBarProps) {
-  return <div className={styles.tabBar}>{props.children}</div>;
+  return (
+    <div className={styles.tabBar} role="tablist">
+      {props.children}
+    </div>
+  );
 }
 
 export default TabBar;

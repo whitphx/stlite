@@ -24,9 +24,9 @@ st.data_editor(
         "apps": st.column_config.LinkColumn(
             "Trending apps",
             help="The top trending Streamlit apps",
-            validate="^https://[a-z]+\.streamlit\.app$",
+            validate=r"^https://[a-z]+\.streamlit\.app$",
             max_chars=100,
-            display_text="https://(.*?)\.streamlit\.app",
+            display_text=r"https://(.*?)\.streamlit\.app",
         ),
         "creator": st.column_config.LinkColumn(
             "App Creator", display_text="Open profile"

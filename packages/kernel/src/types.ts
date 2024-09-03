@@ -1,8 +1,8 @@
-import type { PyodideInterface } from "pyodide";
 import {
   OutMessageLangugeServerAutocomplete,
   OutMessageLangugeServerHover,
 } from "./cognite/language-server-types";
+import type { PyodideInterface, PackageData } from "pyodide";
 
 export type PyodideConvertiblePrimitive =
   | string
@@ -54,14 +54,14 @@ export interface WorkerInitialData {
   prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
-    stliteServer: string;
+    stliteLib: string;
     streamlit: string;
     jedi: string;
   };
-  mountedSitePackagesSnapshotFilePath?: string;
   streamlitConfig?: StreamlitConfig;
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
+  moduleAutoLoad: boolean;
 }
 
 /**
@@ -74,6 +74,12 @@ interface InMessageBase {
 export interface InMessageInitData extends InMessageBase {
   type: "initData";
   data: WorkerInitialData;
+}
+export interface InMessageReboot extends InMessageBase {
+  type: "reboot";
+  data: {
+    entrypoint: string;
+  };
 }
 export interface InMessageWebSocketConnect extends InMessageBase {
   type: "websocket:connect";
@@ -150,6 +156,7 @@ export interface InMessageHover extends InMessageBase {
 
 export type InMessage =
   | InMessageInitData
+  | InMessageReboot
   | InMessageWebSocketConnect
   | InMessageWebSocketSend
   | InMessageHttpRequest
@@ -197,6 +204,12 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
     payload: Uint8Array | string;
   };
 }
+export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
+  type: "event:moduleAutoLoad";
+  data: {
+    packagesToLoad: string[];
+  };
+}
 export type OutMessage =
   | OutMessageStartEvent
   | OutMessageProgressEvent
@@ -204,7 +217,24 @@ export type OutMessage =
   | OutMessageLoadedEvent
   | OutMessageWebSocketBack
   | OutMessageLangugeServerAutocomplete
-  | OutMessageLangugeServerHover;
+  | OutMessageLangugeServerHover
+  | OutMessageModuleAutoLoadEvent;
+
+export interface ModuleAutoLoadMessageBase {
+  type: string;
+}
+export interface ModuleAutoLoadSuccess extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:success";
+  data: {
+    loadedPackages: PackageData[];
+  };
+}
+export interface ModuleAutoLoadError extends ModuleAutoLoadMessageBase {
+  type: "moduleAutoLoad:error";
+  error: Error;
+}
+export type ModuleAutoLoadMessage = ModuleAutoLoadSuccess | ModuleAutoLoadError;
+
 /**
  * Reply message to InMessage
  */

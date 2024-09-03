@@ -2,6 +2,12 @@ import React, { useCallback } from "react";
 import FileUploaderComponent from "./components/FileUploader";
 import { readArrayBuffer } from "./file";
 
+function supportsWebkitDirectory() {
+  const input = document.createElement("input");
+  return "webkitdirectory" in input;
+}
+export const isDirectoryUploadSupported = supportsWebkitDirectory();
+
 interface ReadFile {
   name: string;
   type: string;
@@ -10,8 +16,9 @@ interface ReadFile {
 
 export interface FileUploaderProps {
   onUpload: (files: ReadFile[]) => void;
+  directory?: boolean;
 }
-function FileUploader({ onUpload }: FileUploaderProps) {
+function FileUploader({ onUpload, directory = false }: FileUploaderProps) {
   const handleFileChange = useCallback<
     React.ChangeEventHandler<HTMLInputElement>
   >(
@@ -24,9 +31,13 @@ function FileUploader({ onUpload }: FileUploaderProps) {
       for (let idx = 0; idx < e.target.files.length; ++idx) {
         const file = e.target.files[idx];
 
+        const name = directory
+          ? file.webkitRelativePath.split("/").slice(1).join("/") // Remove the first segment of the path to get rid of the directory name.
+          : file.name;
+
         fileReadPromises.push(
           readArrayBuffer(file).then((arrayBuffer) => ({
-            name: file.name,
+            name,
             type: file.type,
             data: new Uint8Array(arrayBuffer),
           }))
@@ -37,10 +48,20 @@ function FileUploader({ onUpload }: FileUploaderProps) {
 
       e.target.value = "";
     },
-    [onUpload]
+    [onUpload, directory]
   );
 
-  return <FileUploaderComponent onChange={handleFileChange} multiple />;
+  const additionalProps = directory
+    ? { directory: "", webkitdirectory: "" } // Allow selecting directories. Ref: https://stackoverflow.com/a/55615518/13103190
+    : { multiple: true };
+
+  return (
+    <FileUploaderComponent
+      onChange={handleFileChange}
+      directoryIcon={directory}
+      {...additionalProps}
+    />
+  );
 }
 
 export default FileUploader;

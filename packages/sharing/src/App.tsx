@@ -5,6 +5,7 @@ import {
   extractAppDataFromUrl,
   ForwardMessage,
   ReplyMessage,
+  ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import {
@@ -23,6 +24,8 @@ function isEditorOrigin(origin: string): boolean {
 
   return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
 }
+
+let communicatedEditorOrigin = "";
 
 function convertFiles(
   appDataFiles: AppData["files"]
@@ -45,6 +48,7 @@ function convertFiles(
 
 function App() {
   const [kernel, setKernel] = useState<StliteKernel>();
+  const [appKey, setAppKey] = useState(0); // This is used to force re-rendering of the StreamlitApp component when the kernel is rebooted.
   useEffect(() => {
     let unmounted = false;
     let _kernel: StliteKernel | null = null;
@@ -83,17 +87,43 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
+          moduleAutoLoad: true,
         });
         _kernel = kernel;
         setKernel(kernel);
 
-        const kernelWithToast = new StliteKernelWithToast(kernel);
+        const kernelWithToast = new StliteKernelWithToast(kernel, {
+          onModuleAutoLoad: (packagesToLoad, installPromise) => {
+            console.log("Module auto-load started", packagesToLoad);
+            installPromise
+              .then((loadedPackages) => {
+                console.log("Module auto-load success", loadedPackages);
+                window.parent.postMessage(
+                  {
+                    type: "moduleAutoLoadSuccess",
+                    data: {
+                      packagesToLoad,
+                      loadedPackages,
+                    },
+                    stlite: true,
+                  } as ModuleAutoLoadSuccessMessage,
+                  process.env.REACT_APP_EDITOR_APP_ORIGIN ??
+                    communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
+                );
+              })
+              .catch((error) => {
+                console.error("Auto install failed", error);
+              });
+          },
+        });
 
         // Handle messages from the editor
         onMessage = (event) => {
           if (!isEditorOrigin(event.origin)) {
             return;
           }
+
+          communicatedEditorOrigin = event.origin;
 
           const port2 = event.ports[0];
           function postReplyMessage(msg: ReplyMessage) {
@@ -103,6 +133,11 @@ st.write("Hello World")`,
           const msg = event.data;
           (() => {
             switch (msg.type) {
+              case "reboot": {
+                return kernelWithToast.reboot(msg.data.entrypoint).then(() => {
+                  setAppKey((prev) => prev + 1);
+                });
+              }
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
@@ -146,7 +181,7 @@ st.write("Hello World")`,
     };
   }, []);
 
-  return kernel ? <StreamlitApp kernel={kernel} /> : null;
+  return kernel ? <StreamlitApp kernel={kernel} key={appKey} /> : null;
 }
 
 export default App;

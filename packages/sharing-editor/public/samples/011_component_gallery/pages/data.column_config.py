@@ -91,7 +91,7 @@ column_configuration = {
     "email": st.column_config.TextColumn(
         "Email",
         help="The user's email address",
-        validate="^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
+        validate=r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
     ),
 }
 

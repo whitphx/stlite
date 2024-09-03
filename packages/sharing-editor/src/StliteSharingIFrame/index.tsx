@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useImperativeHandle } from "react";
+import React, { useRef, useMemo, useImperativeHandle, useEffect } from "react";
 import {
   AppData,
   embedAppDataToUrl,
@@ -15,24 +15,44 @@ export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
   sharingAppSrc: string;
   initialAppData: AppData;
   messageTargetOrigin: string;
+  theme: "light" | "dark" | null;
+  onMessage: (event: MessageEvent) => void;
 }
 const StliteSharingIFrame = React.forwardRef<
   StliteSharingIFrameRef,
   StliteSharingIFrameProps
 >(
   (
-    { sharingAppSrc, initialAppData, messageTargetOrigin, ...iframeProps },
+    {
+      sharingAppSrc,
+      initialAppData,
+      messageTargetOrigin,
+      onMessage,
+      theme,
+      ...iframeProps
+    },
     ref
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     const iframeSrc = useMemo(
-      () => embedAppDataToUrl(sharingAppSrc, initialAppData),
+      () => {
+        const urlParams = new URLSearchParams();
+        urlParams.append("embed", "true");
+        urlParams.append("embed_options", "show_toolbar");
+        if (theme) {
+          urlParams.append("embed_options", `${theme}_theme`);
+        }
+        return embedAppDataToUrl(
+          sharingAppSrc + "?" + urlParams.toString(),
+          initialAppData
+        );
+      },
       // NOTE: `iframeSrc` should be calculated only for the initial `appData` and be persistent.
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc]
+      [sharingAppSrc, theme]
     );
 
     useImperativeHandle(
@@ -65,6 +85,19 @@ const StliteSharingIFrame = React.forwardRef<
       }),
       [messageTargetOrigin]
     );
+
+    useEffect(() => {
+      const windowMessageEventListener = (event: MessageEvent) => {
+        if (event.source === iframeRef.current?.contentWindow) {
+          onMessage(event);
+        }
+      };
+
+      window.addEventListener("message", windowMessageEventListener);
+      return () => {
+        window.removeEventListener("message", windowMessageEventListener);
+      };
+    }, [onMessage]);
 
     return (
       // eslint-disable-next-line jsx-a11y/iframe-has-title

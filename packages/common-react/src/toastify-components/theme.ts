@@ -1,29 +1,13 @@
-import {
-  LocalStore,
-  localStorageAvailable,
-} from "@streamlit/lib/src/util/storageUtils";
 import { darkTheme } from "@streamlit/lib/src/theme/themeConfigs";
-
-function isSystemDarkTheme(): boolean {
-  // Detect the system color mode. Ref: https://stackoverflow.com/a/57795495/13103190
-  return (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
-}
+import {
+  getDefaultTheme,
+  AUTO_THEME_NAME,
+} from "@streamlit/lib/src/theme/utils";
 
 export function isDarkTheme(): boolean {
-  if (!localStorageAvailable()) {
-    return isSystemDarkTheme();
+  const themeName = getDefaultTheme().name;
+  if (themeName === AUTO_THEME_NAME) {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
-
-  // Ref: https://github.com/streamlit/streamlit/blob/1.12.0/frontend/src/theme/utils.ts#L544
-  const cachedThemeStr = window.localStorage.getItem(LocalStore.ACTIVE_THEME);
-  if (!cachedThemeStr) {
-    return isSystemDarkTheme();
-  }
-
-  const { name } = JSON.parse(cachedThemeStr);
-
-  return name === darkTheme.name;
+  return themeName === darkTheme.name;
 }

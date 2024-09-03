@@ -5,7 +5,17 @@ import { Link } from "react-router-dom";
 import { URL_SEARCH_KEY_SAMPLE_APP_ID } from "../url";
 import classNames from "classnames";
 import logo from "../logo.svg";
+import logoDark from "../logo_dark.svg";
 import styles from "./index.module.scss";
+import ColorSchemeSelector from "../ColorScheme/ColorSchemeSelector";
+import { useDarkMode } from "../ColorScheme/hooks";
+
+function DisableableLink(
+  props: React.ComponentProps<typeof Link> & { disabled?: boolean }
+) {
+  const { disabled, ...restProps } = props;
+  return disabled ? <span {...restProps} /> : <Link {...restProps} />;
+}
 
 interface SampleAppMenuProps {
   currentSampleAppId: string | null;
@@ -13,33 +23,40 @@ interface SampleAppMenuProps {
 function SampleAppMenu(props: SampleAppMenuProps) {
   const { currentSampleAppId } = props;
 
+  const isDarkMode = useDarkMode();
+
   return (
     <div className={styles.container}>
-      <img src={logo} alt="stlite sharing logo" className={styles.logo} />
-      <h2 className={styles.heading}>Samples</h2>
-      <ol className={styles.list}>
+      <img
+        src={isDarkMode ? logoDark : logo}
+        alt="stlite sharing logo"
+        className={styles.logo}
+      />
+      <menu className={styles.list}>
         {sampleAppManifests.map((sampleAppManifest) => {
           const isActive = currentSampleAppId === sampleAppManifest.id;
-          const LinkComponent = isActive ? React.Fragment : Link;
           return (
-            <LinkComponent
+            <li
               key={sampleAppManifest.id}
-              to={{
-                search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
-              }}
+              className={classNames(styles.listItem, {
+                [styles.active]: isActive,
+              })}
             >
-              <li
-                className={classNames(styles.listItem, {
-                  [styles.active]: isActive,
-                })}
+              <DisableableLink
+                key={sampleAppManifest.id}
+                disabled={isActive}
+                to={{
+                  search: `${URL_SEARCH_KEY_SAMPLE_APP_ID}=${sampleAppManifest.id}`,
+                }}
               >
                 {sampleAppManifest.title}
-              </li>
-            </LinkComponent>
+              </DisableableLink>
+            </li>
           );
         })}
-      </ol>
+      </menu>
       <div className={styles.footer}>
+        <ColorSchemeSelector />
         <a
           href="https://github.com/whitphx/stlite"
           target="_blank"

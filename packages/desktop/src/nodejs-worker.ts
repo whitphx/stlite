@@ -2,6 +2,7 @@ export const USE_NODEJS_WORKER = window.nodeJsWorkerAPI.USE_NODEJS_WORKER;
 
 interface MessageEventLike<T = any> {
   readonly data: T;
+  readonly ports: MessagePort[];
 }
 
 export class NodeJsWorkerMock {
@@ -11,7 +12,7 @@ export class NodeJsWorkerMock {
     this.initializePromise = window.nodeJsWorkerAPI.initialize();
 
     window.nodeJsWorkerAPI.onMessage((data: unknown) => {
-      this.onmessage && this.onmessage({ data });
+      this.onmessage && this.onmessage({ data, ports: [] });
     });
   }
 

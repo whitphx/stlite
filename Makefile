@@ -6,10 +6,12 @@ sharing-common := packages/sharing-common/dist/*
 sharing-editor := packages/sharing-editor/build/*
 desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
-stlite-server-wheel := packages/kernel/py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl
+stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.38.0-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
+
+export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 .PHONY: all
 all: init mountable sharing sharing-editor
@@ -22,9 +24,9 @@ VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: requirements.dev.txt
+venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
 	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt
+	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
@@ -94,16 +96,21 @@ $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/deskto
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(common) $(stlite-server-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel; \
 	yarn build
 	@touch $@
 
-.PHONY: stlite-server-wheel
-stlite-server-wheel: $(stlite-server-wheel)
-$(stlite-server-wheel): venv packages/kernel/py/stlite-server/stlite_server/*.py
+.PHONY: kernel-test
+kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+	cd packages/kernel; \
+	yarn test
+
+.PHONY: stlite-lib-wheel
+stlite-lib-wheel: $(stlite-lib-wheel)
+$(stlite-lib-wheel): venv packages/kernel/py/stlite-lib/stlite_lib/*.py
 	. $(VENV)/bin/activate && \
-	cd packages/kernel/py/stlite-server && \
+	cd packages/kernel/py/stlite-lib && \
 	poetry build
 	@touch $@
 
@@ -127,7 +134,7 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 		exit 1; \
 	fi && \
 	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
-	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.35.0-py2.py3-none-any.whl && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.38.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
@@ -135,3 +142,6 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
 $(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
 	$(MAKE) -C streamlit frontend-lib-prod
+
+clean:
+	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

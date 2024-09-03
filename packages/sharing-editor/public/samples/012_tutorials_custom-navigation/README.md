@@ -1,7 +1,7 @@
 ## Streamlit Hello demo
 
 This sample app is a copy of the `tutorials/custom-navigation` demo.
-The source files were copied from https://github.com/streamlit/docs/tree/4f1c7ce444b6c3e0a1bba473199c9ddb42ed6866/python/api-examples-source
+The source files were copied from https://github.com/streamlit/docs/tree/dff6f40ea4ec1c5d2f7052db30348945a93dc9db/python/api-examples-source
 
 ## License
 

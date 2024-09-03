@@ -1,5 +1,6 @@
 .resizableContainer {
   display: flex;
+  background: var(--c-background);
   max-height: 50vh;
 }
 
@@ -9,8 +10,8 @@
 
 .footer {
   position: absolute;
+  background: var(--c-background);
   width: 100%;
   left: 0;
   bottom: 0;
-  background: #fff;
 }

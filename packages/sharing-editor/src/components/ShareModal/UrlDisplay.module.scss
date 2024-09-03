@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.displayBytes {
+  margin-left: 0.4rem;
+  font-size: small;
+  white-space: nowrap;
+}
+
+.openAppLink {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.8rem;
+  text-decoration: underline;
+  white-space: nowrap;
+}

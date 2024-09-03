@@ -21,7 +21,7 @@ st.data_editor(
             help="Streamlit **widget** commands 🎈",
             default="st.",
             max_chars=50,
-            validate="^st\.[a-z_]+$",
+            validate=r"^st\.[a-z_]+$",
         )
     },
     hide_index=True,

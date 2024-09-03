@@ -141,14 +141,14 @@ async function installPackages(
   const requirements: string[] = [...options.requirements];
 
   const wheelsDir = path.join(__dirname, pathFromScriptToWheels);
-  const stliteServerWheel = await prepareLocalWheel(
+  const stliteLibWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "stlite_server-0.1.0-py3-none-any.whl")
+    path.join(wheelsDir, "stlite_lib-0.1.0-py3-none-any.whl")
   );
-  requirements.push(stliteServerWheel);
+  requirements.push(stliteLibWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.35.0-cp312-none-any.whl")
+    path.join(wheelsDir, "streamlit-1.38.0-cp312-none-any.whl")
   );
   requirements.push(streamlitWheel);
 

@@ -2,7 +2,7 @@
 
 <img src="./docs/images/stlite-desktop-banner-pathified.svg" style="background: white;" >
 
-Convert your [Streamlit](https://streamlit.io/) application into a desktop app with [stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
+Convert your [Streamlit](https://streamlit.io/) application into a desktop app with [Stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
 
 ## How to create a Streamlit desktop app
 
@@ -26,7 +26,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
        }
      },
      "devDependencies": {
-       "@stlite/desktop": "^0.57.0",
+       "@stlite/desktop": "^0.63.1",
        "cross-env": "^7.0.3",
        "electron": "30.0.8",
        "electron-builder": "^24.13.3"
@@ -127,8 +127,8 @@ If you want to hide the toolbar, hamburger menu, and footer, add the following t
 
 ### File system
 
-_stlite_ runs your Python code on [Pyodide](https://pyodide.org/), a CPython runtime compiled to Wasm, and Pyodide's backend, Emscripten, provides a virtual file system.
-When _stlite_ runs your app, it mounts the source files onto the virtual file system, and what your Python code can access (e.g. `open("/path/to/something")`) is files and directories on the virtual file system.
+_Stlite_ runs your Python code on [Pyodide](https://pyodide.org/), a CPython runtime compiled to Wasm, and Pyodide's backend, Emscripten, provides a virtual file system.
+When _Stlite_ runs your app, it mounts the source files onto the virtual file system, and what your Python code can access (e.g. `open("/path/to/something")`) is files and directories on the virtual file system.
 
 The default file system ([`MEMFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#memfs)) is ephemeral, so the files saved in the directories are lost when the app is restarted. If you want to persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)) or mount directories on the host OS file system to directories on the virtual file system.
 
@@ -182,9 +182,9 @@ In the example below, `"."` on the host OS file system is mounted to the `/mnt` 
 `@stlite/desktop` runs your app on [Electron](https://www.electronjs.org/) as a desktop app.
 Electron apps have two processes: the main process which is a Node.js process running in the background, and the renderer process which is a Chromium (browser) process running the app's UI.
 
-By default, _stlite_ executes your Python code on Pyodide running in a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) dispatched by the renderer process, and the renderer process is a browser process so it's sandboxed from the host OS.
+By default, _Stlite_ executes your Python code on Pyodide running in a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) dispatched by the renderer process, and the renderer process is a browser process so it's sandboxed from the host OS.
 
-When you set the `stlite.desktop.nodeJsWorker` field in your `package.json` to `true`, _stlite_ dispatches the worker as a [NodeJS worker](https://nodejs.org/api/worker_threads.html) that runs in the main process, which is not sandboxed, so you can mount the host OS file system to the virtual file system as described in the previous section.
+When you set the `stlite.desktop.nodeJsWorker` field in your `package.json` to `true`, _Stlite_ dispatches the worker as a [NodeJS worker](https://nodejs.org/api/worker_threads.html) that runs in the main process, which is not sandboxed, so you can mount the host OS file system to the virtual file system as described in the previous section.
 
 ```json
 {

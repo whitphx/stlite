@@ -9,6 +9,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "pip"
-    directory: "/packages/kernel/py/stlite-server"
+    directory: "/packages/kernel/py/stlite-lib"
     schedule:
       interval: "daily"

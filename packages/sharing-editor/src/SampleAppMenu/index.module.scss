@@ -1,8 +1,11 @@
+@use "../variables" as var;
+
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow-y: scroll;
+  background-color: var(--c-background);
 }
 
 .logo {
@@ -12,53 +15,73 @@
   margin: 1rem 0;
 }
 
-.heading {
-  margin: 1rem;
-  font-weight: 500;
-  font-size: 1.5rem;
-}
-
 .list {
   padding: 0;
   margin: 0 1rem;
   flex-grow: 1;
 }
 
-$itemVerticalPadding: 0.5rem;
+$itemVerticalPadding: 0.1rem;
 $indicator-width: 2px;
 
 .listItem {
+  position: relative;
   list-style: none;
   padding: $itemVerticalPadding 0 $itemVerticalPadding 0.5rem;
-  line-height: 1.5rem;
-  margin-bottom: 1rem;
+  line-height: 1.2rem;
+  margin-bottom: 0.5rem;
   font-size: 1.1rem;
   border-left: $indicator-width solid #ddd;
-}
-.listItem:not(.active):hover {
-  background-color: #eee;
+
+  &:not(.active):hover {
+    a {
+      color: var(--c-primary-focus);
+    }
+  }
+
+  a {
+    text-decoration: none;
+    color: var(--c-text);
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.active {
+    cursor: default;
+    border-left: $indicator-width solid var(--c-primary-focus);
+    color: var(--c-primary-focus);
+  }
 }
 
-.list a {
-  text-decoration: none;
-}
-
-.listItem.active {
-  cursor: default;
-  border-left: $indicator-width solid var(--c-primary-focus);
-}
-
-$kofi-widget-height: 65px; // See https://storage.ko-fi.com/cdn/scripts/overlay-widget.js that is embedded at index.html
 .footer {
   margin: 1rem;
-  margin-bottom: calc( 6px + $kofi-widget-height );
+  margin-bottom: calc(6px + var.$kofi-widget-height);
 }
 
-.githubIconLink {
+a.githubIconLink {
   display: inline-flex;
   align-items: center;
   font-size: 36px;
+  color: var(--c-text);
+
+  &:hover {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+  }
 }
-.githubIconLink:hover {
-  color: var(--c-primary-focus);
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(2px, 0, 0);
+  }
 }

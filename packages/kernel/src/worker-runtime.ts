@@ -3,7 +3,9 @@ import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
 import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
+import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
+import { tryModuleAutoLoad } from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -20,37 +22,34 @@ import { LanguageServerEvents } from "./cognite/language-server-types";
 
 let tokenIsSet = false;
 
-async function initPyodide(
-  pyodideUrl: string,
-  loadPyodideOptions: Parameters<typeof Pyodide.loadPyodide>[0]
-): Promise<Pyodide.PyodideInterface> {
-  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/kernel.ts#L55
-  const indexUrl = pyodideUrl.slice(0, pyodideUrl.lastIndexOf("/") + 1);
-
-  // Ref: https://github.com/jupyterlite/pyodide-kernel/blob/v0.1.3/packages/pyodide-kernel/src/worker.ts#L40-L54
-  let loadPyodide: typeof Pyodide.loadPyodide;
-  if (pyodideUrl.endsWith(".mjs")) {
-    // note: this does not work at all in firefox
-    const pyodideModule: typeof Pyodide = await import(
-      /* webpackIgnore: true */ pyodideUrl
-    );
-    loadPyodide = pyodideModule.loadPyodide;
-  } else {
-    importScripts(pyodideUrl);
-    loadPyodide = (self as any).loadPyodide;
-  }
-  return loadPyodide({ ...loadPyodideOptions, indexURL: indexUrl });
-}
+export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
 const self = global as typeof globalThis & {
   __logCallback__: (levelno: number, msg: string) => void;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
+  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
+
+function dispatchModuleAutoLoading(
+  pyodide: Pyodide.PyodideInterface,
+  postMessage: PostMessageFn,
+  sources: string[]
+): void {
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
+  self.__moduleAutoLoadPromise__ = autoLoadPromise;
+  pyodide.runPythonAsync(`
+from streamlit.runtime.scriptrunner import script_runner
+from js import __moduleAutoLoadPromise__
+
+script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
+`);
+}
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
-  postMessage: (message: OutMessage) => void,
+  postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>
 ) {
   function postProgressMessage(message: string): void {
@@ -91,11 +90,11 @@ export function startWorkerEnv(
       requirements: unvalidatedRequirements,
       prebuiltPackageNames: prebuiltPackages,
       wheels,
-      mountedSitePackagesSnapshotFilePath,
       pyodideUrl = defaultPyodideUrl,
       streamlitConfig,
       idbfsMountpoints,
       nodefsMountpoints,
+      moduleAutoLoad,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -141,6 +140,7 @@ export function startWorkerEnv(
 
     // Mount files
     postProgressMessage("Mounting files.");
+    const pythonFilePaths: string[] = [];
     await Promise.all(
       Object.keys(files).map(async (path) => {
         const file = files[path];
@@ -158,6 +158,10 @@ export function startWorkerEnv(
 
         console.debug(`Write a file "${path}"`);
         writeFileWithParents(pyodide, path, data, opts);
+
+        if (path.endsWith(".py")) {
+          pythonFilePaths.push(path);
+        }
       })
     );
 
@@ -179,54 +183,22 @@ export function startWorkerEnv(
       })
     );
 
-    if (!mountedSitePackagesSnapshotFilePath && !wheels) {
-      throw new Error(`Neither snapshot nor wheel files are provided.`);
-    }
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
 
-    if (mountedSitePackagesSnapshotFilePath) {
-      // Restore the site-packages director(y|ies) from the mounted snapshot file.
-      postProgressMessage("Restoring the snapshot.");
+    postProgressMessage("Mocking some packages.");
+    console.debug("Mock pyarrow");
+    mockPyArrow(pyodide);
+    console.debug("Mocked pyarrow");
 
-      await pyodide.runPythonAsync(`import tarfile, shutil, site`);
-
-      // Remove "site-packages" directories such as '/lib/python3.10/site-packages'
-      // assuming these directories will be extracted from the snapshot archive.
-      await pyodide.runPythonAsync(`
-site_packages_dirs = site.getsitepackages()
-for site_packages in site_packages_dirs:
-    shutil.rmtree(site_packages)
-`);
-      console.debug(`Unarchive ${mountedSitePackagesSnapshotFilePath}`);
-      await pyodide.runPythonAsync(`
-with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
-    tar_gz_file.extractall("/")
-`);
-      console.debug("Restored the snapshot");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
-    }
-
-    // NOTE: It's important to install the user-specified requirements and the streamlit package at the same time,
-    // which satisfies the following two requirements:
-    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    // ===
-    // Also, this must be after restoring the snapshot because the snapshot may contain the site-packages.
+    // NOTE: Installing packages must be AFTER restoring the archives
+    // because they may contain packages to be restored into the site-packages directory.
     postProgressMessage("Installing packages.");
 
     console.debug("Installing the prebuilt packages:", prebuiltPackages);
     await pyodide.loadPackage(prebuiltPackages);
     console.debug("Installed the prebuilt packages");
 
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
     if (wheels) {
       console.debug(
         "Installing the wheels:",
@@ -234,20 +206,30 @@ with tarfile.open("${mountedSitePackagesSnapshotFilePath}", "r") as tar_gz_file:
         "and the requirements:",
         requirements
       );
+      // NOTE: It's important to install the user-specified requirements
+      // and the custom Streamlit and stlite wheels in the same `micropip.install` call,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
       await micropip.install.callKwargs(
-        [wheels.stliteServer, wheels.streamlit, wheels.jedi, ...requirements],
+        [wheels.stliteLib, wheels.streamlit, ...requirements],
         { keep_going: true }
       );
       console.debug("Installed the wheels and the requirements");
-
-      postProgressMessage("Mocking some packages.");
-      console.debug("Mock pyarrow");
-      mockPyArrow(pyodide);
-      console.debug("Mocked pyarrow");
     } else {
       console.debug("Installing the requirements:", requirements);
       await micropip.install.callKwargs(requirements, { keep_going: true });
       console.debug("Installed the requirements");
+    }
+    if (moduleAutoLoad) {
+      const sources = pythonFilePaths.map((path) =>
+        pyodide.FS.readFile(path, { encoding: "utf8" })
+      );
+      dispatchModuleAutoLoading(pyodide, postMessage, sources);
     }
 
     // Halt execution until CDF token is set
@@ -405,8 +387,8 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     }
 
     postProgressMessage("Booting up the Streamlit server.");
-    console.debug("Booting up the Streamlit server");
     // The following Python code is based on streamlit.web.cli.main_run().
+    console.debug("Setting up the Streamlit configuration");
     self.__streamlitFlagOptions__ = {
       // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
       "browser.gatherUsageStats": false,
@@ -414,8 +396,7 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
     };
     await pyodide.runPythonAsync(`
-from stlite_server.bootstrap import load_config_options, prepare
-from stlite_server.server import Server
+from stlite_lib.bootstrap import load_config_options, prepare
 from js import __streamlitFlagOptions__
 
 flag_options = __streamlitFlagOptions__.to_py()
@@ -425,20 +406,20 @@ main_script_path = "${entrypoint}"
 args = []
 
 prepare(main_script_path, args)
-
-server = Server(main_script_path)
-server.start()
 `);
-    console.debug("Booted up the Streamlit server");
+    console.debug("Set up the Streamlit configuration");
 
-    console.debug("Setting up the HTTP server");
-    // Pull the http server instance from Python world to JS world and set up it.
-    httpServer = pyodide.globals.get("server").copy();
-    console.debug("Set up the HTTP server");
+    console.debug("Booting up the Streamlit server");
+    const Server = pyodide.pyimport("stlite_lib.server.Server");
+    httpServer = Server(entrypoint);
+    httpServer.start();
+    console.debug("Booted up the Streamlit server");
 
     postMessage({
       type: "event:loaded",
     });
+
+    return initData;
   }
 
   const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
@@ -473,12 +454,30 @@ server.start()
     })();
     handleCogniteMessage(pyodidePromise, msg);
 
-    await pyodideReadyPromise;
+    const { moduleAutoLoad } = await pyodideReadyPromise;
 
     const messagePort = event.ports[0];
 
     try {
       switch (msg.type) {
+        case "reboot": {
+          console.debug("Reboot the Streamlit server", msg.data);
+
+          const { entrypoint } = msg.data;
+
+          httpServer.stop();
+
+          console.debug("Booting up the Streamlit server");
+          const Server = pyodide.pyimport("stlite_lib.server.Server");
+          httpServer = Server(entrypoint);
+          httpServer.start();
+          console.debug("Booted up the Streamlit server");
+
+          messagePort.postMessage({
+            type: "reply",
+          });
+          break;
+        }
         case "websocket:connect": {
           console.debug("websocket:connect", msg.data);
 
@@ -567,6 +566,18 @@ server.start()
         }
         case "file:write": {
           const { path, data: fileData, opts } = msg.data;
+
+          if (
+            moduleAutoLoad &&
+            typeof fileData === "string" &&
+            path.endsWith(".py")
+          ) {
+            // Auto-install must be dispatched before writing the file
+            // because its promise should be set before saving the file triggers rerunning.
+            console.debug(`Auto install the requirements in ${path}`);
+
+            dispatchModuleAutoLoading(pyodide, postMessage, [fileData]);
+          }
 
           console.debug(`Write a file "${path}"`);
           writeFileWithParents(pyodide, path, fileData, opts);

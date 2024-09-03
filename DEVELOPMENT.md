@@ -7,7 +7,7 @@ Use the Python version same as the one which the [currently used Pyodide](./pack
 ### Initialize the development environment
 
 ```
-USE_CONSTRAINTS_FILE=false make init
+make init
 ```
 
 ### Development of each package

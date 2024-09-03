@@ -2,6 +2,20 @@
   display: flex;
   width: 100%;
   height: 100%;
+  background-color: var(--c-background);
+  color: var(--c-text);
+}
+
+a {
+  color: var(--c-link);
+
+  &:hover {
+    color: var(--c-link);
+  }
+
+  &:visited {
+    color: var(--c-link);
+  }
 }
 
 .preview-iframe {

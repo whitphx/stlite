@@ -1,11 +1,3 @@
 import streamlit as st
 
-code = """
-<style>
-    p {
-        color: red;
-    }
-</style>
-"""
-st.html(code)
-st.markdown("Lorem ipsum")
+st.html("<p><span style='text-decoration: line-through double red;'>Oops</span>!</p>")

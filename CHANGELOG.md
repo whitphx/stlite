@@ -7,7 +7,219 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.57.0] - 2024-05-02
+## [0.65.0] - 2024-08-30
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.38.0, [#1101](https://github.com/whitphx/stlite/pull/1101).
+
+## [0.64.2] - 2024-08-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal refactoring.
+
+## [0.64.1] - 2024-08-28
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal Streamlit submodule update, [#1090](https://github.com/whitphx/stlite/pull/1090).
+
+## [0.64.0] - 2024-08-27
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.37.1, [#1084](https://github.com/whitphx/stlite/pull/1084).
+- Move `pyodide-http` package from `streamlit`'s deps to `stlite-lib`'s, [#1087](https://github.com/whitphx/stlite/pull/1087).
+
+## [0.63.1] - 2024-08-11
+
+### `@stlite/mountable`
+
+#### Added
+
+- Toast color theme adjustment, [#1064](https://github.com/whitphx/stlite/pull/1064).
+
+## [0.63.0] - 2024-08-10
+
+### `@stlite/kernel`
+
+#### Added
+
+- `StliteKernel.reboot()` method, [#1061](https://github.com/whitphx/stlite/pull/1061).
+
+## [0.62.4] - 2024-08-06
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Pyodide to 0.26.2, [#1051](https://github.com/whitphx/stlite/pull/1051).
+
+## [0.62.3] - 2024-08-05
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Rename `stlite-server` to `stlite-lib`, [#1047](https://github.com/whitphx/stlite/pull/1047).
+
+## [0.62.2] - 2024-08-04
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Remove the `mountedSitePackagesSnapshotFilePath` option, [#1041](https://github.com/whitphx/stlite/pull/1041).
+- Internal package updates.
+
+### `@stlite/desktop`
+
+#### Changed
+
+- Use the `archives` option instead of `mountedSitePackagesSnapshotFilePath`, [#1041](https://github.com/whitphx/stlite/pull/1041).
+
+## [0.62.1] - 2024-08-02
+
+### `@stlite/kernel`
+
+#### Added
+
+- Use `tomllib` for config parsing, [#1037](https://github.com/whitphx/stlite/pull/1037).
+
+## [0.62.0]
+
+Skipped due to GitHub Actions issue.
+
+## [0.61.0] - 2024-07-30
+
+### `@stlite/kernel`
+
+#### Added
+
+- Runtime AST transformation to convert `time.sleep()` to `await asyncio.sleep()`, [#1021](https://github.com/whitphx/stlite/pull/1021).
+
+## [0.60.3] - 2024-07-26
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix HTTP header parser, [#1027](https://github.com/whitphx/stlite/pull/1027).
+- Introduce Pyright, [#1031](https://github.com/whitphx/stlite/pull/1031).
+- Internal package updates.
+
+## [0.60.2] - 2024-06-27
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix the Parquet serialization to deal with non-string column names, [#1000](https://github.com/whitphx/stlite/pull/1000).
+
+## [0.60.1] - 2024-06-27
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Replace deprecated Pandas APIs in the arrow serialization process, [#996](https://github.com/whitphx/stlite/pull/996).
+
+## [0.60.0] - 2024-06-26
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Streamlit to 1.36.0, [#993](https://github.com/whitphx/stlite/pull/993).
+
+## [0.59.0] - 2024-06-25
+
+### `@stlite/mountable`
+
+#### Changed
+
+- Throw an error if the `entrypoint` option is not provided, instead of using the default value, [#991](https://github.com/whitphx/stlite/pull/991).
+
+## [0.58.7] - 2024-06-25
+
+### `@stlite/kernel`
+
+#### Changed
+
+- Update Pyodide to 0.26.1, [#987](https://github.com/whitphx/stlite/pull/987).
+
+## [0.58.6] - 2024-06-17
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug at patching `st.write_stream()` which was introduced in 0.58.4, [#981](https://github.com/whitphx/stlite/pull/981).
+
+## [0.58.5] - 2024-06-14
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Work around Parquet serialization by `fastparquet` so that data frames including NumPy arrays or datetime values can be serialized, [#975](https://github.com/whitphx/stlite/pull/975).
+
+## [0.58.4] - 2024-06-14
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- `st.write_stream()` is made async and normal function calls of it are automatically converted to be awaited under the hood, [#965](https://github.com/whitphx/stlite/pull/965).
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix IPC sender check to fix a bug that paginations from sub pages do not work in the NodeJS worker mode, [#972](https://github.com/whitphx/stlite/pull/972).
+
+## [0.58.3] - 2024-06-12
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Update of the internal Streamlit wheel, [#964](https://github.com/whitphx/stlite/pull/964).
+
+## [0.58.2] - 2024-06-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+Module auto-load only finds module-level modules, [#961](https://github.com/whitphx/stlite/pull/961).
+
+## [0.58.1] - 2024-06-11
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fixed a bug in the NodeJS worker mode on Windows, [#959](https://github.com/whitphx/stlite/pull/959).
+
+## [0.58.0] - 2024-06-06
+
+### `@stlite/kernel`
+
+#### Added
+
+- Experimentally added the `moduleAutoLoad` option, [#902](https://github.com/whitphx/stlite/pull/902).
+
+## [0.57.0] - 2024-05-30
 
 ### `@stlite/desktop`
 

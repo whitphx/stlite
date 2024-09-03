@@ -1,12 +1,18 @@
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import "./App.css";
-import { embedAppDataToUrl, AppData, File } from "@stlite/sharing-common";
+import {
+  embedAppDataToUrl,
+  AppData,
+  File,
+  BackwardMessage,
+} from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
 import StliteSharingIFrame, {
+  StliteSharingIFrameProps,
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
-import Editor, { EditorProps } from "./Editor";
+import Editor, { EditorProps, EditorRef } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrl } from "@stlite/sharing-common";
 import {
@@ -19,6 +25,7 @@ import ResponsiveDrawoer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 import { URL_SEARCH_KEY_SAMPLE_APP_ID, URL_SEARCH_KEY_EMBED_MODE } from "./url";
+import { useAppColorSchemePreference } from "./ColorScheme/hooks";
 
 interface AppLoaderData {
   appData: AppData;
@@ -62,9 +69,14 @@ const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 function App() {
   const {
     appData: initialAppData,
-    sampleAppId,
+    sampleAppId: initialSampleAppId,
     embedMode,
   } = useLoaderData() as AppLoaderData;
+
+  const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
+  useEffect(() => {
+    setSampleAppId(initialSampleAppId);
+  }, [initialSampleAppId]);
 
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const newUrl = embedAppDataToUrl(
@@ -72,6 +84,7 @@ function App() {
       appData
     );
     window.history.replaceState(null, "", newUrl);
+    setSampleAppId(null);
   }, []);
   const [
     { key: initAppDataKey, appData },
@@ -83,6 +96,7 @@ function App() {
   }, [initialAppData, initializeAppData]);
 
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
+  const editorRef = useRef<EditorRef>(null);
 
   const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
     (path, value) => {
@@ -208,6 +222,58 @@ function App() {
     [updateAppData]
   );
 
+  const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
+    (entrypoint) => {
+      iframeRef.current?.postMessage({
+        type: "reboot",
+        data: {
+          entrypoint,
+        },
+      });
+
+      updateAppData((cur) => {
+        return {
+          ...cur,
+          entrypoint,
+        };
+      });
+    },
+    [updateAppData]
+  );
+
+  const handleIframeMessage = useCallback<
+    StliteSharingIFrameProps["onMessage"]
+  >(
+    (e) => {
+      if (e.data.stlite !== true) {
+        return;
+      }
+      const msg = e.data as BackwardMessage;
+      switch (msg.type) {
+        case "moduleAutoLoadSuccess": {
+          if (msg.data.loadedPackages.length > 0) {
+            const additionalRequirements = msg.data.packagesToLoad;
+            const editor = editorRef.current;
+            if (editor == null) {
+              return;
+            }
+            editor.addRequirements(
+              additionalRequirements.map((r) => r + " # auto-loaded")
+            );
+            updateAppData((cur) => ({
+              ...cur,
+              requirements: cur.requirements.concat(additionalRequirements),
+            }));
+          }
+          break;
+        }
+      }
+    },
+    [updateAppData]
+  );
+
+  const appColorSchemePreference = useAppColorSchemePreference();
+
   return (
     <div className="App">
       {!embedMode && (
@@ -222,11 +288,13 @@ function App() {
           left={
             <Editor
               key={initAppDataKey}
+              ref={editorRef}
               appData={appData}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}
               onRequirementsChange={handleRequirementsChange}
+              onEntrypointChange={handleEntrypointChange}
             />
           }
           right={
@@ -246,6 +314,12 @@ function App() {
                   messageTargetOrigin={SHARING_APP_ORIGIN}
                   title="stlite app"
                   className="preview-iframe"
+                  onMessage={handleIframeMessage}
+                  theme={
+                    appColorSchemePreference === "auto"
+                      ? null
+                      : appColorSchemePreference
+                  }
                 />
               )}
             </>

@@ -45,21 +45,22 @@ function App() {
           };
         });
 
-        const mountedSitePackagesSnapshotFilePath =
-          "/tmp/site-packages-snapshot.tar.gz";
         kernel = new StliteKernel({
           entrypoint: window.appConfig.entrypoint,
-          files: {
-            ...files,
-            [mountedSitePackagesSnapshotFilePath]: {
-              data: sitePackagesSnapshotFileBin,
+          files,
+          archives: [
+            {
+              buffer: sitePackagesSnapshotFileBin,
+              format: "gztar",
+              options: {
+                extractDir: "/",
+              },
             },
-          },
-          archives: [],
+          ],
           requirements: [],
           prebuiltPackageNames,
-          mountedSitePackagesSnapshotFilePath,
           pyodideUrl,
+          skipStliteWheelsInstall: true,
           idbfsMountpoints: window.appConfig.idbfsMountpoints,
           worker: USE_NODEJS_WORKER
             ? (new NodeJsWorkerMock() as unknown as Worker)

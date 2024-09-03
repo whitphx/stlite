@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "stlite-lib"
+version = "0.1.0"
+description = ""
+authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pyodide-http = "^0.2.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+requests = "^2.32.3"
+streamlit-aggrid = "^1.0.5"
+pandas-stubs = "^2.2.2.240807"
+matplotlib = "^3.9.2"
+ruff = "^0.6.3"
+pyodide-py = "^0.26.2"
+pyright = "^1.1.378"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.pyright]
+include = ["stlite_lib"]
+extraPaths = ["../../../../streamlit/lib"]
+
+[tool.pytest.ini_options]
+pythonpath = "../../../../streamlit/lib"
+testpaths = [
+    "stlite_lib_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
+]

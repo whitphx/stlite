@@ -1,5 +1,6 @@
 // Ref: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/kernel.ts
 
+import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
@@ -21,6 +22,7 @@ import type {
   StliteWorker,
   WorkerInitialData,
   StreamlitConfig,
+  ModuleAutoLoadMessage,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -29,8 +31,8 @@ import { assertStreamlitConfig } from "./types";
 // About this change on Pyodide, see the links below:
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
-import STLITE_SERVER_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-server/dist/stlite_server-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.35.0-cp312-none-any.whl";
+import STLITE_LIB_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.38.0-cp312-none-any.whl";
 // COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
@@ -82,11 +84,7 @@ export interface StliteKernelOptions {
    */
   wheelBaseUrl?: string;
 
-  /**
-   * If specified, the worker restores the site-packages directories from this archive file
-   * and skip installing the wheels and required packages.
-   */
-  mountedSitePackagesSnapshotFilePath?: string;
+  skipStliteWheelsInstall?: boolean;
 
   /**
    * In the original Streamlit, the `hostConfig` endpoint returns a value of this type
@@ -124,6 +122,13 @@ export interface StliteKernelOptions {
 
   idbfsMountpoints?: WorkerInitialData["idbfsMountpoints"];
 
+  moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
+
+  onModuleAutoLoad?: (
+    packagesToLoad: string[],
+    installPromise: Promise<PackageData[]>
+  ) => void;
+
   onProgress?: (message: string) => void;
 
   onLoad?: () => void;
@@ -150,11 +155,10 @@ export class StliteKernel {
 
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
-  private onProgress: StliteKernelOptions["onProgress"];
-
-  private onLoad: StliteKernelOptions["onLoad"];
-
-  private onError: StliteKernelOptions["onError"];
+  public onProgress: StliteKernelOptions["onProgress"];
+  public onLoad: StliteKernelOptions["onLoad"];
+  public onError: StliteKernelOptions["onError"];
+  public onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -164,6 +168,7 @@ export class StliteKernel {
     this.onProgress = options.onProgress;
     this.onLoad = options.onLoad;
     this.onError = options.onError;
+    this.onModuleAutoLoad = options.onModuleAutoLoad;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -175,21 +180,22 @@ export class StliteKernel {
     }
 
     this._worker.onmessage = (e) => {
-      this._processWorkerMessage(e.data);
+      const messagePort: MessagePort | undefined = e.ports[0];
+      this._processWorkerMessage(e.data, messagePort);
     };
 
     // COGNITE: Cognite auth
     initTokenStorageAndAuthHandler(this._worker);
 
     let wheels: WorkerInitialData["wheels"] = undefined;
-    if (options.mountedSitePackagesSnapshotFilePath == null) {
+    if (!options.skipStliteWheelsInstall) {
       console.debug("Custom wheel URLs:", {
-        STLITE_SERVER_WHEEL,
+        STLITE_LIB_WHEEL,
         STREAMLIT_WHEEL,
         JEDI_WHEEL,
       });
-      const stliteServerWheelUrl = makeAbsoluteWheelURL(
-        STLITE_SERVER_WHEEL as unknown as string,
+      const stliteLibWheelUrl = makeAbsoluteWheelURL(
+        STLITE_LIB_WHEEL as unknown as string,
         options.wheelBaseUrl
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
@@ -202,7 +208,7 @@ export class StliteKernel {
         options.wheelBaseUrl
       );
       wheels = {
-        stliteServer: stliteServerWheelUrl,
+        stliteLib: stliteLibWheelUrl,
         streamlit: streamlitWheelUrl,
         jedi: jediWheelUrl,
       };
@@ -222,10 +228,9 @@ export class StliteKernel {
       prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
       wheels,
-      mountedSitePackagesSnapshotFilePath:
-        options.mountedSitePackagesSnapshotFilePath,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
+      moduleAutoLoad: options.moduleAutoLoad ?? false,
     };
   }
 
@@ -318,6 +323,20 @@ export class StliteKernel {
     });
   }
 
+  /**
+   * Reboot the Streamlit server.
+   * Note that we also need to refresh (rerender) the frontend app after calling this method
+   * to reflect the changes on the user-facing side.
+   */
+  public reboot(entrypoint: string): Promise<void> {
+    return this._asyncPostMessage({
+      type: "reboot",
+      data: {
+        entrypoint,
+      },
+    });
+  }
+
   private _asyncPostMessage(
     message: InMessage
   ): Promise<ReplyMessageGeneralReply["data"]>;
@@ -354,7 +373,7 @@ export class StliteKernel {
    *
    * @param msg The worker message to process.
    */
-  private _processWorkerMessage(msg: OutMessage): void {
+  private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
         this._worker.postMessage({
@@ -393,11 +412,31 @@ export class StliteKernel {
         this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
         break;
       }
+      case "event:moduleAutoLoad": {
+        if (port == null) {
+          throw new Error("Port is required for moduleAutoLoad event");
+        }
+        this.onModuleAutoLoad &&
+          this.onModuleAutoLoad(
+            msg.data.packagesToLoad,
+            new Promise((resolve, reject) => {
+              port.onmessage = (e) => {
+                const msg: ModuleAutoLoadMessage = e.data;
+                if (msg.type === "moduleAutoLoad:success") {
+                  resolve(msg.data.loadedPackages);
+                } else {
+                  reject(msg.error);
+                }
+                port.close();
+              };
+            })
+          );
+        break;
+      }
       // COGNITE: needed for language server
       case "language-server:hover":
       case "language-server:autocomplete": {
         postMessageToFusion(msg);
-        break;
       }
     }
   }

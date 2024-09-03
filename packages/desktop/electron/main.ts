@@ -1,7 +1,8 @@
 import { app, BrowserWindow, ipcMain, protocol } from "electron";
-import * as path from "path";
-import * as fsPromises from "fs/promises";
+import * as path from "node:path";
+import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
+import { isDescendantURL } from "./ipc-utils";
 import { walkRead } from "./file";
 import { readManifest } from "./manifest";
 
@@ -61,12 +62,16 @@ const createWindow = async () => {
   // following the security best practice, "17. Validate the sender of all IPC messages."
   // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
   const isValidIpcSender = (frame: Electron.WebFrameMain): boolean => {
-    return frame.url === indexUrl;
+    // In MPA, `frame.url` can include a sub path like `file:///index.html/sub_page_name`,
+    // so we need to check if the URL is a descendant of the index URL.
+    return isDescendantURL(indexUrl, frame.url);
   };
 
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`
+      );
     }
 
     // This archive file has to be created by ./bin/dump_snapshot.ts
@@ -78,7 +83,9 @@ const createWindow = async () => {
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`
+      );
     }
 
     const prebuiltPackagesTxtPath = path.resolve(
@@ -100,7 +107,9 @@ const createWindow = async () => {
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
       if (!isValidIpcSender(ev.senderFrame)) {
-        throw new Error("Invalid IPC sender");
+        throw new Error(
+          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`
+        );
       }
 
       const appDir = path.resolve(__dirname, "../app_files");
@@ -117,18 +126,20 @@ const createWindow = async () => {
   let worker: workerThreads.Worker | null = null;
   ipcMain.handle("initializeNodeJsWorker", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`
+      );
     }
 
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
-    const defaultPyodideUrl = path.resolve(__dirname, "../pyodide/pyodide.mjs");
+    const pyodidePath = path.resolve(__dirname, "..", "pyodide", "pyodide.mjs"); // For Windows compatibility, rely on path.resolve() to join the path elements.
 
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
-    worker = new workerThreads.Worker(path.resolve(__dirname, "./worker.js"), {
+    worker = new workerThreads.Worker(path.resolve(__dirname, "worker.js"), {
       env: {
-        PYODIDE_URL: defaultPyodideUrl,
+        PYODIDE_URL: pyodidePath,
         ...(manifest.nodefsMountpoints && {
           NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
         }),
@@ -140,7 +151,9 @@ const createWindow = async () => {
   });
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(
+        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`
+      );
     }
 
     if (worker == null) {
@@ -158,7 +171,7 @@ const createWindow = async () => {
   });
   ipcMain.handle("terminate", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error("Invalid IPC sender");
+      throw new Error(`Invalid IPC sender (terminate) ${ev.senderFrame.url}`);
     }
 
     worker?.terminate();

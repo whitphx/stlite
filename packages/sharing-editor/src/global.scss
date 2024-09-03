@@ -1,4 +1,33 @@
 :root {
   --c-primary: #f44b4b;
   --c-primary-focus: #ad4a51;
+  --c-background: #fff;
+  --c-background-secondary: #f5f5f5;
+  --c-background-hover: #f5f5f5;
+  --c-button-background: rgba(200, 200, 200, 0.3);
+  --c-button-background-hover: rgba(200, 200, 200, 0.5);
+  --c-button-background-active: rgba(200, 200, 200, 0.7);
+  --c-border: rgba(127, 127, 127, 0.5);
+  --c-text: #333;
+  --c-link: #4b4bf4;
+}
+
+@mixin dark-theme {
+  --c-primary: #f46b6b;
+  --c-primary-focus: #ed6a51;
+  --c-background: #000;
+  --c-background-secondary: #333;
+  --c-background-hover: #555555;
+  --c-text: #fff;
+  --c-link: #7bbff4;
+}
+
+body.theme-dark {
+  @include dark-theme;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) {
+    @include dark-theme;
+  }
 }

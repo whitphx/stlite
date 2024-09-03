@@ -1,6 +1,7 @@
 pandas
 numpy
+scipy
 altair
 pydeck
 opencv-python
-streamlit
+streamlit>=1.38.0

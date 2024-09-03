@@ -1,0 +1,15 @@
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  .section {
+    margin-top: 1.2rem;
+
+    .heading {
+      margin-top: 0;
+      font-size: 1.0rem;
+      font-weight: bold;
+    }
+  }
+}

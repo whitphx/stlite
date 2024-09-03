@@ -1,0 +1,40 @@
+.container {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.codeBox {
+  overflow: scroll;
+  width: 100%;
+  height: 20vh;
+  border: 1px solid var(--c-border);
+  background-color: var(--c-background-secondary);
+
+  pre {
+    margin: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
+
+.buttonGroup {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  button {
+    display: inline-flex;
+    padding: 0.4rem;
+    border: var(--c-border) 1px solid;
+    background: var(--c-button-background);
+    color: var(--c-text);
+
+    &:hover {
+      background: var(--c-button-background-hover)
+    }
+
+    &:active {
+      background: var(--c-button-background-active);
+    }
+  }
+}

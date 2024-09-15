@@ -1,3 +1,8 @@
 make init
-echo '\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.zshrc
-echo '\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.bashrc
+
+REACT_APP_EDITOR_APP_ORIGIN="https://${CODESPACE_NAME}-3030.app.github.dev"
+REACT_APP_SHARING_APP_URL="https://${CODESPACE_NAME}-3000.app.github.dev/"
+echo "\nexport REACT_APP_EDITOR_APP_ORIGIN=${REACT_APP_EDITOR_APP_ORIGIN}" >> ~/.zshrc
+echo "\nexport REACT_APP_EDITOR_APP_ORIGIN=${REACT_APP_EDITOR_APP_ORIGIN}" >> ~/.bashrc
+echo "export REACT_APP_SHARING_APP_URL=${REACT_APP_SHARING_APP_URL}" >> ~/.zshrc
+echo "export REACT_APP_SHARING_APP_URL=${REACT_APP_SHARING_APP_URL}" >> ~/.bashrc

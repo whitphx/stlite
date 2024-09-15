@@ -17,11 +17,7 @@
   "forwardPorts": [3000, 3030],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": [
-    "make init",
-    "echo '\\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.zshrc",
-    "echo '\\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.bashrc"
-  ],
+  "postCreateCommand": "/bin/bash ./.devcontainer/postCreateCommand.sh",
 
   // Configure tool-specific properties.
   // "customizations": {},

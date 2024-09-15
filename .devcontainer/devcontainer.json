@@ -7,7 +7,7 @@
       "version": "3.12.1"
     },
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-      "packages": "make"
+      "packages": "make,protobuf-compiler"
     }
   },
 

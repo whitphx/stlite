@@ -17,11 +17,16 @@
   "forwardPorts": [3000, 3030],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "make init"
+  "postCreateCommand": "make init",
 
   // Configure tool-specific properties.
   // "customizations": {},
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"
+
+  "hostRequirements": {
+    "memory": "16gb",
+    "storage": "16gb"
+  }
 }

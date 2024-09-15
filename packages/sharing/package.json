@@ -22,7 +22,7 @@
     "web-vitals": "^3.5.2"
   },
   "scripts": {
-    "start": "cross-env REACT_APP_EDITOR_APP_ORIGIN=http://localhost:3030 BROWSER=none craco start",
+    "start": "cross-env REACT_APP_EDITOR_APP_ORIGIN=${REACT_APP_EDITOR_APP_ORIGIN:=http://localhost:3030} BROWSER=none craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"

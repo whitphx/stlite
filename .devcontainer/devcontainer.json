@@ -7,7 +7,7 @@
       "version": "3.12.1"
     },
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-      "packages": "make,protobuf-compiler"
+      "packages": "make,protobuf-compiler,libprotobuf-dev"
     }
   },
 
@@ -19,7 +19,8 @@
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": [
     "make init",
-    "export REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/"
+    "echo '\\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.zshrc",
+    "echo '\\nexport REACT_APP_SHARING_APP_URL=https://${CODESPACE_NAME}-3000.app.github.dev/' >> ~/.bashrc"
   ],
 
   // Configure tool-specific properties.

@@ -18558,9 +18558,9 @@ postcss@^7.0.35:
     source-map "^0.6.1"
 
 postcss@^8.2.14, postcss@^8.3.5, postcss@^8.4.21, postcss@^8.4.23, postcss@^8.4.38, postcss@^8.4.4:
-  version "8.4.46"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.46.tgz#d526f2126b6ace463e9b3c1cbdad040fb040ea22"
-  integrity sha512-73x4XLhY0QNN+87/u6F7TRq+yl3xPAjlbRRvhly1mAKJgNO4q5fiqegez/Yi3u+ez8wbBXXqY9N1+RAJAVCzEw==
+  version "8.4.47"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.47.tgz#5bf6c9a010f3e724c503bf03ef7947dcb0fea365"
+  integrity sha512-56rxCq7G/XfB4EkXq9Egn5GCqugWvDFjafDOThIdMBsI15iqPqR5r15TfSr1YPYeEI19YeaXMCbY6u88Y76GLQ==
   dependencies:
     nanoid "^3.3.7"
     picocolors "^1.1.0"

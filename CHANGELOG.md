@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.65.1] - 2024-09-17
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug at HTTP server startup that caused an error on Safari, [#1123](https://github.com/whitphx/stlite/pull/1123).
+
 ## [0.65.0] - 2024-08-30
 
 ### `@stlite/kernel`

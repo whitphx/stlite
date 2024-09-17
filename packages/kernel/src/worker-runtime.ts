@@ -10,7 +10,7 @@ import type {
   WorkerInitialData,
   OutMessage,
   InMessage,
-  ReplyMessageHttpResponse,
+  ReplyMessage,
   PyodideConvertiblePrimitive,
 } from "./types";
 
@@ -432,6 +432,9 @@ prepare(main_script_path, args)
     const { moduleAutoLoad } = await pyodideReadyPromise;
 
     const messagePort = event.ports[0];
+    function reply(message: ReplyMessage): void {
+      messagePort.postMessage(message);
+    }
 
     try {
       switch (msg.type) {
@@ -448,7 +451,7 @@ prepare(main_script_path, args)
           httpServer.start();
           console.debug("Booted up the Streamlit server");
 
-          messagePort.postMessage({
+          reply({
             type: "reply",
           });
           break;
@@ -490,7 +493,7 @@ prepare(main_script_path, args)
             },
           );
 
-          messagePort.postMessage({
+          reply({
             type: "reply",
           });
           break;
@@ -517,7 +520,7 @@ prepare(main_script_path, args)
             const body = _body.toJs();
             console.debug({ statusCode, headers, body });
 
-            const reply: ReplyMessageHttpResponse = {
+            reply({
               type: "http:response",
               data: {
                 response: {
@@ -526,8 +529,7 @@ prepare(main_script_path, args)
                   body,
                 },
               },
-            };
-            messagePort.postMessage(reply);
+            });
           };
 
           httpServer.receive_http_from_js(
@@ -556,7 +558,7 @@ prepare(main_script_path, args)
 
           console.debug(`Write a file "${path}"`);
           writeFileWithParents(pyodide, path, fileData, opts);
-          messagePort.postMessage({
+          reply({
             type: "reply",
           });
           break;
@@ -566,7 +568,7 @@ prepare(main_script_path, args)
 
           console.debug(`Rename "${oldPath}" to ${newPath}`);
           renameWithParents(pyodide, oldPath, newPath);
-          messagePort.postMessage({
+          reply({
             type: "reply",
           });
           break;
@@ -576,7 +578,7 @@ prepare(main_script_path, args)
 
           console.debug(`Remove "${path}`);
           pyodide.FS.unlink(path);
-          messagePort.postMessage({
+          reply({
             type: "reply",
           });
           break;
@@ -592,7 +594,7 @@ prepare(main_script_path, args)
             .callKwargs(requirements, { keep_going: true })
             .then(() => {
               console.debug("Successfully installed");
-              messagePort.postMessage({
+              reply({
                 type: "reply",
               });
             });
@@ -616,7 +618,7 @@ prepare(main_script_path, args)
       cloneableError.name = error.name;
       cloneableError.stack = error.stack;
 
-      messagePort.postMessage({
+      reply({
         type: "reply",
         error: cloneableError,
       });

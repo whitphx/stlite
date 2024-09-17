@@ -583,6 +583,19 @@ prepare(main_script_path, args)
           });
           break;
         }
+        case "file:read": {
+          const { path, opts } = msg.data;
+
+          console.debug(`Read "${path}"`);
+          const content = pyodide.FS.readFile(path, opts);
+          reply({
+            type: "reply:file:read",
+            data: {
+              content,
+            },
+          });
+          break;
+        }
         case "install": {
           const { requirements: unvalidatedRequirements } = msg.data;
 

@@ -288,6 +288,22 @@ export class StliteKernel {
     });
   }
 
+  public readFile(
+    path: string,
+    opts?: Record<string, any>,
+  ): Promise<string | ArrayBuffer> {
+    return this._asyncPostMessage(
+      {
+        type: "file:read",
+        data: {
+          path,
+          opts,
+        },
+      },
+      "reply:file:read",
+    ).then((data) => data.content);
+  }
+
   public unlink(path: string): Promise<void> {
     return this._asyncPostMessage({
       type: "file:unlink",

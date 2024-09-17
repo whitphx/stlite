@@ -497,6 +497,12 @@ They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)
 
 They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
 
+### RAKUDEJI Inc.
+
+[<img src="https://imagedelivery.net/uODi9j-67fGrJlC0UtMj5w/3c47faee-8dab-41fa-ded6-681bdc3e9500/desktop" height="50" >](https://rakudeji.com/)
+
+They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
+
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)

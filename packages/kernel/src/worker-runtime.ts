@@ -395,7 +395,7 @@ prepare(main_script_path, args)
     console.debug("Booting up the Streamlit server");
     const Server = pyodide.pyimport("stlite_lib.server.Server");
     httpServer = Server(entrypoint);
-    httpServer.start();
+    await httpServer.start();
     console.debug("Booted up the Streamlit server");
 
     postMessage({

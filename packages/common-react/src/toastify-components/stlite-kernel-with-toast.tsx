@@ -84,6 +84,15 @@ export class StliteKernelWithToast {
     });
   }
 
+  public readFile(...args: Parameters<StliteKernel["readFile"]>) {
+    return stliteStyledPromiseToast<string | Uint8Array>(
+      this.kernel.readFile(...args),
+      {
+        error: "Failed to read the file",
+      },
+    );
+  }
+
   public install(...args: Parameters<StliteKernel["install"]>) {
     return stliteStyledPromiseToast<void>(this.kernel.install(...args), {
       pending: "Installing",

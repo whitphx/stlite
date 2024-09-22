@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+#### Changed
+
+- New Stite and Stlite Sharing logos, [#1130](https://github.com/whitphx/stlite/pull/1130).
+
 ## [0.65.1] - 2024-09-17
 
 ### `@stlite/kernel`

@@ -8,7 +8,7 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/mountable?label=%40stlite%2Fmountable)](https://www.npmjs.com/package/@stlite/mountable)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
-<img src="./docs/images/logo.svg" style="background: white;" >
+<img src="./assets/stlite.svg" style="background: white;" >
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers with the power of [Pyodide](https://pyodide.org/), WebAssembly (Wasm)-ported Python.
 

@@ -28,7 +28,7 @@ jobs:
       # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
       NODE_OPTIONS: "--max-old-space-size=6656"
 
-    runs-on: [ubuntu, 22.04]
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
   deploy:
     needs: build
 
-    runs-on: [ubuntu, 22.04]
+    runs-on: ubuntu-22.04
 
     # Settings for GitHub pages deployment, ref: https://github.com/peaceiris/actions-gh-pages#getting-started
     permissions:

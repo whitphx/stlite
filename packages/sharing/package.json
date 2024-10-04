@@ -8,7 +8,7 @@
     "@stlite/common-react": "^0.66.0",
     "@stlite/kernel": "^0.66.0",
     "@stlite/sharing-common": "^0.66.0",
-    "@streamlit/app": "1.38.0",
+    "@streamlit/app": "1.39.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.0.0",
     "@types/jest": "^27.4.3",

@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.67.0] - 2024-10-04
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.39.0, [#1143](https://github.com/whitphx/stlite/pull/1143).
+
+### `@stlite/mountable`
+
+#### Fixed
+
+- Fix `CrossOriginWorker` to work on FireFox in the case where the script is loaded from CDN, [#1142](https://github.com/whitphx/stlite/pull/1142).
 
 ## [0.66.0] - 2024-09-26
 

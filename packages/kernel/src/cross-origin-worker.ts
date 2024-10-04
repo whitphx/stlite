@@ -36,6 +36,8 @@ export class CrossOriginWorkerMaker {
 
   constructor(url: URL) {
     if (isSameOrigin(url)) {
+      console.debug(`Loading a worker script from the same origin: ${url}`);
+
       // This is the normal way to load a worker script, which is the best straightforward if possible.
       this.worker = new Worker(url);
 
@@ -44,6 +46,7 @@ export class CrossOriginWorkerMaker {
       // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
       // so we can't catch the error synchronously.
     } else {
+      console.debug(`Loading a worker script from a different origin: ${url}`);
       const workerBlobUrl = getWorkerBlobUrl(url);
       this.worker = new Worker(workerBlobUrl);
     }

@@ -3,7 +3,7 @@ import pydeck
 import pandas as pd
 
 capitals = pd.read_csv(
-    "python/api-examples-source/data/capitals.csv",
+    "data/capitals.csv",
     header=0,
     names=[
         "Capital",

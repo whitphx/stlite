@@ -11,9 +11,11 @@ echo SAMPLES_DIR=$SAMPLES_DIR
 echo DIFF_DIR=$DIFF_DIR
 
 mkdir -p $SAMPLES_DIR/011_component_gallery/pages
+mkdir -p $SAMPLES_DIR/011_component_gallery/data
 cp $SOURCE_REPO_DIR/python/api-examples-source/*.py $SAMPLES_DIR/011_component_gallery/pages/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/*.png $SAMPLES_DIR/011_component_gallery/pages/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/*.mp3 $SAMPLES_DIR/011_component_gallery/pages/.
+cp -r $SOURCE_REPO_DIR/python/api-examples-source/data/* $SAMPLES_DIR/011_component_gallery/data/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/tutorials/*.py $SAMPLES_DIR/011_component_gallery/pages/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/tutorials/elements/*/*.py $SAMPLES_DIR/011_component_gallery/pages/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/guides/*.py $SAMPLES_DIR/011_component_gallery/pages/.

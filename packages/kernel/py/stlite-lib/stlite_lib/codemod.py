@@ -8,6 +8,10 @@ CodeBlockNode = ast.Module | ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassD
 ChildCodeBlockNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
 
 
+class ModuleObject(NamedTuple):
+    name: str
+
+
 class ModuleFunction(NamedTuple):
     module: str
     func: str
@@ -17,9 +21,23 @@ class ModuleFunction(NamedTuple):
         return self.module + "." + self.func
 
 
+class ReturnValue(NamedTuple):
+    called_function: ModuleFunction
+
+
+class ObjAttr(NamedTuple):
+    obj: str | ReturnValue
+    attr: str
+
+
 class ObjectFunction(NamedTuple):
-    obj: "ReturnValue"  # YAGNI: Only ReturnValue is enough for now, while `NameResolvedAs` is also possible.
+    obj: ReturnValue  # YAGNI: Only ReturnValue is enough for now, while `NameResolvedAs` is also possible.
     func: str
+
+
+class AttrFunctionCall(NamedTuple):
+    obj: ModuleObject | ReturnValue
+    attr: str
 
 
 class AsyncModuleMethodCallReplacement(NamedTuple):
@@ -32,7 +50,7 @@ class AsyncCallReplacement(NamedTuple):
     pass
 
 
-RulePredicate = AsyncModuleMethodCallReplacement | AsyncCallReplacement
+RuleAction = AsyncModuleMethodCallReplacement | AsyncCallReplacement
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -44,20 +62,28 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         raise ValueError("code must be a string or an ast.Module")
 
     rules = {
-        ModuleFunction(module="time", func="sleep"): AsyncModuleMethodCallReplacement(
+        AttrFunctionCall(
+            obj=ModuleObject(name="time"), attr="sleep"
+        ): AsyncModuleMethodCallReplacement(
             module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
         ),
-        ModuleFunction(module="streamlit", func="write_stream"): AsyncCallReplacement(),
-        ObjectFunction(
+        AttrFunctionCall(
+            obj=ModuleObject(name="streamlit"), attr="write_stream"
+        ): AsyncCallReplacement(),
+        AttrFunctionCall(
             obj=ReturnValue(
                 called_function=ModuleFunction(module="streamlit", func="navigation")
             ),
-            func="run",
+            attr="run",
         ): AsyncCallReplacement(),
     }
 
     wildcard_import_monitor_targets = set(
-        [k for k in rules.keys() if isinstance(k, ModuleFunction)]
+        [
+            ModuleFunction(module=k.obj.name, func=k.attr)
+            for k in rules.keys()
+            if isinstance(k.obj, ModuleObject)
+        ]
     )
 
     scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
@@ -72,15 +98,6 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
 class SpecialNameToken(Enum):
     DELETED = 1
     NONDETERMINISTIC = 2
-
-
-class ReturnValue(NamedTuple):
-    called_function: ModuleFunction
-
-
-class ObjAttr(NamedTuple):
-    obj: str | ReturnValue
-    attr: str
 
 
 class StaticNameResolutionStatus(Enum):
@@ -333,7 +350,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self,
         code_block_name: str,
         parent_transformer: Self | None,
-        rules: dict[ModuleFunction | ObjectFunction, RulePredicate],
+        rules: dict[AttrFunctionCall, RuleAction],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
     ) -> None:
         super().__init__()
@@ -480,14 +497,14 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         called_module_func_origin = None
 
-        # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`):
-        if type(called_func) is ast.Name:
+        # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`).
+        # Especially, we don't care about the case like chained attribute access (e.g. `obj.attr.fn()`) for now.
+        if type(called_func) is ast.Name:  # e.g. `fn()`
             func_name = called_func.id
             obj_origin = self._resolve_name(func_name)
             if isinstance(obj_origin, str):
                 func_fully_qual_name = obj_origin
-            elif isinstance(obj_origin, ObjAttr):
-                # `fn()` is equivalent to `obj.method()` because `fn = obj.method`
+            elif isinstance(obj_origin, ObjAttr):  # e.g. `fn = obj.method`
                 attr_name = obj_origin.attr
                 obj_origin = obj_origin.obj
                 if isinstance(obj_origin, str):
@@ -496,9 +513,10 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     called_module_func_origin = ModuleFunction(
                         module=obj_origin, func=attr_name
                     )
-        elif type(called_func) is ast.Attribute:
-            if type(called_func.value) is ast.Name and isinstance(
-                called_func.value.ctx, ast.Load
+        elif type(called_func) is ast.Attribute:  # e.g. `obj.fn()` or `f().g()`
+            if (
+                type(called_func.value) is ast.Name  # e.g. `obj.fn()`
+                and isinstance(called_func.value.ctx, ast.Load)
             ):
                 obj_name = called_func.value.id
                 attr_name = called_func.attr
@@ -509,7 +527,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     called_module_func_origin = ModuleFunction(
                         module=obj_origin, func=attr_name
                     )
-            elif isinstance(called_func.value, ast.Call):
+            elif isinstance(called_func.value, ast.Call):  # e.g. `f().g()``
                 called_func.value, called_function = self.handle_Call(called_func.value)
                 if called_function:
                     obj_origin = ReturnValue(called_function=called_function)
@@ -518,36 +536,21 @@ class CodeBlockTransformer(ast.NodeTransformer):
             # Early return for efficiency. In this case, no rule will match below.
             return node, called_module_func_origin
 
-        for target, predicate in self.rules.items():
+        for target, action in self.rules.items():
             if (
-                isinstance(target, ModuleFunction)
-                and target.full_name == func_fully_qual_name
+                isinstance(target.obj, ModuleObject)
+                and target.obj.name + "." + target.attr == func_fully_qual_name
                 and func_fully_qual_name not in self.invalidated_names
             ) or (
-                isinstance(target, ObjectFunction)
-                and isinstance(target.obj, ReturnValue)
+                isinstance(target.obj, ReturnValue)
                 and isinstance(obj_origin, ReturnValue)
                 and target.obj.called_function == obj_origin.called_function
             ):
-                return self._handle_target_call(
-                    node, predicate
-                ), called_module_func_origin
+                return self._handle_target_call(node, action), called_module_func_origin
 
         return node, called_module_func_origin
 
     def _handle_target_call(
-        self,
-        node: ast.Call,
-        predicate: RulePredicate,
-    ) -> ast.AST:
-        if isinstance(
-            predicate, (AsyncModuleMethodCallReplacement, AsyncCallReplacement)
-        ):
-            return self._handle_target_call_replacement(node, predicate)
-        else:
-            return node
-
-    def _handle_target_call_replacement(
         self,
         node: ast.Call,
         replacement: AsyncModuleMethodCallReplacement | AsyncCallReplacement,
@@ -634,10 +637,12 @@ class CodeBlockTransformer(ast.NodeTransformer):
                             # For a wild-card import, add a binding for a target whose module name is matched.
                             for target in self.rules.keys():
                                 if (
-                                    isinstance(target, ModuleFunction)
-                                    and node.module == target.module
+                                    isinstance(target.obj, ModuleObject)
+                                    and node.module == target.obj.name
                                 ):
-                                    self._bind_name(target.func, target.full_name)
+                                    self._bind_name(
+                                        target.attr, target.obj.name + "." + target.attr
+                                    )
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)

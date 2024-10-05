@@ -32,14 +32,7 @@ class AsyncCallReplacement(NamedTuple):
     pass
 
 
-class TrackReturnValue(NamedTuple):
-    """Track the names that are bound to the return value of the function call
-    so that the called function can be used as a target (query) of the rule."""
-
-    pass
-
-
-RulePredicate = AsyncMethodCallReplacement | AsyncCallReplacement | TrackReturnValue
+RulePredicate = AsyncMethodCallReplacement | AsyncCallReplacement
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -55,7 +48,6 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
             module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
         ),
         ModuleFunction(module="streamlit", func="write_stream"): AsyncCallReplacement(),
-        ModuleFunction(module="streamlit", func="navigation"): TrackReturnValue(),
         ObjectFunction(
             obj=ReturnValue(
                 called_function=ModuleFunction(module="streamlit", func="navigation")
@@ -483,7 +475,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
         obj_origin = None
         func_fully_qual_name = None
 
-        # We now support only the following two cases (e.g. `obj.fn()` and `fn()`):
+        called_module_func_origin = None
+
+        # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`):
         if type(called_func) is ast.Name:
             func_name = called_func.id
             func_fully_qual_name = self._resolve_name(func_name)
@@ -497,6 +491,14 @@ class CodeBlockTransformer(ast.NodeTransformer):
             obj_origin = self._resolve_name(obj_name)
             if isinstance(obj_origin, str):
                 func_fully_qual_name = obj_origin + "." + attr_name
+                # YAGNI: We now support `mod.method()` call only.
+                called_module_func_origin = ModuleFunction(
+                    module=obj_origin, func=attr_name
+                )
+
+        # This value will be used in the visit() method call targetting the parent node of this node.
+        # See the visit() method below.
+        self._called_function = called_module_func_origin
 
         if obj_origin is None and func_fully_qual_name is None:
             # Early return for efficiency. In this case, no rule will match below.
@@ -525,8 +527,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
     ) -> ast.AST:
         if isinstance(predicate, (AsyncMethodCallReplacement, AsyncCallReplacement)):
             return self._handle_target_call_replacement(node, predicate)
-        elif isinstance(predicate, TrackReturnValue):
-            return self._handle_target_call_track_return_value(node, target)
         else:
             return node
 
@@ -554,14 +554,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 keywords=node.keywords,
             )
         )
-
-    def _handle_target_call_track_return_value(
-        self, node: ast.Call, called_function: ModuleFunction | ObjectFunction
-    ) -> ast.AST:
-        # This value will be used in the visit() method call targetting the parent node of this node.
-        # See the visit() method below.
-        self._called_function = called_function
-        return node
 
     def visit(self, node: ast.AST) -> ast.AST:
         # Initialize the flags

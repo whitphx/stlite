@@ -278,11 +278,13 @@ class ReturnValue(NamedTuple):
 
 
 class ObjAttr(NamedTuple):
-    obj: str | ReturnValue
+    obj: ReturnValue
     attr: str
 
 
-NameResolvedAs = NameBoundTo | ReturnValue | ObjAttr
+NameResolvedAs = (
+    NameBoundTo | ReturnValue | ObjAttr
+)  # Name resolvers try to return `NameBoundTo` as much as possible, but using `ReturnValue` or `ObjAttr` is necessary for the case where the name is bound to a function call result or an attribute of a function call result.
 
 
 class ModuleObject(NamedTuple):
@@ -469,12 +471,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
             elif isinstance(obj_origin, ObjAttr):  # e.g. `fn = obj.method`
                 attr_name = obj_origin.attr
                 obj_origin = obj_origin.obj
-                if isinstance(obj_origin, str):
-                    func_fully_qual_name = obj_origin + "." + attr_name
-                    # YAGNI: We now support `mod.method()` call only.
-                    called_module_func_origin = ModuleFunction(
-                        module=obj_origin, func=attr_name
-                    )
         elif type(called_func) is ast.Attribute:  # e.g. `obj.fn()` or `f().g()`
             if (
                 type(called_func.value) is ast.Name  # e.g. `obj.fn()`
@@ -632,16 +628,12 @@ class CodeBlockTransformer(ast.NodeTransformer):
                                 bound_to = obj_origin + "." + attr_name
                             elif isinstance(obj_origin, ReturnValue):
                                 bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
-                            else:
-                                bound_to = None
                         elif isinstance(node.value.value, ast.Call):  # e.g. `a = b().c`
                             node.value.value, called_function = self.handle_Call(
                                 node.value.value
                             )
                             if called_function:
                                 bound_to = ReturnValue(called_function=called_function)
-                    else:
-                        bound_to = None
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
                 return node

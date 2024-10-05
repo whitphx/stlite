@@ -721,3 +721,24 @@ def test_convert_page_run(test_input, expected):
     assert ast.dump(tree, indent=4) == ast.dump(
         ast.parse(expected, "test.py", "exec"), indent=4
     )
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await pg.run()
+""",
+            id="already_awaited_call",
+        ),
+    ],
+)
+def test_not_convert_page_run(test_input):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(test_input, "test.py", "exec"), indent=4
+    )

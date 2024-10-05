@@ -701,6 +701,19 @@ await pg.run()
 """,
             id="page_object_assignment",
         ),
+        pytest.param(
+            """
+import streamlit as st
+
+st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run()
+""",
+            """
+import streamlit as st
+
+await st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run()
+""",
+            id="page_run_without_assignment",
+        ),
     ],
 )
 def test_convert_page_run(test_input, expected):

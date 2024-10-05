@@ -481,20 +481,24 @@ class CodeBlockTransformer(ast.NodeTransformer):
         if type(called_func) is ast.Name:
             func_name = called_func.id
             func_fully_qual_name = self._resolve_name(func_name)
-        elif (
-            type(called_func) is ast.Attribute
-            and type(called_func.value) is ast.Name
-            and isinstance(called_func.value.ctx, ast.Load)
-        ):
-            obj_name = called_func.value.id
-            attr_name = called_func.attr
-            obj_origin = self._resolve_name(obj_name)
-            if isinstance(obj_origin, str):
-                func_fully_qual_name = obj_origin + "." + attr_name
-                # YAGNI: We now support `mod.method()` call only.
-                called_module_func_origin = ModuleFunction(
-                    module=obj_origin, func=attr_name
-                )
+        elif type(called_func) is ast.Attribute:
+            if type(called_func.value) is ast.Name and isinstance(
+                called_func.value.ctx, ast.Load
+            ):
+                obj_name = called_func.value.id
+                attr_name = called_func.attr
+                obj_origin = self._resolve_name(obj_name)
+                if isinstance(obj_origin, str):
+                    func_fully_qual_name = obj_origin + "." + attr_name
+                    # YAGNI: We now support `mod.method()` call only.
+                    called_module_func_origin = ModuleFunction(
+                        module=obj_origin, func=attr_name
+                    )
+            elif isinstance(called_func.value, ast.Call):
+                called_func.value = self.handle_Call(
+                    called_func.value
+                )  # TODO: Make `handle_Call` return the called_function as well and use it here.
+                obj_origin = ReturnValue(called_function=self._called_function)
 
         # This value will be used in the visit() method call targetting the parent node of this node.
         # See the visit() method below.
@@ -515,14 +519,13 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 and isinstance(obj_origin, ReturnValue)
                 and target.obj.called_function == obj_origin.called_function
             ):
-                return self._handle_target_call(node, target, predicate)
+                return self._handle_target_call(node, predicate)
 
         return node
 
     def _handle_target_call(
         self,
         node: ast.Call,
-        target: ModuleFunction | ObjectFunction,
         predicate: RulePredicate,
     ) -> ast.AST:
         if isinstance(

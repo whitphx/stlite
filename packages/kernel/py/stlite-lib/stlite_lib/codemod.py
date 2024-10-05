@@ -8,93 +8,6 @@ CodeBlockNode = ast.Module | ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassD
 ChildCodeBlockNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
 
 
-class ModuleObject(NamedTuple):
-    name: str
-
-
-class ModuleFunction(NamedTuple):
-    module: str
-    func: str
-
-    @property
-    def full_name(self) -> str:
-        return self.module + "." + self.func
-
-
-class ReturnValue(NamedTuple):
-    called_function: ModuleFunction
-
-
-class ObjAttr(NamedTuple):
-    obj: str | ReturnValue
-    attr: str
-
-
-class ObjectFunction(NamedTuple):
-    obj: ReturnValue  # YAGNI: Only ReturnValue is enough for now, while `NameResolvedAs` is also possible.
-    func: str
-
-
-class AttrFunctionCall(NamedTuple):
-    obj: ModuleObject | ReturnValue
-    attr: str
-
-
-class AsyncModuleMethodCallReplacement(NamedTuple):
-    module: str
-    func: str
-    module_alias_for_new_import: str
-
-
-class AsyncCallReplacement(NamedTuple):
-    pass
-
-
-RuleAction = AsyncModuleMethodCallReplacement | AsyncCallReplacement
-
-
-def patch(code: str | ast.Module, script_path: str) -> ast.Module:
-    if isinstance(code, str):
-        tree = ast.parse(code, script_path, "exec")
-    elif isinstance(code, ast.Module):
-        tree = code
-    else:
-        raise ValueError("code must be a string or an ast.Module")
-
-    rules = {
-        AttrFunctionCall(
-            obj=ModuleObject(name="time"), attr="sleep"
-        ): AsyncModuleMethodCallReplacement(
-            module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
-        ),
-        AttrFunctionCall(
-            obj=ModuleObject(name="streamlit"), attr="write_stream"
-        ): AsyncCallReplacement(),
-        AttrFunctionCall(
-            obj=ReturnValue(
-                called_function=ModuleFunction(module="streamlit", func="navigation")
-            ),
-            attr="run",
-        ): AsyncCallReplacement(),
-    }
-
-    wildcard_import_monitor_targets = set(
-        [
-            ModuleFunction(module=k.obj.name, func=k.attr)
-            for k in rules.keys()
-            if isinstance(k.obj, ModuleObject)
-        ]
-    )
-
-    scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
-    node_scanner_map = scanner.process(tree)
-    transformer = CodeBlockTransformer("__main__", None, rules, node_scanner_map)
-    new_tree = transformer.process(tree)
-    new_tree = ast.fix_missing_locations(new_tree)
-
-    return cast(ast.Module, new_tree)
-
-
 class SpecialNameToken(Enum):
     DELETED = 1
     NONDETERMINISTIC = 2
@@ -110,12 +23,21 @@ class StaticNameResolutionStatus(Enum):
 NameBoundTo = str | SpecialNameToken
 
 
+class WildcardImportTarget(NamedTuple):
+    module: str
+    attr: str
+
+    @property
+    def full_name(self) -> str:
+        return self.module + "." + self.attr
+
+
 class CodeBlockStaticScanner(ast.NodeVisitor):
     def __init__(
         self,
         code_block_name: str,
         parent_scanner: Self | None,
-        wildcard_import_targets: set[ModuleFunction],
+        wildcard_import_targets: set[WildcardImportTarget],
     ) -> None:
         """Scan a code block ("code block" is a Python terminology. See https://docs.python.org/3/reference/executionmodel.html).
         The `process()` method recursively instantiates this class and scans the child code blocks
@@ -304,7 +226,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
                             # For a wild-card import, add a binding for a target whose module name is matched.
                             for target in self.wildcard_import_targets:
                                 if node.module == target.module:
-                                    self._bind_name(target.func, target.full_name)
+                                    self._bind_name(target.attr, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)
@@ -342,7 +264,47 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             self.generic_visit(node)
 
 
+class ModuleFunction(NamedTuple):
+    module: str
+    func: str
+
+    @property
+    def full_name(self) -> str:
+        return self.module + "." + self.func
+
+
+class ReturnValue(NamedTuple):
+    called_function: ModuleFunction
+
+
+class ObjAttr(NamedTuple):
+    obj: str | ReturnValue
+    attr: str
+
+
 NameResolvedAs = NameBoundTo | ReturnValue | ObjAttr
+
+
+class ModuleObject(NamedTuple):
+    name: str
+
+
+class AttrFunctionCall(NamedTuple):
+    obj: ModuleObject | ReturnValue
+    attr: str
+
+
+class AsyncModuleMethodCallReplacement(NamedTuple):
+    module: str
+    func: str
+    module_alias_for_new_import: str
+
+
+class AsyncCallReplacement(NamedTuple):
+    pass
+
+
+TransformRuleAction = AsyncModuleMethodCallReplacement | AsyncCallReplacement
 
 
 class CodeBlockTransformer(ast.NodeTransformer):
@@ -350,7 +312,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self,
         code_block_name: str,
         parent_transformer: Self | None,
-        rules: dict[AttrFunctionCall, RuleAction],
+        rules: dict[AttrFunctionCall, TransformRuleAction],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
     ) -> None:
         super().__init__()
@@ -739,3 +701,47 @@ def _get_func_args(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
             node.args.kwarg.arg,
         )
     return params
+
+
+def patch(code: str | ast.Module, script_path: str) -> ast.Module:
+    if isinstance(code, str):
+        tree = ast.parse(code, script_path, "exec")
+    elif isinstance(code, ast.Module):
+        tree = code
+    else:
+        raise ValueError("code must be a string or an ast.Module")
+
+    transform_rules = {
+        AttrFunctionCall(
+            obj=ModuleObject(name="time"), attr="sleep"
+        ): AsyncModuleMethodCallReplacement(
+            module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
+        ),
+        AttrFunctionCall(
+            obj=ModuleObject(name="streamlit"), attr="write_stream"
+        ): AsyncCallReplacement(),
+        AttrFunctionCall(
+            obj=ReturnValue(
+                called_function=ModuleFunction(module="streamlit", func="navigation")
+            ),
+            attr="run",
+        ): AsyncCallReplacement(),
+    }
+
+    wildcard_import_monitor_targets = set(
+        [
+            WildcardImportTarget(module=k.obj.name, attr=k.attr)
+            for k in transform_rules.keys()
+            if isinstance(k.obj, ModuleObject)
+        ]
+    )
+
+    scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
+    node_scanner_map = scanner.process(tree)
+    transformer = CodeBlockTransformer(
+        "__main__", None, transform_rules, node_scanner_map
+    )
+    new_tree = transformer.process(tree)
+    new_tree = ast.fix_missing_locations(new_tree)
+
+    return cast(ast.Module, new_tree)

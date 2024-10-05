@@ -662,3 +662,49 @@ def test_not_convert_sleep(test_input):
     assert ast.dump(tree, indent=4) == ast.dump(
         ast.parse(test_input, "test.py", "exec"), indent=4
     )
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+pg.run()
+""",
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await pg.run()
+""",
+            id="basic_page",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg
+foo.run()
+pg.run()
+""",
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg
+await foo.run()
+await pg.run()
+""",
+            id="page_object_assignment",
+        ),
+    ],
+)
+def test_convert_page_run(test_input, expected):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(expected, "test.py", "exec"), indent=4
+    )

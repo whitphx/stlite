@@ -651,10 +651,19 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 return node
 
             if isinstance(node, (ast.Assign, ast.Delete)):
+                bound_to = None
                 if isinstance(node, ast.Delete):
                     bound_to = SpecialNameToken.DELETED
                 else:
-                    if isinstance(node.value, ast.Name):
+                    if isinstance(node.value, ast.Call):
+                        self.generic_visit(node)
+                        if self._called_function:
+                            # If a function is called in the right-hand side of the assignment,
+                            # bind the left-hand side to a token representing the return value of the function call.
+                            bound_to = ReturnValue(
+                                called_function=self._called_function
+                            )
+                    elif isinstance(node.value, ast.Name):
                         bound_to = self._resolve_name_local_dynamic(node.value.id)
                     elif isinstance(node.value, ast.Attribute) and isinstance(
                         node.value.value, ast.Name
@@ -670,6 +679,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
                         bound_to = None
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
+                return node
+
             assignment_occurs = isinstance(
                 node,
                 (
@@ -690,15 +701,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
             # Traverse the children
             self.generic_visit(node)
-
-            # Check the flags set during the children traversal
-            if isinstance(node, ast.Assign):
-                if self._called_function:
-                    # If a function is called in the right-hand side of the assignment,
-                    # bind the left-hand side to a token representing the return value of the function call.
-                    bound_to = ReturnValue(called_function=self._called_function)
-                    for target in node.targets:
-                        self._bind_expr(target, bound_to=bound_to)
 
             return node
 

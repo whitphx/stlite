@@ -552,9 +552,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
         elif action == TransformRuleAction.STREAMLIT_WRITE_STREAM:
             return ast.Await(value=node)
         elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
-            module_name = "stlite_lib.asyncify"
+            module_name = "stlite_lib.async_utils"
             func_name = "ensure_awaitable"
-            module_alias_for_new_import = "__stlite_lib_asyncify__"
+            module_alias_for_new_import = "__stlite_lib_async_utils__"
             if module_name in self.imported_modules:
                 module_as_name = self.imported_modules[module_name]
             else:

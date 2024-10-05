@@ -696,11 +696,11 @@ pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
 pg.run()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
 pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
-await __stlite_lib_asyncify__.ensure_awaitable(pg.run())
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
 """,
             id="basic_page",
         ),
@@ -712,11 +712,11 @@ pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
 pg.run()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as foo
 
 pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
-await __stlite_lib_asyncify__.ensure_awaitable(pg.run())
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
 """,
             id="non_standard_streamlit_alias_page",
         ),
@@ -730,13 +730,13 @@ foo.run()
 pg.run()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
 pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
 foo = pg
-await __stlite_lib_asyncify__.ensure_awaitable(foo.run())
-await __stlite_lib_asyncify__.ensure_awaitable(pg.run())
+await __stlite_lib_async_utils__.ensure_awaitable(foo.run())
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
 """,
             id="page_object_assignment",
         ),
@@ -749,12 +749,12 @@ foo = pg.run
 foo()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
 pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
 foo = pg.run
-await __stlite_lib_asyncify__.ensure_awaitable(foo())
+await __stlite_lib_async_utils__.ensure_awaitable(foo())
 """,
             id="run_method_assignment",
         ),
@@ -765,10 +765,10 @@ import streamlit as st
 st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
-await __stlite_lib_asyncify__.ensure_awaitable(st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run())
+await __stlite_lib_async_utils__.ensure_awaitable(st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run())
 """,
             id="page_run_without_assignment",
         ),
@@ -780,11 +780,11 @@ foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
 foo()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
 foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
-await __stlite_lib_asyncify__.ensure_awaitable(foo())
+await __stlite_lib_async_utils__.ensure_awaitable(foo())
 """,
             id="assigned_run_method",
         ),
@@ -798,13 +798,13 @@ if True:
 pg.run()
 """,
             """
-import stlite_lib.asyncify as __stlite_lib_asyncify__
+import stlite_lib.async_utils as __stlite_lib_async_utils__
 import streamlit as st
 
 if True:
     pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
 
-await __stlite_lib_asyncify__.ensure_awaitable(pg.run())
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
 """,
             id="conditioned_page_object",
         ),

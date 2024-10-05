@@ -699,6 +699,21 @@ await pg.run()
         ),
         pytest.param(
             """
+import streamlit as foo
+
+pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+pg.run()
+""",
+            """
+import streamlit as foo
+
+pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await pg.run()
+""",
+            id="non_standard_streamlit_alias_page",
+        ),
+        pytest.param(
+            """
 import streamlit as st
 
 pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])

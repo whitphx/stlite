@@ -264,17 +264,11 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             self.generic_visit(node)
 
 
-class ModuleFunction(NamedTuple):
-    module: str
-    func: str
-
-    @property
-    def full_name(self) -> str:
-        return self.module + "." + self.func
+FullyQualifiedName = str
 
 
 class ReturnValue(NamedTuple):
-    called_function: ModuleFunction
+    called_function: FullyQualifiedName
 
 
 class ObjAttr(NamedTuple):
@@ -454,21 +448,23 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _inside_control_flow(self):
         return self._control_flow_depth > 0
 
-    def handle_Call(self, node: ast.Call) -> tuple[ast.AST, ModuleFunction | None]:
+    def _resolve_called_object(self, node: ast.Call):
         called_func = node.func
         obj_origin = None
         func_fully_qual_name = None
-
-        called_module_func_origin = None
 
         # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`).
         # Especially, we don't care about the case like chained attribute access (e.g. `obj.attr.fn()`) for now.
         if type(called_func) is ast.Name:  # e.g. `fn()`
             func_name = called_func.id
             obj_origin = self._resolve_name(func_name)
-            if isinstance(obj_origin, str):
+            if isinstance(
+                obj_origin, str
+            ):  # When `fn` is resolved to a fully qualified name, e.g. `from mod imoprt fn`
                 func_fully_qual_name = obj_origin
-            elif isinstance(obj_origin, ObjAttr):  # e.g. `fn = obj.method`
+            elif isinstance(
+                obj_origin, ObjAttr
+            ):  # When `fn` is resolved to `obj.method`
                 attr_name = obj_origin.attr
                 obj_origin = obj_origin.obj
         elif type(called_func) is ast.Attribute:  # e.g. `obj.fn()` or `f().g()`
@@ -481,32 +477,36 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 obj_origin = self._resolve_name(obj_name)
                 if isinstance(obj_origin, str):
                     func_fully_qual_name = obj_origin + "." + attr_name
-                    # YAGNI: We now support `mod.method()` call only.
-                    called_module_func_origin = ModuleFunction(
-                        module=obj_origin, func=attr_name
-                    )
             elif isinstance(called_func.value, ast.Call):  # e.g. `f().g()``
-                called_func.value, called_function = self.handle_Call(called_func.value)
-                if called_function:
-                    obj_origin = ReturnValue(called_function=called_function)
+                _, called_func_full_qual_name = self._resolve_called_object(
+                    called_func.value
+                )
+                if called_func_full_qual_name:
+                    # YAGNI: We only support this case e.g. the `f` of `f().g()` is resolved to a fully qualified name.
+                    obj_origin = ReturnValue(called_function=called_func_full_qual_name)
 
-        if obj_origin is None and func_fully_qual_name is None:
+        return obj_origin, func_fully_qual_name
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        obj_origin, called_func_fully_qual_name = self._resolve_called_object(node)
+
+        if obj_origin is None and called_func_fully_qual_name is None:
             # Early return for efficiency. In this case, no rule will match below.
-            return node, called_module_func_origin
+            return node
 
         for target, action in self.rules.items():
             if (
                 isinstance(target.obj, ModuleObject)
-                and target.obj.name + "." + target.attr == func_fully_qual_name
-                and func_fully_qual_name not in self.invalidated_names
+                and target.obj.name + "." + target.attr == called_func_fully_qual_name
+                and called_func_fully_qual_name not in self.invalidated_names
             ) or (
                 isinstance(target.obj, ReturnValue)
                 and isinstance(obj_origin, ReturnValue)
                 and target.obj.called_function == obj_origin.called_function
             ):
-                return self._handle_target_call(node, action), called_module_func_origin
+                return self._handle_target_call(node, action)
 
-        return node, called_module_func_origin
+        return node
 
     def _handle_target_call(
         self,
@@ -565,8 +565,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 return transformer.process(node)
 
             if isinstance(node, ast.Call):
-                modified_node, _ = self.handle_Call(node)
-                return modified_node
+                return self.handle_Call(node)
 
             if isinstance(node, (ast.Lambda, ast.Await)):
                 # Lambda can't have await, so we can ignore them for the purpose of this visitor.
@@ -612,11 +611,15 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     bound_to = SpecialNameToken.DELETED
                 else:
                     if isinstance(node.value, ast.Call):  # e.g. `a = f()`
-                        node.value, called_function = self.handle_Call(node.value)
-                        if called_function:
+                        _, called_func_full_qual_name = self._resolve_called_object(
+                            node.value
+                        )
+                        if called_func_full_qual_name:
                             # If a function is called in the right-hand side of the assignment,
                             # bind the left-hand side to a token representing the return value of the function call.
-                            bound_to = ReturnValue(called_function=called_function)
+                            bound_to = ReturnValue(
+                                called_function=called_func_full_qual_name
+                            )
                     elif isinstance(node.value, ast.Name):  # e.g. `a = b`
                         bound_to = self._resolve_name_local_dynamic(node.value.id)
                     elif isinstance(node.value, ast.Attribute):
@@ -629,11 +632,13 @@ class CodeBlockTransformer(ast.NodeTransformer):
                             elif isinstance(obj_origin, ReturnValue):
                                 bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
                         elif isinstance(node.value.value, ast.Call):  # e.g. `a = b().c`
-                            node.value.value, called_function = self.handle_Call(
+                            _, called_func_full_qual_name = self._resolve_called_object(
                                 node.value.value
                             )
-                            if called_function:
-                                bound_to = ReturnValue(called_function=called_function)
+                            if called_func_full_qual_name:
+                                bound_to = ReturnValue(
+                                    called_function=called_func_full_qual_name
+                                )
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
                 return node
@@ -720,9 +725,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
             obj=ModuleObject(name="streamlit"), attr="write_stream"
         ): AsyncCallReplacement(),
         AttrFunctionCall(
-            obj=ReturnValue(
-                called_function=ModuleFunction(module="streamlit", func="navigation")
-            ),
+            obj=ReturnValue(called_function="streamlit.navigation"),
             attr="run",
         ): AsyncCallReplacement(),
     }

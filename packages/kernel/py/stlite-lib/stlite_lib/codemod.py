@@ -511,7 +511,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     )
             elif isinstance(called_func.value, ast.Call):
                 called_func.value, called_function = self.handle_Call(called_func.value)
-                obj_origin = ReturnValue(called_function=called_function)
+                if called_function:
+                    obj_origin = ReturnValue(called_function=called_function)
 
         if obj_origin is None and func_fully_qual_name is None:
             # Early return for efficiency. In this case, no rule will match below.
@@ -661,7 +662,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                         obj_name = node.value.value.id
                         attr_name = node.value.attr
                         obj_origin = self._resolve_name(obj_name)
-                        if obj_origin:
+                        if obj_origin and isinstance(obj_origin, (str, ReturnValue)):
                             bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
                         else:
                             bound_to = None

@@ -628,9 +628,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
                             obj_name = node.value.value.id
                             attr_name = node.value.attr
                             obj_origin = self._resolve_name(obj_name)
-                            if obj_origin and isinstance(
-                                obj_origin, (str, ReturnValue)
-                            ):
+                            if isinstance(obj_origin, str):
+                                bound_to = obj_origin + "." + attr_name
+                            elif isinstance(obj_origin, ReturnValue):
                                 bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
                             else:
                                 bound_to = None

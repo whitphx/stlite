@@ -448,7 +448,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _inside_control_flow(self):
         return self._control_flow_depth > 0
 
-    def _resolve_called_object(self, node: ast.Call):
+    def _resolve_called_object(
+        self, node: ast.Call
+    ) -> tuple[NameResolvedAs | None, FullyQualifiedName | None]:
         called_func = node.func
         obj_origin = None
         func_fully_qual_name = None
@@ -488,9 +490,11 @@ class CodeBlockTransformer(ast.NodeTransformer):
         return obj_origin, func_fully_qual_name
 
     def handle_Call(self, node: ast.Call) -> ast.AST:
-        obj_origin, called_func_fully_qual_name = self._resolve_called_object(node)
+        called_func_origin, called_func_fully_qual_name = self._resolve_called_object(
+            node
+        )
 
-        if obj_origin is None and called_func_fully_qual_name is None:
+        if not called_func_origin and not called_func_fully_qual_name:
             # Early return for efficiency. In this case, no rule will match below.
             return node
 
@@ -501,8 +505,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 and called_func_fully_qual_name not in self.invalidated_names
             ) or (
                 isinstance(target.obj, ReturnValue)
-                and isinstance(obj_origin, ReturnValue)
-                and target.obj.called_function == obj_origin.called_function
+                and isinstance(called_func_origin, ReturnValue)
+                and target.obj.called_function == called_func_origin.called_function
             ):
                 return self._handle_target_call(node, action)
 

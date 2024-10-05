@@ -22,7 +22,7 @@ class ObjectFunction(NamedTuple):
     func: str
 
 
-class AsyncMethodCallReplacement(NamedTuple):
+class AsyncModuleMethodCallReplacement(NamedTuple):
     module: str
     func: str
     module_alias_for_new_import: str
@@ -32,7 +32,7 @@ class AsyncCallReplacement(NamedTuple):
     pass
 
 
-RulePredicate = AsyncMethodCallReplacement | AsyncCallReplacement
+RulePredicate = AsyncModuleMethodCallReplacement | AsyncCallReplacement
 
 
 def patch(code: str | ast.Module, script_path: str) -> ast.Module:
@@ -44,7 +44,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         raise ValueError("code must be a string or an ast.Module")
 
     rules = {
-        ModuleFunction(module="time", func="sleep"): AsyncMethodCallReplacement(
+        ModuleFunction(module="time", func="sleep"): AsyncModuleMethodCallReplacement(
             module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
         ),
         ModuleFunction(module="streamlit", func="write_stream"): AsyncCallReplacement(),
@@ -525,7 +525,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
         target: ModuleFunction | ObjectFunction,
         predicate: RulePredicate,
     ) -> ast.AST:
-        if isinstance(predicate, (AsyncMethodCallReplacement, AsyncCallReplacement)):
+        if isinstance(
+            predicate, (AsyncModuleMethodCallReplacement, AsyncCallReplacement)
+        ):
             return self._handle_target_call_replacement(node, predicate)
         else:
             return node
@@ -533,7 +535,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _handle_target_call_replacement(
         self,
         node: ast.Call,
-        replacement: AsyncMethodCallReplacement | AsyncCallReplacement,
+        replacement: AsyncModuleMethodCallReplacement | AsyncCallReplacement,
     ) -> ast.AST:
         if isinstance(replacement, AsyncCallReplacement):
             return ast.Await(value=node)

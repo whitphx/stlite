@@ -746,6 +746,21 @@ await st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run()
 """,
             id="page_run_without_assignment",
         ),
+        pytest.param(
+            """
+import streamlit as st
+
+foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
+foo()
+""",
+            """
+import streamlit as st
+
+foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
+await foo()
+""",
+            id="assigned_run_method",
+        ),
     ],
 )
 def test_convert_page_run(test_input, expected):

@@ -615,24 +615,31 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 if isinstance(node, ast.Delete):
                     bound_to = SpecialNameToken.DELETED
                 else:
-                    if isinstance(node.value, ast.Call):
+                    if isinstance(node.value, ast.Call):  # e.g. `a = f()`
                         node.value, called_function = self.handle_Call(node.value)
                         if called_function:
                             # If a function is called in the right-hand side of the assignment,
                             # bind the left-hand side to a token representing the return value of the function call.
                             bound_to = ReturnValue(called_function=called_function)
-                    elif isinstance(node.value, ast.Name):
+                    elif isinstance(node.value, ast.Name):  # e.g. `a = b`
                         bound_to = self._resolve_name_local_dynamic(node.value.id)
-                    elif isinstance(node.value, ast.Attribute) and isinstance(
-                        node.value.value, ast.Name
-                    ):
-                        obj_name = node.value.value.id
-                        attr_name = node.value.attr
-                        obj_origin = self._resolve_name(obj_name)
-                        if obj_origin and isinstance(obj_origin, (str, ReturnValue)):
-                            bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
-                        else:
-                            bound_to = None
+                    elif isinstance(node.value, ast.Attribute):
+                        if isinstance(node.value.value, ast.Name):  # e.g. `a = b.c`
+                            obj_name = node.value.value.id
+                            attr_name = node.value.attr
+                            obj_origin = self._resolve_name(obj_name)
+                            if obj_origin and isinstance(
+                                obj_origin, (str, ReturnValue)
+                            ):
+                                bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
+                            else:
+                                bound_to = None
+                        elif isinstance(node.value.value, ast.Call):  # e.g. `a = b().c`
+                            node.value.value, called_function = self.handle_Call(
+                                node.value.value
+                            )
+                            if called_function:
+                                bound_to = ReturnValue(called_function=called_function)
                     else:
                         bound_to = None
                 for target in node.targets:

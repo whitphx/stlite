@@ -552,7 +552,25 @@ class CodeBlockTransformer(ast.NodeTransformer):
         elif action == TransformRuleAction.STREAMLIT_WRITE_STREAM:
             return ast.Await(value=node)
         elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
-            return ast.Await(value=node)
+            module_name = "stlite_lib.asyncify"
+            func_name = "ensure_awaitable"
+            module_alias_for_new_import = "__stlite_lib_asyncify__"
+            if module_name in self.imported_modules:
+                module_as_name = self.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self.required_imports.add((module_name, module_as_name))
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=[node],
+                    keywords=[],
+                ),
+            )
 
     def visit(self, node: ast.AST) -> ast.AST:
         # Process the visited node

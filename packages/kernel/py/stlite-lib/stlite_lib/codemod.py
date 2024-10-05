@@ -287,10 +287,10 @@ class NonDeterministicBindingAppearances:
     To handle this case, this class is used to keep track of the name bindings in the control flow branches.
     """
 
-    def __init__(self, bound_item: NameResolvedAs) -> None:
+    def __init__(self, bound_item: NameResolvedAs | None) -> None:
         self.resolved_as = bound_item
 
-    def add_appearance(self, bound_item: NameResolvedAs) -> None:
+    def add_appearance(self, bound_item: NameResolvedAs | None) -> None:
         if self.resolved_as != bound_item:
             self.resolved_as = SpecialNameToken.NONDETERMINISTIC
 
@@ -367,9 +367,11 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _bind_name(self, name: str, bound_to: NameResolvedAs | None = None):
         if bound_to is None:
             bound_to = self.code_block_full_name + "." + name
+
         if self._inside_control_flow:
-            bound_to = NonDeterministicBindingAppearances(bound_to)
-        self.name_bindings[name] = bound_to
+            self.name_bindings[name] = NonDeterministicBindingAppearances(bound_to)
+        else:
+            self.name_bindings[name] = bound_to
 
     def _bind_expr(
         self, target: ast.expr, bound_to: NameResolvedAs | None = None

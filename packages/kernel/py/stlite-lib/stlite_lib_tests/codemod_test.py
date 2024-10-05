@@ -556,6 +556,8 @@ from time import sleep
 
 if x:
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -572,6 +574,8 @@ for _ in []:
     for _ in []:
         pass
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -585,6 +589,8 @@ while x:
     while y:
         pass
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -775,6 +781,25 @@ foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
 await foo()
 """,
             id="assigned_run_method",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+if True:
+    pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+
+pg.run()
+""",
+            """
+import streamlit as st
+
+if True:
+    pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+
+await pg.run()
+""",
+            id="conditioned_page_object",
         ),
     ],
 )

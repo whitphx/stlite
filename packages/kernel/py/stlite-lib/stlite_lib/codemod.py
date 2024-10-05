@@ -281,6 +281,23 @@ NameResolvedAs = (
 )  # Name resolvers try to return `NameBoundTo` as much as possible, but using `ReturnValue` or `ObjAttr` is necessary for the case where the name is bound to a function call result or an attribute of a function call result.
 
 
+class NonDeterministicBindingAppearances:
+    """Basically, name bindings in the control flows will be resolved as non-deterministic.
+    However, an exception is when the name is bound to the same value in all the control flow branches.
+    To handle this case, this class is used to keep track of the name bindings in the control flow branches.
+    """
+
+    def __init__(self, bound_item: NameResolvedAs) -> None:
+        self.resolved_as = bound_item
+
+    def add_appearance(self, bound_item: NameResolvedAs) -> None:
+        if self.resolved_as != bound_item:
+            self.resolved_as = SpecialNameToken.NONDETERMINISTIC
+
+    def resolve(self) -> NameResolvedAs | None:
+        return self.resolved_as
+
+
 class ModuleObject(NamedTuple):
     name: str
 
@@ -329,9 +346,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
         else:
             self.code_block_full_name = code_block_name
 
-        self.name_bindings: dict[str, NameResolvedAs] = (
-            dict()
-        )  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran and has the static name binding information.
+        self.name_bindings: dict[
+            str, NameResolvedAs | NonDeterministicBindingAppearances
+        ] = dict()  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran and has the static name binding information.
 
         self.imported_modules: dict[str, str] = dict()
         self.required_imports: set[tuple[str, str]] = set()
@@ -355,10 +372,10 @@ class CodeBlockTransformer(ast.NodeTransformer):
         return new_tree
 
     def _bind_name(self, name: str, bound_to: NameResolvedAs | None = None):
-        if self._inside_control_flow:
-            bound_to = SpecialNameToken.NONDETERMINISTIC
-        elif bound_to is None:
+        if bound_to is None:
             bound_to = self.code_block_full_name + "." + name
+        if self._inside_control_flow:
+            bound_to = NonDeterministicBindingAppearances(bound_to)
         self.name_bindings[name] = bound_to
 
     def _bind_expr(
@@ -388,6 +405,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         bound_to = self.name_bindings.get(name)
         if bound_to == SpecialNameToken.DELETED:
             return None
+        elif isinstance(bound_to, NonDeterministicBindingAppearances):
+            return bound_to.resolve()
         elif bound_to == SpecialNameToken.NONDETERMINISTIC:
             return None
         return bound_to
@@ -490,23 +509,21 @@ class CodeBlockTransformer(ast.NodeTransformer):
         return obj_origin, func_fully_qual_name
 
     def handle_Call(self, node: ast.Call) -> ast.AST:
-        called_func_origin, called_func_fully_qual_name = self._resolve_called_object(
-            node
-        )
+        original_obj, fully_qual_name = self._resolve_called_object(node)
 
-        if not called_func_origin and not called_func_fully_qual_name:
+        if not original_obj and not fully_qual_name:
             # Early return for efficiency. In this case, no rule will match below.
             return node
 
         for target, action in self.rules.items():
             if (
                 isinstance(target.obj, ModuleObject)
-                and target.obj.name + "." + target.attr == called_func_fully_qual_name
-                and called_func_fully_qual_name not in self.invalidated_names
+                and target.obj.name + "." + target.attr == fully_qual_name
+                and fully_qual_name not in self.invalidated_names
             ) or (
                 isinstance(target.obj, ReturnValue)
-                and isinstance(called_func_origin, ReturnValue)
-                and target.obj.called_function == called_func_origin.called_function
+                and isinstance(original_obj, ReturnValue)
+                and target.obj.called_function == original_obj.called_function
             ):
                 return self._handle_target_call(node, action)
 

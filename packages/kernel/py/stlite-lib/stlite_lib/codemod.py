@@ -307,17 +307,10 @@ class AttrFunctionCall(NamedTuple):
     attr: str
 
 
-class AsyncModuleMethodCallReplacement(NamedTuple):
-    module: str
-    func: str
-    module_alias_for_new_import: str
-
-
-class AsyncCallReplacement(NamedTuple):
-    pass
-
-
-TransformRuleAction = AsyncModuleMethodCallReplacement | AsyncCallReplacement
+class TransformRuleAction(Enum):
+    TIME_SLEEP = 1
+    STREAMLIT_WRITE_STREAM = 2
+    STREAMLIT_NAVIGATION_RUN = 3
 
 
 class CodeBlockTransformer(ast.NodeTransformer):
@@ -532,27 +525,32 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _handle_target_call(
         self,
         node: ast.Call,
-        replacement: AsyncModuleMethodCallReplacement | AsyncCallReplacement,
+        action: TransformRuleAction,
     ) -> ast.AST:
-        if isinstance(replacement, AsyncCallReplacement):
-            return ast.Await(value=node)
-
-        if replacement.module in self.imported_modules:
-            module_as_name = self.imported_modules[replacement.module]
-        else:
-            module_as_name = replacement.module_alias_for_new_import
-            self.required_imports.add((replacement.module, module_as_name))
-        return ast.Await(
-            value=ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id=module_as_name, ctx=ast.Load()),
-                    attr=replacement.func,
-                    ctx=ast.Load(),
-                ),
-                args=node.args,
-                keywords=node.keywords,
+        if action == TransformRuleAction.TIME_SLEEP:
+            module_name = "asyncio"
+            func_name = "sleep"
+            module_alias_for_new_import = "__asyncio__"
+            if module_name in self.imported_modules:
+                module_as_name = self.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self.required_imports.add((module_name, module_as_name))
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
             )
-        )
+        elif action == TransformRuleAction.STREAMLIT_WRITE_STREAM:
+            return ast.Await(value=node)
+        elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
+            return ast.Await(value=node)
 
     def visit(self, node: ast.AST) -> ast.AST:
         # Process the visited node
@@ -739,16 +737,14 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     transform_rules = {
         AttrFunctionCall(
             obj=ModuleObject(name="time"), attr="sleep"
-        ): AsyncModuleMethodCallReplacement(
-            module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
-        ),
+        ): TransformRuleAction.TIME_SLEEP,
         AttrFunctionCall(
             obj=ModuleObject(name="streamlit"), attr="write_stream"
-        ): AsyncCallReplacement(),
+        ): TransformRuleAction.STREAMLIT_WRITE_STREAM,
         AttrFunctionCall(
             obj=ReturnValue(called_function="streamlit.navigation"),
             attr="run",
-        ): AsyncCallReplacement(),
+        ): TransformRuleAction.STREAMLIT_NAVIGATION_RUN,
     }
 
     wildcard_import_monitor_targets = set(

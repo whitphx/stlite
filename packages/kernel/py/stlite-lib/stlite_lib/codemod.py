@@ -78,6 +78,11 @@ class ReturnValue(NamedTuple):
     called_function: ModuleFunction
 
 
+class ObjAttr(NamedTuple):
+    obj: str | ReturnValue
+    attr: str
+
+
 class StaticNameResolutionStatus(Enum):
     BOUND = 1
     BOUND_BUT_AMBIGUOUS = 2
@@ -320,7 +325,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             self.generic_visit(node)
 
 
-NameResolvedAs = NameBoundTo | ReturnValue
+NameResolvedAs = NameBoundTo | ReturnValue | ObjAttr
 
 
 class CodeBlockTransformer(ast.NodeTransformer):
@@ -406,7 +411,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
-    def _resolve_name_local_dynamic(self, name: str) -> str | ReturnValue | None:
+    def _resolve_name_local_dynamic(self, name: str) -> NameResolvedAs | None:
         bound_to = self.name_bindings.get(name)
         if bound_to == SpecialNameToken.DELETED:
             return None
@@ -414,7 +419,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
             return None
         return bound_to
 
-    def _resolve_name(self, name: str) -> str | ReturnValue | None:
+    def _resolve_name(self, name: str) -> NameResolvedAs | None:
         scanner = self._node_scanner_map[self._code_block_node]
         if scanner is None:
             raise ValueError(
@@ -480,7 +485,19 @@ class CodeBlockTransformer(ast.NodeTransformer):
         # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`):
         if type(called_func) is ast.Name:
             func_name = called_func.id
-            func_fully_qual_name = self._resolve_name(func_name)
+            obj_origin = self._resolve_name(func_name)
+            if isinstance(obj_origin, str):
+                func_fully_qual_name = obj_origin
+            elif isinstance(obj_origin, ObjAttr):
+                # `fn()` is equivalent to `obj.method()` because `fn = obj.method`
+                attr_name = obj_origin.attr
+                obj_origin = obj_origin.obj
+                if isinstance(obj_origin, str):
+                    func_fully_qual_name = obj_origin + "." + attr_name
+                    # YAGNI: We now support `mod.method()` call only.
+                    called_module_func_origin = ModuleFunction(
+                        module=obj_origin, func=attr_name
+                    )
         elif type(called_func) is ast.Attribute:
             if type(called_func.value) is ast.Name and isinstance(
                 called_func.value.ctx, ast.Load
@@ -637,11 +654,20 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 if isinstance(node, ast.Delete):
                     bound_to = SpecialNameToken.DELETED
                 else:
-                    bound_to = (
-                        self._resolve_name_local_dynamic(node.value.id)
-                        if isinstance(node.value, ast.Name)
-                        else None
-                    )
+                    if isinstance(node.value, ast.Name):
+                        bound_to = self._resolve_name_local_dynamic(node.value.id)
+                    elif isinstance(node.value, ast.Attribute) and isinstance(
+                        node.value.value, ast.Name
+                    ):
+                        obj_name = node.value.value.id
+                        attr_name = node.value.attr
+                        obj_origin = self._resolve_name(obj_name)
+                        if obj_origin:
+                            bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
+                        else:
+                            bound_to = None
+                    else:
+                        bound_to = None
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
             assignment_occurs = isinstance(

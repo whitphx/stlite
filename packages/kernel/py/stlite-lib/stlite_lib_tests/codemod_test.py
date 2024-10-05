@@ -49,6 +49,21 @@ await foo.write_stream("Hello, world!")
         ),
         pytest.param(
             """
+import streamlit
+
+foo = streamlit.write_stream
+foo("Hello, world!")
+""",
+            """
+import streamlit
+
+foo = streamlit.write_stream
+await foo("Hello, world!")
+""",
+            id="assigned_write_stream",
+        ),
+        pytest.param(
+            """
 import streamlit as st
 
 if True:
@@ -700,6 +715,23 @@ await foo.run()
 await pg.run()
 """,
             id="page_object_assignment",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg.run
+foo()
+""",
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg.run
+await foo()
+""",
+            id="run_method_assignment",
         ),
         pytest.param(
             """

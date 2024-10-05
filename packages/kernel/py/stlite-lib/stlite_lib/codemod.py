@@ -365,8 +365,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         self._control_flow_depth = 0
 
-        self._called_function: ModuleFunction | ObjectFunction | None = None
-
     def process(self, tree: CodeBlockNode) -> CodeBlockNode:
         self._code_block_node = tree
 
@@ -475,7 +473,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _inside_control_flow(self):
         return self._control_flow_depth > 0
 
-    def handle_Call(self, node: ast.Call) -> ast.AST:
+    def handle_Call(self, node: ast.Call) -> tuple[ast.AST, ModuleFunction | None]:
         called_func = node.func
         obj_origin = None
         func_fully_qual_name = None
@@ -512,18 +510,12 @@ class CodeBlockTransformer(ast.NodeTransformer):
                         module=obj_origin, func=attr_name
                     )
             elif isinstance(called_func.value, ast.Call):
-                called_func.value = self.handle_Call(
-                    called_func.value
-                )  # TODO: Make `handle_Call` return the called_function as well and use it here.
-                obj_origin = ReturnValue(called_function=self._called_function)
-
-        # This value will be used in the visit() method call targetting the parent node of this node.
-        # See the visit() method below.
-        self._called_function = called_module_func_origin
+                called_func.value, called_function = self.handle_Call(called_func.value)
+                obj_origin = ReturnValue(called_function=called_function)
 
         if obj_origin is None and func_fully_qual_name is None:
             # Early return for efficiency. In this case, no rule will match below.
-            return node
+            return node, called_module_func_origin
 
         for target, predicate in self.rules.items():
             if (
@@ -536,9 +528,11 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 and isinstance(obj_origin, ReturnValue)
                 and target.obj.called_function == obj_origin.called_function
             ):
-                return self._handle_target_call(node, predicate)
+                return self._handle_target_call(
+                    node, predicate
+                ), called_module_func_origin
 
-        return node
+        return node, called_module_func_origin
 
     def _handle_target_call(
         self,
@@ -578,9 +572,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
         )
 
     def visit(self, node: ast.AST) -> ast.AST:
-        # Initialize the flags
-        self._called_function = None
-
         # Process the visited node
         is_control_flow = isinstance(
             node,
@@ -612,7 +603,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 return transformer.process(node)
 
             if isinstance(node, ast.Call):
-                return self.handle_Call(node)
+                modified_node, _ = self.handle_Call(node)
+                return modified_node
 
             if isinstance(node, (ast.Lambda, ast.Await)):
                 # Lambda can't have await, so we can ignore them for the purpose of this visitor.
@@ -656,13 +648,11 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     bound_to = SpecialNameToken.DELETED
                 else:
                     if isinstance(node.value, ast.Call):
-                        self.generic_visit(node)
-                        if self._called_function:
+                        node.value, called_function = self.handle_Call(node.value)
+                        if called_function:
                             # If a function is called in the right-hand side of the assignment,
                             # bind the left-hand side to a token representing the return value of the function call.
-                            bound_to = ReturnValue(
-                                called_function=self._called_function
-                            )
+                            bound_to = ReturnValue(called_function=called_function)
                     elif isinstance(node.value, ast.Name):
                         bound_to = self._resolve_name_local_dynamic(node.value.id)
                     elif isinstance(node.value, ast.Attribute) and isinstance(

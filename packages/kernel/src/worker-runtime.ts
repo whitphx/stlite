@@ -584,14 +584,20 @@ prepare(main_script_path, args)
           break;
         }
         case "install": {
-          const { requirements: unvalidatedRequirements } = msg.data;
+          const { requirements: unvalidatedRequirements, indexUrls = null } =
+            msg.data;
 
           const micropip = pyodide.pyimport("micropip");
 
           const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
-          console.debug("Install the requirements:", requirements);
+          console.debug("Install the requirements:", requirements, {
+            indexUrls,
+          });
           await micropip.install
-            .callKwargs(requirements, { keep_going: true })
+            .callKwargs(requirements, {
+              keep_going: true,
+              index_urls: indexUrls,
+            })
             .then(() => {
               console.debug("Successfully installed");
               reply({

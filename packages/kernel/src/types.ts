@@ -119,6 +119,7 @@ export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
     requirements: string[];
+    indexUrls?: string[];
   };
 }
 export type InMessage =

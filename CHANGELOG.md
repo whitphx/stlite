@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.67.1] - 2024-10-06
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- `st.navigation().run()` works with pages that contain the top-level awaits, [#1145](https://github.com/whitphx/stlite/pull/1145).
+
 ## [0.67.0] - 2024-10-04
 
 ### General

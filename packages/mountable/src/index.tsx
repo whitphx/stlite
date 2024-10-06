@@ -73,6 +73,9 @@ export function mount(
     unlink: (path: string) => {
       return kernelWithToast.unlink(path);
     },
+    readFile: (path: string, opts?: Record<string, any>) => {
+      return kernelWithToast.readFile(path, opts);
+    },
   };
 }
 

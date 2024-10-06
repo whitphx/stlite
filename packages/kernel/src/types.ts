@@ -115,6 +115,13 @@ export interface InMessageFileUnlink extends InMessageBase {
     path: string;
   };
 }
+export interface InMessageFileRead extends InMessageBase {
+  type: "file:read";
+  data: {
+    path: string;
+    opts?: Record<string, any>;
+  };
+}
 export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
@@ -130,6 +137,7 @@ export type InMessage =
   | InMessageFileWrite
   | InMessageFileRename
   | InMessageFileUnlink
+  | InMessageFileRead
   | InMessageInstall;
 
 export interface StliteWorker extends Worker {
@@ -211,11 +219,20 @@ export interface ReplyMessageHttpResponse extends ReplyMessageBase {
     response: HttpResponseInMessage;
   };
 }
+export interface ReplyMessageFileRead extends ReplyMessageBase {
+  type: "reply:file:read";
+  data: {
+    content: string | Uint8Array;
+  };
+}
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";
   error?: Error;
 }
-export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;
+export type ReplyMessage =
+  | ReplyMessageHttpResponse
+  | ReplyMessageFileRead
+  | ReplyMessageGeneralReply;
 
 /**
  * Validators

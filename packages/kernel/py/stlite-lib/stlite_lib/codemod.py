@@ -20,7 +20,8 @@ class StaticNameResolutionStatus(Enum):
     NOT_FOUND = 4
 
 
-NameBoundTo = str | SpecialNameToken
+FullyQualifiedName = str
+NameBoundTo = FullyQualifiedName | SpecialNameToken
 
 
 class WildcardImportTarget(NamedTuple):
@@ -262,9 +263,6 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
                 self._bind_expr(node.name)
 
             self.generic_visit(node)
-
-
-FullyQualifiedName = str
 
 
 class ReturnValue(NamedTuple):

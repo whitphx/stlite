@@ -18,6 +18,7 @@ matplotlib = "^3.9.2"
 ruff = "^0.6.9"
 pyodide-py = "^0.26.2"
 pyright = "^1.1.383"
+pytest-asyncio = "^0.24.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

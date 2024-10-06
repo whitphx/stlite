@@ -49,6 +49,21 @@ await foo.write_stream("Hello, world!")
         ),
         pytest.param(
             """
+import streamlit
+
+foo = streamlit.write_stream
+foo("Hello, world!")
+""",
+            """
+import streamlit
+
+foo = streamlit.write_stream
+await foo("Hello, world!")
+""",
+            id="assigned_write_stream",
+        ),
+        pytest.param(
+            """
 import streamlit as st
 
 if True:
@@ -541,6 +556,8 @@ from time import sleep
 
 if x:
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -557,6 +574,8 @@ for _ in []:
     for _ in []:
         pass
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -570,6 +589,8 @@ while x:
     while y:
         pass
     sl = sleep  # The resolution of `sl` is not deterministic, so not converted.
+else:
+    sl = None
 
 sl(1)
 """,
@@ -658,6 +679,159 @@ foo()
     ],
 )
 def test_not_convert_sleep(test_input):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(test_input, "test.py", "exec"), indent=4
+    )
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+pg.run()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
+""",
+            id="basic_page",
+        ),
+        pytest.param(
+            """
+import streamlit as foo
+
+pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+pg.run()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as foo
+
+pg = foo.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
+""",
+            id="non_standard_streamlit_alias_page",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg
+foo.run()
+pg.run()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg
+await __stlite_lib_async_utils__.ensure_awaitable(foo.run())
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
+""",
+            id="page_object_assignment",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg.run
+foo()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+foo = pg.run
+await __stlite_lib_async_utils__.ensure_awaitable(foo())
+""",
+            id="run_method_assignment",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+await __stlite_lib_async_utils__.ensure_awaitable(st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run())
+""",
+            id="page_run_without_assignment",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
+foo()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+foo = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")]).run
+await __stlite_lib_async_utils__.ensure_awaitable(foo())
+""",
+            id="assigned_run_method",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+if True:
+    pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+
+pg.run()
+""",
+            """
+import stlite_lib.async_utils as __stlite_lib_async_utils__
+import streamlit as st
+
+if True:
+    pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+
+await __stlite_lib_async_utils__.ensure_awaitable(pg.run())
+""",
+            id="conditioned_page_object",
+        ),
+    ],
+)
+def test_convert_page_run(test_input, expected):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(expected, "test.py", "exec"), indent=4
+    )
+
+
+@pytest.mark.parametrize(
+    "test_input",
+    [
+        pytest.param(
+            """
+import streamlit as st
+
+pg = st.navigation([st.Page("page_1.py"), st.Page("page_2.py")])
+await pg.run()
+""",
+            id="already_awaited_call",
+        ),
+    ],
+)
+def test_not_convert_page_run(test_input):
     tree = patch(test_input, "test.py")
     assert ast.dump(tree, indent=4) == ast.dump(
         ast.parse(test_input, "test.py", "exec"), indent=4

@@ -206,20 +206,39 @@ match x:
 """,
             id="streamlit_write_stream_in_match",
         ),
-        #         (
-        #             """
-        # import streamlit as st
-        # def foo(name):
-        #     st.write_stream("Hello " + name)
-        # foo("John")
-        # """,
-        #             """
-        # import streamlit as st
-        # async def foo(name):
-        #     await st.write_stream("Hello " + name)
-        # await foo("John")
-        # """,
-        #         ),
+        pytest.param(
+            """
+import streamlit as st
+def bar(name):
+    foo(name)
+def foo(name):
+    st.write_stream("Hello " + name)
+def baz(name):
+    foo(name)
+    qux(name)
+def qux(name):
+    baz(name)
+foo("John")
+bar("John")
+baz("John")
+""",
+            """
+import streamlit as st
+async def bar(name):
+    await foo(name)
+async def foo(name):
+    await st.write_stream("Hello " + name)
+async def baz(name):
+    await foo(name)
+    await qux(name)
+async def qux(name):
+    await baz(name)
+await foo("John")
+await bar("John")
+await baz("John")
+""",
+            id="streamlit_write_stream_in_function",
+        ),
     ],
 )
 def test_convert_st_write_stream(test_input, expected):
@@ -529,17 +548,15 @@ f()
 """,
             id="sleep_occurs_in_lambda",
         ),
-        pytest.param(
-            """
-import time
-
-def foo():
-    time.sleep()
-
-foo()
-""",
-            id="sleep_occurs_in_function_as_free_variable",
-        ),
+        #         pytest.param(
+        #             """
+        # import time
+        # def foo():
+        #     time.sleep()
+        # foo()
+        # """,
+        #             id="sleep_occurs_in_function_as_free_variable",
+        #         ),
         pytest.param(
             """
 from time import sleep

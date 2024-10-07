@@ -321,7 +321,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         parent_transformer: Self | None,
         wildcard_import_targets: set[WildcardImportTarget],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
-        transform_handler: "TransformHandler",
+        transform_handler: "FuncCallTransformHandler | AsyncFuncDefCallTransformHandler",
     ) -> None:
         super().__init__()
 
@@ -361,11 +361,13 @@ class CodeBlockTransformer(ast.NodeTransformer):
             for arg in _get_func_args(tree):
                 self._bind_name(arg)
 
-        new_tree = self.generic_visit(tree)
+        self.transform_handler.on_enter_code_block()
 
-        new_tree = self.transform_handler.on_exit_code_block(cast(CodeBlockNode, new_tree))
+        tree = cast(CodeBlockNode, self.generic_visit(tree))
 
-        return new_tree
+        tree = self.transform_handler.on_exit_code_block(tree)
+
+        return tree
 
     def _bind_name(self, name: str, bound_to: NameResolvedAs | None = None):
         if bound_to is None:
@@ -527,11 +529,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
                 self._bind_name(node.name, full_qual_name)
 
-                if isinstance(node, ast.FunctionDef):
-                    # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
-                    # TODO: Convert sync function to async function
-                    return node
-
                 child_code_block_transformer = CodeBlockTransformer(
                     node.name,
                     self,
@@ -642,13 +639,75 @@ class CodeBlockTransformer(ast.NodeTransformer):
             return node
 
 
-class TransformHandler:
+class CallGraph:
+    def __init__(self):
+        self.graph: dict[FullyQualifiedName, set[FullyQualifiedName]] = dict()
+
+    def add_edge(self, caller: FullyQualifiedName, callee: FullyQualifiedName) -> None:
+        self.graph.setdefault(callee, set()).add(caller)
+
+    def get_callers(self, callee: FullyQualifiedName) -> set[FullyQualifiedName]:
+        return self.graph.get(callee, set())
+
+    def get_callers_recursive(
+        self, callee: FullyQualifiedName
+    ) -> set[FullyQualifiedName]:
+        visited = set()
+        result = set()
+        stack = [callee]
+
+        while stack:
+            node = stack.pop()
+            if node not in visited:
+                visited.add(node)
+                callers = self.get_callers(node)
+                result.update(callers)
+                stack.extend(caller for caller in callers if caller not in visited)
+
+        return result
+
+    def __str__(self) -> str:
+        return str(self.graph)
+
+
+class FuncCallTransformHandler:
+    """Responsible for transforming function calls according to the given rules.
+    It also collects the information about the required imports and the functions in which this transformer added `await`.
+    The collected information of the required imports will be used to insert import statements at the top of the code block.
+    The collected information of the functions containing new `await` will be used to convert the functions and the callers of the functions to async functions
+    and add `await` to the function calls later.
+    """
+
     def __init__(self, rules: dict[TransformRuleTarget, TransformRuleAction]) -> None:
         self.runner: CodeBlockTransformer
 
         self.rules = rules
 
-        self.required_imports: set[tuple[str, str]] = set()
+        self.call_graph = CallGraph()
+        self.funcs_containing_new_awaits: set[FullyQualifiedName] = set()
+
+        self._required_imports_in_code_block: dict[
+            FullyQualifiedName, set[tuple[str, str]]
+        ] = {}
+        self._await_added_in_code_block: dict[FullyQualifiedName, bool] = {}
+
+    def on_enter_code_block(self) -> None:
+        self._required_imports_in_code_block[self.runner.code_block_full_name] = set()
+        self._await_added_in_code_block[self.runner.code_block_full_name] = False
+
+    def _add_required_import(self, module_name: str, module_as_name: str) -> None:
+        self._required_imports_in_code_block[self.runner.code_block_full_name].add(
+            (module_name, module_as_name)
+        )
+
+    def _set_await_added(self) -> None:
+        self._await_added_in_code_block[self.runner.code_block_full_name] = True
+
+    def _get_required_imports_in_code_block(self) -> set[tuple[str, str]]:
+        return self._required_imports_in_code_block[self.runner.code_block_full_name]
+
+    def _is_await_added_in_code_block(self) -> bool:
+        return self._await_added_in_code_block[self.runner.code_block_full_name]
 
     def handle_Call(self, node: ast.Call) -> ast.AST:
         original_obj, fully_qual_name = self.runner._resolve_called_object(node)
@@ -656,6 +715,9 @@ class TransformHandler:
         if not original_obj and not fully_qual_name:
             # Early return for efficiency. In this case, no rule will match below.
             return node
+
+        if fully_qual_name:
+            self.call_graph.add_edge(self.runner.code_block_full_name, fully_qual_name)
 
         for target, action in self.rules.items():
             if isinstance(target, FunctionCall):
@@ -679,6 +741,7 @@ class TransformHandler:
         action: TransformRuleAction,
     ) -> ast.AST:
         if action == TransformRuleAction.AWAIT_CALL:
+            self._set_await_added()
             return ast.Await(value=node)
         elif action == TransformRuleAction.TIME_SLEEP:
             module_name = "asyncio"
@@ -688,7 +751,8 @@ class TransformHandler:
                 module_as_name = self.runner.imported_modules[module_name]
             else:
                 module_as_name = module_alias_for_new_import
-                self.required_imports.add((module_name, module_as_name))
+                self._add_required_import(module_name, module_as_name)
+            self._set_await_added()
             return ast.Await(
                 value=ast.Call(
                     func=ast.Attribute(
@@ -708,7 +772,8 @@ class TransformHandler:
                 module_as_name = self.runner.imported_modules[module_name]
             else:
                 module_as_name = module_alias_for_new_import
-                self.required_imports.add((module_name, module_as_name))
+                self._add_required_import(module_name, module_as_name)
+            self._set_await_added()
             return ast.Await(
                 value=ast.Call(
                     func=ast.Attribute(
@@ -722,8 +787,60 @@ class TransformHandler:
             )
 
     def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
-        _insert_import_statement(node, self.required_imports)
-        self.required_imports = set()
+        _insert_import_statement(node, self._get_required_imports_in_code_block())
+
+        if self._is_await_added_in_code_block():
+            self.funcs_containing_new_awaits.add(self.runner.code_block_full_name)
+
+            if isinstance(node, ast.FunctionDef):
+                return ast.AsyncFunctionDef(
+                    **{f: getattr(node, f) for f in node._fields},
+                )
+
+        return node
+
+    def get_funcs_to_be_async(self) -> set[FullyQualifiedName]:
+        callers = set(
+            [
+                caller
+                for callee in self.funcs_containing_new_awaits
+                for caller in self.call_graph.get_callers_recursive(callee)
+            ]
+        )
+        funcs_to_be_async = self.funcs_containing_new_awaits | callers
+
+        return funcs_to_be_async
+
+
+class AsyncFuncDefCallTransformHandler:
+    def __init__(self, funcs_to_be_async: set[FullyQualifiedName]) -> None:
+        self.runner: CodeBlockTransformer
+
+        self.funcs_to_be_async = funcs_to_be_async
+
+    def on_enter_code_block(self) -> None:
+        return
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        _, fully_qual_name = self.runner._resolve_called_object(node)
+
+        if not fully_qual_name:
+            return node
+
+        if fully_qual_name in self.funcs_to_be_async:
+            return ast.Await(value=node)
+
+        return node
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        if (
+            isinstance(node, ast.FunctionDef)
+            and self.runner.code_block_full_name in self.funcs_to_be_async
+        ):
+            return ast.AsyncFunctionDef(
+                **{f: getattr(node, f) for f in node._fields},
+            )
+
         return node
 
 
@@ -775,15 +892,6 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     else:
         raise ValueError("code must be a string or an ast.Module")
 
-    transform_rules = {
-        FunctionCall(name="time.sleep"): TransformRuleAction.TIME_SLEEP,
-        FunctionCall(name="streamlit.write_stream"): TransformRuleAction.AWAIT_CALL,
-        AttrFunctionCall(
-            obj=ReturnValue(called_function="streamlit.navigation"),
-            attr="run",
-        ): TransformRuleAction.STREAMLIT_NAVIGATION_RUN,
-    }
-
     wildcard_import_monitor_targets = set(
         [
             WildcardImportTarget(module="time", attr="sleep"),
@@ -791,18 +899,44 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         ]
     )
 
+    # Prepare: Scan the code block to get the information about name bindings.
     scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
     node_scanner_map = scanner.process(tree)
 
-    transform_handler = TransformHandler(transform_rules)
-    transformer = CodeBlockTransformer(
+    # Transform these function calls according to the given rules.
+    func_call_handler = FuncCallTransformHandler(
+        {
+            FunctionCall(name="time.sleep"): TransformRuleAction.TIME_SLEEP,
+            FunctionCall(name="streamlit.write_stream"): TransformRuleAction.AWAIT_CALL,
+            AttrFunctionCall(
+                obj=ReturnValue(called_function="streamlit.navigation"),
+                attr="run",
+            ): TransformRuleAction.STREAMLIT_NAVIGATION_RUN,
+        }
+    )
+    func_call_transformer = CodeBlockTransformer(
         "__main__",
         None,
         wildcard_import_monitor_targets,
         node_scanner_map,
-        transform_handler,
+        func_call_handler,
     )
-    new_tree = transformer.process(tree)
+    new_tree = func_call_transformer.process(tree)
+
+    # Transform the functions that the previous transformer added `await` to async functions.
+    # Also, transform the callers of the functions to async functions and add `await` to the function calls.
+    funcs_to_be_async = func_call_handler.get_funcs_to_be_async()
+    async_func_def_call_handler = AsyncFuncDefCallTransformHandler(funcs_to_be_async)
+    async_func_def_call_transformer = CodeBlockTransformer(
+        "__main__",
+        None,
+        wildcard_import_monitor_targets,
+        node_scanner_map,
+        async_func_def_call_handler,
+    )
+    new_tree = async_func_def_call_transformer.process(new_tree)
+
+    # Post-process the tree
     new_tree = ast.fix_missing_locations(new_tree)
 
     return cast(ast.Module, new_tree)

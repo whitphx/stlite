@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import date, timedelta
 import string
-import asyncio
+import time
 
 
 @st.cache_data
@@ -24,8 +24,8 @@ def get_data():
 
 
 @st.fragment
-async def show_daily_sales(data):
-    await asyncio.sleep(1)
+def show_daily_sales(data):
+    time.sleep(1)
     with st.container(height=100):
         selected_date = st.date_input(
             "Pick a day ",
@@ -58,8 +58,8 @@ async def show_daily_sales(data):
         cols[1].bar_chart(bottom_ten)
 
 
-async def show_monthly_sales(data):
-    await asyncio.sleep(1)
+def show_monthly_sales(data):
+    time.sleep(1)
     selected_date = st.session_state.selected_date
     this_month = selected_date.replace(day=1)
     next_month = (selected_date.replace(day=28) + timedelta(days=4)).replace(day=1)
@@ -82,6 +82,6 @@ st.markdown("This app shows the 2023 daily sales for Widget A through Widget Z."
 data = get_data()
 daily, monthly = st.columns(2)
 with daily:
-    await show_daily_sales(data)
+    show_daily_sales(data)
 with monthly:
-    await show_monthly_sales(data)
+    show_monthly_sales(data)

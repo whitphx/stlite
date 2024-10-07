@@ -296,18 +296,21 @@ class NonDeterministicBindingAppearances:
         return self.resolved_as
 
 
-class ModuleObject(NamedTuple):
-    name: str
+class FunctionCall(NamedTuple):
+    name: FullyQualifiedName
 
 
 class AttrFunctionCall(NamedTuple):
-    obj: ModuleObject | ReturnValue
+    obj: ReturnValue
     attr: str
 
 
+TransformRuleTarget = FunctionCall | AttrFunctionCall
+
+
 class TransformRuleAction(Enum):
-    TIME_SLEEP = 1
-    STREAMLIT_WRITE_STREAM = 2
+    AWAIT_CALL = 1
+    TIME_SLEEP = 2
     STREAMLIT_NAVIGATION_RUN = 3
 
 
@@ -316,7 +319,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self,
         code_block_name: str,
         parent_transformer: Self | None,
-        rules: dict[AttrFunctionCall, TransformRuleAction],
+        wildcard_import_targets: set[WildcardImportTarget],
+        rules: dict[TransformRuleTarget, TransformRuleAction],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
     ) -> None:
         super().__init__()
@@ -326,6 +330,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         self._node_scanner_map = node_scanner_map
 
         self.parent_transformer = parent_transformer
+
+        self.wildcard_import_targets = wildcard_import_targets
 
         self.rules = rules
 
@@ -509,16 +515,18 @@ class CodeBlockTransformer(ast.NodeTransformer):
             return node
 
         for target, action in self.rules.items():
-            if (
-                isinstance(target.obj, ModuleObject)
-                and target.obj.name + "." + target.attr == fully_qual_name
-                and fully_qual_name not in self.invalidated_names
-            ) or (
-                isinstance(target.obj, ReturnValue)
-                and isinstance(original_obj, ReturnValue)
-                and target.obj.called_function == original_obj.called_function
-            ):
-                return self._handle_target_call(node, action)
+            if isinstance(target, FunctionCall):
+                if (
+                    target.name == fully_qual_name
+                    and fully_qual_name not in self.invalidated_names
+                ):
+                    return self._handle_target_call(node, action)
+            elif isinstance(target, AttrFunctionCall):
+                if (
+                    isinstance(original_obj, ReturnValue)
+                    and target.obj.called_function == original_obj.called_function
+                ):
+                    return self._handle_target_call(node, action)
 
         return node
 
@@ -527,7 +535,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
         node: ast.Call,
         action: TransformRuleAction,
     ) -> ast.AST:
-        if action == TransformRuleAction.TIME_SLEEP:
+        if action == TransformRuleAction.AWAIT_CALL:
+            return ast.Await(value=node)
+        elif action == TransformRuleAction.TIME_SLEEP:
             module_name = "asyncio"
             func_name = "sleep"
             module_alias_for_new_import = "__asyncio__"
@@ -547,8 +557,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     keywords=node.keywords,
                 )
             )
-        elif action == TransformRuleAction.STREAMLIT_WRITE_STREAM:
-            return ast.Await(value=node)
         elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
             module_name = "stlite_lib.async_utils"
             func_name = "ensure_awaitable"
@@ -596,10 +604,14 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     # TODO: Convert sync function to async function
                     return node
 
-                transformer = CodeBlockTransformer(
-                    node.name, self, self.rules, self._node_scanner_map
+                child_code_block_transformer = CodeBlockTransformer(
+                    node.name,
+                    self,
+                    self.wildcard_import_targets,
+                    self.rules,
+                    self._node_scanner_map,
                 )
-                return transformer.process(node)
+                return child_code_block_transformer.process(node)
 
             if isinstance(node, ast.Call):
                 return self.handle_Call(node)
@@ -629,14 +641,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     if node.module:
                         if alias.name == "*":
                             # For a wild-card import, add a binding for a target whose module name is matched.
-                            for target in self.rules.keys():
-                                if (
-                                    isinstance(target.obj, ModuleObject)
-                                    and node.module == target.obj.name
-                                ):
-                                    self._bind_name(
-                                        target.attr, target.obj.name + "." + target.attr
-                                    )
+                            for target in self.wildcard_import_targets:
+                                if node.module == target.module:
+                                    self._bind_name(target.attr, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)
@@ -753,12 +760,8 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         raise ValueError("code must be a string or an ast.Module")
 
     transform_rules = {
-        AttrFunctionCall(
-            obj=ModuleObject(name="time"), attr="sleep"
-        ): TransformRuleAction.TIME_SLEEP,
-        AttrFunctionCall(
-            obj=ModuleObject(name="streamlit"), attr="write_stream"
-        ): TransformRuleAction.STREAMLIT_WRITE_STREAM,
+        FunctionCall(name="time.sleep"): TransformRuleAction.TIME_SLEEP,
+        FunctionCall(name="streamlit.write_stream"): TransformRuleAction.AWAIT_CALL,
         AttrFunctionCall(
             obj=ReturnValue(called_function="streamlit.navigation"),
             attr="run",
@@ -767,16 +770,19 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
 
     wildcard_import_monitor_targets = set(
         [
-            WildcardImportTarget(module=k.obj.name, attr=k.attr)
-            for k in transform_rules.keys()
-            if isinstance(k.obj, ModuleObject)
+            WildcardImportTarget(module="time", attr="sleep"),
+            WildcardImportTarget(module="streamlit", attr="write_stream"),
         ]
     )
 
     scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
     node_scanner_map = scanner.process(tree)
     transformer = CodeBlockTransformer(
-        "__main__", None, transform_rules, node_scanner_map
+        "__main__",
+        None,
+        wildcard_import_monitor_targets,
+        transform_rules,
+        node_scanner_map,
     )
     new_tree = transformer.process(tree)
     new_tree = ast.fix_missing_locations(new_tree)

@@ -4,7 +4,11 @@ import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
 import { isDescendantURL } from "./ipc-utils";
 import { walkRead } from "./file";
-import { readManifest } from "./manifest";
+import {
+  readManifest,
+  resolveNodefsMountpoints,
+  ensureNodefsMountpoints,
+} from "./manifest";
 
 if (process.env.NODE_ENV === "development") {
   console.log("Hot-reloading Electron enabled");
@@ -124,7 +128,7 @@ const createWindow = async () => {
   });
 
   let worker: workerThreads.Worker | null = null;
-  ipcMain.handle("initializeNodeJsWorker", (ev) => {
+  ipcMain.handle("initializeNodeJsWorker", async (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
         `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`,
@@ -134,6 +138,14 @@ const createWindow = async () => {
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
     const pyodidePath = path.resolve(__dirname, "..", "pyodide", "pyodide.mjs"); // For Windows compatibility, rely on path.resolve() to join the path elements.
 
+    // Set up the NODEFS mountpoints if specified in the manifest.
+    const nodefsMountpoints =
+      manifest.nodefsMountpoints &&
+      resolveNodefsMountpoints(app, manifest.nodefsMountpoints);
+    if (nodefsMountpoints) {
+      await ensureNodefsMountpoints(nodefsMountpoints);
+    }
+
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
@@ -141,7 +153,7 @@ const createWindow = async () => {
       env: {
         PYODIDE_URL: pyodidePath,
         ...(manifest.nodefsMountpoints && {
-          NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
+          NODEFS_MOUNTPOINTS: JSON.stringify(nodefsMountpoints),
         }),
       },
     });

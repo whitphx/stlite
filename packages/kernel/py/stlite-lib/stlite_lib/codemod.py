@@ -792,11 +792,6 @@ class FuncCallTransformHandler:
         if self._is_await_added_in_code_block():
             self.funcs_containing_new_awaits.add(self.runner.code_block_full_name)
 
-            if isinstance(node, ast.FunctionDef):
-                return ast.AsyncFunctionDef(
-                    **{f: getattr(node, f) for f in node._fields},
-                )
-
         return node
 
     def get_funcs_to_be_async(self) -> set[FullyQualifiedName]:

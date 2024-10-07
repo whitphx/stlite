@@ -213,6 +213,8 @@ def bar(name):
     foo(name)
 def foo(name):
     st.write_stream("Hello " + name)
+    for _ in range(10):
+        st.write_stream("Hello " + name)
 def baz(name):
     foo(name)
     qux(name)
@@ -228,6 +230,8 @@ async def bar(name):
     await foo(name)
 async def foo(name):
     await st.write_stream("Hello " + name)
+    for _ in range(10):
+        await st.write_stream("Hello " + name)
 async def baz(name):
     await foo(name)
     await qux(name)
@@ -237,7 +241,7 @@ await foo("John")
 await bar("John")
 await baz("John")
 """,
-            id="streamlit_write_stream_in_function",
+            id="streamlit_write_stream_in_function_and_its_control_flow",
         ),
     ],
 )

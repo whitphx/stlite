@@ -320,8 +320,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
         code_block_name: str,
         parent_transformer: Self | None,
         wildcard_import_targets: set[WildcardImportTarget],
-        rules: dict[TransformRuleTarget, TransformRuleAction],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
+        transform_handler: "TransformHandler",
     ) -> None:
         super().__init__()
 
@@ -333,8 +333,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         self.wildcard_import_targets = wildcard_import_targets
 
-        self.rules = rules
-
         self.code_block_full_name: str
         if parent_transformer:
             self.code_block_full_name = (
@@ -343,12 +341,14 @@ class CodeBlockTransformer(ast.NodeTransformer):
         else:
             self.code_block_full_name = code_block_name
 
+        self.transform_handler = transform_handler
+        self.transform_handler.runner = self
+
         self.name_bindings: dict[
             str, NameResolvedAs | NonDeterministicBindingAppearances
         ] = dict()  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran and has the static name binding information.
 
         self.imported_modules: dict[str, str] = dict()
-        self.required_imports: set[tuple[str, str]] = set()
 
         self.invalidated_names: set[str] = set()
 
@@ -362,9 +362,8 @@ class CodeBlockTransformer(ast.NodeTransformer):
                 self._bind_name(arg)
 
         new_tree = self.generic_visit(tree)
-        new_tree = cast(CodeBlockNode, new_tree)
 
-        _insert_import_statement(new_tree, self.required_imports)
+        new_tree = self.transform_handler.on_exit_code_block(cast(CodeBlockNode, new_tree))
 
         return new_tree
 
@@ -507,77 +506,6 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         return obj_origin, func_fully_qual_name
 
-    def handle_Call(self, node: ast.Call) -> ast.AST:
-        original_obj, fully_qual_name = self._resolve_called_object(node)
-
-        if not original_obj and not fully_qual_name:
-            # Early return for efficiency. In this case, no rule will match below.
-            return node
-
-        for target, action in self.rules.items():
-            if isinstance(target, FunctionCall):
-                if (
-                    target.name == fully_qual_name
-                    and fully_qual_name not in self.invalidated_names
-                ):
-                    return self._handle_target_call(node, action)
-            elif isinstance(target, AttrFunctionCall):
-                if (
-                    isinstance(original_obj, ReturnValue)
-                    and target.obj.called_function == original_obj.called_function
-                ):
-                    return self._handle_target_call(node, action)
-
-        return node
-
-    def _handle_target_call(
-        self,
-        node: ast.Call,
-        action: TransformRuleAction,
-    ) -> ast.AST:
-        if action == TransformRuleAction.AWAIT_CALL:
-            return ast.Await(value=node)
-        elif action == TransformRuleAction.TIME_SLEEP:
-            module_name = "asyncio"
-            func_name = "sleep"
-            module_alias_for_new_import = "__asyncio__"
-            if module_name in self.imported_modules:
-                module_as_name = self.imported_modules[module_name]
-            else:
-                module_as_name = module_alias_for_new_import
-                self.required_imports.add((module_name, module_as_name))
-            return ast.Await(
-                value=ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
-                        attr=func_name,
-                        ctx=ast.Load(),
-                    ),
-                    args=node.args,
-                    keywords=node.keywords,
-                )
-            )
-        elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
-            module_name = "stlite_lib.async_utils"
-            func_name = "ensure_awaitable"
-            module_alias_for_new_import = "__stlite_lib_async_utils__"
-            if module_name in self.imported_modules:
-                module_as_name = self.imported_modules[module_name]
-            else:
-                module_as_name = module_alias_for_new_import
-                self.required_imports.add((module_name, module_as_name))
-            return ast.Await(
-                value=ast.Call(
-                    func=ast.Attribute(
-                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
-                        attr=func_name,
-                        ctx=ast.Load(),
-                    ),
-                    args=[node],
-                    keywords=[],
-                ),
-            )
-
     def visit(self, node: ast.AST) -> ast.AST:
         # Process the visited node
         is_control_flow = isinstance(
@@ -608,13 +536,16 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     node.name,
                     self,
                     self.wildcard_import_targets,
-                    self.rules,
                     self._node_scanner_map,
+                    self.transform_handler,
                 )
-                return child_code_block_transformer.process(node)
+                modified_node = child_code_block_transformer.process(node)
+                self.transform_handler.runner = self
+
+                return modified_node
 
             if isinstance(node, ast.Call):
-                return self.handle_Call(node)
+                return self.transform_handler.handle_Call(node)
 
             if isinstance(node, (ast.Lambda, ast.Await)):
                 # Lambda can't have await, so we can ignore them for the purpose of this visitor.
@@ -711,6 +642,91 @@ class CodeBlockTransformer(ast.NodeTransformer):
             return node
 
 
+class TransformHandler:
+    def __init__(self, rules: dict[TransformRuleTarget, TransformRuleAction]) -> None:
+        self.runner: CodeBlockTransformer
+
+        self.rules = rules
+
+        self.required_imports: set[tuple[str, str]] = set()
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        original_obj, fully_qual_name = self.runner._resolve_called_object(node)
+
+        if not original_obj and not fully_qual_name:
+            # Early return for efficiency. In this case, no rule will match below.
+            return node
+
+        for target, action in self.rules.items():
+            if isinstance(target, FunctionCall):
+                if (
+                    target.name == fully_qual_name
+                    and fully_qual_name not in self.runner.invalidated_names
+                ):
+                    return self._handle_target_call(node, action)
+            elif isinstance(target, AttrFunctionCall):
+                if (
+                    isinstance(original_obj, ReturnValue)
+                    and target.obj.called_function == original_obj.called_function
+                ):
+                    return self._handle_target_call(node, action)
+
+        return node
+
+    def _handle_target_call(
+        self,
+        node: ast.Call,
+        action: TransformRuleAction,
+    ) -> ast.AST:
+        if action == TransformRuleAction.AWAIT_CALL:
+            return ast.Await(value=node)
+        elif action == TransformRuleAction.TIME_SLEEP:
+            module_name = "asyncio"
+            func_name = "sleep"
+            module_alias_for_new_import = "__asyncio__"
+            if module_name in self.runner.imported_modules:
+                module_as_name = self.runner.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self.required_imports.add((module_name, module_as_name))
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
+            )
+        elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
+            module_name = "stlite_lib.async_utils"
+            func_name = "ensure_awaitable"
+            module_alias_for_new_import = "__stlite_lib_async_utils__"
+            if module_name in self.runner.imported_modules:
+                module_as_name = self.runner.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self.required_imports.add((module_name, module_as_name))
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=[node],
+                    keywords=[],
+                ),
+            )
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        _insert_import_statement(node, self.required_imports)
+        self.required_imports = set()
+        return node
+
+
 def _insert_import_statement(
     tree: CodeBlockNode, module_names: set[tuple[str, str]]
 ) -> None:
@@ -777,12 +793,14 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
 
     scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
     node_scanner_map = scanner.process(tree)
+
+    transform_handler = TransformHandler(transform_rules)
     transformer = CodeBlockTransformer(
         "__main__",
         None,
         wildcard_import_monitor_targets,
-        transform_rules,
         node_scanner_map,
+        transform_handler,
     )
     new_tree = transformer.process(tree)
     new_tree = ast.fix_missing_locations(new_tree)

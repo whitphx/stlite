@@ -923,15 +923,16 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     # Transform the functions that the previous transformer added `await` to async functions.
     # Also, transform the callers of the functions to async functions and add `await` to the function calls.
     funcs_to_be_async = func_call_handler.get_funcs_to_be_async()
-    async_func_def_call_handler = AsyncFuncDefCallTransformHandler(funcs_to_be_async)
-    async_func_def_call_transformer = CodeBlockTransformer(
-        "__main__",
-        None,
-        wildcard_import_monitor_targets,
-        node_scanner_map,
-        async_func_def_call_handler,
-    )
-    new_tree = async_func_def_call_transformer.process(new_tree)
+    if funcs_to_be_async:
+        async_func_def_call_handler = AsyncFuncDefCallTransformHandler(funcs_to_be_async)
+        async_func_def_call_transformer = CodeBlockTransformer(
+            "__main__",
+            None,
+            wildcard_import_monitor_targets,
+            node_scanner_map,
+            async_func_def_call_handler,
+        )
+        new_tree = async_func_def_call_transformer.process(new_tree)
 
     # Post-process the tree
     new_tree = ast.fix_missing_locations(new_tree)

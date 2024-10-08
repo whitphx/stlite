@@ -686,28 +686,28 @@ class FuncCallTransformHandler:
         self.call_graph = CallGraph()
         self.funcs_containing_new_awaits: set[FullyQualifiedName] = set()
 
-        self._required_imports_in_code_block: dict[
+        self._required_imports: dict[
             FullyQualifiedName, set[tuple[str, str]]
-        ] = {}
-        self._await_added_in_code_block: dict[FullyQualifiedName, bool] = {}
+        ] = {}  # code block name -> set of (module name, module alias)
+        self._await_added: dict[FullyQualifiedName, bool] = {}  # code block name -> bool
 
     def on_enter_code_block(self) -> None:
-        self._required_imports_in_code_block[self.runner.code_block_full_name] = set()
-        self._await_added_in_code_block[self.runner.code_block_full_name] = False
+        self._required_imports[self.runner.code_block_full_name] = set()
+        self._await_added[self.runner.code_block_full_name] = False
 
     def _add_required_import(self, module_name: str, module_as_name: str) -> None:
-        self._required_imports_in_code_block[self.runner.code_block_full_name].add(
+        self._required_imports[self.runner.code_block_full_name].add(
             (module_name, module_as_name)
         )
 
     def _set_await_added(self) -> None:
-        self._await_added_in_code_block[self.runner.code_block_full_name] = True
+        self._await_added[self.runner.code_block_full_name] = True
 
     def _get_required_imports_in_code_block(self) -> set[tuple[str, str]]:
-        return self._required_imports_in_code_block[self.runner.code_block_full_name]
+        return self._required_imports[self.runner.code_block_full_name]
 
-    def _is_await_added_in_code_block(self) -> bool:
-        return self._await_added_in_code_block[self.runner.code_block_full_name]
+    def _await_added_in_code_block(self) -> bool:
+        return self._await_added[self.runner.code_block_full_name]
 
     def handle_Call(self, node: ast.Call) -> ast.AST:
         original_obj, fully_qual_name = self.runner._resolve_called_object(node)
@@ -789,7 +789,7 @@ class FuncCallTransformHandler:
     def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
         _insert_import_statement(node, self._get_required_imports_in_code_block())
 
-        if self._is_await_added_in_code_block():
+        if self._await_added_in_code_block():
             self.funcs_containing_new_awaits.add(self.runner.code_block_full_name)
 
         return node
@@ -802,12 +802,14 @@ class FuncCallTransformHandler:
                 for caller in self.call_graph.get_callers_recursive(callee)
             ]
         )
-        funcs_to_be_async = self.funcs_containing_new_awaits | callers
-
-        return funcs_to_be_async
+        return self.funcs_containing_new_awaits | callers
 
 
 class AsyncFuncDefCallTransformHandler:
+    """Responsible for transforming functions to be async and adding `await` to the function calls.
+    The target `funcs_to_be_async` are expected to be the functions that the previous transformer added `await`
+    that can be get from `FuncCallTransformHandler.get_funcs_to_be_async()`.
+    """
     def __init__(self, funcs_to_be_async: set[FullyQualifiedName]) -> None:
         self.runner: CodeBlockTransformer
 

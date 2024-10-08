@@ -50,9 +50,6 @@ patch $SAMPLES_DIR/012_tutorials_dynamic-navigation/streamlit_app.py $DIFF_DIR/0
 
 mkdir -p $SAMPLES_DIR/012_tutorials_fragments/pages
 cp -r $SOURCE_REPO_DIR/python/api-examples-source/tutorials/execution-flow/fragments/* $SAMPLES_DIR/012_tutorials_fragments/pages/.
-# patch $SAMPLES_DIR/012_tutorials_fragments/pages/tutorial-fragment-multiple-container.py $DIFF_DIR/012_tutorials_fragments/pages/tutorial-fragment-multiple-container.py
-# patch $SAMPLES_DIR/012_tutorials_fragments/pages/tutorial-fragment-rerun.py $DIFF_DIR/012_tutorials_fragments/pages/tutorial-fragment-rerun.py
-# patch $SAMPLES_DIR/012_tutorials_fragments/pages/tutorial-fragment-streaming.py $DIFF_DIR/012_tutorials_fragments/pages/tutorial-fragment-streaming.py
 
 mkdir -p $SAMPLES_DIR/012_utilities.switch_page
 cp -r $SOURCE_REPO_DIR/python/api-examples-source/utilities.switch_page/* $SAMPLES_DIR/012_utilities.switch_page/.

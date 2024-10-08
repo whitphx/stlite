@@ -424,6 +424,26 @@ async def foo():
             """
 from time import sleep
 
+def foo():
+    sleep(1)
+
+foo()
+""",
+            """
+from time import sleep
+
+async def foo():
+    import asyncio as __asyncio__
+    await __asyncio__.sleep(1)
+
+await foo()
+""",
+            id="asyncio_sleep_conversion_in_normal_function_with_from_import",
+        ),
+        pytest.param(
+            """
+from time import sleep
+
 sl = sleep
 sl(1)
 
@@ -552,15 +572,6 @@ f()
 """,
             id="sleep_occurs_in_lambda",
         ),
-        #         pytest.param(
-        #             """
-        # import time
-        # def foo():
-        #     time.sleep()
-        # foo()
-        # """,
-        #             id="sleep_occurs_in_function_as_free_variable",
-        #         ),
         pytest.param(
             """
 from time import sleep

@@ -314,6 +314,19 @@ class TransformRuleAction(Enum):
     STREAMLIT_NAVIGATION_RUN = 3
 
 
+class TransformHandler:
+    runner: "CodeBlockTransformer"
+
+    def on_enter_code_block(self) -> None:
+        pass
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        return node
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        return node
+
+
 class CodeBlockTransformer(ast.NodeTransformer):
     def __init__(
         self,
@@ -321,7 +334,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         parent_transformer: Self | None,
         wildcard_import_targets: set[WildcardImportTarget],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
-        transform_handler: "FuncCallTransformHandler | AsyncFuncDefCallTransformHandler",
+        transform_handler: TransformHandler,
     ) -> None:
         super().__init__()
 
@@ -537,7 +550,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     self.transform_handler,
                 )
                 modified_node = child_code_block_transformer.process(node)
-                self.transform_handler.runner = self
+                self.transform_handler.runner = self  # Restore the runner
 
                 return modified_node
 
@@ -670,7 +683,7 @@ class CallGraph:
         return str(self.graph)
 
 
-class FuncCallTransformHandler:
+class FuncCallTransformHandler(TransformHandler):
     """Responsible for transforming function calls according to the given rules.
     It also collects the information about the required imports and the functions in which this transformer added `await`.
     The collected information of the required imports will be used to insert import statements at the top of the code block.
@@ -679,8 +692,6 @@ class FuncCallTransformHandler:
     """
 
     def __init__(self, rules: dict[TransformRuleTarget, TransformRuleAction]) -> None:
-        self.runner: CodeBlockTransformer
-
         self.rules = rules
 
         self.call_graph = CallGraph()
@@ -689,7 +700,9 @@ class FuncCallTransformHandler:
         self._required_imports: dict[
             FullyQualifiedName, set[tuple[str, str]]
         ] = {}  # code block name -> set of (module name, module alias)
-        self._await_added: dict[FullyQualifiedName, bool] = {}  # code block name -> bool
+        self._await_added: dict[
+            FullyQualifiedName, bool
+        ] = {}  # code block name -> bool
 
     def on_enter_code_block(self) -> None:
         self._required_imports[self.runner.code_block_full_name] = set()
@@ -805,18 +818,14 @@ class FuncCallTransformHandler:
         return self.funcs_containing_new_awaits | callers
 
 
-class AsyncFuncDefCallTransformHandler:
+class AsyncFuncDefCallTransformHandler(TransformHandler):
     """Responsible for transforming functions to be async and adding `await` to the function calls.
     The target `funcs_to_be_async` are expected to be the functions that the previous transformer added `await`
     that can be get from `FuncCallTransformHandler.get_funcs_to_be_async()`.
     """
+
     def __init__(self, funcs_to_be_async: set[FullyQualifiedName]) -> None:
-        self.runner: CodeBlockTransformer
-
         self.funcs_to_be_async = funcs_to_be_async
-
-    def on_enter_code_block(self) -> None:
-        return
 
     def handle_Call(self, node: ast.Call) -> ast.AST:
         _, fully_qual_name = self.runner._resolve_called_object(node)
@@ -924,7 +933,9 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     # Also, transform the callers of the functions to async functions and add `await` to the function calls.
     funcs_to_be_async = func_call_handler.get_funcs_to_be_async()
     if funcs_to_be_async:
-        async_func_def_call_handler = AsyncFuncDefCallTransformHandler(funcs_to_be_async)
+        async_func_def_call_handler = AsyncFuncDefCallTransformHandler(
+            funcs_to_be_async
+        )
         async_func_def_call_transformer = CodeBlockTransformer(
             "__main__",
             None,

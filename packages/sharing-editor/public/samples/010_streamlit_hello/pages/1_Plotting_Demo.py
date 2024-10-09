@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
+import time
 
 import numpy as np
 
@@ -20,7 +20,7 @@ import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-async def plotting_demo():
+def plotting_demo():
     progress_bar = st.sidebar.progress(0)
     status_text = st.sidebar.empty()
     last_rows = np.random.randn(1, 1)
@@ -32,8 +32,7 @@ async def plotting_demo():
         chart.add_rows(new_rows)
         progress_bar.progress(i)
         last_rows = new_rows
-        # NOTE: time.sleep is no-op on stlite/Pyodide, so we use asyncio.sleep instead.
-        await asyncio.sleep(0.05)
+        time.sleep(0.05)
 
     progress_bar.empty()
 
@@ -43,7 +42,7 @@ async def plotting_demo():
     st.button("Re-run")
 
 
-st.set_page_config(page_title="Plotting Demo", page_icon="📈")
+st.set_page_config(page_title="Plotting Demo", page_icon=":material/show_chart:")
 st.markdown("# Plotting Demo")
 st.sidebar.header("Plotting Demo")
 st.write(
@@ -52,6 +51,6 @@ Streamlit. We're generating a bunch of random numbers in a loop for around
 5 seconds. Enjoy!"""
 )
 
-await plotting_demo()
+plotting_demo()
 
 show_code(plotting_demo)

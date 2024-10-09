@@ -1,5 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
-# Copyright (c) Yuichiro Tachibana (Tsuchiya) (2023)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 from typing import Any
 
 import numpy as np
@@ -22,8 +20,7 @@ import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-async def animation_demo() -> None:
-
+def animation_demo() -> None:
     # Interactive Streamlit elements, like these sliders, return their value.
     # This gives you an extremely simple interaction model.
     iterations = st.sidebar.slider("Level of detail", 2, 20, 10, 1)
@@ -62,11 +59,6 @@ async def animation_demo() -> None:
         # Update the image placeholder by calling the image() function on it.
         image.image(1.0 - (N / N.max()), use_column_width=True)
 
-        # NOTE: We need to sleep for a bit in a loop on stlite, i.e. web browser environments.
-        # This is because we're using a single-threaded event loop, and
-        # we need to give it a chance to process other events.
-        await asyncio.sleep(1/30)
-
     # We clear elements by calling empty on them.
     progress_bar.empty()
     frame_text.empty()
@@ -77,7 +69,7 @@ async def animation_demo() -> None:
     st.button("Re-run")
 
 
-st.set_page_config(page_title="Animation Demo", page_icon="📹")
+st.set_page_config(page_title="Animation Demo", page_icon=":material/animation:")
 st.markdown("# Animation Demo")
 st.sidebar.header("Animation Demo")
 st.write(
@@ -86,6 +78,6 @@ It displays an animated fractal based on the the Julia Set. Use the slider
 to tune different parameters."""
 )
 
-await animation_demo()
+animation_demo()
 
 show_code(animation_demo)

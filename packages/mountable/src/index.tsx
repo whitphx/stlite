@@ -1,4 +1,5 @@
 import { mount } from "./mount";
+import "./custom-element";
 
 export { mount };
 

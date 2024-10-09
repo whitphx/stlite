@@ -57,8 +57,8 @@ export function mount(
       kernel.dispose();
       ReactDOM.unmountComponentAtNode(container);
     },
-    install: (requirements: string[]) => {
-      return kernelWithToast.install(requirements);
+    install: (requirements: string[], options?: { indexUrls?: string[] }) => {
+      return kernelWithToast.install(requirements, options);
     },
     writeFile: (
       path: string,

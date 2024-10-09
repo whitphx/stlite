@@ -206,20 +206,43 @@ match x:
 """,
             id="streamlit_write_stream_in_match",
         ),
-        #         (
-        #             """
-        # import streamlit as st
-        # def foo(name):
-        #     st.write_stream("Hello " + name)
-        # foo("John")
-        # """,
-        #             """
-        # import streamlit as st
-        # async def foo(name):
-        #     await st.write_stream("Hello " + name)
-        # await foo("John")
-        # """,
-        #         ),
+        pytest.param(
+            """
+import streamlit as st
+def bar(name):
+    foo(name)
+def foo(name):
+    st.write_stream("Hello " + name)
+    for _ in range(10):
+        st.write_stream("Hello " + name)
+def baz(name):
+    foo(name)
+    qux(name)
+def qux(name):
+    baz(name)
+foo("John")
+bar("John")
+baz("John")
+""",
+            """
+import streamlit as st
+async def bar(name):
+    await foo(name)
+async def foo(name):
+    await st.write_stream("Hello " + name)
+    for _ in range(10):
+        await st.write_stream("Hello " + name)
+async def baz(name):
+    await foo(name)
+    await qux(name)
+async def qux(name):
+    await baz(name)
+await foo("John")
+await bar("John")
+await baz("John")
+""",
+            id="streamlit_write_stream_in_function_and_its_control_flow",
+        ),
     ],
 )
 def test_convert_st_write_stream(test_input, expected):
@@ -401,6 +424,26 @@ async def foo():
             """
 from time import sleep
 
+def foo():
+    sleep(1)
+
+foo()
+""",
+            """
+from time import sleep
+
+async def foo():
+    import asyncio as __asyncio__
+    await __asyncio__.sleep(1)
+
+await foo()
+""",
+            id="asyncio_sleep_conversion_in_normal_function_with_from_import",
+        ),
+        pytest.param(
+            """
+from time import sleep
+
 sl = sleep
 sl(1)
 
@@ -528,17 +571,6 @@ f = lambda: time.sleep(1)
 f()
 """,
             id="sleep_occurs_in_lambda",
-        ),
-        pytest.param(
-            """
-import time
-
-def foo():
-    time.sleep()
-
-foo()
-""",
-            id="sleep_occurs_in_function_as_free_variable",
         ),
         pytest.param(
             """

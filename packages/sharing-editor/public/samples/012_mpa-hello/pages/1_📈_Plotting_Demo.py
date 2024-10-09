@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 import streamlit as st
+import time
 import numpy as np
 from utils import show_code
 
 
-async def plotting_demo():
+def plotting_demo():
     progress_bar = st.sidebar.progress(0)
     status_text = st.sidebar.empty()
     last_rows = np.random.randn(1, 1)
@@ -30,7 +30,7 @@ async def plotting_demo():
         chart.add_rows(new_rows)
         progress_bar.progress(i)
         last_rows = new_rows
-        await asyncio.sleep(0.05)
+        time.sleep(0.05)
 
     progress_bar.empty()
 
@@ -49,6 +49,6 @@ Streamlit. We're generating a bunch of random numbers in a loop for around
 5 seconds. Enjoy!"""
 )
 
-await plotting_demo()
+plotting_demo()
 
 show_code(plotting_demo)

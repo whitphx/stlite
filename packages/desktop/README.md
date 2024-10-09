@@ -177,6 +177,22 @@ In the example below, `"."` on the host OS file system is mounted to the `/mnt` 
 }
 ```
 
+You can use the placeholders such as `{{home}}`, `{{userData}}`, `{{temp}}`, etc. in the host OS paths to specify the paths dynamically. Check the [Electron's `app.getPath` documentation](https://www.electronjs.org/docs/latest/api/app#appgetpathname) for the available path names because the placeholders are resolved to the paths returned by `app.getPath`.
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "nodeJsWorker": true,
+      "nodefsMountpoints": {
+        "/foo": "{{home}}/foo" // e.g. The host OS path is resolved to "/home/user/foo" on Linux
+      }
+    }
+  }
+}
+```
+
 ### NodeJS worker mode
 
 `@stlite/desktop` runs your app on [Electron](https://www.electronjs.org/) as a desktop app.

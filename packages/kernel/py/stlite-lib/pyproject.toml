@@ -17,7 +17,7 @@ pandas-stubs = "^2.2.2.240909"
 matplotlib = "^3.9.2"
 ruff = "^0.6.9"
 pyodide-py = "^0.26.2"
-pyright = "^1.1.383"
+pyright = "^1.1.384"
 pytest-asyncio = "^0.24.0"
 
 [build-system]

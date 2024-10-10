@@ -135,7 +135,7 @@ jobs:
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-lib
-        uv install
+        uv sync
 
     - name: Set up Streamlit and build proto
       run: |

@@ -120,6 +120,7 @@ $(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
+	rm ./streamlit/lib/streamlit/proto/*.pyi
 	@touch $@
 
 .PHONY: streamlit-wheel

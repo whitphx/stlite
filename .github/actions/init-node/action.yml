@@ -1,0 +1,25 @@
+name: 'Node Initialization Action'
+description: 'Node initialization steps for CI jobs'
+inputs:
+  node-version-file:
+    description: 'Node version file to setup'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    ## Set up Node environment
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: 'yarn'
+
+    - uses: actions/cache@v4
+      with:
+        path: '**/node_modules'
+        key: node_modules-${{ hashFiles('yarn.lock') }}
+
+    # `yarn install` often takes so long time on in the Windows env.
+    # https://github.com/yarnpkg/yarn/issues/8242
+    - run: yarn config set network-timeout 600000
+
+    - run: yarn install --frozen-lockfile

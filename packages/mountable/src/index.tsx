@@ -33,7 +33,7 @@ if (
 
 export function mount(
   options: MountOptions,
-  container: HTMLElement = document.body
+  container: HTMLElement = document.body,
 ) {
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
@@ -46,7 +46,7 @@ export function mount(
       <StreamlitApp kernel={kernel} />
       <ToastContainer />
     </React.StrictMode>,
-    container
+    container,
   );
 
   const kernelWithToast = new StliteKernelWithToast(kernel);
@@ -62,7 +62,7 @@ export function mount(
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
-      opts?: Record<string, any>
+      opts?: Record<string, any>,
     ) => {
       return kernelWithToast.writeFile(path, data, opts);
     },
@@ -71,6 +71,9 @@ export function mount(
     },
     unlink: (path: string) => {
       return kernelWithToast.unlink(path);
+    },
+    readFile: (path: string, opts?: Record<string, any>) => {
+      return kernelWithToast.readFile(path, opts);
     },
   };
 }
@@ -107,7 +110,7 @@ window.addEventListener(
             files: {},
             requirements: ["matplotlib"],
           },
-          document.getElementById("root") as HTMLElement
+          document.getElementById("root") as HTMLElement,
         );
       }
 
@@ -161,7 +164,7 @@ window.addEventListener(
       }
     }
   },
-  false
+  false,
 );
 
 // communicate if in iframe to parent (top)
@@ -222,6 +225,6 @@ st.map(df)
       ],
       requirements: ["matplotlib"],
     },
-    "*"
+    "*",
   );
 }

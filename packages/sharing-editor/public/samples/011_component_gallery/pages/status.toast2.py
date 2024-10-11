@@ -1,14 +1,14 @@
 import streamlit as st
-import asyncio
+import time
 
 
-async def cook_breakfast():
+def cook_breakfast():
     msg = st.toast("Gathering ingredients...")
-    await asyncio.sleep(1)
+    time.sleep(1)
     msg.toast("Cooking...")
-    await asyncio.sleep(1)
+    time.sleep(1)
     msg.toast("Ready!", icon="🥞")
 
 
 if st.button("Cook breakfast"):
-    await cook_breakfast()
+    cook_breakfast()

@@ -120,6 +120,13 @@ export interface InMessageFileUnlink extends InMessageBase {
     path: string;
   };
 }
+export interface InMessageFileRead extends InMessageBase {
+  type: "file:read";
+  data: {
+    path: string;
+    opts?: Record<string, any>;
+  };
+}
 export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
@@ -166,7 +173,9 @@ export type InMessage =
   | InMessageInstall
   | InTokenMessage
   | InMessageAutocomplete
-  | InMessageHover;
+  | InMessageHover
+  | InMessageFileRead
+  | InMessageInstall;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -249,17 +258,26 @@ export interface ReplyMessageHttpResponse extends ReplyMessageBase {
     response: HttpResponseInMessage;
   };
 }
+export interface ReplyMessageFileRead extends ReplyMessageBase {
+  type: "reply:file:read";
+  data: {
+    content: string | Uint8Array;
+  };
+}
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";
   error?: Error;
 }
-export type ReplyMessage = ReplyMessageHttpResponse | ReplyMessageGeneralReply;
+export type ReplyMessage =
+  | ReplyMessageHttpResponse
+  | ReplyMessageFileRead
+  | ReplyMessageGeneralReply;
 
 /**
  * Validators
  */
 export function isPyodideConvertiblePrimitive(
-  value: unknown
+  value: unknown,
 ): value is PyodideConvertiblePrimitive {
   return (
     typeof value === "string" ||
@@ -275,12 +293,12 @@ export function isStreamlitConfig(value: unknown): value is StreamlitConfig {
     value != null &&
     Object.entries(value).every(
       ([key, value]) =>
-        typeof key === "string" && isPyodideConvertiblePrimitive(value)
+        typeof key === "string" && isPyodideConvertiblePrimitive(value),
     )
   );
 }
 export function assertStreamlitConfig(
-  value: unknown
+  value: unknown,
 ): asserts value is StreamlitConfig {
   if (!isStreamlitConfig(value)) {
     throw new Error(`Invalid streamlitConfig: ${value}`);

@@ -8,7 +8,7 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/mountable?label=%40stlite%2Fmountable)](https://www.npmjs.com/package/@stlite/mountable)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
-<img src="./docs/images/logo.svg" style="background: white;" >
+<img src="./assets/stlite.svg" style="background: white;" >
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers with the power of [Pyodide](https://pyodide.org/), WebAssembly (Wasm)-ported Python.
 
@@ -28,7 +28,7 @@ You can use _Stlite_ on your web page loading the script and CSS files via `<scr
 Here is a sample HTML file.
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -54,7 +54,7 @@ import streamlit as st
 name = st.text_input('Your name')
 st.write("Hello,", name or "world")
 `,
-        document.getElementById("root")
+        document.getElementById("root"),
       );
     </script>
   </body>
@@ -66,7 +66,7 @@ In this sample,
 - _Stlite_ library is imported with the first script tag, then the global `stlite` object becomes available.
 - `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
-> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in `` st.mount(` ... `) ``. To avoid this, you can escape them with with a preceding backslash `\`.
+> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
 >
 > ```html
 > <script>
@@ -76,7 +76,7 @@ In this sample,
 > 
 > st.markdown("This is an inline code format: \`code\`")
 > `,
->     document.getElementById("root")
+>     document.getElementById("root"),
 >   );
 > </script>
 > ```
@@ -110,7 +110,7 @@ st.pyplot(fig)
       "client.toolbarMode": "viewer",
     },
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -133,7 +133,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -156,7 +156,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -185,7 +185,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -210,7 +210,7 @@ mount(
     ],
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -245,7 +245,7 @@ st.title("Page 2")
 `,
     },
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -267,7 +267,7 @@ stlite.mount(
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -304,7 +304,7 @@ stlite.mount(
     pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -346,7 +346,7 @@ with open("/mnt/data.txt", "r") as f:
     },
     // ... other options ...
   },
-  document.getElementById("root")
+  document.getElementById("root"),
 );
 ```
 
@@ -494,6 +494,12 @@ They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)
 ### Hal9
 
 [<img src="https://hal9.com/logo/hal9-square-black.png" height="50" >](https://hal9.com/)
+
+They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
+
+### RAKUDEJI Inc.
+
+[<img src="https://imagedelivery.net/uODi9j-67fGrJlC0UtMj5w/3c47faee-8dab-41fa-ded6-681bdc3e9500/desktop" height="50" >](https://rakudeji.com/)
 
 They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
 

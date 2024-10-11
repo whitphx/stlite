@@ -16,6 +16,7 @@ runs:
         python-version-file: ${{ inputs.python-version-file }}
 
     - name: Install the latest version of uv
+      id: setup-uv
       uses: astral-sh/setup-uv@v3
       with:
         version: "latest"
@@ -23,6 +24,9 @@ runs:
         cache-dependency-glob: |
           **/requirements*.txt
           **/uv.lock
+    - name: Do something if the cache was restored
+      if: steps.setup-uv.outputs.cache-hit == 'true'
+      run: echo "Cache was restored"
 
     ## Set up Node environment
     - uses: actions/setup-node@v4

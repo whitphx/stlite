@@ -10,14 +10,15 @@ python = "^3.12"
 pyodide-http = "^0.2.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
+pytest = "^8.3.3"
 requests = "^2.32.3"
 streamlit-aggrid = "^1.0.5"
-pandas-stubs = "^2.2.2.240807"
+pandas-stubs = "^2.2.2.240909"
 matplotlib = "^3.9.2"
-ruff = "^0.6.3"
+ruff = "^0.6.9"
 pyodide-py = "^0.26.2"
-pyright = "^1.1.378"
+pyright = "^1.1.383"
+pytest-asyncio = "^0.24.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

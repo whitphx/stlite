@@ -6,10 +6,10 @@ import ErrorToastContent from "./ErrorToastContent";
 function stliteStyledPromiseToast<
   TData = unknown,
   TError extends Error | undefined = undefined,
-  TPending = unknown
+  TPending = unknown,
 >(
   promise: Promise<TData>,
-  messages: ToastPromiseParams<TData, TError, TPending>
+  messages: ToastPromiseParams<TData, TError, TPending>,
 ): ReturnType<typeof toast.promise> {
   const errorMessage = messages.error;
   return toast.promise<TData, TError, TPending>(
@@ -35,7 +35,7 @@ function stliteStyledPromiseToast<
     {
       hideProgressBar: true,
       position: toast.POSITION.BOTTOM_RIGHT,
-    }
+    },
   );
 }
 
@@ -45,7 +45,7 @@ export interface StliteKernelWithToastOptions {
 export class StliteKernelWithToast {
   constructor(
     private kernel: StliteKernel,
-    options?: StliteKernelWithToastOptions
+    options?: StliteKernelWithToastOptions,
   ) {
     kernel.onModuleAutoLoad = (packagesToLoad, installPromise) => {
       if (options?.onModuleAutoLoad) {
@@ -82,6 +82,15 @@ export class StliteKernelWithToast {
     return stliteStyledPromiseToast<void>(this.kernel.unlink(...args), {
       error: "Failed to remove the file",
     });
+  }
+
+  public readFile(...args: Parameters<StliteKernel["readFile"]>) {
+    return stliteStyledPromiseToast<string | Uint8Array>(
+      this.kernel.readFile(...args),
+      {
+        error: "Failed to read the file",
+      },
+    );
   }
 
   public install(...args: Parameters<StliteKernel["install"]>) {

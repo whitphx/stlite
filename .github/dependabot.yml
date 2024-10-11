@@ -12,3 +12,7 @@ updates:
     directory: "/packages/kernel/py/stlite-lib"
     schedule:
       interval: "daily"
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly

@@ -21,7 +21,7 @@
 ---
 > async def data_frame_demo():
 186,187c186,188
-<         AWS_BUCKET_URL = "http://streamlit-demo-data.s3-us-west-2.amazonaws.com"
+<         AWS_BUCKET_URL = "https://streamlit-demo-data.s3-us-west-2.amazonaws.com"
 <         df = pd.read_csv(AWS_BUCKET_URL + "/agri.csv.gz")
 ---
 >         # AWS_BUCKET_URL = "http://streamlit-demo-data.s3-us-west-2.amazonaws.com"

@@ -4,7 +4,11 @@ import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
 import { isDescendantURL } from "./ipc-utils";
 import { walkRead } from "./file";
-import { readManifest } from "./manifest";
+import {
+  readManifest,
+  resolveNodefsMountpoints,
+  ensureNodefsMountpoints,
+} from "./manifest";
 
 if (process.env.NODE_ENV === "development") {
   console.log("Hot-reloading Electron enabled");
@@ -13,7 +17,7 @@ if (process.env.NODE_ENV === "development") {
       __dirname,
       process.platform === "win32"
         ? "../../node_modules/electron/dist/electron.exe"
-        : "../../node_modules/.bin/electron"
+        : "../../node_modules/.bin/electron",
     ),
   });
 }
@@ -23,11 +27,11 @@ const createWindow = async () => {
 
   const additionalArguments: string[] = [];
   additionalArguments.push(
-    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`
+    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`,
   );
   if (manifest.idbfsMountpoints) {
     additionalArguments.push(
-      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`
+      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`,
     );
   }
   if (manifest.nodeJsWorker) {
@@ -47,7 +51,7 @@ const createWindow = async () => {
   const indexUrlObj = new URL(
     app.isPackaged || process.env.NODE_ENV === "production"
       ? "file:///index.html"
-      : "http://localhost:3000/"
+      : "http://localhost:3000/",
   );
 
   const indexUrlParams = new URLSearchParams();
@@ -70,33 +74,33 @@ const createWindow = async () => {
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`
+        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`,
       );
     }
 
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(
       __dirname,
-      "../site-packages-snapshot.tar.gz"
+      "../site-packages-snapshot.tar.gz",
     );
     return fsPromises.readFile(archiveFilePath);
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`
+        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`,
       );
     }
 
     const prebuiltPackagesTxtPath = path.resolve(
       __dirname,
-      "../prebuilt-packages.txt"
+      "../prebuilt-packages.txt",
     );
     const prebuiltPackagesTxtData = await fsPromises.readFile(
       prebuiltPackagesTxtPath,
       {
         encoding: "utf-8",
-      }
+      },
     );
     return prebuiltPackagesTxtData
       .split("\n")
@@ -108,13 +112,13 @@ const createWindow = async () => {
     async (ev): Promise<Record<string, Buffer>> => {
       if (!isValidIpcSender(ev.senderFrame)) {
         throw new Error(
-          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`
+          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`,
         );
       }
 
       const appDir = path.resolve(__dirname, "../app_files");
       return walkRead(appDir);
-    }
+    },
   );
 
   mainWindow.on("closed", () => {
@@ -124,15 +128,23 @@ const createWindow = async () => {
   });
 
   let worker: workerThreads.Worker | null = null;
-  ipcMain.handle("initializeNodeJsWorker", (ev) => {
+  ipcMain.handle("initializeNodeJsWorker", async (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`
+        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`,
       );
     }
 
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
     const pyodidePath = path.resolve(__dirname, "..", "pyodide", "pyodide.mjs"); // For Windows compatibility, rely on path.resolve() to join the path elements.
+
+    // Set up the NODEFS mountpoints if specified in the manifest.
+    const nodefsMountpoints =
+      manifest.nodefsMountpoints &&
+      resolveNodefsMountpoints(app, manifest.nodefsMountpoints);
+    if (nodefsMountpoints) {
+      await ensureNodefsMountpoints(nodefsMountpoints);
+    }
 
     function onMessageFromWorker(value: any) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
@@ -141,7 +153,7 @@ const createWindow = async () => {
       env: {
         PYODIDE_URL: pyodidePath,
         ...(manifest.nodefsMountpoints && {
-          NODEFS_MOUNTPOINTS: JSON.stringify(manifest.nodefsMountpoints),
+          NODEFS_MOUNTPOINTS: JSON.stringify(nodefsMountpoints),
         }),
       },
     });
@@ -152,7 +164,7 @@ const createWindow = async () => {
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`
+        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`,
       );
     }
 

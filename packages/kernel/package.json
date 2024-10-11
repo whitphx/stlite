@@ -2,7 +2,7 @@
   "name": "@stlite/kernel",
   "private": true,
   "description": "",
-  "version": "0.65.0",
+  "version": "0.69.0",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
@@ -29,8 +29,8 @@
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",
     "html2canvas": "^1.4.1",
-    "@stlite/common": "^0.65.0",
-    "@streamlit/lib": "1.38.0",
+    "@stlite/common": "^0.69.0",
+    "@streamlit/lib": "1.39.0",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0"
   }

@@ -32,7 +32,7 @@ import { assertStreamlitConfig } from "./types";
 // https://github.com/pyodide/pyodide/pull/1859
 // https://pyodide.org/en/stable/project/changelog.html#micropip
 import STLITE_LIB_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.38.0-cp312-none-any.whl";
+import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.39.0-cp312-none-any.whl";
 // COGNITE: code completion
 import JEDI_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/jedi/jedi-0.19.1-py2.py3-none-any.whl";
 import { postMessageToFusion } from "./cognite/streamlit-worker-communication-utils";
@@ -126,7 +126,7 @@ export interface StliteKernelOptions {
 
   onModuleAutoLoad?: (
     packagesToLoad: string[],
-    installPromise: Promise<PackageData[]>
+    installPromise: Promise<PackageData[]>,
   ) => void;
 
   onProgress?: (message: string) => void;
@@ -196,16 +196,16 @@ export class StliteKernel {
       });
       const stliteLibWheelUrl = makeAbsoluteWheelURL(
         STLITE_LIB_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       const streamlitWheelUrl = makeAbsoluteWheelURL(
         STREAMLIT_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       // COGNITE: needed for language server
       const jediWheelUrl = makeAbsoluteWheelURL(
         JEDI_WHEEL as unknown as string,
-        options.wheelBaseUrl
+        options.wheelBaseUrl,
       );
       wheels = {
         stliteLib: stliteLibWheelUrl,
@@ -271,7 +271,7 @@ export class StliteKernel {
           request,
         },
       },
-      "http:response"
+      "http:response",
     ).then((data) => {
       return {
         ...data.response,
@@ -283,7 +283,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>
+    opts?: Record<string, unknown>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -303,6 +303,22 @@ export class StliteKernel {
         newPath,
       },
     });
+  }
+
+  public readFile(
+    path: string,
+    opts?: Record<string, any>,
+  ): Promise<string | Uint8Array> {
+    return this._asyncPostMessage(
+      {
+        type: "file:read",
+        data: {
+          path,
+          opts,
+        },
+      },
+      "reply:file:read",
+    ).then((data) => data.content);
   }
 
   public unlink(path: string): Promise<void> {
@@ -338,15 +354,15 @@ export class StliteKernel {
   }
 
   private _asyncPostMessage(
-    message: InMessage
+    message: InMessage,
   ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
-    expectedReplyType: T
+    expectedReplyType: T,
   ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
   private _asyncPostMessage(
     message: InMessage,
-    expectedReplyType = "reply"
+    expectedReplyType = "reply",
   ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
@@ -429,7 +445,7 @@ export class StliteKernel {
                 }
                 port.close();
               };
-            })
+            }),
           );
         break;
       }
@@ -508,7 +524,7 @@ const initTokenStorageAndAuthHandler = (worker: StliteWorker) => {
         }
       }
     },
-    false
+    false,
   );
   // communicate if in iframe to parent (top)
   postMessageToFusion("getToken");
@@ -530,7 +546,7 @@ const sendTokenToWorker = (
     fusionUrl: string;
     email?: string;
   },
-  worker: StliteWorker
+  worker: StliteWorker,
 ) => {
   worker.postMessage({
     type: "newToken",

@@ -8,7 +8,7 @@ desktop := packages/desktop/build/*
 kernel := packages/kernel/dist/*
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.38.0-cp312-none-any.whl
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.39.0-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
@@ -134,7 +134,7 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 		exit 1; \
 	fi && \
 	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
-	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.38.0-py2.py3-none-any.whl && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.39.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 

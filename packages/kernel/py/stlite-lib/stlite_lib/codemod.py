@@ -8,52 +8,6 @@ CodeBlockNode = ast.Module | ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassD
 ChildCodeBlockNode = ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef
 
 
-class ModuleFunction(NamedTuple):
-    module: str
-    func: str
-
-    @property
-    def full_name(self) -> str:
-        return self.module + "." + self.func
-
-
-class AsyncMethodCallReplacement(NamedTuple):
-    module: str
-    func: str
-    module_alias_for_new_import: str
-
-
-def patch(code: str | ast.Module, script_path: str) -> ast.Module:
-    if isinstance(code, str):
-        tree = ast.parse(code, script_path, "exec")
-    elif isinstance(code, ast.Module):
-        tree = code
-    else:
-        raise ValueError("code must be a string or an ast.Module")
-
-    rules = {
-        ModuleFunction(module="time", func="sleep"): AsyncMethodCallReplacement(
-            module="asyncio", func="sleep", module_alias_for_new_import="__asyncio__"
-        ),
-        ModuleFunction(
-            module="streamlit", func="write_stream"
-        ): AsyncMethodCallReplacement(
-            module="streamlit",
-            func="write_stream",
-            module_alias_for_new_import="__streamlit__",  # This shouldn't be used because the queried module is the same as the replaced module
-        ),
-    }
-    targets = set(rules.keys())
-
-    scanner = CodeBlockStaticScanner("__main__", None, targets)
-    node_scanner_map = scanner.process(tree)
-    transformer = CodeBlockTransformer("__main__", None, rules, node_scanner_map)
-    new_tree = transformer.process(tree)
-    new_tree = ast.fix_missing_locations(new_tree)
-
-    return cast(ast.Module, new_tree)
-
-
 class SpecialNameToken(Enum):
     DELETED = 1
     NONDETERMINISTIC = 2
@@ -66,7 +20,17 @@ class StaticNameResolutionStatus(Enum):
     NOT_FOUND = 4
 
 
-NameBoundTo = str | SpecialNameToken
+FullyQualifiedName = str
+NameBoundTo = FullyQualifiedName | SpecialNameToken
+
+
+class WildcardImportTarget(NamedTuple):
+    module: str
+    attr: str
+
+    @property
+    def full_name(self) -> str:
+        return self.module + "." + self.attr
 
 
 class CodeBlockStaticScanner(ast.NodeVisitor):
@@ -74,9 +38,9 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
         self,
         code_block_name: str,
         parent_scanner: Self | None,
-        wildcard_import_targets: set[ModuleFunction],
+        wildcard_import_targets: set[WildcardImportTarget],
     ) -> None:
-        """Scan a code block.
+        """Scan a code block ("code block" is a Python terminology. See https://docs.python.org/3/reference/executionmodel.html).
         The `process()` method recursively instantiates this class and scans the child code blocks
         to get the information about name bindings in the code block.
         It's for emulating the name resolution behavior of the Python interpreter (https://docs.python.org/3/reference/executionmodel.html#resolution-of-names).
@@ -263,7 +227,7 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
                             # For a wild-card import, add a binding for a target whose module name is matched.
                             for target in self.wildcard_import_targets:
                                 if node.module == target.module:
-                                    self._bind_name(target.func, target.full_name)
+                                    self._bind_name(target.attr, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)
@@ -301,13 +265,76 @@ class CodeBlockStaticScanner(ast.NodeVisitor):
             self.generic_visit(node)
 
 
+class ReturnValue(NamedTuple):
+    called_function: FullyQualifiedName
+
+
+class ObjAttr(NamedTuple):
+    obj: ReturnValue
+    attr: str
+
+
+NameResolvedAs = (
+    NameBoundTo | ReturnValue | ObjAttr
+)  # Name resolvers try to return `NameBoundTo` as much as possible, but using `ReturnValue` or `ObjAttr` is necessary for the case where the name is bound to a function call result or an attribute of a function call result.
+
+
+class NonDeterministicBindingAppearances:
+    """Basically, name bindings in the control flows will be resolved as non-deterministic.
+    However, an exception is when the name is bound to the same value in all the control flow branches.
+    To handle this case, this class is used to keep track of the name bindings in the control flow branches.
+    """
+
+    def __init__(self, bound_item: NameResolvedAs | None) -> None:
+        self.resolved_as = bound_item
+
+    def add_appearance(self, bound_item: NameResolvedAs | None) -> None:
+        if self.resolved_as != bound_item:
+            self.resolved_as = SpecialNameToken.NONDETERMINISTIC
+
+    def resolve(self) -> NameResolvedAs | None:
+        return self.resolved_as
+
+
+class FunctionCall(NamedTuple):
+    name: FullyQualifiedName
+
+
+class AttrFunctionCall(NamedTuple):
+    obj: ReturnValue
+    attr: str
+
+
+TransformRuleTarget = FunctionCall | AttrFunctionCall
+
+
+class TransformRuleAction(Enum):
+    AWAIT_CALL = 1
+    TIME_SLEEP = 2
+    STREAMLIT_NAVIGATION_RUN = 3
+
+
+class TransformHandler:
+    runner: "CodeBlockTransformer"
+
+    def on_enter_code_block(self) -> None:
+        pass
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        return node
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        return node
+
+
 class CodeBlockTransformer(ast.NodeTransformer):
     def __init__(
         self,
         code_block_name: str,
         parent_transformer: Self | None,
-        rules: dict[ModuleFunction, AsyncMethodCallReplacement],
+        wildcard_import_targets: set[WildcardImportTarget],
         node_scanner_map: dict[CodeBlockNode, CodeBlockStaticScanner],
+        transform_handler: TransformHandler,
     ) -> None:
         super().__init__()
 
@@ -317,7 +344,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
         self.parent_transformer = parent_transformer
 
-        self.rules = rules
+        self.wildcard_import_targets = wildcard_import_targets
 
         self.code_block_full_name: str
         if parent_transformer:
@@ -327,12 +354,14 @@ class CodeBlockTransformer(ast.NodeTransformer):
         else:
             self.code_block_full_name = code_block_name
 
-        self.name_bindings: dict[str, NameBoundTo] = (
-            dict()
-        )  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran.
+        self.transform_handler = transform_handler
+        self.transform_handler.runner = self
+
+        self.name_bindings: dict[
+            str, NameResolvedAs | NonDeterministicBindingAppearances
+        ] = dict()  # In the traversal this class does, we are only interested in the latest binding of each name in the code block. For names bound in outer scope, we refer to the scanner object that already ran and has the static name binding information.
 
         self.imported_modules: dict[str, str] = dict()
-        self.required_imports: set[tuple[str, str]] = set()
 
         self.invalidated_names: set[str] = set()
 
@@ -345,21 +374,26 @@ class CodeBlockTransformer(ast.NodeTransformer):
             for arg in _get_func_args(tree):
                 self._bind_name(arg)
 
-        new_tree = self.generic_visit(tree)
-        new_tree = cast(CodeBlockNode, new_tree)
+        self.transform_handler.on_enter_code_block()
 
-        _insert_import_statement(new_tree, self.required_imports)
+        tree = cast(CodeBlockNode, self.generic_visit(tree))
 
-        return new_tree
+        tree = self.transform_handler.on_exit_code_block(tree)
 
-    def _bind_name(self, name: str, bound_to: NameBoundTo | None = None):
-        if self._inside_control_flow:
-            bound_to = SpecialNameToken.NONDETERMINISTIC
-        elif bound_to is None:
+        return tree
+
+    def _bind_name(self, name: str, bound_to: NameResolvedAs | None = None):
+        if bound_to is None:
             bound_to = self.code_block_full_name + "." + name
-        self.name_bindings[name] = bound_to
 
-    def _bind_expr(self, target: ast.expr, bound_to: NameBoundTo | None = None) -> None:
+        if self._inside_control_flow:
+            self.name_bindings[name] = NonDeterministicBindingAppearances(bound_to)
+        else:
+            self.name_bindings[name] = bound_to
+
+    def _bind_expr(
+        self, target: ast.expr, bound_to: NameResolvedAs | None = None
+    ) -> None:
         # Handle ast.expr subtypes that can appear in assignment context (see https://docs.python.org/3/library/ast.html#abstract-grammar)
         if isinstance(target, ast.Name):
             name = target.id
@@ -380,15 +414,17 @@ class CodeBlockTransformer(ast.NodeTransformer):
             # The `a[b] = c` doesn't matter for the purpose of this visitor
             pass
 
-    def _resolve_name_local_dynamic(self, name: str) -> str | None:
+    def _resolve_name_local_dynamic(self, name: str) -> NameResolvedAs | None:
         bound_to = self.name_bindings.get(name)
         if bound_to == SpecialNameToken.DELETED:
             return None
+        elif isinstance(bound_to, NonDeterministicBindingAppearances):
+            return bound_to.resolve()
         elif bound_to == SpecialNameToken.NONDETERMINISTIC:
             return None
         return bound_to
 
-    def _resolve_name(self, name: str) -> str | None:
+    def _resolve_name(self, name: str) -> NameResolvedAs | None:
         scanner = self._node_scanner_map[self._code_block_node]
         if scanner is None:
             raise ValueError(
@@ -403,7 +439,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
         if is_local and not self._inside_control_flow:
             # The case where the name is not a free variable,
             # which means it's used and defined in the same code block (see https://docs.python.org/3/reference/executionmodel.html#binding-of-names).
-            # In this case, now this transformer is very running or traversing
+            # In this case, now this transformer is running or traversing
             # in the code block AST where the name is bound, `self._code_block_node`.
             # So we use the dynamic name resolver of this class in this case
             # because the AST traversal is like the actual code execution of Python at runtime
@@ -444,59 +480,49 @@ class CodeBlockTransformer(ast.NodeTransformer):
     def _inside_control_flow(self):
         return self._control_flow_depth > 0
 
-    def handle_Call(self, node: ast.Call) -> ast.AST:
+    def _resolve_called_object(
+        self, node: ast.Call
+    ) -> tuple[NameResolvedAs | None, FullyQualifiedName | None]:
         called_func = node.func
+        obj_origin = None
         func_fully_qual_name = None
-        if type(called_func) is ast.Name:
+
+        # YAGNI: We now support only the following two cases (e.g. `obj.fn()` and `fn()`).
+        # Especially, we don't care about the case like chained attribute access (e.g. `obj.attr.fn()`) for now.
+        if type(called_func) is ast.Name:  # e.g. `fn()`
             func_name = called_func.id
-            func_fully_qual_name = self._resolve_name(func_name)
-        elif (
-            type(called_func) is ast.Attribute
-            and type(called_func.value) is ast.Name
-            and isinstance(called_func.value.ctx, ast.Load)
-        ):
-            module = called_func.value.id
-            method = called_func.attr
-            mod_first_segment, *mod_rest_segments = module.split(".")
-            if mod_first_segment_full_name := self._resolve_name(mod_first_segment):
-                module_full_name = ".".join(
-                    [mod_first_segment_full_name, *mod_rest_segments]
-                )
-                func_fully_qual_name = module_full_name + "." + method
-
-        if func_fully_qual_name is None:
-            return node
-
-        for target, replacement in self.rules.items():
+            obj_origin = self._resolve_name(func_name)
+            if isinstance(
+                obj_origin, str
+            ):  # When `fn` is resolved to a fully qualified name, e.g. `from mod imoprt fn`
+                func_fully_qual_name = obj_origin
+            elif isinstance(
+                obj_origin, ObjAttr
+            ):  # When `fn` is resolved to `obj.method`
+                attr_name = obj_origin.attr
+                obj_origin = obj_origin.obj
+        elif type(called_func) is ast.Attribute:  # e.g. `obj.fn()` or `f().g()`
             if (
-                ".".join(target) == func_fully_qual_name
-                and func_fully_qual_name not in self.invalidated_names
+                type(called_func.value) is ast.Name  # e.g. `obj.fn()`
+                and isinstance(called_func.value.ctx, ast.Load)
             ):
-                return self._handle_target_call(node, replacement)
+                obj_name = called_func.value.id
+                attr_name = called_func.attr
+                obj_origin = self._resolve_name(obj_name)
+                if isinstance(obj_origin, str):
+                    func_fully_qual_name = obj_origin + "." + attr_name
+            elif isinstance(called_func.value, ast.Call):  # e.g. `f().g()``
+                _, called_func_full_qual_name = self._resolve_called_object(
+                    called_func.value
+                )
+                if called_func_full_qual_name:
+                    # YAGNI: We only support this case e.g. the `f` of `f().g()` is resolved to a fully qualified name.
+                    obj_origin = ReturnValue(called_function=called_func_full_qual_name)
 
-        return node
-
-    def _handle_target_call(
-        self, node: ast.Call, replacement: AsyncMethodCallReplacement
-    ) -> ast.AST:
-        if replacement.module in self.imported_modules:
-            module_as_name = self.imported_modules[replacement.module]
-        else:
-            module_as_name = replacement.module_alias_for_new_import
-            self.required_imports.add((replacement.module, module_as_name))
-        return ast.Await(
-            value=ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id=module_as_name, ctx=ast.Load()),
-                    attr=replacement.func,
-                    ctx=ast.Load(),
-                ),
-                args=node.args,
-                keywords=node.keywords,
-            )
-        )
+        return obj_origin, func_fully_qual_name
 
     def visit(self, node: ast.AST) -> ast.AST:
+        # Process the visited node
         is_control_flow = isinstance(
             node,
             (
@@ -516,18 +542,20 @@ class CodeBlockTransformer(ast.NodeTransformer):
 
                 self._bind_name(node.name, full_qual_name)
 
-                if isinstance(node, ast.FunctionDef):
-                    # FunctionDef can't have await, so stop the traversal by not calling generic_visit().
-                    # TODO: Convert sync function to async function
-                    return node
-
-                transformer = CodeBlockTransformer(
-                    node.name, self, self.rules, self._node_scanner_map
+                child_code_block_transformer = CodeBlockTransformer(
+                    node.name,
+                    self,
+                    self.wildcard_import_targets,
+                    self._node_scanner_map,
+                    self.transform_handler,
                 )
-                return transformer.process(node)
+                modified_node = child_code_block_transformer.process(node)
+                self.transform_handler.runner = self  # Restore the runner
+
+                return modified_node
 
             if isinstance(node, ast.Call):
-                return self.handle_Call(node)
+                return self.transform_handler.handle_Call(node)
 
             if isinstance(node, (ast.Lambda, ast.Await)):
                 # Lambda can't have await, so we can ignore them for the purpose of this visitor.
@@ -554,25 +582,52 @@ class CodeBlockTransformer(ast.NodeTransformer):
                     if node.module:
                         if alias.name == "*":
                             # For a wild-card import, add a binding for a target whose module name is matched.
-                            for target in self.rules.keys():
+                            for target in self.wildcard_import_targets:
                                 if node.module == target.module:
-                                    self._bind_name(target.func, target.full_name)
+                                    self._bind_name(target.attr, target.full_name)
                         else:
                             name = alias.asname or alias.name
                             self._bind_name(name, node.module + "." + alias.name)
                 return node
 
             if isinstance(node, (ast.Assign, ast.Delete)):
+                bound_to = None
                 if isinstance(node, ast.Delete):
                     bound_to = SpecialNameToken.DELETED
                 else:
-                    bound_to = (
-                        self._resolve_name_local_dynamic(node.value.id)
-                        if isinstance(node.value, ast.Name)
-                        else None
-                    )
+                    if isinstance(node.value, ast.Call):  # e.g. `a = f()`
+                        _, called_func_full_qual_name = self._resolve_called_object(
+                            node.value
+                        )
+                        if called_func_full_qual_name:
+                            # If a function is called in the right-hand side of the assignment,
+                            # bind the left-hand side to a token representing the return value of the function call.
+                            bound_to = ReturnValue(
+                                called_function=called_func_full_qual_name
+                            )
+                    elif isinstance(node.value, ast.Name):  # e.g. `a = b`
+                        bound_to = self._resolve_name_local_dynamic(node.value.id)
+                    elif isinstance(node.value, ast.Attribute):
+                        if isinstance(node.value.value, ast.Name):  # e.g. `a = b.c`
+                            obj_name = node.value.value.id
+                            attr_name = node.value.attr
+                            obj_origin = self._resolve_name(obj_name)
+                            if isinstance(obj_origin, str):
+                                bound_to = obj_origin + "." + attr_name
+                            elif isinstance(obj_origin, ReturnValue):
+                                bound_to = ObjAttr(obj=obj_origin, attr=attr_name)
+                        elif isinstance(node.value.value, ast.Call):  # e.g. `a = b().c`
+                            _, called_func_full_qual_name = self._resolve_called_object(
+                                node.value.value
+                            )
+                            if called_func_full_qual_name:
+                                bound_to = ReturnValue(
+                                    called_function=called_func_full_qual_name
+                                )
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
+                return node
+
             assignment_occurs = isinstance(
                 node,
                 (
@@ -591,8 +646,208 @@ class CodeBlockTransformer(ast.NodeTransformer):
             elif isinstance(node, ast.TypeAlias):
                 self._bind_expr(node.name)
 
+            # Traverse the children
             self.generic_visit(node)
+
             return node
+
+
+class CallGraph:
+    def __init__(self):
+        self.graph: dict[FullyQualifiedName, set[FullyQualifiedName]] = dict()
+
+    def add_edge(self, caller: FullyQualifiedName, callee: FullyQualifiedName) -> None:
+        self.graph.setdefault(callee, set()).add(caller)
+
+    def get_callers(self, callee: FullyQualifiedName) -> set[FullyQualifiedName]:
+        return self.graph.get(callee, set())
+
+    def get_callers_recursive(
+        self, callee: FullyQualifiedName
+    ) -> set[FullyQualifiedName]:
+        visited = set()
+        result = set()
+        stack = [callee]
+
+        while stack:
+            node = stack.pop()
+            if node not in visited:
+                visited.add(node)
+                callers = self.get_callers(node)
+                result.update(callers)
+                stack.extend(caller for caller in callers if caller not in visited)
+
+        return result
+
+    def __str__(self) -> str:
+        return str(self.graph)
+
+
+class FuncCallTransformHandler(TransformHandler):
+    """Responsible for transforming function calls according to the given rules.
+    It also collects the information about the required imports and the functions in which this transformer added `await`.
+    The collected information of the required imports will be used to insert import statements at the top of the code block.
+    The collected information of the functions containing new `await` will be used to convert the functions and the callers of the functions to async functions
+    and add `await` to the function calls later.
+    """
+
+    def __init__(self, rules: dict[TransformRuleTarget, TransformRuleAction]) -> None:
+        self.rules = rules
+
+        self.call_graph = CallGraph()
+        self.funcs_containing_new_awaits: set[FullyQualifiedName] = set()
+
+        self._required_imports: dict[
+            FullyQualifiedName, set[tuple[str, str]]
+        ] = {}  # code block name -> set of (module name, module alias)
+        self._await_added: dict[
+            FullyQualifiedName, bool
+        ] = {}  # code block name -> bool
+
+    def on_enter_code_block(self) -> None:
+        self._required_imports[self.runner.code_block_full_name] = set()
+        self._await_added[self.runner.code_block_full_name] = False
+
+    def _add_required_import(self, module_name: str, module_as_name: str) -> None:
+        self._required_imports[self.runner.code_block_full_name].add(
+            (module_name, module_as_name)
+        )
+
+    def _set_await_added(self) -> None:
+        self._await_added[self.runner.code_block_full_name] = True
+
+    def _get_required_imports_in_code_block(self) -> set[tuple[str, str]]:
+        return self._required_imports[self.runner.code_block_full_name]
+
+    def _await_added_in_code_block(self) -> bool:
+        return self._await_added[self.runner.code_block_full_name]
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        original_obj, fully_qual_name = self.runner._resolve_called_object(node)
+
+        if not original_obj and not fully_qual_name:
+            # Early return for efficiency. In this case, no rule will match below.
+            return node
+
+        if fully_qual_name:
+            self.call_graph.add_edge(self.runner.code_block_full_name, fully_qual_name)
+
+        for target, action in self.rules.items():
+            if isinstance(target, FunctionCall):
+                if (
+                    target.name == fully_qual_name
+                    and fully_qual_name not in self.runner.invalidated_names
+                ):
+                    return self._handle_target_call(node, action)
+            elif isinstance(target, AttrFunctionCall):
+                if (
+                    isinstance(original_obj, ReturnValue)
+                    and target.obj.called_function == original_obj.called_function
+                ):
+                    return self._handle_target_call(node, action)
+
+        return node
+
+    def _handle_target_call(
+        self,
+        node: ast.Call,
+        action: TransformRuleAction,
+    ) -> ast.AST:
+        if action == TransformRuleAction.AWAIT_CALL:
+            self._set_await_added()
+            return ast.Await(value=node)
+        elif action == TransformRuleAction.TIME_SLEEP:
+            module_name = "asyncio"
+            func_name = "sleep"
+            module_alias_for_new_import = "__asyncio__"
+            if module_name in self.runner.imported_modules:
+                module_as_name = self.runner.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self._add_required_import(module_name, module_as_name)
+            self._set_await_added()
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
+            )
+        elif action == TransformRuleAction.STREAMLIT_NAVIGATION_RUN:
+            module_name = "stlite_lib.async_utils"
+            func_name = "ensure_awaitable"
+            module_alias_for_new_import = "__stlite_lib_async_utils__"
+            if module_name in self.runner.imported_modules:
+                module_as_name = self.runner.imported_modules[module_name]
+            else:
+                module_as_name = module_alias_for_new_import
+                self._add_required_import(module_name, module_as_name)
+            self._set_await_added()
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=module_as_name, ctx=ast.Load()),
+                        attr=func_name,
+                        ctx=ast.Load(),
+                    ),
+                    args=[node],
+                    keywords=[],
+                ),
+            )
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        _insert_import_statement(node, self._get_required_imports_in_code_block())
+
+        if self._await_added_in_code_block():
+            self.funcs_containing_new_awaits.add(self.runner.code_block_full_name)
+
+        return node
+
+    def get_funcs_to_be_async(self) -> set[FullyQualifiedName]:
+        callers = set(
+            [
+                caller
+                for callee in self.funcs_containing_new_awaits
+                for caller in self.call_graph.get_callers_recursive(callee)
+            ]
+        )
+        return self.funcs_containing_new_awaits | callers
+
+
+class AsyncFuncDefCallTransformHandler(TransformHandler):
+    """Responsible for transforming functions to be async and adding `await` to the function calls.
+    The target `funcs_to_be_async` are expected to be the functions that the previous transformer added `await`
+    that can be get from `FuncCallTransformHandler.get_funcs_to_be_async()`.
+    """
+
+    def __init__(self, funcs_to_be_async: set[FullyQualifiedName]) -> None:
+        self.funcs_to_be_async = funcs_to_be_async
+
+    def handle_Call(self, node: ast.Call) -> ast.AST:
+        _, fully_qual_name = self.runner._resolve_called_object(node)
+
+        if not fully_qual_name:
+            return node
+
+        if fully_qual_name in self.funcs_to_be_async:
+            return ast.Await(value=node)
+
+        return node
+
+    def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
+        if (
+            isinstance(node, ast.FunctionDef)
+            and self.runner.code_block_full_name in self.funcs_to_be_async
+        ):
+            return ast.AsyncFunctionDef(
+                **{f: getattr(node, f) for f in node._fields},
+            )
+
+        return node
 
 
 def _insert_import_statement(
@@ -633,3 +888,64 @@ def _get_func_args(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
             node.args.kwarg.arg,
         )
     return params
+
+
+def patch(code: str | ast.Module, script_path: str) -> ast.Module:
+    if isinstance(code, str):
+        tree = ast.parse(code, script_path, "exec")
+    elif isinstance(code, ast.Module):
+        tree = code
+    else:
+        raise ValueError("code must be a string or an ast.Module")
+
+    wildcard_import_monitor_targets = set(
+        [
+            WildcardImportTarget(module="time", attr="sleep"),
+            WildcardImportTarget(module="streamlit", attr="write_stream"),
+        ]
+    )
+
+    # Prepare: Scan the code block to get the information about name bindings.
+    scanner = CodeBlockStaticScanner("__main__", None, wildcard_import_monitor_targets)
+    node_scanner_map = scanner.process(tree)
+
+    # Transform these function calls according to the given rules.
+    func_call_handler = FuncCallTransformHandler(
+        {
+            FunctionCall(name="time.sleep"): TransformRuleAction.TIME_SLEEP,
+            FunctionCall(name="streamlit.write_stream"): TransformRuleAction.AWAIT_CALL,
+            AttrFunctionCall(
+                obj=ReturnValue(called_function="streamlit.navigation"),
+                attr="run",
+            ): TransformRuleAction.STREAMLIT_NAVIGATION_RUN,
+        }
+    )
+    func_call_transformer = CodeBlockTransformer(
+        "__main__",
+        None,
+        wildcard_import_monitor_targets,
+        node_scanner_map,
+        func_call_handler,
+    )
+    new_tree = func_call_transformer.process(tree)
+
+    # Transform the functions that the previous transformer added `await` to async functions.
+    # Also, transform the callers of the functions to async functions and add `await` to the function calls.
+    funcs_to_be_async = func_call_handler.get_funcs_to_be_async()
+    if funcs_to_be_async:
+        async_func_def_call_handler = AsyncFuncDefCallTransformHandler(
+            funcs_to_be_async
+        )
+        async_func_def_call_transformer = CodeBlockTransformer(
+            "__main__",
+            None,
+            wildcard_import_monitor_targets,
+            node_scanner_map,
+            async_func_def_call_handler,
+        )
+        new_tree = async_func_def_call_transformer.process(new_tree)
+
+    # Post-process the tree
+    new_tree = ast.fix_missing_locations(new_tree)
+
+    return cast(ast.Module, new_tree)

@@ -5,7 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.69.0] - 2024-10-09
+
+### `@stlite/kernel`
+
+#### Added
+
+- Runtime AST transformation to make the functions async that `await` function calls are injected into, [#1148](https://github.com/whitphx/stlite/pull/1148).
+
+### `@stlite/desktop`
+
+#### Added
+
+- Path placeholders for NODEFS mountpoints, [#1147](https://github.com/whitphx/stlite/pull/1147).
+
+## [0.68.0] - 2024-10-06
+
+### `@stlite/mountable`
+
+#### Added
+
+- `readFile()` API, [#1125](https://github.com/whitphx/stlite/pull/1125).
+
+## [0.67.1] - 2024-10-06
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- `st.navigation().run()` works with pages that contain the top-level awaits, [#1145](https://github.com/whitphx/stlite/pull/1145).
+
+## [0.67.0] - 2024-10-04
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.39.0, [#1143](https://github.com/whitphx/stlite/pull/1143).
+
+### `@stlite/mountable`
+
+#### Fixed
+
+- Fix `CrossOriginWorker` to work on FireFox in the case where the script is loaded from CDN, [#1142](https://github.com/whitphx/stlite/pull/1142).
+
+## [0.66.0] - 2024-09-26
+
+### General
+
+#### Changed
+
+- New Stite and Stlite Sharing logos, [#1130](https://github.com/whitphx/stlite/pull/1130).
+
+## [0.65.1] - 2024-09-17
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug at HTTP server startup that caused an error on Safari, [#1123](https://github.com/whitphx/stlite/pull/1123).
 
 ## [0.65.0] - 2024-08-30
 

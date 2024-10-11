@@ -27,7 +27,7 @@ const pathFromScriptToWheels =
  */
 async function ensureLoadPackage(
   pyodide: PyodideInterface,
-  packageName: string | string[]
+  packageName: string | string[],
 ) {
   const errorMessages: string[] = [];
   const errorCallback = (message: string): void => {
@@ -45,7 +45,7 @@ interface CopyBuildDirectoryOptions {
 }
 async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
   logger.info(
-    "Copy the build directory (the bare built app files) to this directory..."
+    "Copy the build directory (the bare built app files) to this directory...",
   );
 
   const sourceDir = path.resolve(__dirname, pathFromScriptToBuild);
@@ -56,7 +56,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
 
   if (sourceDir === options.copyTo) {
     logger.warn(
-      `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`
+      `sourceDir == destDir (${sourceDir}). Are you in the development environment? Skip copying the directory.`,
     );
     return;
   }
@@ -69,7 +69,7 @@ async function copyBuildDirectory(options: CopyBuildDirectoryOptions) {
     } catch {
       // If the destination directory does not exist
       throw new Error(
-        `${options.copyTo} does not exist even though the \`keepOld\` option is specified`
+        `${options.copyTo} does not exist even though the \`keepOld\` option is specified`,
       );
     }
   }
@@ -92,7 +92,7 @@ interface LoadUsedPrebuiltPackagesOptions {
  * This vendoring and runtime-loading mechanism is necessary to avoid problems such as https://github.com/whitphx/stlite/issues/558
  */
 async function saveUsedPrebuiltPackages(
-  options: LoadUsedPrebuiltPackagesOptions
+  options: LoadUsedPrebuiltPackagesOptions,
 ): Promise<string[]> {
   if (options.requirements.length === 0) {
     return [];
@@ -115,7 +115,7 @@ async function saveUsedPrebuiltPackages(
 
 async function prepareLocalWheel(
   pyodide: PyodideInterface,
-  localPath: string
+  localPath: string,
 ): Promise<string> {
   logger.debug(`Preparing the local wheel: %s`, localPath);
 
@@ -133,7 +133,7 @@ interface InstallStreamlitWheelsOptions {
 }
 async function installPackages(
   pyodide: PyodideInterface,
-  options: InstallStreamlitWheelsOptions
+  options: InstallStreamlitWheelsOptions,
 ) {
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
@@ -143,12 +143,12 @@ async function installPackages(
   const wheelsDir = path.join(__dirname, pathFromScriptToWheels);
   const stliteLibWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "stlite_lib-0.1.0-py3-none-any.whl")
+    path.join(wheelsDir, "stlite_lib-0.1.0-py3-none-any.whl"),
   );
   requirements.push(stliteLibWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.38.0-cp312-none-any.whl")
+    path.join(wheelsDir, "streamlit-1.39.0-cp312-none-any.whl"),
   );
   requirements.push(streamlitWheel);
 
@@ -164,7 +164,7 @@ interface CreateSitePackagesSnapshotOptions {
   saveTo: string;
 }
 async function createSitePackagesSnapshot(
-  options: CreateSitePackagesSnapshotOptions
+  options: CreateSitePackagesSnapshotOptions,
 ) {
   logger.info("Create the site-packages snapshot file...");
 
@@ -178,18 +178,17 @@ async function createSitePackagesSnapshot(
   const micropip = pyodide.pyimport("micropip");
 
   const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
-    options.pyodideSource
+    options.pyodideSource,
   );
 
   const mockedPackages: string[] = [];
   if (options.usedPrebuiltPackages.length > 0) {
     logger.info(
-      "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime..."
+      "Mocking prebuilt packages so that they will not be included in the site-packages snapshot because these will be installed from the vendored wheel files at runtime...",
     );
     for (const pkg of options.usedPrebuiltPackages) {
-      const packageInfo = await prebuiltPackagesDataReader.getPackageInfoByName(
-        pkg
-      );
+      const packageInfo =
+        await prebuiltPackagesDataReader.getPackageInfoByName(pkg);
       if (packageInfo == null) {
         throw new Error(`Package ${pkg} is not found in the lock file.`);
       }
@@ -251,7 +250,7 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
 
       if (fileRelPaths.length === 0) {
         logger.warn(
-          `No files match the pattern "${pattern}" in "${options.cwd}".`
+          `No files match the pattern "${pattern}" in "${options.cwd}".`,
         );
         return;
       }
@@ -264,27 +263,27 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
           await fsExtra.copy(srcPath, destPath, {
             errorOnExist: true,
           });
-        })
+        }),
       );
-    })
+    }),
   );
 }
 
 async function assertAppDirContainsEntrypoint(
   appDir: string,
-  entrypoint: string
+  entrypoint: string,
 ) {
   try {
     await fsPromises.access(path.resolve(appDir, entrypoint));
   } catch {
     throw new Error(
-      `The entrypoint file "${entrypoint}" is not included in the bundled files.`
+      `The entrypoint file "${entrypoint}" is not included in the bundled files.`,
     );
   }
 }
 
 async function readRequirements(
-  requirementsTxtPath: string
+  requirementsTxtPath: string,
 ): Promise<string[]> {
   const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
     encoding: "utf-8",
@@ -294,7 +293,7 @@ async function readRequirements(
 
 async function writePrebuiltPackagesTxt(
   prebuiltPackagesTxtPath: string,
-  prebuiltPackages: string[]
+  prebuiltPackages: string[],
 ): Promise<void> {
   const prebuiltPackagesTxtData = prebuiltPackages.join("\n");
   await fsPromises.writeFile(prebuiltPackagesTxtPath, prebuiltPackagesTxtData, {
@@ -306,7 +305,7 @@ yargs(hideBin(process.argv))
   .command(
     "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
-    () => {}
+    () => {},
   )
   .positional("appHomeDirSource", {
     describe:
@@ -384,17 +383,17 @@ yargs(hideBin(process.argv))
     logger.info(`Dependencies: %j`, config.dependencies);
     logger.info(
       `\`requirements.txt\` files: %j`,
-      config.requirementsTxtFilePaths
+      config.requirementsTxtFilePaths,
     );
 
     const dependenciesFromRequirementsTxt = await Promise.all(
       config.requirementsTxtFilePaths.map(async (requirementsTxtPath) => {
         return readRequirements(requirementsTxtPath);
-      })
+      }),
     ).then((parsedRequirements) => parsedRequirements.flat());
     logger.info(
       "Dependencies from `requirements.txt` files: %j",
-      dependenciesFromRequirementsTxt
+      dependenciesFromRequirementsTxt,
     );
 
     const dependencies = validateRequirements([
@@ -412,7 +411,7 @@ yargs(hideBin(process.argv))
     });
     logger.info(
       "The prebuilt packages loaded for the given requirements: %j",
-      usedPrebuiltPackages
+      usedPrebuiltPackages,
     );
 
     const destAppDir = path.resolve(destDir, "./app_files"); // This path will be loaded in the `readStreamlitAppDirectory` handler in electron/main.ts.
@@ -438,7 +437,7 @@ yargs(hideBin(process.argv))
     // to avoid problems such as https://github.com/whitphx/stlite/issues/564.
     await writePrebuiltPackagesTxt(
       path.resolve(destDir, "./prebuilt-packages.txt"), // This path will be loaded in the `readRequirements` handler in electron/main.ts.
-      usedPrebuiltPackages
+      usedPrebuiltPackages,
     );
     await dumpManifest({
       packageJsonStliteDesktopField: packageJson.stlite?.desktop,

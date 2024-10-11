@@ -292,12 +292,11 @@ jobs:
         python-version: ${{ env.python-version }}
         node-version-file: .nvmrc
 
-    # Cache packages/mountable/node_modules/.cache to speed up the build
     - name: Cache node_modules/.cache including Webpack's cache
       uses: actions/cache@v4
       with:
         path: packages/mountable/node_modules/.cache
-        key: mountable-node-modules-cache-${{ runner.os }}-
+        key: mountable-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.

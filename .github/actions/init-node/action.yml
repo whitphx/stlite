@@ -21,5 +21,7 @@ runs:
     # `yarn install` often takes so long time on in the Windows env.
     # https://github.com/yarnpkg/yarn/issues/8242
     - run: yarn config set network-timeout 600000
+      shell: bash
 
     - run: yarn install --frozen-lockfile
+      shell: bash

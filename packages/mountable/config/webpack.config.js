@@ -239,6 +239,7 @@ module.exports = function (webpackEnv) {
       level: 'none',
     },
     optimization: {
+      // Stlite: This package is built as a library, so we don't use chunking options such as `optimization.splitChunks` and `optimization.runtimeChunk`: https://github.com/webpack/webpack/issues/12723
       minimize: isEnvProduction,
       minimizer: [
         // This is only used in production mode

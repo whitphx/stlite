@@ -120,7 +120,6 @@ $(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
-	rm ./streamlit/lib/streamlit/proto/*.pyi
 	@touch $@
 
 .PHONY: streamlit-wheel
@@ -134,7 +133,8 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
 	fi && \
-	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
+	rm ./streamlit/lib/streamlit/proto/*.pyi
+	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
 	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.39.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)

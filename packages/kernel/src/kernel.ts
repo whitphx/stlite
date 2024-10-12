@@ -313,11 +313,15 @@ export class StliteKernel {
     });
   }
 
-  public install(requirements: string[]): Promise<void> {
+  public install(
+    requirements: string[],
+    options?: { indexUrls?: string[] },
+  ): Promise<void> {
     return this._asyncPostMessage({
       type: "install",
       data: {
         requirements,
+        indexUrls: options?.indexUrls,
       },
     });
   }

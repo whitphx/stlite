@@ -72,6 +72,6 @@ st.map(df)
       ],
       requirements: ["matplotlib"],
     },
-    document.getElementById("root") as HTMLElement
+    document.getElementById("root") as HTMLElement,
   );
 }

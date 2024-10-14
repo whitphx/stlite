@@ -122,7 +122,7 @@ export function setupCustomElement(mount: typeof mountFn) {
               const format = node.getAttribute("format");
               if (!url || !format) {
                 throw new Error(
-                  "Attributes 'url' and 'format' are required for <app-archive>"
+                  "Attributes 'url' and 'format' are required for <app-archive>",
                 );
               }
               archives.push({ url, format });

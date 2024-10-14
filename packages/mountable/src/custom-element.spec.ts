@@ -41,7 +41,7 @@ st.write("Hello world")`,
         requirements: [],
         streamlitConfig: {},
       },
-      expect.any(HTMLElement)
+      expect.any(HTMLElement),
     );
   });
 
@@ -94,7 +94,7 @@ st.write("Hello world")`,
         requirements: ["numpy", "pandas"],
         streamlitConfig: {},
       },
-      expect.any(HTMLElement)
+      expect.any(HTMLElement),
     );
   });
 
@@ -145,7 +145,7 @@ st.write("Hello world")
         requirements: ["numpy", "pandas"],
         streamlitConfig: {},
       },
-      expect.any(HTMLElement)
+      expect.any(HTMLElement),
     );
   });
 });

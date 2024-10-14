@@ -5,3 +5,14 @@
 streamlit-app {
   display: none;
 }
+
+streamlit-app app-file,
+app-archive,
+app-requirements,
+app-config {
+  display: none;
+}
+
+streamlit-app .stlite-app-container {
+  display: block;
+}

@@ -1,31 +1,158 @@
-import { mount } from ".";
+import type { mount as mountFn } from "./mount";
+import type { MountOptions, DetailedMountOptions } from "./options";
+import { parseRequirementsTxt } from "@stlite/common";
 import "./custom-element.css";
 
-class StliteAppElement extends HTMLElement {
-  private _controller: ReturnType<typeof mount> | null = null;
+/*
+Supported syntaxes:
+## Simple code block
+<streamlit-app>
+  import streamlit as st
 
-  connectedCallback() {
-    // Now we mount the app to the body.
-    // Encapsulation using Shadow DOM requires more work such as
-    // applying styles to the shadow root.
-    // TODO: Implement encapsulation using Shadow DOM.
-    const container = document.body;
+  st.write("Hello world")
+</streamlit-app>
 
-    const code = this.textContent ?? ""; // innerText ignores line breaks.
+## More configurable syntax with child elements
+<streamlit-app>
+  <app-file name="app.py" entrypoint>
+    import streamlit as st
 
-    this._controller = mount(code, container);
+    st.write("Hello world")
+  </app-file>
+
+  <app-file name="lib.py">
+    def foo():
+      return "bar"
+  </app-file>
+
+  <app-requirements>
+    numpy
+  </app-requirements>
+</streamlit-app>
+*/
+
+export function setupCustomElement(mount: typeof mountFn) {
+  class StliteAppElement extends HTMLElement {
+    private _controller: ReturnType<typeof mountFn> | null = null;
+
+    connectedCallback() {
+      const mountOptions = this.parseOptions();
+
+      // Now we mount the app to the body.
+      // Encapsulation using Shadow DOM requires more work such as
+      // applying styles to the shadow root.
+      // TODO: Implement encapsulation using Shadow DOM.
+      const container = document.createElement("div");
+      container.classList.add("stlite-app-container");
+      this.appendChild(container);
+
+      this._controller = mount(mountOptions, container);
+
+      this.style.display = "block";
+    }
+
+    parseOptions = (): MountOptions => {
+      let entrypoint: string | null = null;
+      const files: NonNullable<DetailedMountOptions["files"]> = {};
+      let requirementsText: string = "";
+      const archives: NonNullable<DetailedMountOptions["archives"]> = [];
+      const streamlitConfig: NonNullable<
+        DetailedMountOptions["streamlitConfig"]
+      > = {};
+      const textContents: string[] = [];
+
+      this.childNodes.forEach((node) => {
+        if (node instanceof Text) {
+          const textContent = node.textContent;
+          if (textContent == null) {
+            return;
+          }
+          const isEmpty = textContent.replace(/\s*/g, "") === "";
+          if (isEmpty) {
+            return;
+          }
+          textContents.push(textContent);
+          return;
+        } else if (node instanceof HTMLElement) {
+          switch (node.tagName) {
+            case "APP-FILE": {
+              const name = node.getAttribute("name");
+              if (!name) {
+                throw new Error("Attribute 'name' is required for <app-file>");
+              }
+              if (files[name]) {
+                throw new Error(`File with name '${name}' already exists`);
+              }
+
+              const url = node.getAttribute("url");
+              const encoding = node.getAttribute("encoding");
+              if (url) {
+                files[name] = {
+                  url,
+                  opts: encoding ? { encoding } : undefined,
+                };
+                return;
+              }
+
+              files[name] = node.textContent ?? "";
+
+              if (node.hasAttribute("entrypoint")) {
+                if (entrypoint) {
+                  throw new Error("Multiple entrypoints are not allowed");
+                }
+                entrypoint = name;
+              }
+              return;
+            }
+            case "APP-REQUIREMENTS": {
+              requirementsText += node.textContent ?? "";
+              return;
+            }
+            case "APP-ARCHIVE": {
+              const url = node.getAttribute("url");
+              const format = node.getAttribute("format");
+              if (!url || !format) {
+                throw new Error(
+                  "Attributes 'url' and 'format' are required for <app-archive>"
+                );
+              }
+              archives.push({ url, format });
+              return;
+            }
+            case "APP-CONFIG": {
+              // TODO: Implement parsing streamlit config
+              return;
+            }
+          }
+        }
+      });
+
+      if (entrypoint === null) {
+        if (textContents.length === 0) {
+          throw new Error("No content found");
+        }
+
+        entrypoint = "streamlit_app.py";
+        files[entrypoint] = textContents[0];
+      }
+
+      if (!entrypoint) {
+        throw new Error("Entrypoint is required");
+      }
+
+      return {
+        entrypoint,
+        files,
+        requirements: parseRequirementsTxt(requirementsText),
+        archives,
+        streamlitConfig,
+      };
+    };
+
+    disconnectedCallback() {
+      this._controller?.unmount();
+    }
   }
 
-  disconnectedCallback() {
-    this._controller?.unmount();
-  }
-}
-
-// Deferring the custom element registration until the DOM is ready.
-// If not, `this.textContent` will be empty in `connectedCallback`
-// because the browser has not parsed the content yet.
-// Using `setTimeout()` is also a solution but it might not be the best practice as written in the article below.
-// Ref: https://dbushell.com/2024/06/15/custom-elements-unconnected-callback/
-document.addEventListener("DOMContentLoaded", () => {
   customElements.define("streamlit-app", StliteAppElement);
-});
+}

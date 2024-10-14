@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.69.2] - 2024-10-12
+
+### General
+
+#### Fixed
+
+- Improve the build pipelines.
+- Internal package updates.
+
+## [0.69.1] - 2024-10-11
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Remove `*.pyi` files from the Streamlit wheel, [#1154](https://github.com/whitphx/stlite/pull/1154).
+
 ## [0.69.0] - 2024-10-09
 
 ### `@stlite/kernel`

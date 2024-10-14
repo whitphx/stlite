@@ -1,28 +1,32 @@
-[tool.poetry]
+[project]
 name = "stlite-lib"
 version = "0.1.0"
 description = ""
-authors = ["Yuichiro Tachibana (Tsuchiya) <t.yic.yt@gmail.com>"]
-license = "Apache-2.0"
+requires-python = ">=3.12"
+authors = [
+    {name = "Yuichiro Tachibana (Tsuchiya)", email = "t.yic.yt@gmail.com"},
+]
+license = {text = "Apache-2.0"}
+dependencies = [
+    "pyodide-http>=0.2.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-pyodide-http = "^0.2.1"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-requests = "^2.32.3"
-streamlit-aggrid = "^1.0.5"
-pandas-stubs = "^2.2.2.240909"
-matplotlib = "^3.9.2"
-ruff = "^0.6.9"
-pyodide-py = "^0.26.2"
-pyright = "^1.1.383"
-pytest-asyncio = "^0.24.0"
+[tool.uv]
+dev-dependencies = [
+    "matplotlib>=3.9.2",
+    "pandas-stubs>=2.2.3.241009",
+    "pyodide-py>=0.26.2",
+    "pyright>=1.1.384",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "requests>=2.32.3",
+    "ruff>=0.6.9",
+    "streamlit-aggrid>=1.0.5",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff.lint]
 extend-select = ["I"]

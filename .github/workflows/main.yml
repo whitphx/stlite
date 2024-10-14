@@ -13,7 +13,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  python-version: "3.12.1"
+  python-version-file: ".python-version"
+  node-version-file: ".nvmrc"
   # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
   # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
   # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
@@ -75,7 +76,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -102,8 +103,8 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version }}
-        node-version-file: .nvmrc
+        python-version: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
 
     - name: Lint
       run: |
@@ -126,15 +127,15 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version }}
-        node-version-file: .nvmrc
+        python-version: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
 
     - name: Install dependencies
       shell: bash
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-lib
-        poetry install
+        uv sync
 
     - name: Set up Streamlit and build proto
       run: |
@@ -145,21 +146,21 @@ jobs:
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-lib
-        poetry run ruff check --output-format=github .
-        poetry run ruff format . --check
+        uv run ruff check --output-format=github .
+        uv run ruff format . --check
 
     - name: Run pyright
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-lib
-        poetry run pyright
+        uv run pyright
 
     - name: Run pytest
       shell: bash
       run: |
         . .venv/bin/activate
         cd packages/kernel/py/stlite-lib
-        poetry run python -m pytest -v
+        uv run pytest -v
 
   test-mountable:
     needs: changes
@@ -177,7 +178,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -202,7 +203,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: make sharing-common
@@ -229,7 +230,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Lint
@@ -259,7 +260,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn config set network-timeout 600000  # `yarn install` often takes so long time on in the Windows env.
     - run: yarn install --frozen-lockfile
@@ -289,8 +290,14 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version }}
-        node-version-file: .nvmrc
+        python-version: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Cache node_modules/.cache including Webpack's cache
+      uses: actions/cache@v4
+      with:
+        path: packages/mountable/node_modules/.cache
+        key: mountable-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
@@ -369,7 +376,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
@@ -406,8 +413,14 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version }}
-        node-version-file: .nvmrc
+        python-version: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Cache node_modules/.cache including Webpack's cache
+      uses: actions/cache@v4
+      with:
+        path: packages/sharing/node_modules/.cache
+        key: sharing-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
@@ -477,9 +490,16 @@ jobs:
         submodules: recursive
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
+
+    - name: Cache node_modules/.cache including Webpack's cache
+      uses: actions/cache@v4
+      with:
+        path: packages/sharing-editor/node_modules/.cache
+        key: sharing-editor-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
+
     - name: Set SHARING_APP_URL (preview)
       if: github.ref_name != github.event.repository.default_branch
       run: echo "REACT_APP_SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
@@ -487,6 +507,7 @@ jobs:
       if: github.ref_name == github.event.repository.default_branch
       run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
+
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@v4
       with:
@@ -540,8 +561,14 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version }}
-        node-version-file: .nvmrc
+        python-version: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Cache node_modules/.cache including Webpack's cache
+      uses: actions/cache@v4
+      with:
+        path: packages/desktop/node_modules/.cache
+        key: desktop-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
     ## Build and deploy @stlite/desktop
     - name: Build @stlite/desktop
@@ -593,7 +620,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
 
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 
@@ -634,7 +661,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
@@ -670,7 +697,7 @@ jobs:
         submodules: true
     - uses: actions/setup-node@v4
       with:
-        node-version-file: .nvmrc
+        node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn config set network-timeout 300000  # https://github.com/yarnpkg/yarn/issues/8242
     - run: yarn install --frozen-lockfile

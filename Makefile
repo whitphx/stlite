@@ -25,8 +25,8 @@ NODE_MODULES := ./node_modules
 
 .PHONY: venv
 venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
-	[ -d $(VENV) ] || python -m venv $(VENV)
-	. $(VENV)/bin/activate && python -m pip install -U pip && python -m pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	[ -d $(VENV) ] || uv venv $(VENV)
+	. $(VENV)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
@@ -111,7 +111,7 @@ stlite-lib-wheel: $(stlite-lib-wheel)
 $(stlite-lib-wheel): venv packages/kernel/py/stlite-lib/stlite_lib/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/kernel/py/stlite-lib && \
-	poetry build
+	uv build
 	@touch $@
 
 .PHONY: streamlit-proto
@@ -133,7 +133,11 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
 	fi && \
-	cd streamlit && SNOWPARK_CONDA_BUILD=true $(MAKE) distribution && cd .. && \
+	TEMP_DIR=$$(mktemp -d) && \
+	mv ./streamlit/lib/streamlit/proto/*.pyi $$TEMP_DIR/ && \
+	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
+	mv $$TEMP_DIR/*.pyi ./streamlit/lib/streamlit/proto/ && \
+	rmdir $$TEMP_DIR && \
 	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.39.0-py2.py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)

@@ -180,6 +180,8 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
+    - run: make common
+      working-directory: .
     - run: yarn install --frozen-lockfile
     - name: Lint
       run: |

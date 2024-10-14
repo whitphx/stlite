@@ -13,10 +13,21 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
         cache: 'yarn'
 
+    - name: Get Node.js version
+      id: node-version
+      run: echo "NODE_VERSION=$(node -v)" >> $GITHUB_ENV
+      shell: bash
+      # Include the NodeJS version in the cache key.
+      # While there are several reasons not to recommend caching `node_modules` (https://github.com/actions/setup-node/issues/304#issuecomment-886241508),
+      # NodeJS version incompatibility is one of them (https://github.com/actions/setup-node/issues/304#issuecomment-886240594).
+      # So invalidating the cache based on the NodeJS version is not perfect but
+      # it makes things safer.
+      # See also https://github.com/actions/setup-node/issues/406 and https://dev.to/flydiverny/comment/1lk25.
+
     - uses: actions/cache@v4
       with:
         path: '**/node_modules'
-        key: node_modules-${{ hashFiles('yarn.lock') }}
+        key: node_modules-${{ env.NODE_VERSION }}-${{ hashFiles('yarn.lock') }}
 
     # `yarn install` often takes so long time on in the Windows env.
     # https://github.com/yarnpkg/yarn/issues/8242

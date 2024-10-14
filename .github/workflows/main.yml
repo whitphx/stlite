@@ -103,7 +103,7 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version-file }}
+        python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
     - name: Lint
@@ -127,7 +127,7 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version-file }}
+        python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
     - name: Install dependencies
@@ -290,7 +290,7 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version-file }}
+        python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
     - name: Cache node_modules/.cache including Webpack's cache
@@ -413,7 +413,7 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version-file }}
+        python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
     - name: Cache node_modules/.cache including Webpack's cache
@@ -561,7 +561,7 @@ jobs:
 
     - uses: ./.github/actions/init-all
       with:
-        python-version: ${{ env.python-version-file }}
+        python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
     - name: Cache node_modules/.cache including Webpack's cache

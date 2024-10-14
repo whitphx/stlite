@@ -25,9 +25,18 @@ Supported syntaxes:
       return "bar"
   </app-file>
 
+
   <app-requirements>
     numpy
   </app-requirements>
+
+  <app-requirements>
+    pandas
+  </app-requirements>
+
+  <app-archive url="foo.zip" format="zip"></app-archive>
+  <app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
+
 </streamlit-app>
 */
 
@@ -119,10 +128,11 @@ export function setupCustomElement(mount: typeof mountFn) {
               archives.push({ url, format });
               return;
             }
-            case "APP-CONFIG": {
-              // TODO: Implement parsing streamlit config
-              return;
-            }
+            // Now we don't support setting `streamlitConfig` from the custom element
+            // because it's possible to set it from files[".streamlit/config.toml"].
+            // case "APP-CONFIG": {
+            //   return;
+            // }
           }
         }
       });

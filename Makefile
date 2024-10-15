@@ -18,7 +18,7 @@ all: init mountable sharing sharing-editor
 
 
 .PHONY: init
-init: git_submodules venv node_modules
+init: git_submodules venv yarn_install
 
 VENV := ./.venv
 NODE_MODULES := ./node_modules

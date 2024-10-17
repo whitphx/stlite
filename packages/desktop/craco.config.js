@@ -68,7 +68,7 @@ module.exports = {
       ]
         .filter(Boolean)
         .join("; ");
-      htmlWebpackPlugin.userOptions.meta = {
+      htmlWebpackPlugin.options.meta = {
         "Content-Security-Policy": {
           "http-equiv": "Content-Security-Policy",
           content: csp,

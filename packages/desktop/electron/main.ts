@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, net } from "electron";
 import * as path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
@@ -223,14 +223,22 @@ app.whenReady().then(() => {
   // which is configured at `package.json` with the `"homepage"` field.
   // Ref: https://github.com/electron/electron/issues/4612#issuecomment-189116655
   const bundleBasePath = path.resolve(__dirname, "..");
-  protocol.interceptFileProtocol("file", function (req, callback) {
+  protocol.handle("file", (req) => {
     const filePath = new URL(req.url).pathname; // `file://<absolute_path>?<query>#<hash>` -> `<absolute_path>`
-    if (path.isAbsolute(filePath)) {
-      const resolvedFilePath = path.join(bundleBasePath, filePath);
-      callback(path.normalize(resolvedFilePath));
-    } else {
-      callback(filePath);
+
+    if (!path.isAbsolute(filePath)) {
+      return net.fetch(req, {
+        bypassCustomProtocolHandlers: true,
+      });
     }
+
+    const resolvedFilePath = path.normalize(
+      path.join(bundleBasePath, filePath),
+    );
+    const modifiedReq = new Request("file://" + resolvedFilePath, req);
+    return net.fetch(modifiedReq, {
+      bypassCustomProtocolHandlers: true,
+    });
   });
 
   createWindow();

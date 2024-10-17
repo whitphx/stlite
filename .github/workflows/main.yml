@@ -575,13 +575,15 @@ jobs:
         . .venv/bin/activate
         make desktop
 
-    - name: Check if electron-builder works
-      working-directory: packages/desktop/samples/basic
-      run: yarn run app:dir
-
     - name: Package
       working-directory: packages/desktop
       run: yarn pack
+
+    - name: Check if electron-builder works
+      working-directory: packages/desktop/samples/basic
+      run: |
+        yarn install
+        yarn run app:dir
 
     - name: Get the built package file path
       id: get-package-file-path

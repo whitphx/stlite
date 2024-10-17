@@ -15,8 +15,8 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
      "scripts": {
        "dump": "dump-stlite-desktop-artifacts",
        "serve": "cross-env NODE_ENV=production electron .",
-       "pack": "electron-builder --dir",
-       "dist": "electron-builder",
+       "app:dir": "electron-builder --dir",
+       "app:dist": "electron-builder",
        "postinstall": "electron-builder install-app-deps"
      },
      "build": {
@@ -85,7 +85,7 @@ Convert your [Streamlit](https://streamlit.io/) application into a desktop app w
    - This `dump` command creates `./build` directory that contains the copied Streamlit app files, dumped installed packages, Pyodide runtime, Electron app files, etc.
 7. Run `npm run serve` or `yarn serve` for preview.
    - This command is just a wrapper of `electron` command as you can see at the `"scripts"` field in the `package.json`. It launches Electron and starts the app with `./build/electron/main.js`, which is specified at the `"main"` field in the `package.json`.
-8. Run `npm run dist` or `yarn dist` for packaging.
+8. Run `npm run app:dist` or `yarn app:dist` for packaging.
    - This command bundles the `./build` directory created in the step above into application files (`.app`, `.exe`, `.dmg` etc.) in the `./dist` directory. To customize the built app, e.g. setting the icon, follow the [`electron-builder`](https://www.electron.build/) instructions.
 
 See the [./samples](./samples) directory for sample projects.

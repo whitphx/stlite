@@ -575,10 +575,6 @@ jobs:
         . .venv/bin/activate
         make desktop
 
-    - name: Check if electron-builder works
-      working-directory: packages/desktop
-      run: yarn run pack
-
     - name: Package
       working-directory: packages/desktop
       run: yarn pack
@@ -646,6 +642,10 @@ jobs:
       working-directory: ${{ runner.temp }}/sample_app
 
     # TODO: Run `yarn serve` and check if the app doesn't show any error.
+
+    - name: Check if electron-builder works
+      run: yarn run app:dir
+      working-directory: ${{ runner.temp }}/sample_app
 
   publish-desktop:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491

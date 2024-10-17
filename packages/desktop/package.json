@@ -41,8 +41,6 @@
     "dump:dev": "ts-node ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
     "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",

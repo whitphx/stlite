@@ -576,8 +576,8 @@ jobs:
         make desktop
 
     - name: Check if electron-builder works
-      working-directory: packages/desktop
-      run: yarn run pack
+      working-directory: packages/desktop/samples/basic
+      run: yarn run app:dir
 
     - name: Package
       working-directory: packages/desktop

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.70.0] - 2024-10-17
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Update the AST transformer to handle the target function calls in assignments, [#1167](https://github.com/whitphx/stlite/pull/1167).
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Set the Content Security Policy properly, [#1168](https://github.com/whitphx/stlite/pull/1168).
+- Use `protocol.handle` instead of the deprecated method `protocol.registerFileProtocol`, [#1165](https://github.com/whitphx/stlite/pull/1165).
+- Update Electron for dev, [#1166](https://github.com/whitphx/stlite/pull/1166).
+
 ## [0.69.2] - 2024-10-12
 
 ### General

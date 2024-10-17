@@ -66,6 +66,32 @@ await foo("Hello, world!")
             """
 import streamlit as st
 
+a = st.write_stream("Hello, world!")
+""",
+            """
+import streamlit as st
+
+a = await st.write_stream("Hello, world!")
+""",
+            id="call_in_assignment",
+        ),
+        pytest.param(
+            """
+from streamlit import write_stream
+
+write_stream("Hello, world!")
+""",
+            """
+from streamlit import write_stream
+
+await write_stream("Hello, world!")
+""",
+            id="from_streamlit_import_write_stream",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
 if True:
     st.write_stream("Hello, world!")
 elif False:

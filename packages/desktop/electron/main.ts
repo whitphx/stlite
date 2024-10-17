@@ -223,7 +223,7 @@ app.whenReady().then(() => {
   // which is configured at `package.json` with the `"homepage"` field.
   // Ref: https://github.com/electron/electron/issues/4612#issuecomment-189116655
   const bundleBasePath = path.resolve(__dirname, "..");
-  protocol.handle("file", async (req) => {
+  protocol.handle("file", (req) => {
     const filePath = new URL(req.url).pathname; // `file://<absolute_path>?<query>#<hash>` -> `<absolute_path>`
 
     const resolvedFilePath = path.isAbsolute(filePath)

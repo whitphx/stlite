@@ -73,7 +73,22 @@ import streamlit as st
 
 a = await st.write_stream("Hello, world!")
 """,
-            id="call_in_assignment",
+            id="call_in_assignment_statement",
+        ),
+        pytest.param(
+            """
+import streamlit as st
+
+if a := st.write_stream("Hello, world!"):
+    pass
+""",
+            """
+import streamlit as st
+
+if a := await st.write_stream("Hello, world!"):
+    pass
+""",
+            id="call_in_assignment_expression",
         ),
         pytest.param(
             """

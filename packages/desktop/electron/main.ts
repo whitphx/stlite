@@ -226,11 +226,17 @@ app.whenReady().then(() => {
   protocol.handle("file", (req) => {
     const filePath = new URL(req.url).pathname; // `file://<absolute_path>?<query>#<hash>` -> `<absolute_path>`
 
-    const resolvedFilePath = path.isAbsolute(filePath)
-      ? path.normalize(path.join(bundleBasePath, filePath))
-      : filePath;
+    if (!path.isAbsolute(filePath)) {
+      return net.fetch(req, {
+        bypassCustomProtocolHandlers: true,
+      });
+    }
 
-    return net.fetch("file://" + resolvedFilePath, {
+    const resolvedFilePath = path.normalize(
+      path.join(bundleBasePath, filePath),
+    );
+    const modifiedReq = new Request("file://" + resolvedFilePath, req);
+    return net.fetch(modifiedReq, {
       bypassCustomProtocolHandlers: true,
     });
   });

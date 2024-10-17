@@ -6,8 +6,8 @@
   "scripts": {
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "app:dir": "electron-builder --dir",
+    "app:dist": "electron-builder"
   },
   "build": {
     "files": [
@@ -20,8 +20,8 @@
   "devDependencies": {
     "@stlite/desktop": "^0.69.2",
     "cross-env": "^7.0.3",
-    "electron": "30.0.8",
-    "electron-builder": "^24.9.1"
+    "electron": "31.7.0",
+    "electron-builder": "^25.1.7"
   },
   "stlite": {
     "desktop": {

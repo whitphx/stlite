@@ -626,6 +626,9 @@ class CodeBlockTransformer(ast.NodeTransformer):
                                 )
                 for target in node.targets:
                     self._bind_expr(target, bound_to=bound_to)
+
+                self.generic_visit(node)
+
                 return node
 
             assignment_occurs = isinstance(

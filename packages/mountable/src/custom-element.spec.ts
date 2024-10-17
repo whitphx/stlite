@@ -75,13 +75,13 @@ st.write("Hello world")`,
         entrypoint: "app.py",
         files: {
           "app.py": `
-  import streamlit as st
+import streamlit as st
 
-  st.write("Hello world")
+st.write("Hello world")
 `,
           "lib.py": `
-  def foo():
-    return "bar"
+def foo():
+  return "bar"
 `,
           "lib2.py": {
             url: "/lib2.py",
@@ -131,8 +131,8 @@ import streamlit as st
 st.write("Hello world")
 `,
           "lib.py": `
-  def foo():
-    return "bar"
+def foo():
+  return "bar"
 `,
           "lib2.py": {
             url: "/lib2.py",

@@ -7919,6 +7919,13 @@ cockatiel@^3.1.2:
   resolved "https://registry.yarnpkg.com/cockatiel/-/cockatiel-3.2.1.tgz#575f937bc4040a20ae27352a6d07c9c5a741981f"
   integrity sha512-gfrHV6ZPkquExvMh9IOkKsBzNDk6sDuZ6DdBGUBkvFnTCqCxzpuq48RySgP0AnaqQkw2zynOFj9yly6T1Q2G5Q==
 
+codedent@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/codedent/-/codedent-0.1.2.tgz#fbaf4c02d34a555dede0dbd24f6ac02d583b9ce4"
+  integrity sha512-qEqzcy5viM3UoCN0jYHZeXZoyd4NZQzYFg0kOBj8O1CgoGG9WYYTF+VeQRsN0OSKFjF3G1u4WDUOtOsWEx6N2w==
+  dependencies:
+    plain-tag "^0.1.3"
+
 collect-v8-coverage@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/collect-v8-coverage/-/collect-v8-coverage-1.0.2.tgz#c0b29bcd33bcd0779a1344c2136051e6afd3d9e9"
@@ -17625,6 +17632,11 @@ pkg-up@^3.1.0:
   integrity sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==
   dependencies:
     find-up "^3.0.0"
+
+plain-tag@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/plain-tag/-/plain-tag-0.1.3.tgz#d20c0fdf8fa80c170bc1d12d6c9ab38e27922836"
+  integrity sha512-yyVAOFKTAElc7KdLt2+UKGExNYwYb/Y/WE9i+1ezCQsJE8gbKSjewfpRqK2nQgZ4d4hhAAGgDCOcIZVilqE5UA==
 
 playwright-core@1.47.1:
   version "1.47.1"

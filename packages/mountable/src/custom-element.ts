@@ -1,6 +1,7 @@
 import type { mount as mountFn } from "./mount";
 import type { MountOptions, DetailedMountOptions } from "./options";
 import { parseRequirementsTxt } from "@stlite/common";
+import dedent from "codedent";
 import "./custom-element.css";
 
 /*
@@ -103,7 +104,7 @@ export function setupCustomElement(mount: typeof mountFn) {
                 return;
               }
 
-              files[name] = node.textContent ?? "";
+              files[name] = node.textContent ? dedent(node.textContent) : "";
 
               if (node.hasAttribute("entrypoint")) {
                 if (entrypoint) {
@@ -114,7 +115,9 @@ export function setupCustomElement(mount: typeof mountFn) {
               return;
             }
             case "APP-REQUIREMENTS": {
-              requirementsText += node.textContent ?? "";
+              requirementsText += node.textContent
+                ? dedent(node.textContent)
+                : "";
               return;
             }
             case "APP-ARCHIVE": {
@@ -143,7 +146,7 @@ export function setupCustomElement(mount: typeof mountFn) {
         }
 
         entrypoint = "streamlit_app.py";
-        files[entrypoint] = textContents[0];
+        files[entrypoint] = dedent(textContents[0]);
       }
 
       if (!entrypoint) {

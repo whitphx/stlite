@@ -1,0 +1,18 @@
+/*
+  To avoid FOUC of custom elements.
+  Ref: https://github.com/pyscript/pyscript/blob/722abda895ed5c629f7cf90e347a031ab47bd682/core/src/core.css#L1-L6
+*/
+streamlit-app {
+  display: none;
+}
+
+streamlit-app app-file,
+app-archive,
+app-requirements,
+app-config {
+  display: none;
+}
+
+streamlit-app .stlite-app-container {
+  display: block;
+}

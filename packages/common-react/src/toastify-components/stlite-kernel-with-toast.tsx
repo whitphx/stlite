@@ -47,9 +47,9 @@ export class StliteKernelWithToast {
     private kernel: StliteKernel,
     options?: StliteKernelWithToastOptions,
   ) {
-    kernel.onModuleAutoLoad = (packagesToLoad, installPromise) => {
+    kernel.onModuleAutoLoad = (installPromise) => {
       if (options?.onModuleAutoLoad) {
-        options.onModuleAutoLoad(packagesToLoad, installPromise);
+        options.onModuleAutoLoad(installPromise);
       }
 
       stliteStyledPromiseToast(installPromise, {

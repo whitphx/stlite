@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.72.0] - 2024-10-17
+
+### `@stlite/kernel`
+
+#### Added
+
+- AST modification from `asyncio.run(awaitable)` to `await awaitable`, [#1175](https://github.com/whitphx/stlite/pull/1175).
+
 ## [0.71.0] - 2024-10-18
 
 ### `@stlite/mountable`

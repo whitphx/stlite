@@ -93,8 +93,8 @@ st.write("Hello World")`,
         setKernel(kernel);
 
         const kernelWithToast = new StliteKernelWithToast(kernel, {
-          onModuleAutoLoad: (packagesToLoad, installPromise) => {
-            console.log("Module auto-load started", packagesToLoad);
+          onModuleAutoLoad: (installPromise) => {
+            console.log("Module auto-load started");
             installPromise
               .then((loadedPackages) => {
                 console.log("Module auto-load success", loadedPackages);
@@ -102,11 +102,10 @@ st.write("Hello World")`,
                   {
                     type: "moduleAutoLoadSuccess",
                     data: {
-                      packagesToLoad,
                       loadedPackages,
                     },
                     stlite: true,
-                  } as ModuleAutoLoadSuccessMessage,
+                  } satisfies ModuleAutoLoadSuccessMessage,
                   process.env.REACT_APP_EDITOR_APP_ORIGIN ??
                     communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
                 );

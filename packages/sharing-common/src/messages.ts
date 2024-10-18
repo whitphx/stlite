@@ -65,7 +65,6 @@ export interface BackwardMessageBase {
 export interface ModuleAutoLoadSuccessMessage extends BackwardMessageBase {
   type: "moduleAutoLoadSuccess";
   data: {
-    packagesToLoad: string[];
     loadedPackages: PackageData[];
   };
 }

@@ -117,10 +117,7 @@ export interface StliteKernelOptions {
 
   moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
-  onModuleAutoLoad?: (
-    packagesToLoad: string[],
-    installPromise: Promise<PackageData[]>,
-  ) => void;
+  onModuleAutoLoad?: (installPromise: Promise<PackageData[]>) => void;
 
   onProgress?: (message: string) => void;
 
@@ -405,7 +402,6 @@ export class StliteKernel {
         }
         this.onModuleAutoLoad &&
           this.onModuleAutoLoad(
-            msg.data.packagesToLoad,
             new Promise((resolve, reject) => {
               port.onmessage = (e) => {
                 const msg: ModuleAutoLoadMessage = e.data;

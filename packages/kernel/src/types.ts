@@ -178,9 +178,6 @@ export interface OutMessageWebSocketBack extends OutMessageBase {
 }
 export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
   type: "event:moduleAutoLoad";
-  data: {
-    packagesToLoad: string[];
-  };
 }
 export type OutMessage =
   | OutMessageStartEvent

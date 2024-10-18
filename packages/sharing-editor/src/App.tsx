@@ -252,7 +252,9 @@ function App() {
       switch (msg.type) {
         case "moduleAutoLoadSuccess": {
           if (msg.data.loadedPackages.length > 0) {
-            const additionalRequirements = msg.data.packagesToLoad;
+            const additionalRequirements = msg.data.loadedPackages.map(
+              (p) => p.name,
+            );
             const editor = editorRef.current;
             if (editor == null) {
               return;

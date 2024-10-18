@@ -2,7 +2,7 @@ import type { PyodideInterface } from "pyodide";
 import type { ModuleAutoLoadMessage, OutMessage } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 
-export async function tryModuleAutoLoad(
+export async function dispatchLoadPackagesFromImports(
   pyodide: PyodideInterface,
   postMessage: PostMessageFn,
   sources: string[],

@@ -5,7 +5,7 @@ import { writeFileWithParents, renameWithParents } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
-import { tryModuleAutoLoad } from "./module-auto-load";
+import { dispatchLoadPackagesFromImports } from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -28,7 +28,11 @@ function dispatchModuleAutoLoading(
   postMessage: PostMessageFn,
   sources: string[],
 ): void {
-  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+  const autoLoadPromise = dispatchLoadPackagesFromImports(
+    pyodide,
+    postMessage,
+    sources,
+  );
   // `autoInstallPromise` will be awaited in the script_runner on the Python side.
   self.__moduleAutoLoadPromise__ = autoLoadPromise;
   pyodide.runPythonAsync(`

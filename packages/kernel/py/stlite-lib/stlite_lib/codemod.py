@@ -312,6 +312,7 @@ class TransformRuleAction(Enum):
     AWAIT_CALL = 1
     TIME_SLEEP = 2
     STREAMLIT_NAVIGATION_RUN = 3
+    ASYNCIO_RUN = 4
 
 
 class TransformHandler:
@@ -801,6 +802,12 @@ class FuncCallTransformHandler(TransformHandler):
                     keywords=[],
                 ),
             )
+        elif action == TransformRuleAction.ASYNCIO_RUN:
+            # asyncio.run(fn()) -> await fn()
+            self._set_await_added()
+            return ast.Await(
+                value=node.args[0],
+            )
 
     def on_exit_code_block(self, node: CodeBlockNode) -> CodeBlockNode:
         _insert_import_statement(node, self._get_required_imports_in_code_block())
@@ -905,6 +912,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
         [
             WildcardImportTarget(module="time", attr="sleep"),
             WildcardImportTarget(module="streamlit", attr="write_stream"),
+            WildcardImportTarget(module="asyncio", attr="run"),
         ]
     )
 
@@ -921,6 +929,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
                 obj=ReturnValue(called_function="streamlit.navigation"),
                 attr="run",
             ): TransformRuleAction.STREAMLIT_NAVIGATION_RUN,
+            FunctionCall(name="asyncio.run"): TransformRuleAction.ASYNCIO_RUN,
         }
     )
     func_call_transformer = CodeBlockTransformer(

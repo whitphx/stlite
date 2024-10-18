@@ -26,7 +26,6 @@ Supported syntaxes:
       return "bar"
   </app-file>
 
-
   <app-requirements>
     numpy
   </app-requirements>
@@ -37,7 +36,6 @@ Supported syntaxes:
 
   <app-archive url="foo.zip" format="zip"></app-archive>
   <app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
-
 </streamlit-app>
 */
 

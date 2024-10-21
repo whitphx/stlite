@@ -10307,6 +10307,15 @@ electron@31.7.0:
     "@types/node" "^20.9.0"
     extract-zip "^2.0.1"
 
+electron@33.0.0:
+  version "33.0.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-33.0.0.tgz#02879c3bbcc5e743492c253949f1a833fa744476"
+  integrity sha512-OdLLR/zAVuNfKahSSYokZmSi7uK2wEYTbCoiIdqWLsOWmCqO9j0JC2XkYQmXQcAk2BJY0ri4lxwAfc5pzPDYsA==
+  dependencies:
+    "@electron/get" "^2.0.0"
+    "@types/node" "^20.9.0"
+    extract-zip "^2.0.1"
+
 element-size@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/element-size/-/element-size-1.1.1.tgz#64e5f159d97121631845bcbaecaf279c39b5e34e"
@@ -17255,10 +17264,10 @@ parenthesis@^3.1.5:
   resolved "https://registry.yarnpkg.com/parenthesis/-/parenthesis-3.1.8.tgz#3457fccb8f05db27572b841dad9d2630b912f125"
   integrity sha512-KF/U8tk54BgQewkJPvB4s/US3VQY68BRDpH638+7O/n58TpnwiwnOtGIOsT2/i+M78s61BBpeC83STB88d8sqw==
 
-parquet-wasm@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/parquet-wasm/-/parquet-wasm-0.4.0.tgz#1ecbba337d742948b67f8a097ba1d997aaecec4c"
-  integrity sha512-oAKBE8CE88u/iKfW8afxogZAF/K9CvM9ttENkMuZvSSbXvwVdWa9p3gvHR8eaGwAG4hlakk1v0A2/UrjeLiJog==
+parquet-wasm@^0.6.0:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/parquet-wasm/-/parquet-wasm-0.6.1.tgz#0877bc5a1f48546c63b4d47eb450e98e367bd5ea"
+  integrity sha512-wTM/9Y4EHny8i0qgcOlL9UHsTXftowwCqDsAD8axaZbHp0Opp3ue8oxexbzTVNhqBjFhyhLiU3MT0rnEYnYU0Q==
 
 parse-entities@^2.0.0:
   version "2.0.0"

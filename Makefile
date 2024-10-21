@@ -147,7 +147,10 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 parquet-wasm: $(parquet-wasm)
 $(parquet-wasm): vendor/parquet-wasm/src/*
 	cd vendor/parquet-wasm && \
-	wasm-pack build --no-default-features --features reader
+	wasm-pack build
+		--release \
+		--target bundler \
+		--no-default-features --features reader
 
 .PHONY: streamlit-frontend-lib
 streamlit-frontend-lib: $(streamlit_frontend_lib_prod)

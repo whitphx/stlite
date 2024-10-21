@@ -19,7 +19,7 @@ all: init mountable sharing sharing-editor
 
 
 .PHONY: init
-init: git_submodules venv node_modules
+init: git_submodules venv yarn_install
 
 VENV := ./.venv
 NODE_MODULES := ./node_modules
@@ -31,7 +31,7 @@ venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
-yarn_install: git_submodules $(NODE_MODULES)
+yarn_install: git_submodules $(parquet-wasm) $(NODE_MODULES)
 $(NODE_MODULES):
 	yarn install --frozen-lockfile
 

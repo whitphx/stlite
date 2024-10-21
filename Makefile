@@ -10,6 +10,7 @@ stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.39.0-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
+parquet-wasm := vendor/parquet-wasm/pkg/*
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
@@ -142,9 +143,15 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
+.PHONY: parquet-wasm
+parquet-wasm: $(parquet-wasm)
+$(parquet-wasm): vendor/parquet-wasm/src/*
+	cd vendor/parquet-wasm && \
+	wasm-pack build --no-default-features --features reader
+
 .PHONY: streamlit-frontend-lib
 streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
-$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
+$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) $(parquet-wasm) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:

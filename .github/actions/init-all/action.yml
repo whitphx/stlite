@@ -45,6 +45,10 @@ runs:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
 
+    - uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: wasm-pack
+
     - name: Set up
       run: make init
       shell: bash

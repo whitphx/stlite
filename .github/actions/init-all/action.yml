@@ -45,6 +45,10 @@ runs:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
 
+    - name: Install wasm-pack
+      run: yarn global add wasm-pack
+      shell: bash
+
     - name: Set up
       run: make init
       shell: bash

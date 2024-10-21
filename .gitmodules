@@ -1,3 +1,6 @@
 [submodule "streamlit"]
 	path = streamlit
 	url = https://github.com/whitphx/streamlit.git
+[submodule "vendor/parquet-wasm"]
+	path = vendor/parquet-wasm
+	url = https://github.com/kylebarron/parquet-wasm.git

@@ -6,6 +6,7 @@
     "streamlit/frontend",
     "streamlit/frontend/app",
     "streamlit/frontend/lib",
+    "vendor/*",
     "packages/desktop/samples/*"
   ],
   "scripts": {

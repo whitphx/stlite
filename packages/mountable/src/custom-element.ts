@@ -44,19 +44,23 @@ export function setupCustomElement(mount: typeof mountFn) {
     private _controller: ReturnType<typeof mountFn> | null = null;
 
     connectedCallback() {
-      const mountOptions = this.parseOptions();
+      // Need to wait until the DOM elements inside this element are parsed.
+      // Ref: https://stackoverflow.com/questions/70949141/web-components-accessing-innerhtml-in-connectedcallback
+      window.requestAnimationFrame(() => {
+        const mountOptions = this.parseOptions();
 
-      // Now we mount the app to the body.
-      // Encapsulation using Shadow DOM requires more work such as
-      // applying styles to the shadow root.
-      // TODO: Implement encapsulation using Shadow DOM.
-      const container = document.createElement("div");
-      container.classList.add("stlite-app-container");
-      this.appendChild(container);
+        // Now we mount the app to the body.
+        // Encapsulation using Shadow DOM requires more work such as
+        // applying styles to the shadow root.
+        // TODO: Implement encapsulation using Shadow DOM.
+        const container = document.createElement("div");
+        container.classList.add("stlite-app-container");
+        this.appendChild(container);
 
-      this._controller = mount(mountOptions, container);
+        this._controller = mount(mountOptions, container);
 
-      this.style.display = "block";
+        this.style.display = "block";
+      });
     }
 
     parseOptions = (): MountOptions => {

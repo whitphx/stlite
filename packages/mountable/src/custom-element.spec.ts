@@ -8,28 +8,23 @@ describe("StreamlitApp custom element", () => {
     setupCustomElement(mount);
   });
 
-  let container: HTMLElement;
-
   beforeEach(() => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
+    document.body.innerHTML = "";
+    mount.mockClear();
   });
 
   afterEach(() => {
-    document.body.removeChild(container);
-
     jest.resetAllMocks();
   });
 
   it("calls mount() with a single file parsed from the textContent of the streamlit-app element", async () => {
-    const appElem = document.createElement("streamlit-app");
-    appElem.innerHTML = `
+    document.body.innerHTML = `
+<streamlit-app>
   import streamlit as st
 
   st.write("Hello world")
+</streamlit-app>
 `;
-
-    container.appendChild(appElem);
 
     expect(mount).toHaveBeenCalledWith(
       {
@@ -50,29 +45,28 @@ st.write("Hello world")
   });
 
   it("calls mount() with options parsed from the element", async () => {
-    const appElem = document.createElement("streamlit-app");
-    appElem.innerHTML = `
-<app-file name="app.py" entrypoint>
-  import streamlit as st
+    document.body.innerHTML = `
+<streamlit-app>
+  <app-file name="app.py" entrypoint>
+    import streamlit as st
 
-  st.write("Hello world")
-</app-file>
-<app-file name="lib.py">
-  def foo():
-    return "bar"
-</app-file>
-<app-file name="lib2.py" url="/lib2.py"></app-file>
-<app-requirements>
-  numpy
-</app-requirements>
-<app-requirements>
-  pandas
-</app-requirements>
-<app-archive url="foo.zip" format="zip"></app-archive>
-<app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
+    st.write("Hello world")
+  </app-file>
+  <app-file name="lib.py">
+    def foo():
+      return "bar"
+  </app-file>
+  <app-file name="lib2.py" url="/lib2.py"></app-file>
+  <app-requirements>
+    numpy
+  </app-requirements>
+  <app-requirements>
+    pandas
+  </app-requirements>
+  <app-archive url="foo.zip" format="zip"></app-archive>
+  <app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
+</streamlit-app>
 `;
-
-    container.appendChild(appElem);
 
     expect(mount).toHaveBeenCalledWith(
       {
@@ -82,11 +76,11 @@ st.write("Hello world")
 import streamlit as st
 
 st.write("Hello world")
-`,
+  `,
           "lib.py": `
 def foo():
   return "bar"
-`,
+  `,
           "lib2.py": {
             url: "/lib2.py",
           },
@@ -103,27 +97,26 @@ def foo():
   });
 
   it("parses the textContent as the entrypoint file if no other possible child elements are available", async () => {
-    const appElem = document.createElement("streamlit-app");
-    appElem.innerHTML = `
-import streamlit as st
+    document.body.innerHTML = `
+<streamlit-app>
+  import streamlit as st
 
-st.write("Hello world")
-<app-file name="lib.py">
-  def foo():
-    return "bar"
-</app-file>
-<app-file name="lib2.py" url="/lib2.py"></app-file>
-<app-requirements>
-  numpy
-</app-requirements>
-<app-requirements>
-  pandas
-</app-requirements>
-<app-archive url="foo.zip" format="zip"></app-archive>
-<app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
+  st.write("Hello world")
+  <app-file name="lib.py">
+    def foo():
+      return "bar"
+  </app-file>
+  <app-file name="lib2.py" url="/lib2.py"></app-file>
+  <app-requirements>
+    numpy
+  </app-requirements>
+  <app-requirements>
+    pandas
+  </app-requirements>
+  <app-archive url="foo.zip" format="zip"></app-archive>
+  <app-archive url="bar.tar.gz" format="tar.gz"></app-archive>
+</streamlit-app>
 `;
-
-    container.appendChild(appElem);
 
     expect(mount).toHaveBeenCalledWith(
       {
@@ -137,7 +130,7 @@ st.write("Hello world")
           "lib.py": `
 def foo():
   return "bar"
-`,
+  `,
           "lib2.py": {
             url: "/lib2.py",
           },

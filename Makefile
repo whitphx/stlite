@@ -68,7 +68,7 @@ $(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_inst
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react) $(streamlit_frontend_lib_prod)
+$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing; \
 	yarn build
 	@touch $@

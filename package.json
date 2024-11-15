@@ -10,6 +10,7 @@
       "packages/desktop/samples/*"
     ],
     "nohoist": [
+      "**/protobufjs",
       "**/@protobufjs/inquire"
     ]
   },

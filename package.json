@@ -1,13 +1,18 @@
 {
   "private": true,
   "name": "stlite",
-  "workspaces": [
-    "packages/*",
-    "streamlit/frontend",
-    "streamlit/frontend/app",
-    "streamlit/frontend/lib",
-    "packages/desktop/samples/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "streamlit/frontend",
+      "streamlit/frontend/app",
+      "streamlit/frontend/lib",
+      "packages/desktop/samples/*"
+    ],
+    "nohoist": [
+      "**/@protobufjs/inquire"
+    ]
+  },
   "scripts": {
     "new-version": "lerna version --force-publish",
     "prepare": "husky install"

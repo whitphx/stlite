@@ -9,7 +9,7 @@ import pytest
 import requests
 from streamlit import config
 from streamlit.components.v1.components import declare_component
-from streamlit.hello import Hello
+from streamlit.hello import hello
 from streamlit.runtime.runtime import Runtime
 from streamlit.runtime.scriptrunner_utils.script_run_context import add_script_run_ctx
 from tests.testutil import create_mock_script_run_ctx
@@ -20,7 +20,7 @@ from stlite_lib.server import Server
 @pytest.fixture
 def setup_server():
     """Mimic streamlit.web.cli.main_hello()"""
-    filename = Hello.__file__
+    filename = hello.__file__
 
     config.set_option(
         "server.fileWatcherType", "none", "<test>"

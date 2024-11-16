@@ -84,12 +84,18 @@ module.exports = {
       tsRule.include = undefined;
       tsRule.exclude = /node_modules/;
 
-      /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
+      /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */ // this file overrides the default CRA configurations (webpack, eslint, babel, etc)
+      const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+      // ignore webpack warnings by source-map-loader https://github.com/facebook/create-react-app/pull/11752
+      webpackConfig.ignoreWarnings = [/Failed to parse source map from/];
       webpackConfig.resolve.mainFields = ["module", "main"];
       // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module
       webpackConfig.resolve.fallback ||= {};
       webpackConfig.resolve.fallback.tty = false;
       webpackConfig.resolve.fallback.os = false;
+
+      // Resolve the path aliases.
+      webpackConfig.resolve.plugins.push(new TsconfigPathsPlugin());
 
       // Apache Arrow uses .mjs
       webpackConfig.module.rules.push({

@@ -14,7 +14,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "paths": {
+      "@streamlit/lib": ["./../../streamlit/frontend/lib/src"],
+      "@streamlit/app": ["./../../streamlit/frontend/app/src"]
+    }
   },
   "include": ["src"]
 }

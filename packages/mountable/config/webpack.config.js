@@ -25,6 +25,7 @@ const ForkTsCheckerWebpackPlugin =
     ? require('react-dev-utils/ForkTsCheckerWarningWebpackPlugin')
     : require('react-dev-utils/ForkTsCheckerWebpackPlugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");  // Stlite
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
 
@@ -328,6 +329,7 @@ module.exports = function (webpackEnv) {
           babelRuntimeEntryHelpers,
           babelRuntimeRegenerator,
         ]),
+        new TsconfigPathsPlugin(),  // Stlite
       ],
       // Stlite: Customization to build the Streamlit frontend, copied from https://github.com/streamlit/streamlit/blob/1.18.1/frontend/craco.config.js#L48-L52
       mainFields: ["module", "main"],

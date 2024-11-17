@@ -28,6 +28,8 @@ patch $SAMPLES_DIR/011_component_gallery/pages/media.logo.py $DIFF_DIR/011_compo
 patch $SAMPLES_DIR/011_component_gallery/pages/widget.download_button.py $DIFF_DIR/011_component_gallery/pages/widget.download_button.py
 patch $SAMPLES_DIR/011_component_gallery/pages/charts.pydeck_event_state_selections.py $DIFF_DIR/011_component_gallery/pages/charts.pydeck_event_state_selections.py
 
+mv $SAMPLES_DIR/011_component_gallery/pages/navigation.multipage_widgets.py $SAMPLES_DIR/012_navigation.multipage_widgets/app.py
+
 cp $SOURCE_REPO_DIR/python/api-examples-source/theming/*.py $SAMPLES_DIR/011_component_gallery/pages/.
 
 mkdir -p $SAMPLES_DIR/012_hello

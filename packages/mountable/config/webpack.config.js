@@ -329,7 +329,7 @@ module.exports = function (webpackEnv) {
           babelRuntimeEntryHelpers,
           babelRuntimeRegenerator,
         ]),
-        new TsconfigPathsPlugin(),  // Stlite
+        new TsconfigPathsPlugin(), // Stlite: Customization like https://github.com/streamlit/streamlit/blob/1.40.1/frontend/app/craco.config.js#L102-L103
       ],
       // Stlite: Customization to build the Streamlit frontend, copied from https://github.com/streamlit/streamlit/blob/1.18.1/frontend/craco.config.js#L48-L52
       mainFields: ["module", "main"],

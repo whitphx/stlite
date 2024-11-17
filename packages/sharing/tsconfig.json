@@ -15,6 +15,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    // Streamlit frontend has the `paths` config in `tsconfig.dev.json`
+    // as https://github.com/streamlit/streamlit/blob/1.40.1/frontend/tsconfig.dev.json#L4-L7
+    // and this `paths` mapping is also used in the production build as import aliases
+    // as https://github.com/streamlit/streamlit/blob/1.40.1/frontend/app/craco.config.js#L102-L103
+    // So we add the same configuration here:
     "paths": {
       "@streamlit/lib": ["./../../streamlit/frontend/lib/src"],
       "@streamlit/app": ["./../../streamlit/frontend/app/src"]

@@ -1,5 +1,3 @@
-const path = require("path");
-
 module.exports = {
   babel: {
     plugins: ["@emotion"],
@@ -13,17 +11,24 @@ module.exports = {
       // Ref: https://muguku.medium.com/fix-go-to-definition-and-hot-reload-in-a-react-typescript-monorepo-362908716d0e
       const oneOfRule = webpackConfig.module.rules.find((rule) => rule.oneOf);
       const tsRule = oneOfRule.oneOf.find((rule) =>
-        rule.test.toString().includes("ts|tsx")
+        rule.test.toString().includes("ts|tsx"),
       );
       tsRule.include = undefined;
       tsRule.exclude = /node_modules/;
 
       /* To build Streamlit. These configs are copied from streamlit/frontend/craco.config.js */
+      // this file overrides the default CRA configurations (webpack, eslint, babel, etc)
+      const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+      // ignore webpack warnings by source-map-loader https://github.com/facebook/create-react-app/pull/11752
+      webpackConfig.ignoreWarnings = [/Failed to parse source map from/];
       webpackConfig.resolve.mainFields = ["module", "main"];
       // Webpack 5 requires polyfills. We don't need them, so resolve to an empty module
       webpackConfig.resolve.fallback ||= {};
       webpackConfig.resolve.fallback.tty = false;
       webpackConfig.resolve.fallback.os = false;
+
+      // Resolve the path aliases.
+      webpackConfig.resolve.plugins.push(new TsconfigPathsPlugin());
 
       // Apache Arrow uses .mjs
       webpackConfig.module.rules.push({

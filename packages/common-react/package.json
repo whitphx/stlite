@@ -14,7 +14,7 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
-    "@streamlit/lib": "1.39.0"
+    "@streamlit/lib": "1.40.1"
   },
   "devDependencies": {
     "react": "^18.2.0",

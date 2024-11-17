@@ -266,9 +266,15 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
 
+    # DEBUG: On PowerShell, Show the current directory and the contents of the directory. Also, show the contents of streamlit/
+    - if: matrix.os == 'windows-latest'
+      run: |
+        Get-Location
+        Get-ChildItem
+        Get-ChildItem streamlit
     # Delete the patches directory on Windows because `patch-package` fails on Windows: https://github.com/ds300/patch-package/issues/286
     # This is a workaround but acceptable as it's only for this job.
-    - run: rm "streamlit\frontend\patches" -r -force
+    - run: rm streamlit\frontend\patches -r -force
       if: matrix.os == 'windows-latest'
       working-directory: .
 

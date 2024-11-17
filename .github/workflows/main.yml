@@ -271,12 +271,19 @@ jobs:
       run: |
         Get-Location
         Get-ChildItem
-        Get-ChildItem streamlit
+        Get-ChildItem streamlit/frontend
       working-directory: .
     # Delete the patches directory on Windows because `patch-package` fails on Windows: https://github.com/ds300/patch-package/issues/286
     # This is a workaround but acceptable as it's only for this job.
     - run: rm streamlit\frontend\patches -r -force
       if: matrix.os == 'windows-latest'
+      working-directory: .
+    # DEBUG: On PowerShell, Show the current directory and the contents of the directory. Also, show the contents of streamlit/
+    - if: matrix.os == 'windows-latest'
+      run: |
+        Get-Location
+        Get-ChildItem
+        Get-ChildItem streamlit/frontend
       working-directory: .
 
     - run: yarn config set network-timeout 600000  # `yarn install` often takes so long time on in the Windows env.

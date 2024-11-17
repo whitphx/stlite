@@ -268,7 +268,7 @@ jobs:
 
     # Delete ./patch on Windows because `patch-package` fails on Windows: https://github.com/ds300/patch-package/issues/286
     # This is a workaround but acceptable as it's only for this job.
-    - run: rmdir ./patch
+    - run: rmdir ${{ github.workspace }}/streamlit/frontend/patches
       if: matrix.os == 'windows-latest'
       working-directory: .
 

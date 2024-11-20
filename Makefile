@@ -21,7 +21,7 @@ all: init mountable sharing sharing-editor
 init: git_submodules venv yarn_install
 
 VENV := ./.venv
-YARN_LOCK := ./yarn.lock
+NODE_MODULES := ./node_modules
 
 .PHONY: venv
 venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
@@ -30,7 +30,8 @@ venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: yarn_install
-yarn_install: $(YARN_LOCK)
+yarn_install: $(NODE_MODULES)
+$(NODE_MODULES): ./yarn.lock
 	yarn install --frozen-lockfile
 
 # https://gist.github.com/enil/e4af160c745057809053329df4ba1dc2

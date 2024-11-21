@@ -2,7 +2,7 @@ import type { StliteKernel } from "../kernel";
 import { parse } from "@tinyhttp/content-disposition";
 
 function getFileNameFromContentDispositionHeader(
-  contentDisposition: string
+  contentDisposition: string,
 ): string | undefined {
   const parsed = parse(contentDisposition);
   if (parsed.type !== "attachment") {
@@ -19,7 +19,7 @@ function getFileNameFromContentDispositionHeader(
 
 export function downloadFileFromStlite(
   stliteKernel: StliteKernel,
-  url: string
+  url: string,
 ) {
   stliteKernel
     .sendHttpRequest({

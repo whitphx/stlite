@@ -30,6 +30,7 @@
     "@jupyterlab/coreutils": "^5.4.2",
     "@stlite/common": "^0.73.0",
     "@streamlit/lib": "1.40.1",
+    "@tinyhttp/content-disposition": "^2.2.2",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0"
   }

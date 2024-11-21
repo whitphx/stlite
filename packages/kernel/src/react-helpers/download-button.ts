@@ -1,14 +1,20 @@
 import type { StliteKernel } from "../kernel";
+import { parse } from "@tinyhttp/content-disposition";
 
-export function parseContentDispositionHeader(value: string): string {
-  // Extract a filename string from a ContentDisposition header value like `attachment; filename="StreamlitApp_2022-08-12_14-44-14.bin"`.
-
-  const regexResult = /filename="([^"]*?)"/.exec(value);
-  if (regexResult == null) {
-    return "";
+export function getFileNameFromContentDispositionHeader(
+  contentDisposition: string,
+): string | undefined {
+  const parsed = parse(contentDisposition);
+  if (parsed.type !== "attachment") {
+    return;
   }
 
-  return regexResult[1];
+  const filename = parsed.parameters.filename;
+  if (typeof filename !== "string") {
+    return;
+  }
+
+  return filename;
 }
 
 export function downloadFileFromStlite(
@@ -29,9 +35,9 @@ export function downloadFileFromStlite(
 
       const contentDispositionHeader = headers.get("Content-Disposition");
       const downloadFilename =
-        contentDispositionHeader != null
-          ? parseContentDispositionHeader(contentDispositionHeader)
-          : "";
+        (contentDispositionHeader &&
+          getFileNameFromContentDispositionHeader(contentDispositionHeader)) ??
+        "";
 
       const type = headers.get("Content-Type");
       const blob = new Blob([body], type ? { type } : undefined);

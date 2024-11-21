@@ -4563,6 +4563,11 @@
   resolved "https://registry.yarnpkg.com/@testing-library/user-event/-/user-event-14.5.2.tgz#db7257d727c891905947bd1c1a99da20e03c2ebd"
   integrity sha512-YAh82Wh4TIrxYLmfGcixwD18oIjyC1pFQC2Y01F2lzV2HTMiYrI0nze0FD0ocB//CKS/7jIUgae+adPqxK5yCQ==
 
+"@tinyhttp/content-disposition@^2.2.2":
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/@tinyhttp/content-disposition/-/content-disposition-2.2.2.tgz#1207d18bdd59e1cd38ecf2493ee187f4f592ebe7"
+  integrity sha512-crXw1txzrS36huQOyQGYFvhTeLeG0Si1xu+/l6kXUVYpE0TjFjEZRqTbuadQLfKGZ0jaI+jJoRyqaWwxOSHW2g==
+
 "@toast-ui/editor@3.1.10":
   version "3.1.10"
   resolved "https://registry.yarnpkg.com/@toast-ui/editor/-/editor-3.1.10.tgz#11022bee8c8c8b80300eb556ac051b23c2c20f86"

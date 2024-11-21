@@ -1,7 +1,7 @@
 import type { StliteKernel } from "../kernel";
 import { parse } from "@tinyhttp/content-disposition";
 
-function getFileNameFromContentDispositionHeader(
+export function getFileNameFromContentDispositionHeader(
   contentDisposition: string,
 ): string | undefined {
   const parsed = parse(contentDisposition);

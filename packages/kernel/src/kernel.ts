@@ -20,6 +20,7 @@ import type {
   PyodideArchiveUrl,
   ReplyMessage,
   StliteWorker,
+  StliteMessagePort,
   WorkerInitialData,
   StreamlitConfig,
   ModuleAutoLoadMessage,
@@ -128,6 +129,8 @@ export interface StliteKernelOptions {
 
   onError?: (error: Error) => void;
 
+  sharedWorkerMode?: boolean;
+
   /**
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one of the use cases.
@@ -138,7 +141,8 @@ export interface StliteKernelOptions {
 export class StliteKernel {
   private _isDisposed = false;
 
-  private _worker: StliteWorker;
+  private _worker: StliteWorker | SharedWorker;
+  private _postMessageTarget: StliteWorker | StliteMessagePort;
 
   private _loaded = new PromiseDelegate<void>();
 
@@ -168,11 +172,19 @@ export class StliteKernel {
     } else {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
-      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
+        shared: options.sharedWorkerMode ?? false,
+      });
       this._worker = workerMaker.worker;
     }
 
-    this._worker.onmessage = (e) => {
+    if (this._worker instanceof SharedWorker) {
+      this._worker.port.start();
+      this._postMessageTarget = this._worker.port;
+    } else {
+      this._postMessageTarget = this._worker;
+    }
+    this._postMessageTarget.onmessage = (e) => {
       const messagePort: MessagePort | undefined = e.ports[0];
       this._processWorkerMessage(e.data, messagePort);
     };
@@ -363,7 +375,7 @@ export class StliteKernel {
         }
       };
 
-      this._worker.postMessage(message, [channel.port2]);
+      this._postMessageTarget.postMessage(message, [channel.port2]);
     });
   }
 
@@ -375,7 +387,7 @@ export class StliteKernel {
   private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
-        this._worker.postMessage({
+        this._postMessageTarget.postMessage({
           type: "initData",
           data: this._workerInitData,
         });
@@ -437,7 +449,9 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    this._worker.terminate();
+    if (this._worker instanceof globalThis.Worker) {
+      this._worker.terminate();
+    }
 
     this._isDisposed = true;
   }

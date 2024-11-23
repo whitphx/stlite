@@ -32,14 +32,14 @@ function isSameOrigin(url: URL): boolean {
 }
 
 export class CrossOriginWorkerMaker {
-  public readonly worker: Worker;
+  public readonly worker: Worker | SharedWorker;
 
-  constructor(url: URL) {
+  constructor(url: URL, options: { shared: boolean }) {
     if (isSameOrigin(url)) {
       console.debug(`Loading a worker script from the same origin: ${url}`);
 
       // This is the normal way to load a worker script, which is the best straightforward if possible.
-      this.worker = new Worker(url);
+      this.worker = options.shared ? new SharedWorker(url) : new Worker(url);
 
       // NOTE: We use here `if-else` checking the origin instead of `try-catch`
       // because the `try-catch` approach doesn't work on some browsers like FireFox.
@@ -48,7 +48,9 @@ export class CrossOriginWorkerMaker {
     } else {
       console.debug(`Loading a worker script from a different origin: ${url}`);
       const workerBlobUrl = getWorkerBlobUrl(url);
-      this.worker = new Worker(workerBlobUrl);
+      this.worker = options.shared
+        ? new SharedWorker(workerBlobUrl)
+        : new Worker(workerBlobUrl);
     }
   }
 }

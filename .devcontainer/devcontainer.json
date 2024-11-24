@@ -20,7 +20,16 @@
   "postCreateCommand": "/bin/bash ./.devcontainer/postCreateCommand.sh",
 
   // Configure tool-specific properties.
-  // "customizations": {},
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        // Submodule
+        "whitphx/streamlit": {
+          "permissions": "write-all"
+        }
+      }
+    }
+  },
 
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
   // "remoteUser": "root"

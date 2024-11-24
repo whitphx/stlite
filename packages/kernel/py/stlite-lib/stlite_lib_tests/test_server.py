@@ -1,80 +1,53 @@
 import asyncio
 import os
-import threading
 import uuid
-from typing import Any
 from unittest.mock import ANY, Mock, patch
 
 import pytest
+import pytest_asyncio
 import requests
-from streamlit import config
+from streamlit import config, runtime
 from streamlit.components.v1.components import declare_component
-from streamlit.hello import hello
-from streamlit.runtime.runtime import Runtime
 from streamlit.runtime.scriptrunner_utils.script_run_context import add_script_run_ctx
 from tests.testutil import create_mock_script_run_ctx
 
 from stlite_lib.server import Server
 
 
-@pytest.fixture
-def setup_server():
+@pytest_asyncio.fixture
+async def setup_server():
     """Mimic streamlit.web.cli.main_hello()"""
-    filename = hello.__file__
 
     config.set_option(
         "server.fileWatcherType", "none", "<test>"
     )  # Disable a file watcher
 
-    # This setup and teardown code is based on `tornado.test.httpclient_test.torand`.
-    # Ref: https://github.com/tornadoweb/tornado/blob/e72cc5769265abf0a279a293fa9cb383cff84db8/tornado/test/httpclient_test.py#L772-L792  # noqa: E501
+    from streamlit.hello import hello
 
-    # Set up another thread where the Streamlit server will run
-    server_evloop = asyncio.new_event_loop()
-    asyncio.set_event_loop(server_evloop)
-    event = threading.Event()
-
-    data_from_thread: dict[str, Any] = {"server": None, "exception": None}
-
-    async def init_server():
-        """Mimic streamlit.web.bootstrap.run()"""
-        server = Server(filename)
-        await server.start()
-        data_from_thread["server"] = server
-        event.set()
-
-    def start():
-        asyncio.set_event_loop(server_evloop)
-        try:
-            server_evloop.run_until_complete(init_server())
-        except Exception as e:
-            data_from_thread["exception"] = e
-            event.set()
-
-    thread = threading.Thread(target=start)
-    thread.start()
-
-    event.wait()
-
-    exception = data_from_thread["exception"]
-    if exception:
-        raise exception
-    server = data_from_thread["server"]
+    filename = hello.__file__
+    server = Server(filename)
+    await server.start()
 
     add_script_run_ctx(
-        threading.current_thread(), create_mock_script_run_ctx()
+        asyncio.current_task(), create_mock_script_run_ctx()
     )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
+
+    import st_aggrid
+
+    # https://github.com/PablocFonseca/streamlit-aggrid/blob/1b31edc513aa41414a2341642559bbfe232b158f/st_aggrid/__init__.py#L90-L92
+    aggrid_parent_dir = os.path.dirname(st_aggrid.__file__)
+    aggrid_build_dir = os.path.join(aggrid_parent_dir, "frontend", "build")
+    declare_component("agGrid", aggrid_build_dir)
 
     yield server
 
     server.stop()
-    server_evloop.run_until_complete(server._runtime.stopped)
-    Runtime._instance = None
-    thread.join()
+    await server._runtime.stopped
 
 
+@pytest.mark.asyncio
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_server_websocket(AppSession, setup_server):
+async def test_http_server_websocket(AppSession, setup_server):
     server: Server = setup_server
 
     session = AppSession()
@@ -112,13 +85,15 @@ def test_http_get_health(setup_server):
     on_response.assert_called_with(200, ANY, b"ok")
 
 
-def test_http_media(setup_server):
+@pytest.mark.asyncio
+async def test_http_media(setup_server):
     server: Server = setup_server
+    runtime.runtime_contextvar.set(server._runtime)
 
     on_response = Mock()
 
     # For the case where the file name is set
-    url1 = Runtime.instance().media_file_mgr.add(
+    url1 = runtime.get_instance().media_file_mgr.add(
         b"Foo1\nFoo2\nFoo3",
         "text/plain",
         "1234",
@@ -137,7 +112,7 @@ def test_http_media(setup_server):
     assert called_header | expected_header == called_header
 
     # For the case where the file name is None
-    url2 = Runtime.instance().media_file_mgr.add(
+    url2 = runtime.get_instance().media_file_mgr.add(
         b"Bar1\nBar2\nBar3", "text/plain", "1234", None, is_for_static_download=True
     )
 
@@ -169,7 +144,9 @@ def test_http_file_upload(AppSession, setup_server):
     receive_websocket = Mock()
     server.start_websocket("/_stcore/stream", receive_websocket)
 
-    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
+    active_session = (
+        runtime.get_instance()._session_mgr.list_active_sessions()[0].session
+    )
 
     file_id = str(uuid.uuid4())
 
@@ -209,7 +186,9 @@ def test_http_file_delete(AppSession, setup_server):
     receive_websocket = Mock()
     server.start_websocket("/_stcore/stream", receive_websocket)
 
-    active_session = Runtime.instance()._session_mgr.list_active_sessions()[0].session
+    active_session = (
+        runtime.get_instance()._session_mgr.list_active_sessions()[0].session
+    )
 
     file_id = str(uuid.uuid4())
 
@@ -225,13 +204,13 @@ def test_http_file_delete(AppSession, setup_server):
     on_response.assert_called_with(204, ANY, b"")
 
 
-def test_http_component(setup_server):
+@pytest.mark.asyncio
+async def test_http_component(setup_server):
     server: Server = setup_server
 
     import st_aggrid
 
     aggrid_dir = os.path.dirname(st_aggrid.__file__)
-    declare_component("AgGrid", aggrid_dir)
     with open(
         os.path.join(aggrid_dir, "frontend/build/index.html"), "rb"
     ) as aggrid_index_html:
@@ -241,7 +220,7 @@ def test_http_component(setup_server):
 
     server.receive_http(
         "GET",
-        r"/component/st_aggrid.agGrid/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
+        r"/component/stlite_lib_tests.test_server.agGrid/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
         {},
         "",
         on_response,

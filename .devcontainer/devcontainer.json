@@ -23,8 +23,8 @@
   "customizations": {
     "codespaces": {
       "repositories": {
+        // Submodule
         "whitphx/streamlit": {
-          // Submodule
           "permissions": "write-all"
         }
       }

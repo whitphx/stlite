@@ -1,3 +1,13 @@
-export function generateRandomAppId(): string {
-  return Math.random().toString(36).substring(2, 15);
+const charset = "abcdefghijklmnopqrstuvwxyz";
+const charsetSize = charset.length;
+
+export function generateRandomAppId(length: number): string {
+  let id = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charsetSize);
+    id += charset[randomIndex];
+  }
+
+  return id;
 }

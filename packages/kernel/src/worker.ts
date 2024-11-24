@@ -13,8 +13,14 @@ if ("postMessage" in self) {
   );
 } else {
   // Shared worker
+  const existingAppIds: string[] = [];
   (self as SharedWorkerGlobalScope).onconnect = (event: MessageEvent): void => {
-    const appId = generateRandomAppId();
+    // Generate app ID and ensure it's unique.
+    let appId: string;
+    do {
+      appId = generateRandomAppId(4);
+    } while (existingAppIds.includes(appId));
+    existingAppIds.push(appId);
     console.debug("SharedWorker mode.", { appId });
 
     const sharedWorkerPort = event.ports[0];

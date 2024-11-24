@@ -227,7 +227,7 @@ class Server:
         # but we don't need to wait for them to finish for the current use case,
         # e.g. booting up a new server and replacing the old one.
         self._runtime.stop()
-        Runtime._instance = None
+        runtime_contextvar.set(None)
 
         # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
         # to resolve the pages info, caches the pages in the module-level variable `source_util._cached_pages`.

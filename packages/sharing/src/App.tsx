@@ -8,6 +8,7 @@ import {
   ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
+import { isSharedWorkerMode } from "./urlparams";
 import {
   makeToastKernelCallbacks,
   StliteKernelWithToast,
@@ -88,7 +89,7 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
-          sharedWorkerMode: true,
+          sharedWorkerMode: isSharedWorkerMode(),
         });
         _kernel = kernel;
         setKernel(kernel);

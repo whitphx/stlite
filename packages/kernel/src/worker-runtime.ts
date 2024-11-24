@@ -1,7 +1,11 @@
 import type Pyodide from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
-import { writeFileWithParents, renameWithParents } from "./file";
+import {
+  resolveAppPath,
+  writeFileWithParents,
+  renameWithParents,
+} from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
@@ -39,10 +43,13 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
+let pyodide: Pyodide.PyodideInterface;
+
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>,
+  appId?: string,
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -52,8 +59,6 @@ export function startWorkerEnv(
       },
     });
   }
-
-  let pyodide: Pyodide.PyodideInterface;
 
   let httpServer: PyProxy;
 
@@ -91,14 +96,19 @@ export function startWorkerEnv(
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
 
-    postProgressMessage("Loading Pyodide.");
+    if (pyodide) {
+      postProgressMessage("Pyodide is already loaded.");
+      console.debug("Pyodide is already loaded.");
+    } else {
+      postProgressMessage("Loading Pyodide.");
 
-    console.debug("Loading Pyodide");
-    pyodide = await initPyodide(pyodideUrl, {
-      stdout: console.log,
-      stderr: console.error,
-    });
-    console.debug("Loaded Pyodide");
+      console.debug("Loading Pyodide");
+      pyodide = await initPyodide(pyodideUrl, {
+        stdout: console.log,
+        stderr: console.error,
+      });
+      console.debug("Loaded Pyodide");
+    }
 
     let useIdbfs = false;
     if (idbfsMountpoints) {
@@ -136,6 +146,7 @@ export function startWorkerEnv(
     await Promise.all(
       Object.keys(files).map(async (path) => {
         const file = files[path];
+        path = resolveAppPath(appId, path);
 
         let data: string | ArrayBufferView;
         if ("url" in file) {
@@ -146,10 +157,9 @@ export function startWorkerEnv(
         } else {
           data = file.data;
         }
-        const { opts } = files[path];
 
         console.debug(`Write a file "${path}"`);
-        writeFileWithParents(pyodide, path, data, opts);
+        writeFileWithParents(pyodide, path, data, files.opts);
 
         if (path.endsWith(".py")) {
           pythonFilePaths.push(path);
@@ -369,6 +379,8 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       console.debug("Set up the IndexedDB filesystem synchronizer");
     }
 
+    const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
+
     postProgressMessage("Booting up the Streamlit server.");
     // The following Python code is based on streamlit.web.cli.main_run().
     console.debug("Setting up the Streamlit configuration");
@@ -385,7 +397,7 @@ from js import __streamlitFlagOptions__
 flag_options = __streamlitFlagOptions__.to_py()
 load_config_options(flag_options)
 
-main_script_path = "${entrypoint}"
+main_script_path = "${canonicalEntrypoint}"
 args = []
 
 prepare(main_script_path, args)
@@ -394,7 +406,7 @@ prepare(main_script_path, args)
 
     console.debug("Booting up the Streamlit server");
     const Server = pyodide.pyimport("stlite_lib.server.Server");
-    httpServer = Server(entrypoint);
+    httpServer = Server(canonicalEntrypoint);
     await httpServer.start();
     console.debug("Booted up the Streamlit server");
 
@@ -542,7 +554,8 @@ prepare(main_script_path, args)
           break;
         }
         case "file:write": {
-          const { path, data: fileData, opts } = msg.data;
+          const { path: rawPath, data: fileData, opts } = msg.data;
+          const path = resolveAppPath(appId, rawPath);
 
           if (
             moduleAutoLoad &&
@@ -564,7 +577,9 @@ prepare(main_script_path, args)
           break;
         }
         case "file:rename": {
-          const { oldPath, newPath } = msg.data;
+          const { oldPath: rawOldPath, newPath: rawNewPath } = msg.data;
+          const oldPath = resolveAppPath(appId, rawOldPath);
+          const newPath = resolveAppPath(appId, rawNewPath);
 
           console.debug(`Rename "${oldPath}" to ${newPath}`);
           renameWithParents(pyodide, oldPath, newPath);
@@ -574,7 +589,8 @@ prepare(main_script_path, args)
           break;
         }
         case "file:unlink": {
-          const { path } = msg.data;
+          const { path: rawPath } = msg.data;
+          const path = resolveAppPath(appId, rawPath);
 
           console.debug(`Remove "${path}`);
           pyodide.FS.unlink(path);

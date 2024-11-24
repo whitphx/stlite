@@ -8,7 +8,7 @@ import pyodide.ffi
 from streamlit import source_util
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
-from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
+from streamlit.runtime import Runtime, RuntimeConfig, SessionClient, runtime_contextvar
 from streamlit.runtime.caching.storage.dummy_cache_storage import (
     MemoryCacheStorageManager,
 )
@@ -52,6 +52,7 @@ class Server:
                 is_hello=False,
             ),
         )
+        runtime_contextvar.set(self._runtime)
 
         self._runtime.stats_mgr.register_provider(self._media_file_storage)
 
@@ -60,6 +61,7 @@ class Server:
 
         When this returns, Streamlit is ready to accept new sessions.
         """
+        runtime_contextvar.set(self._runtime)
 
         _LOGGER.debug("Starting server...")
 
@@ -101,6 +103,7 @@ class Server:
     def start_websocket(self, path: str, on_message):
         if not re.match(make_url_path_regex(STREAM_ENDPOINT), path):
             raise RuntimeError("Invalid WebSocket endpoint")
+        runtime_contextvar.set(self._runtime)
         self._websocket_handler.open(on_message)
 
     def receive_websocket_from_js(
@@ -118,6 +121,8 @@ class Server:
         self.receive_websocket(payload)
 
     def receive_websocket(self, message: bytes):
+        runtime_contextvar.set(self._runtime)
+
         self._websocket_handler.on_message(message)
 
     def receive_http_from_js(
@@ -152,6 +157,8 @@ class Server:
         on_response: Callable[[int, dict, bytes], None],
     ):
         _LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
+
+        runtime_contextvar.set(self._runtime)
 
         url_parse_result = urllib.parse.urlparse(path)
         path = url_parse_result.path

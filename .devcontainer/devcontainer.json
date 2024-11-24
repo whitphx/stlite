@@ -24,6 +24,7 @@
     "codespaces": {
       "repositories": {
         "whitphx/streamlit": {
+          // Submodule
           "permissions": "write-all"
         }
       }

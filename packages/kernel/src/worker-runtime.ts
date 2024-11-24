@@ -43,7 +43,7 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
-let pyodide: Pyodide.PyodideInterface;
+let initPyodidePromise: Promise<Pyodide.PyodideInterface> | null = null;
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
@@ -59,6 +59,8 @@ export function startWorkerEnv(
       },
     });
   }
+
+  let pyodide: Pyodide.PyodideInterface;
 
   let httpServer: PyProxy;
 
@@ -96,17 +98,19 @@ export function startWorkerEnv(
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
 
-    if (pyodide) {
+    if (initPyodidePromise) {
       postProgressMessage("Pyodide is already loaded.");
+      pyodide = await initPyodidePromise;
       console.debug("Pyodide is already loaded.");
     } else {
       postProgressMessage("Loading Pyodide.");
 
       console.debug("Loading Pyodide");
-      pyodide = await initPyodide(pyodideUrl, {
+      initPyodidePromise = initPyodide(pyodideUrl, {
         stdout: console.log,
         stderr: console.error,
       });
+      pyodide = await initPyodidePromise;
       console.debug("Loaded Pyodide");
     }
 
@@ -359,6 +363,7 @@ streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
           });
         }
       };
+      // TODO: Run the callback only for the current app in the case of SharedWorker mode, where multiple runtimes exist.
       // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `__scriptFinishedCallback__` when the script is finished.
       await pyodide.runPythonAsync(`
 from streamlit.runtime.app_session import AppSession

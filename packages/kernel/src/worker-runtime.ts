@@ -112,6 +112,21 @@ export function startWorkerEnv(
         stderr: console.error,
       });
       pyodide = await initPyodidePromise;
+
+      if (wheels) {
+        // NOTE: It's important to install the user-specified requirements
+        // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
+        // which satisfies the following two requirements:
+        // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+        // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+        // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+        // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+        // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+        // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+        requirements.unshift(wheels.streamlit);
+        requirements.unshift(wheels.stliteLib);
+      }
+
       console.debug("Loaded Pyodide");
     }
 
@@ -206,32 +221,10 @@ export function startWorkerEnv(
     await pyodide.loadPackage(prebuiltPackages);
     console.debug("Installed the prebuilt packages");
 
-    if (wheels) {
-      console.debug(
-        "Installing the wheels:",
-        wheels,
-        "and the requirements:",
-        requirements,
-      );
-      // NOTE: It's important to install the user-specified requirements
-      // and the custom Streamlit and stlite wheels in the same `micropip.install` call,
-      // which satisfies the following two requirements:
-      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-      await micropip.install.callKwargs(
-        [wheels.stliteLib, wheels.streamlit, ...requirements],
-        { keep_going: true },
-      );
-      console.debug("Installed the wheels and the requirements");
-    } else {
-      console.debug("Installing the requirements:", requirements);
-      await micropip.install.callKwargs(requirements, { keep_going: true });
-      console.debug("Installed the requirements");
-    }
+    console.debug("Installing the requirements:", requirements);
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements");
+
     if (moduleAutoLoad) {
       const sources = pythonFilePaths.map((path) =>
         pyodide.FS.readFile(path, { encoding: "utf8" }),

@@ -97,8 +97,11 @@ function App() {
   }, [initialSampleAppId]);
 
   const onAppDataUpdate = useCallback((appData: AppData) => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete(URL_SEARCH_KEY_SAMPLE_APP_ID); // Exclude the sample app ID that conflicts the appData content.
+    const paramsString = params.size > 0 ? `?${params.toString()}` : "";
     const newUrl = embedAppDataToUrl(
-      window.location.origin + window.location.pathname, // window.location.search is excluded because it may include the sample app ID that conflicts the appData content.
+      window.location.origin + window.location.pathname + paramsString,
       appData,
     );
     window.history.replaceState(null, "", newUrl);

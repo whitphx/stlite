@@ -15,8 +15,6 @@ from stlite_lib.server import Server
 
 @pytest_asyncio.fixture
 async def setup_server():
-    """Mimic streamlit.web.cli.main_hello()"""
-
     config.set_option(
         "server.fileWatcherType", "none", "<test>"
     )  # Disable a file watcher

@@ -22,24 +22,29 @@ async def setup_server():
         "server.fileWatcherType", "none", "<test>"
     )  # Disable a file watcher
 
-    from streamlit.hello import hello
+    server = None
 
-    filename = hello.__file__
-    server = Server(filename)
-    await server.start()
+    async def _setup(setup_per_test=None):
+        # To call `server.start()` in the same task as the test case,
+        # we return `_setup` from the fixture and call it in the test case.
+        nonlocal server
 
-    add_script_run_ctx(
-        asyncio.current_task(), create_mock_script_run_ctx()
-    )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
+        from streamlit.hello import hello
 
-    import st_aggrid
+        filename = hello.__file__
+        server = Server(filename)
+        await server.start()
 
-    # https://github.com/PablocFonseca/streamlit-aggrid/blob/1b31edc513aa41414a2341642559bbfe232b158f/st_aggrid/__init__.py#L90-L92
-    aggrid_parent_dir = os.path.dirname(st_aggrid.__file__)
-    aggrid_build_dir = os.path.join(aggrid_parent_dir, "frontend", "build")
-    declare_component("agGrid", aggrid_build_dir)
+        add_script_run_ctx(
+            asyncio.current_task(), create_mock_script_run_ctx()
+        )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
 
-    yield server
+        if setup_per_test:
+            setup_per_test()
+
+        return server
+
+    yield _setup
 
     server.stop()
     await server._runtime.stopped
@@ -48,7 +53,7 @@ async def setup_server():
 @pytest.mark.asyncio
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
 async def test_http_server_websocket(AppSession, setup_server):
-    server: Server = setup_server
+    server: Server = await setup_server()
 
     session = AppSession()
 
@@ -72,23 +77,20 @@ async def test_http_server_websocket(AppSession, setup_server):
     on_websocket_message.assert_called_with(serialize_forward_msg(forwardMsg), True)
 
 
-def test_http_get_health(setup_server):
-    server: Server = setup_server
+@pytest.mark.asyncio
+async def test_http_get_health(setup_server):
+    server: Server = await setup_server()
 
     on_response = Mock()
 
-    task = server.receive_http("GET", "/healthz", {}, "", on_response)
-
-    loop = task.get_loop()
-    loop.run_until_complete(task)
+    await server.receive_http("GET", "/healthz", {}, "", on_response)
 
     on_response.assert_called_with(200, ANY, b"ok")
 
 
 @pytest.mark.asyncio
 async def test_http_media(setup_server):
-    server: Server = setup_server
-    runtime.runtime_contextvar.set(server._runtime)
+    server: Server = await setup_server()
 
     on_response = Mock()
 
@@ -131,9 +133,10 @@ async def test_http_media(setup_server):
     on_response.reset_mock()
 
 
+@pytest.mark.asyncio
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_file_upload(AppSession, setup_server):
-    server: Server = setup_server
+async def test_http_file_upload(AppSession, setup_server):
+    server: Server = await setup_server()
 
     app_session = AppSession.return_value
     app_session.id = (
@@ -173,9 +176,10 @@ def test_http_file_upload(AppSession, setup_server):
     on_response.assert_called_with(204, ANY, b"")
 
 
+@pytest.mark.asyncio
 @patch("streamlit.runtime.websocket_session_manager.AppSession")
-def test_http_file_delete(AppSession, setup_server):
-    server: Server = setup_server
+async def test_http_file_delete(AppSession, setup_server):
+    server: Server = await setup_server()
 
     app_session = AppSession.return_value
     app_session.id = (
@@ -206,7 +210,15 @@ def test_http_file_delete(AppSession, setup_server):
 
 @pytest.mark.asyncio
 async def test_http_component(setup_server):
-    server: Server = setup_server
+    def _setup_per_test():
+        import st_aggrid
+
+        # https://github.com/PablocFonseca/streamlit-aggrid/blob/1b31edc513aa41414a2341642559bbfe232b158f/st_aggrid/__init__.py#L90-L92
+        aggrid_parent_dir = os.path.dirname(st_aggrid.__file__)
+        aggrid_build_dir = os.path.join(aggrid_parent_dir, "frontend", "build")
+        declare_component("agGrid", aggrid_build_dir)
+
+    server: Server = await setup_server(_setup_per_test)
 
     import st_aggrid
 

@@ -7,7 +7,6 @@ import pytest
 import pytest_asyncio
 import requests
 from streamlit import config, runtime
-from streamlit.components.v1.components import declare_component
 from streamlit.runtime.scriptrunner_utils.script_run_context import add_script_run_ctx
 from tests.testutil import create_mock_script_run_ctx
 
@@ -24,7 +23,7 @@ async def setup_server():
 
     server = None
 
-    async def _setup(setup_per_test=None):
+    async def _setup():
         # To call `server.start()` in the same task as the test case,
         # we return `_setup` from the fixture and call it in the test case.
         nonlocal server
@@ -38,9 +37,6 @@ async def setup_server():
         add_script_run_ctx(
             asyncio.current_task(), create_mock_script_run_ctx()
         )  # Like https://github.com/streamlit/streamlit/blob/1.35.0/lib/tests/streamlit/runtime/caching/cache_resource_api_test.py#L46-L48  # noqa: E501
-
-        if setup_per_test:
-            setup_per_test()
 
         return server
 
@@ -210,21 +206,12 @@ async def test_http_file_delete(AppSession, setup_server):
 
 @pytest.mark.asyncio
 async def test_http_component(setup_server):
-    def _setup_per_test():
-        import st_aggrid
-
-        # https://github.com/PablocFonseca/streamlit-aggrid/blob/1b31edc513aa41414a2341642559bbfe232b158f/st_aggrid/__init__.py#L90-L92
-        aggrid_parent_dir = os.path.dirname(st_aggrid.__file__)
-        aggrid_build_dir = os.path.join(aggrid_parent_dir, "frontend", "build")
-        declare_component("agGrid", aggrid_build_dir)
-
-    server: Server = await setup_server(_setup_per_test)
+    server: Server = await setup_server()
 
     import st_aggrid
 
-    aggrid_dir = os.path.dirname(st_aggrid.__file__)
     with open(
-        os.path.join(aggrid_dir, "frontend/build/index.html"), "rb"
+        os.path.join(st_aggrid._component_func._path, "index.html"), "rb"
     ) as aggrid_index_html:
         aggrid_index_html_contents = aggrid_index_html.read()
 
@@ -232,7 +219,7 @@ async def test_http_component(setup_server):
 
     server.receive_http(
         "GET",
-        r"/component/stlite_lib_tests.test_server.agGrid/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
+        rf"/component/{st_aggrid._component_func.name}/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
         {},
         "",
         on_response,

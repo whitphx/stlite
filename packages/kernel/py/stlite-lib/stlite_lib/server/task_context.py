@@ -7,11 +7,6 @@ _LOGGER = logging.getLogger(__name__)
 task_home_dir = ContextVar("task_dir")
 
 
-def set_task_home_dir(dir_path):
-    _LOGGER.debug("Setting task-specific directory: %s", dir_path)
-    task_home_dir.set(dir_path)
-
-
 class TaskSpecificHomeDirectory:
     """Async context manager for task-specific home directory."""
 

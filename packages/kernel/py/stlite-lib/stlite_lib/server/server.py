@@ -21,6 +21,7 @@ from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
 from .media_file_handler import MediaFileHandler
 from .server_util import make_url_path_regex
+from .task_context import task_home_dir
 from .upload_file_request_handler import UploadFileRequestHandler
 
 _LOGGER: Final = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
 class Server:
     _routes: list[tuple[re.Pattern, RequestHandler]] = []
 
-    def __init__(self, main_script_path: str) -> None:
+    def __init__(self, main_script_path: str, app_home_dir: str | None = None) -> None:
         self._main_script_path = main_script_path
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
@@ -54,6 +55,9 @@ class Server:
         )
         runtime_contextvar.set(self._runtime)
 
+        self.app_home_dir = app_home_dir
+        task_home_dir.set(self.app_home_dir)
+
         self._runtime.stats_mgr.register_provider(self._media_file_storage)
 
     async def start(self) -> None:
@@ -64,6 +68,7 @@ class Server:
         _LOGGER.debug("Starting server...")
 
         runtime_contextvar.set(self._runtime)
+        task_home_dir.set(self.app_home_dir)
 
         # In stlite, we deal with WebSocket separately.
         self._websocket_handler = WebSocketHandler(self._runtime)
@@ -105,6 +110,7 @@ class Server:
             raise RuntimeError("Invalid WebSocket endpoint")
 
         runtime_contextvar.set(self._runtime)
+        task_home_dir.set(self.app_home_dir)
 
         self._websocket_handler.open(on_message)
 
@@ -124,6 +130,7 @@ class Server:
 
     def receive_websocket(self, message: bytes):
         runtime_contextvar.set(self._runtime)
+        task_home_dir.set(self.app_home_dir)
 
         self._websocket_handler.on_message(message)
 
@@ -161,6 +168,7 @@ class Server:
         _LOGGER.debug("HTTP request (%s %s %s %s)", method, path, headers, body)
 
         runtime_contextvar.set(self._runtime)
+        task_home_dir.set(self.app_home_dir)
 
         url_parse_result = urllib.parse.urlparse(path)
         path = url_parse_result.path
@@ -228,6 +236,7 @@ class Server:
         # e.g. booting up a new server and replacing the old one.
         self._runtime.stop()
         runtime_contextvar.set(None)
+        task_home_dir.set(None)
 
         # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
         # to resolve the pages info, caches the pages in the module-level variable `source_util._cached_pages`.

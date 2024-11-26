@@ -404,14 +404,11 @@ prepare(main_script_path, args)
     console.debug("Set up the Streamlit configuration");
 
     console.debug("Booting up the Streamlit server");
-    const set_task_home_dir = pyodide.pyimport(
-      "stlite_lib.server.set_task_home_dir",
-    );
-    if (appId) {
-      set_task_home_dir(getAppHomeDir(appId));
-    }
     const Server = pyodide.pyimport("stlite_lib.server.Server");
-    httpServer = Server(canonicalEntrypoint);
+    httpServer = Server(
+      canonicalEntrypoint,
+      appId ? getAppHomeDir(appId) : null,
+    );
     await httpServer.start();
     console.debug("Booted up the Streamlit server");
 

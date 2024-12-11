@@ -1,3 +1,5 @@
+/// <reference lib="WebWorker" />
+
 import type Pyodide from "pyodide";
 
 interface ResolvePyodideUrlResult {

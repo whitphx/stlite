@@ -10,7 +10,7 @@ with col2:
 
 st.markdown("""
 ### Stlite
-**Stlite** is a port of _Streamlit_ to Wasm, powered by Pyodide,
+**Stlite** is a port of _Streamlit:streamlit:_ to Wasm, powered by Pyodide,
 that runs completely on web browsers.
 
 The official repository is [🔗 here](https://github.com/whitphx/stlite).

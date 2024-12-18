@@ -76,9 +76,12 @@ describe("<CustomComponentIFrame />", () => {
       requirements: [],
       prebuiltPackageNames: [],
     });
+    function CustomIframe(props: JSX.IntrinsicElements["iframe"]) {
+      return <iframe {...props} />;
+    }
     const { container } = render(
       <StliteKernelProvider kernel={kernel}>
-        <CustomComponentIFrame src={src} />
+        <CustomComponentIFrame src={src} IframeComponent={CustomIframe} />
       </StliteKernelProvider>,
     );
 

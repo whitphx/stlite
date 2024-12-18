@@ -1,3 +1,5 @@
+/// <reference lib="WebWorker" />
+
 import type Pyodide from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";

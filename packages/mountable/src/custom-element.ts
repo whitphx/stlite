@@ -153,7 +153,7 @@ export function setupCustomElement(mount: typeof mountFn) {
 
       const otherMountOptions: Partial<DetailedMountOptions> = {};
       if (this.hasAttribute("shared-worker")) {
-        otherMountOptions.sharedWorkerMode = true;
+        otherMountOptions.sharedWorker = true;
       }
 
       return {

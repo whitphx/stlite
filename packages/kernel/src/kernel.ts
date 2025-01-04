@@ -301,7 +301,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>,
+    opts?: Record<string, string | number | boolean>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -371,9 +371,7 @@ export class StliteKernel {
     });
   }
 
-  private _asyncPostMessage(
-    message: InMessage,
-  ): Promise<ReplyMessageGeneralReply["data"]>;
+  private _asyncPostMessage(message: InMessage): Promise<void>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
     expectedReplyType: T,
@@ -381,8 +379,8 @@ export class StliteKernel {
   private _asyncPostMessage(
     message: InMessage,
     expectedReplyType = "reply",
-  ): Promise<ReplyMessage["data"]> {
-    return new Promise((resolve, reject) => {
+  ): Promise<void | ReplyMessage["data"]> {
+    return new Promise<void | ReplyMessage["data"]>((resolve, reject) => {
       const channel = new MessageChannel();
 
       channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
@@ -394,7 +392,11 @@ export class StliteKernel {
           if (msg.type !== expectedReplyType) {
             throw new Error(`Unexpected reply type "${msg.type}"`);
           }
-          resolve(msg.data);
+          if (expectedReplyType === "reply") {
+            resolve();
+          } else {
+            resolve(msg.data);
+          }
         }
       };
 

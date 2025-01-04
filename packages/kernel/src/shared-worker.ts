@@ -1,4 +1,5 @@
 import { startWorkerEnv } from "./worker-runtime";
+import type { InMessage, OutMessage, ReplyMessage } from "./types";
 
 declare class SharedWorkerGlobalScope {
   onconnect:

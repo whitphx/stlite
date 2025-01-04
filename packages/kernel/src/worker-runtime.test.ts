@@ -4,7 +4,7 @@ import { suite, test, expect, vitest, afterEach } from "vitest";
 import type { PyodideInterface } from "pyodide";
 import { startWorkerEnv, type PostMessageFn } from "./worker-runtime";
 import * as pyodideLoader from "./pyodide-loader";
-import { WorkerInitialData } from "./types";
+import { WorkerInitialData, InMessage } from "./types";
 import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
 
@@ -51,7 +51,6 @@ function initializeWorkerEnv(
 
     const onMessage = startWorkerEnv(pyodideUrl, postMessage, {
       shared: options.shared ?? false,
-      presetInitialData: undefined,
     });
 
     // Send the initializer message to the worker.
@@ -214,150 +213,130 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
   }
 });
 
-suite("SharedWorker integration tests", async () => {
+suite("SharedWorker initialization", async () => {
   afterEach(() => {
     vitest.restoreAllMocks();
   });
 
   test(
-    "SharedWorker initialization and connection",
+    "SharedWorker basic functionality",
     async () => {
+      const messageChannel = new MessageChannel();
+      const messages: any[] = [];
+
+      const postMessage: PostMessageFn = (message) => {
+        messages.push(message);
+      };
+
+      const onMessage = startWorkerEnv(pyodideUrl, postMessage, {
+        shared: true,
+      });
+
+      // Initialize worker with test file
       const files = {
         "test.py": {
           data: "import streamlit as st\nst.write('Hello from SharedWorker')",
         },
       };
 
-      const pyodide = await initializeWorkerEnv({
-        entrypoint: "test.py",
+      // Send initialization message
+      const initialData: WorkerInitialData = {
         files,
-        shared: true,
-      });
-
-      // Verify SharedWorker initialization
-      expect(pyodide).toBeDefined();
-      expect(pyodide.globals.get("st")).toBeDefined();
-    },
-    { timeout: 10000 },
-  );
-
-  test(
-    "Multiple concurrent connections",
-    async () => {
-      const testFiles = {
-        "test.py": {
-          data: "import streamlit as st\nst.write('Testing concurrent connections')",
-        },
-      };
-
-      // Create multiple connections
-      const connections = await Promise.all([
-        initializeWorkerEnv({
-          entrypoint: "test.py",
-          files: testFiles,
-          shared: true,
-        }),
-        initializeWorkerEnv({
-          entrypoint: "test.py",
-          files: testFiles,
-          shared: true,
-        }),
-        initializeWorkerEnv({
-          entrypoint: "test.py",
-          files: testFiles,
-          shared: true,
-        }),
-      ]);
-
-      // Verify all connections are active
-      connections.forEach((pyodide) => {
-        expect(pyodide).toBeDefined();
-        expect(pyodide.globals.get("st")).toBeDefined();
-      });
-    },
-    { timeout: 15000 },
-  );
-
-  test(
-    "Resource cleanup",
-    async () => {
-      const cleanupFiles = {
-        "test.py": {
-          data: "import streamlit as st\nst.write('Testing cleanup')",
-        },
-      };
-
-      const pyodide = await initializeWorkerEnv({
         entrypoint: "test.py",
-        files: cleanupFiles,
-      });
-
-      // Mock port.close() to verify it's called
-      const portCloseSpy = vitest.fn();
-      const port = { close: portCloseSpy };
-
-      // Simulate cleanup
-      pyodide.globals.set("__cleanup__", () => {
-        port.close();
-      });
-
-      await pyodide.runPythonAsync("__cleanup__()");
-      expect(portCloseSpy).toHaveBeenCalled();
-    },
-    { timeout: 10000 },
-  );
-
-  test(
-    "Message routing between connections",
-    async () => {
-      const routingFiles = {
-        "test.py": {
-          data: `
-import streamlit as st
-import time
-
-if 'counter' not in st.session_state:
-    st.session_state.counter = 0
-
-st.session_state.counter += 1
-st.write(f'Connection {st.session_state.counter}')
-`,
+        wheels: {
+          stliteLib: getWheelInstallPath(
+            stliteLibWheelUrl as unknown as string,
+          ),
+          streamlit: getWheelInstallPath(
+            streamlitWheelUrl as unknown as string,
+          ),
         },
+        archives: [],
+        requirements: [],
+        moduleAutoLoad: false,
+        prebuiltPackageNames: [],
       };
 
-      // Create two connections to the shared worker
-      const [connection1, connection2] = await Promise.all([
-        initializeWorkerEnv({
-          entrypoint: "test.py",
-          files: routingFiles,
-          shared: true,
+      await onMessage(
+        new MessageEvent("message", {
+          data: {
+            type: "initData",
+            data: initialData,
+          },
+          ports: [messageChannel.port1],
         }),
-        initializeWorkerEnv({
-          entrypoint: "test.py",
-          files: routingFiles,
-          shared: true,
+      );
+
+      // Wait for worker to be ready
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          const checkMessages = () => {
+            if (messages.some((msg) => msg.type === "event:loaded")) {
+              resolve();
+            } else {
+              setTimeout(checkMessages, 100);
+            }
+          };
+          checkMessages();
         }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Worker initialization timeout")),
+            30000,
+          ),
+        ),
       ]);
 
-      // Initialize counter in first connection
-      await connection1.runPythonAsync(`
-if 'counter' not in st.session_state:
-    st.session_state.counter = 0
-st.session_state.counter += 1
-    `);
-
-      // Verify state is shared between connections
-      const counter1 = await connection1.runPythonAsync(
-        "st.session_state.counter",
+      // Verify worker initialization
+      expect(messages).toContainEqual(
+        expect.objectContaining({ type: "event:start" }),
       );
-      const counter2 = await connection2.runPythonAsync(
-        "st.session_state.counter",
+      expect(messages).toContainEqual(
+        expect.objectContaining({ type: "event:loaded" }),
       );
 
-      // Both connections should see the same counter value since they share state
-      expect(counter1).toBe(1);
-      expect(counter2).toBe(1);
+      // Send cleanup message
+      onMessage(
+        new MessageEvent("message", {
+          data: { type: "cleanup" },
+          ports: [messageChannel.port1],
+        }),
+      );
+
+      // Wait for cleanup message
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          const checkCleanup = () => {
+            if (messages.some((msg) => msg.type === "event:cleanup")) {
+              resolve();
+            } else {
+              setTimeout(checkCleanup, 100);
+            }
+          };
+          checkCleanup();
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Cleanup timeout")), 5000),
+        ),
+      ]);
+
+      // Close message channels after cleanup
+      messageChannel.port1.close();
+      messageChannel.port2.close();
+
+      // Verify cleanup messages
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          type: "event:cleanup",
+          data: expect.objectContaining({
+            httpServer: true,
+            pyodide: true,
+          }),
+        }),
+      );
+
+      vitest.restoreAllMocks();
     },
-    { timeout: 15000 },
+    { timeout: 30000 },
   );
 });

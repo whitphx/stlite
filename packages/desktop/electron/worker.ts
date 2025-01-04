@@ -14,7 +14,9 @@ const handleMessage = startWorkerEnv(
   process.env.PYODIDE_URL as string,
   postMessage,
   {
-    nodefsMountpoints: loadNodefsMountpoints(),
+    presetInitialData: {
+      nodefsMountpoints: loadNodefsMountpoints(),
+    },
   },
 );
 

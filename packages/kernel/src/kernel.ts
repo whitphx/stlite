@@ -20,6 +20,8 @@ import type {
   PyodideArchiveUrl,
   ReplyMessage,
   StliteWorker,
+  StliteWorkerPort,
+  StliteWorkerState,
   WorkerInitialData,
   StreamlitConfig,
   ModuleAutoLoadMessage,
@@ -138,7 +140,8 @@ export interface StliteKernelOptions {
 export class StliteKernel {
   private _isDisposed = false;
 
-  private _worker: StliteWorker;
+  private _workerState: StliteWorkerState;
+  private _ports: Set<StliteWorkerPort> = new Set();
 
   private _loaded = new PromiseDelegate<void>();
 
@@ -164,18 +167,44 @@ export class StliteKernel {
     this.onModuleAutoLoad = options.onModuleAutoLoad;
 
     if (options.worker) {
-      this._worker = options.worker;
+      this._workerState = {
+        worker: options.worker,
+        ports: new Set(),
+      };
     } else {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
       const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
-      this._worker = workerMaker.worker;
+      this._workerState = {
+        worker: workerMaker.worker,
+        ports: new Set(),
+      };
     }
 
-    this._worker.onmessage = (e) => {
-      const messagePort: MessagePort | undefined = e.ports[0];
-      this._processWorkerMessage(e.data, messagePort);
-    };
+    if (this._workerState.worker instanceof Worker) {
+      this._workerState.worker.onmessage = (e: MessageEvent) => {
+        const messagePort: MessagePort | undefined = e.ports[0];
+        if (messagePort) {
+          const workerPort: StliteWorkerPort = {
+            port: messagePort,
+            appId: crypto.randomUUID(),
+          };
+          this._ports.add(workerPort);
+        }
+        this._processWorkerMessage(e.data, messagePort);
+      };
+    } else {
+      const sharedWorker = this._workerState.worker as SharedWorker;
+      sharedWorker.port.onmessage = (e: MessageEvent) => {
+        const workerPort: StliteWorkerPort = {
+          port: sharedWorker.port,
+          appId: crypto.randomUUID(),
+        };
+        this._ports.add(workerPort);
+        this._processWorkerMessage(e.data, sharedWorker.port);
+      };
+      sharedWorker.port.start();
+    }
 
     let wheels: WorkerInitialData["wheels"] = undefined;
     if (!options.skipStliteWheelsInstall) {
@@ -230,7 +259,9 @@ export class StliteKernel {
     });
   }
 
-  public sendWebSocketMessage(payload: Uint8Array) {
+  public sendWebSocketMessage(
+    payload: Uint8Array,
+  ): Promise<ReplyMessageGeneralReply["data"]> {
     return this._asyncPostMessage({
       type: "websocket:send",
       data: {
@@ -242,7 +273,10 @@ export class StliteKernel {
   private handleWebSocketMessage:
     | ((payload: Uint8Array | string) => void)
     | null = null;
-  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+
+  public onWebSocketMessage(
+    handler: (payload: Uint8Array | string) => void,
+  ): void {
     this.handleWebSocketMessage = handler;
   }
 
@@ -363,7 +397,14 @@ export class StliteKernel {
         }
       };
 
-      this._worker.postMessage(message, [channel.port2]);
+      if (this._workerState.worker instanceof Worker) {
+        this._workerState.worker.postMessage(message, [channel.port2]);
+      } else {
+        // For SharedWorker, send through all active ports
+        for (const { port } of this._ports) {
+          port.postMessage(message, [channel.port2]);
+        }
+      }
     });
   }
 
@@ -375,10 +416,18 @@ export class StliteKernel {
   private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
-        this._worker.postMessage({
-          type: "initData",
-          data: this._workerInitData,
-        });
+        if (this._workerState.worker instanceof Worker) {
+          this._workerState.worker.postMessage({
+            type: "initData",
+            data: this._workerInitData,
+          });
+        } else if (port) {
+          // For SharedWorker, send through the specific port that triggered the event
+          port.postMessage({
+            type: "initData",
+            data: this._workerInitData,
+          });
+        }
         break;
       }
       case "event:progress": {
@@ -437,7 +486,28 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    this._worker.terminate();
+
+    // Clean up all ports first
+    for (const { port } of this._ports) {
+      try {
+        port.close();
+      } catch (error) {
+        console.warn("Error closing port:", error);
+      }
+    }
+    this._ports.clear();
+
+    // Close SharedWorker port if applicable
+    if (this._workerState.worker instanceof SharedWorker) {
+      try {
+        this._workerState.worker.port.close();
+      } catch (error) {
+        console.warn("Error closing SharedWorker port:", error);
+      }
+    } else {
+      // Terminate only if it's a DedicatedWorker
+      this._workerState.worker.terminate();
+    }
 
     this._isDisposed = true;
   }

@@ -21,6 +21,7 @@ const self = global as typeof globalThis & {
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
+  __isSharedWorker__?: boolean;
 };
 
 function dispatchModuleAutoLoading(
@@ -42,8 +43,13 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
-  presetInitialData?: Partial<WorkerInitialData>,
+  options: {
+    shared?: boolean;
+    presetInitialData?: Partial<WorkerInitialData>;
+  } = {},
 ) {
+  const { shared = false, presetInitialData } = options;
+  self.__isSharedWorker__ = shared;
   function postProgressMessage(message: string): void {
     postMessage({
       type: "event:progress",
@@ -238,6 +244,7 @@ importlib.invalidate_caches()
     // For https://github.com/whitphx/stlite/issues/427
     await pyodide.runPythonAsync(`
 import streamlit.runtime
+import streamlit as st  # Ensure st is available in globals
     `);
     console.debug("Loaded the Streamlit package");
 

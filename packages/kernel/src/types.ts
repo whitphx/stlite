@@ -140,9 +140,30 @@ export type InMessage =
   | InMessageFileRead
   | InMessageInstall;
 
-export interface StliteWorker extends Worker {
-  postMessage(message: InMessage, transfer: Transferable[]): void;
-  postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
+/**
+ * Represents either a DedicatedWorker or SharedWorker instance.
+ * Used to handle both single-instance and shared worker scenarios.
+ */
+export type StliteWorker = Worker | SharedWorker;
+
+/**
+ * Represents a message port connection with its associated app ID.
+ * Used to track and manage individual connections in SharedWorker mode,
+ * enabling proper cleanup and message routing.
+ */
+export interface StliteWorkerPort {
+  port: MessagePort;
+  appId: string;
+}
+
+/**
+ * Represents the state of a worker and its associated ports.
+ * Maintains the worker instance and a set of active port connections,
+ * allowing for proper resource management and cleanup.
+ */
+export interface StliteWorkerState {
+  worker: StliteWorker;
+  ports: Set<StliteWorkerPort>;
 }
 
 /**

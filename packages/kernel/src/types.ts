@@ -141,10 +141,27 @@ export type InMessage =
   | InMessageInstall;
 
 /**
+ * Common interface for both Worker and SharedWorker message handling.
+ * This interface defines the shared functionality between the two worker types.
+ */
+interface WorkerMessageHandler {
+  onmessage: ((this: Worker | SharedWorker, ev: MessageEvent) => void) | null;
+  postMessage: (message: any, transfer?: Transferable[]) => void;
+}
+
+/**
+ * Interface for SharedWorker specific functionality.
+ */
+interface SharedWorkerHandler extends WorkerMessageHandler {
+  port: MessagePort;
+}
+
+/**
  * Represents either a DedicatedWorker or SharedWorker instance.
  * Used to handle both single-instance and shared worker scenarios.
+ * Includes common message handling functionality.
  */
-export type StliteWorker = Worker | SharedWorker;
+export type StliteWorker = Worker | (SharedWorker & SharedWorkerHandler);
 
 /**
  * Represents a message port connection with its associated app ID.

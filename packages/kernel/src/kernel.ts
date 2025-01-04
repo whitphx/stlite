@@ -182,7 +182,7 @@ export class StliteKernel {
     }
 
     if (this._workerState.worker instanceof Worker) {
-      this._workerState.worker.onmessage = (e: MessageEvent) => {
+      this._workerState.worker.onmessage = (e: MessageEvent<any>) => {
         const messagePort: MessagePort | undefined = e.ports[0];
         if (messagePort) {
           const workerPort: StliteWorkerPort = {
@@ -195,7 +195,7 @@ export class StliteKernel {
       };
     } else {
       const sharedWorker = this._workerState.worker as SharedWorker;
-      sharedWorker.port.onmessage = (e: MessageEvent) => {
+      sharedWorker.port.onmessage = (e: MessageEvent<any>) => {
         const workerPort: StliteWorkerPort = {
           port: sharedWorker.port,
           appId: crypto.randomUUID(),

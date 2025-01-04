@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
-import type { InMessage, OutMessage, ReplyMessage } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { parseMountOptions, MountOptions } from "./options";
 import {
@@ -58,23 +57,31 @@ export function mount(
       kernel.dispose();
       ReactDOM.unmountComponentAtNode(container);
     },
-    install: (requirements: string[]) => {
+    install: (
+      requirements: string[],
+    ): ReturnType<StliteKernelWithToast["install"]> => {
       return kernelWithToast.install(requirements);
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
-      opts?: Record<string, any>,
-    ) => {
+      opts?: Record<string, string | number | boolean>,
+    ): ReturnType<StliteKernelWithToast["writeFile"]> => {
       return kernelWithToast.writeFile(path, data, opts);
     },
-    renameFile: (oldPath: string, newPath: string) => {
+    renameFile: (
+      oldPath: string,
+      newPath: string,
+    ): ReturnType<StliteKernelWithToast["renameFile"]> => {
       return kernelWithToast.renameFile(oldPath, newPath);
     },
-    unlink: (path: string) => {
+    unlink: (path: string): ReturnType<StliteKernelWithToast["unlink"]> => {
       return kernelWithToast.unlink(path);
     },
-    readFile: (path: string, opts?: Record<string, any>) => {
+    readFile: (
+      path: string,
+      opts?: Record<string, string | number | boolean>,
+    ): ReturnType<StliteKernelWithToast["readFile"]> => {
       return kernelWithToast.readFile(path, opts);
     },
   };

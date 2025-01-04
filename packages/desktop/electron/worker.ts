@@ -16,6 +16,7 @@ const handleMessage = startWorkerEnv(
   {
     presetInitialData: {
       nodefsMountpoints: loadNodefsMountpoints(),
+      moduleAutoLoad: false,
     },
   },
 );

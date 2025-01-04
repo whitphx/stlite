@@ -145,17 +145,30 @@ export type InMessage =
  * This interface defines the shared functionality between the two worker types.
  */
 interface WorkerMessageHandler {
-  onmessage: ((this: Worker | SharedWorker, ev: MessageEvent) => void) | null;
-  postMessage: (message: any, transfer?: Transferable[]) => void;
+  onmessage:
+    | ((this: Worker | SharedWorker, ev: MessageEvent<OutMessage>) => void)
+    | null;
+  postMessage: (message: InMessage, transfer?: Transferable[]) => void;
 }
 
 /**
  * Interface for SharedWorker specific functionality.
  */
-interface SharedWorkerHandler extends WorkerMessageHandler {
-  port: MessagePort;
+export interface SharedWorkerHandler extends WorkerMessageHandler {
+  port: MessagePort & {
+    onmessage:
+      | ((this: MessagePort, ev: MessageEvent<OutMessage>) => void)
+      | null;
+    postMessage: (message: InMessage, transfer?: Transferable[]) => void;
+    start: () => void;
+  };
 }
 
+/**
+ * Represents either a DedicatedWorker or SharedWorker instance.
+ * Used to handle both single-instance and shared worker scenarios.
+ * Includes common message handling functionality.
+ */
 /**
  * Represents either a DedicatedWorker or SharedWorker instance.
  * Used to handle both single-instance and shared worker scenarios.

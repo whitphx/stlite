@@ -6,7 +6,7 @@ import { PromiseDelegate } from "@stlite/common";
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
 
 import { makeAbsoluteWheelURL } from "./url";
-import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+import { CrossOriginWorkerMaker } from "./cross-origin-worker";
 
 import type {
   EmscriptenFile,
@@ -134,7 +134,7 @@ export interface StliteKernelOptions {
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one of the use cases.
    */
-  worker?: globalThis.Worker;
+  worker?: StliteWorker;
 }
 
 export class StliteKernel {
@@ -172,17 +172,18 @@ export class StliteKernel {
         ports: new Set(),
       };
     } else {
-      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-      // Read the comment in `cross-origin-worker.ts` for the detail.
-      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      // Create a new cross-origin worker
+      const workerMaker = new CrossOriginWorkerMaker(
+        new URL("./worker.js", import.meta.url),
+      );
       this._workerState = {
-        worker: workerMaker.worker,
+        worker: workerMaker.worker as StliteWorker,
         ports: new Set(),
       };
     }
 
     if (this._workerState.worker instanceof Worker) {
-      this._workerState.worker.onmessage = (e: MessageEvent<any>) => {
+      this._workerState.worker.onmessage = (e: MessageEvent<OutMessage>) => {
         const messagePort: MessagePort | undefined = e.ports[0];
         if (messagePort) {
           const workerPort: StliteWorkerPort = {
@@ -195,7 +196,7 @@ export class StliteKernel {
       };
     } else {
       const sharedWorker = this._workerState.worker as SharedWorker;
-      sharedWorker.port.onmessage = (e: MessageEvent<any>) => {
+      sharedWorker.port.onmessage = (e: MessageEvent<OutMessage>) => {
         const workerPort: StliteWorkerPort = {
           port: sharedWorker.port,
           appId: crypto.randomUUID(),

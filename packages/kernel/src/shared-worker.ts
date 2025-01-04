@@ -2,7 +2,10 @@ import { startWorkerEnv } from "./worker-runtime";
 
 declare class SharedWorkerGlobalScope {
   onconnect:
-    | ((this: SharedWorkerGlobalScope, ev: MessageEvent<any>) => any)
+    | ((
+        this: SharedWorkerGlobalScope,
+        ev: MessageEvent<InMessage | OutMessage | ReplyMessage>,
+      ) => void)
     | null;
 }
 

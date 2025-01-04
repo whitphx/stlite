@@ -1,3 +1,5 @@
+import type { StliteWorker } from "./types";
+
 // A hack to load a worker script from a different origin.
 // Webpack 5's built-in Web Workers feature does not support inlining the worker code
 // into the main bundle and always emits it to a separate file,
@@ -32,7 +34,7 @@ function isSameOrigin(url: URL): boolean {
 }
 
 export class CrossOriginWorkerMaker {
-  public readonly worker: Worker | SharedWorker;
+  public readonly worker: StliteWorker;
 
   constructor(url: URL, options: { shared?: boolean } = {}) {
     const { shared = false } = options;
@@ -42,13 +44,13 @@ export class CrossOriginWorkerMaker {
       console.debug(
         `Loading a ${shared ? "shared" : "dedicated"} worker script from the same origin: ${url}`,
       );
-      this.worker = new WorkerClass(url);
+      this.worker = new WorkerClass(url) as StliteWorker;
     } else {
       console.debug(
         `Loading a ${shared ? "shared" : "dedicated"} worker script from a different origin: ${url}`,
       );
       const workerBlobUrl = getWorkerBlobUrl(url);
-      this.worker = new WorkerClass(workerBlobUrl);
+      this.worker = new WorkerClass(workerBlobUrl) as StliteWorker;
     }
   }
 }

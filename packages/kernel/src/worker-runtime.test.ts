@@ -1,9 +1,8 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { suite, test, expect, vitest, afterEach } from "vitest";
+import { suite, test, expect, vitest, beforeEach, afterEach } from "vitest";
 import type { PyodideInterface } from "pyodide";
-import { startWorkerEnv, type PostMessageFn } from "./worker-runtime";
-import * as pyodideLoader from "./pyodide-loader";
+import { type PostMessageFn } from "./worker-runtime";
 import { WorkerInitialData } from "./types";
 import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
@@ -22,26 +21,35 @@ interface InitializeWorkerEnvOptions {
   files: WorkerInitialData["files"];
   requirements?: WorkerInitialData["requirements"];
 }
-function initializeWorkerEnv(
+async function initializeWorkerEnv(
   options: InitializeWorkerEnvOptions,
 ): Promise<PyodideInterface> {
+  const pyodideLoader: typeof import("./pyodide-loader") =
+    await vitest.importActual("./pyodide-loader");
+  const initPyodide = pyodideLoader.initPyodide;
+
+  // Get the Pyodide instance from the initializer called in the worker by spying on it.
+  let pyodide: PyodideInterface;
+  const initPyodideMock = vitest
+    .fn()
+    .mockImplementation(async (...args: Parameters<typeof initPyodide>) => {
+      pyodide = await initPyodide(...args);
+      return pyodide;
+    });
+  // Use `doMock` to work with the async import of `pyodide-loader` below.
+  vitest.doMock("./pyodide-loader", () => ({
+    initPyodide: initPyodideMock,
+  }));
+
+  // Use async-import in combination with `vi.resetModules()` in `beforeEach()`
+  // to reset the module cache and re-import the module.
+  const { startWorkerEnv } = await import("./worker-runtime");
+
   return new Promise<PyodideInterface>((resolve, reject) => {
-    let pyodide: PyodideInterface;
-
-    // Get the Pyodide instance from the initializer called in the worker by spying on it.
-    const originalInitPyodide = pyodideLoader.initPyodide;
-    const spiedInitPyodide = vitest
-      .spyOn(pyodideLoader, "initPyodide")
-      .mockImplementationOnce(async (...args) => {
-        const loadedPyodide = await originalInitPyodide(...args);
-        pyodide = loadedPyodide;
-        return loadedPyodide;
-      });
-
     const postMessage: PostMessageFn = (message) => {
       if (message.type === "event:loaded") {
-        expect(spiedInitPyodide).toHaveBeenCalled();
-        spiedInitPyodide.mockRestore();
+        expect(initPyodideMock).toHaveBeenCalled();
+        initPyodideMock.mockRestore();
         resolve(pyodide);
       } else if (message.type === "event:error") {
         reject(message.data.error);
@@ -146,6 +154,9 @@ await at.run(timeout=20)
 ];
 
 suite("Worker intergration test running an app", async () => {
+  beforeEach(() => {
+    vitest.resetModules();
+  });
   afterEach(() => {
     vitest.restoreAllMocks();
   });

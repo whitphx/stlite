@@ -144,6 +144,10 @@ export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
   postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
 }
+export interface StliteMessagePort extends MessagePort {
+  postMessage(message: InMessage, transfer: Transferable[]): void;
+  postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
+}
 
 /**
  * Output messages from worker to kernel

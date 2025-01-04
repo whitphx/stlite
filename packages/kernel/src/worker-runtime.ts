@@ -1,7 +1,12 @@
 import type Pyodide from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
-import { writeFileWithParents, renameWithParents } from "./file";
+import {
+  resolveAppPath,
+  getAppHomeDir,
+  writeFileWithParents,
+  renameWithParents,
+} from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
@@ -18,6 +23,7 @@ export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
 const self = global as typeof globalThis & {
   __logCallback__: (levelno: number, msg: string) => void;
+  __sharedWorkerMode__: boolean;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
@@ -39,10 +45,13 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
+let initPyodidePromise: Promise<Pyodide.PyodideInterface> | null = null;
+
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
   presetInitialData?: Partial<WorkerInitialData>,
+  appId?: string,
 ) {
   function postProgressMessage(message: string): void {
     postMessage({
@@ -91,14 +100,35 @@ export function startWorkerEnv(
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
 
-    postProgressMessage("Loading Pyodide.");
+    if (initPyodidePromise) {
+      postProgressMessage("Pyodide is already loaded.");
+      console.debug("Pyodide is already loaded.");
+      pyodide = await initPyodidePromise;
+    } else {
+      postProgressMessage("Loading Pyodide.");
+      console.debug("Loading Pyodide.");
+      initPyodidePromise = initPyodide(pyodideUrl, {
+        stdout: console.log,
+        stderr: console.error,
+      });
+      pyodide = await initPyodidePromise;
 
-    console.debug("Loading Pyodide");
-    pyodide = await initPyodide(pyodideUrl, {
-      stdout: console.log,
-      stderr: console.error,
-    });
-    console.debug("Loaded Pyodide");
+      if (wheels) {
+        // NOTE: It's important to install the user-specified requirements
+        // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
+        // which satisfies the following two requirements:
+        // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+        // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+        // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+        // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+        // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+        // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+        requirements.unshift(wheels.streamlit);
+        requirements.unshift(wheels.stliteLib);
+      }
+
+      console.debug("Loaded Pyodide");
+    }
 
     let useIdbfs = false;
     if (idbfsMountpoints) {
@@ -136,6 +166,7 @@ export function startWorkerEnv(
     await Promise.all(
       Object.keys(files).map(async (path) => {
         const file = files[path];
+        path = resolveAppPath(appId, path);
 
         let data: string | ArrayBufferView;
         if ("url" in file) {
@@ -146,10 +177,9 @@ export function startWorkerEnv(
         } else {
           data = file.data;
         }
-        const { opts } = files[path];
 
         console.debug(`Write a file "${path}"`);
-        writeFileWithParents(pyodide, path, data, opts);
+        writeFileWithParents(pyodide, path, data, files.opts);
 
         if (path.endsWith(".py")) {
           pythonFilePaths.push(path);
@@ -191,32 +221,10 @@ export function startWorkerEnv(
     await pyodide.loadPackage(prebuiltPackages);
     console.debug("Installed the prebuilt packages");
 
-    if (wheels) {
-      console.debug(
-        "Installing the wheels:",
-        wheels,
-        "and the requirements:",
-        requirements,
-      );
-      // NOTE: It's important to install the user-specified requirements
-      // and the custom Streamlit and stlite wheels in the same `micropip.install` call,
-      // which satisfies the following two requirements:
-      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-      await micropip.install.callKwargs(
-        [wheels.stliteLib, wheels.streamlit, ...requirements],
-        { keep_going: true },
-      );
-      console.debug("Installed the wheels and the requirements");
-    } else {
-      console.debug("Installing the requirements:", requirements);
-      await micropip.install.callKwargs(requirements, { keep_going: true });
-      console.debug("Installed the requirements");
-    }
+    console.debug("Installing the requirements:", requirements);
+    await micropip.install.callKwargs(requirements, { keep_going: true });
+    console.debug("Installed the requirements");
+
     if (moduleAutoLoad) {
       const sources = pythonFilePaths.map((path) =>
         pyodide.FS.readFile(path, { encoding: "utf8" }),
@@ -349,6 +357,7 @@ streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
           });
         }
       };
+      // TODO: Run the callback only for the current app in the case of SharedWorker mode, where multiple runtimes exist.
       // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `__scriptFinishedCallback__` when the script is finished.
       await pyodide.runPythonAsync(`
 from streamlit.runtime.app_session import AppSession
@@ -369,9 +378,12 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       console.debug("Set up the IndexedDB filesystem synchronizer");
     }
 
+    const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
+
     postProgressMessage("Booting up the Streamlit server.");
     // The following Python code is based on streamlit.web.cli.main_run().
     console.debug("Setting up the Streamlit configuration");
+    self.__sharedWorkerMode__ = appId != null;
     self.__streamlitFlagOptions__ = {
       // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
       "browser.gatherUsageStats": false,
@@ -380,12 +392,12 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     };
     await pyodide.runPythonAsync(`
 from stlite_lib.bootstrap import load_config_options, prepare
-from js import __streamlitFlagOptions__
+from js import __sharedWorkerMode__, __streamlitFlagOptions__
 
 flag_options = __streamlitFlagOptions__.to_py()
-load_config_options(flag_options)
+load_config_options(flag_options, __sharedWorkerMode__)
 
-main_script_path = "${entrypoint}"
+main_script_path = "${canonicalEntrypoint}"
 args = []
 
 prepare(main_script_path, args)
@@ -394,7 +406,10 @@ prepare(main_script_path, args)
 
     console.debug("Booting up the Streamlit server");
     const Server = pyodide.pyimport("stlite_lib.server.Server");
-    httpServer = Server(entrypoint);
+    httpServer = Server(
+      canonicalEntrypoint,
+      appId ? getAppHomeDir(appId) : null,
+    );
     await httpServer.start();
     console.debug("Booted up the Streamlit server");
 
@@ -542,7 +557,8 @@ prepare(main_script_path, args)
           break;
         }
         case "file:write": {
-          const { path, data: fileData, opts } = msg.data;
+          const { path: rawPath, data: fileData, opts } = msg.data;
+          const path = resolveAppPath(appId, rawPath);
 
           if (
             moduleAutoLoad &&
@@ -564,7 +580,9 @@ prepare(main_script_path, args)
           break;
         }
         case "file:rename": {
-          const { oldPath, newPath } = msg.data;
+          const { oldPath: rawOldPath, newPath: rawNewPath } = msg.data;
+          const oldPath = resolveAppPath(appId, rawOldPath);
+          const newPath = resolveAppPath(appId, rawNewPath);
 
           console.debug(`Rename "${oldPath}" to ${newPath}`);
           renameWithParents(pyodide, oldPath, newPath);
@@ -574,7 +592,8 @@ prepare(main_script_path, args)
           break;
         }
         case "file:unlink": {
-          const { path } = msg.data;
+          const { path: rawPath } = msg.data;
+          const path = resolveAppPath(appId, rawPath);
 
           console.debug(`Remove "${path}`);
           pyodide.FS.unlink(path);

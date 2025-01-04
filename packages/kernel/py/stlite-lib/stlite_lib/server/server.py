@@ -8,7 +8,7 @@ import pyodide.ffi
 from streamlit import source_util
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
-from streamlit.runtime import Runtime, RuntimeConfig, SessionClient
+from streamlit.runtime import Runtime, RuntimeConfig, SessionClient, runtime_contextvar
 from streamlit.runtime.caching.storage.dummy_cache_storage import (
     MemoryCacheStorageManager,
 )
@@ -21,6 +21,7 @@ from .handler import RequestHandler
 from .health_handler import HealthHandler, Request
 from .media_file_handler import MediaFileHandler
 from .server_util import make_url_path_regex
+from .task_context import home_dir_contextvar
 from .upload_file_request_handler import UploadFileRequestHandler
 
 _LOGGER: Final = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ HEALTH_ENDPOINT: Final = r"(?:healthz|_stcore/health)"
 class Server:
     _routes: list[tuple[re.Pattern, RequestHandler]] = []
 
-    def __init__(self, main_script_path: str) -> None:
+    def __init__(self, main_script_path: str, app_home_dir: str | None = None) -> None:
         self._main_script_path = main_script_path
 
         self._media_file_storage = MemoryMediaFileStorage(MEDIA_ENDPOINT)
@@ -53,6 +54,11 @@ class Server:
             ),
         )
 
+        self.app_home_dir = app_home_dir
+
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
+
         self._runtime.stats_mgr.register_provider(self._media_file_storage)
 
     async def start(self) -> None:
@@ -60,8 +66,10 @@ class Server:
 
         When this returns, Streamlit is ready to accept new sessions.
         """
-
         _LOGGER.debug("Starting server...")
+
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
 
         # In stlite, we deal with WebSocket separately.
         self._websocket_handler = WebSocketHandler(self._runtime)
@@ -101,6 +109,10 @@ class Server:
     def start_websocket(self, path: str, on_message):
         if not re.match(make_url_path_regex(STREAM_ENDPOINT), path):
             raise RuntimeError("Invalid WebSocket endpoint")
+
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
+
         self._websocket_handler.open(on_message)
 
     def receive_websocket_from_js(
@@ -118,6 +130,12 @@ class Server:
         self.receive_websocket(payload)
 
     def receive_websocket(self, message: bytes):
+        # Set the runtime and home dir context vars for the current task.
+        # For example, `BackMsg(rerunScript=...)` in the WebSocket message triggers the next run,
+        # so setting the context vars here is necessary for it.
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
+
         self._websocket_handler.on_message(message)
 
     def receive_http_from_js(
@@ -210,13 +228,16 @@ class Server:
         return
 
     def stop(self):
+        runtime_contextvar.set(self._runtime)
+
         self._websocket_handler.on_close()
 
         # `Runtime.stop()` doesn't stop the running tasks immediately,
         # but we don't need to wait for them to finish for the current use case,
         # e.g. booting up a new server and replacing the old one.
         self._runtime.stop()
-        Runtime._instance = None
+        runtime_contextvar.set(None)
+        home_dir_contextvar.set(None)
 
         # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
         # to resolve the pages info, caches the pages in the module-level variable `source_util._cached_pages`.

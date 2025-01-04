@@ -16,6 +16,7 @@ export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
   initialAppData: AppData;
   messageTargetOrigin: string;
   theme: "light" | "dark" | null;
+  sharedWorkerMode: boolean;
   onMessage: (event: MessageEvent) => void;
 }
 const StliteSharingIFrame = React.forwardRef<
@@ -29,6 +30,7 @@ const StliteSharingIFrame = React.forwardRef<
       messageTargetOrigin,
       onMessage,
       theme,
+      sharedWorkerMode,
       ...iframeProps
     },
     ref,
@@ -43,6 +45,9 @@ const StliteSharingIFrame = React.forwardRef<
         if (theme) {
           urlParams.append("embed_options", `${theme}_theme`);
         }
+        if (sharedWorkerMode) {
+          urlParams.append("sharedWorker", "true");
+        }
         return embedAppDataToUrl(
           sharingAppSrc + "?" + urlParams.toString(),
           initialAppData,
@@ -52,7 +57,7 @@ const StliteSharingIFrame = React.forwardRef<
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc, theme],
+      [sharingAppSrc, theme, sharedWorkerMode],
     );
 
     useImperativeHandle(

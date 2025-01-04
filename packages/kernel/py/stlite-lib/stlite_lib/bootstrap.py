@@ -54,7 +54,7 @@ def _fix_pydeck_mapbox_api_warning() -> None:
     os.environ["MAPBOX_API_KEY"] = config.get_option("mapbox.token")
 
 
-def load_config_options(flag_options: Dict[str, Any]) -> None:
+def load_config_options(flag_options: Dict[str, Any], multi_runtime=False) -> None:
     """Load config options from config.toml files, then overlay the ones set by
     flag_options.
 
@@ -77,7 +77,18 @@ def load_config_options(flag_options: Dict[str, Any]) -> None:
 
     # Force a reparse of config files (if they exist). The result is cached
     # for future calls.
-    config.get_config_options(force_reparse=True, options_from_flags=options_from_flags)
+    # Stlite: set `force_reparse=False` in the shared worker mode, where there are multiple runtimes.
+    # If `force_reparse=True`, `config.get_config_options()` always reparse the config files and sends the `_on_config_parsed` signal,
+    # which leads to send the `script_changed_on_disk` message to all frontend apps.
+    # It leads to display the "Source file changed. [Rerun] [Always Rerun]" message
+    # in every connected frontend and it's annoying.
+    # Also, the `config` module holds the config object as a module-level variable,
+    # so it can't manage different configs for each runtime and it doesn't work well in the shared worker mode anyway.
+    # For the second problem, at this moment, we gave up to fix it and leave the `config` module as not multi runtime-compatible.
+    # TODO: Fix the `config` module to be multi runtime-compatible.
+    config.get_config_options(
+        force_reparse=not multi_runtime, options_from_flags=options_from_flags
+    )
 
 
 def _install_pages_watcher(main_script_path_str: str) -> None:

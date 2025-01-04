@@ -1,11 +1,13 @@
-common := packages/common/dist/*
-common-react := packages/common-react/dist/*
-mountable := packages/mountable/build/*
-sharing := packages/sharing/build/*
-sharing-common := packages/sharing-common/dist/*
-sharing-editor := packages/sharing-editor/build/*
-desktop := packages/desktop/build/*
-kernel := packages/kernel/dist/*
+BUILD_STATE_DIR := .make
+
+common := $(BUILD_STATE_DIR)/common/.built
+common-react := $(BUILD_STATE_DIR)/common-react/.built
+mountable := $(BUILD_STATE_DIR)/mountable/.built
+sharing := $(BUILD_STATE_DIR)/sharing/.built
+sharing-common := $(BUILD_STATE_DIR)/sharing-common/.built
+sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
+desktop := $(BUILD_STATE_DIR)/desktop/.built
+kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.40.1-cp312-none-any.whl
@@ -47,58 +49,58 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: common
 common: $(common)
-$(common): packages/common/src/*.ts yarn_install
-	cd packages/common; \
-	yarn build
+$(common): $(shell find packages/common/src -type f -name "*.ts") yarn_install
+	cd packages/common && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): packages/common-react/src/*.ts yarn_install $(kernel)
-	cd packages/common-react; \
-	yarn build
+$(common-react): $(shell find packages/common-react/src -type f -name "*.ts") yarn_install $(kernel)
+	cd packages/common-react && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): packages/mountable/src/*.ts packages/mountable/src/*.tsx yarn_install $(kernel) $(common) $(common-react)
-	cd packages/mountable; \
-	yarn build
+$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/mountable/public -type f) yarn_install $(kernel) $(common) $(common-react)
+	cd packages/mountable && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): packages/sharing/src/*.ts packages/sharing/src/*.tsx yarn_install $(kernel) $(sharing-common) $(common-react)
-	cd packages/sharing; \
-	yarn build
+$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) yarn_install $(kernel) $(sharing-common) $(common-react)
+	cd packages/sharing && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-common
 sharing-common: $(sharing-common)
-$(sharing-common): packages/sharing-common/src/*.ts yarn_install
-	cd packages/sharing-common; \
-	yarn build
+$(sharing-common): $(shell find packages/sharing-common/src -type f -name "*.ts") yarn_install
+	cd packages/sharing-common && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): packages/sharing-editor/src/*.ts packages/sharing-editor/src/*.tsx yarn_install $(common) $(sharing-common)
-	cd packages/sharing-editor; \
-	yarn build
+$(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) yarn_install $(common) $(sharing-common)
+	cd packages/sharing-editor && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
 $(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
-	cd packages/desktop; \
-	yarn build
+	cd packages/desktop && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel
 kernel: $(kernel)
 $(kernel): packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
-	cd packages/kernel; \
-	yarn build
+	cd packages/kernel && yarn build
+	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel-test
@@ -148,4 +150,6 @@ $(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) stream
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:
-	rm -rf $(common) $(common-react) $(mountable) $(sharing) $(sharing-common) $(sharing-editor) $(desktop) $(kernel) $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
+	rm -rf $(BUILD_STATE_DIR)
+	rm -rf packages/*/dist/* packages/*/build/*
+	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

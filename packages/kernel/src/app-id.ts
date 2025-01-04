@@ -1,6 +1,7 @@
 const charset = "abcdefghijklmnopqrstuvwxyz";
 const charsetSize = charset.length;
 
+// This is not cryptographically secure, but it's good enough for our use case.
 export function generateRandomAppId(length: number): string {
   let id = "";
 

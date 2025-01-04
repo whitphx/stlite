@@ -393,7 +393,7 @@ export class StliteKernel {
             throw new Error(`Unexpected reply type "${msg.type}"`);
           }
           if (expectedReplyType === "reply") {
-            resolve();
+            resolve(undefined);
           } else {
             resolve(msg.data);
           }

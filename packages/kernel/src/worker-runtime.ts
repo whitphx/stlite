@@ -101,12 +101,11 @@ export function startWorkerEnv(
 
     if (initPyodidePromise) {
       postProgressMessage("Pyodide is already loaded.");
-      pyodide = await initPyodidePromise;
       console.debug("Pyodide is already loaded.");
+      pyodide = await initPyodidePromise;
     } else {
       postProgressMessage("Loading Pyodide.");
-
-      console.debug("Loading Pyodide");
+      console.debug("Loading Pyodide.");
       initPyodidePromise = initPyodide(pyodideUrl, {
         stdout: console.log,
         stderr: console.error,

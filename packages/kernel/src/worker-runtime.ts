@@ -21,6 +21,7 @@ const self = global as typeof globalThis & {
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
+  __isSharedWorker__?: boolean;
 };
 
 function dispatchModuleAutoLoading(
@@ -42,8 +43,10 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 export function startWorkerEnv(
   defaultPyodideUrl: string,
   postMessage: PostMessageFn,
-  presetInitialData?: Partial<WorkerInitialData>,
+  options: { shared?: boolean } = {},
 ) {
+  const { shared = false } = options;
+  self.__isSharedWorker__ = shared;
   function postProgressMessage(message: string): void {
     postMessage({
       type: "event:progress",
@@ -69,11 +72,7 @@ export function startWorkerEnv(
    *       https://github.com/jupyterlite/jupyterlite/pull/310
    */
   async function loadPyodideAndPackages() {
-    const initialDataFromMessage = await initDataPromiseDelegate.promise;
-    const initData = {
-      ...presetInitialData,
-      ...initialDataFromMessage,
-    };
+    const initData = await initDataPromiseDelegate.promise;
     console.debug("Initial data", initData);
     const {
       entrypoint,
@@ -238,6 +237,7 @@ importlib.invalidate_caches()
     // For https://github.com/whitphx/stlite/issues/427
     await pyodide.runPythonAsync(`
 import streamlit.runtime
+import streamlit as st  # Ensure st is available in globals
     `);
     console.debug("Loaded the Streamlit package");
 
@@ -611,6 +611,12 @@ prepare(main_script_path, args)
                 type: "reply",
               });
             });
+          break;
+        }
+        case "cleanup": {
+          console.debug("Received cleanup message");
+          cleanup();
+          break;
         }
       }
     } catch (error) {
@@ -637,6 +643,43 @@ prepare(main_script_path, args)
       });
     }
   };
+
+  // Add cleanup handler for worker termination
+  const cleanup = () => {
+    const cleanupStatus = {
+      httpServer: false,
+      pyodide: false,
+    };
+
+    if (httpServer) {
+      console.debug("Cleaning up HTTP server");
+      httpServer.stop();
+      cleanupStatus.httpServer = true;
+    }
+    if (pyodide) {
+      console.debug("Cleaning up Pyodide");
+      try {
+        pyodide.FS.syncfs(false, (err: Error) => {
+          if (err) console.error("Error syncing FS:", err);
+        });
+        cleanupStatus.pyodide = true;
+      } catch (e) {
+        console.error("Error during FS sync:", e);
+      }
+    }
+
+    postMessage({
+      type: "event:cleanup",
+      data: cleanupStatus,
+    });
+  };
+
+  // Register cleanup handler
+  if (self.__isSharedWorker__) {
+    self.addEventListener("close", cleanup);
+  } else {
+    self.addEventListener("unload", cleanup);
+  }
 
   postMessage({
     type: "event:start",

@@ -6,7 +6,7 @@ import { PromiseDelegate } from "@stlite/common";
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
 
 import { makeAbsoluteWheelURL } from "./url";
-import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+import { CrossOriginWorkerMaker } from "./cross-origin-worker";
 
 import type {
   EmscriptenFile,
@@ -132,13 +132,14 @@ export interface StliteKernelOptions {
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one of the use cases.
    */
-  worker?: globalThis.Worker;
+  worker?: StliteWorker;
 }
 
 export class StliteKernel {
   private _isDisposed = false;
 
   private _worker: StliteWorker;
+  private _ports: Set<MessagePort> = new Set();
 
   private _loaded = new PromiseDelegate<void>();
 
@@ -166,16 +167,28 @@ export class StliteKernel {
     if (options.worker) {
       this._worker = options.worker;
     } else {
-      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-      // Read the comment in `cross-origin-worker.ts` for the detail.
-      const workerMaker = new Worker(new URL("./worker.js", import.meta.url));
+      const workerMaker = new CrossOriginWorkerMaker(
+        new URL("./worker.js", import.meta.url),
+      );
       this._worker = workerMaker.worker;
     }
 
-    this._worker.onmessage = (e) => {
-      const messagePort: MessagePort | undefined = e.ports[0];
-      this._processWorkerMessage(e.data, messagePort);
-    };
+    if (this._worker instanceof Worker) {
+      this._worker.onmessage = (e: MessageEvent<OutMessage>) => {
+        const messagePort = e.ports[0];
+        if (messagePort) {
+          this._ports.add(messagePort);
+        }
+        this._processWorkerMessage(e.data, messagePort);
+      };
+    } else {
+      const sharedWorker = this._worker as SharedWorker;
+      sharedWorker.port.onmessage = (e: MessageEvent<OutMessage>) => {
+        this._ports.add(sharedWorker.port);
+        this._processWorkerMessage(e.data, sharedWorker.port);
+      };
+      sharedWorker.port.start();
+    }
 
     let wheels: WorkerInitialData["wheels"] = undefined;
     if (!options.skipStliteWheelsInstall) {
@@ -230,7 +243,7 @@ export class StliteKernel {
     });
   }
 
-  public sendWebSocketMessage(payload: Uint8Array) {
+  public sendWebSocketMessage(payload: Uint8Array): Promise<void> {
     return this._asyncPostMessage({
       type: "websocket:send",
       data: {
@@ -242,7 +255,10 @@ export class StliteKernel {
   private handleWebSocketMessage:
     | ((payload: Uint8Array | string) => void)
     | null = null;
-  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+
+  public onWebSocketMessage(
+    handler: (payload: Uint8Array | string) => void,
+  ): void {
     this.handleWebSocketMessage = handler;
   }
 
@@ -266,7 +282,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>,
+    opts?: Record<string, any>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -338,15 +354,8 @@ export class StliteKernel {
 
   private _asyncPostMessage(
     message: InMessage,
-  ): Promise<ReplyMessageGeneralReply["data"]>;
-  private _asyncPostMessage<T extends ReplyMessage["type"]>(
-    message: InMessage,
-    expectedReplyType: T,
-  ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
-  private _asyncPostMessage(
-    message: InMessage,
     expectedReplyType = "reply",
-  ): Promise<ReplyMessage["data"]> {
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
 
@@ -359,11 +368,18 @@ export class StliteKernel {
           if (msg.type !== expectedReplyType) {
             throw new Error(`Unexpected reply type "${msg.type}"`);
           }
-          resolve(msg.data);
+          resolve(expectedReplyType === "reply" ? undefined : msg.data);
         }
       };
 
-      this._worker.postMessage(message, [channel.port2]);
+      if (this._worker instanceof Worker) {
+        this._worker.postMessage(message, [channel.port2]);
+      } else {
+        // For SharedWorker, send through all active ports
+        for (const port of this._ports) {
+          port.postMessage(message, [channel.port2]);
+        }
+      }
     });
   }
 
@@ -375,10 +391,18 @@ export class StliteKernel {
   private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
       case "event:start": {
-        this._worker.postMessage({
-          type: "initData",
-          data: this._workerInitData,
-        });
+        if (this._worker instanceof Worker) {
+          this._worker.postMessage({
+            type: "initData",
+            data: this._workerInitData,
+          });
+        } else if (port) {
+          // For SharedWorker, send through the specific port that triggered the event
+          port.postMessage({
+            type: "initData",
+            data: this._workerInitData,
+          });
+        }
         break;
       }
       case "event:progress": {
@@ -437,7 +461,26 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    this._worker.terminate();
+
+    // Clean up all ports
+    for (const port of this._ports) {
+      try {
+        port.close();
+      } catch (error) {
+        console.warn("Error closing port:", error);
+      }
+    }
+    this._ports.clear();
+
+    if (this._worker instanceof SharedWorker) {
+      try {
+        this._worker.port.close();
+      } catch (error) {
+        console.warn("Error closing SharedWorker port:", error);
+      }
+    } else {
+      this._worker.terminate();
+    }
 
     this._isDisposed = true;
   }

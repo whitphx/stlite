@@ -1,3 +1,5 @@
+import type { StliteWorker } from "./types";
+
 // A hack to load a worker script from a different origin.
 // Webpack 5's built-in Web Workers feature does not support inlining the worker code
 // into the main bundle and always emits it to a separate file,
@@ -32,23 +34,23 @@ function isSameOrigin(url: URL): boolean {
 }
 
 export class CrossOriginWorkerMaker {
-  public readonly worker: Worker;
+  public readonly worker: StliteWorker;
 
-  constructor(url: URL) {
+  constructor(url: URL, options: { shared?: boolean } = {}) {
+    const { shared = false } = options;
+    const WorkerClass = shared ? SharedWorker : Worker;
+
     if (isSameOrigin(url)) {
-      console.debug(`Loading a worker script from the same origin: ${url}`);
-
-      // This is the normal way to load a worker script, which is the best straightforward if possible.
-      this.worker = new Worker(url);
-
-      // NOTE: We use here `if-else` checking the origin instead of `try-catch`
-      // because the `try-catch` approach doesn't work on some browsers like FireFox.
-      // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
-      // so we can't catch the error synchronously.
+      console.debug(
+        `Loading a ${shared ? "shared" : "dedicated"} worker script from the same origin: ${url}`,
+      );
+      this.worker = new WorkerClass(url) as StliteWorker;
     } else {
-      console.debug(`Loading a worker script from a different origin: ${url}`);
+      console.debug(
+        `Loading a ${shared ? "shared" : "dedicated"} worker script from a different origin: ${url}`,
+      );
       const workerBlobUrl = getWorkerBlobUrl(url);
-      this.worker = new Worker(workerBlobUrl);
+      this.worker = new WorkerClass(workerBlobUrl) as StliteWorker;
     }
   }
 }

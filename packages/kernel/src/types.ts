@@ -138,12 +138,17 @@ export type InMessage =
   | InMessageFileRename
   | InMessageFileUnlink
   | InMessageFileRead
-  | InMessageInstall;
+  | InMessageInstall
+  | InMessageCleanup;
 
-export interface StliteWorker extends Worker {
-  postMessage(message: InMessage, transfer: Transferable[]): void;
-  postMessage(message: InMessage, options?: StructuredSerializeOptions): void;
+export interface InMessageCleanup extends InMessageBase {
+  type: "cleanup";
 }
+
+/**
+ * Represents either a DedicatedWorker or SharedWorker instance.
+ */
+export type StliteWorker = Worker | SharedWorker;
 
 /**
  * Output messages from worker to kernel
@@ -182,13 +187,21 @@ export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
     packagesToLoad: string[];
   };
 }
+export interface OutMessageCleanupEvent extends OutMessageBase {
+  type: "event:cleanup";
+  data: {
+    httpServer: boolean;
+    pyodide: boolean;
+  };
+}
 export type OutMessage =
   | OutMessageStartEvent
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
   | OutMessageWebSocketBack
-  | OutMessageModuleAutoLoadEvent;
+  | OutMessageModuleAutoLoadEvent
+  | OutMessageCleanupEvent;
 
 export interface ModuleAutoLoadMessageBase {
   type: string;

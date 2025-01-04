@@ -10,9 +10,9 @@ function stliteStyledPromiseToast<
 >(
   promise: Promise<TData>,
   messages: ToastPromiseParams<TData, TError, TPending>,
-): ReturnType<typeof toast.promise> {
+): Promise<TData> {
   const errorMessage = messages.error;
-  return toast.promise<TData, TError, TPending>(
+  toast.promise<TData, TError, TPending>(
     promise,
     {
       pending: messages.pending,
@@ -37,6 +37,7 @@ function stliteStyledPromiseToast<
       position: toast.POSITION.BOTTOM_RIGHT,
     },
   );
+  return promise;
 }
 
 export interface StliteKernelWithToastOptions {
@@ -67,34 +68,31 @@ export class StliteKernelWithToast {
   }
 
   public writeFile(...args: Parameters<StliteKernel["writeFile"]>) {
-    return stliteStyledPromiseToast<void>(this.kernel.writeFile(...args), {
+    return stliteStyledPromiseToast(this.kernel.writeFile(...args), {
       error: "Failed to write the file",
     });
   }
 
   public renameFile(...args: Parameters<StliteKernel["renameFile"]>) {
-    return stliteStyledPromiseToast<void>(this.kernel.renameFile(...args), {
+    return stliteStyledPromiseToast(this.kernel.renameFile(...args), {
       error: "Failed to rename the file",
     });
   }
 
   public unlink(...args: Parameters<StliteKernel["unlink"]>) {
-    return stliteStyledPromiseToast<void>(this.kernel.unlink(...args), {
+    return stliteStyledPromiseToast(this.kernel.unlink(...args), {
       error: "Failed to remove the file",
     });
   }
 
   public readFile(...args: Parameters<StliteKernel["readFile"]>) {
-    return stliteStyledPromiseToast<string | Uint8Array>(
-      this.kernel.readFile(...args),
-      {
-        error: "Failed to read the file",
-      },
-    );
+    return stliteStyledPromiseToast(this.kernel.readFile(...args), {
+      error: "Failed to read the file",
+    });
   }
 
   public install(...args: Parameters<StliteKernel["install"]>) {
-    return stliteStyledPromiseToast<void>(this.kernel.install(...args), {
+    return stliteStyledPromiseToast(this.kernel.install(...args), {
       pending: "Installing",
       success: "Successfully installed",
       error: "Failed to install",
@@ -102,7 +100,7 @@ export class StliteKernelWithToast {
   }
 
   public reboot(...args: Parameters<StliteKernel["reboot"]>) {
-    return stliteStyledPromiseToast<void>(this.kernel.reboot(...args), {
+    return stliteStyledPromiseToast(this.kernel.reboot(...args), {
       pending: "Rebooting",
       success: "Successfully rebooted",
       error: "Failed to reboot",

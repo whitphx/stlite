@@ -21,6 +21,7 @@ interface InitializeWorkerEnvOptions {
   entrypoint: string;
   files: WorkerInitialData["files"];
   requirements?: WorkerInitialData["requirements"];
+  shared?: boolean;
 }
 function initializeWorkerEnv(
   options: InitializeWorkerEnvOptions,
@@ -48,7 +49,10 @@ function initializeWorkerEnv(
       }
     };
 
-    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
+    const onMessage = startWorkerEnv(pyodideUrl, postMessage, {
+      shared: options.shared ?? false,
+      presetInitialData: undefined,
+    });
 
     // Send the initializer message to the worker.
     onMessage(
@@ -145,7 +149,7 @@ await at.run(timeout=20)
   },
 ];
 
-suite("Worker intergration test running an app", async () => {
+suite("DedicatedWorker integration test running an app", async () => {
   afterEach(() => {
     vitest.restoreAllMocks();
   });
@@ -170,6 +174,7 @@ suite("Worker intergration test running an app", async () => {
           entrypoint: testSource.entrypoint,
           files,
           requirements: testSource.requirements,
+          shared: false,
         });
 
         pyodide.globals.set(
@@ -207,4 +212,152 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
       },
     );
   }
+});
+
+suite("SharedWorker integration tests", async () => {
+  afterEach(() => {
+    vitest.restoreAllMocks();
+  });
+
+  test(
+    "SharedWorker initialization and connection",
+    async () => {
+      const files = {
+        "test.py": {
+          data: "import streamlit as st\nst.write('Hello from SharedWorker')",
+        },
+      };
+
+      const pyodide = await initializeWorkerEnv({
+        entrypoint: "test.py",
+        files,
+        shared: true,
+      });
+
+      // Verify SharedWorker initialization
+      expect(pyodide).toBeDefined();
+      expect(pyodide.globals.get("st")).toBeDefined();
+    },
+    { timeout: 10000 },
+  );
+
+  test(
+    "Multiple concurrent connections",
+    async () => {
+      const testFiles = {
+        "test.py": {
+          data: "import streamlit as st\nst.write('Testing concurrent connections')",
+        },
+      };
+
+      // Create multiple connections
+      const connections = await Promise.all([
+        initializeWorkerEnv({
+          entrypoint: "test.py",
+          files: testFiles,
+          shared: true,
+        }),
+        initializeWorkerEnv({
+          entrypoint: "test.py",
+          files: testFiles,
+          shared: true,
+        }),
+        initializeWorkerEnv({
+          entrypoint: "test.py",
+          files: testFiles,
+          shared: true,
+        }),
+      ]);
+
+      // Verify all connections are active
+      connections.forEach((pyodide) => {
+        expect(pyodide).toBeDefined();
+        expect(pyodide.globals.get("st")).toBeDefined();
+      });
+    },
+    { timeout: 15000 },
+  );
+
+  test(
+    "Resource cleanup",
+    async () => {
+      const cleanupFiles = {
+        "test.py": {
+          data: "import streamlit as st\nst.write('Testing cleanup')",
+        },
+      };
+
+      const pyodide = await initializeWorkerEnv({
+        entrypoint: "test.py",
+        files: cleanupFiles,
+      });
+
+      // Mock port.close() to verify it's called
+      const portCloseSpy = vitest.fn();
+      const port = { close: portCloseSpy };
+
+      // Simulate cleanup
+      pyodide.globals.set("__cleanup__", () => {
+        port.close();
+      });
+
+      await pyodide.runPythonAsync("__cleanup__()");
+      expect(portCloseSpy).toHaveBeenCalled();
+    },
+    { timeout: 10000 },
+  );
+
+  test(
+    "Message routing between connections",
+    async () => {
+      const routingFiles = {
+        "test.py": {
+          data: `
+import streamlit as st
+import time
+
+if 'counter' not in st.session_state:
+    st.session_state.counter = 0
+
+st.session_state.counter += 1
+st.write(f'Connection {st.session_state.counter}')
+`,
+        },
+      };
+
+      // Create two connections to the shared worker
+      const [connection1, connection2] = await Promise.all([
+        initializeWorkerEnv({
+          entrypoint: "test.py",
+          files: routingFiles,
+          shared: true,
+        }),
+        initializeWorkerEnv({
+          entrypoint: "test.py",
+          files: routingFiles,
+          shared: true,
+        }),
+      ]);
+
+      // Initialize counter in first connection
+      await connection1.runPythonAsync(`
+if 'counter' not in st.session_state:
+    st.session_state.counter = 0
+st.session_state.counter += 1
+    `);
+
+      // Verify state is shared between connections
+      const counter1 = await connection1.runPythonAsync(
+        "st.session_state.counter",
+      );
+      const counter2 = await connection2.runPythonAsync(
+        "st.session_state.counter",
+      );
+
+      // Both connections should see the same counter value since they share state
+      expect(counter1).toBe(1);
+      expect(counter2).toBe(1);
+    },
+    { timeout: 15000 },
+  );
 });

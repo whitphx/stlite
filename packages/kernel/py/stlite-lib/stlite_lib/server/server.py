@@ -56,6 +56,9 @@ class Server:
 
         self.app_home_dir = app_home_dir
 
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
+
         self._runtime.stats_mgr.register_provider(self._media_file_storage)
 
     async def start(self) -> None:

@@ -27,7 +27,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import {
   URL_SEARCH_KEY_SAMPLE_APP_ID,
   URL_SEARCH_KEY_EMBED_MODE,
-  URL_SHARED_WORKER_MODE,
+  URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
 
@@ -52,7 +52,7 @@ export const loader = async ({
 
   const embedMode = url.searchParams.get(URL_SEARCH_KEY_EMBED_MODE) === "true";
   const sharedWorkerMode =
-    url.searchParams.get(URL_SHARED_WORKER_MODE) === "true";
+    url.searchParams.get(URL_SEARCH_KEY_SHARED_WORKER_MODE) === "true";
 
   if (parsedSampleAppId == null) {
     try {

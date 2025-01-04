@@ -1,14 +1,16 @@
 import streamlit as st
-from PIL import Image
 
 st.title("Stlite Sharing: Serverless Streamlit app platform")
 
-image = Image.open('data/logo.png')
-st.image(image, caption='Stlite logo')
+col1, col2 = st.columns(2, vertical_alignment="center", gap="large")
+with col1:
+    st.image("data/logo.png", use_container_width=True)
+with col2:
+    st.image("https://streamlit.io/images/brand/streamlit-mark-color.svg", use_container_width=True)
 
 st.markdown("""
 ### Stlite
-**Stlite** is a port of _Streamlit_ to Wasm, powered by Pyodide,
+**Stlite** is a port of _Streamlit:streamlit:_ to Wasm, powered by Pyodide,
 that runs completely on web browsers.
 
 The official repository is [🔗 here](https://github.com/whitphx/stlite).
@@ -55,10 +57,17 @@ st.write("The slider value is", value)
 import numpy as np
 import pandas as pd
 
+
+@st.cache_data
+def get_chart_data():
+    return pd.DataFrame(
+        np.random.randn(20, 3),
+        columns=['a', 'b', 'c']
+    )
+
+
 st.subheader("Chart sample")
-chart_data = pd.DataFrame(
-    np.random.randn(20, 3),
-    columns=['a', 'b', 'c'])
+chart_data = get_chart_data()
 
 tab1, tab2, tab3 = st.tabs(["Line chart", "Area chart", "Bar chart"])
 with tab1:
@@ -69,10 +78,17 @@ with tab3:
     st.bar_chart(chart_data)
 
 st.subheader("DataFrame sample")
-df = pd.DataFrame(
-   np.random.randn(50, 20),
-   columns=('col %d' % i for i in range(20)))
 
+
+@st.cache_data
+def get_sample_df():
+    return pd.DataFrame(
+        np.random.randn(50, 20),
+        columns=('col %d' % i for i in range(20))
+    )
+
+
+df = get_sample_df()
 st.dataframe(df)
 
 st.subheader("Camera input")

@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
+import type { InMessage, OutMessage, ReplyMessage } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { parseMountOptions, MountOptions } from "./options";
 import {

@@ -99,7 +99,7 @@ export interface InMessageFileWrite extends InMessageBase {
   data: {
     path: string;
     data: string | ArrayBufferView;
-    opts?: Record<string, any>;
+    opts?: Record<string, string | number | boolean>;
   };
 }
 export interface InMessageFileRename extends InMessageBase {
@@ -119,7 +119,7 @@ export interface InMessageFileRead extends InMessageBase {
   type: "file:read";
   data: {
     path: string;
-    opts?: Record<string, any>;
+    opts?: Record<string, string | number | boolean>;
   };
 }
 export interface InMessageInstall extends InMessageBase {
@@ -262,7 +262,7 @@ export type ModuleAutoLoadMessage = ModuleAutoLoadSuccess | ModuleAutoLoadError;
 interface ReplyMessageBase {
   type: string;
   error?: Error;
-  data?: any;
+  data?: unknown;
 }
 export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";

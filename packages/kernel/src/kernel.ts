@@ -325,7 +325,7 @@ export class StliteKernel {
 
   public readFile(
     path: string,
-    opts?: Record<string, any>,
+    opts?: Record<string, string | number | boolean>,
   ): Promise<string | Uint8Array> {
     return this._asyncPostMessage(
       {

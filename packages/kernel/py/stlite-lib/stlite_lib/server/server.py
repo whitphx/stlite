@@ -130,6 +130,12 @@ class Server:
         self.receive_websocket(payload)
 
     def receive_websocket(self, message: bytes):
+        # Set the runtime and home dir context vars for the current task.
+        # For example, `BackMsg(rerunScript=...)` in the WebSocket message triggers the next run,
+        # so setting the context vars here is necessary for it.
+        runtime_contextvar.set(self._runtime)
+        home_dir_contextvar.set(self.app_home_dir)
+
         self._websocket_handler.on_message(message)
 
     def receive_http_from_js(

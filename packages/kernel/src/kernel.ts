@@ -449,10 +449,11 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    if (this._worker instanceof globalThis.Worker) {
+    if (this._worker instanceof SharedWorker) {
+      this._worker.port.close();
+    } else {
       this._worker.terminate();
     }
-
     this._isDisposed = true;
   }
 }

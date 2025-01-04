@@ -23,6 +23,7 @@ export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
 const self = global as typeof globalThis & {
   __logCallback__: (levelno: number, msg: string) => void;
+  __sharedWorkerMode__: boolean;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
@@ -382,6 +383,7 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     postProgressMessage("Booting up the Streamlit server.");
     // The following Python code is based on streamlit.web.cli.main_run().
     console.debug("Setting up the Streamlit configuration");
+    self.__sharedWorkerMode__ = appId != null;
     self.__streamlitFlagOptions__ = {
       // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
       "browser.gatherUsageStats": false,
@@ -390,10 +392,10 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
     };
     await pyodide.runPythonAsync(`
 from stlite_lib.bootstrap import load_config_options, prepare
-from js import __streamlitFlagOptions__
+from js import __sharedWorkerMode__, __streamlitFlagOptions__
 
 flag_options = __streamlitFlagOptions__.to_py()
-load_config_options(flag_options)
+load_config_options(flag_options, __sharedWorkerMode__)
 
 main_script_path = "${canonicalEntrypoint}"
 args = []

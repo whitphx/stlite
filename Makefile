@@ -18,7 +18,7 @@ streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 .PHONY: all
-all: init mountable sharing sharing-editor
+all: init $(mountable) $(sharing) $(sharing-editor) $(desktop)
 
 
 .PHONY: init

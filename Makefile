@@ -150,6 +150,11 @@ $(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) stream
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:
-	rm -rf $(BUILD_STATE_DIR)
+	# Preserve .gitkeep while cleaning build state files
+	cp $(BUILD_STATE_DIR)/.gitkeep /tmp/.gitkeep.tmp || true
+	rm -rf $(BUILD_STATE_DIR)/*
+	mkdir -p $(BUILD_STATE_DIR)
+	cp /tmp/.gitkeep.tmp $(BUILD_STATE_DIR)/.gitkeep || true
+	rm -f /tmp/.gitkeep.tmp
 	rm -rf packages/*/dist/* packages/*/build/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

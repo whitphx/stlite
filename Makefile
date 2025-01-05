@@ -138,20 +138,20 @@ $(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(node_modules) $(kernel) $(common) $(common-react)
+$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): $(shell find packages/kernel/src -type f -name "*.ts") $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel-test
-kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+kernel-test: $(shell find packages/kernel/src -type f -name "*.ts") $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
 

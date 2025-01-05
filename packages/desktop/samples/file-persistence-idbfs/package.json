@@ -1,6 +1,6 @@
 {
   "name": "stlite-desktop-sample-file-persistence-idbfs",
-  "version": "0.73.1",
+  "version": "0.75.0",
   "license": "Apache-2.0",
   "main": "./build/electron/main.js",
   "scripts": {
@@ -18,7 +18,7 @@
     }
   },
   "devDependencies": {
-    "@stlite/desktop": "^0.73.1",
+    "@stlite/desktop": "^0.75.0",
     "cross-env": "^7.0.3",
     "electron": "31.7.0",
     "electron-builder": "^25.1.7"

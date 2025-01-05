@@ -151,7 +151,13 @@ export function setupCustomElement(mount: typeof mountFn) {
         throw new Error("Entrypoint is required");
       }
 
+      const otherMountOptions: Partial<DetailedMountOptions> = {};
+      if (this.hasAttribute("shared-worker")) {
+        otherMountOptions.sharedWorker = true;
+      }
+
       return {
+        ...otherMountOptions,
         entrypoint,
         files,
         requirements: parseRequirementsTxt(requirementsText),

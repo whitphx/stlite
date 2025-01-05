@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.75.0] - 2025-01-05
+
+### `@stlite/mountable`
+
+#### Added
+
+- `sharedWorker` option, [#1207](https://github.com/whitphx/stlite/pull/1207).
+
+## [0.74.0] - 2025-01-05
+
+### `@stlite/kernel`
+
+#### Added
+
+- Experimental SharedWorker mode, [#1193](https://github.com/whitphx/stlite/pull/1193).
+
 ## [0.73.1] - 2024-12-21
 
 ### `@stlite/kernel`

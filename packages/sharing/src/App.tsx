@@ -89,7 +89,7 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
-          sharedWorkerMode: isSharedWorkerMode(),
+          sharedWorker: isSharedWorkerMode(),
         });
         _kernel = kernel;
         setKernel(kernel);

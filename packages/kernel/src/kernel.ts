@@ -129,7 +129,7 @@ export interface StliteKernelOptions {
 
   onError?: (error: Error) => void;
 
-  sharedWorkerMode?: boolean;
+  sharedWorker?: boolean;
 
   /**
    * The worker to be used, which can be optionally passed.
@@ -173,7 +173,7 @@ export class StliteKernel {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
       const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        shared: options.sharedWorkerMode ?? false,
+        shared: options.sharedWorker ?? false,
       });
       this._worker = workerMaker.worker;
     }

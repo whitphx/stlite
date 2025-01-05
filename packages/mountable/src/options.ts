@@ -21,6 +21,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   pyodideUrl: StliteKernelOptions["pyodideUrl"];
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
+  sharedWorker: StliteKernelOptions["sharedWorker"];
 }>;
 
 function canonicalizeFiles(
@@ -131,6 +132,7 @@ export function parseMountOptions(options: MountOptions): {
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
+      sharedWorker: options.sharedWorker,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

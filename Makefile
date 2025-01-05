@@ -18,23 +18,22 @@ streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 .PHONY: all
-all: init mountable sharing sharing-editor
+all: init $(mountable) $(sharing) $(sharing-editor) $(desktop)
 
 
 .PHONY: init
 init: git_submodules $(venv) $(node_modules)
 
-VENV := ./.venv
-NODE_MODULES := ./node_modules
+VENV_PATH := ./.venv
 
 .PHONY: venv
 venv: $(venv)
 $(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt $(shell find streamlit/lib/streamlit -type f -name "*.py")
-	[ -d $(VENV) ] || uv venv $(VENV)
-	. $(VENV)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
+	. $(VENV_PATH)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@mkdir -p $(dir $@)
 	@touch $@
-	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
+	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"
 
 .PHONY: node_modules
 node_modules: $(node_modules)
@@ -118,7 +117,7 @@ kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
 $(stlite-lib-wheel): $(venv) packages/kernel/py/stlite-lib/stlite_lib/*.py
-	. $(VENV)/bin/activate && \
+	. $(VENV_PATH)/bin/activate && \
 	cd packages/kernel/py/stlite-lib && \
 	uv build
 	@touch $@
@@ -126,7 +125,7 @@ $(stlite-lib-wheel): $(venv) packages/kernel/py/stlite-lib/stlite_lib/*.py
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
 $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
-	. $(VENV)/bin/activate && \
+	. $(VENV_PATH)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
 	@touch $@
@@ -134,7 +133,7 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(venv) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
-	. $(VENV)/bin/activate && \
+	. $(VENV_PATH)/bin/activate && \
 	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
 	PYODIDE_PYTHON_VERSION=`pyodide config get python_version` && \

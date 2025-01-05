@@ -1,5 +1,37 @@
 BUILD_STATE_DIR := .make
 
+# Build State Tracking Strategy
+# ---------------------------
+# This Makefile uses sentinel files in $(BUILD_STATE_DIR) to track build completion
+# because Make has specific requirements for reliable incremental builds:
+#
+# 1. Single-file targets with reliable timestamps:
+#    - Make needs a single file to track when a target was last built
+#    - Directory timestamps are unreliable because they update whenever any file
+#      inside changes, causing unnecessary rebuilds
+#    - JS/TS builds output multiple files (*.js, *.d.ts, etc.) making it hard
+#      to track completion with just the output files
+#
+# 2. Find-based dependency tracking vs sentinel files:
+#    - Find works great for dependencies (e.g., `find packages/common/src -type f -name "*.ts"`)
+#      because Make just needs to know if ANY source file is newer than the target
+#    - However, find can't replace sentinel files for build targets because:
+#      a) Make needs ONE file to compare timestamps against
+#      b) Directory-based targets would rebuild unnecessarily due to unreliable timestamps
+#      c) Multiple output files need a single source of truth for build completion
+#
+# 3. Benefits of sentinel files:
+#    - Provides a single, reliable timestamp for each build target
+#    - Prevents infinite rebuild loops between dependent targets
+#    - Works correctly with directory outputs and nested paths
+#    - Keeps build state separate from distribution files
+#
+# Example of proper usage in this Makefile:
+# - Dependencies: Use find to track source files
+#     $(common): $(shell find packages/common/src -type f -name "*.ts")
+# - Target: Use sentinel file to track completion
+#     $(common): $(BUILD_STATE_DIR)/common/.built
+
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
@@ -55,6 +87,10 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: common
 common: $(common)
+# Example of find-based dependency tracking with sentinel file target:
+# - Dependencies: Use find to track all TypeScript source files
+# - Target: Use sentinel file (.make/common/.built) to track build completion
+# This pattern prevents unnecessary rebuilds while handling nested paths correctly
 $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules)
 	cd packages/common && yarn build
 	@mkdir -p $(dir $@)
@@ -76,6 +112,11 @@ $(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -na
 
 .PHONY: sharing
 sharing: $(sharing)
+# Complex example of find-based dependency tracking with sentinel files:
+# - Multiple source file types (*.ts, *.tsx) tracked with find
+# - Multiple source directories (src/, public/) handled correctly
+# - Nested path dependencies work reliably
+# - Build state tracked by single sentinel file despite multiple outputs
 $(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)

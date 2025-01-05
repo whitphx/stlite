@@ -1,6 +1,7 @@
 BUILD_STATE_DIR := .make
 
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
+venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
 common-react := $(BUILD_STATE_DIR)/common-react/.built
 mountable := $(BUILD_STATE_DIR)/mountable/.built
@@ -21,15 +22,18 @@ all: init mountable sharing sharing-editor
 
 
 .PHONY: init
-init: git_submodules venv $(node_modules)
+init: git_submodules $(venv) $(node_modules)
 
 VENV := ./.venv
 NODE_MODULES := ./node_modules
 
 .PHONY: venv
-venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
+venv: $(venv)
+$(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt $(shell find streamlit/lib/streamlit -type f -name "*.py")
 	[ -d $(VENV) ] || uv venv $(VENV)
 	. $(VENV)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	@mkdir -p $(dir $@)
+	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
 .PHONY: node_modules
@@ -113,7 +117,7 @@ kernel-test: packages/kernel/src/*.ts $(common) $(stlite-lib-wheel) $(streamlit_
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
-$(stlite-lib-wheel): venv packages/kernel/py/stlite-lib/stlite_lib/*.py
+$(stlite-lib-wheel): $(venv) packages/kernel/py/stlite-lib/stlite_lib/*.py
 	. $(VENV)/bin/activate && \
 	cd packages/kernel/py/stlite-lib && \
 	uv build
@@ -121,7 +125,7 @@ $(stlite-lib-wheel): venv packages/kernel/py/stlite-lib/stlite_lib/*.py
 
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
-$(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
+$(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
@@ -129,7 +133,7 @@ $(streamlit_proto): venv streamlit/proto/streamlit/proto/*.proto
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(venv) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
 	. $(VENV)/bin/activate && \
 	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \

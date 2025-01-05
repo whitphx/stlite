@@ -87,10 +87,6 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: common
 common: $(common)
-# Example of find-based dependency tracking with sentinel file target:
-# - Dependencies: Use find to track all TypeScript source files
-# - Target: Use sentinel file (.make/common/.built) to track build completion
-# This pattern prevents unnecessary rebuilds while handling nested paths correctly
 $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules)
 	cd packages/common && yarn build
 	@mkdir -p $(dir $@)
@@ -112,11 +108,6 @@ $(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -na
 
 .PHONY: sharing
 sharing: $(sharing)
-# Complex example of find-based dependency tracking with sentinel files:
-# - Multiple source file types (*.ts, *.tsx) tracked with find
-# - Multiple source directories (src/, public/) handled correctly
-# - Nested path dependencies work reliably
-# - Build state tracked by single sentinel file despite multiple outputs
 $(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)

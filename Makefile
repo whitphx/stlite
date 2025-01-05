@@ -1,5 +1,6 @@
 BUILD_STATE_DIR := .make
 
+node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 common := $(BUILD_STATE_DIR)/common/.built
 common-react := $(BUILD_STATE_DIR)/common-react/.built
 mountable := $(BUILD_STATE_DIR)/mountable/.built
@@ -20,7 +21,7 @@ all: init mountable sharing sharing-editor
 
 
 .PHONY: init
-init: git_submodules venv yarn_install
+init: git_submodules venv $(node_modules)
 
 VENV := ./.venv
 NODE_MODULES := ./node_modules
@@ -31,10 +32,12 @@ venv: requirements.dev.txt streamlit/lib/dev-requirements.txt
 	. $(VENV)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV)/bin/activate"
 
-.PHONY: yarn_install
-yarn_install: $(NODE_MODULES)
-$(NODE_MODULES): ./yarn.lock
+.PHONY: node_modules
+node_modules: $(node_modules)
+$(node_modules): ./yarn.lock
 	yarn install --frozen-lockfile
+	@mkdir -p $(dir $@)
+	@touch $@
 
 # https://gist.github.com/enil/e4af160c745057809053329df4ba1dc2
 GIT=git
@@ -49,49 +52,49 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: common
 common: $(common)
-$(common): $(shell find packages/common/src -type f -name "*.ts") yarn_install
+$(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules)
 	cd packages/common && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f -name "*.ts") yarn_install $(kernel)
+$(common-react): $(shell find packages/common-react/src -type f -name "*.ts") $(node_modules) $(kernel)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/mountable/public -type f) yarn_install $(kernel) $(common) $(common-react)
+$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/mountable/public -type f) $(node_modules) $(kernel) $(common) $(common-react)
 	cd packages/mountable && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) yarn_install $(kernel) $(sharing-common) $(common-react)
+$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-common
 sharing-common: $(sharing-common)
-$(sharing-common): $(shell find packages/sharing-common/src -type f -name "*.ts") yarn_install
+$(sharing-common): $(shell find packages/sharing-common/src -type f -name "*.ts") $(node_modules)
 	cd packages/sharing-common && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) yarn_install $(common) $(sharing-common)
+$(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(common) $(sharing-common)
 	cd packages/sharing-editor && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts yarn_install $(kernel) $(common) $(common-react)
+$(desktop): packages/desktop/src/*.ts packages/desktop/src/*.tsx packages/desktop/electron/*.ts $(node_modules) $(kernel) $(common) $(common-react)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -146,7 +149,7 @@ $(streamlit_wheel): venv $(streamlit_proto) streamlit/lib/streamlit/**/*.py stre
 
 .PHONY: streamlit-frontend-lib
 streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
-$(streamlit_frontend_lib_prod): yarn_install $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
+$(streamlit_frontend_lib_prod): $(node_modules) $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:

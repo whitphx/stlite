@@ -94,7 +94,7 @@ $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f -name "*.ts") $(node_modules) $(kernel)
+$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -115,7 +115,7 @@ $(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "
 
 .PHONY: sharing-common
 sharing-common: $(sharing-common)
-$(sharing-common): $(shell find packages/sharing-common/src -type f -name "*.ts") $(node_modules)
+$(sharing-common): $(shell find packages/sharing-common/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules)
 	cd packages/sharing-common && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -136,19 +136,19 @@ $(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): $(shell find packages/kernel/src -type f -name "*.ts") $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel-test
-kernel-test: $(shell find packages/kernel/src -type f -name "*.ts") $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+kernel-test: $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
-$(stlite-lib-wheel): $(venv) packages/kernel/py/stlite-lib/stlite_lib/*.py
+$(stlite-lib-wheel): $(venv) $(shell find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py")
 	. $(VENV_PATH)/bin/activate && \
 	cd packages/kernel/py/stlite-lib && \
 	uv build
@@ -164,7 +164,7 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(venv) $(streamlit_proto) streamlit/lib/streamlit/**/*.py streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/bin/* streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/MANIFEST.in
 	. $(VENV_PATH)/bin/activate && \
 	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \

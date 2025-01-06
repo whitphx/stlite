@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "tsc -w",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.prod.json",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

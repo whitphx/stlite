@@ -3,7 +3,9 @@ import { useStliteKernel } from "../StliteKernelProvider";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
-type IFrameProps = JSX.IntrinsicElements["iframe"];
+type AdditionalProps = { [key: string]: unknown };
+type IFrameProps<T extends AdditionalProps = AdditionalProps> =
+  JSX.IntrinsicElements["iframe"] & T;
 interface CustomComponentIFrameProps extends IFrameProps {
   src: string;
   IframeComponent: React.ComponentType<IFrameProps>;

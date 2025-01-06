@@ -23,7 +23,7 @@ import type {
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
-const self = global as typeof globalThis & {
+declare const self: WorkerGlobalScope & {
   __logCallback__: (levelno: number, msg: string) => void;
   __sharedWorkerMode__: boolean;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;

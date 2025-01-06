@@ -27,10 +27,6 @@ import type {
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
-// These imports are intended to be resolved at build time by Vite's alias resolution.
-import STLITE_LIB_WHEEL from "stlite_lib.whl";
-import STREAMLIT_WHEEL from "streamlit.whl";
-
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
 const INITIAL_SLASH_RE = /^\/+/;
@@ -69,12 +65,10 @@ export interface StliteKernelOptions {
    */
   pyodideUrl?: string;
 
-  /**
-   *
-   */
-  wheelBaseUrl?: string;
-
-  skipStliteWheelsInstall?: boolean;
+  wheelUrls?: {
+    stliteLib: string;
+    streamlit: string;
+  };
 
   /**
    * In the original Streamlit, the `hostConfig` endpoint returns a value of this type
@@ -186,27 +180,6 @@ export class StliteKernel {
       this._processWorkerMessage(e.data, messagePort);
     };
 
-    let wheels: WorkerInitialData["wheels"] = undefined;
-    if (!options.skipStliteWheelsInstall) {
-      console.debug("Custom wheel URLs:", {
-        STLITE_LIB_WHEEL,
-        STREAMLIT_WHEEL,
-      });
-      const stliteLibWheelUrl = makeAbsoluteWheelURL(
-        STLITE_LIB_WHEEL as unknown as string,
-        options.wheelBaseUrl,
-      );
-      const streamlitWheelUrl = makeAbsoluteWheelURL(
-        STREAMLIT_WHEEL as unknown as string,
-        options.wheelBaseUrl,
-      );
-      wheels = {
-        stliteLib: stliteLibWheelUrl,
-        streamlit: streamlitWheelUrl,
-      };
-      console.debug("Custom wheel resolved URLs:", wheels);
-    }
-
     // TODO: Assert other options as well.
     if (options.streamlitConfig != null) {
       assertStreamlitConfig(options.streamlitConfig);
@@ -219,7 +192,7 @@ export class StliteKernel {
       requirements: options.requirements,
       prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
-      wheels,
+      wheels: options.wheelUrls,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,

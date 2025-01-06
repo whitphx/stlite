@@ -1,10 +1,19 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  type Mock,
+} from "vitest";
 import { setupCustomElement } from "./custom-element";
 
 describe("StreamlitApp custom element", () => {
-  let mount: jest.Mock;
+  let mount: Mock;
 
   beforeAll(() => {
-    mount = jest.fn();
+    mount = vi.fn();
     setupCustomElement(mount);
   });
 
@@ -17,8 +26,7 @@ describe("StreamlitApp custom element", () => {
 
   afterEach(() => {
     document.body.removeChild(container);
-
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it("calls mount() with a single file parsed from the textContent of the streamlit-app element", async () => {

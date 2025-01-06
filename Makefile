@@ -101,7 +101,7 @@ $(common-react): $(shell find packages/common-react/src -type f -name "*.ts") $(
 
 .PHONY: mountable
 mountable: $(mountable)
-$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/mountable/public -type f) $(node_modules) $(kernel) $(common) $(common-react)
+$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react)
 	cd packages/mountable && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

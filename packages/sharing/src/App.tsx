@@ -14,6 +14,8 @@ import {
   StliteKernelWithToast,
 } from "@stlite/common-react";
 import "@stlite/common-react/src/toastify-components/toastify.css";
+import STLITE_LIB_WHEEL from "stlite_lib.whl";
+import STREAMLIT_WHEEL from "streamlit.whl";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;
 declare const EDITOR_APP_ORIGIN: string;
@@ -93,6 +95,10 @@ st.write("Hello World")`,
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
           sharedWorker: isSharedWorkerMode(),
+          wheelUrls: {
+            stliteLib: STLITE_LIB_WHEEL as unknown as string,
+            streamlit: STREAMLIT_WHEEL as unknown as string,
+          },
         });
         _kernel = kernel;
         setKernel(kernel);

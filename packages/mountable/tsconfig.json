@@ -1,24 +1,23 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
     "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es6",
+    "types": ["vite/client", "vitest/globals"],
     // Streamlit frontend has the `paths` config in `tsconfig.dev.json`
     // as https://github.com/streamlit/streamlit/blob/1.40.1/frontend/tsconfig.dev.json#L4-L7
     // and this `paths` mapping is also used in the production build as import aliases
@@ -30,6 +29,8 @@
     }
   },
   "include": [
-    "src"
+    "src",
+    "../../streamlit/frontend/lib/src/declarations.d.ts",
+    "../../streamlit/frontend/app/src/emotion.d.ts"
   ]
 }

@@ -16,12 +16,12 @@ export class NodeJsWorkerMock {
     });
   }
 
-  postMessage(data: any, transfer?: [MessagePort]) {
+  postMessage(data: unknown, transfer?: [MessagePort]) {
     this.initializePromise.then(() => {
       const port = transfer ? transfer[0] : null;
       const onPortMessage =
         port &&
-        ((arg: any) => {
+        ((arg: unknown) => {
           port.postMessage(arg);
         });
 

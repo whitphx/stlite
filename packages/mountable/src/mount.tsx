@@ -33,6 +33,7 @@ export function mount(
     ...makeToastKernelCallbacks(toastCallbackOptions),
   });
 
+  // eslint-disable-next-line react/no-deprecated
   ReactDOM.render(
     <React.StrictMode>
       <StreamlitApp kernel={kernel} />
@@ -46,6 +47,7 @@ export function mount(
   return {
     unmount: () => {
       kernel.dispose();
+      // eslint-disable-next-line react/no-deprecated
       ReactDOM.unmountComponentAtNode(container);
     },
     install: (requirements: string[]) => {
@@ -54,7 +56,7 @@ export function mount(
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
-      opts?: Record<string, any>,
+      opts?: Record<string, unknown>,
     ) => {
       return kernelWithToast.writeFile(path, data, opts);
     },
@@ -64,7 +66,7 @@ export function mount(
     unlink: (path: string) => {
       return kernelWithToast.unlink(path);
     },
-    readFile: (path: string, opts?: Record<string, any>) => {
+    readFile: (path: string, opts?: Record<string, unknown>) => {
       return kernelWithToast.readFile(path, opts);
     },
   };

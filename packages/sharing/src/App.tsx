@@ -36,7 +36,7 @@ let communicatedEditorOrigin = "";
 function convertFiles(
   appDataFiles: AppData["files"],
 ): StliteKernelOptions["files"] {
-  let files: StliteKernelOptions["files"] = {};
+  const files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
     const value = appDataFiles[key];
     if (value.content == null) {

@@ -35,7 +35,7 @@ export default defineConfig(({ mode }) => ({
       //   jsxImportSource: "@emotion/react",
       //   plugins: [["@swc/plugin-emotion", {}]],
       babel: {
-        plugins: ['@emotion/babel-plugin'],
+        plugins: ["@emotion/babel-plugin"],
       },
     }),
     viteTsconfigPaths(),
@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => ({
       typescript: true,
     }),
     {
-      name: 'inject-csp-header',
+      name: "inject-csp-header",
       transformIndexHtml(html) {
         const cspSourceForMap =
           "https://data.streamlit.io/ https://*.mapbox.com/";
@@ -77,9 +77,10 @@ export default defineConfig(({ mode }) => ({
           // For loading external resources, such as the hosted Pyodide files, wheels, and some remote resources
           // - https: : Allow fetch() and XMLHttpRequest to load any resources via HTTPS.
           // - data: : `st.camera_input()` calls `fetch()` with the data: scheme when loading the preview image (while `data:` is not recommended to use for security reasons though).
-          mode === "production" && `connect-src ${cspSourceForMap} 'self' https: data:`,
+          mode === "production" &&
+            `connect-src ${cspSourceForMap} 'self' https: data:`,
           mode === "development" &&
-          `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https: data:`,
+            `connect-src ${cspSourceForMap} https://cdn.jsdelivr.net/ https://pypi.org/ https://files.pythonhosted.org/ http://localhost:3000/ ws://localhost:3000/ https: data:`,
           // Allow <img> to load any resources.
           // - blob: : For st.pyplot
           // - data: : For st.map
@@ -97,7 +98,7 @@ export default defineConfig(({ mode }) => ({
 
         return html.replace(
           /<head>/,
-          `<head>\n  <meta http-equiv="Content-Security-Policy" content="${csp}">`
+          `<head>\n  <meta http-equiv="Content-Security-Policy" content="${csp}">`,
         );
       },
     },

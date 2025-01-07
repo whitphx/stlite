@@ -79,8 +79,6 @@ export const loader = async ({
   };
 };
 
-const SHARING_APP_URL =
-  process.env.REACT_APP_SHARING_APP_URL ?? "http://localhost:3000/";
 const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 function App() {

@@ -7,9 +7,6 @@
     "@monaco-editor/react": "^4.4.5",
     "@stlite/common": "^0.75.0",
     "@stlite/sharing-common": "^0.75.0",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/user-event": "^14.0.0",
-    "@types/jest": "^27.4.3",
     "@types/node": "^18.11.17",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -21,46 +18,31 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.0.1",
     "react-router-dom": "^6.4.2",
-    "react-scripts": "5.0.1",
-    "sass": "^1.54.9",
     "usehooks-ts": "^2.9.1",
     "web-vitals": "^3.5.2"
   },
   "scripts": {
-    "start:web": "cross-env PORT=3030 react-scripts start",
+    "start:web": "vite",
     "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
     "start": "concurrently \"yarn start:web\" \"yarn start:sampleapps\"",
-    "build:web": "react-scripts build",
+    "build:web": "vite build",
     "build:sampleapps": "ts-node bin/gen-sample-app-manifests-json.ts",
     "build": "yarn build:sampleapps && yarn build:web",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "vitest"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
   "devDependencies": {
-    "@babel/parser": "^7.20.5",
     "@types/jsdom": "^20.0.1",
     "@types/mime": "^3.0.1",
     "@types/nprogress": "^0.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.1.5",
     "jsdom": "^20.0.3",
-    "raw-loader": "^4.0.2",
     "runtypes": "^6.6.0"
   }
 }

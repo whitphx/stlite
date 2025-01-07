@@ -28,7 +28,11 @@
     "build:web": "vite build",
     "build:sampleapps": "ts-node bin/gen-sample-app-manifests-json.ts",
     "build": "yarn build:sampleapps && yarn build:web",
-    "test": "vitest"
+    "test": "vitest",
+    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
+    "fix:prettier": "prettier --write .",
+    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
+    "check:prettier": "prettier --check ."
   },
   "browserslist": [
     ">0.2%",

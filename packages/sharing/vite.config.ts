@@ -31,8 +31,11 @@ const BUILD_AS_FAST_AS_POSSIBLE =
 export default defineConfig(({ mode }) => ({
   plugins: [
     react({
-      jsxImportSource: "@emotion/react",
-      plugins: [["@swc/plugin-emotion", {}]],
+      // jsxImportSource: "@emotion/react",
+      // plugins: [["@swc/plugin-emotion", {}]],
+      babel: {
+        plugins: ["@emotion/babel-plugin"],
+      },
     }),
     viteTsconfigPaths(),
     wasm(),
@@ -46,19 +49,19 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@streamlit/lib/src": path.resolve(
         __dirname,
-        "../../streamlit/frontend/lib/src",
+        "../../streamlit/frontend/lib/src"
       ),
       "@streamlit/lib": path.resolve(
         __dirname,
-        "../../streamlit/frontend/lib/src",
+        "../../streamlit/frontend/lib/src"
       ),
       "stlite_lib.whl": path.resolve(
         __dirname,
-        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+        "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl"
       ),
     },
   },
@@ -70,7 +73,7 @@ export default defineConfig(({ mode }) => ({
     "process.env.NODE_ENV": JSON.stringify(mode),
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
-      process.env.EDITOR_APP_ORIGIN_REGEX,
+      process.env.EDITOR_APP_ORIGIN_REGEX
     ),
   },
   server: {

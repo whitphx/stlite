@@ -34,8 +34,11 @@ export default defineConfig(({ mode }) => ({
   base: "./",
   plugins: [
     react({
-      jsxImportSource: "@emotion/react",
-      plugins: [["@swc/plugin-emotion", {}]],
+      // jsxImportSource: "@emotion/react",
+      // plugins: [["@swc/plugin-emotion", {}]],
+      babel: {
+        plugins: ["@emotion/babel-plugin"],
+      },
     }),
     viteTsconfigPaths(),
     wasm(),
@@ -60,14 +63,14 @@ export default defineConfig(({ mode }) => ({
           {
             src: path.resolve(
               __dirname,
-              "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+              "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"
             ),
             dest: "wheels",
           },
           {
             src: path.resolve(
               __dirname,
-              "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+              "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl"
             ),
             dest: "wheels",
           },
@@ -87,7 +90,7 @@ export default defineConfig(({ mode }) => ({
             const filePath = path.resolve(
               __dirname,
               "dev-files",
-              req.url?.replace(/^\//, "") || "",
+              req.url?.replace(/^\//, "") || ""
             );
 
             if (fs.existsSync(filePath)) {
@@ -107,11 +110,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@streamlit/lib/src": path.resolve(
         __dirname,
-        "../../streamlit/frontend/lib/src",
+        "../../streamlit/frontend/lib/src"
       ),
       "@streamlit/lib": path.resolve(
         __dirname,
-        "../../streamlit/frontend/lib/src",
+        "../../streamlit/frontend/lib/src"
       ),
     },
   },
@@ -123,7 +126,7 @@ export default defineConfig(({ mode }) => ({
     "process.env.NODE_ENV": JSON.stringify(mode),
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
-      process.env.EDITOR_APP_ORIGIN_REGEX,
+      process.env.EDITOR_APP_ORIGIN_REGEX
     ),
   },
   server: {

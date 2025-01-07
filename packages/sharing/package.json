@@ -16,6 +16,7 @@
     "web-vitals": "^3.5.2"
   },
   "devDependencies": {
+    "@emotion/babel-plugin": "^11.13.5",
     "@vitejs/plugin-react": "^4.3.4",
     "vite": "^5.1.5",
     "vite-plugin-top-level-await": "^1.4.4",

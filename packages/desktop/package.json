@@ -38,7 +38,7 @@
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:wheels && yarn build:bin",
-    "predump:dev": "yarn build:wheels && mkdir ./build",
+    "predump:dev": "yarn build:wheels && mkdir -p ./build",
     "dump:dev": "ts-node ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",

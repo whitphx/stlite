@@ -31,7 +31,7 @@ declare const self: WorkerGlobalScope & {
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
-if (typeof global.self === "undefined") {
+if (typeof global !== "undefined" && typeof global.self === "undefined") {
   // In the case of classic workers, `self` is not available in a global scope, so we need to define it here.
   // The desktop packages' NodeJS worker mode uses classic workers, for example.
   // @ts-expect-error globalThis is not defined in the Web Worker context

@@ -187,9 +187,11 @@ const createWindow = async () => {
     const eventSim = { data, port: channel.port2 };
     worker.postMessage(eventSim, [channel.port2]);
   });
-  ipcMain.handle("terminate", (ev, { data, portId }) => {
+  ipcMain.handle("terminateNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
-      throw new Error(`Invalid IPC sender (terminate) ${ev.senderFrame.url}`);
+      throw new Error(
+        `Invalid IPC sender (terminateNodeJsWorker) ${ev.senderFrame.url}`,
+      );
     }
 
     worker?.terminate();
@@ -199,7 +201,7 @@ const createWindow = async () => {
   mainWindow.on("closed", () => {
     ipcMain.removeHandler("initializeNodeJsWorker");
     ipcMain.removeHandler("messageToNodeJsWorker");
-    ipcMain.removeHandler("terminate");
+    ipcMain.removeHandler("terminateNodeJsWorker");
   });
 
   // Even when the entrypoint is a local file like the production build,

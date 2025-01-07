@@ -499,14 +499,14 @@ jobs:
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: packages/sharing-editor/build
+        path: packages/sharing-editor/dist
         name: stlite-sharing-editor
     - name: "Inform the package stats"
       uses: ./.github/actions/inform-package-stats
       with:
         key: sharing-editor
         name: "stlite sharing editor"
-        input-path: packages/sharing-editor/build
+        input-path: packages/sharing-editor/dist
 
   deploy-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4

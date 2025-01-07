@@ -23,6 +23,7 @@ import type {
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
+// In the case of ESM workers, `self` is available in a global scope.
 declare const self: WorkerGlobalScope & {
   __logCallback__: (levelno: number, msg: string) => void;
   __sharedWorkerMode__: boolean;
@@ -30,6 +31,12 @@ declare const self: WorkerGlobalScope & {
   __scriptFinishedCallback__: () => void;
   __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
+if (typeof global.self === "undefined") {
+  // In the case of classic workers, `self` is not available in a global scope, so we need to define it here.
+  // The desktop packages' NodeJS worker mode uses classic workers, for example.
+  // @ts-expect-error globalThis is not defined in the Web Worker context
+  self = global;
+}
 
 function dispatchModuleAutoLoading(
   pyodide: Pyodide.PyodideInterface,

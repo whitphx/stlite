@@ -60,7 +60,7 @@ function App() {
           requirements: [],
           prebuiltPackageNames,
           pyodideUrl,
-          skipStliteWheelsInstall: true,
+          wheelUrls: undefined,
           idbfsMountpoints: window.appConfig.idbfsMountpoints,
           worker: USE_NODEJS_WORKER
             ? (new NodeJsWorkerMock() as unknown as Worker)

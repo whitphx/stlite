@@ -11,14 +11,12 @@ import {
 } from "./manifest";
 
 if (process.env.NODE_ENV === "development") {
-  console.log("Hot-reloading Electron enabled");
+  const electronPath = process.platform === "win32"
+    ? path.resolve(require.resolve("electron/package.json"), "../../electron/dist/electron.exe")
+    : path.resolve(require.resolve("electron/package.json"), "../../.bin/electron")
+  console.log("Hot-reloading Electron enabled", electronPath);
   require("electron-reload")(__dirname, {
-    electron: path.resolve(
-      __dirname,
-      process.platform === "win32"
-        ? "../../node_modules/electron/dist/electron.exe"
-        : "../../node_modules/.bin/electron",
-    ),
+    electron: electronPath,
   });
 }
 

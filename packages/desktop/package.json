@@ -10,7 +10,6 @@
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
   },
-  "homepage": "/",
   "engines": {
     "node": ">=18"
   },
@@ -24,11 +23,10 @@
     "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
   },
   "scripts": {
-    "start:web": "craco start",
+    "start:web": "vite",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
-    "build:web": "craco build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
-    "test": "craco test",
-    "eject": "craco eject",
+    "build:web": "vite build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
+    "test": "vitest",
     "start:electron": "tsc -p electron && cross-env NODE_ENV=development concurrently \"./scripts/build_electron.js --watch\" \"electron .\"",
     "build:electron": "tsc -p electron && cross-env NODE_ENV=production ./scripts/build_electron.js",
     "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.26.2/pyodide-core-0.26.2.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
@@ -36,9 +34,11 @@
     "build:wheels": "./scripts/copy_wheels.js",
     "postbuild:web": "./scripts/post_build_web.js",
     "typecheck": "yarn tsc --noEmit -p electron",
+    "prestart": "yarn build:pyodide && yarn build:wheels",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:wheels && yarn build:bin",
+    "predump:dev": "yarn build:wheels && mkdir ./build",
     "dump:dev": "ts-node ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
@@ -46,12 +46,6 @@
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",
     "check:prettier": "prettier --check ."
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
@@ -68,29 +62,28 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@craco/craco": "^7.0.0",
+    "@emotion/babel-plugin": "^11.13.5",
     "@stlite/common": "^0.75.0",
     "@stlite/common-react": "^0.75.0",
     "@stlite/kernel": "^0.75.0",
     "@streamlit/app": "1.41.0",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/user-event": "^14.0.0",
-    "@types/jest": "^27.4.3",
     "@types/node": "^18.11.17",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/yargs": "^17.0.32",
+    "@vitejs/plugin-react": "^4.3.4",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.20.0",
     "glob": "^10.3.12",
     "node-html-parser": "^6.1.13",
-    "raw-loader": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
     "react-toastify": "^9.1.1",
     "superstruct": "^1.0.4",
     "ts-node": "^10.9.1",
+    "vite": "^5.1.5",
+    "vite-plugin-top-level-await": "^1.4.4",
+    "vite-plugin-wasm": "^3.4.1",
     "winston": "^3.13.0"
   },
   "///": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",

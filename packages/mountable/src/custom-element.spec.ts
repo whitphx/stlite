@@ -1,4 +1,5 @@
 import {
+  vi,
   describe,
   it,
   expect,

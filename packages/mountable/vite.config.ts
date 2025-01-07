@@ -40,38 +40,39 @@ export default defineConfig(({ mode }) => ({
     viteTsconfigPaths(),
     wasm(),
     topLevelAwait(),
-    viteStaticCopy({
-      // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
-      // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
-      // while we need to disable inlining for the wheel files so that they are served as separate files
-      // and their URLs are to be passed to `micropip.install()`.
-      // Currently disabling inlining is not supported in the library mode:
-      // > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
-      // > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
-      //
-      // and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
-      // So, we don't use the `import()` syntax for the wheel files and rely on Vite's static asset handling.
-      // Instead, we copy the wheel files to the `dist` directory with the 'vite-plugin-static-copy' plugin
-      // and construct the their URLs manually in `mount.tsx`.
-      //
-      // Ref: This workaround is introduced in https://github.com/vitejs/vite/issues/4454#issuecomment-1588713917
-      targets: [
-        {
-          src: path.resolve(
-            __dirname,
-            "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-          ),
-          dest: "wheels",
-        },
-        {
-          src: path.resolve(
-            __dirname,
-            "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
-          ),
-          dest: "wheels",
-        },
-      ],
-    }),
+    mode !== "test" &&
+      viteStaticCopy({
+        // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
+        // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
+        // while we need to disable inlining for the wheel files so that they are served as separate files
+        // and their URLs are to be passed to `micropip.install()`.
+        // Currently disabling inlining is not supported in the library mode:
+        // > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
+        // > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
+        //
+        // and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
+        // So, we don't use the `import()` syntax for the wheel files and rely on Vite's static asset handling.
+        // Instead, we copy the wheel files to the `dist` directory with the 'vite-plugin-static-copy' plugin
+        // and construct the their URLs manually in `mount.tsx`.
+        //
+        // Ref: This workaround is introduced in https://github.com/vitejs/vite/issues/4454#issuecomment-1588713917
+        targets: [
+          {
+            src: path.resolve(
+              __dirname,
+              "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+            ),
+            dest: "wheels",
+          },
+          {
+            src: path.resolve(
+              __dirname,
+              "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+            ),
+            dest: "wheels",
+          },
+        ],
+      }),
     // this plugin checks for type errors on a separate process
     checker({
       typescript: true,

@@ -8,6 +8,10 @@ export { mount };
 // because the browser has not parsed the content yet.
 // Using `setTimeout()` is also a solution but it might not be the best practice as written in the article below.
 // Ref: https://dbushell.com/2024/06/15/custom-elements-unconnected-callback/
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    setupCustomElement(mount);
+  });
+} else {
   setupCustomElement(mount);
-});
+}

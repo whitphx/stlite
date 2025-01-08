@@ -3,15 +3,18 @@ import { useStliteKernel } from "../StliteKernelProvider";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
-type IFrameProps = JSX.IntrinsicElements["iframe"];
+type AdditionalProps = { [key: string]: unknown };
+type IFrameProps<T extends AdditionalProps = AdditionalProps> =
+  JSX.IntrinsicElements["iframe"] & T;
 interface CustomComponentIFrameProps extends IFrameProps {
   src: string;
+  IframeComponent: React.ComponentType<IFrameProps>;
 }
 
 const InnerIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
->(({ src: path, ...props }, ref) => {
+>(({ src: path, IframeComponent, ...props }, ref) => {
   const kernel = useStliteKernel();
 
   const [srcdoc, setSrcdoc] = useState<string>();
@@ -74,7 +77,12 @@ const InnerIFrame = React.forwardRef<
   );
 
   return (
-    <iframe {...props} srcDoc={srcdoc} onLoad={handleIFrameLoad} ref={ref} />
+    <IframeComponent
+      {...props}
+      srcDoc={srcdoc}
+      onLoad={handleIFrameLoad}
+      ref={ref}
+    />
   );
 });
 InnerIFrame.displayName = "InnerIFrame";

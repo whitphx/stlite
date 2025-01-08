@@ -14,16 +14,21 @@ import {
   StliteKernelWithToast,
 } from "@stlite/common-react";
 import "@stlite/common-react/src/toastify-components/toastify.css";
+import STLITE_LIB_WHEEL from "stlite_lib.whl";
+import STREAMLIT_WHEEL from "streamlit.whl";
 
-const editorAppOriginRegex = process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX
-  ? new RegExp(process.env.REACT_APP_EDITOR_APP_ORIGIN_REGEX)
+declare const EDITOR_APP_ORIGIN_REGEX: string;
+declare const EDITOR_APP_ORIGIN: string;
+
+const editorAppOriginRegex = EDITOR_APP_ORIGIN_REGEX
+  ? new RegExp(EDITOR_APP_ORIGIN_REGEX)
   : undefined;
 function isEditorOrigin(origin: string): boolean {
   if (editorAppOriginRegex) {
     return editorAppOriginRegex.test(origin);
   }
 
-  return origin === process.env.REACT_APP_EDITOR_APP_ORIGIN;
+  return origin === EDITOR_APP_ORIGIN;
 }
 
 let communicatedEditorOrigin = "";
@@ -31,7 +36,7 @@ let communicatedEditorOrigin = "";
 function convertFiles(
   appDataFiles: AppData["files"],
 ): StliteKernelOptions["files"] {
-  let files: StliteKernelOptions["files"] = {};
+  const files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
     const value = appDataFiles[key];
     if (value.content == null) {
@@ -90,6 +95,10 @@ st.write("Hello World")`,
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
           sharedWorker: isSharedWorkerMode(),
+          wheelUrls: {
+            stliteLib: STLITE_LIB_WHEEL,
+            streamlit: STREAMLIT_WHEEL,
+          },
         });
         _kernel = kernel;
         setKernel(kernel);
@@ -109,8 +118,7 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  process.env.REACT_APP_EDITOR_APP_ORIGIN ??
-                    communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the REACT_APP_EDITOR_APP_ORIGIN env var is not set, i.e. in preview deployments.
+                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
                 );
               })
               .catch((error) => {

@@ -5,6 +5,4 @@ coverage
 # Ignore all HTML files:
 *.html
 
-config
-scripts
 tsconfig.json

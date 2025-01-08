@@ -1,3 +1,5 @@
+/// <reference lib="WebWorker" />
+
 import type Pyodide from "pyodide";
 
 interface ResolvePyodideUrlResult {
@@ -58,7 +60,7 @@ export async function initPyodide(
   if (isESModule) {
     // note: this does not work at all in firefox
     const pyodideModule: typeof Pyodide = await import(
-      /* webpackIgnore: true */ scriptURL
+      /* webpackIgnore: true */ /* @vite-ignore */ scriptURL
     );
     loadPyodide = pyodideModule.loadPyodide;
   } else {

@@ -300,12 +300,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    - name: Cache node_modules/.cache including Webpack's cache
-      uses: actions/cache@v4
-      with:
-        path: packages/mountable/node_modules/.cache
-        key: mountable-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
-
     ## Build and deploy @stlite/mountable
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
@@ -422,20 +416,13 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
-
-    - name: Cache node_modules/.cache including Webpack's cache
-      uses: actions/cache@v4
-      with:
-        path: packages/sharing/node_modules/.cache
-        key: sharing-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
-
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
       if: github.ref_name != github.event.repository.default_branch
-      run: echo "REACT_APP_EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
+      run: echo "EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
     - name: Set EDITOR_APP_ORIGIN (main branch)
       if: github.ref_name == github.event.repository.default_branch
-      run: echo "REACT_APP_EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
+      run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
     - name: Build @stlite/sharing
       run: |
         . .venv/bin/activate
@@ -501,31 +488,25 @@ jobs:
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
 
-    - name: Cache node_modules/.cache including Webpack's cache
-      uses: actions/cache@v4
-      with:
-        path: packages/sharing-editor/node_modules/.cache
-        key: sharing-editor-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
-
     - name: Set SHARING_APP_URL (preview)
       if: github.ref_name != github.event.repository.default_branch
-      run: echo "REACT_APP_SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
+      run: echo "SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
     - name: Set SHARING_APP_URL (main branch)
       if: github.ref_name == github.event.repository.default_branch
-      run: echo "REACT_APP_SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
+      run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
 
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: packages/sharing-editor/build
+        path: packages/sharing-editor/dist
         name: stlite-sharing-editor
     - name: "Inform the package stats"
       uses: ./.github/actions/inform-package-stats
       with:
         key: sharing-editor
         name: "stlite sharing editor"
-        input-path: packages/sharing-editor/build
+        input-path: packages/sharing-editor/dist
 
   deploy-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -570,12 +551,6 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
-
-    - name: Cache node_modules/.cache including Webpack's cache
-      uses: actions/cache@v4
-      with:
-        path: packages/desktop/node_modules/.cache
-        key: desktop-node-modules-cache  # Don't need to use runner.os or branch name in the key because the cache is not shared between different branches or runner OSes: https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
 
     ## Build and deploy @stlite/desktop
     - name: Build @stlite/desktop

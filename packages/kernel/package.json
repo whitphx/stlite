@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "tsc -w",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.prod.json",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
@@ -29,7 +29,7 @@
   "dependencies": {
     "@jupyterlab/coreutils": "^5.4.2",
     "@stlite/common": "^0.75.0",
-    "@streamlit/lib": "1.40.1",
+    "@streamlit/lib": "1.41.0",
     "@tinyhttp/content-disposition": "^2.2.2",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0"

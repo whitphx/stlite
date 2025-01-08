@@ -11,14 +11,20 @@ import {
 } from "./manifest";
 
 if (process.env.NODE_ENV === "development") {
-  console.log("Hot-reloading Electron enabled");
+  const electronPath =
+    process.platform === "win32"
+      ? path.resolve(
+          require.resolve("electron/package.json"),
+          "../../electron/dist/electron.exe",
+        )
+      : path.resolve(
+          require.resolve("electron/package.json"),
+          "../../.bin/electron",
+        );
+  console.log("Hot-reloading Electron enabled", electronPath);
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require("electron-reload")(__dirname, {
-    electron: path.resolve(
-      __dirname,
-      process.platform === "win32"
-        ? "../../node_modules/electron/dist/electron.exe"
-        : "../../node_modules/.bin/electron",
-    ),
+    electron: electronPath,
   });
 }
 
@@ -146,7 +152,7 @@ const createWindow = async () => {
       await ensureNodefsMountpoints(nodefsMountpoints);
     }
 
-    function onMessageFromWorker(value: any) {
+    function onMessageFromWorker(value: unknown) {
       mainWindow.webContents.send("messageFromNodeJsWorker", value);
     }
     worker = new workerThreads.Worker(path.resolve(__dirname, "worker.js"), {

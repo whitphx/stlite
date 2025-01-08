@@ -62,7 +62,7 @@ export function setupCustomElement(mount: typeof mountFn) {
     parseOptions = (): MountOptions => {
       let entrypoint: string | null = null;
       const files: NonNullable<DetailedMountOptions["files"]> = {};
-      let requirementsText: string = "";
+      let requirementsText = "";
       const archives: NonNullable<DetailedMountOptions["archives"]> = [];
       const streamlitConfig: NonNullable<
         DetailedMountOptions["streamlitConfig"]

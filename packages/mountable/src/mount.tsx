@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
-import { getParentUrl } from "./url";
 import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
@@ -12,24 +11,16 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import "@stlite/common-react/src/toastify-components/toastify.css";
 
-/**
- * If `PUBLIC_PATH` which is exported as a global variable `__webpack_public_path__` (https://webpack.js.org/guides/public-path/#on-the-fly)
- * is set as a relative URL, resolve and override it based on the URL of this script itself,
- * which will be transpiled into `stlite.js` at the root of the output directory.
- */
-let wheelBaseUrl: string | undefined = undefined;
-if (
-  typeof __webpack_public_path__ === "string" &&
-  (__webpack_public_path__ === "." || __webpack_public_path__.startsWith("./"))
-) {
-  if (document.currentScript && "src" in document.currentScript) {
-    const selfScriptUrl = document.currentScript.src;
-    const selfScriptBaseUrl = getParentUrl(selfScriptUrl);
-
-    __webpack_public_path__ = selfScriptBaseUrl; // For webpack dynamic imports
-    wheelBaseUrl = selfScriptBaseUrl;
-  }
-}
+const wheelBaseUrl =
+  process.env.NODE_ENV === "production"
+    ? import.meta.url
+    : window.location.origin;
+const wheelUrls = {
+  stliteLib: new URL("wheels/stlite_lib-0.1.0-py3-none-any.whl", wheelBaseUrl)
+    .href,
+  streamlit: new URL("wheels/streamlit-1.41.0-cp312-none-any.whl", wheelBaseUrl)
+    .href,
+};
 
 export function mount(
   options: MountOptions,
@@ -38,10 +29,11 @@ export function mount(
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
     ...kernelOptions,
-    wheelBaseUrl,
+    wheelUrls,
     ...makeToastKernelCallbacks(toastCallbackOptions),
   });
 
+  // eslint-disable-next-line react/no-deprecated
   ReactDOM.render(
     <React.StrictMode>
       <StreamlitApp kernel={kernel} />
@@ -55,6 +47,7 @@ export function mount(
   return {
     unmount: () => {
       kernel.dispose();
+      // eslint-disable-next-line react/no-deprecated
       ReactDOM.unmountComponentAtNode(container);
     },
     install: (requirements: string[]) => {
@@ -63,7 +56,7 @@ export function mount(
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
-      opts?: Record<string, any>,
+      opts?: Record<string, unknown>,
     ) => {
       return kernelWithToast.writeFile(path, data, opts);
     },
@@ -73,7 +66,7 @@ export function mount(
     unlink: (path: string) => {
       return kernelWithToast.unlink(path);
     },
-    readFile: (path: string, opts?: Record<string, any>) => {
+    readFile: (path: string, opts?: Record<string, unknown>) => {
       return kernelWithToast.readFile(path, opts);
     },
   };

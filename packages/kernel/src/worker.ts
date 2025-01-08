@@ -1,15 +1,16 @@
+/// <reference lib="WebWorker" />
+
 import { startWorkerEnv } from "./worker-runtime";
 import { generateRandomAppId } from "./app-id";
 
-const pyodideUrl = "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js";
+const pyodideUrl = "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.mjs";
 
 if ("postMessage" in self) {
   // Dedicated worker
   self.onmessage = startWorkerEnv(pyodideUrl, (event, port) =>
-    (self as DedicatedWorkerGlobalScope).postMessage(
-      event,
-      port ? [port] : undefined,
-    ),
+    port
+      ? (self as DedicatedWorkerGlobalScope).postMessage(event, [port])
+      : (self as DedicatedWorkerGlobalScope).postMessage(event),
   );
 } else {
   // Shared worker
@@ -28,7 +29,9 @@ if ("postMessage" in self) {
     sharedWorkerPort.onmessage = startWorkerEnv(
       pyodideUrl,
       (event, port) =>
-        sharedWorkerPort.postMessage(event, port ? [port] : undefined),
+        port
+          ? sharedWorkerPort.postMessage(event, [port])
+          : sharedWorkerPort.postMessage(event),
       undefined,
       appId,
     );

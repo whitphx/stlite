@@ -40,8 +40,8 @@ const nodeJsWorkerAPI = {
     data,
     onPortMessage,
   }: {
-    data: any;
-    onPortMessage: ((arg: any) => void) | null;
+    data: unknown;
+    onPortMessage: ((arg: unknown) => void) | null;
   }) => {
     console.debug("nodeJsWorkerAPI.postMessage", { data, onPortMessage });
     // When the `contextIsolation` is enabled, `MessagePort` objects cannot be transferred between contexts even with ipcRenderer.postMessage(),
@@ -55,7 +55,7 @@ const nodeJsWorkerAPI = {
       });
     }
   },
-  onMessage: (callback) =>
+  onMessage: (callback: (data: unknown) => void) =>
     ipcRenderer.on("messageFromNodeJsWorker", (_event, value) => {
       console.debug("nodeJsWorkerAPI.onMessage", value);
       callback(value);

@@ -5,7 +5,6 @@ import { PromiseDelegate } from "@stlite/common";
 
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
 
-import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
 import type {
@@ -26,14 +25,6 @@ import type {
   ModuleAutoLoadMessage,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
-
-// Since v0.19.0, Pyodide raises an exception when importing not pure Python 3 wheels, whose path does not end with "py3-none-any.whl",
-// so configuration on file-loader here is necessary so that the hash is not included in the bundled URL.
-// About this change on Pyodide, see the links below:
-// https://github.com/pyodide/pyodide/pull/1859
-// https://pyodide.org/en/stable/project/changelog.html#micropip
-import STLITE_LIB_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"; // TODO: Extract the import statement to an auto-generated file like `_pypi.ts` in JupyterLite: https://github.com/jupyterlite/jupyterlite/blob/f2ecc9cf7189cb19722bec2f0fc7ff5dfd233d47/packages/pyolite-kernel/src/_pypi.ts
-import STREAMLIT_WHEEL from "!!file-loader?name=pypi/[name].[ext]&context=.!../py/streamlit/lib/dist/streamlit-1.40.1-cp312-none-any.whl";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -73,12 +64,10 @@ export interface StliteKernelOptions {
    */
   pyodideUrl?: string;
 
-  /**
-   *
-   */
-  wheelBaseUrl?: string;
-
-  skipStliteWheelsInstall?: boolean;
+  wheelUrls?: {
+    stliteLib: string;
+    streamlit: string;
+  };
 
   /**
    * In the original Streamlit, the `hostConfig` endpoint returns a value of this type
@@ -173,7 +162,8 @@ export class StliteKernel {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
       const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        shared: options.sharedWorker ?? false,
+        type: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+        /* @vite-ignore */ shared: options.sharedWorker ?? false,
       });
       this._worker = workerMaker.worker;
     }
@@ -189,27 +179,6 @@ export class StliteKernel {
       this._processWorkerMessage(e.data, messagePort);
     };
 
-    let wheels: WorkerInitialData["wheels"] = undefined;
-    if (!options.skipStliteWheelsInstall) {
-      console.debug("Custom wheel URLs:", {
-        STLITE_LIB_WHEEL,
-        STREAMLIT_WHEEL,
-      });
-      const stliteLibWheelUrl = makeAbsoluteWheelURL(
-        STLITE_LIB_WHEEL as unknown as string,
-        options.wheelBaseUrl,
-      );
-      const streamlitWheelUrl = makeAbsoluteWheelURL(
-        STREAMLIT_WHEEL as unknown as string,
-        options.wheelBaseUrl,
-      );
-      wheels = {
-        stliteLib: stliteLibWheelUrl,
-        streamlit: streamlitWheelUrl,
-      };
-      console.debug("Custom wheel resolved URLs:", wheels);
-    }
-
     // TODO: Assert other options as well.
     if (options.streamlitConfig != null) {
       assertStreamlitConfig(options.streamlitConfig);
@@ -222,7 +191,7 @@ export class StliteKernel {
       requirements: options.requirements,
       prebuiltPackageNames: options.prebuiltPackageNames,
       pyodideUrl: options.pyodideUrl,
-      wheels,
+      wheels: options.wheelUrls,
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,

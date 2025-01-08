@@ -1,6 +1,7 @@
+import { describe, it, expect } from "vitest";
 import { walkRead } from "../file";
-import * as path from "path";
-import * as os from "os";
+import * as path from "node:path";
+import * as os from "node:os";
 
 describe("walkRead", () => {
   it("walks in the specified directory, reads the all child file contents, and returns the pairs of the relative path and the file content", async () => {

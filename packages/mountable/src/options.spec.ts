@@ -1,12 +1,21 @@
+import {
+  vi,
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  type MockInstance,
+} from "vitest";
 import { parseMountOptions, resolveUrl } from "./options";
 
 describe("resolveUrl()", () => {
-  let windowSpy: jest.SpyInstance;
+  let windowSpy: MockInstance;
   let setLocationHref: (href: string) => void;
 
   beforeEach(() => {
     const originalWindow = { ...window };
-    windowSpy = jest.spyOn(window, "window", "get");
+    windowSpy = vi.spyOn(window, "window", "get");
     setLocationHref = (href) => {
       windowSpy.mockImplementation(() => ({
         ...originalWindow,
@@ -53,6 +62,25 @@ describe("resolveUrl()", () => {
 });
 
 describe("parseMountOptions()", () => {
+  let windowSpy: MockInstance;
+
+  beforeEach(() => {
+    const originalWindow = { ...window };
+    windowSpy = vi.spyOn(window, "window", "get");
+    const mockedLocationHref = "http://localhost/";
+    windowSpy.mockImplementation(() => ({
+      ...originalWindow,
+      location: {
+        ...originalWindow.location,
+        href: mockedLocationHref,
+      },
+    }));
+  });
+
+  afterEach(() => {
+    windowSpy.mockRestore();
+  });
+
   it("translates a string input into StliteKernelOptions", () => {
     const { kernelOptions } = parseMountOptions("foo");
     expect(kernelOptions).toEqual({

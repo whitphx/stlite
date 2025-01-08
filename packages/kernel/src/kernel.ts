@@ -5,7 +5,6 @@ import { PromiseDelegate } from "@stlite/common";
 
 import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
 
-import { makeAbsoluteWheelURL } from "./url";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 
 import type {

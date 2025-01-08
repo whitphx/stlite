@@ -18419,10 +18419,10 @@ use-sidecar@^1.1.2:
     detect-node-es "^1.1.0"
     tslib "^2.0.0"
 
-usehooks-ts@^2.9.1:
-  version "2.15.1"
-  resolved "https://registry.npmjs.org/usehooks-ts/-/usehooks-ts-2.15.1.tgz"
-  integrity sha512-AK29ODCt4FT9XleILNbkbjjmkRCNaQrgxQEkvqHjlnT76iPXzTFGvK2Y/s83JEdSxRp43YEnSa3bYBEV6HZ26Q==
+usehooks-ts@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/usehooks-ts/-/usehooks-ts-3.1.0.tgz#156119f36efc85f1b1952616c02580f140950eca"
+  integrity sha512-bBIa7yUyPhE1BCc0GmR96VU/15l/9gP1Ch5mYdLcFBaFGQsdmXkvjV0TtOqW1yUd6VjIwDunm+flSciCQXujiw==
   dependencies:
     lodash.debounce "^4.0.8"
 

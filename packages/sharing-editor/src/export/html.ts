@@ -55,17 +55,13 @@ export function exportAsHtml(appData: AppData): string {
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>stlite app</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.css"
-    />
+    <title>Stlite app</title>
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js"></script>
-    <script>
-stlite.mount(
+    <script type="module">
+import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js"
+mount(
   {
     requirements: ${makeRequirementsLiteral(appData.requirements)},
     entrypoint: ${makeEntrypointLiteral(appData.entrypoint)},

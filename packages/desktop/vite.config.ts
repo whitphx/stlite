@@ -113,17 +113,8 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         "../../streamlit/frontend/lib/src",
       ),
-      "stlite_lib.whl": path.resolve(
-        __dirname,
-        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-      ),
-      "streamlit.whl": path.resolve(
-        __dirname,
-        "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
-      ),
     },
   },
-  assetsInclude: ["**/*.whl"],
   worker: {
     format: "es",
   },

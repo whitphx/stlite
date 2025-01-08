@@ -38,15 +38,11 @@ Here is a sample HTML file.
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <title>Stlite App</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.css"
-    />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.js"></script>
-    <script>
+    <script type="module">
+      import * as stlite from "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.76.0/build/stlite.js";
       stlite.mount(
         `
 import streamlit as st
@@ -68,17 +64,15 @@ In this sample,
 
 > ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
 >
-> ```html
-> <script>
->   stlite.mount(
->     `
+> ```js
+> stlite.mount(
+>   `
 > import streamlit as st
 > 
 > st.markdown("This is an inline code format: \`code\`")
 > `,
->     document.getElementById("root"),
->   );
-> </script>
+>   document.getElementById("root"),
+> );
 > ```
 
 ### More controls
@@ -273,23 +267,22 @@ stlite.mount(
 
 ### Different Stlite versions
 
-In the example above, the _Stlite_ script is loaded via the `<script>` tag with the versioned URL.
-You can use another version by changing the version number in the URL.
+In the example above, the _Stlite_ script is loaded from the versioned URL.
 
 The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
 
 #### The latest release
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+```
+https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js
 ```
 
 You can use the latest version of the published _Stlite_ package with this URL.
 
 #### The head of the main branch
 
-```html
-<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+```
+https://whitphx.github.io/stlite/lib/mountable/stlite.js
 ```
 
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.

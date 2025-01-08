@@ -10,7 +10,7 @@
 
 const workerBlobUrlCache = new Map<string, string>();
 
-function getWorkerBlobUrl(url: URL): string {
+function getWorkerBlobUrl(url: URL, isModule = false): string {
   const urlStr = url.toString();
 
   const cached = workerBlobUrlCache.get(urlStr);
@@ -19,8 +19,12 @@ function getWorkerBlobUrl(url: URL): string {
     return cached;
   }
 
-  const workerBlob = new Blob([`importScripts("${urlStr}");`], {
-    type: "text/javascript",
+  const workerCode = isModule
+    ? `import "${urlStr}";`
+    : `importScripts("${urlStr}");`;
+
+  const workerBlob = new Blob([workerCode], {
+    type: isModule ? "text/javascript;type=module" : "text/javascript",
   });
   const workerBlobUrl = URL.createObjectURL(workerBlob);
   workerBlobUrlCache.set(urlStr, workerBlobUrl);
@@ -52,7 +56,10 @@ export class CrossOriginWorkerMaker {
       // so we can't catch the error synchronously.
     } else {
       console.debug(`Loading a worker script from a different origin: ${url}`);
-      const workerBlobUrl = getWorkerBlobUrl(url);
+      const workerBlobUrl = getWorkerBlobUrl(
+        url,
+        workerOptions.type === "module",
+      );
       this.worker = shared
         ? new SharedWorker(workerBlobUrl, workerOptions)
         : new Worker(workerBlobUrl, workerOptions);

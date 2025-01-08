@@ -138,7 +138,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: "build",
-    // sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
+    sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),
       name: "Stlite",

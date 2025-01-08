@@ -6,5 +6,5 @@
 
 declare module "*.whl" {
   const res: string;
-  return res;
+  export default res;
 }

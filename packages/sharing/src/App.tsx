@@ -96,8 +96,8 @@ st.write("Hello World")`,
           moduleAutoLoad: true,
           sharedWorker: isSharedWorkerMode(),
           wheelUrls: {
-            stliteLib: STLITE_LIB_WHEEL as unknown as string,
-            streamlit: STREAMLIT_WHEEL as unknown as string,
+            stliteLib: STLITE_LIB_WHEEL,
+            streamlit: STREAMLIT_WHEEL,
           },
         });
         _kernel = kernel;

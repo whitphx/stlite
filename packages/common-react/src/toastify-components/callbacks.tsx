@@ -26,7 +26,7 @@ export function makeToastKernelCallbacks(
     }
 
     const id = toast(message, {
-      position: toast.POSITION.BOTTOM_RIGHT,
+      position: "bottom-right",
       transition: Slide,
       isLoading: true,
       hideProgressBar: true,
@@ -53,8 +53,8 @@ export function makeToastKernelCallbacks(
     toast(
       <ErrorToastContent message="Error during booting up" error={error} />,
       {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        type: toast.TYPE.ERROR,
+        position: "bottom-right",
+        type: "error",
         autoClose: false,
         closeOnClick: false,
       },

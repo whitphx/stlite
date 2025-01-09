@@ -15,11 +15,11 @@ if (process.env.NODE_ENV === "development") {
     process.platform === "win32"
       ? path.resolve(
           require.resolve("electron/package.json"),
-          "../../electron/dist/electron.exe",
+          "../../electron/dist/electron.exe"
         )
       : path.resolve(
           require.resolve("electron/package.json"),
-          "../../.bin/electron",
+          "../../.bin/electron"
         );
   console.log("Hot-reloading Electron enabled", electronPath);
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -33,11 +33,11 @@ const createWindow = async () => {
 
   const additionalArguments: string[] = [];
   additionalArguments.push(
-    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`,
+    `--entrypoint=${JSON.stringify(manifest.entrypoint)}`
   );
   if (manifest.idbfsMountpoints) {
     additionalArguments.push(
-      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`,
+      `--idbfs-mountpoints=${JSON.stringify(manifest.idbfsMountpoints)}`
     );
   }
   if (manifest.nodeJsWorker) {
@@ -57,7 +57,7 @@ const createWindow = async () => {
   const indexUrlObj = new URL(
     app.isPackaged || process.env.NODE_ENV === "production"
       ? "file:///index.html"
-      : "http://localhost:3000/",
+      : "http://localhost:3000/"
   );
 
   const indexUrlParams = new URLSearchParams();
@@ -80,33 +80,33 @@ const createWindow = async () => {
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`
       );
     }
 
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(
       __dirname,
-      "../site-packages-snapshot.tar.gz",
+      "../site-packages-snapshot.tar.gz"
     );
     return fsPromises.readFile(archiveFilePath);
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`
       );
     }
 
     const prebuiltPackagesTxtPath = path.resolve(
       __dirname,
-      "../prebuilt-packages.txt",
+      "../prebuilt-packages.txt"
     );
     const prebuiltPackagesTxtData = await fsPromises.readFile(
       prebuiltPackagesTxtPath,
       {
         encoding: "utf-8",
-      },
+      }
     );
     return prebuiltPackagesTxtData
       .split("\n")
@@ -118,13 +118,13 @@ const createWindow = async () => {
     async (ev): Promise<Record<string, Buffer>> => {
       if (!isValidIpcSender(ev.senderFrame)) {
         throw new Error(
-          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`,
+          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`
         );
       }
 
       const appDir = path.resolve(__dirname, "../app_files");
       return walkRead(appDir);
-    },
+    }
   );
 
   mainWindow.on("closed", () => {
@@ -137,7 +137,7 @@ const createWindow = async () => {
   ipcMain.handle("initializeNodeJsWorker", async (ev) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`
       );
     }
 
@@ -170,7 +170,7 @@ const createWindow = async () => {
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`
       );
     }
 
@@ -190,7 +190,7 @@ const createWindow = async () => {
   ipcMain.handle("terminateNodeJsWorker", (ev, { data, portId }) => {
     if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (terminateNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (terminateNodeJsWorker) ${ev.senderFrame.url}`
       );
     }
 
@@ -222,6 +222,10 @@ const createWindow = async () => {
 // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
 app.enableSandbox();
 
+// Necessary for WebWorker to work in the renderer process, since Electron 32.
+// Ref: https://github.com/electron/electron/issues/43556#issuecomment-2345647103
+app.commandLine.appendSwitch("disable-features", "PlzDedicatedWorker");
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -241,7 +245,7 @@ app.whenReady().then(() => {
     }
 
     const resolvedFilePath = path.normalize(
-      path.join(bundleBasePath, filePath),
+      path.join(bundleBasePath, filePath)
     );
     const modifiedReq = new Request("file://" + resolvedFilePath, req);
     return net.fetch(modifiedReq, {

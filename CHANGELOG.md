@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   </script>
   ```
 
+- Cross-origin worker trick for ESM workers, [#1219](https://github.com/whitphx/stlite/pull/1219).
+
+### `@stlite/desktop`
+
+#### Fix
+
+- Workaround for Electron 32+. [#1231](https://github.com/whitphx/stlite/pull/1231).
+
 ## [0.75.0] - 2025-01-05
 
 ### `@stlite/mountable`

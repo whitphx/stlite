@@ -31,7 +31,7 @@
     "build:electron": "tsc -p electron && cross-env NODE_ENV=production ./scripts/build_electron.js",
     "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.26.2/pyodide-core-0.26.2.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
     "build:bin": "tsc -p bin-src && ./scripts/build_bin.js",
-    "build:wheels": "ts-node ./scripts/copy_wheels.ts",
+    "build:wheels": "ts-node --transpile-only --project ./scripts/tsconfig.json ./scripts/copy_wheels.ts",
     "postbuild:web": "./scripts/post_build_web.js",
     "typecheck": "yarn tsc --noEmit -p electron",
     "prestart": "yarn build:pyodide && yarn build:wheels",

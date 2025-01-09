@@ -34,7 +34,7 @@ function stliteStyledPromiseToast<
     },
     {
       hideProgressBar: true,
-      position: toast.POSITION.BOTTOM_RIGHT,
+      position: "bottom-right",
     },
   );
 }

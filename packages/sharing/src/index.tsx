@@ -3,7 +3,6 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ToastContainer } from "@stlite/common-react";
-import "react-toastify/dist/ReactToastify.css";
 
 // eslint-disable-next-line react/no-deprecated
 ReactDOM.render(

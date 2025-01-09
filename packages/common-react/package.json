@@ -19,11 +19,11 @@
   "devDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-toastify": "^9.1.1"
+    "react-toastify": "^11.0.2"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0",
-    "react-toastify": "^9.1.1"
+    "react-toastify": "^11.0.2"
   }
 }

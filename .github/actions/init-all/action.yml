@@ -7,9 +7,6 @@ inputs:
   node-version-file:
     description: 'Node version file to setup'
     required: false
-  install-protoc:
-    description: Whether to install protoc
-    default: true
 runs:
   using: "composite"
   steps:
@@ -50,7 +47,6 @@ runs:
       env:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
-      if: ${{ inputs.install-protoc }}
 
     - name: Set up Python packages
       run: make venv

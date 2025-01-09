@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.41.0, [#1199](https://github.com/whitphx/stlite/pull/1199).
+
+### `@stlite/mountable`
+
+#### Changed
+
+- **[BREAKING]** It is bundled as an ESM package now. The way of importing the package has been changed as below.
+
+  ```html
+  <script type="module">
+    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.76.0/build/stlite.js";
+    mount(
+      `
+  import streamlit as st
+  
+  name = st.text_input('Your name')
+  st.write("Hello,", name or "world")
+  `,
+      document.getElementById("root"),
+    );
+  </script>
+  ```
+
 ## [0.75.0] - 2025-01-05
 
 ### `@stlite/mountable`

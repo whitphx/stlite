@@ -4,4 +4,4 @@ scipy
 altair
 pydeck
 opencv-python
-streamlit>=1.0.0
+streamlit>=1.41.0

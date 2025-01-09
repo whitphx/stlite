@@ -6,8 +6,8 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"yarn start:proto\" \"yarn start:ts\"",
-    "build": "yarn build:proto && yarn build:ts",
+    "start": "run-p start:proto start:ts",
+    "build": "run-s build:proto build:ts",
     "start:ts": "tsc -w",
     "build:ts": "tsc",
     "test": "vitest",

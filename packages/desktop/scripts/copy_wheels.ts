@@ -2,14 +2,11 @@
 
 // Copy wheels from the `@stlite/kernel` package to the `wheels` directory.
 
-import * as fsPromises from "node:fs/promises";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
+import * as fsPromises from "fs/promises";
+import * as path from "path";
 
-const require = createRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// __dirname is available in CommonJS modules
+const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel"));
 
 async function copyFileToDir(filePath: string, dirPath: string): Promise<void> {
   const fileName = path.basename(filePath);
@@ -18,7 +15,6 @@ async function copyFileToDir(filePath: string, dirPath: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
   const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
 
   // TODO: Set the wheel file names dynamically
@@ -33,7 +29,7 @@ async function main(): Promise<void> {
   );
 
   // Create the `wheels` directory
-  const wheelsDir = path.join(__dirname, "../wheels");
+  const wheelsDir = path.join(path.dirname(__filename), "../wheels");
   if (
     await fsPromises
       .stat(wheelsDir)

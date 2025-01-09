@@ -1,3 +1,4 @@
 {
-  "python.analysis.extraPaths": ["./streamlit/lib"]
+  "python.analysis.extraPaths": ["./streamlit/lib"],
+  "makefile.configureOnOpen": false
 }

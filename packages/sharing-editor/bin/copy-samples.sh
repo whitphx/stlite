@@ -1,3 +1,5 @@
+#!/bin/bash -eu
+
 SOURCE_REPO_DIR=$1
 if [ ! "$SOURCE_REPO_DIR" ]; then
   echo "Path to the cloned streamlit/docs repo must be passed"

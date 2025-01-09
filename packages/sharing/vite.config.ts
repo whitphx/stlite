@@ -88,7 +88,14 @@ export default defineConfig(({ mode }) => ({
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
     rollupOptions: {
       output: {
-        assetFileNames: `assets/[name].[hash][extname]`, // The dot before the hash is important to make the wheel file names correct and installable
+        // Ensure that *.whl files don't include the hash part to comply with the file name convention
+        // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.names[0].endsWith(".whl")) {
+            return "assets/[name][extname]";
+          }
+          return "assets/[name]-[hash][extname]";
+        },
       },
     },
   },

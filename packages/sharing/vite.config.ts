@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => ({
         // Ensure that *.whl files don't include the hash part to comply with the file name convention
         // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
         assetFileNames: (assetInfo) => {
-          if (assetInfo.names[0]?.endsWith(".whl")) {
+          if (assetInfo.name?.endsWith(".whl")) {
             return "assets/[name][extname]";
           }
           return "assets/[name]-[hash][extname]";

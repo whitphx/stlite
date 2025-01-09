@@ -21,7 +21,7 @@ function ErrorToastContent(props: ErrorToastContentProps) {
             maxHeight: 300,
           }}
         >
-          <code>{injectedProps.error.message}</code>
+          <code style={{ padding: "16px" }}>{injectedProps.error.message}</code>
         </pre>
       )}
     </div>

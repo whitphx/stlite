@@ -6,7 +6,7 @@ inputs:
     required: false
   node-version-file:
     description: 'Node version file to setup'
-    required: true
+    required: false
 runs:
   using: "composite"
   steps:
@@ -14,6 +14,7 @@ runs:
     - uses: actions/setup-python@v5
       with:
         python-version-file: ${{ inputs.python-version-file }}
+      if: ${{ inputs.python-version-file }}
 
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v3
@@ -23,12 +24,14 @@ runs:
         cache-dependency-glob: |
           **/requirements*.txt
           **/uv.lock
+      if: ${{ inputs.python-version-file }}
 
     ## Set up Node environment
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}
         cache: 'yarn'
+      if: ${{ inputs.node-version-file }}
 
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
     # Actions are running as of 2023.05.03 - doesn't have recent versions
@@ -45,6 +48,12 @@ runs:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
 
-    - name: Set up
-      run: make init
+    - name: Set up Python packages
+      run: make venv
       shell: bash
+      if: ${{ inputs.python-version-file }}
+
+    - name: Set up Node packages
+      run: make node_modules
+      shell: bash
+      if: ${{ inputs.node-version-file }}

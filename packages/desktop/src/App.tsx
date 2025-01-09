@@ -3,7 +3,6 @@ import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import StreamlitApp from "./StreamlitApp";
 import { makeToastKernelCallbacks } from "@stlite/common-react";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
-import "@stlite/common-react/src/toastify-components/toastify.css";
 
 let pyodideUrl: string | undefined;
 if (process.env.NODE_ENV === "production" && !USE_NODEJS_WORKER) {

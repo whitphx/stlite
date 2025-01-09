@@ -10,11 +10,13 @@ function ErrorToastContent(props: ErrorToastContentProps) {
   const injectedProps = props as ErrorToastContentProps & ToastContentProps; // ToastContentProps is injected by react-toastify
 
   return (
-    <>
+    <div style={{ width: "100%", padding: 0 }}>
       <p>{injectedProps.message}</p>
       {injectedProps.error && (
         <pre
           style={{
+            width: "100%",
+            padding: 0,
             overflow: "scroll",
             maxHeight: 300,
           }}
@@ -22,7 +24,7 @@ function ErrorToastContent(props: ErrorToastContentProps) {
           <code>{injectedProps.error.message}</code>
         </pre>
       )}
-    </>
+    </div>
   );
 }
 

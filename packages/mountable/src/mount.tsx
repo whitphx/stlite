@@ -8,7 +8,6 @@ import {
   makeToastKernelCallbacks,
   StliteKernelWithToast,
 } from "@stlite/common-react";
-import "@stlite/common-react/src/toastify-components/toastify.css";
 
 const wheelBaseUrl =
   process.env.NODE_ENV === "production"

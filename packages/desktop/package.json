@@ -72,6 +72,7 @@
     "@types/react-dom": "^18.2.0",
     "@types/yargs": "^17.0.32",
     "@vitejs/plugin-react": "^4.3.4",
+    "electron": "32.2.8",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.20.0",
     "glob": "^10.3.12",

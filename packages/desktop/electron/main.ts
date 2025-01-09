@@ -222,6 +222,10 @@ const createWindow = async () => {
 // https://www.electronjs.org/docs/latest/tutorial/security#4-enable-process-sandboxing
 app.enableSandbox();
 
+// Necessary for WebWorker to work in the renderer process, since Electron 32.
+// Ref: https://github.com/electron/electron/issues/43556#issuecomment-2345647103
+app.commandLine.appendSwitch("disable-features", "PlzDedicatedWorker");
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

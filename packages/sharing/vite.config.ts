@@ -71,6 +71,9 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
+    "process.env.STREAMLIT_VERSION": JSON.stringify(
+      process.env.STREAMLIT_VERSION || "1.41.0",
+    ),
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
       process.env.EDITOR_APP_ORIGIN_REGEX,

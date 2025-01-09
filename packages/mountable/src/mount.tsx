@@ -8,6 +8,7 @@ import {
   makeToastKernelCallbacks,
   StliteKernelWithToast,
 } from "@stlite/common-react";
+import { STREAMLIT_VERSION } from "@stlite/common/src/version";
 
 const wheelBaseUrl =
   process.env.NODE_ENV === "production"
@@ -16,8 +17,10 @@ const wheelBaseUrl =
 const wheelUrls = {
   stliteLib: new URL("wheels/stlite_lib-0.1.0-py3-none-any.whl", wheelBaseUrl)
     .href,
-  streamlit: new URL("wheels/streamlit-1.41.0-cp312-none-any.whl", wheelBaseUrl)
-    .href,
+  streamlit: new URL(
+    `wheels/streamlit-${STREAMLIT_VERSION}-cp312-none-any.whl`,
+    wheelBaseUrl,
+  ).href,
 };
 
 export function mount(

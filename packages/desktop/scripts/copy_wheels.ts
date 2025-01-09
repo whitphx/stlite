@@ -2,16 +2,22 @@
 
 // Copy wheels from the `@stlite/kernel` package to the `wheels` directory.
 
-const fsPromises = require("fs/promises");
-const path = require("path");
+import fsPromises from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
-async function copyFileToDir(filePath, dirPath) {
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+async function copyFileToDir(filePath: string, dirPath: string): Promise<void> {
   const fileName = path.basename(filePath);
   const destPath = path.join(dirPath, fileName);
   await fsPromises.copyFile(filePath, destPath);
 }
 
-async function main() {
+async function main(): Promise<void> {
   const stliteKernelDir = path.dirname(require.resolve("@stlite/kernel")); // -> /path/to/kernel/dist
   const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
 
@@ -20,15 +26,18 @@ async function main() {
     stliteKernelPyDir,
     "stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
   );
+  const streamlitVersion = process.env.STREAMLIT_VERSION || "1.41.0";
   const streamlitWheelPath = path.join(
     stliteKernelPyDir,
-    "streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+    `streamlit/lib/dist/streamlit-${streamlitVersion}-cp312-none-any.whl`,
   );
 
   // Create the `wheels` directory
   const wheelsDir = path.join(__dirname, "../wheels");
   if (
-    await fsPromises.stat(wheelsDir).catch((error) => error.code !== "ENOENT")
+    await fsPromises
+      .stat(wheelsDir)
+      .catch((error: NodeJS.ErrnoException) => error.code !== "ENOENT")
   ) {
     await fsPromises.rm(wheelsDir, { recursive: true });
   }

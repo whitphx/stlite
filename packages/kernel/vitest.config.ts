@@ -17,7 +17,7 @@ export default defineConfig({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "./py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+        `./py/streamlit/lib/dist/streamlit-${process.env.STREAMLIT_VERSION || "1.41.0"}-cp312-none-any.whl`,
       ),
     },
   },

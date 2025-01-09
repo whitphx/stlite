@@ -101,8 +101,10 @@ async function saveUsedPrebuiltPackages(
   const pyodide = await loadPyodide({
     packageCacheDir: options.pyodideRuntimeDir,
   });
-  // @ts-ignore
-  pyodide._api.setCdnUrl(options.pyodideSource);
+  // The _api property is internal to Pyodide but necessary for CDN configuration
+  (
+    pyodide as unknown as { _api: { setCdnUrl: (url: string) => void } }
+  )._api.setCdnUrl(options.pyodideSource);
 
   await installPackages(pyodide, {
     requirements: options.requirements,
@@ -148,7 +150,10 @@ async function installPackages(
   requirements.push(stliteLibWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.41.0-cp312-none-any.whl"),
+    path.join(
+      wheelsDir,
+      `streamlit-${process.env.STREAMLIT_VERSION || "1.41.0"}-cp312-none-any.whl`,
+    ),
   );
   requirements.push(streamlitWheel);
 
@@ -171,8 +176,10 @@ async function createSitePackagesSnapshot(
   const pyodide = await loadPyodide({
     packageCacheDir: options.pyodideRuntimeDir,
   });
-  // @ts-ignore
-  pyodide._api.setCdnUrl(options.pyodideSource);
+  // The _api property is internal to Pyodide but necessary for CDN configuration
+  (
+    pyodide as unknown as { _api: { setCdnUrl: (url: string) => void } }
+  )._api.setCdnUrl(options.pyodideSource);
 
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");
@@ -305,7 +312,9 @@ yargs(hideBin(process.argv))
   .command(
     "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
-    () => {},
+    () => {
+      // This is intentionally empty as it's just a command definition
+    },
   )
   .positional("appHomeDirSource", {
     describe:
@@ -367,7 +376,9 @@ yargs(hideBin(process.argv))
     const destDir = path.resolve(projectDir, "./build");
 
     const packageJsonPath = path.resolve(projectDir, "./package.json");
-    const packageJson = require(packageJsonPath);
+    const packageJson = JSON.parse(
+      await fsPromises.readFile(packageJsonPath, "utf-8"),
+    );
 
     const config = await readConfig({
       pathResolutionRoot: projectDir,

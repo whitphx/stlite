@@ -13,7 +13,7 @@
     "pretest": "yarn build:proto",
     "test": "vitest",
     "build:proto": "protoc --ts_proto_out=. ./src/proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=oneof=unions",
-    "start:proto": "chokidar \"**/*.proto\" -c \"npm run build:proto\"",
+    "start:proto": "chokidar \"**/*.proto\" -c \"yarn run build:proto\"",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",

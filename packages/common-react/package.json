@@ -14,16 +14,15 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
-    "@streamlit/lib": "1.41.0"
+    "@streamlit/lib": "1.41.0",
+    "react-toastify": "^11.0.2"
   },
   "devDependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-toastify": "^11.0.2"
+    "react-dom": "^18.2.0"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0",
-    "react-toastify": "^11.0.2"
+    "react-dom": "^17.0.0 || ^18.0.0"
   }
 }

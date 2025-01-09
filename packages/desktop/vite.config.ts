@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => ({
 
         return html.replace(
           /<head>/,
-          `<head>\n  <meta http-equiv="Content-Security-Policy" content="${csp}">`,
+          `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}">`,
         );
       },
     },

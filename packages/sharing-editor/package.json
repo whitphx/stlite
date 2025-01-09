@@ -41,7 +41,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@types/jsdom": "^20.0.1",
+    "@types/jsdom": "^21.1.7",
     "@types/mime": "^3.0.1",
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-react": "^4.3.4",

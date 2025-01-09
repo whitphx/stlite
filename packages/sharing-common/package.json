@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "start": "concurrently \"yarn start:ts\" \"yarn start:proto\"",
+    "start": "concurrently \"yarn start:proto\" \"yarn start:ts\"",
     "build": "yarn build:proto && yarn build:ts",
     "start:ts": "tsc -w",
     "build:ts": "tsc",

@@ -2,8 +2,8 @@
 
 // Copy wheels from the `@stlite/kernel` package to the `wheels` directory.
 
-import fsPromises from "node:fs/promises";
-import path from "node:path";
+import * as fsPromises from "node:fs/promises";
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 

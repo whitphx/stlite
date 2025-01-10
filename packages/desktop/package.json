@@ -76,7 +76,7 @@
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.20.0",
     "glob": "^10.3.12",
-    "node-html-parser": "^6.1.13",
+    "node-html-parser": "^7.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "superstruct": "^1.0.4",

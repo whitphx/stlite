@@ -1,8 +1,8 @@
 {
-  "name": "@stlite/mountable",
+  "name": "@stlite/browser",
   "version": "0.75.0",
   "type": "module",
-  "description": "Mountable Stlite application",
+  "description": "Browser Stlite",
   "keywords": [
     "stlite",
     "streamlit",
@@ -25,7 +25,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
-    "directory": "packages/mountable"
+    "directory": "packages/browser"
   },
   "dependencies": {
     "@stlite/common": "^0.75.0",

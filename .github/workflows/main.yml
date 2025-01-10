@@ -30,7 +30,7 @@ jobs:
       kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       stlite-lib: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
-      mountable: ${{ steps.filter.outputs.mountable == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
@@ -52,8 +52,8 @@ jobs:
           # stlite-lib:  # We run this job anytime. See above.
           #   - 'packages/kernel/py/stlite-lib/**/*'
           #   - 'streamlit/**/*'
-          mountable:
-            - 'packages/mountable/**/*'
+          browser:
+            - 'packages/browser/**/*'
           sharing-editor:
             - 'packages/sharing-editor/**/*'
           sharing-common:
@@ -165,15 +165,15 @@ jobs:
         cd packages/kernel/py/stlite-lib
         uv run pytest -v
 
-  test-mountable:
+  test-browser:
     needs: changes
-    if: ${{ needs.changes.outputs.mountable == 'true' }}
+    if: ${{ needs.changes.outputs.browser == 'true' }}
 
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: packages/mountable
+        working-directory: packages/browser
 
     steps:
     - uses: actions/checkout@v4
@@ -282,9 +282,9 @@ jobs:
     - run: yarn typecheck
     - run: yarn test
 
-  build-mountable:
+  build-browser:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-lib, test-mountable]
+    needs: [test-kernel, test-stlite-lib, test-browser]
 
     runs-on: ubuntu-latest
 
@@ -301,43 +301,43 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    ## Build and deploy @stlite/mountable
+    ## Build and deploy @stlite/browser
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
-    - name: Build @stlite/mountable
+    - name: Build @stlite/browser
       run: |
         . .venv/bin/activate
-        make mountable
+        make browser
 
     - name: Package
-      working-directory: packages/mountable
+      working-directory: packages/browser
       run: yarn pack
 
     - name: Get the built package file path
       id: get-package-file-path
-      working-directory: packages/mountable
-      run: echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-mountable-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
+      working-directory: packages/browser
+      run: echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-browser-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-mountable-${{ github.sha }}.tgz
+        name: stlite-browser-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-mountable-${{ github.ref_name }}.tgz
+        name: stlite-browser-${{ github.ref_name }}.tgz
 
-    - name: "Inform the package stats of @stlite/mountable"
+    - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/inform-package-stats
       with:
-        key: mountable
-        name: "@stlite/mountable"
+        key: browser
+        name: "@stlite/browser"
         input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
 
     # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
@@ -356,18 +356,18 @@ jobs:
       uses: ./.github/actions/inform-package-stats
       with:
         key: stlite-lib-wheel
-        name: "stlite-lib wheel (built as a part of @stlite/mountable)"
+        name: "stlite-lib wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
     - name: "Inform the package stats of streamlit wheel"
       uses: ./.github/actions/inform-package-stats
       with:
         key: streamlit-wheel
-        name: "streamlit wheel (built as a part of @stlite/mountable)"
+        name: "streamlit wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
 
-  publish-mountable:
+  publish-browser:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
-    needs: [build-mountable]
+    needs: [build-browser]
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -385,18 +385,18 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-mountable-${{ github.ref_name }}.tgz
-        path: packages/mountable
+        name: stlite-browser-${{ github.ref_name }}.tgz
+        path: packages/browser
 
-    - run: yarn publish stlite-mountable-v*.tgz --access public
+    - run: yarn publish stlite-browser-v*.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      working-directory: packages/mountable
+      working-directory: packages/browser
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2
       with:
-        files: packages/mountable/stlite-mountable-v*.tgz
+        files: packages/browser/stlite-browser-v*.tgz
         generate_release_notes: true
 
   build-sharing:
@@ -728,7 +728,7 @@ jobs:
     if: ${{ !failure() && startsWith(github.ref, 'refs/tags/v') }}  # `!failure()` is necessary to avoid skipping this job after successful build: https://github.com/actions/runner/issues/491
     needs:
     - test-build-vscode-extension
-    - publish-mountable  # The VSC extension uses the same version of published @stlite/mountable, so it must be released in order.
+    - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions

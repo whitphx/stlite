@@ -12,13 +12,13 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  GITHUB_PAGES_SUBDIR_MOUNTABLE: lib/mountable
+  GITHUB_PAGES_SUBDIR_BROWSER: lib/browser
 
 jobs:
   build:
     strategy:
       matrix:
-        target: ["mountable"]
+        target: ["browser"]
 
     env:
       # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
@@ -72,23 +72,23 @@ jobs:
     - name: Set up
       run: make init
 
-    ## Build and deploy @stlite/mountable
+    ## Build and deploy @stlite/browser
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
-    - if: matrix.target == 'mountable'
+    - if: matrix.target == 'browser'
       name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
-    - if: matrix.target == 'mountable'
-      name: Build @stlite/mountable
+    - if: matrix.target == 'browser'
+      name: Build @stlite/browser
       run: |
         . .venv/bin/activate
-        make mountable
+        make browser
 
-    - if: matrix.target == 'mountable'
+    - if: matrix.target == 'browser'
       name: Upload the built files as an artifact
       uses: actions/upload-artifact@v4
       with:
-        name: stlite-mountable
-        path: packages/mountable/build
+        name: stlite-browser
+        path: packages/browser/build
 
   deploy:
     needs: build
@@ -102,8 +102,8 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-mountable
-        path: mountable
+        name: stlite-browser
+        path: browser
 
     - name: Configure redirect
       run: |
@@ -124,8 +124,8 @@ jobs:
 
     - name: Set the build artifact paths
       run: |
-        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}
-        cp -r ./mountable/* /tmp/website/${GITHUB_PAGES_SUBDIR_MOUNTABLE}/.
+        mkdir -p /tmp/website/${GITHUB_PAGES_SUBDIR_BROWSER}
+        cp -r ./browser/* /tmp/website/${GITHUB_PAGES_SUBDIR_BROWSER}/.
 
     - name: Upload the website files as an artifact
       uses: actions/upload-artifact@v4

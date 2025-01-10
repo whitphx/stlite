@@ -24,6 +24,9 @@ See [`@stlite/desktop`](./packages/desktop/README.md).
 
 ## Use _Stlite_ on your web page (`@stlite/browser`)
 
+> [!NOTE]
+> Since 0.76.0, `@stlite/mountable` is renamed to `@stlite/browser`, and the API is changed. See the [Migration guide](./CHANGELOG.md#how-to-migrate-from-stlitemountable-to-stlitebrowser) for the details.
+
 You can use _Stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
 Here is a sample HTML file.
 
@@ -42,8 +45,8 @@ Here is a sample HTML file.
   <body>
     <div id="root"></div>
     <script type="module">
-      import * as stlite from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
-      stlite.mount(
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+      mount(
         `
 import streamlit as st
 
@@ -60,12 +63,13 @@ st.write("Hello,", name or "world")
 In this sample,
 
 - _Stlite_ library is imported with the first script tag, then the global `stlite` object becomes available.
-- `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
+- `mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
-> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
+> [!NOTE]
+> If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
 >
 > ```js
-> stlite.mount(
+> mount(
 >   `
 > import streamlit as st
 > 
@@ -80,7 +84,7 @@ In this sample,
 If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.
 
 ```js
-stlite.mount(
+mount(
   {
     requirements: ["matplotlib"], // Packages to install
     entrypoint: "streamlit_app.py", // The target file of the `streamlit run` command
@@ -119,7 +123,7 @@ You can pass the file content as a string or binary data.
 This is what we did in the example above.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/text_file.txt": "file content",
@@ -138,7 +142,7 @@ You can use this way to load a file from a URL and mount it to the specified pat
 Either an absolute or relative URL is accepted. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/file": {
@@ -161,7 +165,7 @@ The files specified via the `files` option are mounted on the file system, and [
 You can specify the options (`opts`) for the `FS.writeFile(path, data, opts)` function as below.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/text_file.txt": {
@@ -215,7 +219,7 @@ You can pass the multiple files to the `files` option as below to construct the 
 Read [the Streamlit official document](https://docs.streamlit.io/library/get-started/multipage-apps) about the multipage apps.
 
 ```js
-stlite.mount(
+mount(
   {
     entrypoint: "👋_Hello.py",
     files: {
@@ -248,7 +252,7 @@ st.title("Page 2")
 You can pass the Streamlit configuration options to the `streamlitConfig` field as key-value pairs as below. Unlike the original Streamlit configuration, the options are passed as a flat object with the keys separated by dots.
 
 ```js
-stlite.mount(
+mount(
   {
     streamlitConfig: {
       "theme.base": "dark",
@@ -292,7 +296,7 @@ This URL points to the head of the main branch which is usually ahead of the rel
 _Stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for CDN access.
 
 ```js
-stlite.mount(
+mount(
   {
     pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
     // ... other options ...
@@ -321,7 +325,7 @@ In the case of `@stlite/browser`, you can mount the IndexedDB-based file system,
 The mounted file system is persistent across the page reloads and the browser sessions.
 
 ```js
-stlite.mount(
+mount(
   {
     idbfsMountpoints: ["/mnt"], // Mount the IndexedDB-based file system to the /mnt directory.
     entrypoint: "streamlit_app.py",

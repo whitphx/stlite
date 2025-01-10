@@ -39,6 +39,6 @@
     "immutable": "4.2.3",
     "protobufjs": "7.2.5",
     "@types/react": "^18.2.0",
-    "@stlite/kernel": "0.76.0-alpha.0"
+    "@stlite/kernel": "0.76.0-alpha.1"
   }
 }

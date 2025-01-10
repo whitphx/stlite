@@ -60,7 +60,7 @@ The points are:
   - **Delete `<script src="https://.../stlite.js"></script>`.** The script tag loading the Stlite script is no longer needed.
   - Instead, **add `type="module"` to the script tag where you use Stlite** and **import the package in the way like `import * as stlite from "https://.../stlite.js";` inside it**, then you can use `stlite.mount()` as before.
     - `import { mount } from "https://.../stlite.js";` and calling `mount()` directly is also available.
-  - Note that the package name is changed from `@stlite/mountable` to `@stlite/browser`, so the **CDN URL is also changed**.
+  - Note that the package name is changed from `@stlite/mountable` to `@stlite/browser`, so the **CDN URL is also changed** to `https://cdn.jsdelivr.net/npm/@stlite/browser@<version>/build/stlite.js`.
 - **Delete `<link rel="stylesheet" href="https://.../stlite.css" />`**. Loading a CSS file is no longer needed.
 - The `mount()` API is the same as before.
 

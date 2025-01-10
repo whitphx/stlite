@@ -188,12 +188,7 @@ $(streamlit_frontend_lib_prod): $(node_modules) $(kernel) $(streamlit_proto) str
 	$(MAKE) -C streamlit frontend-lib-prod
 
 clean:
-	# Preserve .gitkeep while cleaning build state files
-	$(eval TEMP_GITKEEP := $(shell mktemp))
-	cp $(BUILD_STATE_DIR)/.gitkeep $(TEMP_GITKEEP)
 	rm -rf $(BUILD_STATE_DIR)/*
-	mkdir -p $(BUILD_STATE_DIR)
-	cp $(TEMP_GITKEEP) $(BUILD_STATE_DIR)/.gitkeep
 	rm -f $(TEMP_GITKEEP)
 	rm -rf packages/*/dist/* packages/*/build/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

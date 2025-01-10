@@ -1,6 +1,6 @@
 {
   "name": "@stlite/common",
-  "version": "0.76.0-alpha.2",
+  "version": "0.76.0-alpha.3",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",

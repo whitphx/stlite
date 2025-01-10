@@ -17,11 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Changed
 
+- **[BREAKING]** `@stlite/mountable` is renamed to `@stlite/browser`, [#1243](https://github.com/whitphx/stlite/pull/1243). Its API is changed as below.
+
+### `@stlite/browser`
+
+#### Added
+
+- Renamed from `@stlite/mountable`, [#1243](https://github.com/whitphx/stlite/pull/1243).
 - **[BREAKING]** It is bundled as an ESM package now. The way of importing the package has been changed as below.
 
   ```html
   <script type="module">
-    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.76.0/build/stlite.js";
+    import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
     mount(
       `
   import streamlit as st

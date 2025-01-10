@@ -304,4 +304,3 @@ tags
 
 # Build state files
 .make/
-!.make/.gitkeep

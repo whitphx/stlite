@@ -3933,9 +3933,9 @@
   integrity sha512-SuT16Q1K51EAVPz1K29DJ/sXjhSQ0zjvsypYJ6tlwVsRV9jwW5Adq2ch8Dq8kDBCkYnELS7N7VNCSB5nC56t/g==
 
 "@types/path-browserify@^1.0.0":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@types/path-browserify/-/path-browserify-1.0.2.tgz"
-  integrity sha512-ZkC5IUqqIFPXx3ASTTybTzmQdwHwe2C0u3eL75ldQ6T9E9IWFJodn6hIfbZGab73DfyiHN4Xw15gNxUq2FbvBA==
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/path-browserify/-/path-browserify-1.0.3.tgz#25de712d4def94b3901f033c30d3d3bd16eba8d3"
+  integrity sha512-ZmHivEbNCBtAfcrFeBCiTjdIc2dey0l7oCGNGpSuRTy8jP6UVND7oUowlvDujBy8r2Hoa8bfFUOCiPWfmtkfxw==
 
 "@types/pbf@*", "@types/pbf@^3.0.5":
   version "3.0.5"

@@ -5,7 +5,7 @@
 [![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
-[![npm (scoped)](https://img.shields.io/npm/v/@stlite/mountable?label=%40stlite%2Fmountable)](https://www.npmjs.com/package/@stlite/mountable)
+[![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
 <img src="./assets/stlite.svg" style="background: white;" >
@@ -22,7 +22,7 @@ Visit [Stlite Sharing](https://edit.share.stlite.net/).
 
 See [`@stlite/desktop`](./packages/desktop/README.md).
 
-## Use _Stlite_ on your web page (`@stlite/mountable`)
+## Use _Stlite_ on your web page (`@stlite/browser`)
 
 You can use _Stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
 Here is a sample HTML file.
@@ -42,7 +42,7 @@ Here is a sample HTML file.
   <body>
     <div id="root"></div>
     <script type="module">
-      import * as stlite from "https://cdn.jsdelivr.net/npm/@stlite/mountable@0.76.0/build/stlite.js";
+      import * as stlite from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
       stlite.mount(
         `
 import streamlit as st
@@ -274,7 +274,7 @@ The following URLs are also available, while our recommendation is to use the ve
 #### The latest release
 
 ```
-https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js
+https://cdn.jsdelivr.net/npm/@stlite/browser/build/stlite.js
 ```
 
 You can use the latest version of the published _Stlite_ package with this URL.
@@ -282,7 +282,7 @@ You can use the latest version of the published _Stlite_ package with this URL.
 #### The head of the main branch
 
 ```
-https://whitphx.github.io/stlite/lib/mountable/stlite.js
+https://whitphx.github.io/stlite/lib/browser/stlite.js
 ```
 
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
@@ -317,7 +317,7 @@ The root `/` and some directories including home are mounted as `MEMFS`, the eph
 
 To persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)). The files saved in the directories mounted with `IDBFS` are stored in the browser's IndexedDB, so they are persistent across the app restarts.
 
-In the case of `@stlite/mountable`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
+In the case of `@stlite/browser`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
 The mounted file system is persistent across the page reloads and the browser sessions.
 
 ```js

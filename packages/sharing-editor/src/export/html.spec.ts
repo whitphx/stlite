@@ -52,7 +52,7 @@ describe("exportAsHtml", () => {
         type: "ImportDeclaration",
         source: expect.objectContaining({
           type: "StringLiteral",
-          value: `https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js`,
+          value: `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js`,
         }),
         specifiers: [
           expect.objectContaining({
@@ -227,7 +227,7 @@ describe("exportAsHtml", () => {
         type: "ImportDeclaration",
         source: expect.objectContaining({
           type: "StringLiteral",
-          value: `https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js`,
+          value: `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js`,
         }),
         specifiers: [
           expect.objectContaining({

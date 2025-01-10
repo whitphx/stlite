@@ -60,7 +60,7 @@ export function exportAsHtml(appData: AppData): string {
   <body>
     <div id="root"></div>
     <script type="module">
-import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/mountable@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js"
+import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js"
 mount(
   {
     requirements: ${makeRequirementsLiteral(appData.requirements)},

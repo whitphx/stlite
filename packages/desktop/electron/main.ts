@@ -71,16 +71,22 @@ const createWindow = async () => {
   // Check the IPC sender in every callback below,
   // following the security best practice, "17. Validate the sender of all IPC messages."
   // https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
-  const isValidIpcSender = (frame: Electron.WebFrameMain): boolean => {
+  const isValidIpcSender = (frame: Electron.WebFrameMain | null): boolean => {
+    if (frame == null) {
+      // Frame can be null after a cross-origin navigation: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+      return false;
+    }
+
     // In MPA, `frame.url` can include a sub path like `file:///index.html/sub_page_name`,
     // so we need to check if the URL is a descendant of the index URL.
     return isDescendantURL(indexUrl, frame.url);
   };
 
   ipcMain.handle("readSitePackagesSnapshot", (ev) => {
-    if (!isValidIpcSender(ev.senderFrame)) {
+    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+    if (!isValidIpcSender(frame)) {
       throw new Error(
-        `Invalid IPC sender (readSitePackagesSnapshot) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (readSitePackagesSnapshot) ${frame?.url ?? "(null)"}`,
       );
     }
 
@@ -92,9 +98,10 @@ const createWindow = async () => {
     return fsPromises.readFile(archiveFilePath);
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
-    if (!isValidIpcSender(ev.senderFrame)) {
+    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+    if (!isValidIpcSender(frame)) {
       throw new Error(
-        `Invalid IPC sender (readPrebuiltPackageNames) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (readPrebuiltPackageNames) ${frame?.url ?? "(null)"}`,
       );
     }
 
@@ -116,9 +123,10 @@ const createWindow = async () => {
   ipcMain.handle(
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
-      if (!isValidIpcSender(ev.senderFrame)) {
+      const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+      if (!isValidIpcSender(frame)) {
         throw new Error(
-          `Invalid IPC sender (readStreamlitAppDirectory) ${ev.senderFrame.url}`,
+          `Invalid IPC sender (readStreamlitAppDirectory) ${frame?.url ?? "(null)"}`,
         );
       }
 
@@ -135,9 +143,10 @@ const createWindow = async () => {
 
   let worker: workerThreads.Worker | null = null;
   ipcMain.handle("initializeNodeJsWorker", async (ev) => {
-    if (!isValidIpcSender(ev.senderFrame)) {
+    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+    if (!isValidIpcSender(frame)) {
       throw new Error(
-        `Invalid IPC sender (initializeNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (initializeNodeJsWorker) ${frame?.url ?? "(null)"}`,
       );
     }
 
@@ -168,9 +177,10 @@ const createWindow = async () => {
     });
   });
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
-    if (!isValidIpcSender(ev.senderFrame)) {
+    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+    if (!isValidIpcSender(frame)) {
       throw new Error(
-        `Invalid IPC sender (messageToNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (messageToNodeJsWorker) ${frame?.url ?? "(null)"}`,
       );
     }
 
@@ -188,9 +198,10 @@ const createWindow = async () => {
     worker.postMessage(eventSim, [channel.port2]);
   });
   ipcMain.handle("terminateNodeJsWorker", (ev, { data, portId }) => {
-    if (!isValidIpcSender(ev.senderFrame)) {
+    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
+    if (!isValidIpcSender(frame)) {
       throw new Error(
-        `Invalid IPC sender (terminateNodeJsWorker) ${ev.senderFrame.url}`,
+        `Invalid IPC sender (terminateNodeJsWorker) ${frame?.url ?? "(null)"}`,
       );
     }
 

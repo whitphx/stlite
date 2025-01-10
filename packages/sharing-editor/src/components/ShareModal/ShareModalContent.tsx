@@ -45,7 +45,7 @@ function ShareModalContent(props: ShareModalContentProps) {
           <CodePreview>{html}</CodePreview>
           <p>
             For more information, read{" "}
-            <ExternalLink href="https://github.com/whitphx/stlite?tab=readme-ov-file#use-stlite-on-your-web-page-stlitemountable">
+            <ExternalLink href="https://github.com/whitphx/stlite?tab=readme-ov-file#use-stlite-on-your-web-page-stlitebrowser">
               this document
             </ExternalLink>
           </p>

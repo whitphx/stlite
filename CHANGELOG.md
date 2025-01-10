@@ -52,6 +52,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workaround for Electron 32+. [#1231](https://github.com/whitphx/stlite/pull/1231).
 - Support Electron 33+, [#1240](https://github.com/whitphx/stlite/pull/1240).
 
+### How to migrate from `@stlite/mountable` to `@stlite/browser`
+
+The points are:
+
+- **Change the way of importing the package** because `@stlite/browser` is now an ESM package.
+  - **Delete `<script src="https://.../stlite.js"></script>`.** The script tag loading the Stlite script is no longer needed.
+  - Instead, **add `type="module"` to the script tag where you call Stlite** and **import the package like `import * as stlite from "https://.../stlite.js";` inside it**, then you can use `stlite.mount()` as before.
+    - `import { mount } from "https://.../stlite.js";` and calling `mount()` directly is also available.
+  - Note that the package name is changed from `@stlite/mountable` to `@stlite/browser`, so the **CDN URL is also changed**.
+- **Delete `<link rel="stylesheet" href="https://.../stlite.css" />`**. Loading a CSS file is no longer needed.
+- The `mount()` API is the same as before.
+
+Here is an example of migrating from `@stlite/mountable` to `@stlite/browser`:
+
+The new way with `@stlite/browser`:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+      mount(
+        `
+import streamlit as st
+
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+`,
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>
+```
+
+The previous API with `@stlite/mountable`:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.js"></script>
+    <script>
+      stlite.mount(
+        `
+import streamlit as st
+
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+`,
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>
+```
+
 ## [0.75.0] - 2025-01-05
 
 ### `@stlite/mountable`

@@ -1,5 +1,5 @@
-# `@stlite/mountable`
+# `@stlite/browser`
 
-Mount stlite on a static page.
+Mount Stlite on a static page.
 
 See https://github.com/whitphx/stlite#readme

@@ -5,7 +5,7 @@
 [![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
-[![npm (scoped)](https://img.shields.io/npm/v/@stlite/mountable?label=%40stlite%2Fmountable)](https://www.npmjs.com/package/@stlite/mountable)
+[![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
 <img src="./assets/stlite.svg" style="background: white;" >
@@ -22,7 +22,10 @@ Visit [Stlite Sharing](https://edit.share.stlite.net/).
 
 See [`@stlite/desktop`](./packages/desktop/README.md).
 
-## Use _Stlite_ on your web page (`@stlite/mountable`)
+## Use _Stlite_ on your web page (`@stlite/browser`)
+
+> [!NOTE]
+> Since 0.76.0, `@stlite/mountable` is renamed to `@stlite/browser`, and the API is changed. See the [Migration guide](./CHANGELOG.md#how-to-migrate-from-stlitemountable-to-stlitebrowser) for the details.
 
 You can use _Stlite_ on your web page loading the script and CSS files via `<script>` and `<link>` tags as below.
 Here is a sample HTML file.
@@ -38,16 +41,12 @@ Here is a sample HTML file.
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <title>Stlite App</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.css"
-    />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.73.0/build/stlite.js"></script>
-    <script>
-      stlite.mount(
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+      mount(
         `
 import streamlit as st
 
@@ -64,21 +63,20 @@ st.write("Hello,", name or "world")
 In this sample,
 
 - _Stlite_ library is imported with the first script tag, then the global `stlite` object becomes available.
-- `stlite.mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
+- `mount()` mounts the Streamlit app on the `<div id="root" />` element as specified via the second argument. The app script is passed via the first argument.
 
-> ⚠️ If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
+> [!NOTE]
+> If you are using backticks `` ` `` inside your app script (e.g. if you have included markdown sections with code highlighting) they would close the script block in ``st.mount(` ... `)``. To avoid this, you can escape them with with a preceding backslash `\`.
 >
-> ```html
-> <script>
->   stlite.mount(
->     `
+> ```js
+> mount(
+>   `
 > import streamlit as st
 > 
 > st.markdown("This is an inline code format: \`code\`")
 > `,
->     document.getElementById("root"),
->   );
-> </script>
+>   document.getElementById("root"),
+> );
 > ```
 
 ### More controls
@@ -86,7 +84,7 @@ In this sample,
 If more controls are needed such as installing dependencies or mounting multiple files, use the following API instead.
 
 ```js
-stlite.mount(
+mount(
   {
     requirements: ["matplotlib"], // Packages to install
     entrypoint: "streamlit_app.py", // The target file of the `streamlit run` command
@@ -125,7 +123,7 @@ You can pass the file content as a string or binary data.
 This is what we did in the example above.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/text_file.txt": "file content",
@@ -144,7 +142,7 @@ You can use this way to load a file from a URL and mount it to the specified pat
 Either an absolute or relative URL is accepted. Consider as the same as the `url` option of the [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) function.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/file": {
@@ -167,7 +165,7 @@ The files specified via the `files` option are mounted on the file system, and [
 You can specify the options (`opts`) for the `FS.writeFile(path, data, opts)` function as below.
 
 ```js
-stlite.mount(
+mount(
   {
     files: {
       "path/to/text_file.txt": {
@@ -221,7 +219,7 @@ You can pass the multiple files to the `files` option as below to construct the 
 Read [the Streamlit official document](https://docs.streamlit.io/library/get-started/multipage-apps) about the multipage apps.
 
 ```js
-stlite.mount(
+mount(
   {
     entrypoint: "👋_Hello.py",
     files: {
@@ -254,7 +252,7 @@ st.title("Page 2")
 You can pass the Streamlit configuration options to the `streamlitConfig` field as key-value pairs as below. Unlike the original Streamlit configuration, the options are passed as a flat object with the keys separated by dots.
 
 ```js
-stlite.mount(
+mount(
   {
     streamlitConfig: {
       "theme.base": "dark",
@@ -273,23 +271,22 @@ stlite.mount(
 
 ### Different Stlite versions
 
-In the example above, the _Stlite_ script is loaded via the `<script>` tag with the versioned URL.
-You can use another version by changing the version number in the URL.
+In the example above, the _Stlite_ script is loaded from the versioned URL.
 
 The following URLs are also available, while our recommendation is to use the versioned one as above because the API may change without backward compatibility in future releases.
 
 #### The latest release
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+```
+https://cdn.jsdelivr.net/npm/@stlite/browser/build/stlite.js
 ```
 
 You can use the latest version of the published _Stlite_ package with this URL.
 
 #### The head of the main branch
 
-```html
-<script src="https://whitphx.github.io/stlite/lib/mountable/stlite.js"></script>
+```
+https://whitphx.github.io/stlite/lib/browser/stlite.js
 ```
 
 This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
@@ -299,7 +296,7 @@ This URL points to the head of the main branch which is usually ahead of the rel
 _Stlite_ uses [Pyodide](https://pyodide.org/) and loads it from the [CDN](https://pyodide.org/en/stable/usage/downloading-and-deploying.html#cdn) by default. You can use your own Pyodide distribution by passing the URL to the `pyodideUrl` option as below. This would be helpful for example when your organization has a restrictive policy for CDN access.
 
 ```js
-stlite.mount(
+mount(
   {
     pyodideUrl: "https://<your-pyodide-distribution-url>/pyodide.js",
     // ... other options ...
@@ -324,11 +321,11 @@ The root `/` and some directories including home are mounted as `MEMFS`, the eph
 
 To persist the files across the app restarts, you can use the IndexedDB-based file system ([`IDBFS`](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)). The files saved in the directories mounted with `IDBFS` are stored in the browser's IndexedDB, so they are persistent across the app restarts.
 
-In the case of `@stlite/mountable`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
+In the case of `@stlite/browser`, you can mount the IndexedDB-based file system, `IDBFS` to the specified directories in the virtual file system, by passing the `idbfsMountpoints` option as below.
 The mounted file system is persistent across the page reloads and the browser sessions.
 
 ```js
-stlite.mount(
+mount(
   {
     idbfsMountpoints: ["/mnt"], // Mount the IndexedDB-based file system to the /mnt directory.
     entrypoint: "streamlit_app.py",

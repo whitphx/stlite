@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Fix
 
 - Workaround for Electron 32+. [#1231](https://github.com/whitphx/stlite/pull/1231).
+- Support Electron 33+, [#1240](https://github.com/whitphx/stlite/pull/1240).
 
 ## [0.75.0] - 2025-01-05
 

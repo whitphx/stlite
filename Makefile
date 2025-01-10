@@ -36,7 +36,7 @@ node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
 common-react := $(BUILD_STATE_DIR)/common-react/.built
-mountable := $(BUILD_STATE_DIR)/mountable/.built
+browser := $(BUILD_STATE_DIR)/browser/.built
 sharing := $(BUILD_STATE_DIR)/sharing/.built
 sharing-common := $(BUILD_STATE_DIR)/sharing-common/.built
 sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
@@ -50,7 +50,7 @@ streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
 .PHONY: all
-all: init $(mountable) $(sharing) $(sharing-editor) $(desktop)
+all: init $(browser) $(sharing) $(sharing-editor) $(desktop)
 
 
 .PHONY: init
@@ -99,10 +99,10 @@ $(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" 
 	@mkdir -p $(dir $@)
 	@touch $@
 
-.PHONY: mountable
-mountable: $(mountable)
-$(mountable): $(shell find packages/mountable/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react)
-	cd packages/mountable && yarn build
+.PHONY: browser
+browser: $(browser)
+$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react)
+	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 

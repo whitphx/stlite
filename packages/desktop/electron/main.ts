@@ -81,14 +81,22 @@ const createWindow = async () => {
     // so we need to check if the URL is a descendant of the index URL.
     return isDescendantURL(indexUrl, frame.url);
   };
-
-  ipcMain.handle("readSitePackagesSnapshot", (ev) => {
-    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-    if (!isValidIpcSender(frame)) {
+  const validateIpcMainEvent = (
+    ev: Electron.IpcMainInvokeEvent,
+    handlerNameForDebug: string,
+  ): void => {
+    // NOTE: This method should be called immediately after the event is received
+    // because the `senderFrame` property may be `null` after a cross-origin navigation.
+    // Ref: https://www.electronjs.org/docs/latest/breaking-changes#behavior-changed-frame-properties-may-retrieve-detached-webframemain-instances-or-none-at-all
+    if (!isValidIpcSender(ev.senderFrame)) {
       throw new Error(
-        `Invalid IPC sender (readSitePackagesSnapshot) ${frame?.url ?? "(null)"}`,
+        `Invalid IPC sender (${handlerNameForDebug}) ${ev.senderFrame?.url ?? "(null)"}`,
       );
     }
+  };
+
+  ipcMain.handle("readSitePackagesSnapshot", (ev) => {
+    validateIpcMainEvent(ev, "readSitePackagesSnapshot");
 
     // This archive file has to be created by ./bin/dump_snapshot.ts
     const archiveFilePath = path.resolve(
@@ -98,12 +106,7 @@ const createWindow = async () => {
     return fsPromises.readFile(archiveFilePath);
   });
   ipcMain.handle("readPrebuiltPackageNames", async (ev): Promise<string[]> => {
-    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-    if (!isValidIpcSender(frame)) {
-      throw new Error(
-        `Invalid IPC sender (readPrebuiltPackageNames) ${frame?.url ?? "(null)"}`,
-      );
-    }
+    validateIpcMainEvent(ev, "readPrebuiltPackageNames");
 
     const prebuiltPackagesTxtPath = path.resolve(
       __dirname,
@@ -123,12 +126,7 @@ const createWindow = async () => {
   ipcMain.handle(
     "readStreamlitAppDirectory",
     async (ev): Promise<Record<string, Buffer>> => {
-      const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-      if (!isValidIpcSender(frame)) {
-        throw new Error(
-          `Invalid IPC sender (readStreamlitAppDirectory) ${frame?.url ?? "(null)"}`,
-        );
-      }
+      validateIpcMainEvent(ev, "readStreamlitAppDirectory");
 
       const appDir = path.resolve(__dirname, "../app_files");
       return walkRead(appDir);
@@ -143,12 +141,7 @@ const createWindow = async () => {
 
   let worker: workerThreads.Worker | null = null;
   ipcMain.handle("initializeNodeJsWorker", async (ev) => {
-    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-    if (!isValidIpcSender(frame)) {
-      throw new Error(
-        `Invalid IPC sender (initializeNodeJsWorker) ${frame?.url ?? "(null)"}`,
-      );
-    }
+    validateIpcMainEvent(ev, "initializeNodeJsWorker");
 
     // Use the ESM version of Pyodide because `importScripts()` can't be used in this environment.
     const pyodidePath = path.resolve(__dirname, "..", "pyodide", "pyodide.mjs"); // For Windows compatibility, rely on path.resolve() to join the path elements.
@@ -177,12 +170,7 @@ const createWindow = async () => {
     });
   });
   ipcMain.on("messageToNodeJsWorker", (ev, { data, portId }) => {
-    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-    if (!isValidIpcSender(frame)) {
-      throw new Error(
-        `Invalid IPC sender (messageToNodeJsWorker) ${frame?.url ?? "(null)"}`,
-      );
-    }
+    validateIpcMainEvent(ev, "messageToNodeJsWorker");
 
     if (worker == null) {
       return;
@@ -198,12 +186,7 @@ const createWindow = async () => {
     worker.postMessage(eventSim, [channel.port2]);
   });
   ipcMain.handle("terminateNodeJsWorker", (ev, { data, portId }) => {
-    const frame = ev.senderFrame; // Access immediately: https://www.electronjs.org/docs/latest/breaking-changes#planned-breaking-api-changes-330
-    if (!isValidIpcSender(frame)) {
-      throw new Error(
-        `Invalid IPC sender (terminateNodeJsWorker) ${frame?.url ?? "(null)"}`,
-      );
-    }
+    validateIpcMainEvent(ev, "terminateNodeJsWorker");
 
     worker?.terminate();
     worker = null;

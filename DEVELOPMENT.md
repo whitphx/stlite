@@ -22,10 +22,10 @@ cd packages/kernel
 yarn start
 ```
 
-#### `@stlite/mountable`
+#### `@stlite/browser`
 
 ```shell
-cd packages/mountable
+cd packages/browser
 yarn start
 ```
 

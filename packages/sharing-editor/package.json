@@ -42,7 +42,7 @@
   ],
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
-    "@types/mime": "^3.0.1",
+    "@types/mime": "^4.0.0",
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^20.0.3",

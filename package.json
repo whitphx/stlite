@@ -9,10 +9,12 @@
     "packages/desktop/samples/*"
   ],
   "scripts": {
-    "new-version": "lerna version --force-publish",
+    "new-version": "lerna version --force-publish && yarn build:scripts && yarn update-resolutions",
     "prepare": "husky install",
     "//": "The patch-package command requires to be run at the workspace root to patch the hoisted dependencies. So we run it here.",
-    "postinstall": "patch-package --patch-dir streamlit/frontend/patches"
+    "postinstall": "patch-package --patch-dir streamlit/frontend/patches",
+    "build:scripts": "tsc -p scripts/tsconfig.json",
+    "update-resolutions": "node scripts/dist/update-resolutions.js"
   },
   "devDependencies": {
     "@lerna-lite/cli": "^3.4.0",

@@ -2877,6 +2877,16 @@
   resolved "https://registry.npmjs.org/@sindresorhus/merge-streams/-/merge-streams-2.2.0.tgz"
   integrity sha512-UTce8mUwUW0RikMb/eseJ7ys0BRkZVFB86orHzrfW12ZmFtym5zua8joZ4L7okH2dDFHkcFjqnZ5GocWBXOFtA==
 
+"@stlite/kernel@*":
+  version "0.76.0-alpha.0"
+  dependencies:
+    "@jupyterlab/coreutils" "^5.4.2"
+    "@stlite/common" "^0.76.0-alpha.0"
+    "@streamlit/lib" "1.41.0"
+    "@tinyhttp/content-disposition" "^2.2.2"
+    path-browserify "^1.0.1"
+    react "^18.2.0"
+
 "@svgr/babel-plugin-add-jsx-attribute@8.0.0":
   version "8.0.0"
   resolved "https://registry.npmjs.org/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-8.0.0.tgz"

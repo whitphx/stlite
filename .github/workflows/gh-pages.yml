@@ -42,7 +42,7 @@ jobs:
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v5
       with:
-        version: "latest"
+        version: ">0.5.17 || <0.5.17"  # 0.5.17 has an issue https://github.com/astral-sh/uv/issues/10487
         enable-cache: true
         cache-dependency-glob: |
           **/requirements*.txt

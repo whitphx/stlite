@@ -79,7 +79,7 @@
     "node-html-parser": "^7.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "superstruct": "^1.0.4",
+    "superstruct": "^2.0.2",
     "ts-node": "^10.9.1",
     "vite": "^5.1.5",
     "vite-plugin-top-level-await": "^1.4.4",

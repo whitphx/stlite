@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.76.1] - 2025-01-12
+
+### `@stlite/browser`
+
+#### Fixed
+
+- Fix the cross-origin worker trick to work on a page loaded via `file://` scheme, [#1258](https://github.com/whitphx/stlite/pull/1258).
+
 ## [0.76.0] - 2025-01-11
 
 ### General

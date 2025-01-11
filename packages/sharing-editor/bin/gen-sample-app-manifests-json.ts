@@ -3,7 +3,7 @@
 import path from "path";
 import fsPromises from "fs/promises";
 import fsExtra from "fs-extra";
-import { Record, String, Array, Static } from "runtypes";
+import * as s from "superstruct";
 import { parseRequirementsTxt } from "@stlite/common";
 
 const rootDirPath = path.resolve(__dirname, "..");
@@ -11,17 +11,19 @@ const sampleAppRootDirPath = path.join(rootDirPath, "./public/samples");
 const srcDirPath = path.join(rootDirPath, "./src");
 const jsonOutputPath = path.join(srcDirPath, "./sample-app-manifests.json");
 
-const SampleAppRawManifest = Record({
-  title: String,
-  entrypoint: String,
+const SampleAppRawManifestStruct = s.object({
+  title: s.string(),
+  entrypoint: s.string(),
 });
-type SampleAppRawManifest = Static<typeof SampleAppRawManifest>;
-const SampleAppManifest = SampleAppRawManifest.extend({
-  files: Array(String),
-  requirements: Array(String),
-  basePath: String,
+type SampleAppRawManifest = s.Infer<typeof SampleAppRawManifestStruct>;
+const SampleAppManifestStruct = s.object({
+  title: s.string(),
+  entrypoint: s.string(),
+  files: s.array(s.string()),
+  requirements: s.array(s.string()),
+  basePath: s.string(),
 });
-type SampleAppManifest = Static<typeof SampleAppManifest>;
+type SampleAppManifest = s.Infer<typeof SampleAppManifestStruct>;
 
 async function walk(dirPath: string, relative: boolean): Promise<string[]> {
   const filePaths: string[] = [];
@@ -36,7 +38,7 @@ async function walk(dirPath: string, relative: boolean): Promise<string[]> {
       } else {
         filePaths.push(childPath);
       }
-    })
+    }),
   );
 
   if (!relative) {
@@ -47,7 +49,7 @@ async function walk(dirPath: string, relative: boolean): Promise<string[]> {
 }
 
 async function readRequirements(
-  requirementsTxtPath: string
+  requirementsTxtPath: string,
 ): Promise<string[]> {
   try {
     const requirementsTxtData = await fsPromises.readFile(requirementsTxtPath, {
@@ -56,21 +58,22 @@ async function readRequirements(
     return parseRequirementsTxt(requirementsTxtData);
   } catch {
     console.log(
-      `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`
+      `Failed to read ${requirementsTxtPath}. Use [] as the requirements.`,
     );
     return [];
   }
 }
 
 async function parseManifestAndFiles(
-  sampleAppDirName: string
+  sampleAppDirName: string,
 ): Promise<SampleAppManifest> {
   const sampleAppDirPath = path.join(sampleAppRootDirPath, sampleAppDirName);
 
   const rawManifestFileName = "stlite.json";
   const rawManifestFilePath = path.join(sampleAppDirPath, rawManifestFileName);
   const maybeRawManifest = await fsExtra.readJSON(rawManifestFilePath);
-  const rawManifest = SampleAppRawManifest.check(maybeRawManifest);
+  s.assert(maybeRawManifest, SampleAppRawManifestStruct);
+  const rawManifest = maybeRawManifest;
 
   const requirementsTxtName = "requirements.txt";
   const requirementsTxtPath = path.join(sampleAppDirPath, requirementsTxtName);
@@ -78,7 +81,7 @@ async function parseManifestAndFiles(
 
   const files = (await walk(sampleAppDirPath, true)).filter(
     (fileName) =>
-      fileName !== rawManifestFileName && fileName !== requirementsTxtName
+      fileName !== rawManifestFileName && fileName !== requirementsTxtName,
   );
 
   return {
@@ -104,7 +107,7 @@ async function main() {
       dirents
         .filter((dirent) => dirent.isDirectory())
         .map((dirent) => dirent.name)
-        .sort()
+        .sort(),
     );
 
   const sampleAppManifests = await Promise.all(
@@ -112,8 +115,8 @@ async function main() {
       parseManifestAndFiles(sampleDirName).then((manifest) => ({
         id: extractSampleAppId(sampleDirName),
         ...manifest,
-      }))
-    )
+      })),
+    ),
   );
 
   await fsExtra.writeJSON(jsonOutputPath, sampleAppManifests);

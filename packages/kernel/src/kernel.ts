@@ -118,11 +118,13 @@ export interface StliteKernelOptions {
 
   onError?: (error: Error) => void;
 
+  workerType?: WorkerOptions["type"];
+
   sharedWorker?: boolean;
 
   /**
    * The worker to be used, which can be optionally passed.
-   * Desktop apps with NodeJS-backed worker is one of the use cases.
+   * Desktop apps with NodeJS-backed worker is one use case.
    */
   worker?: globalThis.Worker;
 }
@@ -162,8 +164,9 @@ export class StliteKernel {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
       const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        type: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-        /* @vite-ignore */ shared: options.sharedWorker ?? false,
+        /* @vite-ignore */ // To avoid the Vite error: "[vite:worker-import-meta-url] Vite is unable to parse the worker options as the value is not static.To ignore this error, please use /* @vite-ignore */ in the worker options."
+        type: options.workerType,
+        shared: options.sharedWorker ?? false,
       });
       this._worker = workerMaker.worker;
     }

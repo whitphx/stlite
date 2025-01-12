@@ -41,6 +41,10 @@ Here is a sample HTML file.
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <title>Stlite App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/style.css"
+    />
   </head>
   <body>
     <div id="root"></div>

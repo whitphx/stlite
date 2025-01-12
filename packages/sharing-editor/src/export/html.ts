@@ -56,6 +56,10 @@ export function exportAsHtml(appData: AppData): string {
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <title>Stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css"
+    />
   </head>
   <body>
     <div id="root"></div>

@@ -28,7 +28,11 @@ describe("exportAsHtml", () => {
     expect(rootDiv?.tagName).toEqual("DIV");
 
     const linkTags = dom.head.getElementsByTagName("link");
-    expect(linkTags.length).toBe(0);
+    expect(linkTags.length).toBe(1);
+    expect(linkTags[0].rel).toEqual("stylesheet");
+    expect(linkTags[0].href).toEqual(
+      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css`,
+    );
 
     const scriptTags = dom.body.getElementsByTagName("script");
     expect(scriptTags.length).toBe(1);
@@ -204,7 +208,11 @@ describe("exportAsHtml", () => {
     expect(rootDiv?.tagName).toEqual("DIV");
 
     const linkTags = dom.head.getElementsByTagName("link");
-    expect(linkTags.length).toBe(0);
+    expect(linkTags.length).toBe(1);
+    expect(linkTags[0].rel).toEqual("stylesheet");
+    expect(linkTags[0].href).toEqual(
+      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css`,
+    );
 
     const scriptTags = dom.body.getElementsByTagName("script");
     expect(scriptTags.length).toBe(1);

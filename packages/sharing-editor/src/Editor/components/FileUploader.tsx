@@ -1,4 +1,3 @@
-import React from "react";
 import { RiUpload2Line, RiFolderUploadLine } from "react-icons/ri";
 import styles from "./FileUploader.module.scss";
 

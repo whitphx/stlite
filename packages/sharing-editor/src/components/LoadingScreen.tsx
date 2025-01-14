@@ -1,4 +1,3 @@
-import React from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import styles from "./LoadingScreen.module.scss";
 

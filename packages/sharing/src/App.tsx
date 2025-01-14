@@ -98,10 +98,7 @@ st.write("Hello World")`,
             stliteLib: STLITE_LIB_WHEEL,
             streamlit: STREAMLIT_WHEEL,
           },
-          workerType:
-            process.env.NODE_ENV === "development"
-              ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-              : "classic", // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
+          workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
         });
         _kernel = kernel;
         setKernel(kernel);

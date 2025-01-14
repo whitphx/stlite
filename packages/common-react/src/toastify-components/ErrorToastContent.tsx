@@ -1,4 +1,3 @@
-import React from "react";
 import { ToastContentProps } from "react-toastify";
 
 interface ErrorToastContentProps {

@@ -1,4 +1,3 @@
-import React from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import { StliteKernel } from "../../kernel";

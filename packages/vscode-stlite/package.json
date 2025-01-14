@@ -29,11 +29,11 @@
     "commands": [
       {
         "command": "stlite.start",
-        "title": "Launch stlite preview"
+        "title": "Launch Stlite preview"
       }
     ],
     "configuration": {
-      "title": "stlite (Streamlit)",
+      "title": "Stlite (Streamlit)",
       "properties": {
         "stlite.targetFiles": {
           "type": "string",
@@ -42,7 +42,7 @@
         },
         "stlite.ignoreFiles": {
           "type": "string",
-          "default": "**/{.*,tests,dist,build}/**",
+          "default": "**/{.*,tests,dist,build,__pycache__}/**",
           "description": "Glob pattern to match files to ignore."
         }
       }

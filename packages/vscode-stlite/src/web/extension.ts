@@ -20,7 +20,7 @@ const fileWatcherIgnoreMatch = fileWatcherIgnorePattern
 const requirementsTxtPath = "requirements.txt";
 const maxEntrypointCandidates = 1000;
 
-console.log("stlite configs", {
+console.log("Stlite configs", {
   fileWatcherPattern,
   fileWatcherIgnorePattern,
   requirementsTxtPath,
@@ -40,8 +40,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       panel = vscode.window.createWebviewPanel(
-        "stlite",
-        "stlite preview",
+        "Stlite",
+        "Stlite preview",
         vscode.ViewColumn.Beside,
         {
           enableScripts: true,
@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
         (message) => {
           console.debug("Received message from webview:", message);
           // NOTE: There are both types of messages from the webview,
-          //       messages defined for stlite's functionality, and
+          //       messages defined for Stlite's functionality, and
           //       Streamlit's iframe messages transmitted from the `withHostCommunication` HOC and relayed by the mocked `window.parent.postMessage` in the WebView,
           switch (message.type) {
             case "init:done": {
@@ -180,10 +180,10 @@ export function activate(context: vscode.ExtensionContext) {
   fileWatcher.onDidDelete(deleteFile, undefined, context.subscriptions);
 
   async function initStlite(mountOptions: unknown) {
-    console.debug("[stlite] Initialize: " + mountOptions);
+    console.debug("[Stlite] Initialize: " + mountOptions);
 
     if (panel == null) {
-      console.warn("[stlite] Panel has not been created.");
+      console.warn("[Stlite] Panel has not been created.");
       return;
     }
 
@@ -195,11 +195,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     await panelInitializedPromise.promise;
-    console.debug("[stlite] Initialization request completed");
+    console.debug("[Stlite] Initialization request completed");
   }
 
   async function writeFile(uri: vscode.Uri) {
-    console.debug("[stlite] Write file: " + uri.fsPath);
+    console.debug("[Stlite] Write file: " + uri.fsPath);
 
     if (panel == null) {
       return;
@@ -217,7 +217,7 @@ export function activate(context: vscode.ExtensionContext) {
     const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
     const content = await vscode.workspace.fs.readFile(uri);
 
-    console.debug("[stlite] RelPath: " + relPath);
+    console.debug("[Stlite] RelPath: " + relPath);
 
     if (relPath === requirementsTxtPath) {
       const requirements = parseRequirementsTxt(
@@ -243,7 +243,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   function deleteFile(uri: vscode.Uri) {
-    console.debug("[stlite] Delete file: " + uri.fsPath);
+    console.debug("[Stlite] Delete file: " + uri.fsPath);
 
     if (panel == null) {
       return;
@@ -260,7 +260,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const relPath = path.relative(workspaceFolder.uri.fsPath, uri.fsPath);
 
-    console.debug("[stlite]  RelPath: " + relPath);
+    console.debug("[Stlite] RelPath: " + relPath);
 
     panel.webview.postMessage({
       type: "file:delete",
@@ -281,16 +281,17 @@ function getWebviewContent(stliteVersion: string) {
         name="viewport"
         content="width=device-width, initial-scale=1, shrink-to-fit=no"
       />
-      <title>stlite app</title>
+      <title>Stlite app preview</title>
       <link
         rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.css"
+        href="https://cdn.jsdelivr.net/npm/@stlite/browser@${stliteVersion}/build/style.css"
       />
     </head>
     <body>
       <div id="root"></div>
-      <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@${stliteVersion}/build/stlite.js"></script>
-      <script>
+      <script type="module">
+        import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@${stliteVersion}/build/stlite.js";
+
         const vscode = acquireVsCodeApi();
 
         // Streamlit's withHostCommunication accesses window.parent.postMessage, which is not available in the webview, so we need to mock it.
@@ -310,7 +311,7 @@ function getWebviewContent(stliteVersion: string) {
           switch (message.type) {
             case 'init': {
               const { mountOptions } = message.data;
-              stliteCtx = stlite.mount(mountOptions, document.getElementById("root"));
+              stliteCtx = mount(mountOptions, document.getElementById("root"));
               vscode.postMessage({
                 type: "init:done",
               });

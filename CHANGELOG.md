@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.76.2] - 2025-01-14
+
+### `@stlite/vscode-stlite`
+
+#### Fixed
+
+- Use the new `@stlite/browser` package, [#1270](https://github.com/whitphx/stlite/pull/1270).
+- Add `__pycache__` to the default ignore list, [#1270](https://github.com/whitphx/stlite/pull/1270).
+
 ## [0.76.1] - 2025-01-12
 
 ### `@stlite/browser`

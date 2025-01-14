@@ -212,10 +212,10 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
     - run: make sharing-common
       working-directory: .
-    # - name: Lint
-    #   run: |
-    #     yarn check:eslint
-    #     yarn check:prettier
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
     - run: yarn test
 
   test-sharing-common:

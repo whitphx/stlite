@@ -1,5 +1,3 @@
-import React from "react";
-
 import { type StliteKernel, StliteKernelProvider } from "@stlite/kernel";
 
 import ThemedApp from "@streamlit/app/src/ThemedApp";

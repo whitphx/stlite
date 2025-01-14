@@ -1,4 +1,3 @@
-import React from "react";
 import { RiAddLine } from "react-icons/ri";
 import styles from "./AddButton.module.scss";
 

@@ -97,8 +97,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         if (monaco) {
           // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
           // If we don't do it, the previous content will remain after changing the sample apps.
-          // @ts-ignore
-          monaco.editor.getModels().forEach((model) => model.dispose());
+          monaco.editor.getModels().forEach((model: any) => model.dispose());
         }
       };
     }, []);
@@ -334,5 +333,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     );
   },
 );
+
+Editor.displayName = "Editor";
 
 export default Editor;

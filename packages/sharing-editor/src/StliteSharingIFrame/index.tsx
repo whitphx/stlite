@@ -105,7 +105,6 @@ const StliteSharingIFrame = React.forwardRef<
     }, [onMessage]);
 
     return (
-      // eslint-disable-next-line jsx-a11y/iframe-has-title
       <iframe
         {...iframeProps}
         src={iframeSrc}
@@ -115,5 +114,7 @@ const StliteSharingIFrame = React.forwardRef<
     );
   },
 );
+
+StliteSharingIFrame.displayName = "StliteSharingIFrame";
 
 export default StliteSharingIFrame;

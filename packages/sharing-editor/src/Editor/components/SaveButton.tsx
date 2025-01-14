@@ -1,4 +1,3 @@
-import React from "react";
 import { RiSave3Line } from "react-icons/ri";
 import styles from "./SaveButton.module.scss";
 

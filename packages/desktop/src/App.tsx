@@ -64,6 +64,7 @@ function App() {
           worker: USE_NODEJS_WORKER
             ? (new NodeJsWorkerMock() as unknown as Worker)
             : undefined,
+          workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
           ...makeToastKernelCallbacks(),
         });
         setKernel(kernel);

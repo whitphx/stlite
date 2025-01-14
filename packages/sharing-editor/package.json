@@ -26,7 +26,7 @@
     "start:web": "vite",
     "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
     "start": "run-p start:web start:sampleapps",
-    "build:web": "vite build",
+    "build:web": "tsc --noEmit && vite build",
     "build:sampleapps": "ts-node bin/gen-sample-app-manifests-json.ts",
     "build": "yarn build:sampleapps && yarn build:web",
     "test": "vitest",

@@ -67,7 +67,7 @@
     "@types/mocha": "^10.0.1",
     "@types/vscode": "^1.76.0",
     "@types/webpack-env": "^1.18.0",
-    "@vscode/test-web": "^0.0.60",
+    "@vscode/test-web": "^0.0.65",
     "@vscode/vsce": "^3.1.0",
     "assert": "^2.0.0",
     "minimatch": "^10.0.1",

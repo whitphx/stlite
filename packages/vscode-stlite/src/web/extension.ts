@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { parseRequirementsTxt, PromiseDelegate } from "@stlite/common";
-import minimatch from "minimatch";
+import { Minimatch } from "minimatch";
 
 declare const STLITE_VERSION: string; // This is set by webpack during the build
 
@@ -15,7 +15,7 @@ const fileWatcherPattern =
 const fileWatcherIgnorePattern =
   typeof ignoreFilesConfig === "string" ? ignoreFilesConfig : undefined;
 const fileWatcherIgnoreMatch = fileWatcherIgnorePattern
-  ? new minimatch.Minimatch(fileWatcherIgnorePattern)
+  ? new Minimatch(fileWatcherIgnorePattern)
   : undefined;
 const requirementsTxtPath = "requirements.txt";
 const maxEntrypointCandidates = 1000;

@@ -5,14 +5,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
+  "exports": "./dist/index.js",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {

@@ -3,6 +3,7 @@
 import type Pyodide from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
+import type { PyodideArchive, PyodideArchiveUrl } from "./types";
 import {
   resolveAppPath,
   getAppHomeDir,
@@ -143,7 +144,7 @@ export function startWorkerEnv(
     if (idbfsMountpoints) {
       useIdbfs = true;
 
-      idbfsMountpoints.forEach((mountpoint) => {
+      idbfsMountpoints.forEach((mountpoint: string) => {
         pyodide.FS.mkdir(mountpoint);
         pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, mountpoint);
       });
@@ -199,7 +200,7 @@ export function startWorkerEnv(
     // Unpack archives
     postProgressMessage("Unpacking archives.");
     await Promise.all(
-      archives.map(async (archive) => {
+      archives.map(async (archive: PyodideArchive | PyodideArchiveUrl) => {
         let buffer: Parameters<Pyodide.PyodideInterface["unpackArchive"]>[0];
         if ("url" in archive) {
           console.debug(`Fetch an archive from ${archive.url}`);

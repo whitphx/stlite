@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "start": "tsc -w",
-    "build": "tsc",
+    "build": "tsc -b",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",

@@ -3,8 +3,12 @@
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Projects */
-    // "incremental": true,                              /* Enable incremental compilation */
-    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    "incremental": true,                              /* Enable incremental compilation */
+    "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    "declaration": true,                              /* Generate .d.ts files */
+    "declarationMap": true,                           /* Generate sourcemaps for .d.ts files */
+    "rootDir": "./src",                              /* Specify the root directory of input files */
+    "outDir": "./dist/esm",                          /* Specify an output folder for all emitted files */
     // "tsBuildInfoFile": "./",                          /* Specify the folder for .tsbuildinfo incremental compilation files. */
     // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects */
     // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */

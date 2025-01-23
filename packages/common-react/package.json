@@ -6,14 +6,15 @@
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
-    "start": "tsc -w",
-    "build": "tsc",
+    "start": "tsc -b -w",
+    "build": "tsc -b",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
+    "@stlite/kernel": "0.76.2",
     "@streamlit/lib": "1.41.0",
     "react-toastify": "^11.0.2"
   },

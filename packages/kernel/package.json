@@ -11,8 +11,8 @@
     "py/**/*.whl"
   ],
   "scripts": {
-    "start": "tsc -w",
-    "build": "tsc -p tsconfig.prod.json",
+    "start": "tsc -b -w",
+    "build": "tsc -b",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

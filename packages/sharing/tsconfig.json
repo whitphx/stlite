@@ -32,5 +32,16 @@
     "src",
     "../../streamlit/frontend/lib/src/declarations.d.ts",
     "../../streamlit/frontend/app/src/emotion.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../common-react/tsconfig.src.json"
+    },
+    {
+      "path": "../kernel/tsconfig.src.json"
+    },
+    {
+      "path": "../sharing-common/tsconfig.src.json"
+    }
   ]
 }

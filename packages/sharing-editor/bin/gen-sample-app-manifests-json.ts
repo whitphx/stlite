@@ -1,7 +1,7 @@
-#!/usr/bin/env yarn ts-node
+#!/usr/bin/env npx tsx
 
-import path from "path";
-import fsPromises from "fs/promises";
+import path from "node:path";
+import fsPromises from "node:fs/promises";
 import fsExtra from "fs-extra";
 import * as s from "superstruct";
 import { parseRequirementsTxt } from "@stlite/common";

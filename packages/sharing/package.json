@@ -7,7 +7,6 @@
     "@stlite/kernel": "^0.76.2",
     "@stlite/sharing-common": "^0.76.2",
     "@streamlit/app": "1.41.0",
-    "@types/node": "^18.11.17",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "react": "^18.2.0",

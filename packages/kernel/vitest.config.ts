@@ -13,11 +13,11 @@ export default defineConfig({
     alias: {
       "stlite_lib.whl": path.resolve(
         __dirname,
-        "./py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl"
+        "./py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "./py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl"
+        "./py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
       ),
     },
   },

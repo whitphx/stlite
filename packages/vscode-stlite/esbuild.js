@@ -1,7 +1,7 @@
-const esbuild = require("esbuild");
-const glob = require("glob");
-const path = require("path");
-const { polyfillNode } = require("esbuild-plugin-polyfill-node");
+import esbuild from "esbuild";
+import { glob } from "glob";
+import path from "path";
+import { polyfillNode } from "esbuild-plugin-polyfill-node";
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
@@ -39,14 +39,14 @@ const esbuildProblemMatcherPlugin = {
 const testBundlePlugin = {
   name: "testBundlePlugin",
   setup(build) {
-    build.onResolve({ filter: /[\/\\]extensionTests\.ts$/ }, (args) => {
+    build.onResolve({ filter: /[/\\]extensionTests\.ts$/ }, (args) => {
       if (args.kind === "entry-point") {
         return { path: path.resolve(args.path) };
       }
     });
-    build.onLoad({ filter: /[\/\\]extensionTests\.ts$/ }, async (args) => {
-      const testsRoot = path.join(__dirname, "src/web/test/suite");
-      const files = await glob.glob("*.test.{ts,tsx}", {
+    build.onLoad({ filter: /[/\\]extensionTests\.ts$/ }, async (args) => {
+      const testsRoot = path.join(import.meta.dirname, "src/web/test/suite");
+      const files = await glob("*.test.{ts,tsx}", {
         cwd: testsRoot,
         posix: true,
       });

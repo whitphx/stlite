@@ -26,7 +26,7 @@
     "pyodide": "0.26.2"
   },
   "dependencies": {
-    "@jupyterlab/coreutils": "^5.4.2",
+    "@jupyterlab/coreutils": "^6.3.4",
     "@stlite/common": "^0.76.2",
     "@streamlit/lib": "1.41.0",
     "@tinyhttp/content-disposition": "^2.2.2",

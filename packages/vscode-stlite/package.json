@@ -78,6 +78,6 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "glob": "^11.0.0",
     "minimatch": "^10.0.1",
-    "mocha": "^10.2.0"
+    "mocha": "^11.1.0"
   }
 }

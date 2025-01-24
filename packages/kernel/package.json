@@ -23,6 +23,7 @@
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "pyodide": "0.26.2"
   },
   "dependencies": {

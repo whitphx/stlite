@@ -1,0 +1,32 @@
+{
+  "include": [],
+  "references": [
+    {
+      "path": "packages/browser"
+    },
+    {
+      "path": "packages/common"
+    },
+    {
+      "path": "packages/common-react"
+    },
+    {
+      "path": "packages/desktop"
+    },
+    {
+      "path": "packages/kernel"
+    },
+    {
+      "path": "packages/sharing"
+    },
+    {
+      "path": "packages/sharing-common"
+    },
+    {
+      "path": "packages/sharing-editor"
+    },
+    {
+      "path": "packages/vscode-stlite"
+    }
+  ]
+}

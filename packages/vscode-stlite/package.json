@@ -5,6 +5,7 @@
   "description": "",
   "license": "SEE LICENSE IN LICENSE",
   "version": "0.76.2",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
@@ -49,33 +50,34 @@
     }
   },
   "scripts": {
-    "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
+    "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
     "pretest": "yarn run compile-web",
     "vscode:prepublish": "yarn run package-web",
-    "compile-web": "webpack",
-    "watch-web": "webpack --watch",
-    "package-web": "webpack --mode production --devtool hidden-source-map",
-    "fix:eslint": "eslint --fix src --ext ts",
+    "compile-web": "yarn run check-types && node esbuild.js",
+    "watch-web": "npm-run-all -p watch-web:*",
+    "watch-web:esbuild": "node esbuild.js --watch",
+    "watch-web:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package-web": "yarn run check-types && node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "fix:eslint": "eslint --fix src",
     "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint src --ext ts",
+    "check:eslint": "eslint src",
     "check:prettier": "prettier --check .",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. .",
     "deploy": "vsce publish --yarn"
   },
   "devDependencies": {
     "@stlite/common": "^0.76.2",
-    "@types/mocha": "^10.0.1",
+    "@types/assert": "^1.5.11",
+    "@types/mocha": "^10.0.10",
     "@types/vscode": "^1.76.0",
-    "@types/webpack-env": "^1.18.0",
     "@vscode/test-web": "^0.0.65",
     "@vscode/vsce": "^3.1.0",
-    "assert": "^2.0.0",
+    "assert": "^2.1.0",
+    "esbuild": "^0.24.0",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "glob": "^11.0.0",
     "minimatch": "^10.0.1",
-    "mocha": "^10.2.0",
-    "path-browserify": "^1.0.1",
-    "process": "^0.11.10",
-    "ts-loader": "^9.4.2",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^6.0.1"
+    "mocha": "^10.2.0"
   }
 }

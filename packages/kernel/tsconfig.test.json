@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.src.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "references": [
+    {
+      "path": "tsconfig.src.json"
+    }
+  ],
+  "exclude": []
+}

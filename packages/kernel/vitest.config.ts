@@ -1,9 +1,11 @@
 /// <reference types="vitest" />
 
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     environment: "jsdom", // We use jsdom because happy-dom does not work well with iframe.
     setupFiles: ["./setupTests.ts"],

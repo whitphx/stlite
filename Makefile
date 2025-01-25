@@ -190,5 +190,6 @@ $(streamlit_frontend_lib_prod): $(node_modules) $(kernel) $(streamlit_proto) str
 clean:
 	rm -rf $(BUILD_STATE_DIR)/*
 	rm -f $(TEMP_GITKEEP)
+	yarn tsc -b --clean
 	rm -rf packages/*/dist/* packages/*/build/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

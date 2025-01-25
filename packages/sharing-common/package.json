@@ -8,8 +8,8 @@
   "scripts": {
     "start": "run-p start:proto start:ts",
     "build": "run-s build:proto build:ts",
-    "start:ts": "tsc -w",
-    "build:ts": "tsc",
+    "start:ts": "tsc -b -w",
+    "build:ts": "tsc -b",
     "pretest": "yarn build:proto",
     "test": "vitest",
     "build:proto": "protoc --ts_proto_out=. ./src/proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=oneof=unions",

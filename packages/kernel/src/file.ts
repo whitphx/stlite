@@ -16,7 +16,10 @@ export const resolveAppPath = (
   return path.resolve(getAppHomeDir(appId), filePath);
 };
 
-function ensureParent(pyodide: PyodideInterface, filePath: string): void {
+function ensureParent(
+  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
+  filePath: string,
+): void {
   const normalized = path.normalize(filePath);
 
   const dirPath = path.dirname(normalized);
@@ -45,17 +48,17 @@ function ensureParent(pyodide: PyodideInterface, filePath: string): void {
 }
 
 export function writeFileWithParents(
-  pyodide: PyodideInterface,
+  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
   filePath: string,
   data: string | ArrayBufferView,
-  opts?: Parameters<PyodideInterface["FS"]["writeFile"]>[2],
+  opts?: unknown,
 ): void {
   ensureParent(pyodide, filePath);
   pyodide.FS.writeFile(filePath, data, opts);
 }
 
 export function renameWithParents(
-  pyodide: PyodideInterface,
+  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
   oldPath: string,
   newPath: string,
 ): void {

@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import type Pyodide from "pyodide";
+import type { PyodideInterface } from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import { PromiseDelegate } from "@stlite/common";
 import {
@@ -39,7 +39,7 @@ if (typeof global !== "undefined" && typeof global.self === "undefined") {
 }
 
 function dispatchModuleAutoLoading(
-  pyodide: Pyodide.PyodideInterface,
+  pyodide: PyodideInterface,
   postMessage: PostMessageFn,
   sources: string[],
 ): void {
@@ -54,7 +54,7 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
-let initPyodidePromise: Promise<Pyodide.PyodideInterface> | null = null;
+let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
 export function startWorkerEnv(
   defaultPyodideUrl: string,
@@ -71,7 +71,7 @@ export function startWorkerEnv(
     });
   }
 
-  let pyodide: Pyodide.PyodideInterface;
+  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
 
   let httpServer: PyProxy;
 
@@ -200,7 +200,7 @@ export function startWorkerEnv(
     postProgressMessage("Unpacking archives.");
     await Promise.all(
       archives.map(async (archive) => {
-        let buffer: Parameters<Pyodide.PyodideInterface["unpackArchive"]>[0];
+        let buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
         if ("url" in archive) {
           console.debug(`Fetch an archive from ${archive.url}`);
           buffer = await fetch(archive.url).then((res) => res.arrayBuffer());

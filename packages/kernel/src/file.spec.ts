@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { writeFileWithParents, renameWithParents } from "./file";
 
 describe("writeFileWithParents()", () => {
-  let pyodide: PyodideInterface;
+  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
 
   beforeEach(async () => {
     pyodide = await loadPyodide({
@@ -45,7 +45,7 @@ describe("writeFileWithParents()", () => {
 });
 
 describe("renameWithParents", () => {
-  let pyodide: PyodideInterface;
+  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
 
   beforeEach(async () => {
     pyodide = await loadPyodide({

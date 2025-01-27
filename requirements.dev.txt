@@ -1,1 +1,1 @@
-pyodide-build==0.26.2
+pyodide-build==0.27.2

@@ -18,6 +18,15 @@ import STREAMLIT_WHEEL from "streamlit.whl";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;
 declare const EDITOR_APP_ORIGIN: string;
+const wheelUrls = {
+  // The resolved URLs such as STLITE_LIB_WHEEL only contain the pathnames e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl"
+  // and micropip treats such path-only URLs as local file URLs e.g. "file:////assets/stlite_lib-0.1.0-py3-none-any.whl"
+  // since 0.7.0 due to the change by https://github.com/pyodide/micropip/pull/145,
+  // though these URLs are actually for remote resources.
+  // So we need to convert these path-only URLs to full URLs including the protocol explicitly.
+  stliteLib: new URL(STLITE_LIB_WHEEL, import.meta.url).href,
+  streamlit: new URL(STREAMLIT_WHEEL, import.meta.url).href,
+};
 
 const editorAppOriginRegex = EDITOR_APP_ORIGIN_REGEX
   ? new RegExp(EDITOR_APP_ORIGIN_REGEX)
@@ -94,10 +103,7 @@ st.write("Hello World")`,
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
           sharedWorker: isSharedWorkerMode(),
-          wheelUrls: {
-            stliteLib: STLITE_LIB_WHEEL,
-            streamlit: STREAMLIT_WHEEL,
-          },
+          wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
         });
         _kernel = kernel;

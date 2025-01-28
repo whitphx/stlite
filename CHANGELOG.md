@@ -1,4 +1,4 @@
-# Changelog
+≤# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.77.0] - 2025-01-28
+
+### General
+
+#### Changed
+
+- Update Pyodide to 0.27.2, [#1300](https://github.com/whitphx/stlite/pull/1300).
 
 ## [0.76.3] - 2025-01-28
 

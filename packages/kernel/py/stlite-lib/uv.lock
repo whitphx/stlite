@@ -615,11 +615,11 @@ wheels = [
 
 [[package]]
 name = "pyodide-py"
-version = "0.26.2"
+version = "0.27.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a5/1f/2bd042bb0223059593ddaba4e3e1296987d61b543c571e02fc2a01d63d12/pyodide_py-0.26.2.tar.gz", hash = "sha256:a62220021f81a7eb8d9d2ac87f6cae641419946b6ca996346a1cab898a904783", size = 46760 }
+sdist = { url = "https://files.pythonhosted.org/packages/49/3d/c0bc7a7cfad878ad02dd985b76924ed3ae4088695d443c8435d09f4d37b4/pyodide_py-0.27.2.tar.gz", hash = "sha256:eb2d4170e3f09fd79fd6e35f2a01646ecd6febeaabff70a9c0be5e8881ee8f80", size = 49968 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/04/9b4f24cf6a320bf9da06799c8d472ce3632c1220cb04ffb11c668778f735/pyodide_py-0.26.2-py3-none-any.whl", hash = "sha256:fe952f498ea45886b9ad0d43f628703ed6ac48a1627dbe04a39199f8cf9b66c6", size = 52324 },
+    { url = "https://files.pythonhosted.org/packages/6e/4c/3118a838d3607a21d94e8d51647e248bb2ce6395c38e512672f0354eaff8/pyodide_py-0.27.2-py3-none-any.whl", hash = "sha256:75c6cb5cabee6f25b195682ae1bfadeb5d6c47da0c6ef1d71070f8fb5cfe4af8", size = 55828 },
 ]
 
 [[package]]
@@ -847,7 +847,7 @@ requires-dist = [{ name = "pyodide-http", specifier = ">=0.2.1" }]
 dev = [
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "pandas-stubs", specifier = ">=2.2.3.241009" },
-    { name = "pyodide-py", specifier = ">=0.26.2" },
+    { name = "pyodide-py", specifier = ">=0.27.2" },
     { name = "pyright", specifier = ">=1.1.384" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },

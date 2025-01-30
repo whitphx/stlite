@@ -1,15 +1,15 @@
 pandas
-plotly
+plotly==5.*
 bokeh
 graphviz
 requests
 matplotlib
-numpy<2
+numpy
 scipy
-altair
+altair>=5.0.0
 pydeck
 Faker
 openai<1.40.0  # `openai==1.40.0` started depending on `jiter`, which is not working in Pyodide
 vega_datasets
-streamlit
+streamlit>=1.41.0
 ssl  # `openai` depends on `ssl`, which is a standard library but not vendored with Pyodide

@@ -23,7 +23,6 @@ cp $SOURCE_REPO_DIR/python/api-examples-source/tutorials/elements/*/*.py $SAMPLE
 cp $SOURCE_REPO_DIR/python/api-examples-source/guides/*.py $SAMPLES_DIR/011_component_gallery/pages/.
 cp -r $SOURCE_REPO_DIR/python/api-examples-source/images $SAMPLES_DIR/011_component_gallery/pages/.
 cp $SOURCE_REPO_DIR/python/api-examples-source/requirements.txt $SAMPLES_DIR/011_component_gallery/.
-sed -i '' 's/[<=>]=.*//' $SAMPLES_DIR/011_component_gallery/requirements.txt
 patch $SAMPLES_DIR/011_component_gallery/requirements.txt $DIFF_DIR/011_component_gallery/requirements.txt
 patch $SAMPLES_DIR/011_component_gallery/pages/charts.audio-purr.py $DIFF_DIR/011_component_gallery/pages/charts.audio-purr.py
 patch $SAMPLES_DIR/011_component_gallery/pages/media.logo.py $DIFF_DIR/011_component_gallery/pages/media.logo.py

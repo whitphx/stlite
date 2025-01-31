@@ -1,7 +1,9 @@
-2c2
+2,3c2,3
 < plotly
+< bokeh==2.4.3
 ---
 > plotly==5.*  # `plotly==6.*` doesn't work with `altair` on Pyodide: https://github.com/pyodide/micropip/issues/103#issuecomment-2623749602
+> bokeh
 7c7
 < numpy<2
 ---

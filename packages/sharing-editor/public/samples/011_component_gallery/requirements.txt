@@ -1,6 +1,6 @@
 pandas
 plotly==5.*  # `plotly==6.*` doesn't work with `altair` on Pyodide: https://github.com/pyodide/micropip/issues/103#issuecomment-2623749602
-bokeh==2.4.3
+bokeh
 graphviz
 requests
 matplotlib

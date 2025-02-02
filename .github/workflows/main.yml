@@ -466,7 +466,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages project list | grep -q "stlite-sharing" || pages project create stlite-sharing --production-branch=main
+          command: pages project create stlite-sharing --production-branch=main || true
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         id: publish
@@ -536,7 +536,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages project list | grep -q "stlite-sharing-editor" || pages project create stlite-sharing-editor --production-branch=main
+          command: pages project create stlite-sharing-editor --production-branch=main || true
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         env:

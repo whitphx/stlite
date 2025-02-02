@@ -468,7 +468,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing
+          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-sharing-editor:
@@ -532,7 +532,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing-editor
+          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:

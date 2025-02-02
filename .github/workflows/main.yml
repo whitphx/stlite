@@ -464,6 +464,11 @@ jobs:
         run: npm install -g wrangler
       - name: Login to Cloudflare
         run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
+      - name: Create Pages Project (if not exists)
+        run: |
+          if ! npx wrangler pages project list | grep -q "stlite-sharing"; then
+            npx wrangler pages project create stlite-sharing --production-branch=main
+          fi
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         id: publish
@@ -531,6 +536,11 @@ jobs:
         run: npm install -g wrangler
       - name: Login to Cloudflare
         run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
+      - name: Create Pages Project (if not exists)
+        run: |
+          if ! npx wrangler pages project list | grep -q "stlite-sharing-editor"; then
+            npx wrangler pages project create stlite-sharing-editor --production-branch=main
+          fi
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:

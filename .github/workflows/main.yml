@@ -461,13 +461,12 @@ jobs:
           name: stlite-sharing
           path: website
       - name: Publish
-        uses: cloudflare/pages-action@1
+        uses: cloudflare/wrangler-action@v3
         id: publish
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing
-          directory: website
+          command: pages deploy website --project-name=stlite-sharing
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-sharing-editor:
@@ -525,12 +524,11 @@ jobs:
           name: stlite-sharing-editor
           path: website
       - name: Publish
-        uses: cloudflare/pages-action@1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing-editor
-          directory: website
+          command: pages deploy website --project-name=stlite-sharing-editor
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:

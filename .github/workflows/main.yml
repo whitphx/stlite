@@ -462,6 +462,8 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
+      - name: Login to Cloudflare
+        run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         id: publish
@@ -527,6 +529,8 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
+      - name: Login to Cloudflare
+        run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:

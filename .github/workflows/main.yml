@@ -460,6 +460,8 @@ jobs:
         with:
           name: stlite-sharing
           path: website
+      - name: Install wrangler
+        run: npm install -g wrangler
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         id: publish
@@ -523,6 +525,8 @@ jobs:
         with:
           name: stlite-sharing-editor
           path: website
+      - name: Install wrangler
+        run: npm install -g wrangler
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:

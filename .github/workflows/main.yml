@@ -462,9 +462,10 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
-      - name: Login to Cloudflare
-        run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
       - name: Create Pages Project (if not exists)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           if ! npx wrangler pages project list | grep -q "stlite-sharing"; then
             npx wrangler pages project create stlite-sharing --production-branch=main
@@ -475,7 +476,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.ref_name }} --commit-dirty=true
+          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-sharing-editor:
@@ -534,9 +535,10 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
-      - name: Login to Cloudflare
-        run: echo "${{ secrets.CLOUDFLARE_API_TOKEN }}" | npx wrangler login
       - name: Create Pages Project (if not exists)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           if ! npx wrangler pages project list | grep -q "stlite-sharing-editor"; then
             npx wrangler pages project create stlite-sharing-editor --production-branch=main
@@ -546,7 +548,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.ref_name }} --commit-dirty=true
+          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.ref_name }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:

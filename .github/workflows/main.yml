@@ -460,6 +460,8 @@ jobs:
         with:
           name: stlite-sharing
           path: website
+      - name: Install wrangler
+        run: npm install -g wrangler
       - name: Create Pages Project (if not exists)
         uses: cloudflare/wrangler-action@v3
         env:
@@ -530,6 +532,8 @@ jobs:
         with:
           name: stlite-sharing-editor
           path: website
+      - name: Install wrangler
+        run: npm install -g wrangler
       - name: Create Pages Project (if not exists)
         uses: cloudflare/wrangler-action@v3
         env:

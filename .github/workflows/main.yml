@@ -461,14 +461,14 @@ jobs:
           name: stlite-sharing
           path: website
       - name: Install wrangler
-        run: npm install -g wrangler
+        run: yarn global add wrangler
       - name: Create Pages Project (if not exists)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if ! npx wrangler pages project list | grep -q "stlite-sharing"; then
-            npx wrangler pages project create stlite-sharing --production-branch=main
+          if ! yarn wrangler pages project list | grep -q "stlite-sharing"; then
+            yarn wrangler pages project create stlite-sharing --production-branch=main
           fi
       - name: Publish
         uses: cloudflare/wrangler-action@v3
@@ -534,14 +534,14 @@ jobs:
           name: stlite-sharing-editor
           path: website
       - name: Install wrangler
-        run: npm install -g wrangler
+        run: yarn global add wrangler
       - name: Create Pages Project (if not exists)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if ! npx wrangler pages project list | grep -q "stlite-sharing-editor"; then
-            npx wrangler pages project create stlite-sharing-editor --production-branch=main
+          if ! yarn wrangler pages project list | grep -q "stlite-sharing-editor"; then
+            yarn wrangler pages project create stlite-sharing-editor --production-branch=main
           fi
       - name: Publish
         uses: cloudflare/wrangler-action@v3

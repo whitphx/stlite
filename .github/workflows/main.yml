@@ -462,13 +462,20 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
+      - name: Login to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        with:
+          command: login
       - name: Create Pages Project (if not exists)
         uses: cloudflare/wrangler-action@v3
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages project list | grep -q "stlite-sharing" || pages project create stlite-sharing --production-branch=main
+          command: pages project list | grep -q "stlite-sharing" || wrangler pages project create stlite-sharing --production-branch=main
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         id: publish
@@ -476,7 +483,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.ref_name }} --commit-dirty=true
+          command: pages deploy --project-name=stlite-sharing website --branch=${{ github.ref_name }} --commit-dirty=true
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -534,20 +541,27 @@ jobs:
           path: website
       - name: Install wrangler
         run: npm install -g wrangler
+      - name: Login to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        with:
+          command: login
       - name: Create Pages Project (if not exists)
         uses: cloudflare/wrangler-action@v3
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages project list | grep -q "stlite-sharing-editor" || pages project create stlite-sharing-editor --production-branch=main
+          command: pages project list | grep -q "stlite-sharing-editor" || wrangler pages project create stlite-sharing-editor --production-branch=main
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         with:
-          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.ref_name }} --commit-dirty=true
+          command: pages deploy --project-name=stlite-sharing-editor website --branch=${{ github.ref_name }} --commit-dirty=true
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4

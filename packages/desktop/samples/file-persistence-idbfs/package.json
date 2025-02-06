@@ -20,7 +20,7 @@
   "devDependencies": {
     "@stlite/desktop": "^0.77.0",
     "cross-env": "^7.0.3",
-    "electron": "34.0.2",
+    "electron": "34.1.0",
     "electron-builder": "^25.1.7"
   },
   "stlite": {

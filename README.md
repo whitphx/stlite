@@ -486,12 +486,6 @@ Image processing with OpenCV works on the client side.
 
 [<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img src="https://docs.snowflake.com/_images/logo-snowflake-sans-text.png" height="100" />](https://www.snowflake.com/)
 
-### Databutton
-
-[<img src="https://assets.website-files.com/6213e8906bdf786dcccbce62/621d20f1031cff7b094664f2_large_fav.png" height="100" >](https://www.databutton.io/)
-
-They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
-
 ### Hal9
 
 [<img src="https://hal9.com/logo/hal9-square-black.png" height="50" >](https://hal9.com/)

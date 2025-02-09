@@ -10,7 +10,7 @@ on:
 concurrency:
   # https://stackoverflow.com/a/72408109
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
 
 env:
   python-version-file: ".python-version"

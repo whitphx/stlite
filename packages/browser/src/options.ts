@@ -22,6 +22,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
   sharedWorker: StliteKernelOptions["sharedWorker"];
+  executeOnInitialize: StliteKernelOptions["executeOnInitialize"];
 }>;
 
 function canonicalizeFiles(

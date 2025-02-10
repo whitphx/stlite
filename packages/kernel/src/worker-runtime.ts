@@ -105,6 +105,7 @@ export function startWorkerEnv(
       idbfsMountpoints,
       nodefsMountpoints,
       moduleAutoLoad,
+      executeOnInitialize,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -137,6 +138,10 @@ export function startWorkerEnv(
       }
 
       console.debug("Loaded Pyodide");
+    }
+
+    if (executeOnInitialize) {
+      await pyodide.runPythonAsync(executeOnInitialize);
     }
 
     let useIdbfs = false;

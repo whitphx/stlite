@@ -57,6 +57,7 @@ export interface WorkerInitialData {
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
   moduleAutoLoad: boolean;
+  executeOnInitialize?: string;
 }
 
 /**

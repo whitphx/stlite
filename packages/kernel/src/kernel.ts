@@ -122,6 +122,8 @@ export interface StliteKernelOptions {
 
   sharedWorker?: boolean;
 
+  executeOnInitialize?: WorkerInitialData["executeOnInitialize"];
+
   /**
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one use case.
@@ -198,6 +200,7 @@ export class StliteKernel {
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,
+      executeOnInitialize: options.executeOnInitialize,
     };
   }
 

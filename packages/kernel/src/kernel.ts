@@ -309,6 +309,15 @@ export class StliteKernel {
     });
   }
 
+  public execute(code: string): Promise<void> {
+    return this._asyncPostMessage({
+      type: "execute",
+      data: {
+        code,
+      },
+    });
+  }
+
   /**
    * Reboot the Streamlit server.
    * Note that we also need to refresh (rerender) the frontend app after calling this method

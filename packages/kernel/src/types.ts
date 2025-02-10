@@ -129,6 +129,14 @@ export interface InMessageInstall extends InMessageBase {
     requirements: string[];
   };
 }
+
+export interface InMessageExecute extends InMessageBase {
+  type: "execute";
+  data: {
+    code: string;
+  };
+}
+
 export type InMessage =
   | InMessageInitData
   | InMessageReboot
@@ -139,7 +147,8 @@ export type InMessage =
   | InMessageFileRename
   | InMessageFileUnlink
   | InMessageFileRead
-  | InMessageInstall;
+  | InMessageInstall
+  | InMessageExecute;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;

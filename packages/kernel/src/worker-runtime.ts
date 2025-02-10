@@ -644,6 +644,16 @@ prepare(main_script_path, args)
                 type: "reply",
               });
             });
+          break;
+        }
+        case "execute": {
+          const { code } = msg.data;
+          pyodide.runPythonAsync(code).then(() => {
+            console.debug("Successfully executed");
+            reply({
+              type: "reply",
+            });
+          });
         }
       }
     } catch (error) {

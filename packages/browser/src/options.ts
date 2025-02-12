@@ -134,6 +134,7 @@ export function parseMountOptions(options: MountOptions): {
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       sharedWorker: options.sharedWorker,
+      executeOnInitialize: options?.executeOnInitialize,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

@@ -309,9 +309,9 @@ export class StliteKernel {
     });
   }
 
-  public execute(code: string): Promise<void> {
+  public runCode(code: string): Promise<void> {
     return this._asyncPostMessage({
-      type: "execute",
+      type: "runCode",
       data: {
         code,
       },

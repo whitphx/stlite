@@ -646,7 +646,7 @@ prepare(main_script_path, args)
             });
           break;
         }
-        case "execute": {
+        case "runCode": {
           const { code } = msg.data;
           pyodide.runPythonAsync(code).then(() => {
             console.debug("Successfully executed");

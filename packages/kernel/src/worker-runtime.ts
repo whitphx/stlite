@@ -138,6 +138,8 @@ export function startWorkerEnv(
       });
       pyodide = await initPyodidePromise;
       if (env) {
+        // We could've used the env parameter in pyodide initialization,
+        // but then some default environment variables like HOME were not set.
         setEnv(pyodide, env);
       }
 

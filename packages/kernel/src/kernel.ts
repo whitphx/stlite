@@ -30,6 +30,13 @@ import { assertStreamlitConfig } from "./types";
 const FINAL_SLASH_RE = /\/+$/;
 const INITIAL_SLASH_RE = /^\/+/;
 
+const validateEnvKey = (key: string) => {
+  // Validate each variable name: it must start with a letter or underscore,
+  // and can contain only letters, digits, or underscores.
+  const validEnvNameRegex = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  return validEnvNameRegex.test(key);
+};
+
 export interface StliteKernelOptions {
   /**
    * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
@@ -122,7 +129,7 @@ export interface StliteKernelOptions {
 
   sharedWorker?: boolean;
 
-  executeOnInitialize?: WorkerInitialData["executeOnInitialize"];
+  env?: Record<string, string>;
 
   /**
    * The worker to be used, which can be optionally passed.
@@ -200,7 +207,7 @@ export class StliteKernel {
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,
-      executeOnInitialize: options.executeOnInitialize,
+      env: options.env,
     };
   }
 
@@ -309,11 +316,17 @@ export class StliteKernel {
     });
   }
 
-  public runCode(code: string): Promise<void> {
+  public setEnv(env: Record<string, string>): Promise<void> {
+    Object.keys(env).forEach((key) => {
+      if (!validateEnvKey(key)) {
+        throw new Error(`Invalid environment variable name: "${key}"`);
+      }
+    });
+
     return this._asyncPostMessage({
-      type: "runCode",
+      type: "setEnv",
       data: {
-        code,
+        env,
       },
     });
   }

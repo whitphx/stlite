@@ -22,7 +22,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
   sharedWorker: StliteKernelOptions["sharedWorker"];
-  executeOnInitialize: StliteKernelOptions["executeOnInitialize"];
+  env: StliteKernelOptions["env"];
 }>;
 
 function canonicalizeFiles(
@@ -134,7 +134,7 @@ export function parseMountOptions(options: MountOptions): {
       streamlitConfig: options.streamlitConfig,
       idbfsMountpoints: options.idbfsMountpoints,
       sharedWorker: options.sharedWorker,
-      executeOnInitialize: options?.executeOnInitialize,
+      env: options.env,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

@@ -54,6 +54,21 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
+async function setEnv(
+  pyodide: PyodideInterface,
+  env: Record<string, string>,
+): Promise<void> {
+  // This function is used to set environment variables both during initialization
+  // and during the runtime.
+  const envJSON = JSON.stringify(env);
+  const pythonCode = `
+    import os, json
+    env_dict = json.loads('''${envJSON}''')
+    os.environ.update(env_dict)
+    del env_dict # clean up this variable
+  `;
+  await pyodide.runPythonAsync(pythonCode);
+}
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
 export function startWorkerEnv(
@@ -105,7 +120,7 @@ export function startWorkerEnv(
       idbfsMountpoints,
       nodefsMountpoints,
       moduleAutoLoad,
-      executeOnInitialize,
+      env,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -122,6 +137,9 @@ export function startWorkerEnv(
         stderr: console.error,
       });
       pyodide = await initPyodidePromise;
+      if (env) {
+        setEnv(pyodide, env);
+      }
 
       if (wheels) {
         // NOTE: It's important to install the user-specified requirements
@@ -138,10 +156,6 @@ export function startWorkerEnv(
       }
 
       console.debug("Loaded Pyodide");
-    }
-
-    if (executeOnInitialize) {
-      await pyodide.runPythonAsync(executeOnInitialize);
     }
 
     let useIdbfs = false;
@@ -646,14 +660,15 @@ prepare(main_script_path, args)
             });
           break;
         }
-        case "runCode": {
-          const { code } = msg.data;
-          pyodide.runPythonAsync(code).then(() => {
-            console.debug("Successfully executed");
-            reply({
-              type: "reply",
-            });
+        case "setEnv": {
+          const { env } = msg.data;
+          setEnv(pyodide, env);
+
+          console.debug("Successfully set the environment variables", env);
+          reply({
+            type: "reply",
           });
+          break;
         }
       }
     } catch (error) {

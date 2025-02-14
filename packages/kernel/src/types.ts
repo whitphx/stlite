@@ -57,7 +57,7 @@ export interface WorkerInitialData {
   idbfsMountpoints?: string[];
   nodefsMountpoints?: Record<string, string>;
   moduleAutoLoad: boolean;
-  executeOnInitialize?: string;
+  env?: Record<string, string>;
 }
 
 /**
@@ -130,10 +130,10 @@ export interface InMessageInstall extends InMessageBase {
   };
 }
 
-export interface InMessageRunCode extends InMessageBase {
-  type: "runCode";
+export interface InMessageSetEnv extends InMessageBase {
+  type: "setEnv";
   data: {
-    code: string;
+    env: Record<string, string>;
   };
 }
 
@@ -148,7 +148,7 @@ export type InMessage =
   | InMessageFileUnlink
   | InMessageFileRead
   | InMessageInstall
-  | InMessageRunCode;
+  | InMessageSetEnv;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;

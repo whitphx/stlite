@@ -54,21 +54,6 @@ script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
 `);
 }
 
-async function setEnv(
-  pyodide: PyodideInterface,
-  env: Record<string, string>,
-): Promise<void> {
-  // This function is used to set environment variables both during initialization
-  // and during the runtime.
-  const envJSON = JSON.stringify(env);
-  const pythonCode = `
-    import os, json
-    env_dict = json.loads('''${envJSON}''')
-    os.environ.update(env_dict)
-    del env_dict # clean up this variable
-  `;
-  await pyodide.runPythonAsync(pythonCode);
-}
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
 export function startWorkerEnv(
@@ -140,7 +125,8 @@ export function startWorkerEnv(
       if (env) {
         // We could've used the env parameter in pyodide initialization,
         // but then some default environment variables like HOME were not set.
-        setEnv(pyodide, env);
+        const os = pyodide.pyimport("os");
+        os.environ.update(pyodide.toPy(env));
       }
 
       if (wheels) {
@@ -664,7 +650,8 @@ prepare(main_script_path, args)
         }
         case "setEnv": {
           const { env } = msg.data;
-          setEnv(pyodide, env);
+          const os = pyodide.pyimport("os");
+          os.environ.update(pyodide.toPy(env));
 
           console.debug("Successfully set the environment variables", env);
           reply({

@@ -105,6 +105,7 @@ export function startWorkerEnv(
       idbfsMountpoints,
       nodefsMountpoints,
       moduleAutoLoad,
+      env,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -121,6 +122,12 @@ export function startWorkerEnv(
         stderr: console.error,
       });
       pyodide = await initPyodidePromise;
+      if (env) {
+        // We could've used the env parameter in pyodide initialization,
+        // but then some default environment variables like HOME were not set.
+        const os = pyodide.pyimport("os");
+        os.environ.update(pyodide.toPy(env));
+      }
 
       if (wheels) {
         // NOTE: It's important to install the user-specified requirements
@@ -639,6 +646,18 @@ prepare(main_script_path, args)
                 type: "reply",
               });
             });
+          break;
+        }
+        case "setEnv": {
+          const { env } = msg.data;
+          const os = pyodide.pyimport("os");
+          os.environ.update(pyodide.toPy(env));
+
+          console.debug("Successfully set the environment variables", env);
+          reply({
+            type: "reply",
+          });
+          break;
         }
       }
     } catch (error) {

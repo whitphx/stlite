@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.78.0] - 2025-02-19
+
+### `@stlite/browser`
+
+#### Added
+
+- `env` option, [#1326](https://github.com/whitphx/stlite/pull/1326), by [@andeplane](https://github.com/andeplane).
+
 ## [0.77.0] - 2025-01-28
 
 ### General

@@ -37,6 +37,16 @@ describe("PrebuiltPackagesDataReader", () => {
 
     const reader = new PrebuiltPackagesDataReader(testDir);
     const packageInfo = await reader.getPackageInfoByName("numpy");
-    expect(packageInfo).toEqual(expect.any(Object));
+    expect(packageInfo).toEqual(
+      expect.objectContaining({
+        name: "numpy",
+        version: "2.0.2",
+        file_name: "numpy-2.0.2-cp312-cp312-pyodide_2024_0_wasm32.whl",
+        imports: ["numpy"],
+        install_dir: "site",
+        package_type: "package",
+        unvendored_tests: true,
+      }),
+    );
   });
 });

@@ -335,6 +335,7 @@ jobs:
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: browser
         name: "@stlite/browser"
@@ -354,12 +355,14 @@ jobs:
         popd
     - name: "Inform the package stats of stlite-lib wheel"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: stlite-lib-wheel
         name: "stlite-lib wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
     - name: "Inform the package stats of streamlit wheel"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: streamlit-wheel
         name: "streamlit wheel (built as a part of @stlite/browser)"
@@ -437,6 +440,7 @@ jobs:
 
     - name: "Inform the package stats"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: sharing
         name: "stlite sharing"
@@ -500,6 +504,7 @@ jobs:
         name: stlite-sharing-editor
     - name: "Inform the package stats"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: sharing-editor
         name: "stlite sharing editor"
@@ -577,6 +582,7 @@ jobs:
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/inform-package-stats
+      continue-on-error: true
       with:
         key: desktop
         name: "@stlite/desktop"

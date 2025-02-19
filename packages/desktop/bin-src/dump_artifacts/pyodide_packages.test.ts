@@ -25,6 +25,7 @@ describe("PrebuiltPackagesDataReader", () => {
 
   it("should be able to read the package info from the local file", async () => {
     const testDir = fs.mkdtempSync(path.join(tmpdir(), "stlite-test"));
+    console.log("testDir", testDir);
 
     await fetch(
       "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide-lock.json",

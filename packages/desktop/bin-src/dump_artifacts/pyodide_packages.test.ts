@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, it, expect } from "vitest";
 import { PrebuiltPackagesDataReader } from "./pyodide_packages";
 
@@ -18,5 +21,21 @@ describe("PrebuiltPackagesDataReader", () => {
         unvendored_tests: true,
       }),
     );
+  });
+
+  it("should be able to read the package info from the local file", async () => {
+    const testDir = fs.mkdtempSync(path.join(tmpdir(), "stlite-test"));
+
+    await fetch(
+      "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide-lock.json",
+    )
+      .then((res) => res.text())
+      .then((data) => {
+        fs.writeFileSync(path.join(testDir, "pyodide-lock.json"), data);
+      });
+
+    const reader = new PrebuiltPackagesDataReader(testDir);
+    const packageInfo = await reader.getPackageInfoByName("numpy");
+    expect(packageInfo).toEqual(expect.any(Object));
   });
 });

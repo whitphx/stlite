@@ -452,7 +452,7 @@ jobs:
       deployments: write
     name: Deploy @stlite/sharing to Cloudflare Pages
     outputs:
-      url: ${{ steps.publish.outputs.url }}
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -460,6 +460,7 @@ jobs:
           path: website
       - name: Deploy
         uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
+        id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -452,22 +452,19 @@ jobs:
       deployments: write
     name: Deploy @stlite/sharing to Cloudflare Pages
     outputs:
-      url: ${{ steps.publish.outputs.url }}
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: stlite-sharing
           path: website
-      - name: Publish
-        uses: cloudflare/pages-action@1
-        id: publish
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
+        id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing
-          directory: website
+          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.head_ref || github.ref_name }} --commit-hash=${{ github.sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-sharing-editor:
@@ -518,19 +515,16 @@ jobs:
       deployments: write
     name: Deploy @stlite/sharing-editor to Cloudflare Pages
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: stlite-sharing-editor
           path: website
-      - name: Publish
-        uses: cloudflare/pages-action@1
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: stlite-sharing-editor
-          directory: website
+          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.head_ref || github.ref_name }} --commit-hash=${{ github.sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:

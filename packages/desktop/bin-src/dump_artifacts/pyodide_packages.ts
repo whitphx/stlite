@@ -24,7 +24,7 @@ export class PrebuiltPackagesDataReader {
   }
 
   private async readJson(filepath: string): Promise<any> {
-    const url = path.join(this.sourceUrl, filepath);
+    const url = path.posix.join(this.sourceUrl, filepath);
 
     if (this.isRemote) {
       logger.debug(`Fetching ${url}`);

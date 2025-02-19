@@ -2717,10 +2717,10 @@
     before-after-hook "^3.0.2"
     universal-user-agent "^7.0.0"
 
-"@octokit/endpoint@^10.0.0":
-  version "10.1.2"
-  resolved "https://registry.yarnpkg.com/@octokit/endpoint/-/endpoint-10.1.2.tgz#d38e727e2a64287114fdaa1eb9cd7c81c09460df"
-  integrity sha512-XybpFv9Ms4hX5OCHMZqyODYqGTZ3H6K6Vva+M9LR7ib/xr1y1ZnlChYv9H680y77Vd/i/k+thXApeRASBQkzhA==
+"@octokit/endpoint@^10.1.3":
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/@octokit/endpoint/-/endpoint-10.1.3.tgz#bfe8ff2ec213eb4216065e77654bfbba0fc6d4de"
+  integrity sha512-nBRBMpKPhQUxCsQQeW+rCJ/OPSMcj3g0nfHn01zGYZXuNDvvXudF/TYY6APj5THlurerpFN4a/dQAIAaM6BYhA==
   dependencies:
     "@octokit/types" "^13.6.2"
     universal-user-agent "^7.0.2"
@@ -2745,9 +2745,9 @@
   integrity sha512-93uGjlhUD+iNg1iWhUENAtJata6w5nE+V4urXOAlIXdco6xNZtUSfYY8dzp3Udy74aqO/B5UZL80x/YMa5PKRw==
 
 "@octokit/plugin-paginate-rest@^11.4.0":
-  version "11.4.0"
-  resolved "https://registry.yarnpkg.com/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-11.4.0.tgz#a9c3347113d793e48a014f0aa549eada00de7c9a"
-  integrity sha512-ttpGck5AYWkwMkMazNCZMqxKqIq1fJBNxBfsFwwfyYKTf914jKkLF0POMS3YkPBwp5g1c2Y4L79gDz01GhSr1g==
+  version "11.4.2"
+  resolved "https://registry.yarnpkg.com/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-11.4.2.tgz#8f46a1de74c35e016c86701ef4ea0e8ef25a06e0"
+  integrity sha512-BXJ7XPCTDXFF+wxcg/zscfgw2O/iDPtNSkwwR1W1W5c4Mb3zav/M2XvxQ23nVmKj7jpweB4g8viMeCQdm7LMVA==
   dependencies:
     "@octokit/types" "^13.7.0"
 
@@ -2763,20 +2763,20 @@
   dependencies:
     "@octokit/types" "^13.7.0"
 
-"@octokit/request-error@^6.0.1", "@octokit/request-error@^6.1.6":
-  version "6.1.6"
-  resolved "https://registry.yarnpkg.com/@octokit/request-error/-/request-error-6.1.6.tgz#5f42c7894e7c3ab47c63aa3241f78cee8a826644"
-  integrity sha512-pqnVKYo/at0NuOjinrgcQYpEbv4snvP3bKMRqHaD9kIsk9u1LCpb2smHZi8/qJfgeNqLo5hNW4Z7FezNdEo0xg==
+"@octokit/request-error@^6.1.6", "@octokit/request-error@^6.1.7":
+  version "6.1.7"
+  resolved "https://registry.yarnpkg.com/@octokit/request-error/-/request-error-6.1.7.tgz#44fc598f5cdf4593e0e58b5155fe2e77230ff6da"
+  integrity sha512-69NIppAwaauwZv6aOzb+VVLwt+0havz9GT5YplkeJv7fG7a40qpLt/yZKyiDxAhgz0EtgNdNcb96Z0u+Zyuy2g==
   dependencies:
     "@octokit/types" "^13.6.2"
 
 "@octokit/request@^9.1.4":
-  version "9.1.4"
-  resolved "https://registry.yarnpkg.com/@octokit/request/-/request-9.1.4.tgz#c1e90bd57c3113253d27337c92609b8fed54d13b"
-  integrity sha512-tMbOwGm6wDII6vygP3wUVqFTw3Aoo0FnVQyhihh8vVq12uO3P+vQZeo2CKMpWtPSogpACD0yyZAlVlQnjW71DA==
+  version "9.2.2"
+  resolved "https://registry.yarnpkg.com/@octokit/request/-/request-9.2.2.tgz#754452ec4692d7fdc32438a14e028eba0e6b2c09"
+  integrity sha512-dZl0ZHx6gOQGcffgm1/Sf6JfEpmh34v3Af2Uci02vzUYz6qEN6zepoRtmybWXIGXFIK8K9ylE3b+duCWqhArtg==
   dependencies:
-    "@octokit/endpoint" "^10.0.0"
-    "@octokit/request-error" "^6.0.1"
+    "@octokit/endpoint" "^10.1.3"
+    "@octokit/request-error" "^6.1.7"
     "@octokit/types" "^13.6.2"
     fast-content-type-parse "^2.0.0"
     universal-user-agent "^7.0.2"
@@ -11806,9 +11806,9 @@ koa-static@^5.0.0:
     koa-send "^5.0.0"
 
 koa@^2.15.3:
-  version "2.15.3"
-  resolved "https://registry.npmjs.org/koa/-/koa-2.15.3.tgz"
-  integrity sha512-j/8tY9j5t+GVMLeioLaxweJiKUayFhlGqNTzf2ZGwL0ZCQijd2RLHK0SLW5Tsko8YyyqCZC2cojIb0/s62qTAg==
+  version "2.15.4"
+  resolved "https://registry.yarnpkg.com/koa/-/koa-2.15.4.tgz#7000b3d8354558671adb1ba1b1c09bedb5f8da75"
+  integrity sha512-7fNBIdrU2PEgLljXoPWoyY4r1e+ToWCmzS/wwMPbUNs7X+5MMET1ObhJBlUkF5uZG9B6QhM2zS1TsH6adegkiQ==
   dependencies:
     accepts "^1.3.5"
     cache-content-type "^1.0.0"

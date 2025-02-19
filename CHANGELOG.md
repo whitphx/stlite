@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.78.1] - 2025-02-19
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug of `st.spinner` which was introduced in v0.74.0 because of the ContextVar-based multi-runtime management, [#1334](https://github.com/whitphx/stlite/pull/1334).
+- Dependencies updates.
+
 ## [0.78.0] - 2025-02-19
 
 ### `@stlite/browser`

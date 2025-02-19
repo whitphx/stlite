@@ -137,6 +137,17 @@ export interface InMessageSetEnv extends InMessageBase {
   };
 }
 
+export interface LanguageServerRequestPayload {
+  code: string;
+  currentLine: string;
+  currentLineNumber: number;
+  offset: number;
+}
+export interface InMessageCodeCompletion extends InMessageBase {
+  type: "language-server:code_completion";
+  data: LanguageServerRequestPayload;
+}
+
 export type InMessage =
   | InMessageInitData
   | InMessageReboot
@@ -148,7 +159,8 @@ export type InMessage =
   | InMessageFileUnlink
   | InMessageFileRead
   | InMessageInstall
-  | InMessageSetEnv;
+  | InMessageSetEnv
+  | InMessageCodeCompletion;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -239,6 +251,21 @@ export interface ReplyMessageFileRead extends ReplyMessageBase {
     content: string | Uint8Array;
   };
 }
+
+export interface LanguageServerCodeCompletionResponse {
+  /**
+   * Decided to use unknown to avoid importing whole package and bunch of stuff
+   * from monaco-editor package that we don't need it here at all
+   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
+   *
+   */
+  items: unknown[];
+}
+export interface ReplyMessageLanguageServerCodeCompletion
+  extends ReplyMessageBase {
+  type: "reply:language-server:code_completion";
+  data: LanguageServerCodeCompletionResponse;
+}
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";
   error?: Error;
@@ -246,6 +273,7 @@ export interface ReplyMessageGeneralReply extends ReplyMessageBase {
 export type ReplyMessage =
   | ReplyMessageHttpResponse
   | ReplyMessageFileRead
+  | ReplyMessageLanguageServerCodeCompletion
   | ReplyMessageGeneralReply;
 
 /**

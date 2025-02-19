@@ -1,11 +1,12 @@
-import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { suite, test, expect, vitest, beforeEach, afterEach } from "vitest";
+import path from "node:path";
 import type { PyodideInterface } from "pyodide";
-import { type PostMessageFn } from "./worker-runtime";
-import { WorkerInitialData } from "./types";
 import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
+import { afterEach, beforeEach, expect, suite, test, vitest } from "vitest";
+import { getCodeCompletions } from "./language-server/code_completion";
+import { WorkerInitialData } from "./types";
+import { type PostMessageFn } from "./worker-runtime";
 
 const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
 
@@ -218,4 +219,207 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
       },
     );
   }
+});
+
+suite("Worker language server test", async () => {
+  beforeEach(() => {
+    vitest.resetModules();
+  });
+  afterEach(() => {
+    vitest.restoreAllMocks();
+  });
+
+  test("should return suggestions", async () => {
+    const filePath = path.resolve(
+      __dirname,
+      "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
+    );
+    const content = await fsPromises.readFile(filePath);
+
+    const pyodide = await initializeWorkerEnv({
+      entrypoint: "chat.input.py",
+      files: {
+        "chat.input.py": { data: content },
+      },
+    });
+
+    // Should give suggestions with items starting with word after the comma
+    let code = `import math
+math.co
+`;
+    let autocompleteResults = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "math",
+        currentLineNumber: 2,
+        offset: 6,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    // Should give suggestions for the word after the comma
+    expect(
+      autocompleteResults.items.map((item: { label: string }) => item.label),
+    ).toEqual(expect.arrayContaining(["comb", "copysign", "cos", "cosh"]));
+
+    // Should give suggestions for a module when no prefix is present
+    code = `import math
+math.
+`;
+    autocompleteResults = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "math",
+        currentLineNumber: 2,
+        offset: 5,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    expect(
+      autocompleteResults.items.map((item: { label: string }) => item.label),
+    ).toEqual(
+      expect.arrayContaining([
+        "acos",
+        "acosh",
+        "asin",
+        "asinh",
+        "atan",
+        "atan2",
+        "ceil",
+        "comb",
+      ]),
+    );
+
+    // Should give suggestions for a module when no prefix is present
+    code = `import math
+math.
+`;
+    autocompleteResults = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "math",
+        currentLineNumber: 2,
+        offset: 5,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    expect(
+      autocompleteResults.items.map((item: { label: string }) => item.label),
+    ).toEqual(
+      expect.arrayContaining([
+        "acos",
+        "acosh",
+        "asin",
+        "asinh",
+        "atan",
+        "atan2",
+        "ceil",
+        "comb",
+      ]),
+    );
+
+    // Should give function arguments suggestions
+    code = `import json
+x = {}
+json.dumps(x, 
+`;
+    autocompleteResults = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "json.dumps(x, ",
+        currentLineNumber: 3,
+        offset: 13,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    expect(
+      autocompleteResults.items.map((item: { label: string }) => item.label),
+    ).toEqual(
+      expect.arrayContaining([
+        "allow_nan=",
+        "check_circular=",
+        "cls=",
+        "default=",
+        "ensure_ascii=",
+        "indent=",
+        "separators=",
+        "skipkeys=",
+        "sort_keys=",
+      ]),
+    );
+
+    // Should give suggestions for local functions
+    code = `import json
+def handle(param_1: int, limit: str = "default") -> str:
+  """
+  This function returns the parameters as a string.
+  """
+  return f"Result - param_1: {param_1}, limit: {limit}"
+
+handle
+`;
+    autocompleteResults = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "handle",
+        currentLineNumber: 8,
+        offset: 6,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    expect(
+      autocompleteResults.items.map(
+        (item: { label: string; documentation: string }) => ({
+          label: item.label,
+          documentation: item.documentation.trim(),
+        }),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          label: "handle",
+          documentation: "This function returns the parameters as a string.",
+        },
+      ]),
+    );
+  });
+
+  test("should handle invalid requests and return empty response", async () => {
+    const code = `import math
+      math.cos()
+      `;
+
+    const filePath = path.resolve(
+      __dirname,
+      "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
+    );
+    const content = await fsPromises.readFile(filePath);
+
+    const pyodide = await initializeWorkerEnv({
+      entrypoint: "chat.input.py",
+      files: {
+        "chat.input.py": { data: content },
+      },
+    });
+
+    const suggestions = await getCodeCompletions(
+      {
+        code: code,
+        currentLine: "math",
+        currentLineNumber: 3,
+        offset: 5,
+      },
+      pyodide as PyodideInterface,
+    );
+
+    expect(suggestions).toEqual(
+      expect.objectContaining({
+        items: [],
+      }),
+    );
+  });
 });

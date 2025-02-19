@@ -23,6 +23,8 @@ import type {
   WorkerInitialData,
   StreamlitConfig,
   ModuleAutoLoadMessage,
+  LanguageServerRequestPayload,
+  ReplyMessageLanguageServerCodeCompletion,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -329,6 +331,18 @@ export class StliteKernel {
         env,
       },
     });
+  }
+
+  public getCodeCompletion(
+    payload: LanguageServerRequestPayload,
+  ): Promise<ReplyMessageLanguageServerCodeCompletion["data"]> {
+    return this._asyncPostMessage(
+      {
+        type: "language-server:code_completion",
+        data: payload,
+      },
+      "reply:language-server:code_completion",
+    ).then((data) => data);
   }
 
   /**

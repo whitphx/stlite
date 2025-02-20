@@ -108,6 +108,7 @@ export function startWorkerEnv(
       nodefsMountpoints,
       moduleAutoLoad,
       env,
+      languageServer,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -398,8 +399,10 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
 
     const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
-    postProgressMessage("Importing Language Server");
-    await importLanguageServerLibraries(pyodide, micropip);
+    if (languageServer) {
+      postProgressMessage("Importing Language Server");
+      await importLanguageServerLibraries(pyodide, micropip);
+    }
 
     postProgressMessage("Booting up the Streamlit server.");
     // The following Python code is based on streamlit.web.cli.main_run().

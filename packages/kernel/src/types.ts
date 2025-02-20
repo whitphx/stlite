@@ -58,6 +58,7 @@ export interface WorkerInitialData {
   nodefsMountpoints?: Record<string, string>;
   moduleAutoLoad: boolean;
   env?: Record<string, string>;
+  languageServer?: boolean;
 }
 
 /**

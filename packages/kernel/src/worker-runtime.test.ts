@@ -30,6 +30,7 @@ interface InitializeWorkerEnvOptions {
   entrypoint: string;
   files: WorkerInitialData["files"];
   requirements?: WorkerInitialData["requirements"];
+  languageServer?: boolean;
 }
 async function initializeWorkerEnv(
   options: InitializeWorkerEnvOptions,
@@ -88,6 +89,7 @@ async function initializeWorkerEnv(
             requirements: options.requirements ?? [],
             moduleAutoLoad: false,
             prebuiltPackageNames: [],
+            languageServer: options.languageServer ?? false,
           },
         },
       }),
@@ -247,6 +249,7 @@ suite(
         files: {
           "chat.input.py": { data: content },
         },
+        languageServer: true,
       });
     });
     afterAll(() => {

@@ -134,6 +134,12 @@ export interface StliteKernelOptions {
   env?: Record<string, string>;
 
   /**
+   * Set to true to load the python language server libraries
+   * And enable methods like getCodeCompletions
+   */
+  languageServer?: boolean;
+
+  /**
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one use case.
    */
@@ -210,6 +216,7 @@ export class StliteKernel {
       idbfsMountpoints: options.idbfsMountpoints,
       moduleAutoLoad: options.moduleAutoLoad ?? false,
       env: options.env,
+      languageServer: options.languageServer ?? false,
     };
   }
 
@@ -336,6 +343,11 @@ export class StliteKernel {
   public getCodeCompletion(
     payload: LanguageServerRequestPayload,
   ): Promise<ReplyMessageLanguageServerCodeCompletion["data"]> {
+    if (!this._workerInitData.languageServer) {
+      throw new Error(
+        `Language server not loaded, please set languageServer=true to use this method`,
+      );
+    }
     return this._asyncPostMessage(
       {
         type: "language-server:code_completion",

@@ -3,7 +3,16 @@ import path from "node:path";
 import type { PyodideInterface } from "pyodide";
 import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
 import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
-import { afterEach, beforeEach, expect, suite, test, vitest } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  expect,
+  suite,
+  test,
+  vitest,
+} from "vitest";
 import { getCodeCompletions } from "./language-server/code_completion";
 import { WorkerInitialData } from "./types";
 import { type PostMessageFn } from "./worker-runtime";
@@ -221,138 +230,117 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
   }
 });
 
-suite("Worker language server test", async () => {
-  beforeEach(() => {
-    vitest.resetModules();
-  });
-  afterEach(() => {
-    vitest.restoreAllMocks();
-  });
+suite(
+  "Worker language server test",
+  async () => {
+    let pyodide: PyodideInterface;
+    beforeAll(async () => {
+      vitest.resetModules();
+      const filePath = path.resolve(
+        __dirname,
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
+      );
+      const content = await fsPromises.readFile(filePath);
 
-  test("should return suggestions", async () => {
-    const filePath = path.resolve(
-      __dirname,
-      "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
-    );
-    const content = await fsPromises.readFile(filePath);
-
-    const pyodide = await initializeWorkerEnv({
-      entrypoint: "chat.input.py",
-      files: {
-        "chat.input.py": { data: content },
-      },
+      pyodide = await initializeWorkerEnv({
+        entrypoint: "chat.input.py",
+        files: {
+          "chat.input.py": { data: content },
+        },
+      });
+    });
+    afterAll(() => {
+      vitest.restoreAllMocks();
     });
 
-    // Should give suggestions with items starting with word after the comma
-    let code = `import math
+    test("should give suggestions starting with word after the cursor", async () => {
+      // Should give suggestions starting with word after the cursor
+      const code = `import math
 math.co
 `;
-    let autocompleteResults = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "math",
-        currentLineNumber: 2,
-        offset: 6,
-      },
-      pyodide as PyodideInterface,
-    );
+      const autocompleteResults = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "math",
+          currentLineNumber: 2,
+          offset: 6,
+        },
+        pyodide as PyodideInterface,
+      );
 
-    // Should give suggestions for the word after the comma
-    expect(
-      autocompleteResults.items.map((item: { label: string }) => item.label),
-    ).toEqual(expect.arrayContaining(["comb", "copysign", "cos", "cosh"]));
+      // Should give suggestions for the word after the comma
+      expect(
+        autocompleteResults.items.map((item: { label: string }) => item.label),
+      ).toEqual(expect.arrayContaining(["comb", "copysign", "cos", "cosh"]));
+    });
 
-    // Should give suggestions for a module when no prefix is present
-    code = `import math
+    test("should return suggestions for a module when no prefix after the cursor is present", async () => {
+      // Should give suggestions for a module when no prefix is present
+      const code = `import math
 math.
 `;
-    autocompleteResults = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "math",
-        currentLineNumber: 2,
-        offset: 5,
-      },
-      pyodide as PyodideInterface,
-    );
+      const autocompleteResults = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "math",
+          currentLineNumber: 2,
+          offset: 5,
+        },
+        pyodide as PyodideInterface,
+      );
 
-    expect(
-      autocompleteResults.items.map((item: { label: string }) => item.label),
-    ).toEqual(
-      expect.arrayContaining([
-        "acos",
-        "acosh",
-        "asin",
-        "asinh",
-        "atan",
-        "atan2",
-        "ceil",
-        "comb",
-      ]),
-    );
+      expect(
+        autocompleteResults.items.map((item: { label: string }) => item.label),
+      ).toEqual(
+        expect.arrayContaining([
+          "acos",
+          "acosh",
+          "asin",
+          "asinh",
+          "atan",
+          "atan2",
+          "ceil",
+          "comb",
+        ]),
+      );
+    });
 
-    // Should give suggestions for a module when no prefix is present
-    code = `import math
-math.
-`;
-    autocompleteResults = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "math",
-        currentLineNumber: 2,
-        offset: 5,
-      },
-      pyodide as PyodideInterface,
-    );
-
-    expect(
-      autocompleteResults.items.map((item: { label: string }) => item.label),
-    ).toEqual(
-      expect.arrayContaining([
-        "acos",
-        "acosh",
-        "asin",
-        "asinh",
-        "atan",
-        "atan2",
-        "ceil",
-        "comb",
-      ]),
-    );
-
-    // Should give function arguments suggestions
-    code = `import json
+    test("should give function arguments suggestions", async () => {
+      // Should give function arguments suggestions
+      const code = `import json
 x = {}
 json.dumps(x, 
 `;
-    autocompleteResults = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "json.dumps(x, ",
-        currentLineNumber: 3,
-        offset: 13,
-      },
-      pyodide as PyodideInterface,
-    );
+      const autocompleteResults = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "json.dumps(x, ",
+          currentLineNumber: 3,
+          offset: 13,
+        },
+        pyodide as PyodideInterface,
+      );
 
-    expect(
-      autocompleteResults.items.map((item: { label: string }) => item.label),
-    ).toEqual(
-      expect.arrayContaining([
-        "allow_nan=",
-        "check_circular=",
-        "cls=",
-        "default=",
-        "ensure_ascii=",
-        "indent=",
-        "separators=",
-        "skipkeys=",
-        "sort_keys=",
-      ]),
-    );
+      expect(
+        autocompleteResults.items.map((item: { label: string }) => item.label),
+      ).toEqual(
+        expect.arrayContaining([
+          "allow_nan=",
+          "check_circular=",
+          "cls=",
+          "default=",
+          "ensure_ascii=",
+          "indent=",
+          "separators=",
+          "skipkeys=",
+          "sort_keys=",
+        ]),
+      );
+    });
 
-    // Should give suggestions for local functions
-    code = `import json
+    test("should give suggestions for local functions", async () => {
+      // Should give suggestions for local functions
+      const code = `import json
 def handle(param_1: int, limit: str = "default") -> str:
   """
   This function returns the parameters as a string.
@@ -361,65 +349,82 @@ def handle(param_1: int, limit: str = "default") -> str:
 
 handle
 `;
-    autocompleteResults = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "handle",
-        currentLineNumber: 8,
-        offset: 6,
-      },
-      pyodide as PyodideInterface,
-    );
-
-    expect(
-      autocompleteResults.items.map(
-        (item: { label: string; documentation: string }) => ({
-          label: item.label,
-          documentation: item.documentation.trim(),
-        }),
-      ),
-    ).toEqual(
-      expect.arrayContaining([
+      const autocompleteResults = await getCodeCompletions(
         {
-          label: "handle",
-          documentation: "This function returns the parameters as a string.",
+          code: code,
+          currentLine: "handle",
+          currentLineNumber: 8,
+          offset: 6,
         },
-      ]),
-    );
-  });
+        pyodide as PyodideInterface,
+      );
 
-  test("should handle invalid requests and return empty response", async () => {
-    const code = `import math
+      expect(
+        autocompleteResults.items.map(
+          (item: { label: string; documentation: string }) => ({
+            label: item.label,
+            documentation: item.documentation.trim(),
+          }),
+        ),
+      ).toEqual(
+        expect.arrayContaining([
+          {
+            label: "handle",
+            documentation: "This function returns the parameters as a string.",
+          },
+        ]),
+      );
+    });
+
+    test("should handle invalid requests and return empty response", async () => {
+      const code = `import math
       math.cos()
       `;
 
-    const filePath = path.resolve(
-      __dirname,
-      "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
-    );
-    const content = await fsPromises.readFile(filePath);
+      const suggestions = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "math",
+          currentLineNumber: 3,
+          offset: 5,
+        },
+        pyodide as PyodideInterface,
+      );
 
-    const pyodide = await initializeWorkerEnv({
-      entrypoint: "chat.input.py",
-      files: {
-        "chat.input.py": { data: content },
-      },
+      expect(suggestions).toEqual(
+        expect.objectContaining({
+          items: [],
+        }),
+      );
     });
 
-    const suggestions = await getCodeCompletions(
-      {
-        code: code,
-        currentLine: "math",
-        currentLineNumber: 3,
-        offset: 5,
-      },
-      pyodide as PyodideInterface,
-    );
+    test("should handle invalid requests when the code contains string literals", async () => {
+      const code = `'''`;
 
-    expect(suggestions).toEqual(
-      expect.objectContaining({
-        items: [],
-      }),
-    );
-  });
-});
+      // This will throw an error and it should be handled and return an empty list
+      // SyntaxError: unterminated triple-quoted string literal (detected at line 92)
+      const suggestions = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "'''",
+          currentLineNumber: 1,
+          offset: 3,
+        },
+        pyodide as PyodideInterface,
+      );
+
+      expect(suggestions).toEqual(
+        expect.objectContaining({
+          items: [],
+        }),
+      );
+    });
+  },
+  {
+    // the tests take bit longer to execute
+    // because we are loading pyodide,files..etc.
+    // giving extra buffer time so that the test doesn't timeout
+    // usually it takes way less time, max 7-8s
+    timeout: 60 * 1000,
+  },
+);

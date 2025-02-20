@@ -24,9 +24,8 @@ export class PrebuiltPackagesDataReader {
   }
 
   private async readJson(filepath: string): Promise<any> {
-    const url = path.join(this.sourceUrl, filepath);
-
     if (this.isRemote) {
+      const url = path.posix.join(this.sourceUrl, filepath); // Remote URL is always '/'-separated so we use path.posix.
       logger.debug(`Fetching ${url}`);
       const res = await fetch(url);
       if (!res.ok) {
@@ -36,6 +35,7 @@ export class PrebuiltPackagesDataReader {
       }
       return await res.json();
     } else {
+      const url = path.join(this.sourceUrl, filepath);
       logger.debug(`Reading ${url}`);
       const buf = await fsPromises.readFile(url);
       return JSON.parse(buf.toString());

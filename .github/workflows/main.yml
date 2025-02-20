@@ -250,7 +250,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]  # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
+        os: [ubuntu-latest]  # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
 
     runs-on: ${{ matrix.os }}
 

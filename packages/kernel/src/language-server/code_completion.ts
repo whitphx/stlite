@@ -1,16 +1,15 @@
 /** Needed for the Regex bellow */
 /* eslint-disable no-useless-escape */
 import type Pyodide from "pyodide";
+import type { PyCallable } from "pyodide/ffi";
 import { LanguageServerRequestPayload } from "../types";
 
-export const getCodeCompletions = async (
-  payload: LanguageServerRequestPayload,
+export const defineCodeCompletionsFunction = async (
   pyodide: Pyodide.PyodideInterface,
 ) => {
-  try {
-    // Indentation is very important in python, don't change this!
-    const result = await pyodide.runPythonAsync(
-      `import jedi;
+  // Indentation is very important in python, don't change this!
+  await pyodide.runPythonAsync(
+    `import jedi;
 import re;
 import json;
 from typing import Dict, Iterator, List
@@ -20,7 +19,7 @@ from jedi.api.classes import Completion
 
 def get_jedi_line_number(current_line_number: int) -> tuple[int, int]:
     """Convert position to jedi position (the line is 1+ based)."""
-    return current_line_number + 1
+    return current_line_number
 
 def as_completion_item_kind(kind: str):
   match kind:
@@ -45,12 +44,25 @@ def as_completion_item_kind(kind: str):
     case _:
       return CompletionItemKind.Text
 
+def as_completion_item_sort_text(item: Completion) -> str:
+  """Generate sorting text to arrange items alphabetically, 
+  ensuring parameters are prioritized first 
+  and private magic properties come last.
+  """
+  completion_item_name = item.name
+  if completion_item_name is None or completion_item_name.startswith('_'):
+     return f"zz{completion_item_name}"
+  elif item.type == "param" and completion_item_name.endswith("="):
+     return f"aa{completion_item_name}"
+  else:
+      return f"bb{completion_item_name}"
+
 def as_completion_item(completion: Completion, cursor_range: Range) -> Dict:
   label = completion.name
   return CompletionItem(
       label=label,
       filter_text=label,
-      sort_text=label,
+      sort_text=as_completion_item_sort_text(completion),
       kind=as_completion_item_kind(completion.type),
       documentation=completion.docstring(raw=True),
       text_edit=TextEdit(range=cursor_range, new_text=label),
@@ -73,16 +85,9 @@ def get_cursor_range(cursor_code_line: str, current_line_number: int, cursor_off
     ),
   )
 
-def get_code_completions():
-
-  code = '''
-${payload.code}
-  '''
-
+def get_code_completions(code: str, current_line_number: int, cursor_offset: int):
 
   jedi_language_server = jedi.Script(code)
-  current_line_number = ${payload.currentLineNumber}
-  cursor_offset = ${payload.offset}
 
   jedi_completions_list = jedi_language_server.complete(
       get_jedi_line_number(current_line_number),
@@ -101,9 +106,31 @@ ${payload.code}
   # Convert results to JSON so that we can use it in the worker
   converter = lsp_converters.get_converter()
   return json.dumps(converter.unstructure(suggestions, unstructure_as=CompletionList))
+`,
+  );
+};
 
+export const getCodeCompletions = async (
+  payload: LanguageServerRequestPayload,
+  pyodide: Pyodide.PyodideInterface,
+) => {
+  let get_code_completions: PyCallable | undefined;
+  try {
+    // Get the proxy for get_code_completions in the JS world
+    get_code_completions = pyodide.globals.get("get_code_completions");
 
-get_code_completions()`,
+    if (!get_code_completions) {
+      console.error(
+        "Can not generate suggestions list, the get_code_completions function is not defined",
+      );
+      return { items: [] };
+    }
+
+    // Then call it from JS
+    const result = get_code_completions(
+      payload.code,
+      payload.currentLineNumber,
+      payload.offset,
     );
 
     if (!result) {
@@ -114,5 +141,15 @@ get_code_completions()`,
   } catch (err) {
     console.error(err);
     return { items: [] };
+  } finally {
+    // Python objects must be manually destroyed when passed to Javascript
+    // or they will create a memory leak
+    // https://pyodide.org/en/0.16.1/type_conversions.html#python-from-javascript
+    if (
+      get_code_completions &&
+      get_code_completions.constructor.name === "PyProxy"
+    ) {
+      get_code_completions.destroy();
+    }
   }
 };

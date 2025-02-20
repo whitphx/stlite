@@ -258,15 +258,15 @@ suite(
 
     test("should give suggestions starting with word after the cursor", async () => {
       // Should give suggestions starting with word after the cursor
-      const code = `import math
-math.co
+      const code = `import streamlit as st
+st.te
 `;
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "math",
+          currentLine: "st.te",
           currentLineNumber: 2,
-          offset: 6,
+          offset: 5,
         },
         pyodide as PyodideInterface,
       );
@@ -274,20 +274,20 @@ math.co
       // Should give suggestions for the word after the comma
       expect(
         autocompleteResults.items.map((item: { label: string }) => item.label),
-      ).toEqual(expect.arrayContaining(["comb", "copysign", "cos", "cosh"]));
+      ).toEqual(expect.arrayContaining(["text", "text_area", "text_input"]));
     });
 
     test("should return suggestions for a module when no prefix after the cursor is present", async () => {
       // Should give suggestions for a module when no prefix is present
-      const code = `import math
-math.
+      const code = `import streamlit as st
+st.
 `;
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "math",
+          currentLine: "st.",
           currentLineNumber: 2,
-          offset: 5,
+          offset: 3,
         },
         pyodide as PyodideInterface,
       );
@@ -296,49 +296,42 @@ math.
         autocompleteResults.items.map((item: { label: string }) => item.label),
       ).toEqual(
         expect.arrayContaining([
-          "acos",
-          "acosh",
-          "asin",
-          "asinh",
-          "atan",
-          "atan2",
-          "ceil",
-          "comb",
+          "altair_chart",
+          "area_chart",
+          "audio",
+          "audio_input",
+          "balloons",
+          "bar_chart",
+          "bokeh_chart",
+          "button",
         ]),
       );
     });
 
-    test("should give function arguments suggestions", async () => {
+    test("should return and prioritize function arguments", async () => {
       // Should give function arguments suggestions
-      const code = `import json
+      const code = `import streamlit as st
 x = {}
-json.dumps(x, 
+st.title() 
 `;
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "json.dumps(x, ",
+          currentLine: "st.title()",
           currentLineNumber: 3,
-          offset: 13,
+          offset: 9,
         },
         pyodide as PyodideInterface,
       );
 
+      // the code editors use sortText to sort the items in the list
+      // before showing them on the UI
+      // function arguments have always bigger priority then other suggestions
       expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label),
-      ).toEqual(
-        expect.arrayContaining([
-          "allow_nan=",
-          "check_circular=",
-          "cls=",
-          "default=",
-          "ensure_ascii=",
-          "indent=",
-          "separators=",
-          "skipkeys=",
-          "sort_keys=",
-        ]),
-      );
+        autocompleteResults.items
+          .map((item: { sortText: string }) => item.sortText)
+          .sort(),
+      ).toEqual(expect.arrayContaining(["aaanchor=", "aabody=", "aahelp="]));
     });
 
     test("should give suggestions for local functions", async () => {

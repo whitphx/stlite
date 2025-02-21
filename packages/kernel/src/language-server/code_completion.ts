@@ -1,5 +1,3 @@
-/** Needed for the Regex bellow */
-/* eslint-disable no-useless-escape */
 import type Pyodide from "pyodide";
 import type { PyCallable } from "pyodide/ffi";
 import { LanguageServerRequestPayload } from "../types";
@@ -64,13 +62,14 @@ def as_completion_item(completion: Completion, cursor_range: Range) -> Dict:
       text_edit=TextEdit(range=cursor_range, new_text=label),
   )
 
-def get_cursor_range(cursor_code_line: str, current_line_number: int, cursor_offset: int):
+def get_text_edit_cursor_range(cursor_code_line: str, current_line_number: int, cursor_offset: int):
   # Match the substring starting from cursor_offset ex: math<cursor>co, match co
-  matched_words = re.search(r'\b\w+', cursor_code_line[cursor_offset:])
+  matched_words = re.search(r'\\b\\w+\\b', cursor_code_line[cursor_offset :])
 
   # Determine the length of the matched word characters
   word_after_cursor_length = len(matched_words.group()) if matched_words else 0
 
+  # This will tell to code editors which text to edit/replace
   return Range(
     start=Position(
         line=current_line_number, character=cursor_offset
@@ -96,8 +95,8 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
   if current_line_number >= len(jedi_language_server._code_lines):
     return json.dumps({ "items": []})
 
-  code_at_cursor = jedi_language_server._code_lines[current_line_number]
-  cursor_range = get_cursor_range(code_at_cursor, current_line_number, cursor_offset)
+  code_at_cursor = jedi_language_server._code_lines[current_line_number -1]
+  cursor_range = get_text_edit_cursor_range(code_at_cursor, current_line_number, cursor_offset)
 
   # Convert jedi completion items as completion items compatible in language server
   suggestions = CompletionList(

@@ -266,7 +266,7 @@ st.te
           code: code,
           currentLine: "st.te",
           currentLineNumber: 2,
-          offset: 3,
+          offset: 5,
         },
         pyodide as PyodideInterface
       );
@@ -274,7 +274,32 @@ st.te
       // Should give suggestions for the word after the comma
       expect(
         autocompleteResults.items.map((item: { label: string }) => item.label)
-      ).toEqual(expect.arrayContaining(["text", "text_area", "text_input"]));
+      ).toEqual(["text", "text_area", "text_input"]);
+    });
+
+    test("should create correct text_edit range for the words after the cursor", async () => {
+      // Should give suggestions starting with word after the cursor
+      const code = `import streamlit as st
+st.te
+`;
+      const autocompleteResults = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "st.te",
+          currentLineNumber: 2,
+          offset: 3,
+        },
+        pyodide as PyodideInterface
+      );
+
+      const firstItem = autocompleteResults.items[0];
+      expect(firstItem.label).toEqual("altair_chart");
+      expect(firstItem.textEdit.range.start).toEqual(
+        expect.objectContaining({ line: 2, character: 3 })
+      );
+      expect(firstItem.textEdit.range.end).toEqual(
+        expect.objectContaining({ line: 2, character: 5 })
+      );
     });
 
     test("should return suggestions for a module when no prefix after the cursor is present", async () => {
@@ -293,19 +318,19 @@ st.
       );
 
       expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label)
-      ).toEqual(
-        expect.arrayContaining([
-          "altair_chart",
-          "area_chart",
-          "audio",
-          "audio_input",
-          "balloons",
-          "bar_chart",
-          "bokeh_chart",
-          "button",
-        ])
-      );
+        autocompleteResults.items
+          .map((item: { label: string }) => item.label)
+          .slice(0, 8)
+      ).toEqual([
+        "altair_chart",
+        "area_chart",
+        "audio",
+        "audio_input",
+        "balloons",
+        "bar_chart",
+        "bokeh_chart",
+        "button",
+      ]);
     });
 
     test("should return and prioritize function arguments", async () => {
@@ -344,14 +369,14 @@ def handle(param_1: int, limit: str = "default") -> str:
   """
   return f"Result - param_1: {param_1}, limit: {limit}"
 
-handle
+hand
 `;
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
           currentLine: "handle",
           currentLineNumber: 8,
-          offset: 6,
+          offset: 4,
         },
         pyodide as PyodideInterface
       );
@@ -363,14 +388,12 @@ handle
             documentation: item.documentation.trim(),
           })
         )
-      ).toEqual(
-        expect.arrayContaining([
-          {
-            label: "handle",
-            documentation: "This function returns the parameters as a string.",
-          },
-        ])
-      );
+      ).toEqual([
+        {
+          label: "handle",
+          documentation: "This function returns the parameters as a string.",
+        },
+      ]);
     });
 
     test("should handle invalid requests and return empty response", async () => {

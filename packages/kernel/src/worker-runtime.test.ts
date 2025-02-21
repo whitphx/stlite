@@ -330,8 +330,9 @@ st.title()
       expect(
         autocompleteResults.items
           .map((item: { sortText: string }) => item.sortText)
-          .sort(),
-      ).toEqual(expect.arrayContaining(["aaanchor=", "aabody=", "aahelp="]));
+          .sort()
+          .slice(0, 3),
+      ).toEqual(["aaanchor=", "aabody=", "aahelp="]);
     });
 
     test("should give suggestions for local functions", async () => {

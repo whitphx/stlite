@@ -42,7 +42,7 @@ function isEditorOrigin(origin: string): boolean {
 let communicatedEditorOrigin = "";
 
 function convertFiles(
-  appDataFiles: AppData["files"],
+  appDataFiles: AppData["files"]
 ): StliteKernelOptions["files"] {
   const files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
@@ -102,6 +102,7 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
+          languageServer: appData.languageServer ?? false,
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
@@ -124,7 +125,7 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
+                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
                 );
               })
               .catch((error) => {
@@ -157,13 +158,13 @@ st.write("Hello World")`,
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
-                  msg.data.content,
+                  msg.data.content
                 );
               }
               case "file:rename": {
                 return kernelWithToast.renameFile(
                   msg.data.oldPath,
-                  msg.data.newPath,
+                  msg.data.newPath
                 );
               }
               case "file:unlink": {

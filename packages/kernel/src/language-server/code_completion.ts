@@ -1,25 +1,19 @@
-/** Needed for the Regex bellow */
-/* eslint-disable no-useless-escape */
 import type Pyodide from "pyodide";
 import type { PyCallable } from "pyodide/ffi";
 import { LanguageServerRequestPayload } from "../types";
 
 export const defineCodeCompletionsFunction = async (
-  pyodide: Pyodide.PyodideInterface,
+  pyodide: Pyodide.PyodideInterface
 ) => {
   // Indentation is very important in python, don't change this!
   await pyodide.runPythonAsync(
-    `import jedi;
-import re;
-import json;
-from typing import Dict, Iterator, List
+    `import jedi
+import re
+import json
+from typing import Dict
 from lsprotocol.types import (CompletionItem, CompletionList, CompletionItemKind, Position, Range, TextEdit)
 from lsprotocol import converters as lsp_converters
 from jedi.api.classes import Completion
-
-def get_jedi_line_number(current_line_number: int) -> tuple[int, int]:
-    """Convert position to jedi position (the line is 1+ based)."""
-    return current_line_number
 
 def as_completion_item_kind(kind: str):
   match kind:
@@ -68,13 +62,14 @@ def as_completion_item(completion: Completion, cursor_range: Range) -> Dict:
       text_edit=TextEdit(range=cursor_range, new_text=label),
   )
 
-def get_cursor_range(cursor_code_line: str, current_line_number: int, cursor_offset: int):
+def get_text_edit_cursor_range(cursor_code_line: str, current_line_number: int, cursor_offset: int):
   # Match the substring starting from cursor_offset ex: math<cursor>co, match co
-  matched_words = re.search(r'\b\w+', cursor_code_line[cursor_offset:])
+  matched_words = re.search(r'\\b\\w+\\b', cursor_code_line[cursor_offset :])
 
   # Determine the length of the matched word characters
-  word_after_cursor_length = len(matched_words_after_cursor.group()) if matched_words else 0
+  word_after_cursor_length = len(matched_words.group()) if matched_words else 0
 
+  # This will tell to code editors which text to edit/replace
   return Range(
     start=Position(
         line=current_line_number, character=cursor_offset
@@ -90,13 +85,18 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
   jedi_language_server = jedi.Script(code)
 
   jedi_completions_list = jedi_language_server.complete(
-      get_jedi_line_number(current_line_number),
+      current_line_number,
       cursor_offset,
       fuzzy=False,
   )
 
-  code_at_cursor = jedi_language_server._code_lines[current_line_number]
-  cursor_range = get_cursor_range(code_at_cursor, current_line_number, cursor_offset)
+  # In case if we are not getting any results back or the offset is wrong
+  # Just return empty list
+  if current_line_number >= len(jedi_language_server._code_lines):
+    return json.dumps({ "items": []})
+
+  code_at_cursor = jedi_language_server._code_lines[current_line_number -1]
+  cursor_range = get_text_edit_cursor_range(code_at_cursor, current_line_number, cursor_offset)
 
   # Convert jedi completion items as completion items compatible in language server
   suggestions = CompletionList(
@@ -106,13 +106,13 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
   # Convert results to JSON so that we can use it in the worker
   converter = lsp_converters.get_converter()
   return json.dumps(converter.unstructure(suggestions, unstructure_as=CompletionList))
-`,
+`
   );
 };
 
 export const getCodeCompletions = async (
   payload: LanguageServerRequestPayload,
-  pyodide: Pyodide.PyodideInterface,
+  pyodide: Pyodide.PyodideInterface
 ) => {
   let get_code_completions: PyCallable | undefined;
   try {
@@ -121,7 +121,7 @@ export const getCodeCompletions = async (
 
     if (!get_code_completions) {
       console.error(
-        "Can not generate suggestions list, the get_code_completions function is not defined",
+        "Can not generate suggestions list, the get_code_completions function is not defined"
       );
       return { items: [] };
     }
@@ -130,7 +130,7 @@ export const getCodeCompletions = async (
     const result = get_code_completions(
       payload.code,
       payload.currentLineNumber,
-      payload.offset,
+      payload.offset
     );
 
     if (!result) {

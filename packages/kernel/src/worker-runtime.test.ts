@@ -33,7 +33,7 @@ interface InitializeWorkerEnvOptions {
   languageServer?: boolean;
 }
 async function initializeWorkerEnv(
-  options: InitializeWorkerEnvOptions,
+  options: InitializeWorkerEnvOptions
 ): Promise<PyodideInterface> {
   const pyodideLoader: typeof import("./pyodide-loader") =
     await vitest.importActual("./pyodide-loader");
@@ -79,10 +79,10 @@ async function initializeWorkerEnv(
             entrypoint: options.entrypoint,
             wheels: {
               stliteLib: getWheelInstallPath(
-                stliteLibWheelUrl as unknown as string,
+                stliteLibWheelUrl as unknown as string
               ),
               streamlit: getWheelInstallPath(
-                streamlitWheelUrl as unknown as string,
+                streamlitWheelUrl as unknown as string
               ),
             },
             archives: [],
@@ -92,7 +92,7 @@ async function initializeWorkerEnv(
             languageServer: options.languageServer ?? false,
           },
         },
-      }),
+      })
     );
   });
 }
@@ -109,7 +109,7 @@ const TEST_SOURCES: {
     files: {
       "data.column_config.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py"
       ),
     },
   },
@@ -118,7 +118,7 @@ const TEST_SOURCES: {
     files: {
       "chat.echo.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.echo.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.echo.py"
       ),
     },
   },
@@ -127,15 +127,15 @@ const TEST_SOURCES: {
     files: {
       "media.logo.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/media.logo.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/media.logo.py"
       ),
       "pages/images/horizontal_red.png": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/images/horizontal_red.png",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/horizontal_red.png"
       ),
       "pages/images/icon_red.png": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/images/icon_red.png",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/icon_red.png"
       ),
     },
   },
@@ -145,7 +145,7 @@ const TEST_SOURCES: {
     files: {
       "text.write_stream.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/text.write_stream.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/text.write_stream.py"
       ),
     },
     additionalAppTestCode: `
@@ -159,7 +159,7 @@ await at.run(timeout=20)
     files: {
       "layout.columns2.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/layout.columns2.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/layout.columns2.py"
       ),
     },
   },
@@ -184,9 +184,9 @@ suite("Worker intergration test running an app", async () => {
               async ([filename, filepath]) => {
                 const content = await fsPromises.readFile(filepath);
                 return [filename, { data: content }];
-              },
-            ),
-          ),
+              }
+            )
+          )
         );
 
         const pyodide = await initializeWorkerEnv({
@@ -197,7 +197,7 @@ suite("Worker intergration test running an app", async () => {
 
         pyodide.globals.set(
           "__additionalAppTestCode__",
-          testSource.additionalAppTestCode,
+          testSource.additionalAppTestCode
         );
 
         // The code above setting up the worker env is good enough to check if the worker is set up correctly,
@@ -227,7 +227,7 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
       },
       {
         timeout: 60 * 1000,
-      },
+      }
     );
   }
 });
@@ -240,7 +240,7 @@ suite(
       vitest.resetModules();
       const filePath = path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py"
       );
       const content = await fsPromises.readFile(filePath);
 
@@ -268,13 +268,38 @@ st.te
           currentLineNumber: 2,
           offset: 5,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       // Should give suggestions for the word after the comma
       expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label),
-      ).toEqual(expect.arrayContaining(["text", "text_area", "text_input"]));
+        autocompleteResults.items.map((item: { label: string }) => item.label)
+      ).toEqual(["text", "text_area", "text_input"]);
+    });
+
+    test("should create correct text_edit range for the words after the cursor", async () => {
+      // Should give suggestions starting with word after the cursor
+      const code = `import streamlit as st
+st.te
+`;
+      const autocompleteResults = await getCodeCompletions(
+        {
+          code: code,
+          currentLine: "st.te",
+          currentLineNumber: 2,
+          offset: 3,
+        },
+        pyodide as PyodideInterface
+      );
+
+      const firstItem = autocompleteResults.items[0];
+      expect(firstItem.label).toEqual("altair_chart");
+      expect(firstItem.textEdit.range.start).toEqual(
+        expect.objectContaining({ line: 2, character: 3 })
+      );
+      expect(firstItem.textEdit.range.end).toEqual(
+        expect.objectContaining({ line: 2, character: 5 })
+      );
     });
 
     test("should return suggestions for a module when no prefix after the cursor is present", async () => {
@@ -289,30 +314,30 @@ st.
           currentLineNumber: 2,
           offset: 3,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label),
-      ).toEqual(
-        expect.arrayContaining([
-          "altair_chart",
-          "area_chart",
-          "audio",
-          "audio_input",
-          "balloons",
-          "bar_chart",
-          "bokeh_chart",
-          "button",
-        ]),
-      );
+        autocompleteResults.items
+          .map((item: { label: string }) => item.label)
+          .slice(0, 8)
+      ).toEqual([
+        "altair_chart",
+        "area_chart",
+        "audio",
+        "audio_input",
+        "balloons",
+        "bar_chart",
+        "bokeh_chart",
+        "button",
+      ]);
     });
 
     test("should return and prioritize function arguments", async () => {
       // Should give function arguments suggestions
       const code = `import streamlit as st
 x = {}
-st.title() 
+st.title()
 `;
       const autocompleteResults = await getCodeCompletions(
         {
@@ -321,7 +346,7 @@ st.title()
           currentLineNumber: 3,
           offset: 9,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       // the code editors use sortText to sort the items in the list
@@ -330,8 +355,9 @@ st.title()
       expect(
         autocompleteResults.items
           .map((item: { sortText: string }) => item.sortText)
-          .sort(),
-      ).toEqual(expect.arrayContaining(["aaanchor=", "aabody=", "aahelp="]));
+          .sort()
+          .slice(0, 3)
+      ).toEqual(["aaanchor=", "aabody=", "aahelp="]);
     });
 
     test("should give suggestions for local functions", async () => {
@@ -343,16 +369,16 @@ def handle(param_1: int, limit: str = "default") -> str:
   """
   return f"Result - param_1: {param_1}, limit: {limit}"
 
-handle
+hand
 `;
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
           currentLine: "handle",
           currentLineNumber: 8,
-          offset: 6,
+          offset: 4,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       expect(
@@ -360,16 +386,14 @@ handle
           (item: { label: string; documentation: string }) => ({
             label: item.label,
             documentation: item.documentation.trim(),
-          }),
-        ),
-      ).toEqual(
-        expect.arrayContaining([
-          {
-            label: "handle",
-            documentation: "This function returns the parameters as a string.",
-          },
-        ]),
-      );
+          })
+        )
+      ).toEqual([
+        {
+          label: "handle",
+          documentation: "This function returns the parameters as a string.",
+        },
+      ]);
     });
 
     test("should handle invalid requests and return empty response", async () => {
@@ -384,35 +408,33 @@ handle
           currentLineNumber: 3,
           offset: 5,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       expect(suggestions).toEqual(
         expect.objectContaining({
           items: [],
-        }),
+        })
       );
     });
 
     test("should handle invalid requests when the code contains string literals", async () => {
       const code = `'''`;
 
-      // This will throw an error and it should be handled and return an empty list
-      // SyntaxError: unterminated triple-quoted string literal (detected at line 92)
       const suggestions = await getCodeCompletions(
         {
           code: code,
           currentLine: "'''",
           currentLineNumber: 1,
-          offset: 3,
+          offset: 1,
         },
-        pyodide as PyodideInterface,
+        pyodide as PyodideInterface
       );
 
       expect(suggestions).toEqual(
         expect.objectContaining({
           items: [],
-        }),
+        })
       );
     });
   },
@@ -422,5 +444,5 @@ handle
     // giving extra buffer time so that the test doesn't timeout
     // usually it takes way less time, max 7-8s
     timeout: 60 * 1000,
-  },
+  }
 );

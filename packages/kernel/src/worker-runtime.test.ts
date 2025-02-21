@@ -312,7 +312,7 @@ st.
       // Should give function arguments suggestions
       const code = `import streamlit as st
 x = {}
-st.title() 
+st.title()
 `;
       const autocompleteResults = await getCodeCompletions(
         {

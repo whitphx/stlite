@@ -398,8 +398,6 @@ handle
     test("should handle invalid requests when the code contains string literals", async () => {
       const code = `'''`;
 
-      // This will throw an error and it should be handled and return an empty list
-      // SyntaxError: unterminated triple-quoted string literal (detected at line 92)
       const suggestions = await getCodeCompletions(
         {
           code: code,

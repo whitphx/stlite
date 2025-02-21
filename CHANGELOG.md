@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.78.2] - 2025-02-20
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Fix a bug of the `dump` command on Windows, [#1336](https://github.com/whitphx/stlite/pull/1336).
+
 ## [0.78.1] - 2025-02-19
 
 ### `@stlite/kernel`

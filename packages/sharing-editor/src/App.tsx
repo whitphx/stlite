@@ -30,7 +30,6 @@ import {
   URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
-import { STREAMLIT_IFRAME } from "./constants";
 
 interface AppLoaderData {
   appData: AppData;
@@ -91,6 +90,7 @@ function App() {
   } = useLoaderData() as AppLoaderData;
 
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
+  const [iframeReady, setIframeReady] = useState(false);
   useEffect(() => {
     setSampleAppId(initialSampleAppId);
   }, [initialSampleAppId]);
@@ -265,6 +265,7 @@ function App() {
     StliteSharingIFrameProps["onMessage"]
   >(
     (e) => {
+      setIframeReady(true);
       if (e.data.stlite !== true) {
         return;
       }
@@ -306,16 +307,21 @@ function App() {
       ) : (
         <ResponsiveSideBySidePanes
           left={
-            <Editor
-              key={initAppDataKey}
-              ref={editorRef}
-              appData={appData}
-              onFileWrite={handleFileWrite}
-              onFileRename={handleFileRename}
-              onFileDelete={handleFileDelete}
-              onRequirementsChange={handleRequirementsChange}
-              onEntrypointChange={handleEntrypointChange}
-            />
+            iframeReady ? (
+              <Editor
+                key={initAppDataKey}
+                ref={editorRef}
+                appData={appData}
+                stliteSharingIFrame={iframeRef.current}
+                onFileWrite={handleFileWrite}
+                onFileRename={handleFileRename}
+                onFileDelete={handleFileDelete}
+                onRequirementsChange={handleRequirementsChange}
+                onEntrypointChange={handleEntrypointChange}
+              />
+            ) : (
+              <></>
+            )
           }
           right={
             <>
@@ -337,7 +343,6 @@ function App() {
                   messageTargetOrigin={SHARING_APP_ORIGIN}
                   title="stlite app"
                   className="preview-iframe"
-                  id={STREAMLIT_IFRAME}
                   onMessage={handleIframeMessage}
                   theme={
                     appColorSchemePreference === "auto"

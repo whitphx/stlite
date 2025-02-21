@@ -173,12 +173,17 @@ st.write("Hello World")`,
               case "install": {
                 return kernelWithToast.install(msg.data.requirements);
               }
+              case "language-server:code_completion": {
+                return kernel?.getCodeCompletion(msg.data);
+              }
             }
           })()
-            .then(() => {
-              postReplyMessage({
-                type: "reply",
-              });
+            .then((response) => {
+              postReplyMessage(
+                (response as ReplyMessage) || {
+                  type: "reply",
+                }
+              );
             })
             .catch((error) => {
               postReplyMessage({

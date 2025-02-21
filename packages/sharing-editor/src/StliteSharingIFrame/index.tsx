@@ -33,7 +33,7 @@ const StliteSharingIFrame = React.forwardRef<
       sharedWorkerMode,
       ...iframeProps
     },
-    ref,
+    ref
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -50,14 +50,14 @@ const StliteSharingIFrame = React.forwardRef<
         }
         return embedAppDataToUrl(
           sharingAppSrc + "?" + urlParams.toString(),
-          initialAppData,
+          initialAppData
         );
       },
       // NOTE: `iframeSrc` should be calculated only for the initial `appData` and be persistent.
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc, theme, sharedWorkerMode],
+      [sharingAppSrc, theme, sharedWorkerMode]
     );
 
     useImperativeHandle(
@@ -78,7 +78,7 @@ const StliteSharingIFrame = React.forwardRef<
               if (reply.error) {
                 reject(reply.error);
               } else {
-                resolve();
+                resolve(reply as any);
               }
             };
 
@@ -88,7 +88,7 @@ const StliteSharingIFrame = React.forwardRef<
           });
         },
       }),
-      [messageTargetOrigin],
+      [messageTargetOrigin]
     );
 
     useEffect(() => {
@@ -112,7 +112,7 @@ const StliteSharingIFrame = React.forwardRef<
         allow={ALLOWED_FEATURE_POLICY}
       />
     );
-  },
+  }
 );
 
 StliteSharingIFrame.displayName = "StliteSharingIFrame";

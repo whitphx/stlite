@@ -9,10 +9,10 @@ export const defineCodeCompletionsFunction = async (
 ) => {
   // Indentation is very important in python, don't change this!
   await pyodide.runPythonAsync(
-    `import jedi;
-import re;
-import json;
-from typing import Dict, Iterator, List
+    `import jedi
+import re
+import json
+from typing import Dict
 from lsprotocol.types import (CompletionItem, CompletionList, CompletionItemKind, Position, Range, TextEdit)
 from lsprotocol import converters as lsp_converters
 from jedi.api.classes import Completion

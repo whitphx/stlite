@@ -30,6 +30,7 @@ import {
   URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
+import { STREAMLIT_IFRAME } from "./constants";
 
 interface AppLoaderData {
   appData: AppData;
@@ -100,7 +101,7 @@ function App() {
     const paramsString = params.size > 0 ? `?${params.toString()}` : "";
     const newUrl = embedAppDataToUrl(
       window.location.origin + window.location.pathname + paramsString,
-      appData,
+      appData
     );
     window.history.replaceState(null, "", newUrl);
     setSampleAppId(null);
@@ -150,7 +151,7 @@ function App() {
         };
       });
     },
-    [updateAppData],
+    [updateAppData]
   );
 
   const handleFileRename = useCallback<EditorProps["onFileRename"]>(
@@ -192,7 +193,7 @@ function App() {
         };
       });
     },
-    [appData, updateAppData],
+    [appData, updateAppData]
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
@@ -217,7 +218,7 @@ function App() {
         };
       });
     },
-    [updateAppData],
+    [updateAppData]
   );
 
   const handleRequirementsChange = useCallback<
@@ -238,7 +239,7 @@ function App() {
         };
       });
     },
-    [updateAppData],
+    [updateAppData]
   );
 
   const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
@@ -257,7 +258,7 @@ function App() {
         };
       });
     },
-    [updateAppData],
+    [updateAppData]
   );
 
   const handleIframeMessage = useCallback<
@@ -277,7 +278,7 @@ function App() {
               return;
             }
             editor.addRequirements(
-              additionalRequirements.map((r) => r + " # auto-loaded"),
+              additionalRequirements.map((r) => r + " # auto-loaded")
             );
             updateAppData((cur) => ({
               ...cur,
@@ -288,7 +289,7 @@ function App() {
         }
       }
     },
-    [updateAppData],
+    [updateAppData]
   );
 
   const appColorSchemePreference = useAppColorSchemePreference();
@@ -329,10 +330,14 @@ function App() {
                   key={initAppDataKey}
                   ref={iframeRef}
                   sharingAppSrc={SHARING_APP_URL}
-                  initialAppData={initialAppData}
+                  initialAppData={{
+                    ...initialAppData,
+                    languageServer: true,
+                  }}
                   messageTargetOrigin={SHARING_APP_ORIGIN}
                   title="stlite app"
                   className="preview-iframe"
+                  id={STREAMLIT_IFRAME}
                   onMessage={handleIframeMessage}
                   theme={
                     appColorSchemePreference === "auto"

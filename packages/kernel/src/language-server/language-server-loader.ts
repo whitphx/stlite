@@ -7,14 +7,13 @@ import { defineCodeCompletionsFunction } from "./code_completion";
  */
 export const importLanguageServerLibraries = async (
   pyodide: Pyodide.PyodideInterface,
-  micropip: PyProxy,
+  micropip: PyProxy
 ) => {
   try {
     console.debug("Importing jedi Interpreter");
     await micropip.install.callKwargs(["jedi", "lsprotocol"], {
       keep_going: true,
     });
-    await pyodide.runPythonAsync(`import jedi`);
     await defineCodeCompletionsFunction(pyodide);
   } catch (err) {
     console.error("Error while importing jedi", err);

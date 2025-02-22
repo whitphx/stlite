@@ -33,7 +33,7 @@ interface InitializeWorkerEnvOptions {
   languageServer?: boolean;
 }
 async function initializeWorkerEnv(
-  options: InitializeWorkerEnvOptions
+  options: InitializeWorkerEnvOptions,
 ): Promise<PyodideInterface> {
   const pyodideLoader: typeof import("./pyodide-loader") =
     await vitest.importActual("./pyodide-loader");
@@ -79,10 +79,10 @@ async function initializeWorkerEnv(
             entrypoint: options.entrypoint,
             wheels: {
               stliteLib: getWheelInstallPath(
-                stliteLibWheelUrl as unknown as string
+                stliteLibWheelUrl as unknown as string,
               ),
               streamlit: getWheelInstallPath(
-                streamlitWheelUrl as unknown as string
+                streamlitWheelUrl as unknown as string,
               ),
             },
             archives: [],
@@ -92,7 +92,7 @@ async function initializeWorkerEnv(
             languageServer: options.languageServer ?? false,
           },
         },
-      })
+      }),
     );
   });
 }
@@ -109,7 +109,7 @@ const TEST_SOURCES: {
     files: {
       "data.column_config.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/data.column_config.py",
       ),
     },
   },
@@ -118,7 +118,7 @@ const TEST_SOURCES: {
     files: {
       "chat.echo.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.echo.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.echo.py",
       ),
     },
   },
@@ -127,15 +127,15 @@ const TEST_SOURCES: {
     files: {
       "media.logo.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/media.logo.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/media.logo.py",
       ),
       "pages/images/horizontal_red.png": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/images/horizontal_red.png"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/horizontal_red.png",
       ),
       "pages/images/icon_red.png": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/images/icon_red.png"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/images/icon_red.png",
       ),
     },
   },
@@ -145,7 +145,7 @@ const TEST_SOURCES: {
     files: {
       "text.write_stream.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/text.write_stream.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/text.write_stream.py",
       ),
     },
     additionalAppTestCode: `
@@ -159,7 +159,7 @@ await at.run(timeout=20)
     files: {
       "layout.columns2.py": path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/layout.columns2.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/layout.columns2.py",
       ),
     },
   },
@@ -184,9 +184,9 @@ suite("Worker intergration test running an app", async () => {
               async ([filename, filepath]) => {
                 const content = await fsPromises.readFile(filepath);
                 return [filename, { data: content }];
-              }
-            )
-          )
+              },
+            ),
+          ),
         );
 
         const pyodide = await initializeWorkerEnv({
@@ -197,7 +197,7 @@ suite("Worker intergration test running an app", async () => {
 
         pyodide.globals.set(
           "__additionalAppTestCode__",
-          testSource.additionalAppTestCode
+          testSource.additionalAppTestCode,
         );
 
         // The code above setting up the worker env is good enough to check if the worker is set up correctly,
@@ -227,7 +227,7 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
       },
       {
         timeout: 60 * 1000,
-      }
+      },
     );
   }
 });
@@ -240,7 +240,7 @@ suite(
       vitest.resetModules();
       const filePath = path.resolve(
         __dirname,
-        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py"
+        "../../sharing-editor/public/samples/011_component_gallery/pages/chat.input.py",
       );
       const content = await fsPromises.readFile(filePath);
 
@@ -268,12 +268,12 @@ st.te
           currentLineNumber: 2,
           offset: 5,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       // Should give suggestions for the word after the comma
       expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label)
+        autocompleteResults.items.map((item: { label: string }) => item.label),
       ).toEqual(["text", "text_area", "text_input"]);
     });
 
@@ -289,16 +289,16 @@ st.te
           currentLineNumber: 2,
           offset: 3,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       const firstItem = autocompleteResults.items[0];
       expect(firstItem.label).toEqual("altair_chart");
       expect(firstItem.textEdit.range.start).toEqual(
-        expect.objectContaining({ line: 2, character: 3 })
+        expect.objectContaining({ line: 2, character: 3 }),
       );
       expect(firstItem.textEdit.range.end).toEqual(
-        expect.objectContaining({ line: 2, character: 5 })
+        expect.objectContaining({ line: 2, character: 5 }),
       );
     });
 
@@ -314,13 +314,13 @@ st.
           currentLineNumber: 2,
           offset: 3,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       expect(
         autocompleteResults.items
           .map((item: { label: string }) => item.label)
-          .slice(0, 8)
+          .slice(0, 8),
       ).toEqual([
         "altair_chart",
         "area_chart",
@@ -346,7 +346,7 @@ st.title()
           currentLineNumber: 3,
           offset: 9,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       // the code editors use sortText to sort the items in the list
@@ -356,7 +356,7 @@ st.title()
         autocompleteResults.items
           .map((item: { sortText: string }) => item.sortText)
           .sort()
-          .slice(0, 3)
+          .slice(0, 3),
       ).toEqual(["aaanchor=", "aabody=", "aahelp="]);
     });
 
@@ -378,7 +378,7 @@ hand
           currentLineNumber: 8,
           offset: 4,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       expect(
@@ -386,8 +386,8 @@ hand
           (item: { label: string; documentation: string }) => ({
             label: item.label,
             documentation: item.documentation.trim(),
-          })
-        )
+          }),
+        ),
       ).toEqual([
         {
           label: "handle",
@@ -398,7 +398,7 @@ hand
 
     test("should handle invalid requests and return empty response", async () => {
       const code = `import math
-      math.cos()
+math.cos()
       `;
 
       const suggestions = await getCodeCompletions(
@@ -408,13 +408,13 @@ hand
           currentLineNumber: 3,
           offset: 5,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       expect(suggestions).toEqual(
         expect.objectContaining({
           items: [],
-        })
+        }),
       );
     });
 
@@ -428,13 +428,13 @@ hand
           currentLineNumber: 1,
           offset: 1,
         },
-        pyodide as PyodideInterface
+        pyodide as PyodideInterface,
       );
 
       expect(suggestions).toEqual(
         expect.objectContaining({
           items: [],
-        })
+        }),
       );
     });
   },
@@ -444,5 +444,5 @@ hand
     // giving extra buffer time so that the test doesn't timeout
     // usually it takes way less time, max 7-8s
     timeout: 60 * 1000,
-  }
+  },
 );

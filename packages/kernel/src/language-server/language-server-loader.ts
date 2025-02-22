@@ -7,7 +7,7 @@ import { defineCodeCompletionsFunction } from "./code_completion";
  */
 export const importLanguageServerLibraries = async (
   pyodide: Pyodide.PyodideInterface,
-  micropip: PyProxy
+  micropip: PyProxy,
 ) => {
   try {
     console.debug("Importing jedi Interpreter");

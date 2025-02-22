@@ -20,6 +20,8 @@ import type {
   ReplyMessage,
   PyodideConvertiblePrimitive,
 } from "./types";
+import { importLanguageServerLibraries } from "./language-server/language-server-loader";
+import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
@@ -106,6 +108,7 @@ export function startWorkerEnv(
       nodefsMountpoints,
       moduleAutoLoad,
       env,
+      languageServer,
     } = initData;
 
     const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
@@ -396,6 +399,11 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
 
     const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
+    if (languageServer) {
+      postProgressMessage("Importing Language Server");
+      await importLanguageServerLibraries(pyodide, micropip);
+    }
+
     postProgressMessage("Booting up the Streamlit server.");
     // The following Python code is based on streamlit.web.cli.main_run().
     console.debug("Setting up the Streamlit configuration");
@@ -656,6 +664,14 @@ prepare(main_script_path, args)
           console.debug("Successfully set the environment variables", env);
           reply({
             type: "reply",
+          });
+          break;
+        }
+        case "language-server:code_completion": {
+          const codeCompletions = await getCodeCompletions(msg.data, pyodide);
+          reply({
+            type: "reply:language-server:code_completion",
+            data: codeCompletions,
           });
           break;
         }

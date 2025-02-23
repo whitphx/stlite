@@ -335,7 +335,7 @@ jobs:
         name: stlite-browser-${{ github.ref_name }}.tgz
 
     - name: "Inform the package stats of @stlite/browser"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: browser
@@ -354,14 +354,14 @@ jobs:
         echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
         popd
     - name: "Inform the package stats of stlite-lib wheel"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: stlite-lib-wheel
         name: "stlite-lib wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
     - name: "Inform the package stats of streamlit wheel"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: streamlit-wheel
@@ -439,7 +439,7 @@ jobs:
         name: stlite-sharing
 
     - name: "Inform the package stats"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: sharing
@@ -479,7 +479,7 @@ jobs:
         name: stlite-sharing-editor
 
     - name: "Inform the package stats"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: sharing-editor
@@ -534,7 +534,7 @@ jobs:
         name: stlite-desktop-${{ github.ref_name }}.tgz
 
     - name: "Inform the package stats of @stlite/desktop"
-      uses: ./.github/actions/inform-package-stats
+      uses: ./.github/actions/set-package-stats
       continue-on-error: true
       with:
         key: desktop

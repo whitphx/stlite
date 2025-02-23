@@ -125,7 +125,7 @@ runs:
       shell: bash
 
     - run: |
-        cd "$PACKAGE_STATS_WORKING_DIR"
+        cd ${{ runner.temp }}/stats-workspace/${{ inputs.key }}
         npm install jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment body

@@ -98,6 +98,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Inject SHARING_APP_URL
+        run: |
+          echo "${{ needs.deploy-sharing.outputs.url }}" > website/SHARING_APP_URL
+
       - name: Deploy
         uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
         with:

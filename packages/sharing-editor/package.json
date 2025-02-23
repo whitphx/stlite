@@ -23,7 +23,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start:web": "vite",
+    "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",
     "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
     "start": "run-p start:web start:sampleapps",
     "build:web": "tsc -b && vite build",

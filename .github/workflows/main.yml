@@ -436,9 +436,9 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
 
-    - name: Set SHARING_APP_URL (preview)
+    - name: Set build option envvar for the preview build
       if: github.ref_name != github.event.repository.default_branch
-      run: echo "SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
+      run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
     - name: Set SHARING_APP_URL (main branch)
       if: github.ref_name == github.event.repository.default_branch
       run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV

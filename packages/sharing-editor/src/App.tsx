@@ -36,10 +36,24 @@ interface AppLoaderData {
   sampleAppId: string | null;
   embedMode: boolean;
   sharedWorkerMode: boolean;
+  sharingAppSrc: string;
+  sharingAppOrigin: string;
 }
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<AppLoaderData> => {
+  const sharingAppSrc =
+    SHARING_APP_URL ??
+    (RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE
+      ? // For preview builds on CI whose SHARING_APP_URL can't be determined at build time,
+        // the sharing app URL is resolved at runtime from the /SHARING_APP_URL file.
+        await fetch("/SHARING_APP_URL").then((res) => res.text())
+      : undefined);
+  if (sharingAppSrc == null) {
+    throw new Error("The URL of the sharing app is not set");
+  }
+  const sharingAppOrigin = new URL(sharingAppSrc).origin;
+
   const url = new URL(request.url);
   const { sampleAppId: parsedSampleAppId, isInvalidSampleAppId } =
     parseSampleAppIdInSearchParams(url.searchParams);
@@ -57,7 +71,14 @@ export const loader = async ({
   if (parsedSampleAppId == null) {
     try {
       const appData = await extractAppDataFromUrl();
-      return { appData, sampleAppId: null, embedMode, sharedWorkerMode };
+      return {
+        appData,
+        sampleAppId: null,
+        embedMode,
+        sharedWorkerMode,
+        sharingAppSrc,
+        sharingAppOrigin,
+      };
     } catch {
       const defaultSampleAppId = getDefaultSampleAppId();
       const appData = await loadSampleAppData(defaultSampleAppId);
@@ -66,6 +87,8 @@ export const loader = async ({
         sampleAppId: defaultSampleAppId,
         embedMode,
         sharedWorkerMode,
+        sharingAppSrc,
+        sharingAppOrigin,
       };
     }
   }
@@ -76,10 +99,10 @@ export const loader = async ({
     sampleAppId: parsedSampleAppId,
     embedMode,
     sharedWorkerMode,
+    sharingAppSrc,
+    sharingAppOrigin,
   };
 };
-
-const SHARING_APP_ORIGIN = new URL(SHARING_APP_URL).origin;
 
 function App() {
   const {
@@ -87,6 +110,8 @@ function App() {
     sampleAppId: initialSampleAppId,
     embedMode,
     sharedWorkerMode,
+    sharingAppSrc,
+    sharingAppOrigin,
   } = useLoaderData() as AppLoaderData;
 
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
@@ -321,16 +346,16 @@ function App() {
               {appData && (
                 <PreviewToolBar
                   appData={appData}
-                  sharingAppSrc={SHARING_APP_URL}
+                  sharingAppSrc={sharingAppSrc}
                 />
               )}
               {initialAppData && (
                 <StliteSharingIFrame
                   key={initAppDataKey}
                   ref={iframeRef}
-                  sharingAppSrc={SHARING_APP_URL}
+                  sharingAppSrc={sharingAppSrc}
                   initialAppData={initialAppData}
-                  messageTargetOrigin={SHARING_APP_ORIGIN}
+                  messageTargetOrigin={sharingAppOrigin}
                   title="stlite app"
                   className="preview-iframe"
                   onMessage={handleIframeMessage}

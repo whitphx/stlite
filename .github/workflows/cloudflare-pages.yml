@@ -6,13 +6,14 @@ on:
     types:
       - completed
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   get-cloudflare-pages-info:
-    runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       branch: ${{ steps.cloudflare-pages-info.outputs.branch }}
       commit-hash: ${{ steps.cloudflare-pages-info.outputs.commit-hash }}

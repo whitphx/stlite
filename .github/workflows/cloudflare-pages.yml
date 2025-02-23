@@ -10,27 +10,27 @@ permissions:
   contents: read
 
 jobs:
-  get-deploy-info:
+  get-cloudflare-pages-info:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
     outputs:
-      branch: ${{ steps.deploy-info.outputs.branch }}
-      commit-hash: ${{ steps.deploy-info.outputs.commit-hash }}
+      branch: ${{ steps.cloudflare-pages-info.outputs.branch }}
+      commit-hash: ${{ steps.cloudflare-pages-info.outputs.commit-hash }}
     steps:
       - name: Download deployment info
         uses: actions/download-artifact@v4
         with:
-          name: deploy-info
+          name: cloudflare-pages-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
       - name: Read deployment info
-        id: deploy-info
+        id: cloudflare-pages-info
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
-    needs: get-deploy-info
+    needs: get-cloudflare-pages-info
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -55,11 +55,11 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-deploy-info.outputs.branch }} --commit-hash=${{ needs.get-deploy-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-cloudflare-pages-info.outputs.branch }} --commit-hash=${{ needs.get-cloudflare-pages-info.outputs.commit-hash }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:
-    needs: [get-deploy-info]
+    needs: [get-cloudflare-pages-info, deploy-sharing]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,5 +83,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-deploy-info.outputs.branch }} --commit-hash=${{ needs.get-deploy-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-cloudflare-pages-info.outputs.branch }} --commit-hash=${{ needs.get-cloudflare-pages-info.outputs.commit-hash }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

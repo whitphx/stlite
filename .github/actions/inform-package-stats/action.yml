@@ -124,7 +124,9 @@ runs:
         GH_TOKEN: ${{ github.token }}
       shell: bash
 
-    - run: npm install -g jszip
+    - run: |
+        cd ${{ runner.temp }}/stats-workspace/${{ inputs.key }}
+        npm install -g jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment body
       uses: actions/github-script@v7

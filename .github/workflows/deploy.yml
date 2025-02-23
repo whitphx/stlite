@@ -6,6 +6,9 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+
 jobs:
   get-pr-info:
     runs-on: ubuntu-latest

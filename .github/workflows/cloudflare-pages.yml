@@ -102,7 +102,9 @@ jobs:
 
     steps:
       - name: Set PR number environment variable
-        run: echo "PR_NUMBER=${{ needs.get-cloudflare-pages-info.outputs.pr-number }}" >> $GITHUB_ENV
+        env:
+          PR_NUMBER: ${{ needs.get-cloudflare-pages-info.outputs.pr-number }}
+        run: echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
 
       - name: Comment on PR
         uses: actions/github-script@v7

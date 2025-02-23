@@ -1,0 +1,87 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Test, Build, and Publish"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  get-pr-info:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      pr_head_ref: ${{ steps.pr-info.outputs.pr_head_ref }}
+      pr_head_sha: ${{ steps.pr-info.outputs.pr_head_sha }}
+    steps:
+      - name: Download PR info
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Read PR info
+        id: pr-info
+        run: |
+          echo "pr_head_ref=$(cat pr_head_ref)" >> $GITHUB_OUTPUT
+          echo "pr_head_sha=$(cat pr_head_sha)" >> $GITHUB_OUTPUT
+
+  deploy-sharing:
+    needs: get-pr-info
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    steps:
+      - run: mkdir -p ${{ runner.temp }}/artifacts/
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing
+          path: ${{ runner.temp }}/artifacts/website
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/website --project-name=stlite-sharing --branch=${{ needs.get-pr-info.outputs.pr_head_ref }} --commit-hash=${{ needs.get-pr-info.outputs.pr_head_sha }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-sharing-editor:
+    needs: [get-pr-info, deploy-sharing]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing-editor to Cloudflare Pages
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing-editor
+          path: ${{ runner.temp }}/artifacts/website
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Inject SHARING_APP_URL
+        run: |
+          echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/website/SHARING_APP_URL
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/website --project-name=stlite-sharing-editor --branch=${{ needs.get-pr-info.outputs.pr_head_ref }} --commit-hash=${{ needs.get-pr-info.outputs.pr_head_sha }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

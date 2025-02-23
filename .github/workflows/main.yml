@@ -23,6 +23,23 @@ env:
   RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
+  set-pr-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Save PR info
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "${{ github.event.pull_request.head.ref }}" > pr_head_ref
+          echo "${{ github.event.pull_request.head.sha }}" > pr_head_sha
+      - name: Upload PR info
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-info
+          path: |
+            pr_head_ref
+            pr_head_sha
+
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
@@ -301,7 +318,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    ## Build and deploy @stlite/browser
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
@@ -349,7 +365,6 @@ jobs:
         pushd packages/kernel/py/stlite-lib/dist
         echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
         popd
-
         pushd packages/kernel/py/streamlit/lib/dist
         echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
         popd
@@ -446,34 +461,9 @@ jobs:
         name: "stlite sharing"
         input-path: packages/sharing/build
 
-  deploy-sharing:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [build-sharing]
-
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    name: Deploy @stlite/sharing to Cloudflare Pages
-    outputs:
-      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: stlite-sharing
-          path: website
-      - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
-        id: deploy
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing --branch=${{ github.head_ref || github.ref_name }} --commit-hash=${{ github.sha }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-build-common, test-sharing-editor, test-sharing-common, deploy-sharing]
+    needs: [test-build-common, test-sharing-editor, test-sharing-common]
 
     runs-on: ubuntu-latest
 
@@ -489,9 +479,9 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
 
-    - name: Set SHARING_APP_URL (preview)
+    - name: Set build option envvar for the preview build
       if: github.ref_name != github.event.repository.default_branch
-      run: echo "SHARING_APP_URL=${{needs.deploy-sharing.outputs.url}}" >> $GITHUB_ENV
+      run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
     - name: Set SHARING_APP_URL (main branch)
       if: github.ref_name == github.event.repository.default_branch
       run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
@@ -502,6 +492,7 @@ jobs:
       with:
         path: packages/sharing-editor/dist
         name: stlite-sharing-editor
+
     - name: "Inform the package stats"
       uses: ./.github/actions/inform-package-stats
       continue-on-error: true
@@ -509,28 +500,6 @@ jobs:
         key: sharing-editor
         name: "stlite sharing editor"
         input-path: packages/sharing-editor/dist
-
-  deploy-sharing-editor:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [build-sharing-editor]
-
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    name: Deploy @stlite/sharing-editor to Cloudflare Pages
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: stlite-sharing-editor
-          path: website
-      - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37 # v3.14.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing-editor --branch=${{ github.head_ref || github.ref_name }} --commit-hash=${{ github.sha }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -551,7 +520,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    ## Build and deploy @stlite/desktop
     - name: Build @stlite/desktop
       run: |
         . .venv/bin/activate

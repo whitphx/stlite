@@ -16,7 +16,7 @@ runs:
     - name: Set up the working directory
       shell: bash
       run: |
-        working_dir=$RUNNER_TEMP/stats-workspace/${{ inputs.key }}
+        working_dir=${{ runner.temp }}/stats-workspace/${{ inputs.key }}
         mkdir -p $working_dir
         echo "PACKAGE_STATS_WORKING_DIR=$working_dir" >> "$GITHUB_ENV"
 

@@ -49,6 +49,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.package.artifact }}
+          path: ${{ runner.temp }}/artifacts/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -57,7 +58,7 @@ jobs:
         with:
           key: ${{ matrix.package.key }}
           name: ${{ matrix.package.name }}
-          input-path: ${{ matrix.package.artifact }}
+          input-path: ${{ runner.temp }}/artifacts/${{ matrix.package.artifact }}
 
   deploy-sharing:
     needs: get-pr-info

@@ -29,6 +29,8 @@ jobs:
   inform-package-stats:
     needs: get-pr-info
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     strategy:
       matrix:
         package:

@@ -1,4 +1,4 @@
-name: Cloudflare Pages Deploy
+name: Cloudflare Pages Deployment
 
 on:
   workflow_run:

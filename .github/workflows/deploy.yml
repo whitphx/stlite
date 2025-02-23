@@ -29,40 +29,6 @@ jobs:
           echo "pr_head_ref=$(cat pr_head_ref)" >> $GITHUB_OUTPUT
           echo "pr_head_sha=$(cat pr_head_sha)" >> $GITHUB_OUTPUT
 
-  inform-package-stats:
-    needs: get-pr-info
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    strategy:
-      matrix:
-        package:
-          - {key: browser, name: "@stlite/browser", artifact: "stlite-browser-*.tgz"}
-          - {key: stlite-lib-wheel, name: "stlite-lib wheel", artifact: "stlite-lib-*-py3-none-any.whl"}
-          - {key: streamlit-wheel, name: "streamlit wheel", artifact: "streamlit-*.whl"}
-          - {key: sharing, name: "stlite sharing", artifact: "stlite-sharing"}
-          - {key: sharing-editor, name: "stlite sharing editor", artifact: "stlite-sharing-editor"}
-          - {key: desktop, name: "@stlite/desktop", artifact: "stlite-desktop-*.tgz"}
-    steps:
-      - uses: actions/checkout@v4
-
-      - run: mkdir -p ${{ runner.temp }}/artifacts/
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.package.artifact }}
-          path: ${{ runner.temp }}/artifacts/
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: "Inform package stats"
-        uses: ./.github/actions/inform-package-stats
-        with:
-          key: ${{ matrix.package.key }}
-          name: ${{ matrix.package.name }}
-          input-path: ${{ runner.temp }}/artifacts/${{ matrix.package.artifact }}
-
   deploy-sharing:
     needs: get-pr-info
     runs-on: ubuntu-latest

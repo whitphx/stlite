@@ -20,11 +20,6 @@ runs:
         mkdir -p $working_dir
         echo "PACKAGE_STATS_WORKING_DIR=$working_dir" >> "$GITHUB_ENV"
 
-    - run: |
-        cd "${{ runner.temp }}/stats-workspace/${{ inputs.key }}"
-        npm install jszip
-      shell: bash
-
     - name: Stage the files
       id: stage-files
       shell: bash
@@ -129,6 +124,10 @@ runs:
         GH_TOKEN: ${{ github.token }}
       shell: bash
 
+    - run: |
+        cd "$PACKAGE_STATS_WORKING_DIR"
+        npm install jszip
+      shell: bash
     - name: Gather JSON files for this commit and generate a comment body
       uses: actions/github-script@v7
       with:

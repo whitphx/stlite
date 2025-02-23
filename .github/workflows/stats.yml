@@ -1,6 +1,9 @@
 name: Stats
 
 on:
+  # The `inform-package-stats` job needs write access to pull-requests,
+  # so `workflow_run` is used as it's executed in the default branch context where
+  # the GitHub token has the necessary permissions.
   workflow_run:
     workflows: ["Test, Build, and Publish"]
     types:

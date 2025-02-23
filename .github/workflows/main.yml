@@ -301,7 +301,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    ## Build and deploy @stlite/browser
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
@@ -469,7 +468,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    ## Build and deploy @stlite/desktop
     - name: Build @stlite/desktop
       run: |
         . .venv/bin/activate

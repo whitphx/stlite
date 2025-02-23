@@ -1,0 +1,17 @@
+name: Stats
+
+on:
+  workflow_run:
+    workflows: ["Test, Build, and Publish"]
+    types:
+      - completed
+
+permissions: {}
+
+jobs:
+  inform-package-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: ./.github/actions/inform-package-stats

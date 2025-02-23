@@ -125,7 +125,13 @@ runs:
       shell: bash
 
     - run: |
-        cd ${{ runner.temp }}/stats-workspace/${{ inputs.key }}
+        temp_dir="${{ runner.temp }}/stats-workspace/${{ inputs.key }}"
+        cd $temp_dir
+        # Verify the contents of the artifacts
+        if [ -z "$(ls -A $temp_dir)" ]; then
+          echo "Error: Artifact directory is empty"
+          exit 1
+        fi
         npm install -g jszip
       shell: bash
     - name: Gather JSON files for this commit and generate a comment body

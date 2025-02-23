@@ -43,10 +43,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - run: mkdir -p ${{ runner.temp }}/artifacts/
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.package.artifact }}
+          path: ${{ runner.temp }}/artifacts/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -55,7 +58,7 @@ jobs:
         with:
           key: ${{ matrix.package.key }}
           name: ${{ matrix.package.name }}
-          input-path: ${{ matrix.package.artifact }}
+          input-path: ${{ runner.temp }}/artifacts/${{ matrix.package.artifact }}
 
   deploy-sharing:
     needs: get-pr-info
@@ -67,11 +70,13 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
     steps:
+      - run: mkdir -p ${{ runner.temp }}/artifacts/
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: stlite-sharing
-          path: website
+          path: ${{ runner.temp }}/artifacts/website
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -81,7 +86,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy website --project-name=stlite-sharing --branch=${{ needs.get-pr-info.outputs.pr_head_ref }} --commit-hash=${{ needs.get-pr-info.outputs.pr_head_sha }}
+          command: pages deploy ${{ runner.temp }}/artifacts/website --project-name=stlite-sharing --branch=${{ needs.get-pr-info.outputs.pr_head_ref }} --commit-hash=${{ needs.get-pr-info.outputs.pr_head_sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:

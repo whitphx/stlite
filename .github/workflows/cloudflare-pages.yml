@@ -17,6 +17,7 @@ jobs:
     outputs:
       branch: ${{ steps.cloudflare-pages-info.outputs.branch }}
       commit-hash: ${{ steps.cloudflare-pages-info.outputs.commit-hash }}
+      pr-number: ${{ steps.cloudflare-pages-info.outputs.pr-number }}
     steps:
       - name: Download deployment info
         uses: actions/download-artifact@v4
@@ -29,6 +30,7 @@ jobs:
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
+          echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
     needs: get-cloudflare-pages-info
@@ -66,6 +68,8 @@ jobs:
       contents: read
       deployments: write
     name: Deploy @stlite/sharing-editor to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -81,8 +85,34 @@ jobs:
 
       - name: Deploy
         uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-cloudflare-pages-info.outputs.branch }} --commit-hash=${{ needs.get-cloudflare-pages-info.outputs.commit-hash }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  comment-on-pr:
+    needs: [get-cloudflare-pages-info, deploy-sharing, deploy-sharing-editor]
+    if: needs.get-cloudflare-pages-info.outputs.pr-number != ''
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = '${{ needs.get-cloudflare-pages-info.outputs.pr-number }}';
+            const sharingUrl = '${{ needs.deploy-sharing.outputs.url }}';
+            const sharingEditorUrl = '${{ needs.deploy-sharing-editor.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully. Sharing: ${sharingUrl}\nSharing Editor: ${sharingEditorUrl}\nLog: ${logUrl}`
+            });

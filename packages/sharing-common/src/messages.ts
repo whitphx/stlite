@@ -39,18 +39,34 @@ export interface InstallMessage extends ForwardMessageBase {
     requirements: string[];
   };
 }
+
+export interface LanguageServerCodeCompletionMessage
+  extends ForwardMessageBase {
+  type: "language-server:code_completion";
+  data: {
+    code: string;
+    currentLine: string;
+    currentLineNumber: number;
+    offset: number;
+  };
+}
+
 export type ForwardMessage =
   | RebootMessage
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage
-  | InstallMessage;
+  | InstallMessage
+  | LanguageServerCodeCompletionMessage;
 
 /**
  * Reply to a forward message.
  */
 export interface ReplyMessage {
   type: "reply";
+  /** Some reply messages can contain data ex: code_completion, read_file
+   */
+  data?: ForwardMessage;
   error?: Error;
 }
 

@@ -3,7 +3,7 @@ import type { PyCallable } from "pyodide/ffi";
 import { LanguageServerRequestPayload } from "../types";
 
 export const defineCodeCompletionsFunction = async (
-  pyodide: Pyodide.PyodideInterface
+  pyodide: Pyodide.PyodideInterface,
 ) => {
   // Indentation is very important in python, don't change this!
   await pyodide.runPythonAsync(
@@ -106,13 +106,13 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
   # Convert results to JSON so that we can use it in the worker
   converter = lsp_converters.get_converter()
   return json.dumps(converter.unstructure(suggestions, unstructure_as=CompletionList))
-`
+`,
   );
 };
 
 export const getCodeCompletions = async (
   payload: LanguageServerRequestPayload,
-  pyodide: Pyodide.PyodideInterface
+  pyodide: Pyodide.PyodideInterface,
 ) => {
   let get_code_completions: PyCallable | undefined;
   try {
@@ -121,7 +121,7 @@ export const getCodeCompletions = async (
 
     if (!get_code_completions) {
       console.error(
-        "Can not generate suggestions list, the get_code_completions function is not defined"
+        "Can not generate suggestions list, the get_code_completions function is not defined",
       );
       return { items: [] };
     }
@@ -130,7 +130,7 @@ export const getCodeCompletions = async (
     const result = get_code_completions(
       payload.code,
       payload.currentLineNumber,
-      payload.offset
+      payload.offset,
     );
 
     if (!result) {

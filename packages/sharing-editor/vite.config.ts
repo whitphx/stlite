@@ -8,8 +8,9 @@ const selfPackageVersion = selfPackageJson.version;
 export default defineConfig({
   plugins: [react()],
   define: {
-    SHARING_APP_URL: JSON.stringify(
-      process.env.SHARING_APP_URL ?? "http://localhost:3000/",
+    SHARING_APP_URL: JSON.stringify(process.env.SHARING_APP_URL),
+    RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE: JSON.stringify(
+      process.env.RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE,
     ),
     SELF_HOSTING_RUNTIME_VERSION: JSON.stringify(
       selfPackageVersion ?? "0.75.0",

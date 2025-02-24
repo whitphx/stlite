@@ -102,7 +102,7 @@ describe("parseHash", () => {
 describe("Process share URL", () => {
   global.window ??= Object.create(window);
 
-  it("Should correctly recognize app url name from URL", async () => {
+  it("Should correctly extract App Data from URL", async () => {
     const urlHash =
       "#!ChBzdHJlYW1saXRfYXBwLnB5EkcKEHN0cmVhbWxpdF9hcHAucHkSMwoxaW1wb3J0IHN0cmVhbWxpdCBhcyBzdAoKc3QudGl0bGUoIkhlbGxvIFdvcmxkISIpCiAB";
     Object.defineProperty(window, "location", {
@@ -116,6 +116,7 @@ describe("Process share URL", () => {
       },
     });
 
+    // Check if languageServer can be extracted as well
     const parsedParams = await extractAppDataFromUrl();
     expect(parsedParams).toEqual(
       expect.objectContaining({

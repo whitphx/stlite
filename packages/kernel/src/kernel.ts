@@ -118,7 +118,7 @@ export interface StliteKernelOptions {
 
   onModuleAutoLoad?: (
     packagesToLoad: string[],
-    installPromise: Promise<PackageData[]>
+    installPromise: Promise<PackageData[]>,
   ) => void;
 
   onProgress?: (message: string) => void;
@@ -257,7 +257,7 @@ export class StliteKernel {
           request,
         },
       },
-      "http:response"
+      "http:response",
     ).then((data) => {
       return {
         ...data.response,
@@ -269,7 +269,7 @@ export class StliteKernel {
   public writeFile(
     path: string,
     data: string | ArrayBufferView,
-    opts?: Record<string, unknown>
+    opts?: Record<string, unknown>,
   ): Promise<void> {
     return this._asyncPostMessage({
       type: "file:write",
@@ -293,7 +293,7 @@ export class StliteKernel {
 
   public readFile(
     path: string,
-    opts?: Record<string, any>
+    opts?: Record<string, any>,
   ): Promise<string | Uint8Array> {
     return this._asyncPostMessage(
       {
@@ -303,7 +303,7 @@ export class StliteKernel {
           opts,
         },
       },
-      "reply:file:read"
+      "reply:file:read",
     ).then((data) => data.content);
   }
 
@@ -341,11 +341,11 @@ export class StliteKernel {
   }
 
   public getCodeCompletion(
-    payload: LanguageServerRequestPayload
+    payload: LanguageServerRequestPayload,
   ): Promise<ReplyMessageLanguageServerCodeCompletion> {
     if (!this._workerInitData.languageServer) {
       throw new Error(
-        `Language server not loaded, please set languageServer=true to use this method`
+        `Language server not loaded, please set languageServer=true to use this method`,
       );
     }
     return this._asyncPostMessage(
@@ -353,7 +353,7 @@ export class StliteKernel {
         type: "language-server:code_completion",
         data: payload,
       },
-      "reply:language-server:code_completion"
+      "reply:language-server:code_completion",
     ).then((data) => ({ type: "reply:language-server:code_completion", data }));
   }
 
@@ -372,15 +372,15 @@ export class StliteKernel {
   }
 
   private _asyncPostMessage(
-    message: InMessage
+    message: InMessage,
   ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
-    expectedReplyType: T
+    expectedReplyType: T,
   ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
   private _asyncPostMessage(
     message: InMessage,
-    expectedReplyType = "reply"
+    expectedReplyType = "reply",
   ): Promise<ReplyMessage["data"]> {
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
@@ -451,7 +451,7 @@ export class StliteKernel {
                 }
                 port.close();
               };
-            })
+            }),
           );
         break;
       }

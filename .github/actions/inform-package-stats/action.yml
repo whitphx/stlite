@@ -205,6 +205,9 @@ runs:
               const openPullRequests = pullRequests.filter(pr => pr.state === "open")
               return openPullRequests;
             }
+            if (context.eventName === "workflow_run") {
+              return context.payload.workflow_run.pull_requests ?? [];
+            }
             throw new Error(`Unsupported event type: ${context.eventName}`);
           }
           const targetPullRequests = await getTargetPullRequests();

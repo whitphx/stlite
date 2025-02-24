@@ -1,5 +1,5 @@
 import { describe, it, test, expect } from "vitest";
-import { processGitblobUrl, parseHash } from "./url";
+import { processGitblobUrl, parseHash, extractAppDataFromUrl } from "./url";
 
 describe("processGitblobUrl", () => {
   const githubUrls: [string, string][] = [
@@ -96,5 +96,41 @@ describe("parseHash", () => {
     it(`parses requirements from "${hash}"`, () => {
       expect(parseHash(hash)).toEqual({ requirements, code: "xxx" });
     });
+  });
+});
+
+describe("Process share URL", () => {
+  global.window ??= Object.create(window);
+
+  it("Should correctly recognize app url name from URL", async () => {
+    const urlHash =
+      "#!ChBzdHJlYW1saXRfYXBwLnB5EkcKEHN0cmVhbWxpdF9hcHAucHkSMwoxaW1wb3J0IHN0cmVhbWxpdCBhcyBzdAoKc3QudGl0bGUoIkhlbGxvIFdvcmxkISIpCiAB";
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        href: "http://localhost:3000/" + urlHash,
+        pathname: "/",
+        hostname: "localhost",
+        origin: "http://localhost:3000",
+        hash: urlHash,
+      },
+    });
+
+    const parsedParams = await extractAppDataFromUrl();
+    expect(parsedParams).toEqual(
+      expect.objectContaining({
+        entrypoint: "streamlit_app.py",
+        files: {
+          "streamlit_app.py": {
+            content: {
+              $case: "text",
+              text: 'import streamlit as st\n\nst.title("Hello World!")\n',
+            },
+          },
+        },
+        requirements: [],
+        languageServer: true,
+      }),
+    );
   });
 });

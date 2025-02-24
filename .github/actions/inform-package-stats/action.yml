@@ -178,6 +178,8 @@ runs:
 
     - name: Post a message to Pull Request threads
       uses: actions/github-script@v7
+      env:
+        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
@@ -212,10 +214,10 @@ runs:
           console.log(targetPullRequests)
           core.endGroup()
 
-          const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
+          const stickyCommentHeader = `<!-- Sticky Stat Comment ${process.env.COMMIT_SHA} -->\n`;
 
           for (const pr of targetPullRequests) {
-            const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
+            const title = `## Package Stats on [\`${process.env.COMMIT_SHA.slice(0, 7)}\`](${pr.html_url}/commits/${process.env.COMMIT_SHA})\n\n`;
             const commentText = title + commentBody;
 
             const stickyCommentText = stickyCommentHeader + commentText

@@ -20,4 +20,5 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/inform-package-stats

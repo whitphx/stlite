@@ -179,7 +179,8 @@ runs:
     - name: Post a message to Pull Request threads
       uses: actions/github-script@v7
       env:
-        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);

@@ -725,6 +725,7 @@ jobs:
         generate_release_notes: true
 
   set-cloudflare-pages-info:
+    if: ${{ !failure() }}
     needs: [build-sharing, build-sharing-editor]
     runs-on: ubuntu-latest
     steps:

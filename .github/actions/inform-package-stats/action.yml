@@ -193,7 +193,7 @@ runs:
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];
             }
-            if (context.eventName === "push") {
+            if (context.eventName === "push" || context.eventName === "workflow_run") {
               const pullRequests = (
                 await github.rest.repos.listPullRequestsAssociatedWithCommit({
                   owner: context.repo.owner,
@@ -203,9 +203,6 @@ runs:
               ).data;
               const openPullRequests = pullRequests.filter(pr => pr.state === "open")
               return openPullRequests;
-            }
-            if (context.eventName === "workflow_run") {
-              return context.payload.workflow_run.pull_requests ?? [];
             }
             throw new Error(`Unsupported event type: ${context.eventName}`);
           }

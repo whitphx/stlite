@@ -104,7 +104,7 @@ describe("Process share URL", () => {
 
   it("Should correctly extract App Data from URL", async () => {
     const urlHash =
-      "#!ChBzdHJlYW1saXRfYXBwLnB5EkcKEHN0cmVhbWxpdF9hcHAucHkSMwoxaW1wb3J0IHN0cmVhbWxpdCBhcyBzdAoKc3QudGl0bGUoIkhlbGxvIFdvcmxkISIpCiAB";
+      "#!ChBzdHJlYW1saXRfYXBwLnB5Em4KEHN0cmVhbWxpdF9hcHAucHkSWgpYaW1wb3J0IHN0cmVhbWxpdCBhcyBzdAoKc3QudGl0bGUoIkhlbGxvIFdvcmxkISIpCnN0LmJ1dHRvbihsYWJlbD0iVGVzdCIsIHR5cGU9InByaW1hcnkiKQ,=";
     Object.defineProperty(window, "location", {
       writable: true,
       value: {
@@ -125,12 +125,11 @@ describe("Process share URL", () => {
           "streamlit_app.py": {
             content: {
               $case: "text",
-              text: 'import streamlit as st\n\nst.title("Hello World!")\n',
+              text: 'import streamlit as st\n\nst.title("Hello World!")\nst.button(label="Test", type="primary")',
             },
           },
         },
         requirements: [],
-        languageServer: true,
       }),
     );
   });

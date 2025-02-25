@@ -115,7 +115,6 @@ function App() {
   } = useLoaderData() as AppLoaderData;
 
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
-  const [iframeReady, setIframeReady] = useState(false);
   useEffect(() => {
     setSampleAppId(initialSampleAppId);
   }, [initialSampleAppId]);
@@ -290,7 +289,6 @@ function App() {
     StliteSharingIFrameProps["onMessage"]
   >(
     (e) => {
-      setIframeReady(true);
       if (e.data.stlite !== true) {
         return;
       }
@@ -332,21 +330,17 @@ function App() {
       ) : (
         <ResponsiveSideBySidePanes
           left={
-            iframeReady ? (
-              <Editor
-                key={initAppDataKey}
-                ref={editorRef}
-                appData={appData}
-                stliteSharingIFrame={iframeRef.current}
-                onFileWrite={handleFileWrite}
-                onFileRename={handleFileRename}
-                onFileDelete={handleFileDelete}
-                onRequirementsChange={handleRequirementsChange}
-                onEntrypointChange={handleEntrypointChange}
-              />
-            ) : (
-              <></>
-            )
+            <Editor
+              key={initAppDataKey}
+              ref={editorRef}
+              appData={appData}
+              stliteSharingIFrame={iframeRef.current}
+              onFileWrite={handleFileWrite}
+              onFileRename={handleFileRename}
+              onFileDelete={handleFileDelete}
+              onRequirementsChange={handleRequirementsChange}
+              onEntrypointChange={handleEntrypointChange}
+            />
           }
           right={
             <>
@@ -361,10 +355,7 @@ function App() {
                   key={initAppDataKey}
                   ref={iframeRef}
                   sharingAppSrc={sharingAppSrc}
-                  initialAppData={{
-                    ...initialAppData,
-                    languageServer: true,
-                  }}
+                  initialAppData={initialAppData}
                   messageTargetOrigin={sharingAppOrigin}
                   title="stlite app"
                   className="preview-iframe"

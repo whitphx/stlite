@@ -6,6 +6,7 @@ import {
   ForwardMessage,
   ReplyMessage,
   ModuleAutoLoadSuccessMessage,
+  LanguageServerCodeCompletionReplyMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
@@ -42,7 +43,7 @@ function isEditorOrigin(origin: string): boolean {
 let communicatedEditorOrigin = "";
 
 function convertFiles(
-  appDataFiles: AppData["files"]
+  appDataFiles: AppData["files"],
 ): StliteKernelOptions["files"] {
   const files: StliteKernelOptions["files"] = {};
   Object.keys(appDataFiles).forEach((key) => {
@@ -125,7 +126,7 @@ st.write("Hello World")`,
                     },
                     stlite: true,
                   } as ModuleAutoLoadSuccessMessage,
-                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
+                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
                 );
               })
               .catch((error) => {
@@ -158,13 +159,13 @@ st.write("Hello World")`,
               case "file:write": {
                 return kernelWithToast.writeFile(
                   msg.data.path,
-                  msg.data.content
+                  msg.data.content,
                 );
               }
               case "file:rename": {
                 return kernelWithToast.renameFile(
                   msg.data.oldPath,
-                  msg.data.newPath
+                  msg.data.newPath,
                 );
               }
               case "file:unlink": {
@@ -174,7 +175,13 @@ st.write("Hello World")`,
                 return kernelWithToast.install(msg.data.requirements);
               }
               case "language-server:code_completion": {
-                return kernel?.getCodeCompletion(msg.data);
+                return kernel?.getCodeCompletion(msg.data).then(
+                  (result) =>
+                    ({
+                      type: "reply:language-server:code_completion",
+                      data: result,
+                    }) as LanguageServerCodeCompletionReplyMessage,
+                );
               }
             }
           })()
@@ -182,7 +189,7 @@ st.write("Hello World")`,
               postReplyMessage(
                 (response as ReplyMessage) || {
                   type: "reply",
-                }
+                },
               );
             })
             .catch((error) => {

@@ -706,14 +706,14 @@ jobs:
         echo "vsix_filename=${files[0]}" >> $GITHUB_ENV
     - if: matrix.target == 'marketplace'
       name: Publish to Visual Studio Marketplace
-      uses: HaaLeo/publish-vscode-extension@v1
+      uses: HaaLeo/publish-vscode-extension@v2
       with:
         extensionFile: "${{ env.vsix_filename }}"
         pat: ${{ secrets.VSCE_PAT }}
         registryUrl: https://marketplace.visualstudio.com
     - if: matrix.target == 'openvsx'
       name: Publish to Open VSX Registry
-      uses: HaaLeo/publish-vscode-extension@v1
+      uses: HaaLeo/publish-vscode-extension@v2
       with:
         extensionFile: "${{ env.vsix_filename }}"
         pat: ${{ secrets.OPEN_VSX_TOKEN }}
@@ -725,6 +725,7 @@ jobs:
         generate_release_notes: true
 
   set-cloudflare-pages-info:
+    if: ${{ !failure() }}
     needs: [build-sharing, build-sharing-editor]
     runs-on: ubuntu-latest
     steps:

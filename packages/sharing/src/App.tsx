@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import {
   AppData,
-  extractAppDataFromUrl,
+  extractAppDataFromUrlHash,
   ForwardMessage,
   ReplyMessage,
   ModuleAutoLoadSuccessMessage,
@@ -68,7 +68,7 @@ function App() {
     let unmounted = false;
     let _kernel: StliteKernel | null = null;
     let onMessage: ((e: MessageEvent<ForwardMessage>) => void) | null;
-    extractAppDataFromUrl()
+    extractAppDataFromUrlHash(window.location.hash)
       .catch((err) => {
         console.error("Failed to extract app data from URL. Show default app.");
         console.error(err);

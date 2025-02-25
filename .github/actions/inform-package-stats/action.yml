@@ -17,7 +17,7 @@ runs:
     - name: Get the base run_id for diff
       run: |
         diff_base_branch='${{ github.event.repository.default_branch }}'
-        current_workflow='${{ github.workflow }}'
+        current_workflow='${{ github.event_name == 'workflow_run' && github.event.workflow_run.name || github.workflow }}'
         run_info=$(gh run list --branch "$diff_base_branch" --workflow "$current_workflow" --status success --limit 1 --json=databaseId,headSha --jq ".[0]")
         run_id=$(echo $run_info | jq -r ".databaseId")
         commit_sha=$(echo $run_info | jq -r ".headSha")
@@ -34,6 +34,8 @@ runs:
       shell: bash
     - name: Gather JSON files for this commit and generate a comment body
       uses: actions/github-script@v7
+      env:
+        RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || github.run_id }}
       with:
         result-encoding: string
         script: |
@@ -86,7 +88,7 @@ runs:
             return artifactContents;
           }
 
-          const artifactContents = await loadStatArtifactContents(context.runId)
+          const artifactContents = await loadStatArtifactContents(process.env.RUN_ID)
           core.startGroup('Artifact contents preview')
           console.log(JSON.stringify(artifactContents, null, 2));
           core.endGroup()
@@ -176,6 +178,9 @@ runs:
 
     - name: Post a message to Pull Request threads
       uses: actions/github-script@v7
+      env:
+        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
@@ -188,7 +193,7 @@ runs:
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];
             }
-            if (context.eventName === "push") {
+            if (context.eventName === "push" || context.eventName === "workflow_run") {
               const pullRequests = (
                 await github.rest.repos.listPullRequestsAssociatedWithCommit({
                   owner: context.repo.owner,
@@ -207,10 +212,10 @@ runs:
           console.log(targetPullRequests)
           core.endGroup()
 
-          const stickyCommentHeader = `<!-- Sticky Stat Comment ${context.sha} -->\n`;
+          const stickyCommentHeader = `<!-- Sticky Stat Comment ${process.env.COMMIT_SHA} -->\n`;
 
           for (const pr of targetPullRequests) {
-            const title = `## Package Stats on [\`${context.sha.slice(0, 7)}\`](${pr.html_url}/commits/${context.sha})\n\n`;
+            const title = `## Package Stats on [\`${process.env.COMMIT_SHA.slice(0, 7)}\`](${pr.html_url}/commits/${process.env.COMMIT_SHA})\n\n`;
             const commentText = title + commentBody;
 
             const stickyCommentText = stickyCommentHeader + commentText

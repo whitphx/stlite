@@ -14,7 +14,7 @@ import StliteSharingIFrame, {
 } from "./StliteSharingIFrame";
 import Editor, { EditorProps, EditorRef } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
-import { extractAppDataFromUrl } from "@stlite/sharing-common";
+import { extractAppDataFromUrlHash } from "@stlite/sharing-common";
 import {
   getDefaultSampleAppId,
   loadSampleAppData,
@@ -63,7 +63,7 @@ export const loader = async ({
 
   if (parsedSampleAppId == null) {
     try {
-      const appData = await extractAppDataFromUrl();
+      const appData = await extractAppDataFromUrlHash(window.location.hash);
       return {
         appData,
         sampleAppId: null,

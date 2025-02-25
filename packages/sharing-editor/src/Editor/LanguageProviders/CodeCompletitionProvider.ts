@@ -55,7 +55,7 @@ export class CodeCompletionProvider
 
   async provideCompletionItems(
     model: editor.ITextModel,
-    position: Position
+    position: Position,
   ): Promise<languages.CompletionList> {
     // get the text from current line
     const textUntilPosition = model.getValueInRange({
@@ -86,7 +86,7 @@ export class CodeCompletionProvider
    * They are slightly different with Monaco editor, especially for kind
    */
   private toCompletionItem = (
-    entry: languages.CompletionItem
+    entry: languages.CompletionItem,
   ): languages.CompletionItem => {
     const results = {
       label: entry.label,

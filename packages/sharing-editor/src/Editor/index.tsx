@@ -55,11 +55,11 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       onRequirementsChange,
       onEntrypointChange,
     },
-    ref
+    ref,
   ) => {
     // Keep the tab order
     const [tabFileNames, setTabFileNames] = useState<string[]>(
-      Object.keys(appData.files)
+      Object.keys(appData.files),
     );
 
     const fileNames = useMemo(
@@ -79,10 +79,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           // Sort the keys of appData.files according to `tabFileNames`.
           return aIdx - bIdx;
         }),
-      [appData, tabFileNames]
+      [appData, tabFileNames],
     );
     const [currentFileName, setCurrentFileName] = useState<string | null>(
-      fileNames.length > 0 ? fileNames[0] : null
+      fileNames.length > 0 ? fileNames[0] : null,
     );
 
     const currentFile =
@@ -100,7 +100,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         monacoRef.current = monaco;
         langProviders.current = monacoEditorSetup(monaco, stliteSharingIFrame);
       },
-      [stliteSharingIFrame]
+      [stliteSharingIFrame],
     );
 
     useEffect(() => {
@@ -148,7 +148,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         }
         onFileWrite(currentFileName, data);
       },
-      [onFileWrite, currentFileName]
+      [onFileWrite, currentFileName],
     );
 
     const [addedFileName, setAddedFileName] = useState<string>();
@@ -171,7 +171,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           setTabFileNames((cur) => [...cur, file.name]);
         });
       },
-      [onFileWrite, focusTabNext]
+      [onFileWrite, focusTabNext],
     );
 
     const handleFileDelete = useCallback(
@@ -184,7 +184,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         onFileDelete(fileName);
         setTabFileNames((cur) => cur.filter((f) => f !== fileName));
       },
-      [onFileDelete]
+      [onFileDelete],
     );
 
     const handleCreateFile = useCallback(() => {
@@ -202,7 +202,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
     const defaultRequirementsTextValue = useMemo(
       () => appData.requirements.join("\n"),
-      [appData.requirements]
+      [appData.requirements],
     );
 
     useImperativeHandle(
@@ -221,7 +221,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
             monaco.editor.createModel(
               defaultRequirementsTextValue,
               "text",
-              uri
+              uri,
             );
 
           const curValue = model.getValue();
@@ -234,7 +234,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           model.setValue(newValue);
         },
       }),
-      [defaultRequirementsTextValue]
+      [defaultRequirementsTextValue],
     );
 
     const isDarkMode = useDarkMode();
@@ -263,7 +263,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                     onFileNameChange={(newPath) => {
                       onFileRename(fileName, newPath);
                       setTabFileNames((cur) =>
-                        cur.map((f) => (f === fileName ? newPath : f))
+                        cur.map((f) => (f === fileName ? newPath : f)),
                       );
                       if (fileName === currentFileName) {
                         setCurrentFileName(newPath);
@@ -330,8 +330,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                 currentFileName === REQUIREMENTS_FILENAME
                   ? defaultRequirementsTextValue
                   : currentFile?.content?.$case === "text"
-                  ? currentFile.content.text
-                  : undefined
+                    ? currentFile.content.text
+                    : undefined
               }
               onMount={handleEditorDitMount}
               theme={isDarkMode ? "vs-dark" : "vs"}
@@ -348,7 +348,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 Editor.displayName = "Editor";

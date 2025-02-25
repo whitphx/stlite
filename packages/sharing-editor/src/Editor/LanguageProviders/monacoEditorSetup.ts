@@ -7,7 +7,7 @@ import { StliteSharingIFrameRef } from "../../StliteSharingIFrame";
 
 export const monacoEditorSetup = (
   monaco: Monaco,
-  stliteSharingIFrame: StliteSharingIFrameRef | null
+  stliteSharingIFrame: StliteSharingIFrameRef | null,
 ) => {
   const disposables: IDisposable[] = [];
   const providers: IDisposable[] = [];
@@ -16,15 +16,15 @@ export const monacoEditorSetup = (
     disposeAll(providers);
 
     const languageServerService = new LanguageServerService(
-      stliteSharingIFrame
+      stliteSharingIFrame,
     );
 
     // Provides autocomplete around where the current line is
     providers.push(
       monaco.languages.registerCompletionItemProvider(
         "python",
-        new CodeCompletionProvider(languageServerService)
-      )
+        new CodeCompletionProvider(languageServerService),
+      ),
     );
 
     disposables.push(languageServerService);

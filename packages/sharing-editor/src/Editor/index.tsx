@@ -87,7 +87,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         ? appData.files[currentFileName]
         : null;
 
-    const editorRef = useRef<Parameters<OnMount>[0]>(null);
+    const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
     const monacoRef = useRef<any>(null);
     const langProviders = useRef<IDisposable | null>(null);
 

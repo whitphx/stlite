@@ -70,7 +70,7 @@ export const loader = async ({
 
   if (parsedSampleAppId == null) {
     try {
-      const appData = await extractAppDataFromUrlHash();
+      const appData = await extractAppDataFromUrlHash(window.location.hash);
       return {
         appData,
         sampleAppId: null,

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.79.0] - 2025-02-25
+
+### `@stlite/kernel`
+
+#### Added
+
+- `languageServer` option, [#1338](https://github.com/whitphx/stlite/pull/1338) by [@bdimitrijoski](https://github.com/bdimitrijoski).
+- Internal package updates.
+
+### General
+
+#### Changed
+
+- The CI/CD pipeline is refactored to work with PRs from external contributors, [#1346](https://github.com/whitphx/stlite/pull/1346).
+- Internal package updates.
+
 ## [0.78.2] - 2025-02-20
 
 ### `@stlite/desktop`

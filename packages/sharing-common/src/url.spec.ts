@@ -1,5 +1,5 @@
 import { describe, it, test, expect } from "vitest";
-import { processGitblobUrl, parseHash } from "./url";
+import { processGitblobUrl, parseHash, extractAppDataFromUrl } from "./url";
 
 describe("processGitblobUrl", () => {
   const githubUrls: [string, string][] = [
@@ -96,5 +96,41 @@ describe("parseHash", () => {
     it(`parses requirements from "${hash}"`, () => {
       expect(parseHash(hash)).toEqual({ requirements, code: "xxx" });
     });
+  });
+});
+
+describe("Process share URL", () => {
+  global.window ??= Object.create(window);
+
+  it("Should correctly extract App Data from URL", async () => {
+    const urlHash =
+      "#!ChBzdHJlYW1saXRfYXBwLnB5Em4KEHN0cmVhbWxpdF9hcHAucHkSWgpYaW1wb3J0IHN0cmVhbWxpdCBhcyBzdAoKc3QudGl0bGUoIkhlbGxvIFdvcmxkISIpCnN0LmJ1dHRvbihsYWJlbD0iVGVzdCIsIHR5cGU9InByaW1hcnkiKQ,=";
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        href: "http://localhost:3000/" + urlHash,
+        pathname: "/",
+        hostname: "localhost",
+        origin: "http://localhost:3000",
+        hash: urlHash,
+      },
+    });
+
+    // Check if languageServer can be extracted as well
+    const parsedParams = await extractAppDataFromUrl();
+    expect(parsedParams).toEqual(
+      expect.objectContaining({
+        entrypoint: "streamlit_app.py",
+        files: {
+          "streamlit_app.py": {
+            content: {
+              $case: "text",
+              text: 'import streamlit as st\n\nst.title("Hello World!")\nst.button(label="Test", type="primary")',
+            },
+          },
+        },
+        requirements: [],
+      }),
+    );
   });
 });

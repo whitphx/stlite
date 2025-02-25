@@ -4,7 +4,6 @@ message AppData {
   string entrypoint = 1;
   map<string, File> files = 2;
   repeated string requirements = 3;
-  optional bool languageServer = 4;
 }
 
 message File {

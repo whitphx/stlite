@@ -179,7 +179,8 @@ runs:
     - name: Post a message to Pull Request threads
       uses: actions/github-script@v7
       env:
-        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+        COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
         script: |
           process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
@@ -192,7 +193,7 @@ runs:
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];
             }
-            if (context.eventName === "push") {
+            if (context.eventName === "push" || context.eventName === "workflow_run") {
               const pullRequests = (
                 await github.rest.repos.listPullRequestsAssociatedWithCommit({
                   owner: context.repo.owner,
@@ -202,9 +203,6 @@ runs:
               ).data;
               const openPullRequests = pullRequests.filter(pr => pr.state === "open")
               return openPullRequests;
-            }
-            if (context.eventName === "workflow_run") {
-              return context.payload.workflow_run.pull_requests ?? [];
             }
             throw new Error(`Unsupported event type: ${context.eventName}`);
           }

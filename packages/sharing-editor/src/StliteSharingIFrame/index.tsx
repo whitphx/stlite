@@ -40,6 +40,7 @@ const StliteSharingIFrame = React.forwardRef<
     const iframeSrc = useMemo(
       () => {
         const urlParams = new URLSearchParams();
+        urlParams.append("languageServer", "true");
         urlParams.append("embed", "true");
         urlParams.append("embed_options", "show_toolbar");
         if (theme) {

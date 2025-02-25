@@ -354,7 +354,7 @@ export class StliteKernel {
         data: payload,
       },
       "reply:language-server:code_completion",
-    ).then((data) => data);
+    );
   }
 
   /**

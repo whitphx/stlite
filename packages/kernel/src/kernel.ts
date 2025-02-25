@@ -342,7 +342,7 @@ export class StliteKernel {
 
   public getCodeCompletion(
     payload: LanguageServerRequestPayload,
-  ): Promise<ReplyMessageLanguageServerCodeCompletion> {
+  ): Promise<ReplyMessageLanguageServerCodeCompletion["data"]> {
     if (!this._workerInitData.languageServer) {
       throw new Error(
         `Language server not loaded, please set languageServer=true to use this method`,
@@ -354,7 +354,7 @@ export class StliteKernel {
         data: payload,
       },
       "reply:language-server:code_completion",
-    ).then((data) => ({ type: "reply:language-server:code_completion", data }));
+    );
   }
 
   /**

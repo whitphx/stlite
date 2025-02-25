@@ -8,7 +8,7 @@ import {
   ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
-import { isSharedWorkerMode } from "./urlparams";
+import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
 import {
   makeToastKernelCallbacks,
   StliteKernelWithToast,
@@ -102,7 +102,7 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
-          languageServer: appData.languageServer ?? false,
+          languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.

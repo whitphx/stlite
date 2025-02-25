@@ -70,7 +70,6 @@ const StliteSharingIFrame = React.forwardRef<
             iframeRef.current as HTMLIFrameElement,
             message,
             messageTargetOrigin,
-            true,
           );
         },
       }),

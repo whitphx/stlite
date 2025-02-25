@@ -6,9 +6,10 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import { ALLOWED_FEATURE_POLICY } from "./policy";
+import { postMessageToStliteSharing } from "../stlite-sharing-communication";
 
 export interface StliteSharingIFrameRef {
-  postMessage: (msg: ForwardMessage) => Promise<void>;
+  postMessage: (msg: ForwardMessage) => Promise<ReplyMessage>;
 }
 type IFrameProps = JSX.IntrinsicElements["iframe"];
 export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
@@ -33,7 +34,7 @@ const StliteSharingIFrame = React.forwardRef<
       sharedWorkerMode,
       ...iframeProps
     },
-    ref
+    ref,
   ) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -51,45 +52,29 @@ const StliteSharingIFrame = React.forwardRef<
         }
         return embedAppDataToUrl(
           sharingAppSrc + "?" + urlParams.toString(),
-          initialAppData
+          initialAppData,
         );
       },
       // NOTE: `iframeSrc` should be calculated only for the initial `appData` and be persistent.
       // Subsequential changes should be applied via `ref.postMessage()` as imperative operations.
       // So `initialAppData` is excluded from the deps below.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [sharingAppSrc, theme, sharedWorkerMode]
+      [sharingAppSrc, theme, sharedWorkerMode],
     );
 
     useImperativeHandle(
       ref,
       () => ({
-        postMessage(message) {
-          return new Promise((resolve, reject) => {
-            const targetWindow = iframeRef.current?.contentWindow;
-            if (targetWindow == null) {
-              throw new Error(`The target iframe window is not ready`);
-            }
-
-            const channel = new MessageChannel();
-
-            channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
-              channel.port1.close();
-              const reply = e.data;
-              if (reply.error) {
-                reject(reply.error);
-              } else {
-                resolve(reply as any);
-              }
-            };
-
-            targetWindow.postMessage(message, messageTargetOrigin, [
-              channel.port2,
-            ]);
-          });
+        postMessage: (message) => {
+          return postMessageToStliteSharing(
+            iframeRef.current as HTMLIFrameElement,
+            message,
+            messageTargetOrigin,
+            true,
+          );
         },
       }),
-      [messageTargetOrigin]
+      [messageTargetOrigin],
     );
 
     useEffect(() => {
@@ -113,7 +98,7 @@ const StliteSharingIFrame = React.forwardRef<
         allow={ALLOWED_FEATURE_POLICY}
       />
     );
-  }
+  },
 );
 
 StliteSharingIFrame.displayName = "StliteSharingIFrame";

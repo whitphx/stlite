@@ -3,21 +3,15 @@ import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 
 import { CodeCompletionProvider } from "./CodeCompletitionProvider";
 import { LanguageServerService } from "./LanguageServerService";
-import { StliteSharingIFrameRef } from "../../StliteSharingIFrame";
 
-export const monacoEditorSetup = (
-  monaco: Monaco,
-  stliteSharingIFrame: StliteSharingIFrameRef | null,
-) => {
+export const monacoEditorSetup = (monaco: Monaco) => {
   const disposables: IDisposable[] = [];
   const providers: IDisposable[] = [];
 
   function registerProviders(): void {
     disposeAll(providers);
 
-    const languageServerService = new LanguageServerService(
-      stliteSharingIFrame,
-    );
+    const languageServerService = new LanguageServerService();
 
     // Provides autocomplete around where the current line is
     providers.push(

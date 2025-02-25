@@ -327,7 +327,6 @@ function App() {
               key={initAppDataKey}
               ref={editorRef}
               appData={appData}
-              stliteSharingIFrame={iframeRef.current}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}

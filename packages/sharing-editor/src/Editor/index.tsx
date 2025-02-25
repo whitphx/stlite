@@ -25,7 +25,6 @@ import styles from "./Editor.module.scss";
 import { useDarkMode } from "../ColorScheme/hooks";
 import { monacoEditorSetup } from "./LanguageProviders/monacoEditorSetup";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
-import { StliteSharingIFrameRef } from "../StliteSharingIFrame";
 
 let newFileCount = 1;
 
@@ -36,7 +35,6 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
-  stliteSharingIFrame: StliteSharingIFrameRef | null;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
@@ -48,7 +46,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
     {
       appData,
-      stliteSharingIFrame,
       onFileWrite,
       onFileRename,
       onFileDelete,
@@ -94,14 +91,11 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     const monacoRef = useRef<any>(null);
     const langProviders = useRef<IDisposable | null>(null);
 
-    const handleEditorDitMount = useCallback<OnMount>(
-      (editor, monaco) => {
-        editorRef.current = editor;
-        monacoRef.current = monaco;
-        langProviders.current = monacoEditorSetup(monaco, stliteSharingIFrame);
-      },
-      [stliteSharingIFrame],
-    );
+    const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
+      editorRef.current = editor;
+      monacoRef.current = monaco;
+      langProviders.current = monacoEditorSetup(monaco);
+    }, []);
 
     useEffect(() => {
       return () => {

@@ -99,8 +99,10 @@ async function compileMainScriptAndRequirementsFromHash(
   return { code: content, filename, requirements };
 }
 
-export async function extractAppDataFromUrl(): Promise<AppData> {
-  const hashValue = window.location.hash.replace(/^#/, "");
+export async function extractAppDataFromUrlHash(
+  hash: string,
+): Promise<AppData> {
+  const hashValue = hash.replace(/^#/, "");
   if (hashValue.startsWith(URL_HASH_PREFIX_ENCODED_APPDATA)) {
     const encodedAppData = hashValue.slice(1);
     const appData = decodeAppData(encodedAppData);

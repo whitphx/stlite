@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import {
   AppData,
-  extractAppDataFromUrl,
+  extractAppDataFromUrlHash,
   ForwardMessage,
   ReplyMessage,
   ModuleAutoLoadSuccessMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
-import { isSharedWorkerMode } from "./urlparams";
+import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
 import {
   makeToastKernelCallbacks,
   StliteKernelWithToast,
@@ -67,7 +67,7 @@ function App() {
     let unmounted = false;
     let _kernel: StliteKernel | null = null;
     let onMessage: ((e: MessageEvent<ForwardMessage>) => void) | null;
-    extractAppDataFromUrl()
+    extractAppDataFromUrlHash(window.location.hash)
       .catch((err) => {
         console.error("Failed to extract app data from URL. Show default app.");
         console.error(err);
@@ -102,6 +102,7 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           ...makeToastKernelCallbacks(),
           moduleAutoLoad: true,
+          languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
@@ -172,12 +173,20 @@ st.write("Hello World")`,
               case "install": {
                 return kernelWithToast.install(msg.data.requirements);
               }
+              case "language-server:code_completion": {
+                // For code completion, use the kernel directly
+                // no need to show a toast message
+                // every time when the user type something
+                return kernel?.getCodeCompletion(msg.data);
+              }
             }
           })()
-            .then(() => {
-              postReplyMessage({
-                type: "reply",
-              });
+            .then((response) => {
+              postReplyMessage(
+                (response as ReplyMessage) || {
+                  type: "reply",
+                },
+              );
             })
             .catch((error) => {
               postReplyMessage({

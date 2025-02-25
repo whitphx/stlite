@@ -39,20 +39,58 @@ export interface InstallMessage extends ForwardMessageBase {
     requirements: string[];
   };
 }
+
+export interface LanguageServerCodeCompletionMessage
+  extends ForwardMessageBase {
+  type: "language-server:code_completion";
+  data: {
+    code: string;
+    currentLine: string;
+    currentLineNumber: number;
+    offset: number;
+  };
+}
+
 export type ForwardMessage =
   | RebootMessage
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage
-  | InstallMessage;
+  | InstallMessage
+  | LanguageServerCodeCompletionMessage;
 
 /**
  * Reply to a forward message.
  */
-export interface ReplyMessage {
-  type: "reply";
+export interface ReplyMessageBase {
+  type: string;
+  /** Some reply messages can contain data ex: code_completion, read_file
+   */
+  data?: unknown;
   error?: Error;
 }
+
+export interface GeneralReplyMessage extends ReplyMessageBase {
+  type: "reply";
+}
+export interface LanguageServerCodeCompletionResponse {
+  /**
+   * Decided to use unknown to avoid importing whole package and bunch of stuff
+   * from monaco-editor package that we don't need it here at all
+   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
+   *
+   */
+  items: unknown[];
+}
+export interface LanguageServerCodeCompletionReplyMessage
+  extends ReplyMessageBase {
+  type: "reply:language-server:code_completion";
+  data: LanguageServerCodeCompletionResponse;
+}
+
+export type ReplyMessage =
+  | GeneralReplyMessage
+  | LanguageServerCodeCompletionReplyMessage;
 
 /**
  * Messages from app to editor

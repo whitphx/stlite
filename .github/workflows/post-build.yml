@@ -35,6 +35,7 @@ jobs:
         name: stlite-browser-${{ github.ref_name }}.tgz
         path: packages/browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: yarn publish stlite-browser-v*.tgz --access public
       env:
@@ -52,9 +53,19 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
 
+    permissions:
+      contents: read
+      checks: write
+
     runs-on: ${{ matrix.os }}
 
     steps:
+    - uses: LouisBrunner/checks-action@v2.0.0
+      id: create-check-run
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ github.job }}
+        status: "in_progress"
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
@@ -66,8 +77,10 @@ jobs:
       uses: actions/download-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
-        name: stlite-desktop-${{ github.sha }}.tgz
+        name: stlite-desktop-${{ github.event.workflow_run.head_sha }}.tgz
         path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')
@@ -75,6 +88,7 @@ jobs:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install the tarball
       run: |
@@ -90,6 +104,14 @@ jobs:
     - name: Check if electron-builder works
       run: yarn run app:dir
       working-directory: ${{ runner.temp }}/sample_app
+
+    - uses: LouisBrunner/checks-action@v2.0.0
+      if: always()
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        check_id: ${{ steps.create-check-run.outputs.check_id }}
+        conclusion: ${{ job.status }}
+        status: "completed"
 
   publish-desktop:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -114,6 +136,7 @@ jobs:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: packages/desktop
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: yarn publish stlite-desktop-v*.tgz --access public
       env:
@@ -146,6 +169,7 @@ jobs:
       with:
         name: vscode-stlite-${{ github.ref_name }}.vsix
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: |
         files=( vscode-stlite*.vsix )
         echo "vsix_filename=${files[0]}" >> $GITHUB_ENV

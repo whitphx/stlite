@@ -34,6 +34,7 @@ jobs:
       with:
         name: stlite-browser-${{ github.ref_name }}.tgz
         path: packages/browser
+        run-id: ${{ github.event.workflow_run.id }}
 
     - run: yarn publish stlite-browser-v*.tgz --access public
       env:
@@ -73,6 +74,7 @@ jobs:
       with:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
 
     - name: Install the tarball
       run: |
@@ -111,6 +113,7 @@ jobs:
       with:
         name: stlite-desktop-${{ github.ref_name }}.tgz
         path: packages/desktop
+        run-id: ${{ github.event.workflow_run.id }}
 
     - run: yarn publish stlite-desktop-v*.tgz --access public
       env:
@@ -142,6 +145,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: vscode-stlite-${{ github.ref_name }}.vsix
+        run-id: ${{ github.event.workflow_run.id }}
     - run: |
         files=( vscode-stlite*.vsix )
         echo "vsix_filename=${files[0]}" >> $GITHUB_ENV

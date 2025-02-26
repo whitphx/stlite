@@ -88,7 +88,7 @@ jobs:
       id: create-check-run
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: ${{ github.job }}
+        name: ${{ github.workflow && format('{0} / ', github.workflow) || '' }}${{ github.job }}${{ matrix.os && format(' ({0})', matrix.os) || '' }}
         status: "in_progress"
         sha: ${{ needs.get-build-info.outputs.commit-hash }}
     - uses: actions/checkout@v4

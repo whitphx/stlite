@@ -122,5 +122,8 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: `Deployment completed successfully ([log](${logUrl})).\n* Sharing: ${sharingUrl}\n* Sharing Editor: ${sharingEditorUrl}`
+              body: `Deployment completed successfully ([log](${logUrl})).
+            * Sharing App: ${sharingUrl}
+            * Sharing Editor: ${sharingEditorUrl}
+            `
             });

@@ -22,6 +22,3 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/inform-package-stats
-        with:
-          workflow-name: "Test, Build, and Publish"
-          run-id: ${{ github.event.workflow_run.id }}

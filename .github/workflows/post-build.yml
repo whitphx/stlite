@@ -1,0 +1,170 @@
+name: Post-build
+
+on:
+  workflow_run:
+    workflows: ["Test, Build, and Publish"]
+    types:
+      - completed
+
+env:
+  python-version-file: ".python-version"
+  node-version-file: ".nvmrc"
+
+permissions: {}
+
+jobs:
+  publish-browser:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-browser-${{ github.ref_name }}.tgz
+        path: packages/browser
+        run-id: ${{ github.event.workflow_run.id }}
+
+    - run: yarn publish stlite-browser-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/browser
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: packages/browser/stlite-browser-v*.tgz
+        generate_release_notes: true
+
+  e2e-desktop:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
+
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        name: stlite-desktop-${{ github.sha }}.tgz
+        path: ${{ runner.temp }}/sample_app
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        name: stlite-desktop-${{ github.ref_name }}.tgz
+        path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
+
+    - name: Install the tarball
+      run: |
+        mv stlite-desktop-v*.tgz stlite-desktop.tgz
+        npm install file:stlite-desktop.tgz
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - run: yarn dump
+      working-directory: ${{ runner.temp }}/sample_app
+
+    # TODO: Run `yarn serve` and check if the app doesn't show any error.
+
+    - name: Check if electron-builder works
+      run: yarn run app:dir
+      working-directory: ${{ runner.temp }}/sample_app
+
+  publish-desktop:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: [e2e-desktop]
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-desktop-${{ github.ref_name }}.tgz
+        path: packages/desktop
+        run-id: ${{ github.event.workflow_run.id }}
+
+    - run: yarn publish stlite-desktop-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/desktop
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: packages/desktop/stlite-desktop-v*.tgz
+        generate_release_notes: true
+
+  publish-vscode-extension:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs:
+    - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [marketplace, openvsx]
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: vscode-stlite-${{ github.ref_name }}.vsix
+        run-id: ${{ github.event.workflow_run.id }}
+    - run: |
+        files=( vscode-stlite*.vsix )
+        echo "vsix_filename=${files[0]}" >> $GITHUB_ENV
+    - if: matrix.target == 'marketplace'
+      name: Publish to Visual Studio Marketplace
+      uses: HaaLeo/publish-vscode-extension@v2
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.VSCE_PAT }}
+        registryUrl: https://marketplace.visualstudio.com
+    - if: matrix.target == 'openvsx'
+      name: Publish to Open VSX Registry
+      uses: HaaLeo/publish-vscode-extension@v2
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+    - if: matrix.target == 'marketplace'
+      name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: "${{ env.vsix_filename }}"
+        generate_release_notes: true

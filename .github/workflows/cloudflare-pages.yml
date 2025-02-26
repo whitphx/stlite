@@ -15,31 +15,31 @@ on:
 permissions: {}
 
 jobs:
-  get-cloudflare-pages-info:
+  get-build-info:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      branch: ${{ steps.cloudflare-pages-info.outputs.branch }}
-      commit-hash: ${{ steps.cloudflare-pages-info.outputs.commit-hash }}
-      pr-number: ${{ steps.cloudflare-pages-info.outputs.pr-number }}
+      branch: ${{ steps.build-info.outputs.branch }}
+      commit-hash: ${{ steps.build-info.outputs.commit-hash }}
+      pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
-      - name: Download deployment info
+      - name: Download build info
         uses: actions/download-artifact@v4
         with:
-          name: cloudflare-pages-info
+          name: build-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
-      - name: Read deployment info
-        id: cloudflare-pages-info
+      - name: Read build info
+        id: build-info
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
-    needs: get-cloudflare-pages-info
+    needs: get-build-info
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,11 +64,11 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-cloudflare-pages-info.outputs.branch }} --commit-hash=${{ needs.get-cloudflare-pages-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:
-    needs: [get-cloudflare-pages-info, deploy-sharing]
+    needs: [get-build-info, deploy-sharing]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -95,12 +95,12 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-cloudflare-pages-info.outputs.branch }} --commit-hash=${{ needs.get-cloudflare-pages-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   comment-on-pr:
-    needs: [get-cloudflare-pages-info, deploy-sharing, deploy-sharing-editor]
-    if: needs.get-cloudflare-pages-info.outputs.pr-number != ''
+    needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
+    if: needs.get-build-info.outputs.pr-number != ''
 
     runs-on: ubuntu-latest
     permissions:
@@ -110,7 +110,7 @@ jobs:
       - name: Comment on PR
         uses: actions/github-script@v7
         env:
-          PR_NUMBER: ${{ needs.get-cloudflare-pages-info.outputs.pr-number }}
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
         with:
           script: |
             const prNumber = process.env.PR_NUMBER;

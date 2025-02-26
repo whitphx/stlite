@@ -32,7 +32,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "${{ github.event.pull_request.head.ref }}" > branch
-          echo "${{ github.event.pull_request.head.sha }}" > commit-hash
+          echo "${{ github.sha }}" > commit-hash
           echo "${{ github.event.pull_request.number }}" > pr-number
       - name: Save build info (push to a branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'

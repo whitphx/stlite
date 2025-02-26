@@ -68,6 +68,7 @@ jobs:
       with:
         name: stlite-desktop-${{ github.event.workflow_run.head_sha }}.tgz
         path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
       if: startsWith(github.ref, 'refs/tags/v')

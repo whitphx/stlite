@@ -21,6 +21,7 @@ env:
   # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
   NODE_OPTIONS: "--max-old-space-size=6656"
   RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v') }}
+  HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
 permissions: {}
 
@@ -325,7 +326,7 @@ jobs:
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-browser-${{ github.sha }}.tgz
+        name: stlite-browser-${{ env.HEAD_SHA }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
@@ -490,7 +491,7 @@ jobs:
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-desktop-${{ github.sha }}.tgz
+        name: stlite-desktop-${{ env.HEAD_SHA }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
@@ -559,8 +560,8 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/v') }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
-        name: vscode-stlite-${{ github.sha }}.vsix
-    - name: Upload the vsix built on Linux
+        name: vscode-stlite-${{ env.HEAD_SHA }}.vsix
+    - name: Upload the vsix built on Linux (when pushed with a version tag)
       uses: actions/upload-artifact@v4
       if: ${{ matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v') }}
       with:

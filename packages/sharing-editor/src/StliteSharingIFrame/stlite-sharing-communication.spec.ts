@@ -8,7 +8,7 @@ import {
 
 describe("postMessageToStliteSharing", () => {
   const message = {
-    type: "language-server:code_completion",
+    type: "code_completion_request",
     data: {
       code: 'print("Hello")',
       currentLine: 'print("Hello")',

@@ -32,7 +32,6 @@ import {
   URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
-import { getStliteSharingURL } from "./constants";
 
 interface AppLoaderData {
   appData: AppData;
@@ -45,9 +44,17 @@ interface AppLoaderData {
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<AppLoaderData> => {
-  const sharingAppUrl = await getStliteSharingURL();
-  const sharingAppSrc = sharingAppUrl.href;
-  const sharingAppOrigin = sharingAppUrl.origin;
+  const sharingAppSrc =
+    SHARING_APP_URL ??
+    (RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE
+      ? // For preview builds on CI whose SHARING_APP_URL can't be determined at build time,
+        // the sharing app URL is resolved at runtime from the /SHARING_APP_URL file.
+        await fetch("/SHARING_APP_URL").then((res) => res.text())
+      : undefined);
+  if (sharingAppSrc == null) {
+    throw new Error("The URL of the sharing app is not set");
+  }
+  const sharingAppOrigin = new URL(sharingAppSrc).origin;
 
   const url = new URL(request.url);
   const { sampleAppId: parsedSampleAppId, isInvalidSampleAppId } =

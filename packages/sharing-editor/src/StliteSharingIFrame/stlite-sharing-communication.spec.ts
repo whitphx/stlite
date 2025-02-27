@@ -15,7 +15,7 @@ describe("postMessageToStliteSharing", () => {
       currentLineNumber: 1,
       offset: 5,
     },
-  } as LanguageServerCodeCompletionMessage;
+  } satisfies LanguageServerCodeCompletionMessage;
 
   const targetOrigin = "http://localhost:3000";
   const postMessageMockFn = vi.fn();

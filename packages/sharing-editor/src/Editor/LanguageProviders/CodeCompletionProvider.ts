@@ -1,13 +1,13 @@
 import type { editor, Position, languages } from "monaco-editor";
 import { CompletionItemInsertTextRule, CompletionItemKind } from "./types";
 import type {
-  LanguageServerCodeCompletionRequestPayload,
-  LanguageServerCodeCompletionResponse,
+  CodeCompletionRequest,
+  CodeCompletionResponse,
 } from "@stlite/sharing-common/src/messages";
 
 export type CodeCompletionCallback = (
-  payload: LanguageServerCodeCompletionRequestPayload,
-) => Promise<LanguageServerCodeCompletionResponse>;
+  payload: CodeCompletionRequest,
+) => Promise<CodeCompletionResponse>;
 
 /**
  * Provides code completion items for code editor.

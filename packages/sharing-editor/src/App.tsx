@@ -5,7 +5,7 @@ import type {
   AppData,
   File,
   BackwardMessage,
-  LanguageServerCodeCompletionResponse,
+  CodeCompletionResponse,
 } from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
@@ -318,9 +318,9 @@ function App() {
       }
 
       return iframeRef.current.postMessage({
-        type: "language-server:code_completion",
+        type: "code_completion_request",
         data: payload,
-      }) as Promise<LanguageServerCodeCompletionResponse>;
+      }) as Promise<CodeCompletionResponse>;
     };
   }, []);
 

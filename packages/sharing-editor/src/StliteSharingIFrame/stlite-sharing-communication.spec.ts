@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { postMessageToStliteSharing } from "./stlite-sharing-communication";
 import {
   ForwardMessage,
-  LanguageServerCodeCompletionMessage,
+  CodeCompletionRequestMessage,
 } from "@stlite/sharing-common";
 
 describe("postMessageToStliteSharing", () => {
@@ -15,7 +15,7 @@ describe("postMessageToStliteSharing", () => {
       currentLineNumber: 1,
       offset: 5,
     },
-  } satisfies LanguageServerCodeCompletionMessage;
+  } satisfies CodeCompletionRequestMessage;
 
   const targetOrigin = "http://localhost:3000";
   const targetWindow = {

@@ -26,10 +26,10 @@ import { useDarkMode } from "../ColorScheme/hooks";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 import {
   CodeCompletionProvider,
-  CodeCompleter,
+  CodeCompletionCallback,
 } from "./LanguageProviders/CodeCompletionProvider";
 
-export type { CodeCompleter };
+export type { CodeCompletionCallback };
 
 let newFileCount = 1;
 
@@ -40,7 +40,7 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
-  codeCompleter: CodeCompleter;
+  codeCompletionCallback: CodeCompletionCallback;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
@@ -52,7 +52,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
     {
       appData,
-      codeCompleter,
+      codeCompletionCallback,
       onFileWrite,
       onFileRename,
       onFileDelete,
@@ -106,10 +106,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         registeredProviderRef.current =
           monaco.languages.registerCompletionItemProvider(
             "python",
-            new CodeCompletionProvider(codeCompleter),
+            new CodeCompletionProvider(codeCompletionCallback),
           );
       },
-      [codeCompleter],
+      [codeCompletionCallback],
     );
 
     useEffect(() => {

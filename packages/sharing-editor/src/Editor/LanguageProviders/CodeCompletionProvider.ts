@@ -5,11 +5,9 @@ import type {
   LanguageServerCodeCompletionResponse,
 } from "@stlite/sharing-common/src/messages";
 
-export interface CodeCompleter {
-  run: (
-    payload: LanguageServerCodeCompletionRequestPayload,
-  ) => Promise<LanguageServerCodeCompletionResponse>;
-}
+export type CodeCompletionCallback = (
+  payload: LanguageServerCodeCompletionRequestPayload,
+) => Promise<LanguageServerCodeCompletionResponse>;
 
 /**
  * Provides code completion items for code editor.
@@ -56,7 +54,7 @@ export class CodeCompletionProvider
     25: CompletionItemKind.TypeParameter,
   } as Record<languages.CompletionItemKind, CompletionItemKind>;
 
-  constructor(private readonly codeCompleter: CodeCompleter) {}
+  constructor(private readonly callback: CodeCompletionCallback) {}
 
   async provideCompletionItems(
     model: editor.ITextModel,
@@ -70,7 +68,7 @@ export class CodeCompletionProvider
       endColumn: position.column,
     });
 
-    const result = (await this.codeCompleter.run({
+    const result = (await this.callback({
       code: model.getValue(),
       currentLine: textUntilPosition,
       currentLineNumber: position.lineNumber,

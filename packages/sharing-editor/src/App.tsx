@@ -14,7 +14,7 @@ import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
 import Editor from "./Editor";
-import type { EditorProps, EditorRef, CodeCompleter } from "./Editor";
+import type { EditorProps, EditorRef, CodeCompletionCallback } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrlHash } from "@stlite/sharing-common";
 import {
@@ -311,19 +311,16 @@ function App() {
     [updateAppData],
   );
 
-  const codeCompleter = useMemo((): CodeCompleter => {
-    return {
-      run: (payload) => {
-        if (iframeRef.current == null) {
-          // TODO: Handle this case gracefully
-          throw new Error("Iframe is not ready");
-        }
+  const codeCompletionCallback = useMemo((): CodeCompletionCallback => {
+    return (payload) => {
+      if (iframeRef.current == null) {
+        throw new Error("Iframe is not ready");
+      }
 
-        return iframeRef.current.postMessage({
-          type: "language-server:code_completion",
-          data: payload,
-        }) as Promise<LanguageServerCodeCompletionResponse>;
-      },
+      return iframeRef.current.postMessage({
+        type: "language-server:code_completion",
+        data: payload,
+      }) as Promise<LanguageServerCodeCompletionResponse>;
     };
   }, []);
 
@@ -345,7 +342,7 @@ function App() {
               key={initAppDataKey}
               ref={editorRef}
               appData={appData}
-              codeCompleter={codeCompleter}
+              codeCompletionCallback={codeCompletionCallback}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}

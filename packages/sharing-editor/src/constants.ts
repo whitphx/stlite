@@ -16,5 +16,3 @@ export const getStliteSharingURL = async () => {
   const sharingAppUrl = new URL(sharingAppSrc);
   return sharingAppUrl;
 };
-
-export const STLITE_SHARING_IFRAME_ID = "stliteSharingIframe";

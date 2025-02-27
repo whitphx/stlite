@@ -32,7 +32,7 @@ import {
   URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
-import { getStliteSharingURL, STLITE_SHARING_IFRAME_ID } from "./constants";
+import { getStliteSharingURL } from "./constants";
 
 interface AppLoaderData {
   appData: AppData;
@@ -365,7 +365,6 @@ function App() {
                   sharingAppSrc={sharingAppSrc}
                   initialAppData={initialAppData}
                   messageTargetOrigin={sharingAppOrigin}
-                  id={STLITE_SHARING_IFRAME_ID}
                   title="stlite app"
                   className="preview-iframe"
                   onMessage={handleIframeMessage}

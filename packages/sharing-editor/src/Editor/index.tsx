@@ -23,8 +23,9 @@ import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 // import { isDarkMode } from "../color-mode";
 import { useDarkMode } from "../ColorScheme/hooks";
-import { monacoEditorSetup } from "./LanguageProviders/monacoEditorSetup";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
+import { LanguageServerService } from "./LanguageProviders/LanguageServerService";
+import { CodeCompletionProvider } from "./LanguageProviders/CodeCompletitionProvider";
 
 let newFileCount = 1;
 
@@ -89,12 +90,18 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
     const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
     const monacoRef = useRef<any>(null);
-    const langProviders = useRef<IDisposable | null>(null);
+    const registeredProviderRef = useRef<IDisposable>();
 
     const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
       editorRef.current = editor;
       monacoRef.current = monaco;
-      langProviders.current = monacoEditorSetup(monaco);
+
+      const languageServerService = new LanguageServerService();
+      registeredProviderRef.current =
+        monaco.languages.registerCompletionItemProvider(
+          "python",
+          new CodeCompletionProvider(languageServerService),
+        );
     }, []);
 
     useEffect(() => {
@@ -107,8 +114,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         }
 
         // Unregister and dispose all monaco language providers
-        if (langProviders.current) {
-          langProviders.current.dispose();
+        if (registeredProviderRef.current) {
+          registeredProviderRef.current.dispose();
         }
       };
     }, []);

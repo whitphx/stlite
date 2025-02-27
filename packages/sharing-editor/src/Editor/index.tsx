@@ -24,8 +24,10 @@ import styles from "./Editor.module.scss";
 // import { isDarkMode } from "../color-mode";
 import { useDarkMode } from "../ColorScheme/hooks";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
-import { LanguageServerService } from "./LanguageProviders/LanguageServerService";
-import { CodeCompletionProvider } from "./LanguageProviders/CodeCompletitionProvider";
+import {
+  CodeCompletionProvider,
+  CodeCompleter,
+} from "./LanguageProviders/CodeCompletionProvider";
 
 let newFileCount = 1;
 
@@ -36,6 +38,7 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
+  codeCompleter: CodeCompleter;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
@@ -47,6 +50,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
     {
       appData,
+      codeCompleter,
       onFileWrite,
       onFileRename,
       onFileDelete,
@@ -92,17 +96,19 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     const monacoRef = useRef<any>(null);
     const registeredProviderRef = useRef<IDisposable>();
 
-    const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
-      editorRef.current = editor;
-      monacoRef.current = monaco;
+    const handleEditorDitMount = useCallback<OnMount>(
+      (editor, monaco) => {
+        editorRef.current = editor;
+        monacoRef.current = monaco;
 
-      const languageServerService = new LanguageServerService();
-      registeredProviderRef.current =
-        monaco.languages.registerCompletionItemProvider(
-          "python",
-          new CodeCompletionProvider(languageServerService),
-        );
-    }, []);
+        registeredProviderRef.current =
+          monaco.languages.registerCompletionItemProvider(
+            "python",
+            new CodeCompletionProvider(codeCompleter),
+          );
+      },
+      [codeCompleter],
+    );
 
     useEffect(() => {
       return () => {

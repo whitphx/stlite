@@ -1,6 +1,15 @@
 import type { editor, Position, languages } from "monaco-editor";
 import { CompletionItemInsertTextRule, CompletionItemKind } from "./types";
-import { LanguageServerService } from "./LanguageServerService";
+import type {
+  LanguageServerCodeCompletionRequestPayload,
+  LanguageServerCodeCompletionResponse,
+} from "@stlite/sharing-common/src/messages";
+
+export interface CodeCompleter {
+  run: (
+    payload: LanguageServerCodeCompletionRequestPayload,
+  ) => Promise<LanguageServerCodeCompletionResponse>;
+}
 
 /**
  * Provides code completion items for code editor.
@@ -47,7 +56,7 @@ export class CodeCompletionProvider
     25: CompletionItemKind.TypeParameter,
   } as Record<languages.CompletionItemKind, CompletionItemKind>;
 
-  constructor(private readonly languageServerService: LanguageServerService) {}
+  constructor(private readonly codeCompleter: CodeCompleter) {}
 
   async provideCompletionItems(
     model: editor.ITextModel,
@@ -61,7 +70,7 @@ export class CodeCompletionProvider
       endColumn: position.column,
     });
 
-    const result = (await this.languageServerService.autocomplete({
+    const result = (await this.codeCompleter.run({
       code: model.getValue(),
       currentLine: textUntilPosition,
       currentLineNumber: position.lineNumber,

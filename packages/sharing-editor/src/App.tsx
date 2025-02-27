@@ -1,10 +1,11 @@
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import "./App.css";
-import {
-  embedAppDataToUrl,
+import { embedAppDataToUrl } from "@stlite/sharing-common";
+import type {
   AppData,
   File,
   BackwardMessage,
+  LanguageServerCodeCompletionResponse,
 } from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
@@ -13,6 +14,7 @@ import StliteSharingIFrame, {
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
 import Editor, { EditorProps, EditorRef } from "./Editor";
+import type { CodeCompleter } from "./Editor/LanguageProviders/CodeCompletionProvider";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrlHash } from "@stlite/sharing-common";
 import {
@@ -309,6 +311,24 @@ function App() {
     [updateAppData],
   );
 
+  const codeCompleter = useMemo((): CodeCompleter => {
+    return {
+      run: (payload) => {
+        if (iframeRef.current == null) {
+          // TODO: Handle this case gracefully
+          throw new Error("Iframe is not ready");
+        }
+
+        return iframeRef.current
+          .postMessage({
+            type: "language-server:code_completion",
+            data: payload,
+          })
+          .then((res) => res.data as LanguageServerCodeCompletionResponse);
+      },
+    };
+  }, []);
+
   const appColorSchemePreference = useAppColorSchemePreference();
 
   return (
@@ -327,6 +347,7 @@ function App() {
               key={initAppDataKey}
               ref={editorRef}
               appData={appData}
+              codeCompleter={codeCompleter}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}

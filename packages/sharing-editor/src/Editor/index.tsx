@@ -29,6 +29,8 @@ import {
   CodeCompleter,
 } from "./LanguageProviders/CodeCompletionProvider";
 
+export type { CodeCompleter };
+
 let newFileCount = 1;
 
 const REQUIREMENTS_FILENAME = "requirements";

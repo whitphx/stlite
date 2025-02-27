@@ -13,8 +13,8 @@ import StliteSharingIFrame, {
   StliteSharingIFrameProps,
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
-import Editor, { EditorProps, EditorRef } from "./Editor";
-import type { CodeCompleter } from "./Editor/LanguageProviders/CodeCompletionProvider";
+import Editor from "./Editor";
+import type { EditorProps, EditorRef, CodeCompleter } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrlHash } from "@stlite/sharing-common";
 import {

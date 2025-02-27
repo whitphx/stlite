@@ -21,7 +21,7 @@
     "vite-plugin-wasm": "^3.4.1"
   },
   "scripts": {
-    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:=http://localhost:3030} vite",
+    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:=http://localhost:5173} vite",
     "build": "vite build",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

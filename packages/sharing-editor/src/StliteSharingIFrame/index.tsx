@@ -66,8 +66,13 @@ const StliteSharingIFrame = React.forwardRef<
       ref,
       () => ({
         postMessage: (message) => {
+          const targetWindow = iframeRef.current?.contentWindow;
+          if (targetWindow == null) {
+            throw new Error(`The target iframe window is not ready`);
+          }
+
           return postMessageToStliteSharing(
-            iframeRef.current as HTMLIFrameElement,
+            targetWindow,
             message,
             messageTargetOrigin,
           );

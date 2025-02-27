@@ -6,6 +6,7 @@ import type {
   File,
   BackwardMessage,
   CodeCompletionResponse,
+  CodeCompletionRequest,
 } from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
@@ -13,8 +14,7 @@ import StliteSharingIFrame, {
   StliteSharingIFrameProps,
   StliteSharingIFrameRef,
 } from "./StliteSharingIFrame";
-import Editor from "./Editor";
-import type { EditorProps, EditorRef, CodeCompletionCallback } from "./Editor";
+import Editor, { EditorProps, EditorRef } from "./Editor";
 import PreviewToolBar from "./components/PreviewToolBar";
 import { extractAppDataFromUrlHash } from "@stlite/sharing-common";
 import {
@@ -311,18 +311,20 @@ function App() {
     [updateAppData],
   );
 
-  const codeCompletionCallback = useMemo((): CodeCompletionCallback => {
-    return (payload) => {
-      if (iframeRef.current == null) {
-        throw new Error("Iframe is not ready");
-      }
+  const codeCompletionCallback = useMemo(
+    () =>
+      (payload: CodeCompletionRequest): Promise<CodeCompletionResponse> => {
+        if (iframeRef.current == null) {
+          throw new Error("Iframe is not ready");
+        }
 
-      return iframeRef.current.postMessage({
-        type: "code_completion_request",
-        data: payload,
-      }) as Promise<CodeCompletionResponse>;
-    };
-  }, []);
+        return iframeRef.current.postMessage({
+          type: "code_completion_request",
+          data: payload,
+        }) as Promise<CodeCompletionResponse>;
+      },
+    [],
+  );
 
   const appColorSchemePreference = useAppColorSchemePreference();
 

@@ -29,8 +29,6 @@ import {
   CodeCompletionCallback,
 } from "./LanguageProviders/CodeCompletionProvider";
 
-export type { CodeCompletionCallback };
-
 let newFileCount = 1;
 
 const REQUIREMENTS_FILENAME = "requirements";

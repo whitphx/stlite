@@ -96,18 +96,17 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
     const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
     const monacoRef = useRef<any>(null);
-    const registeredProviderRef = useRef<IDisposable>();
+    const disposableRef = useRef<IDisposable>();
 
     const handleEditorDitMount = useCallback<OnMount>(
       (editor, monaco) => {
         editorRef.current = editor;
         monacoRef.current = monaco;
 
-        registeredProviderRef.current =
-          monaco.languages.registerCompletionItemProvider(
-            "python",
-            new CodeCompletionProvider(codeCompletionCallback),
-          );
+        disposableRef.current = monaco.languages.registerCompletionItemProvider(
+          "python",
+          new CodeCompletionProvider(codeCompletionCallback),
+        );
       },
       [codeCompletionCallback],
     );
@@ -122,8 +121,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         }
 
         // Unregister and dispose all monaco language providers
-        if (registeredProviderRef.current) {
-          registeredProviderRef.current.dispose();
+        if (disposableRef.current) {
+          disposableRef.current.dispose();
         }
       };
     }, []);

@@ -6,7 +6,7 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import { ALLOWED_FEATURE_POLICY } from "./policy";
-import { postMessageToStliteSharing } from "../stlite-sharing-communication";
+import { postMessageToStliteSharing } from "./stlite-sharing-communication";
 
 export interface StliteSharingIFrameRef {
   postMessage: (msg: ForwardMessage) => Promise<ReplyMessage>;

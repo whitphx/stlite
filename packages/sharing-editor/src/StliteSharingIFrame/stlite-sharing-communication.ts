@@ -1,5 +1,5 @@
 import type { ForwardMessage, ReplyMessage } from "@stlite/sharing-common";
-import { getStliteSharingURL } from "./constants";
+import { getStliteSharingURL } from "../constants";
 
 export const postMessageToStliteSharing = async (
   stliteSharingIframe: HTMLIFrameElement,

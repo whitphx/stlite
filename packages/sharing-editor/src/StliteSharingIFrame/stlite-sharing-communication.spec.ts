@@ -40,10 +40,7 @@ describe("postMessageToStliteSharing", () => {
     await expect(
       postMessageToStliteSharing(targetWindow, message, targetOrigin),
     ).resolves.toEqual({
-      type: "reply:language-server:code_completion",
-      data: {
-        items: [],
-      },
+      items: [],
     });
   });
   it("should reject when there is an error", async () => {

@@ -4,7 +4,7 @@ export const postMessageToStliteSharing = async (
   targetWindow: Window,
   message: ForwardMessage,
   targetOrigin: string,
-): Promise<ReplyMessage> => {
+): Promise<ReplyMessage["data"]> => {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel();
 
@@ -15,7 +15,7 @@ export const postMessageToStliteSharing = async (
       if (reply.error) {
         reject(reply.error);
       } else {
-        resolve(reply);
+        resolve(reply.data);
       }
     };
 

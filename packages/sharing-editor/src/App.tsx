@@ -319,12 +319,10 @@ function App() {
           throw new Error("Iframe is not ready");
         }
 
-        return iframeRef.current
-          .postMessage({
-            type: "language-server:code_completion",
-            data: payload,
-          })
-          .then((res) => res.data as LanguageServerCodeCompletionResponse);
+        return iframeRef.current.postMessage({
+          type: "language-server:code_completion",
+          data: payload,
+        }) as Promise<LanguageServerCodeCompletionResponse>;
       },
     };
   }, []);

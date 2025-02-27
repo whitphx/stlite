@@ -198,7 +198,7 @@ runs:
                 await github.rest.repos.listPullRequestsAssociatedWithCommit({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  commit_sha: context.sha,
+                  commit_sha: process.env.COMMIT_SHA,
                 })
               ).data;
               const openPullRequests = pullRequests.filter(pr => pr.state === "open")

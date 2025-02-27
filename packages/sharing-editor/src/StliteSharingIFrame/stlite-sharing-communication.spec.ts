@@ -18,12 +18,12 @@ describe("postMessageToStliteSharing", () => {
   } satisfies LanguageServerCodeCompletionMessage;
 
   const targetOrigin = "http://localhost:3000";
-  const postMessageMockFn = vi.fn();
   const targetWindow = {
-    postMessage: postMessageMockFn,
-  } as unknown as Window;
+    postMessage: vi.fn(),
+  };
+
   it("should resolve when the message is successfully returned", async () => {
-    postMessageMockFn.mockImplementationOnce(
+    targetWindow.postMessage.mockImplementationOnce(
       (_message: ForwardMessage, _origin: string, options: unknown[]) => {
         const port = options[0] as MessagePort;
         setTimeout(() => {
@@ -38,14 +38,18 @@ describe("postMessageToStliteSharing", () => {
     );
 
     await expect(
-      postMessageToStliteSharing(targetWindow, message, targetOrigin),
+      postMessageToStliteSharing(
+        targetWindow as unknown as Window,
+        message,
+        targetOrigin,
+      ),
     ).resolves.toEqual({
       items: [],
     });
   });
+
   it("should reject when there is an error", async () => {
-    // Mock the postMessage implementation to trigger onmessage
-    postMessageMockFn.mockImplementationOnce(
+    targetWindow.postMessage.mockImplementationOnce(
       (_message: ForwardMessage, _origin: string, options: unknown[]) => {
         const port = options[0] as MessagePort;
         setTimeout(() => {
@@ -56,8 +60,13 @@ describe("postMessageToStliteSharing", () => {
         }, 0);
       },
     );
+
     await expect(
-      postMessageToStliteSharing(targetWindow, message, targetOrigin),
+      postMessageToStliteSharing(
+        targetWindow as unknown as Window,
+        message,
+        targetOrigin,
+      ),
     ).rejects.toThrowError("Test Error");
   });
 });

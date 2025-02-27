@@ -13,8 +13,8 @@ export const getStliteSharingURL = async () => {
   if (sharingAppSrc == null) {
     throw new Error("The URL of the sharing app is not set");
   }
-  const sharingAppOrigin = new URL(sharingAppSrc);
-  return sharingAppOrigin;
+  const sharingAppUrl = new URL(sharingAppSrc);
+  return sharingAppUrl;
 };
 
 export const STLITE_SHARING_IFRAME_ID = "stliteSharingIframe";

@@ -8,22 +8,17 @@ export const monacoEditorSetup = (monaco: Monaco) => {
   const disposables: IDisposable[] = [];
   const providers: IDisposable[] = [];
 
-  function registerProviders(): void {
-    disposeAll(providers);
+  const languageServerService = new LanguageServerService();
 
-    const languageServerService = new LanguageServerService();
+  // Provides autocomplete around where the current line is
+  providers.push(
+    monaco.languages.registerCompletionItemProvider(
+      "python",
+      new CodeCompletionProvider(languageServerService),
+    ),
+  );
 
-    // Provides autocomplete around where the current line is
-    providers.push(
-      monaco.languages.registerCompletionItemProvider(
-        "python",
-        new CodeCompletionProvider(languageServerService),
-      ),
-    );
-
-    disposables.push(languageServerService);
-  }
-  registerProviders();
+  disposables.push(languageServerService);
 
   disposables.push(asDisposable(providers));
 

@@ -1,4 +1,5 @@
 import type { PackageData } from "pyodide";
+import type { languages } from "monaco-editor/esm/vs/editor/editor.api";
 
 /**
  * Messages from editor to app
@@ -40,17 +41,17 @@ export interface InstallMessage extends ForwardMessageBase {
   };
 }
 
+export interface LanguageServerCodeCompletionRequestPayload {
+  code: string;
+  currentLine: string;
+  currentLineNumber: number;
+  offset: number;
+}
 export interface LanguageServerCodeCompletionMessage
   extends ForwardMessageBase {
   type: "language-server:code_completion";
-  data: {
-    code: string;
-    currentLine: string;
-    currentLineNumber: number;
-    offset: number;
-  };
+  data: LanguageServerCodeCompletionRequestPayload;
 }
-
 export type ForwardMessage =
   | RebootMessage
   | FileWriteMessage
@@ -74,13 +75,7 @@ export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
 }
 export interface LanguageServerCodeCompletionResponse {
-  /**
-   * Decided to use unknown to avoid importing whole package and bunch of stuff
-   * from monaco-editor package that we don't need it here at all
-   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
-   *
-   */
-  items: unknown[];
+  items: languages.CompletionItem[];
 }
 export interface LanguageServerCodeCompletionReplyMessage
   extends ReplyMessageBase {

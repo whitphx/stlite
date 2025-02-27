@@ -23,6 +23,8 @@ import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 // import { isDarkMode } from "../color-mode";
 import { useDarkMode } from "../ColorScheme/hooks";
+import { monacoEditorSetup } from "./LanguageProviders/monacoEditorSetup";
+import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 
 let newFileCount = 1;
 
@@ -85,12 +87,16 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         ? appData.files[currentFileName]
         : null;
 
-    const editorRef = useRef<Parameters<OnMount>[0]>(null);
+    const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
     const monacoRef = useRef<any>(null);
+    const langProviders = useRef<IDisposable | null>(null);
+
     const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
       editorRef.current = editor;
       monacoRef.current = monaco;
+      langProviders.current = monacoEditorSetup(monaco);
     }, []);
+
     useEffect(() => {
       return () => {
         const monaco = monacoRef.current;
@@ -98,6 +104,11 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
           // If we don't do it, the previous content will remain after changing the sample apps.
           monaco.editor.getModels().forEach((model: any) => model.dispose());
+        }
+
+        // Unregister and dispose all monaco language providers
+        if (langProviders.current) {
+          langProviders.current.dispose();
         }
       };
     }, []);

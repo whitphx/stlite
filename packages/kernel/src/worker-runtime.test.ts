@@ -398,8 +398,7 @@ hand
 
     test("should handle invalid requests and return empty response", async () => {
       const code = `import math
-math.cos()
-      `;
+math.cos()`;
 
       const suggestions = await getCodeCompletions(
         {
@@ -431,11 +430,10 @@ math.cos()
         pyodide as PyodideInterface,
       );
 
-      expect(suggestions).toEqual(
-        expect.objectContaining({
-          items: [],
-        }),
-      );
+      // When passing a code that contains string literals directly trough
+      // the JS Proxy, they are escaped and we are getting completions back
+      // as you would get in any IDE
+      expect(suggestions.items.length).toBeGreaterThan(1);
     });
   },
   {

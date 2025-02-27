@@ -73,6 +73,7 @@ export interface ReplyMessageBase {
 export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
 }
+
 export interface CodeCompletionResponse {
   items: languages.CompletionItem[];
 }

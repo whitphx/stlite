@@ -84,18 +84,21 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
 
   jedi_language_server = jedi.Script(code)
 
+  # jedi returns a zero-based array with lines 
+  jedi_line_number_index = current_line_number -1
+
+  # In case if we are not getting any results back or the offset is wrong
+  # Just return empty list
+  if jedi_line_number_index >= len(jedi_language_server._code_lines):
+   return json.dumps({ "items": []})
+
   jedi_completions_list = jedi_language_server.complete(
       current_line_number,
       cursor_offset,
       fuzzy=False,
   )
-
-  # In case if we are not getting any results back or the offset is wrong
-  # Just return empty list
-  if current_line_number >= len(jedi_language_server._code_lines):
-    return json.dumps({ "items": []})
-
-  code_at_cursor = jedi_language_server._code_lines[current_line_number -1]
+  
+  code_at_cursor = jedi_language_server._code_lines[jedi_line_number_index]
   cursor_range = get_text_edit_cursor_range(code_at_cursor, current_line_number, cursor_offset)
 
   # Convert jedi completion items as completion items compatible in language server

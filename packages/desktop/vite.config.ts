@@ -25,9 +25,6 @@ import topLevelAwait from "vite-plugin-top-level-await";
 
 import path from "path";
 
-const BUILD_AS_FAST_AS_POSSIBLE =
-  process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
-
 export default defineConfig(({ mode }) => ({
   base: "/",
   plugins: [

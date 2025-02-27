@@ -1,6 +1,13 @@
 name: Post-build
 
 on:
+  # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.
+  # The deployment jobs need access to the repository secrets,
+  # however, workflows triggered by the `pull_request` event don't have access to the secrets for security reasons
+  # because those workflows check out the PR's branch that may have malicious external contributors' changes,
+  # so we can't use the `pull_request` event to trigger the deployment jobs.
+  # Then, we have to run the deployment jobs in this separated workflow that is allowed to access the secrets because it runs in the context of the default branch which can be considered as a trusted branch.
+  # It is a security good practice introduced in the GitHub's official blog, https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
   workflow_run:
     workflows: ["Test, Build, and Publish"]
     types:
@@ -35,6 +42,96 @@ jobs:
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
+
+  deploy-sharing:
+    needs: get-build-info
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    steps:
+      - run: mkdir -p ${{ runner.temp }}/artifacts/
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing
+          path: ${{ runner.temp }}/artifacts/sharing
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-sharing-editor:
+    needs: [get-build-info, deploy-sharing]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing-editor to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing-editor
+          path: ${{ runner.temp }}/artifacts/sharing-editor
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Inject SHARING_APP_URL
+        run: |
+          echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-cloudflare-pages-deployments:
+    needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
+    if: needs.get-build-info.outputs.pr-number != ''
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const sharingUrl = '${{ needs.deploy-sharing.outputs.url }}';
+            const sharingEditorUrl = '${{ needs.deploy-sharing-editor.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully ([log](${logUrl})).
+            * Sharing App: ${sharingUrl}
+            * Sharing Editor: ${sharingEditorUrl}
+            `
+            });
 
   publish-browser:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -72,6 +169,9 @@ jobs:
         generate_release_notes: true
 
   e2e-desktop:
+    # Semantically, this job should be in the test-and-build workflow,
+    # but this job takes too long to run which delays the successive deployment workflow.
+    # So we run it here.
     needs: get-build-info
     strategy:
       matrix:

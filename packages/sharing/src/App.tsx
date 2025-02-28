@@ -6,7 +6,7 @@ import {
   ForwardMessage,
   ReplyMessage,
   ModuleAutoLoadSuccessMessage,
-  LanguageServerCodeCompletionReplyMessage,
+  CodeCompletionResponseMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
@@ -174,13 +174,13 @@ st.write("Hello World")`,
               case "install": {
                 return kernelWithToast.install(msg.data.requirements);
               }
-              case "language-server:code_completion": {
+              case "code_completion_request": {
                 return kernel?.getCodeCompletion(msg.data).then(
                   (result) =>
                     ({
-                      type: "reply:language-server:code_completion",
+                      type: "reply:code_completion_response",
                       data: result,
-                    }) as LanguageServerCodeCompletionReplyMessage,
+                    }) as CodeCompletionResponseMessage,
                 );
               }
             }

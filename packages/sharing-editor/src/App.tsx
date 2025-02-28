@@ -318,7 +318,7 @@ function App() {
     [updateAppData],
   );
 
-  const codeCompletionCallback = useMemo(
+  const pythonCodeCompletionCallback = useMemo(
     () =>
       (payload: CodeCompletionRequest): Promise<CodeCompletionResponse> => {
         if (iframeRef.current == null) {
@@ -351,7 +351,7 @@ function App() {
               key={initAppDataKey}
               ref={editorRef}
               appData={appData}
-              codeCompletionCallback={codeCompletionCallback}
+              pythonCodeCompletionCallback={pythonCodeCompletionCallback}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}

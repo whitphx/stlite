@@ -38,7 +38,7 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
-  codeCompletionCallback: CodeCompletionCallback;
+  pythonCodeCompletionCallback: CodeCompletionCallback;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
@@ -50,7 +50,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
     {
       appData,
-      codeCompletionCallback,
+      pythonCodeCompletionCallback,
       onFileWrite,
       onFileRename,
       onFileDelete,
@@ -103,10 +103,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
         disposableRef.current = monaco.languages.registerCompletionItemProvider(
           "python",
-          new CodeCompletionProvider(codeCompletionCallback),
+          new CodeCompletionProvider(pythonCodeCompletionCallback),
         );
       },
-      [codeCompletionCallback],
+      [pythonCodeCompletionCallback],
     );
 
     useEffect(() => {
@@ -118,7 +118,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           monaco.editor.getModels().forEach((model: any) => model.dispose());
         }
 
-        // Unregister and dispose all monaco language providers
         if (disposableRef.current) {
           disposableRef.current.dispose();
         }

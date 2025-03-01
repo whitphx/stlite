@@ -32,15 +32,15 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "${{ github.event.pull_request.head.ref }}" > branch
-          echo "${{ github.event.pull_request.head.sha }}" > head-commit-hash
-          echo "${{ github.sha }}" > commit-hash
+          echo "${{ github.event.pull_request.head.sha }}" > head-sha
+          echo "${{ github.sha }}" > trigger-sha
           echo "${{ github.event.pull_request.number }}" > pr-number
       - name: Save build info (push to a branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
           echo "${{ github.ref_name }}" > branch
-          echo "${{ github.sha }}" > head-commit-hash
-          echo "${{ github.sha }}" > commit-hash
+          echo "${{ github.sha }}" > head-sha
+          echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
       - name: Upload build info
         uses: actions/upload-artifact@v4
@@ -48,8 +48,8 @@ jobs:
           name: build-info
           path: |
             branch
-            head-commit-hash
-            commit-hash
+            head-sha
+            trigger-sha
             pr-number
 
   changes:  # See https://github.com/dorny/paths-filter#examples

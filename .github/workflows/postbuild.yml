@@ -27,8 +27,8 @@ jobs:
       contents: read
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
-      commit-hash: ${{ steps.build-info.outputs.commit-hash }}
-      head-commit-hash: ${{ steps.build-info.outputs.head-commit-hash }}
+      trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
+      head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
       - name: Download build info
@@ -41,8 +41,8 @@ jobs:
         id: build-info
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
-          echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
-          echo "head-commit-hash=$(cat head-commit-hash)" >> $GITHUB_OUTPUT
+          echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
+          echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
@@ -71,7 +71,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:
@@ -102,7 +102,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-cloudflare-pages-deployments:
@@ -192,7 +192,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: ${{ github.workflow && format('{0} / ', github.workflow) || '' }}${{ github.job }}${{ matrix.os && format(' ({0})', matrix.os) || '' }}
         status: "in_progress"
-        sha: ${{ needs.get-build-info.outputs.head-commit-hash }}
+        sha: ${{ needs.get-build-info.outputs.head-sha }}
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
@@ -204,7 +204,7 @@ jobs:
       uses: actions/download-artifact@v4
       if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
       with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.commit-hash }}.tgz
+        name: stlite-desktop-${{ needs.get-build-info.outputs.trigger-sha }}.tgz
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}

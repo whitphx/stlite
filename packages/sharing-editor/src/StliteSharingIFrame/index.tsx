@@ -6,9 +6,10 @@ import {
   ReplyMessage,
 } from "@stlite/sharing-common";
 import { ALLOWED_FEATURE_POLICY } from "./policy";
+import { postMessageToStliteSharing } from "./stlite-sharing-communication";
 
 export interface StliteSharingIFrameRef {
-  postMessage: (msg: ForwardMessage) => Promise<void>;
+  postMessage: (msg: ForwardMessage) => Promise<ReplyMessage["data"]>;
 }
 type IFrameProps = JSX.IntrinsicElements["iframe"];
 export interface StliteSharingIFrameProps extends Omit<IFrameProps, "src"> {
@@ -64,29 +65,17 @@ const StliteSharingIFrame = React.forwardRef<
     useImperativeHandle(
       ref,
       () => ({
-        postMessage(message) {
-          return new Promise((resolve, reject) => {
-            const targetWindow = iframeRef.current?.contentWindow;
-            if (targetWindow == null) {
-              throw new Error(`The target iframe window is not ready`);
-            }
+        postMessage: (message) => {
+          const targetWindow = iframeRef.current?.contentWindow;
+          if (targetWindow == null) {
+            throw new Error(`The target iframe window is not ready`);
+          }
 
-            const channel = new MessageChannel();
-
-            channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
-              channel.port1.close();
-              const reply = e.data;
-              if (reply.error) {
-                reject(reply.error);
-              } else {
-                resolve();
-              }
-            };
-
-            targetWindow.postMessage(message, messageTargetOrigin, [
-              channel.port2,
-            ]);
-          });
+          return postMessageToStliteSharing(
+            targetWindow,
+            message,
+            messageTargetOrigin,
+          );
         },
       }),
       [messageTargetOrigin],

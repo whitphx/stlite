@@ -1,10 +1,12 @@
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import "./App.css";
-import {
-  embedAppDataToUrl,
+import { embedAppDataToUrl } from "@stlite/sharing-common";
+import type {
   AppData,
   File,
   BackwardMessage,
+  CodeCompletionResponse,
+  CodeCompletionRequest,
 } from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
@@ -316,6 +318,21 @@ function App() {
     [updateAppData],
   );
 
+  const pythonCodeCompletionCallback = useMemo(
+    () =>
+      (payload: CodeCompletionRequest): Promise<CodeCompletionResponse> => {
+        if (iframeRef.current == null) {
+          throw new Error("Iframe is not ready");
+        }
+
+        return iframeRef.current.postMessage({
+          type: "code_completion_request",
+          data: payload,
+        }) as Promise<CodeCompletionResponse>;
+      },
+    [],
+  );
+
   const appColorSchemePreference = useAppColorSchemePreference();
 
   return (
@@ -334,6 +351,7 @@ function App() {
               key={initAppDataKey}
               ref={editorRef}
               appData={appData}
+              pythonCodeCompletionCallback={pythonCodeCompletionCallback}
               onFileWrite={handleFileWrite}
               onFileRename={handleFileRename}
               onFileDelete={handleFileDelete}

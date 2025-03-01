@@ -8,7 +8,7 @@ on:
   # we ensure the deployment steps always run in a trusted context with proper access to secrets.
   # It is a security good practice introduced in https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
   workflow_run:
-    workflows: ["Test, Build, and Publish"]
+    workflows: ["Test and Build"]
     types:
       - completed
 

@@ -1,0 +1,319 @@
+name: Postbuild
+
+on:
+  # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.
+  # The deployment jobs need access to the repository secrets,
+  # however, workflows triggered by the `pull_request` event don't have access to the secrets for security reasons
+  # because those workflows check out the PR's branch that may have malicious external contributors' changes,
+  # so we can't use the `pull_request` event to trigger the deployment jobs.
+  # Then, we have to run the deployment jobs in this separated workflow that is allowed to access the secrets because it runs in the context of the default branch which can be considered as a trusted branch.
+  # It is a security good practice introduced in the GitHub's official blog, https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+  workflow_run:
+    workflows: ["Test and Build"]
+    types:
+      - completed
+
+env:
+  python-version-file: ".python-version"
+  node-version-file: ".nvmrc"
+
+permissions: {}
+
+jobs:
+  get-build-info:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      branch: ${{ steps.build-info.outputs.branch }}
+      commit-hash: ${{ steps.build-info.outputs.commit-hash }}
+      pr-number: ${{ steps.build-info.outputs.pr-number }}
+    steps:
+      - name: Download build info
+        uses: actions/download-artifact@v4
+        with:
+          name: build-info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Read build info
+        id: build-info
+        run: |
+          echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
+          echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
+          echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
+
+  deploy-sharing:
+    needs: get-build-info
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    steps:
+      - run: mkdir -p ${{ runner.temp }}/artifacts/
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing
+          path: ${{ runner.temp }}/artifacts/sharing
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-sharing-editor:
+    needs: [get-build-info, deploy-sharing]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/sharing-editor to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.pages-deployment-alias-url }}
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stlite-sharing-editor
+          path: ${{ runner.temp }}/artifacts/sharing-editor
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Inject SHARING_APP_URL
+        run: |
+          echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.commit-hash }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-cloudflare-pages-deployments:
+    needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
+    if: needs.get-build-info.outputs.pr-number != ''
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const sharingUrl = '${{ needs.deploy-sharing.outputs.url }}';
+            const sharingEditorUrl = '${{ needs.deploy-sharing-editor.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully ([log](${logUrl})).
+            * Sharing App: ${sharingUrl}
+            * Sharing Editor: ${sharingEditorUrl}
+            `
+            });
+
+  publish-browser:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-browser-${{ github.ref_name }}.tgz
+        path: packages/browser
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: yarn publish stlite-browser-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/browser
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: packages/browser/stlite-browser-v*.tgz
+        generate_release_notes: true
+
+  e2e-desktop:
+    # Semantically, this job should be in the test-and-build workflow,
+    # but this job takes too long to run which delays the successive deployment workflow.
+    # So we run it here.
+    needs: get-build-info
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    permissions:
+      contents: read
+      checks: write
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: LouisBrunner/checks-action@v2.0.0
+      id: create-check-run
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: ${{ github.workflow && format('{0} / ', github.workflow) || '' }}${{ github.job }}${{ matrix.os && format(' ({0})', matrix.os) || '' }}
+        status: "in_progress"
+        sha: ${{ needs.get-build-info.outputs.commit-hash }}
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
+
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      with:
+        name: stlite-desktop-${{ needs.get-build-info.outputs.commit-hash }}.tgz
+        path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        name: stlite-desktop-${{ github.ref_name }}.tgz
+        path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install the tarball
+      run: |
+        mv stlite-desktop-v*.tgz stlite-desktop.tgz
+        npm install file:stlite-desktop.tgz
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - run: yarn dump
+      working-directory: ${{ runner.temp }}/sample_app
+
+    # TODO: Run `yarn serve` and check if the app doesn't show any error.
+
+    - name: Check if electron-builder works
+      run: yarn run app:dir
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - uses: LouisBrunner/checks-action@v2.0.0
+      if: always()
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        check_id: ${{ steps.create-check-run.outputs.check_id }}
+        conclusion: ${{ job.status }}
+        status: "completed"
+
+  publish-desktop:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: [e2e-desktop]
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-desktop-${{ github.ref_name }}.tgz
+        path: packages/desktop
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: yarn publish stlite-desktop-v*.tgz --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      working-directory: packages/desktop
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: packages/desktop/stlite-desktop-v*.tgz
+        generate_release_notes: true
+
+  publish-vscode-extension:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs:
+    - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [marketplace, openvsx]
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: vscode-stlite-${{ github.ref_name }}.vsix
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: |
+        files=( vscode-stlite*.vsix )
+        echo "vsix_filename=${files[0]}" >> $GITHUB_ENV
+    - if: matrix.target == 'marketplace'
+      name: Publish to Visual Studio Marketplace
+      uses: HaaLeo/publish-vscode-extension@v2
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.VSCE_PAT }}
+        registryUrl: https://marketplace.visualstudio.com
+    - if: matrix.target == 'openvsx'
+      name: Publish to Open VSX Registry
+      uses: HaaLeo/publish-vscode-extension@v2
+      with:
+        extensionFile: "${{ env.vsix_filename }}"
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+    - if: matrix.target == 'marketplace'
+      name: Create a new release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: "${{ env.vsix_filename }}"
+        generate_release_notes: true

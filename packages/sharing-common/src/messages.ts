@@ -1,4 +1,5 @@
 import type { PackageData } from "pyodide";
+import type { languages } from "monaco-editor/esm/vs/editor/editor.api";
 
 /**
  * Messages from editor to app
@@ -40,24 +41,23 @@ export interface InstallMessage extends ForwardMessageBase {
   };
 }
 
-export interface LanguageServerCodeCompletionMessage
-  extends ForwardMessageBase {
-  type: "language-server:code_completion";
-  data: {
-    code: string;
-    currentLine: string;
-    currentLineNumber: number;
-    offset: number;
-  };
+export interface CodeCompletionRequest {
+  code: string;
+  currentLine: string;
+  currentLineNumber: number;
+  offset: number;
 }
-
+export interface CodeCompletionRequestMessage extends ForwardMessageBase {
+  type: "code_completion_request";
+  data: CodeCompletionRequest;
+}
 export type ForwardMessage =
   | RebootMessage
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage
   | InstallMessage
-  | LanguageServerCodeCompletionMessage;
+  | CodeCompletionRequestMessage;
 
 /**
  * Reply to a forward message.
@@ -73,24 +73,16 @@ export interface ReplyMessageBase {
 export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
 }
-export interface LanguageServerCodeCompletionResponse {
-  /**
-   * Decided to use unknown to avoid importing whole package and bunch of stuff
-   * from monaco-editor package that we don't need it here at all
-   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
-   *
-   */
-  items: unknown[];
+
+export interface CodeCompletionResponse {
+  items: languages.CompletionItem[];
 }
-export interface LanguageServerCodeCompletionReplyMessage
-  extends ReplyMessageBase {
-  type: "reply:language-server:code_completion";
-  data: LanguageServerCodeCompletionResponse;
+export interface CodeCompletionResponseMessage extends ReplyMessageBase {
+  type: "reply:code_completion_response";
+  data: CodeCompletionResponse;
 }
 
-export type ReplyMessage =
-  | GeneralReplyMessage
-  | LanguageServerCodeCompletionReplyMessage;
+export type ReplyMessage = GeneralReplyMessage | CodeCompletionResponseMessage;
 
 /**
  * Messages from app to editor

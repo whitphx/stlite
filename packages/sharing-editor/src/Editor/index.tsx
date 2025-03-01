@@ -23,6 +23,11 @@ import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 // import { isDarkMode } from "../color-mode";
 import { useDarkMode } from "../ColorScheme/hooks";
+import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
+import {
+  CodeCompletionProvider,
+  CodeCompletionCallback,
+} from "./LanguageProviders/CodeCompletionProvider";
 
 let newFileCount = 1;
 
@@ -33,6 +38,7 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
+  pythonCodeCompletionCallback: CodeCompletionCallback;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;
@@ -44,6 +50,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
   (
     {
       appData,
+      pythonCodeCompletionCallback,
       onFileWrite,
       onFileRename,
       onFileDelete,
@@ -85,12 +92,23 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         ? appData.files[currentFileName]
         : null;
 
-    const editorRef = useRef<Parameters<OnMount>[0]>(null);
+    const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
     const monacoRef = useRef<any>(null);
-    const handleEditorDitMount = useCallback<OnMount>((editor, monaco) => {
-      editorRef.current = editor;
-      monacoRef.current = monaco;
-    }, []);
+    const disposableRef = useRef<IDisposable>();
+
+    const handleEditorDitMount = useCallback<OnMount>(
+      (editor, monaco) => {
+        editorRef.current = editor;
+        monacoRef.current = monaco;
+
+        disposableRef.current = monaco.languages.registerCompletionItemProvider(
+          "python",
+          new CodeCompletionProvider(pythonCodeCompletionCallback),
+        );
+      },
+      [pythonCodeCompletionCallback],
+    );
+
     useEffect(() => {
       return () => {
         const monaco = monacoRef.current;
@@ -98,6 +116,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
           // If we don't do it, the previous content will remain after changing the sample apps.
           monaco.editor.getModels().forEach((model: any) => model.dispose());
+        }
+
+        if (disposableRef.current) {
+          disposableRef.current.dispose();
         }
       };
     }, []);

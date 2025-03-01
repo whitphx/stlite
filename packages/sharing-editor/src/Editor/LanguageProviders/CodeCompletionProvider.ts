@@ -1,10 +1,13 @@
-import type {
-  editor,
-  Position,
-  languages,
-} from "monaco-editor/esm/vs/editor/editor.api";
+import type { editor, Position, languages } from "monaco-editor";
 import { CompletionItemInsertTextRule, CompletionItemKind } from "./types";
-import { LanguageServerService } from "./LanguageServerService";
+import type {
+  CodeCompletionRequest,
+  CodeCompletionResponse,
+} from "@stlite/sharing-common/src/messages";
+
+export type CodeCompletionCallback = (
+  payload: CodeCompletionRequest,
+) => Promise<CodeCompletionResponse>;
 
 /**
  * Provides code completion items for code editor.
@@ -23,7 +26,7 @@ export class CodeCompletionProvider
    * we need to map it to monaco-editor CompletionItemKind as they differ
    * https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
    */
-  private completionKind = {
+  private completionKindMap = {
     1: CompletionItemKind.Text,
     2: CompletionItemKind.Method,
     3: CompletionItemKind.Function,
@@ -49,9 +52,9 @@ export class CodeCompletionProvider
     23: CompletionItemKind.Event,
     24: CompletionItemKind.Operator,
     25: CompletionItemKind.TypeParameter,
-  } as { [key: number]: CompletionItemKind };
+  } as Record<languages.CompletionItemKind, CompletionItemKind>;
 
-  constructor(private readonly languageServerService: LanguageServerService) {}
+  constructor(private readonly callback: CodeCompletionCallback) {}
 
   async provideCompletionItems(
     model: editor.ITextModel,
@@ -65,7 +68,7 @@ export class CodeCompletionProvider
       endColumn: position.column,
     });
 
-    const result = (await this.languageServerService.autocomplete({
+    const result = (await this.callback({
       code: model.getValue(),
       currentLine: textUntilPosition,
       currentLineNumber: position.lineNumber,
@@ -97,10 +100,9 @@ export class CodeCompletionProvider
       documentation: entry.documentation,
       detail: entry.detail,
       range: undefined, // monaco will handle this for you :)
-      // eslint-disable-next-line no-prototype-builtins
-      kind: (this.completionKind.hasOwnProperty(entry.kind)
-        ? this.completionKind[entry.kind as number]
-        : entry.kind) as CompletionItemKind,
+      kind:
+        this.completionKindMap[entry.kind] ??
+        (entry.kind as CompletionItemKind),
     } as unknown as languages.CompletionItem;
 
     return results;

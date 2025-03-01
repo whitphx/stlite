@@ -1,4 +1,4 @@
-name: Post-build
+name: Postbuild
 
 on:
   # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.
@@ -9,7 +9,7 @@ on:
   # Then, we have to run the deployment jobs in this separated workflow that is allowed to access the secrets because it runs in the context of the default branch which can be considered as a trusted branch.
   # It is a security good practice introduced in the GitHub's official blog, https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
   workflow_run:
-    workflows: ["Test, Build, and Publish"]
+    workflows: ["Test and Build"]
     types:
       - completed
 

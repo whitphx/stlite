@@ -24,7 +24,7 @@
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "pyodide": "0.27.2"
+    "pyodide": "0.27.3"
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^6.3.4",

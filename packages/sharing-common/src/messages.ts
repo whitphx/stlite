@@ -1,5 +1,5 @@
 import type { PackageData } from "pyodide";
-import type { languages } from "monaco-editor/esm/vs/editor/editor.api";
+import type { languages } from "monaco-editor";
 
 /**
  * Messages from editor to app

@@ -28,6 +28,7 @@ jobs:
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
       commit-hash: ${{ steps.build-info.outputs.commit-hash }}
+      head-commit-hash: ${{ steps.build-info.outputs.head-commit-hash }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
       - name: Download build info
@@ -41,6 +42,7 @@ jobs:
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "commit-hash=$(cat commit-hash)" >> $GITHUB_OUTPUT
+          echo "head-commit-hash=$(cat head-commit-hash)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
@@ -190,7 +192,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: ${{ github.workflow && format('{0} / ', github.workflow) || '' }}${{ github.job }}${{ matrix.os && format(' ({0})', matrix.os) || '' }}
         status: "in_progress"
-        sha: ${{ needs.get-build-info.outputs.commit-hash }}
+        sha: ${{ needs.get-build-info.outputs.head-commit-hash }}
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:

@@ -26,9 +26,8 @@ jobs:
     permissions:
       contents: read
     outputs:
-      ref: ${{ steps.build-info.outputs.ref }}
-      ref_name: ${{ steps.build-info.outputs.ref_name }}
       branch: ${{ steps.build-info.outputs.branch }}
+      tag: ${{ steps.build-info.outputs.tag }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
@@ -42,9 +41,8 @@ jobs:
       - name: Read build info
         id: build-info
         run: |
-          echo "ref=$(cat ref)" >> $GITHUB_OUTPUT
-          echo "ref_name=$(cat ref_name)" >> $GITHUB_OUTPUT
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
+          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
@@ -143,7 +141,7 @@ jobs:
 
   publish-browser:
     needs: get-build-info
-    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -161,7 +159,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-browser-${{ github.ref_name }}.tgz
+        name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
         path: packages/browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -209,7 +207,7 @@ jobs:
 
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ ! startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
         name: stlite-desktop-${{ needs.get-build-info.outputs.trigger-sha }}.tgz
         path: ${{ runner.temp }}/sample_app
@@ -217,9 +215,9 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
-        name: stlite-desktop-${{ github.ref_name }}.tgz
+        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -249,7 +247,7 @@ jobs:
 
   publish-desktop:
     needs: [get-build-info, e2e-desktop]
-    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -267,7 +265,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-desktop-${{ github.ref_name }}.tgz
+        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
         path: packages/desktop
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -287,7 +285,7 @@ jobs:
     needs:
     - get-build-info
     - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
-    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -302,7 +300,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: vscode-stlite-${{ github.ref_name }}.vsix
+        name: vscode-stlite-${{ needs.get-build-info.outputs.tag }}.vsix
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: |

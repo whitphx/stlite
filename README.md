@@ -2,7 +2,7 @@
 
 **Serverless [Streamlit](https://streamlit.io/) Running Entirely in Your Browser**
 
-[![Test, Build, and Publish](https://github.com/whitphx/stlite/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/whitphx/stlite/actions/workflows/main.yml)
+[![Test and Build](https://github.com/whitphx/stlite/actions/workflows/test-build.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/test-build.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
 
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)

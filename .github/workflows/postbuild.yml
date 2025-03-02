@@ -26,6 +26,8 @@ jobs:
     permissions:
       contents: read
     outputs:
+      ref: ${{ steps.build-info.outputs.ref }}
+      ref_name: ${{ steps.build-info.outputs.ref_name }}
       branch: ${{ steps.build-info.outputs.branch }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
@@ -40,6 +42,8 @@ jobs:
       - name: Read build info
         id: build-info
         run: |
+          echo "ref=$(cat ref)" >> $GITHUB_OUTPUT
+          echo "ref_name=$(cat ref_name)" >> $GITHUB_OUTPUT
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
@@ -136,7 +140,8 @@ jobs:
             });
 
   publish-browser:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: get-build-info
+    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -241,8 +246,8 @@ jobs:
         status: "completed"
 
   publish-desktop:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs: [e2e-desktop]
+    needs: [get-build-info, e2e-desktop]
+    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -277,9 +282,10 @@ jobs:
         generate_release_notes: true
 
   publish-vscode-extension:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs:
+    - get-build-info
     - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
+    if: ${{ startsWith(needs.get-build-info.outputs.ref, 'refs/tags/v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions

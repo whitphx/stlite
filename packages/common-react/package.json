@@ -1,6 +1,6 @@
 {
   "name": "@stlite/common-react",
-  "version": "0.79.5",
+  "version": "0.79.6",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
-    "@stlite/kernel": "^0.79.5",
+    "@stlite/kernel": "^0.79.6",
     "@streamlit/lib": "1.41.0",
     "react-toastify": "^11.0.2"
   },

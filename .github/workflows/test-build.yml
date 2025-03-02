@@ -31,6 +31,7 @@ jobs:
       - name: Save build info (PR)
         if: github.event_name == 'pull_request'
         run: |
+          echo "${{ github.ref }}" > ref
           echo "${{ github.event.pull_request.head.ref }}" > branch
           echo "${{ github.event.pull_request.head.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
@@ -38,7 +39,16 @@ jobs:
       - name: Save build info (push to a branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
+          echo "${{ github.ref }}" > ref
           echo "${{ github.ref_name }}" > branch
+          echo "${{ github.sha }}" > head-sha
+          echo "${{ github.sha }}" > trigger-sha
+          echo "" > pr-number
+      - name: Save build info (push to a tag)
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          echo "${{ github.ref }}" > ref
+          echo "" > branch
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
@@ -47,6 +57,7 @@ jobs:
         with:
           name: build-info
           path: |
+            ref
             branch
             head-sha
             trigger-sha

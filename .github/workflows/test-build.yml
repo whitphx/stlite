@@ -34,7 +34,7 @@ jobs:
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
-      - name: Save build info (PR)
+      - name: Save build info (pull_request)
         if: github.event_name == 'pull_request'
         run: |
           echo "${{ github.event.pull_request.head.ref }}" > branch
@@ -42,7 +42,7 @@ jobs:
           echo "${{ github.event.pull_request.head.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "${{ github.event.pull_request.number }}" > pr-number
-      - name: Save build info (push to a branch)
+      - name: Save build info (push, branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
           echo "${{ github.ref_name }}" > branch
@@ -50,7 +50,7 @@ jobs:
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
-      - name: Save build info (push to a tag)
+      - name: Save build info (push, tag)
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
           echo "" > branch

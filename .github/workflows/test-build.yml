@@ -546,7 +546,7 @@ jobs:
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
-      if: startsWith(needs.set-build-info.outputs.tag, 'v')
+      if: ${{ startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
         name: stlite-desktop-${{ needs.set-build-info.outputs.tag }}.tgz

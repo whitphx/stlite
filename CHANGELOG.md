@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.79.6] - 2025-03-02
+
+### General
+
+#### Fixed
+
+- CI/CD pipeline updates.
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- Update README.
+
 ## [0.79.5] - 2025-03-02
 
 ### General

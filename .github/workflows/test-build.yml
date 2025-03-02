@@ -27,27 +27,52 @@ permissions: {}
 jobs:
   set-build-info:
     runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.build-info.outputs.branch }}
+      tag: ${{ steps.build-info.outputs.tag }}
+      trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
+      head-sha: ${{ steps.build-info.outputs.head-sha }}
+      pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
-      - name: Save build info (PR)
+      - name: Save build info (pull_request)
         if: github.event_name == 'pull_request'
         run: |
           echo "${{ github.event.pull_request.head.ref }}" > branch
+          echo "" > tag
           echo "${{ github.event.pull_request.head.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "${{ github.event.pull_request.number }}" > pr-number
-      - name: Save build info (push to a branch)
+      - name: Save build info (push, branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
           echo "${{ github.ref_name }}" > branch
+          echo "" > tag
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
+      - name: Save build info (push, tag)
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          echo "" > branch
+          echo "${{ github.ref_name }}" > tag
+          echo "${{ github.sha }}" > head-sha
+          echo "${{ github.sha }}" > trigger-sha
+          echo "" > pr-number
+      - name: Output build info
+        id: build-info
+        run: |
+          echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
+          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
+          echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
+          echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
+          echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
       - name: Upload build info
         uses: actions/upload-artifact@v4
         with:
           name: build-info
           path: |
             branch
+            tag
             head-sha
             trigger-sha
             pr-number
@@ -313,7 +338,7 @@ jobs:
 
   build-browser:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-lib, test-browser]
+    needs: [set-build-info, test-kernel, test-stlite-lib, test-browser]
 
     runs-on: ubuntu-latest
 
@@ -349,17 +374,17 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
-      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
         name: stlite-browser-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: startsWith(needs.set-build-info.outputs.tag, 'v')
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-browser-${{ github.ref_name }}.tgz
+        name: stlite-browser-${{ needs.set-build-info.outputs.tag }}.tgz
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/set-package-stats
@@ -397,7 +422,7 @@ jobs:
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-kernel, test-stlite-lib, test-sharing-common]
+    needs: [set-build-info, test-kernel, test-stlite-lib, test-sharing-common]
 
     runs-on: ubuntu-latest
 
@@ -415,10 +440,10 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
-      if: github.ref_name != github.event.repository.default_branch
+      if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
       run: echo "EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9-]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
     - name: Set EDITOR_APP_ORIGIN (main branch)
-      if: github.ref_name == github.event.repository.default_branch
+      if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
       run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
     - name: Build @stlite/sharing
       run: |
@@ -441,7 +466,7 @@ jobs:
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-build-common, test-sharing-editor, test-sharing-common]
+    needs: [set-build-info, test-build-common, test-sharing-editor, test-sharing-common]
 
     runs-on: ubuntu-latest
 
@@ -458,10 +483,10 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
 
     - name: Set build option envvar for the preview build
-      if: github.ref_name != github.event.repository.default_branch
+      if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
       run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
     - name: Set SHARING_APP_URL (main branch)
-      if: github.ref_name == github.event.repository.default_branch
+      if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
       run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
 
@@ -481,7 +506,7 @@ jobs:
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [test-build-common, test-kernel, test-stlite-lib, test-desktop]
+    needs: [set-build-info, test-build-common, test-kernel, test-stlite-lib, test-desktop]
 
     runs-on: ubuntu-latest
 
@@ -514,17 +539,17 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
-      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
         name: stlite-desktop-${{ github.sha }}.tgz
 
     - name: Upload the built tar ball as an artifact (when pushed with a version tag)
       uses: actions/upload-artifact@v4
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: ${{ startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-desktop-${{ github.ref_name }}.tgz
+        name: stlite-desktop-${{ needs.set-build-info.outputs.tag }}.tgz
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/set-package-stats
@@ -535,7 +560,7 @@ jobs:
         input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
 
   test-build-vscode-extension:
-    needs: changes
+    needs: [set-build-info, changes]
     if: ${{ needs.changes.outputs.vscode-extension == 'true' }}
 
     strategy:
@@ -571,6 +596,8 @@ jobs:
       working-directory: packages/vscode-stlite
     - name: Build
       if: success() && matrix.os == 'ubuntu-latest'
+      env:
+        IS_RELEASE: ${{ startsWith(needs.set-build-info.outputs.tag, 'v') }}
       run: |
         if [ $IS_RELEASE = true ]; then
           VERSION=$(node -p "require('./package.json').version")
@@ -578,18 +605,16 @@ jobs:
           VERSION=${{ github.sha }}
         fi
         yarn run vsce package -o vscode-stlite-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
-      env:
-        IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
       working-directory: packages/vscode-stlite
     - name: Upload the vsix built on Linux
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
         name: vscode-stlite-${{ github.sha }}.vsix
     - name: Upload the vsix built on Linux
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'ubuntu-latest' && startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ matrix.os == 'ubuntu-latest' && startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
-        name: vscode-stlite-${{ github.ref_name }}.vsix
+        name: vscode-stlite-${{ needs.set-build-info.outputs.tag }}.vsix

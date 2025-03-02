@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-common",
-  "version": "0.79.0",
+  "version": "0.79.6",
   "main": "dist/index.js",
   "types": "dist/index.d.js",
   "license": "Apache-2.0",
@@ -20,6 +20,7 @@
     "check:prettier": "prettier --check ."
   },
   "dependencies": {
+    "monaco-editor": "^0.52.2",
     "protobufjs": "^7.2.4"
   },
   "devDependencies": {

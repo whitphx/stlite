@@ -1,11 +1,12 @@
 {
   "name": "@stlite/sharing-editor",
+  "version": "0.79.6",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
     "@monaco-editor/react": "^4.4.5",
-    "@stlite/common": "^0.79.0",
-    "@stlite/sharing-common": "^0.79.0",
+    "@stlite/common": "^0.79.6",
+    "@stlite/sharing-common": "^0.79.6",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "classnames": "^2.3.2",
@@ -16,7 +17,7 @@
     "re-resizable": "^6.9.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^5.0.1",
+    "react-icons": "~5.4.0",
     "react-router-dom": "^7.1.1",
     "superstruct": "^2.0.2",
     "usehooks-ts": "^3.1.0",

@@ -27,6 +27,7 @@ jobs:
       contents: read
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
+      tag: ${{ steps.build-info.outputs.tag }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
@@ -41,12 +42,14 @@ jobs:
         id: build-info
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
+          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   deploy-sharing:
     needs: get-build-info
+    if: ${{ needs.get-build-info.outputs.branch }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -76,6 +79,7 @@ jobs:
 
   deploy-sharing-editor:
     needs: [get-build-info, deploy-sharing]
+    if: ${{ needs.get-build-info.outputs.branch }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -107,7 +111,7 @@ jobs:
 
   notify-cloudflare-pages-deployments:
     needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
-    if: needs.get-build-info.outputs.pr-number != ''
+    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
 
     runs-on: ubuntu-latest
     permissions:
@@ -136,7 +140,8 @@ jobs:
             });
 
   publish-browser:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: get-build-info
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -154,7 +159,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-browser-${{ github.ref_name }}.tgz
+        name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
         path: packages/browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -169,6 +174,7 @@ jobs:
       with:
         files: packages/browser/stlite-browser-v*.tgz
         generate_release_notes: true
+        tag_name: ${{ needs.get-build-info.outputs.tag }}
 
   e2e-desktop:
     # Semantically, this job should be in the test-and-build workflow,
@@ -202,7 +208,7 @@ jobs:
 
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: ${{ ! startsWith(github.ref, 'refs/tags/v') }}
+      if: ${{ ! startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
         name: stlite-desktop-${{ needs.get-build-info.outputs.trigger-sha }}.tgz
         path: ${{ runner.temp }}/sample_app
@@ -210,9 +216,9 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: startsWith(github.ref, 'refs/tags/v')
+      if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
-        name: stlite-desktop-${{ github.ref_name }}.tgz
+        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -241,8 +247,8 @@ jobs:
         status: "completed"
 
   publish-desktop:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs: [e2e-desktop]
+    needs: [get-build-info, e2e-desktop]
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -260,7 +266,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-desktop-${{ github.ref_name }}.tgz
+        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
         path: packages/desktop
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -275,11 +281,13 @@ jobs:
       with:
         files: packages/desktop/stlite-desktop-v*.tgz
         generate_release_notes: true
+        tag_name: ${{ needs.get-build-info.outputs.tag }}
 
   publish-vscode-extension:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     needs:
+    - get-build-info
     - publish-browser  # The VSC extension uses the same version of published @stlite/browser, so it must be released in order.
+    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -294,7 +302,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: vscode-stlite-${{ github.ref_name }}.vsix
+        name: vscode-stlite-${{ needs.get-build-info.outputs.tag }}.vsix
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: |
@@ -319,3 +327,4 @@ jobs:
       with:
         files: "${{ env.vsix_filename }}"
         generate_release_notes: true
+        tag_name: ${{ needs.get-build-info.outputs.tag }}

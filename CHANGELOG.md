@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.0] - 2025-03-05
+
+### `@stlite/browser`
+
+#### Added
+
+- Support to be installed via `npm` with type declarations, [#1388](https://github.com/whitphx/stlite/pull/1388).
+
 ## [0.79.6] - 2025-03-02
 
 ### General

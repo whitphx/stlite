@@ -19,8 +19,10 @@ export type SimplifiedStliteKernelOptions = Partial<{
   archives: StliteKernelOptions["archives"];
   hostConfig: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl: StliteKernelOptions["pyodideUrl"];
+  wheelUrls: StliteKernelOptions["wheelUrls"];
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
+  workerType: StliteKernelOptions["workerType"];
   sharedWorker: StliteKernelOptions["sharedWorker"];
   env: StliteKernelOptions["env"];
 }>;
@@ -132,7 +134,9 @@ export function parseMountOptions(options: MountOptions): {
       hostConfigResponse: options.hostConfig,
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
+      wheelUrls: options.wheelUrls,
       idbfsMountpoints: options.idbfsMountpoints,
+      workerType: options.workerType,
       sharedWorker: options.sharedWorker,
       env: options.env,
     },

@@ -23,6 +23,7 @@ import { default as checker } from "vite-plugin-checker";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import { viteStaticCopy } from "vite-plugin-static-copy";
+import dts from "vite-plugin-dts";
 
 import path from "node:path";
 import fs from "node:fs";
@@ -39,6 +40,15 @@ export default defineConfig(({ mode }) => ({
       babel: {
         plugins: ["@emotion/babel-plugin"],
       },
+    }),
+    dts({
+      rollupTypes: true,
+      bundledPackages: [
+        "@stlite/kernel",
+        "@stlite/common-react",
+        "@streamlit/lib",
+        "pyodide",
+      ],
     }),
     viteTsconfigPaths(),
     wasm(),

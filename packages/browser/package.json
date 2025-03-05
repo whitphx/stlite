@@ -21,8 +21,17 @@
   "files": [
     "build/"
   ],
-  "types": "build/stlite.d.ts",
-  "browser": "build/stlite.js",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./build/stlite.js",
+        "types": "./build/stlite.d.ts"
+      }
+    },
+    "./wheels/*.whl": "./build/wheels/*.whl"
+  },
+  "browser": "./build/stlite.js",
+  "types": "./build/stlite.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",

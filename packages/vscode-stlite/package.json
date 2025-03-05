@@ -71,7 +71,7 @@
     "@types/assert": "^1.5.11",
     "@types/mocha": "^10.0.10",
     "@types/vscode": "^1.76.0",
-    "@vscode/test-web": "^0.0.66",
+    "@vscode/test-web": "^0.0.67",
     "@vscode/vsce": "^3.1.0",
     "assert": "^2.1.0",
     "esbuild": "^0.25.0",

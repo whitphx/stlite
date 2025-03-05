@@ -3,7 +3,7 @@
 import { startWorkerEnv } from "./worker-runtime";
 import { generateRandomAppId } from "./app-id";
 
-const pyodideUrl = "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.mjs";
+const pyodideUrl = "https://cdn.jsdelivr.net/pyodide/v0.27.3/full/pyodide.mjs";
 
 if ("postMessage" in self) {
   // Dedicated worker

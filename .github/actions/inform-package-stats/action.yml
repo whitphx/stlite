@@ -1,4 +1,7 @@
 inputs:
+  pr-number:
+    required: false
+    description: "The PR number to inform. If not provided, the action will infer the PR number from the event type."
   stats-file-prefix:
     default: "package-stats."
   size-diff-warning-threshold-kib:
@@ -179,6 +182,7 @@ runs:
     - name: Post a message to Pull Request threads
       uses: actions/github-script@v7
       env:
+        PR_NUMBER: ${{ inputs.pr-number }}
         COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
@@ -190,6 +194,13 @@ runs:
           const commentBody = fs.readFileSync('comment.txt');
 
           async function getTargetPullRequests() {
+            if (process.env.PR_NUMBER) {
+              return [await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: process.env.PR_NUMBER,
+              })];
+            }
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];
             }

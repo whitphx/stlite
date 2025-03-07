@@ -195,11 +195,13 @@ runs:
 
           async function getTargetPullRequests() {
             if (process.env.PR_NUMBER) {
-              return [await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: process.env.PR_NUMBER,
-              }).data];
+              return [
+                (await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: process.env.PR_NUMBER,
+                })).data
+              ];
             }
             if (context.eventName === "pull_request") {
               return [context.payload.pull_request];

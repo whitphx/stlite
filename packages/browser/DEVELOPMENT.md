@@ -1,9 +1,21 @@
 ## Development
 
+### Development server
+
+```bash
+yarn start
+```
+
 ### Building
 
 ```bash
 yarn build
+```
+
+Setting the memory limit for the build process may be necessary.
+
+```bash
+NODE_OPTIONS="--max-old-space-size=6566" yarn build
 ```
 
 ### Testing

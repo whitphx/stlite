@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.1] - 2025-03-08
+
+### `@stlite/browser`
+
+#### Fixed
+
+- Fix a bug that the worker script is not loaded, [#1394](https://github.com/whitphx/stlite/pull/1394).
+
 ## [0.80.0] - 2025-03-05
 
 ### `@stlite/browser`

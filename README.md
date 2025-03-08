@@ -392,7 +392,7 @@ As _Stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/)
 
 - Package version resolution may fail in some cases:
 
-  - `plotly.express` functions may fail due to micropip's version resolution after plotly v6's release. The issue is with the compatibility between plotly 6.x and the stlite environment. Use `"plotly==5.*"` in your requirements instead of just `"plotly"` to avoid this issue. See [issue #1344](https://github.com/whitphx/stlite/issues/1344) for details.
+  - `plotly.express` functions may fail due to micropip's version resolution problem. This issue became visible after plotly v6's release due to its dependencies. Use `"plotly==5.*"` in your requirements instead of just `"plotly"` to avoid this issue. See [issue #1344](https://github.com/whitphx/stlite/issues/1344) for details.
 
 - There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that _Stlite_ uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - Packages including binary extensions (e.g. C/Rust/Fortran/etc) that are not built for the Pyodide environment cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package for the details.

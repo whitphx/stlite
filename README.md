@@ -392,6 +392,8 @@ As _Stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/)
 
 - There are some small differences in how (less common) data types of DataFrame columns are handled in `st.dataframe()`, `st.data_editor()`, `st.table()`, and Altair-based charts. The reason is that _Stlite_ uses the Parquet format instead of the Arrow IPC format to serialize dataframes (Ref: [#601](https://github.com/whitphx/stlite/pull/601)).
 - Packages including binary extensions (e.g. C/Rust/Fortran/etc) that are not built for the Pyodide environment cannot be installed. See https://pyodide.org/en/stable/usage/faq.html#why-can-t-micropip-find-a-pure-python-wheel-for-a-package for the details.
+- Package version resolution may fail in some cases [due to micropip's version resolution mechanism](https://github.com/pyodide/micropip/issues/103):
+  - `plotly` functions may fail when installed with `altair` as [#1302](https://github.com/whitphx/stlite/issues/1302#issuecomment-2668085164) describes in which case installing `plotly==5.*` may help.
 
 Other problems are tracked at GitHub Issues: https://github.com/whitphx/stlite/issues
 If you find a new problem, please report it.

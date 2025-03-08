@@ -1,0 +1,12 @@
+# Playwright
+node_modules/
+playwright-report/
+test-results/
+dist/
+.playwright/
+
+# npm
+package-lock.json
+
+# Logs
+*.log

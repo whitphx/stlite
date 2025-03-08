@@ -8,10 +8,12 @@
     "test:ui": "playwright test --ui",
     "serve": "http-server ./pages -p 8080 --cors",
     "serve:build": "http-server ../build -p 8081 --cors",
-    "install:browsers": "playwright install"
+    "install:browsers": "playwright install",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "typescript": "^5.8.2"
   }
 }

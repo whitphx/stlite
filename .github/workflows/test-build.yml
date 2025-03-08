@@ -364,7 +364,9 @@ jobs:
         make browser
 
     - name: Set up the e2e-tests
-      run: yarn install --frozen-lockfile
+      run: |
+        yarn install --frozen-lockfile
+        yarn install:browsers
       working-directory: packages/browser/e2e-tests
     - name: Run the e2e-tests
       run: yarn test

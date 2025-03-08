@@ -7,6 +7,18 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
+  webServer: [
+    {
+      command: "yarn serve",
+      url: "http://localhost:8080",
+      ignoreHTTPSErrors: true,
+    },
+    {
+      command: "yarn serve:build",
+      url: "http://localhost:8081",
+      ignoreHTTPSErrors: true,
+    },
+  ],
   use: {
     baseURL: "http://localhost:8080",
     trace: "on-first-retry",
@@ -26,6 +38,4 @@ export default defineConfig({
       use: { ...devices["Desktop Safari"] },
     },
   ],
-  // We don't need the webServer section anymore since we're starting the servers
-  // in the npm scripts using concurrently
 });

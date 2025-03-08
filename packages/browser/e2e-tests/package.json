@@ -3,17 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "concurrently --kill-others --success first \"yarn run serve\" \"yarn run serve:build\" \"wait-on http://localhost:8080 http://localhost:8081 && playwright test\"",
-    "test:headed": "concurrently --kill-others --success first \"yarn run serve\" \"yarn run serve:build\" \"wait-on http://localhost:8080 http://localhost:8081 && playwright test --headed\"",
-    "test:ui": "concurrently --kill-others --success first \"yarn run serve\" \"yarn run serve:build\" \"wait-on http://localhost:8080 http://localhost:8081 && playwright test --ui\"",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
     "serve": "http-server . -p 8080 --cors",
     "serve:build": "http-server ../build -p 8081 --cors",
     "install:browsers": "playwright install"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",
-    "concurrently": "^8.2.2",
-    "http-server": "^14.1.1",
-    "wait-on": "^7.2.0"
+    "http-server": "^14.1.1"
   }
 }

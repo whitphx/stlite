@@ -179,7 +179,7 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
-        path: packages/browser
+        path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -191,6 +191,8 @@ jobs:
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/browser/e2e-tests
+      env:
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser
 
     - uses: LouisBrunner/checks-action@v2.0.0
       if: always()

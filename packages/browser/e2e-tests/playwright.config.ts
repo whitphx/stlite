@@ -18,7 +18,7 @@ export default defineConfig({
       ignoreHTTPSErrors: true,
     },
     {
-      command: "http-server ../build -p 8081 --cors",
+      command: `http-server ${process.env.BUILD_DIR || "../build"} -p 8081 --cors`,
       url: "http://localhost:8081",
       ignoreHTTPSErrors: true,
     },

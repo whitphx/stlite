@@ -6,8 +6,6 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
-    "serve": "http-server ./pages -p 8080 --cors",
-    "serve:build": "http-server ../build -p 8081 --cors",
     "install:browsers": "playwright install --with-deps",
     "typecheck": "tsc --noEmit"
   },

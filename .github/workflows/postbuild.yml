@@ -187,10 +187,10 @@ jobs:
     - name: Set up the e2e-tests
       run: |
         yarn install --frozen-lockfile
-        yarn install:browsers
+        yarn playwright install --with-deps
       working-directory: packages/browser/e2e-tests
     - name: Run the e2e-tests
-      run: yarn test
+      run: yarn playwright test
       working-directory: packages/browser/e2e-tests
       env:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser

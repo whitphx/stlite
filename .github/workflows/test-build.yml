@@ -420,6 +420,18 @@ jobs:
         name: "streamlit wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
 
+    # Run the E2E tests for the browser package.
+    - name: Set up the e2e-tests
+      run: |
+        yarn install --frozen-lockfile
+        yarn install:browsers
+      working-directory: packages/browser/e2e-tests
+    - name: Run the e2e-tests
+      run: yarn test
+      working-directory: packages/browser/e2e-tests
+      env:
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser
+
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs: [set-build-info, test-kernel, test-stlite-lib, test-sharing-common]

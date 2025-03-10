@@ -151,60 +151,8 @@ jobs:
             `
             });
 
-  e2e-browser:
-    # Semantically, this job should be in the test-and-build workflow,
-    # but this job takes too long to run which delays the successive deployment workflow.
-    # So we run it here.
-    needs: get-build-info
-
-    permissions:
-      contents: read
-      checks: write
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: LouisBrunner/checks-action@v2.0.0
-      id: create-check-run
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: ${{ github.workflow && format('{0} / ', github.workflow) || '' }}${{ github.job }}
-        status: "in_progress"
-        sha: ${{ needs.get-build-info.outputs.head-sha }}
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: ${{ env.node-version-file }}
-
-    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
-    - uses: actions/download-artifact@v4
-      with:
-        name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
-        path: ${{ runner.temp }}/artifacts/browser
-        run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set up the e2e-tests
-      run: |
-        yarn install --frozen-lockfile
-        yarn install:browsers
-      working-directory: packages/browser/e2e-tests
-    - name: Run the e2e-tests
-      run: yarn test
-      working-directory: packages/browser/e2e-tests
-      env:
-        BUILD_DIR: ${{ runner.temp }}/artifacts/browser
-
-    - uses: LouisBrunner/checks-action@v2.0.0
-      if: always()
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        check_id: ${{ steps.create-check-run.outputs.check_id }}
-        conclusion: ${{ job.status }}
-        status: "completed"
-
   publish-browser:
-    needs: [get-build-info, e2e-browser]
+    needs: [get-build-info]
     if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
 
     permissions:

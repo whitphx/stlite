@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
@@ -136,6 +136,17 @@ export default defineConfig(({ mode }) => ({
       output: {
         assetFileNames: `assets/[name].[hash][extname]`, // The dot before the hash is important to make the wheel file names correct and installable
       },
+    },
+  },
+  test: {
+    typecheck: {
+      enabled: true,
+      include: [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "electron/**/*.ts",
+        "bin-src/**/*.ts",
+      ],
     },
   },
 }));

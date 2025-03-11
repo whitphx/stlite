@@ -1,5 +1,5 @@
 /*eslint-env node*/
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import selfPackageJson from "./package.json";
 
@@ -22,5 +22,8 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    typecheck: {
+      enabled: true,
+    },
   },
 });

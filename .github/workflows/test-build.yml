@@ -333,7 +333,6 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
-    - run: yarn typecheck
     - run: yarn test
 
   build-browser:

@@ -33,7 +33,6 @@
     "build:bin": "tsc -p bin-src && ./scripts/build_bin.js",
     "build:wheels": "./scripts/copy_wheels.js",
     "postbuild:web": "./scripts/post_build_web.js",
-    "typecheck": "yarn tsc --noEmit -p electron",
     "prestart": "yarn build:pyodide && yarn build:wheels",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",

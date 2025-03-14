@@ -11,8 +11,8 @@ describe("postMessageToStliteSharing", () => {
     type: "code_completion_request",
     data: {
       code: 'print("Hello")',
-      currentLineNumber: 1,
-      offset: 5,
+      line: 1,
+      column: 5,
     },
   } satisfies CodeCompletionRequestMessage;
 

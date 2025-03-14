@@ -43,8 +43,8 @@ export interface InstallMessage extends ForwardMessageBase {
 
 export interface CodeCompletionRequest {
   code: string;
-  currentLineNumber: number;
-  offset: number;
+  line: number;
+  column: number;
 }
 export interface CodeCompletionRequestMessage extends ForwardMessageBase {
   type: "code_completion_request";

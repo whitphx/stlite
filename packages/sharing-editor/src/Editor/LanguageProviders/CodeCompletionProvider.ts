@@ -62,8 +62,8 @@ export class CodeCompletionProvider
   ): Promise<languages.CompletionList> {
     const result = (await this.callback({
       code: model.getValue(),
-      currentLineNumber: position.lineNumber,
-      offset: position.column - 1,
+      line: position.lineNumber,
+      column: position.column - 1,
     })) as { items: languages.CompletionItem[] };
 
     if (result && result.items.length) {

@@ -264,7 +264,6 @@ st.te
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.te",
           currentLineNumber: 2,
           offset: 5,
         },
@@ -285,7 +284,6 @@ st.te
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.te",
           currentLineNumber: 2,
           offset: 3,
         },
@@ -310,7 +308,6 @@ st.
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.",
           currentLineNumber: 2,
           offset: 3,
         },
@@ -342,7 +339,6 @@ st.title()
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.title()",
           currentLineNumber: 3,
           offset: 9,
         },
@@ -374,7 +370,6 @@ hand
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "handle",
           currentLineNumber: 8,
           offset: 4,
         },
@@ -403,7 +398,6 @@ math.cos()`;
       const suggestions = await getCodeCompletions(
         {
           code: code,
-          currentLine: "math",
           currentLineNumber: 3,
           offset: 5,
         },
@@ -423,7 +417,6 @@ math.cos()`;
       const suggestions = await getCodeCompletions(
         {
           code: code,
-          currentLine: "'''",
           currentLineNumber: 1,
           offset: 1,
         },

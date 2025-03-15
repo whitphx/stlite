@@ -39,8 +39,8 @@ def as_completion_item_kind(kind: str):
       return CompletionItemKind.Text
 
 def as_completion_item_sort_text(item: Completion) -> str:
-  """Generate sorting text to arrange items alphabetically, 
-  ensuring parameters are prioritized first 
+  """Generate sorting text to arrange items alphabetically,
+  ensuring parameters are prioritized first
   and private magic properties come last.
   """
   completion_item_name = item.name
@@ -84,7 +84,7 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
 
   jedi_language_server = jedi.Script(code)
 
-  # jedi returns a zero-based array with lines 
+  # jedi returns a zero-based array with lines
   jedi_line_number_index = current_line_number -1
 
   # In case if we are not getting any results back or the offset is wrong
@@ -97,13 +97,13 @@ def get_code_completions(code: str, current_line_number: int, cursor_offset: int
       cursor_offset,
       fuzzy=False,
   )
-  
+
   code_at_cursor = jedi_language_server._code_lines[jedi_line_number_index]
   cursor_range = get_text_edit_cursor_range(code_at_cursor, current_line_number, cursor_offset)
 
   # Convert jedi completion items as completion items compatible in language server
   suggestions = CompletionList(
-    is_incomplete=False, 
+    is_incomplete=False,
     items=list(as_completion_item(completion, cursor_range) for completion in jedi_completions_list))
 
   # Convert results to JSON so that we can use it in the worker
@@ -132,8 +132,8 @@ export const getCodeCompletions = async (
     // Then call it from JS
     const result = get_code_completions(
       payload.code,
-      payload.currentLineNumber,
-      payload.offset,
+      payload.line,
+      payload.column,
     );
 
     if (!result) {

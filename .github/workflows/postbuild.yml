@@ -83,7 +83,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -115,7 +115,7 @@ jobs:
           echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

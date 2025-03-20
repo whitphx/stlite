@@ -188,11 +188,14 @@ export class StliteKernel {
       this._worker = workerMaker.worker;
     }
 
-    if (this._worker instanceof SharedWorker) {
+    if (
+      typeof SharedWorker !== "undefined" &&
+      this._worker instanceof SharedWorker
+    ) {
       this._worker.port.start();
       this._postMessageTarget = this._worker.port;
     } else {
-      this._postMessageTarget = this._worker;
+      this._postMessageTarget = this._worker as StliteWorker;
     }
     this._postMessageTarget.onmessage = (e) => {
       const messagePort: MessagePort | undefined = e.ports[0];
@@ -472,9 +475,12 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    if (this._worker instanceof SharedWorker) {
+    if (
+      typeof window.SharedWorker !== "undefined" &&
+      this._worker instanceof SharedWorker
+    ) {
       this._worker.port.close();
-    } else {
+    } else if (this._worker instanceof window.Worker) {
       this._worker.terminate();
     }
     this._isDisposed = true;

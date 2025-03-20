@@ -39,6 +39,16 @@ const validateEnvKey = (key: string) => {
   return validEnvNameRegex.test(key);
 };
 
+function isSharedWorker(
+  worker: StliteWorker | SharedWorker,
+): worker is SharedWorker {
+  // `SharedWorker` is not available in some environments like Chrome for Android,
+  // so we need to check if it is available before using it.
+  return (
+    typeof window.SharedWorker !== "undefined" && worker instanceof SharedWorker
+  );
+}
+
 export interface StliteKernelOptions {
   /**
    * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
@@ -188,14 +198,11 @@ export class StliteKernel {
       this._worker = workerMaker.worker;
     }
 
-    if (
-      typeof SharedWorker !== "undefined" &&
-      this._worker instanceof SharedWorker
-    ) {
+    if (isSharedWorker(this._worker)) {
       this._worker.port.start();
       this._postMessageTarget = this._worker.port;
     } else {
-      this._postMessageTarget = this._worker as StliteWorker;
+      this._postMessageTarget = this._worker;
     }
     this._postMessageTarget.onmessage = (e) => {
       const messagePort: MessagePort | undefined = e.ports[0];
@@ -475,12 +482,9 @@ export class StliteKernel {
     if (this.isDisposed) {
       return;
     }
-    if (
-      typeof window.SharedWorker !== "undefined" &&
-      this._worker instanceof SharedWorker
-    ) {
+    if (isSharedWorker(this._worker)) {
       this._worker.port.close();
-    } else if (this._worker instanceof window.Worker) {
+    } else {
       this._worker.terminate();
     }
     this._isDisposed = true;

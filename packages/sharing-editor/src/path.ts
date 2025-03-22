@@ -13,3 +13,18 @@ export function isValidFilePath(filePath: string): boolean {
   }
   return true;
 }
+
+const TEXT_EXTS = [
+  ".py",
+  ".txt",
+  ".csv",
+  ".md",
+  ".json",
+  ".yml",
+  ".yaml",
+  ".toml",
+];
+
+export function isTextExtPath(path: string): boolean {
+  return TEXT_EXTS.some((text_ext) => path.endsWith(text_ext));
+}

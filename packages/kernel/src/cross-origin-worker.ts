@@ -35,6 +35,26 @@ function isSameOrigin(url: URL): boolean {
   return url.origin === window.location.origin;
 }
 
+function createWorker(
+  url: URL | string,
+  shared: boolean,
+  workerOptions: WorkerOptions,
+): Worker | SharedWorker {
+  if (shared) {
+    if (typeof window.SharedWorker !== "undefined") {
+      return new SharedWorker(url, workerOptions);
+    } else {
+      // e.g. Chrome for Android
+      console.warn(
+        "SharedWorker is not supported in this browser. Use the regular Worker instead.",
+      );
+      return new Worker(url, workerOptions);
+    }
+  } else {
+    return new Worker(url, workerOptions);
+  }
+}
+
 export class CrossOriginWorkerMaker {
   public readonly worker: Worker | SharedWorker;
 
@@ -46,9 +66,7 @@ export class CrossOriginWorkerMaker {
       console.debug(`Loading a worker script from the same origin: ${url}`);
 
       // This is the normal way to load a worker script, which is the best straightforward if possible.
-      this.worker = shared
-        ? new SharedWorker(url, workerOptions)
-        : new Worker(url, workerOptions);
+      this.worker = createWorker(url, shared, workerOptions);
 
       // NOTE: We use here `if-else` checking the origin instead of `try-catch`
       // because the `try-catch` approach doesn't work on some browsers like FireFox.
@@ -60,9 +78,7 @@ export class CrossOriginWorkerMaker {
         url,
         workerOptions.type === "module",
       );
-      this.worker = shared
-        ? new SharedWorker(workerBlobUrl, workerOptions)
-        : new Worker(workerBlobUrl, workerOptions);
+      this.worker = createWorker(workerBlobUrl, shared, workerOptions);
     }
   }
 }

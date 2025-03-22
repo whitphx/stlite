@@ -264,9 +264,8 @@ st.te
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.te",
-          currentLineNumber: 2,
-          offset: 5,
+          line: 2,
+          column: 5,
         },
         pyodide as PyodideInterface,
       );
@@ -285,9 +284,8 @@ st.te
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.te",
-          currentLineNumber: 2,
-          offset: 3,
+          line: 2,
+          column: 3,
         },
         pyodide as PyodideInterface,
       );
@@ -310,9 +308,8 @@ st.
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.",
-          currentLineNumber: 2,
-          offset: 3,
+          line: 2,
+          column: 3,
         },
         pyodide as PyodideInterface,
       );
@@ -342,9 +339,8 @@ st.title()
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "st.title()",
-          currentLineNumber: 3,
-          offset: 9,
+          line: 3,
+          column: 9,
         },
         pyodide as PyodideInterface,
       );
@@ -374,9 +370,8 @@ hand
       const autocompleteResults = await getCodeCompletions(
         {
           code: code,
-          currentLine: "handle",
-          currentLineNumber: 8,
-          offset: 4,
+          line: 8,
+          column: 4,
         },
         pyodide as PyodideInterface,
       );
@@ -403,9 +398,8 @@ math.cos()`;
       const suggestions = await getCodeCompletions(
         {
           code: code,
-          currentLine: "math",
-          currentLineNumber: 3,
-          offset: 5,
+          line: 3,
+          column: 5,
         },
         pyodide as PyodideInterface,
       );
@@ -423,9 +417,8 @@ math.cos()`;
       const suggestions = await getCodeCompletions(
         {
           code: code,
-          currentLine: "'''",
-          currentLineNumber: 1,
-          offset: 1,
+          line: 1,
+          column: 1,
         },
         pyodide as PyodideInterface,
       );

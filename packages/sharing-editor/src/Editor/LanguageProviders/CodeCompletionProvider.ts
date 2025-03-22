@@ -60,19 +60,10 @@ export class CodeCompletionProvider
     model: editor.ITextModel,
     position: Position,
   ): Promise<languages.CompletionList> {
-    // get the text from current line
-    const textUntilPosition = model.getValueInRange({
-      startLineNumber: position.lineNumber,
-      startColumn: 1,
-      endLineNumber: position.lineNumber,
-      endColumn: position.column,
-    });
-
     const result = (await this.callback({
       code: model.getValue(),
-      currentLine: textUntilPosition,
-      currentLineNumber: position.lineNumber,
-      offset: position.column - 1,
+      line: position.lineNumber,
+      column: position.column - 1,
     })) as { items: languages.CompletionItem[] };
 
     if (result && result.items.length) {

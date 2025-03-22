@@ -91,6 +91,8 @@ jobs:
       vscode-extension: ${{ steps.filter.outputs.vscode-extension == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - uses: dorny/paths-filter@v3
       id: filter
       with:
@@ -131,6 +133,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -157,7 +160,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         python-version-file: ${{ env.python-version-file }}
@@ -181,7 +184,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         python-version-file: ${{ env.python-version-file }}
@@ -233,6 +236,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -261,6 +265,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -286,7 +291,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -316,6 +321,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -333,7 +339,6 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
-    - run: yarn typecheck
     - run: yarn test
 
   build-browser:
@@ -349,7 +354,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         python-version-file: ${{ env.python-version-file }}
@@ -374,17 +379,9 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
-      if: ${{ ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-browser-${{ github.sha }}.tgz
-
-    - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v4
-      if: startsWith(needs.set-build-info.outputs.tag, 'v')
-      with:
-        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-browser-${{ needs.set-build-info.outputs.tag }}.tgz
+        name: stlite-browser
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/set-package-stats
@@ -433,6 +430,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
 
     - uses: ./.github/actions/init-all
       with:
@@ -477,7 +475,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -517,7 +515,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-
+        persist-credentials: false
     - uses: ./.github/actions/init-all
       with:
         python-version-file: ${{ env.python-version-file }}
@@ -539,17 +537,9 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
-      if: ${{ ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
       with:
         path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-desktop-${{ github.sha }}.tgz
-
-    - name: Upload the built tar ball as an artifact (when pushed with a version tag)
-      uses: actions/upload-artifact@v4
-      if: ${{ startsWith(needs.set-build-info.outputs.tag, 'v') }}
-      with:
-        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
-        name: stlite-desktop-${{ needs.set-build-info.outputs.tag }}.tgz
+        name: stlite-desktop
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/set-package-stats
@@ -572,6 +562,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -608,13 +599,7 @@ jobs:
       working-directory: packages/vscode-stlite
     - name: Upload the vsix built on Linux
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'ubuntu-latest' && ! startsWith(needs.set-build-info.outputs.tag, 'v') }}
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
-        name: vscode-stlite-${{ github.sha }}.vsix
-    - name: Upload the vsix built on Linux
-      uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'ubuntu-latest' && startsWith(needs.set-build-info.outputs.tag, 'v') }}
-      with:
-        path: packages/vscode-stlite/vscode-stlite*.vsix
-        name: vscode-stlite-${{ needs.set-build-info.outputs.tag }}.vsix
+        name: vscode-stlite

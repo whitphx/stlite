@@ -31,9 +31,9 @@ export function mount(
 ) {
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
-    wheelUrls,
-    workerType,
     ...kernelOptions,
+    wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
+    workerType: kernelOptions.workerType ?? workerType,
     ...makeToastKernelCallbacks(toastCallbackOptions),
   });
 

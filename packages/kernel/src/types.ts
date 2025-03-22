@@ -140,9 +140,8 @@ export interface InMessageSetEnv extends InMessageBase {
 
 export interface LanguageServerRequestPayload {
   code: string;
-  currentLine: string;
-  currentLineNumber: number;
-  offset: number;
+  line: number;
+  column: number;
 }
 export interface InMessageCodeCompletion extends InMessageBase {
   type: "language-server:code_completion";

@@ -55,6 +55,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/inform-package-stats
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
@@ -81,7 +83,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -113,7 +115,7 @@ jobs:
           echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@392082e81ffbcb9ebdde27400634aa004b35ea37
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -162,6 +164,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -171,7 +175,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-browser
         path: packages/browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -212,6 +216,8 @@ jobs:
         status: "in_progress"
         sha: ${{ needs.get-build-info.outputs.head-sha }}
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -220,17 +226,8 @@ jobs:
 
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: ${{ ! startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.trigger-sha }}.tgz
-        path: ${{ runner.temp }}/sample_app
-        run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Download artifact into the temp dir
-      uses: actions/download-artifact@v4
-      if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
-      with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -269,16 +266,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-desktop
         path: packages/desktop
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -314,7 +312,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: vscode-stlite-${{ needs.get-build-info.outputs.tag }}.vsix
+        name: vscode-stlite
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: |

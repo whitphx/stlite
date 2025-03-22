@@ -175,7 +175,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-browser-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-browser
         path: packages/browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -226,17 +226,8 @@ jobs:
 
     - name: Download artifact into the temp dir
       uses: actions/download-artifact@v4
-      if: ${{ ! startsWith(needs.get-build-info.outputs.tag, 'v') }}
       with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.trigger-sha }}.tgz
-        path: ${{ runner.temp }}/sample_app
-        run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Download artifact into the temp dir
-      uses: actions/download-artifact@v4
-      if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
-      with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -286,7 +277,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: stlite-desktop-${{ needs.get-build-info.outputs.tag }}.tgz
+        name: stlite-desktop
         path: packages/desktop
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -322,7 +313,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: vscode-stlite-${{ needs.get-build-info.outputs.tag }}.vsix
+        name: vscode-stlite
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: |

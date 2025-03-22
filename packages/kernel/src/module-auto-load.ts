@@ -1,10 +1,8 @@
-import type { PyodideInterface } from "pyodide";
-import type { ModuleAutoLoadMessage } from "./types";
-import type { PostMessageFn } from "./worker-runtime";
+import type { PackageData, PyodideInterface } from "pyodide";
 
-export async function tryModuleAutoLoad(
+export function tryModuleAutoLoad(
   pyodide: PyodideInterface,
-  postMessage: PostMessageFn,
+  callback: (packagesToLoad: string[], onLoad: Promise<PackageData[]>) => void,
   sources: string[],
 ): Promise<void> {
   // Ref: `pyodide.loadPackagesFromImports` (https://github.com/pyodide/pyodide/blob/0.26.0/src/js/api.ts#L191)
@@ -32,38 +30,11 @@ export async function tryModuleAutoLoad(
     .filter((name) => name) as string[];
 
   if (packagesToLoad.length === 0) {
-    return;
+    return Promise.resolve();
   }
 
-  const channel = new MessageChannel();
+  const packageLoadPromise = pyodide.loadPackage(packagesToLoad);
+  callback(packagesToLoad, packageLoadPromise);
 
-  postMessage(
-    {
-      type: "event:moduleAutoLoad",
-      data: {
-        packagesToLoad,
-      },
-    },
-    channel.port2,
-  );
-
-  try {
-    const loadedPackages = await pyodide.loadPackage(packagesToLoad);
-
-    channel.port1.postMessage({
-      type: "moduleAutoLoad:success",
-      data: {
-        loadedPackages,
-      },
-    } as ModuleAutoLoadMessage);
-    channel.port1.close();
-    return;
-  } catch (error) {
-    channel.port1.postMessage({
-      type: "moduleAutoLoad:error",
-      error: error as Error,
-    } as ModuleAutoLoadMessage);
-    channel.port1.close();
-    throw error;
-  }
+  return packageLoadPromise.then();
 }

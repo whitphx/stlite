@@ -1,6 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import type { PyodideInterface } from "pyodide";
+import type { PackageData, PyodideInterface } from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
 import {
   resolveAppPath,
@@ -18,6 +18,7 @@ import type {
   InMessage,
   ReplyMessage,
   PyodideConvertiblePrimitive,
+  ModuleAutoLoadMessage,
 } from "./types";
 import { importLanguageServerLibraries } from "./language-server/language-server-loader";
 import { getCodeCompletions } from "./language-server/code_completion";
@@ -39,12 +40,16 @@ if (typeof global !== "undefined" && typeof global.self === "undefined") {
   self = global;
 }
 
+type ModuleAutoLoadCallback = (
+  packagesToLoad: string[],
+  onLoad: Promise<PackageData[]>,
+) => void;
 function dispatchModuleAutoLoading(
   pyodide: PyodideInterface,
-  postMessage: PostMessageFn,
+  callback: ModuleAutoLoadCallback,
   sources: string[],
-): void {
-  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
+) {
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, callback, sources);
   // `autoInstallPromise` will be awaited in the script_runner on the Python side.
   self.__moduleAutoLoadPromise__ = autoLoadPromise;
   pyodide.runPythonAsync(`
@@ -61,7 +66,7 @@ async function loadPyodideAndPackages(
   defaultPyodideUrl: string,
   appId: string | undefined,
   initData: WorkerInitialData,
-  postMessage: PostMessageFn, // TODO: Delete this parameter by lifting it up to the caller.
+  onModuleAutoLoad: ModuleAutoLoadCallback,
   onProgress: (message: string) => void,
 ) {
   const {
@@ -219,7 +224,7 @@ async function loadPyodideAndPackages(
     const sources = pythonFilePaths.map((path) =>
       pyodide.FS.readFile(path, { encoding: "utf8" }),
     );
-    dispatchModuleAutoLoading(pyodide, postMessage, sources);
+    dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, sources);
   }
 
   // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
@@ -427,6 +432,42 @@ export function startWorkerEnv(
     });
   }
 
+  const onModuleAutoLoad = (
+    packagesToLoad: string[],
+    onLoad: Promise<PackageData[]>,
+  ) => {
+    const channel = new MessageChannel();
+
+    postMessage(
+      {
+        type: "event:moduleAutoLoad",
+        data: {
+          packagesToLoad,
+        },
+      },
+      channel.port2,
+    );
+
+    onLoad
+      .then((loadedPackages) => {
+        channel.port1.postMessage({
+          type: "moduleAutoLoad:success",
+          data: {
+            loadedPackages,
+          },
+        } as ModuleAutoLoadMessage);
+        channel.port1.close();
+      })
+      .catch((err) => {
+        channel.port1.postMessage({
+          type: "moduleAutoLoad:error",
+          error: err as Error,
+        } as ModuleAutoLoadMessage);
+        channel.port1.close();
+        throw err;
+      });
+  };
+
   let initData: WorkerInitialData | null = null;
   let pyodideReadyPromise: ReturnType<typeof loadPyodideAndPackages> | null =
     null;
@@ -452,9 +493,25 @@ export function startWorkerEnv(
         defaultPyodideUrl,
         appId,
         initData,
-        postMessage,
+        onModuleAutoLoad,
         onProgress,
       );
+
+      pyodideReadyPromise
+        .then(() => {
+          postMessage({
+            type: "event:loaded",
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          postMessage({
+            type: "event:error",
+            data: {
+              error,
+            },
+          });
+        });
       return;
     }
 
@@ -462,22 +519,7 @@ export function startWorkerEnv(
       throw new Error("Pyodide initialization has not been started yet.");
     }
     const { moduleAutoLoad } = initData;
-    const v = await pyodideReadyPromise
-      .then((initResult) => {
-        postMessage({
-          type: "event:loaded",
-        });
-        return initResult;
-      })
-      .catch((error) => {
-        postMessage({
-          type: "event:error",
-          data: {
-            error,
-          },
-        });
-        throw error;
-      });
+    const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
 
@@ -604,7 +646,7 @@ export function startWorkerEnv(
             // because its promise should be set before saving the file triggers rerunning.
             console.debug(`Auto install the requirements in ${path}`);
 
-            dispatchModuleAutoLoading(pyodide, postMessage, [fileData]);
+            dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, [fileData]);
           }
 
           console.debug(`Write a file "${path}"`);

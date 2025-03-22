@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite Browser Env Test</title>
+    <link
+      rel="stylesheet"
+      href="http://localhost:8081/style.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "http://localhost:8081/stlite.js";
+      mount({
+        files: {
+          "app.py": `
+import streamlit as st
+import os
+
+st.title("Stlite Browser Env Test")
+
+st.header("All Environment Variables")
+for key, value in os.environ.items():
+    st.write(f"{key}: {value}")
+`,
+        },
+        entrypoint: "app.py",
+        env: {
+          TEST_VAR: "test_value",
+          ANOTHER_VAR: "another_value",
+          PATH: "/usr/local/bin:/usr/bin:/bin"
+        }
+      },
+      document.getElementById("root"),
+    );
+    </script>
+  </body>
+</html>

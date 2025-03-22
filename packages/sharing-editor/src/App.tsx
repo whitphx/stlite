@@ -146,19 +146,31 @@ function App() {
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
   const editorRef = useRef<EditorRef>(null);
 
+  // This ref is used to ignore the file change messages from the iframe
+  // when the file is being edited by the editor in this app
+  // as the event is most probably triggered by the editor's edit.
+  const manipulatingFilesRef = useRef<Set<string>>(new Set());
+
   const writeFile = useCallback(
     (
       path: string,
       value: string | Uint8Array,
       stliteIframeRef: StliteSharingIFrameRef | null,
     ) => {
-      stliteIframeRef?.postMessage({
-        type: "file:write",
-        data: {
-          path,
-          content: value,
-        },
-      });
+      if (stliteIframeRef) {
+        manipulatingFilesRef.current.add(path);
+        stliteIframeRef
+          .postMessage({
+            type: "file:write",
+            data: {
+              path,
+              content: value,
+            },
+          })
+          .then(() => {
+            manipulatingFilesRef.current.delete(path);
+          });
+      }
 
       const newFileContent: File["content"] =
         typeof value === "string"
@@ -202,13 +214,20 @@ function App() {
         return;
       }
 
-      stliteIframeRef?.postMessage({
-        type: "file:rename",
-        data: {
-          oldPath,
-          newPath,
-        },
-      });
+      if (stliteIframeRef) {
+        manipulatingFilesRef.current.add(oldPath);
+        stliteIframeRef
+          .postMessage({
+            type: "file:rename",
+            data: {
+              oldPath,
+              newPath,
+            },
+          })
+          .then(() => {
+            manipulatingFilesRef.current.delete(oldPath);
+          });
+      }
 
       updateAppData((cur) => {
         const curFiles = cur.files;
@@ -234,12 +253,19 @@ function App() {
 
   const deleteFile = useCallback(
     (path: string, stliteIframeRef: StliteSharingIFrameRef | null) => {
-      stliteIframeRef?.postMessage({
-        type: "file:unlink",
-        data: {
-          path,
-        },
-      });
+      if (stliteIframeRef) {
+        manipulatingFilesRef.current.add(path);
+        stliteIframeRef
+          .postMessage({
+            type: "file:unlink",
+            data: {
+              path,
+            },
+          })
+          .then(() => {
+            manipulatingFilesRef.current.delete(path);
+          });
+      }
 
       updateAppData((cur) => {
         const curFiles = cur.files;
@@ -365,6 +391,9 @@ function App() {
       switch (msg.type) {
         case "event:file:write": {
           const { path } = msg.data;
+          if (manipulatingFilesRef.current.has(path)) {
+            return;
+          }
           const isTextExt = isTextExtPath(path);
           readFile(path, { encoding: isTextExt ? "utf8" : undefined }).then(
             (value) => {
@@ -375,11 +404,17 @@ function App() {
         }
         case "event:file:rename": {
           const { oldPath, newPath } = msg.data;
+          if (manipulatingFilesRef.current.has(oldPath)) {
+            return;
+          }
           renameFile(oldPath, newPath, null);
           break;
         }
         case "event:file:unlink": {
           const { path } = msg.data;
+          if (manipulatingFilesRef.current.has(path)) {
+            return;
+          }
           deleteFile(path, null);
           break;
         }

@@ -38,6 +38,7 @@ export interface FileReadMessage extends ForwardMessageBase {
   type: "file:read";
   data: {
     path: string;
+    opts?: Record<string, unknown>;
   };
 }
 export interface InstallMessage extends ForwardMessageBase {

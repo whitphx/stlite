@@ -208,7 +208,7 @@ st.write("Hello World")`,
                 return kernelWithToast.unlink(msg.data.path);
               }
               case "file:read": {
-                return kernel.readFile(msg.data.path).then(
+                return kernel.readFile(msg.data.path, msg.data.opts).then(
                   (content) =>
                     ({
                       type: "reply:file:read",

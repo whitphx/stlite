@@ -33,6 +33,7 @@ import {
   URL_SEARCH_KEY_SHARED_WORKER_MODE,
 } from "./url";
 import { useAppColorSchemePreference } from "./ColorScheme/hooks";
+import { isTextExtPath } from "./path";
 
 interface AppLoaderData {
   appData: AppData;
@@ -331,20 +332,27 @@ function App() {
     [updateAppData],
   );
 
-  const readFile = useCallback((path: string): Promise<string | Uint8Array> => {
-    if (iframeRef.current == null) {
-      throw new Error("Iframe is not ready");
-    }
+  const readFile = useCallback(
+    (
+      path: string,
+      opts?: Record<string, unknown>,
+    ): Promise<string | Uint8Array> => {
+      if (iframeRef.current == null) {
+        throw new Error("Iframe is not ready");
+      }
 
-    return (
-      iframeRef.current.postMessage({
-        type: "file:read",
-        data: {
-          path,
-        },
-      }) as Promise<FileReadResponse>
-    ).then((data) => data.content);
-  }, []);
+      return (
+        iframeRef.current.postMessage({
+          type: "file:read",
+          data: {
+            path,
+            opts,
+          },
+        }) as Promise<FileReadResponse>
+      ).then((data) => data.content);
+    },
+    [],
+  );
 
   const handleIframeMessage = useCallback<
     StliteSharingIFrameProps["onMessage"]
@@ -357,9 +365,12 @@ function App() {
       switch (msg.type) {
         case "event:file:write": {
           const { path } = msg.data;
-          readFile(path).then((value) => {
-            writeFile(path, value, null);
-          });
+          const isTextExt = isTextExtPath(path);
+          readFile(path, { encoding: isTextExt ? "utf8" : undefined }).then(
+            (value) => {
+              writeFile(path, value, null);
+            },
+          );
           break;
         }
         case "event:file:rename": {

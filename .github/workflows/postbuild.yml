@@ -191,7 +191,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run the e2e-tests
-      run: yarn test
+      run: yarn playwright test
       working-directory: packages/browser/e2e-tests
       env:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser

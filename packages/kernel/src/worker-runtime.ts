@@ -415,6 +415,7 @@ prepare(main_script_path, args)
   return {
     pyodide,
     httpServer,
+    micropip,
   };
 }
 
@@ -523,7 +524,7 @@ export function startWorkerEnv(
     const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
-
+    const micropip = v.micropip;
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
       messagePort.postMessage(message);
@@ -695,8 +696,6 @@ export function startWorkerEnv(
         }
         case "install": {
           const { requirements: unvalidatedRequirements } = msg.data;
-
-          const micropip = pyodide.pyimport("micropip");
 
           const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
           console.debug("Install the requirements:", requirements);

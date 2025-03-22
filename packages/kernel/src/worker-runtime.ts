@@ -416,6 +416,7 @@ prepare(main_script_path, args)
     pyodide,
     httpServer,
     micropip,
+    initData,
   };
 }
 
@@ -470,7 +471,6 @@ export function startWorkerEnv(
       });
   };
 
-  let initData: WorkerInitialData | null = null;
   let pyodideReadyPromise: ReturnType<typeof loadPyodideAndPackages> | null =
     null;
 
@@ -485,7 +485,7 @@ export function startWorkerEnv(
     // Special case for transmitting the initial data
     if (msg.type === "initData") {
       const initialDataFromMessage = msg.data;
-      initData = {
+      const initData = {
         ...presetInitialData,
         ...initialDataFromMessage,
       };
@@ -517,14 +517,15 @@ export function startWorkerEnv(
       return;
     }
 
-    if (!pyodideReadyPromise || !initData) {
+    if (!pyodideReadyPromise) {
       throw new Error("Pyodide initialization has not been started yet.");
     }
-    const { moduleAutoLoad } = initData;
     const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
     const micropip = v.micropip;
+    const { moduleAutoLoad } = v.initData;
+
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
       messagePort.postMessage(message);

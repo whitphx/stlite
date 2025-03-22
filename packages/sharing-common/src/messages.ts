@@ -34,6 +34,12 @@ export interface FileUnlinkMessage extends ForwardMessageBase {
     path: string;
   };
 }
+export interface FileReadMessage extends ForwardMessageBase {
+  type: "file:read";
+  data: {
+    path: string;
+  };
+}
 export interface InstallMessage extends ForwardMessageBase {
   type: "install";
   data: {
@@ -55,6 +61,7 @@ export type ForwardMessage =
   | FileWriteMessage
   | FileRenameMessage
   | FileUnlinkMessage
+  | FileReadMessage
   | InstallMessage
   | CodeCompletionRequestMessage;
 
@@ -73,6 +80,13 @@ export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
 }
 
+export interface FileReadResponse {
+  content: string | Uint8Array;
+}
+export interface FileReadResponseMessage extends ReplyMessageBase {
+  type: "reply:file:read";
+  data: FileReadResponse;
+}
 export interface CodeCompletionResponse {
   items: languages.CompletionItem[];
 }
@@ -81,7 +95,10 @@ export interface CodeCompletionResponseMessage extends ReplyMessageBase {
   data: CodeCompletionResponse;
 }
 
-export type ReplyMessage = GeneralReplyMessage | CodeCompletionResponseMessage;
+export type ReplyMessage =
+  | GeneralReplyMessage
+  | CodeCompletionResponseMessage
+  | FileReadResponseMessage;
 
 /**
  * Messages from app to editor
@@ -91,12 +108,35 @@ export interface BackwardMessageBase {
   data?: unknown;
   stlite: true; // To distinguish from other messages such as from the Streamlit app like https://github.com/streamlit/streamlit/blob/1.35.0/frontend/lib/src/hostComm/types.ts#L49
 }
-export interface ModuleAutoLoadSuccessMessage extends BackwardMessageBase {
-  type: "moduleAutoLoadSuccess";
+export interface ModuleAutoLoadEventMessage extends BackwardMessageBase {
+  type: "event:moduleAutoLoad";
   data: {
     packagesToLoad: string[];
     loadedPackages: PackageData[];
   };
 }
+export interface FileWriteEventMessage extends BackwardMessageBase {
+  type: "event:file:write";
+  data: {
+    path: string;
+  };
+}
+export interface FileRenameEventMessage extends BackwardMessageBase {
+  type: "event:file:rename";
+  data: {
+    oldPath: string;
+    newPath: string;
+  };
+}
+export interface FileUnlinkEventMessage extends BackwardMessageBase {
+  type: "event:file:unlink";
+  data: {
+    path: string;
+  };
+}
 
-export type BackwardMessage = ModuleAutoLoadSuccessMessage;
+export type BackwardMessage =
+  | ModuleAutoLoadEventMessage
+  | FileWriteEventMessage
+  | FileRenameEventMessage
+  | FileUnlinkEventMessage;

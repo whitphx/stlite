@@ -7,6 +7,7 @@ import type {
   BackwardMessage,
   CodeCompletionResponse,
   CodeCompletionRequest,
+  FileReadResponse,
 } from "@stlite/sharing-common";
 import { LoaderFunctionArgs, useLoaderData, redirect } from "react-router-dom";
 import { useAppData } from "./use-app-data";
@@ -144,9 +145,13 @@ function App() {
   const iframeRef = useRef<StliteSharingIFrameRef>(null);
   const editorRef = useRef<EditorRef>(null);
 
-  const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
-    (path, value) => {
-      iframeRef.current?.postMessage({
+  const writeFile = useCallback(
+    (
+      path: string,
+      value: string | Uint8Array,
+      stliteIframeRef: StliteSharingIFrameRef | null,
+    ) => {
+      stliteIframeRef?.postMessage({
         type: "file:write",
         data: {
           path,
@@ -180,8 +185,12 @@ function App() {
     [updateAppData],
   );
 
-  const handleFileRename = useCallback<EditorProps["onFileRename"]>(
-    (oldPath, newPath) => {
+  const renameFile = useCallback(
+    (
+      oldPath: string,
+      newPath: string,
+      stliteIframeRef: StliteSharingIFrameRef | null,
+    ) => {
       if (oldPath === newPath) {
         return;
       }
@@ -192,7 +201,7 @@ function App() {
         return;
       }
 
-      iframeRef.current?.postMessage({
+      stliteIframeRef?.postMessage({
         type: "file:rename",
         data: {
           oldPath,
@@ -222,9 +231,9 @@ function App() {
     [appData, updateAppData],
   );
 
-  const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
-    (path) => {
-      iframeRef.current?.postMessage({
+  const deleteFile = useCallback(
+    (path: string, stliteIframeRef: StliteSharingIFrameRef | null) => {
+      stliteIframeRef?.postMessage({
         type: "file:unlink",
         data: {
           path,
@@ -245,6 +254,39 @@ function App() {
       });
     },
     [updateAppData],
+  );
+
+  const handleEditorFileWrite = useCallback<EditorProps["onFileWrite"]>(
+    (path, value) => {
+      if (iframeRef.current == null) {
+        console.error("Iframe is not ready");
+        return;
+      }
+      writeFile(path, value, iframeRef.current);
+    },
+    [writeFile],
+  );
+
+  const handleEditorFileRename = useCallback<EditorProps["onFileRename"]>(
+    (oldPath, newPath) => {
+      if (iframeRef.current == null) {
+        console.error("Iframe is not ready");
+        return;
+      }
+      renameFile(oldPath, newPath, iframeRef.current);
+    },
+    [renameFile],
+  );
+
+  const handleEditorFileDelete = useCallback<EditorProps["onFileDelete"]>(
+    (path) => {
+      if (iframeRef.current == null) {
+        console.error("Iframe is not ready");
+        return;
+      }
+      deleteFile(path, iframeRef.current);
+    },
+    [deleteFile],
   );
 
   const handleRequirementsChange = useCallback<
@@ -268,7 +310,9 @@ function App() {
     [updateAppData],
   );
 
-  const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
+  const handleEditorEntrypointChange = useCallback<
+    EditorProps["onEntrypointChange"]
+  >(
     (entrypoint) => {
       iframeRef.current?.postMessage({
         type: "reboot",
@@ -287,6 +331,21 @@ function App() {
     [updateAppData],
   );
 
+  const readFile = useCallback((path: string): Promise<string | Uint8Array> => {
+    if (iframeRef.current == null) {
+      throw new Error("Iframe is not ready");
+    }
+
+    return (
+      iframeRef.current.postMessage({
+        type: "file:read",
+        data: {
+          path,
+        },
+      }) as Promise<FileReadResponse>
+    ).then((data) => data.content);
+  }, []);
+
   const handleIframeMessage = useCallback<
     StliteSharingIFrameProps["onMessage"]
   >(
@@ -296,7 +355,24 @@ function App() {
       }
       const msg = e.data as BackwardMessage;
       switch (msg.type) {
-        case "moduleAutoLoadSuccess": {
+        case "event:file:write": {
+          const { path } = msg.data;
+          readFile(path).then((value) => {
+            writeFile(path, value, null);
+          });
+          break;
+        }
+        case "event:file:rename": {
+          const { oldPath, newPath } = msg.data;
+          renameFile(oldPath, newPath, null);
+          break;
+        }
+        case "event:file:unlink": {
+          const { path } = msg.data;
+          deleteFile(path, null);
+          break;
+        }
+        case "event:moduleAutoLoad": {
           if (msg.data.loadedPackages.length > 0) {
             const additionalRequirements = msg.data.packagesToLoad;
             const editor = editorRef.current;
@@ -315,7 +391,7 @@ function App() {
         }
       }
     },
-    [updateAppData],
+    [updateAppData, readFile, renameFile, deleteFile, writeFile],
   );
 
   const pythonCodeCompletionCallback = useMemo(
@@ -352,11 +428,11 @@ function App() {
               ref={editorRef}
               appData={appData}
               pythonCodeCompletionCallback={pythonCodeCompletionCallback}
-              onFileWrite={handleFileWrite}
-              onFileRename={handleFileRename}
-              onFileDelete={handleFileDelete}
+              onFileWrite={handleEditorFileWrite}
+              onFileRename={handleEditorFileRename}
+              onFileDelete={handleEditorFileDelete}
               onRequirementsChange={handleRequirementsChange}
-              onEntrypointChange={handleEntrypointChange}
+              onEntrypointChange={handleEditorEntrypointChange}
             />
           }
           right={

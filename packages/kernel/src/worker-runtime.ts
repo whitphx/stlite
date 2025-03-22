@@ -8,6 +8,7 @@ import {
   getAppHomeDir,
   writeFileWithParents,
   renameWithParents,
+  monitorFiles,
 } from "./file";
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
@@ -396,6 +397,34 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
 `);
       console.debug("Set up the IndexedDB filesystem synchronizer");
     }
+
+    monitorFiles(pyodide, getAppHomeDir(appId), {
+      onWritten: (path) => {
+        postMessage({
+          type: "event:file:write",
+          data: {
+            path,
+          },
+        });
+      },
+      onDeleted: (path) => {
+        postMessage({
+          type: "event:file:unlink",
+          data: {
+            path,
+          },
+        });
+      },
+      onMoved: (oldpath, newpath) => {
+        postMessage({
+          type: "event:file:rename",
+          data: {
+            oldPath: oldpath,
+            newPath: newpath,
+          },
+        });
+      },
+    });
 
     const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 

@@ -3,8 +3,8 @@ import type { PyodideInterface } from "pyodide";
 
 export const globalHomeDir = "/home/pyodide";
 
-export const getAppHomeDir = (appId: string): string =>
-  `${globalHomeDir}/${appId}`;
+export const getAppHomeDir = (appId: string | undefined): string =>
+  appId == null ? globalHomeDir : path.join(globalHomeDir, appId);
 
 export const resolveAppPath = (
   appId: string | undefined,
@@ -64,4 +64,100 @@ export function renameWithParents(
 ): void {
   ensureParent(pyodide, newPath);
   pyodide.FS.rename(oldPath, newPath);
+}
+
+function relPathInDir(filePath: string, targetDir: string): string | null {
+  const relative = path.relative(targetDir, filePath);
+  if (
+    relative !== "" &&
+    !relative.startsWith("..") &&
+    !path.isAbsolute(relative)
+  ) {
+    return relative;
+  }
+
+  return null;
+}
+
+function isAllowedPath(filePath: string, allowedDotPaths: string[]): boolean {
+  return filePath.split(path.sep).every((part) => {
+    if (part.startsWith(".")) {
+      return allowedDotPaths.includes(part);
+    }
+    return true;
+  });
+}
+
+export function monitorFiles(
+  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
+  targetDirPath: string,
+  allowedDotPaths: string[],
+  callbacks: {
+    onWritten: (filePath: string) => void;
+    onDeleted: (filePath: string) => void;
+    onMoved: (oldFilePath: string, newFilePath: string) => void;
+  },
+): void {
+  pyodide.FS.trackingDelegate["onDeletePath"] = function (path: string) {
+    const relPath = relPathInDir(path, targetDirPath);
+    if (relPath == null) {
+      return;
+    }
+
+    if (isAllowedPath(relPath, allowedDotPaths)) {
+      callbacks.onDeleted(relPath);
+    }
+  };
+
+  pyodide.FS.trackingDelegate["onMovePath"] = function (
+    oldpath: string,
+    newpath: string,
+  ) {
+    const relOldPath = relPathInDir(oldpath, targetDirPath);
+    const relNewPath = relPathInDir(newpath, targetDirPath);
+    if (relOldPath == null || relNewPath == null) {
+      return;
+    }
+
+    if (
+      isAllowedPath(relOldPath, allowedDotPaths) &&
+      isAllowedPath(relNewPath, allowedDotPaths)
+    ) {
+      callbacks.onMoved(relOldPath, relNewPath);
+    }
+  };
+
+  const openedFiles = new Set<string>();
+  pyodide.FS.trackingDelegate["onOpenFile"] = function (
+    path: string,
+    flags: number,
+  ) {
+    openedFiles.add(path);
+  };
+
+  const writtenFiles = new Set<string>();
+  pyodide.FS.trackingDelegate["onWriteToFile"] = function (
+    path: string,
+    bytesWritten: number,
+  ) {
+    if (openedFiles.has(path)) {
+      writtenFiles.add(path);
+    }
+  };
+
+  pyodide.FS.trackingDelegate["onCloseFile"] = function (path: string) {
+    const relPath = relPathInDir(path, targetDirPath);
+    if (relPath == null) {
+      return;
+    }
+
+    if (isAllowedPath(relPath, allowedDotPaths)) {
+      if (writtenFiles.has(path)) {
+        callbacks.onWritten(relPath);
+      }
+    }
+
+    openedFiles.delete(path);
+    writtenFiles.delete(path);
+  };
 }

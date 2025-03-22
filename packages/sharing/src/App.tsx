@@ -5,8 +5,12 @@ import {
   extractAppDataFromUrlHash,
   ForwardMessage,
   ReplyMessage,
-  ModuleAutoLoadSuccessMessage,
+  ModuleAutoLoadEventMessage,
   CodeCompletionResponseMessage,
+  FileWriteEventMessage,
+  FileReadResponseMessage,
+  FileRenameEventMessage,
+  FileUnlinkEventMessage,
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
@@ -95,6 +99,8 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
+        const parentOrigin = EDITOR_APP_ORIGIN ?? communicatedEditorOrigin; // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
+
         const kernel = new StliteKernel({
           entrypoint: appData.entrypoint,
           files: convertFiles(appData.files),
@@ -107,6 +113,36 @@ st.write("Hello World")`,
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+          onFileWrite: (path) => {
+            window.parent.postMessage(
+              {
+                type: "event:file:write",
+                data: { path },
+                stlite: true,
+              } satisfies FileWriteEventMessage,
+              parentOrigin,
+            );
+          },
+          onFileRename: (oldPath, newPath) => {
+            window.parent.postMessage(
+              {
+                type: "event:file:rename",
+                data: { oldPath, newPath },
+                stlite: true,
+              } satisfies FileRenameEventMessage,
+              parentOrigin,
+            );
+          },
+          onFileUnlink: (path) => {
+            window.parent.postMessage(
+              {
+                type: "event:file:unlink",
+                data: { path },
+                stlite: true,
+              } satisfies FileUnlinkEventMessage,
+              parentOrigin,
+            );
+          },
         });
         _kernel = kernel;
         setKernel(kernel);
@@ -119,14 +155,14 @@ st.write("Hello World")`,
                 console.log("Module auto-load success", loadedPackages);
                 window.parent.postMessage(
                   {
-                    type: "moduleAutoLoadSuccess",
+                    type: "event:moduleAutoLoad",
                     data: {
                       packagesToLoad,
                       loadedPackages,
                     },
                     stlite: true,
-                  } as ModuleAutoLoadSuccessMessage,
-                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
+                  } satisfies ModuleAutoLoadEventMessage,
+                  parentOrigin,
                 );
               })
               .catch((error) => {
@@ -170,6 +206,15 @@ st.write("Hello World")`,
               }
               case "file:unlink": {
                 return kernelWithToast.unlink(msg.data.path);
+              }
+              case "file:read": {
+                return kernel.readFile(msg.data.path).then(
+                  (content) =>
+                    ({
+                      type: "reply:file:read",
+                      data: { content },
+                    }) satisfies FileReadResponseMessage,
+                );
               }
               case "install": {
                 return kernelWithToast.install(msg.data.requirements);

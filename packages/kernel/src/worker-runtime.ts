@@ -398,7 +398,7 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
       console.debug("Set up the IndexedDB filesystem synchronizer");
     }
 
-    monitorFiles(pyodide, getAppHomeDir(appId), {
+    monitorFiles(pyodide, getAppHomeDir(appId), [".streamlit"], {
       onWritten: (path) => {
         postMessage({
           type: "event:file:write",

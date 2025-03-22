@@ -4,7 +4,7 @@ import type {
   NodeJsWorkerAPI,
 } from "../electron/preload";
 
-export declare global {
+declare global {
   interface Window {
     appConfig: AppConfig;
     archivesAPI: ArchivesAPI;

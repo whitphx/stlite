@@ -1,6 +1,6 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.80.1",
+  "version": "0.80.2",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -33,7 +33,6 @@
     "build:bin": "tsc -p bin-src && ./scripts/build_bin.js",
     "build:wheels": "./scripts/copy_wheels.js",
     "postbuild:web": "./scripts/post_build_web.js",
-    "typecheck": "yarn tsc --noEmit -p electron",
     "prestart": "yarn build:pyodide && yarn build:wheels",
     "start": "concurrently \"cross-env BROWSER=none yarn start:web\" \"wait-on http://localhost:3000 && yarn start:electron\"",
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
@@ -63,9 +62,9 @@
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
-    "@stlite/common": "^0.80.1",
-    "@stlite/common-react": "^0.80.1",
-    "@stlite/kernel": "^0.80.1",
+    "@stlite/common": "^0.80.2",
+    "@stlite/common-react": "^0.80.2",
+    "@stlite/kernel": "^0.80.2",
     "@streamlit/app": "1.41.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

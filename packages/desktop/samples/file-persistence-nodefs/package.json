@@ -1,6 +1,6 @@
 {
   "name": "stlite-desktop-sample-file-persistence-nodefs",
-  "version": "0.80.1",
+  "version": "0.80.2",
   "license": "Apache-2.0",
   "main": "./build/electron/main.js",
   "scripts": {
@@ -18,7 +18,7 @@
     }
   },
   "devDependencies": {
-    "@stlite/desktop": "^0.80.1",
+    "@stlite/desktop": "^0.80.2",
     "cross-env": "^7.0.3",
     "electron": "34.3.0",
     "electron-builder": "^25.1.7"

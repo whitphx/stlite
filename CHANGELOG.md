@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.2] - 2025-03-20
+
+### `@stlite/browser`, `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug that the runtime doesn't work in environments where `SharedWorker` is not available even if the `sharedWorker` mode is not enabled, [#1413](https://github.com/whitphx/stlite/pull/1413).
+
 ## [0.80.1] - 2025-03-08
 
 ### `@stlite/browser`

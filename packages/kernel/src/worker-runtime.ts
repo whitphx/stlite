@@ -87,12 +87,9 @@ async function loadPyodideAndPackages(
 
   const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
 
-  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
-
   if (initPyodidePromise) {
     onProgress("Pyodide is already loaded.");
     console.debug("Pyodide is already loaded.");
-    pyodide = await initPyodidePromise;
   } else {
     onProgress("Loading Pyodide.");
     console.debug("Loading Pyodide.");
@@ -100,13 +97,6 @@ async function loadPyodideAndPackages(
       stdout: console.log,
       stderr: console.error,
     });
-    pyodide = await initPyodidePromise;
-    if (env) {
-      // We could've used the env parameter in pyodide initialization,
-      // but then some default environment variables like HOME were not set.
-      const os = pyodide.pyimport("os");
-      os.environ.update(pyodide.toPy(env));
-    }
 
     if (wheels) {
       // NOTE: It's important to install the user-specified requirements
@@ -123,6 +113,17 @@ async function loadPyodideAndPackages(
     }
 
     console.debug("Loaded Pyodide");
+  }
+  const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
+    await initPyodidePromise;
+
+  if (env) {
+    // We could've used the env parameter in pyodide initialization,
+    // but then some default environment variables like HOME were not set.
+    console.debug("Setting environment variables", env);
+    const os = pyodide.pyimport("os");
+    os.environ.update(pyodide.toPy(env));
+    console.debug("Set environment variables", os.environ);
   }
 
   let useIdbfs = false;

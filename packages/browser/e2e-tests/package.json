@@ -7,7 +7,9 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "install:browsers": "playwright install --with-deps",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "serve:pages": "http-server ./pages -p 8080 --cors",
+    "serve:build": "http-server \"${BUILD_DIR:-../build}\" -p 8081 --cors"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",

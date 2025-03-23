@@ -31,7 +31,6 @@ declare const self: WorkerGlobalScope & {
   __sharedWorkerMode__: boolean;
   __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
   __scriptFinishedCallback__: () => void;
-  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
 };
 if (typeof global !== "undefined" && typeof global.self === "undefined") {
   // In the case of classic workers, `self` is not available in a global scope, so we need to define it here.
@@ -47,13 +46,13 @@ function dispatchModuleAutoLoading(
 ) {
   const autoLoadPromise = tryModuleAutoLoad(pyodide, callback, sources);
   // `autoInstallPromise` will be awaited in the script_runner on the Python side.
-  self.__moduleAutoLoadPromise__ = autoLoadPromise;
-  pyodide.runPythonAsync(`
-from streamlit.runtime.scriptrunner import script_runner
-from js import __moduleAutoLoadPromise__
+  const setModuleAutoLoadPromise = pyodide.runPython(`
+def __set_module_auto_load_promise__(promise):
+    from streamlit.runtime.scriptrunner import script_runner
+    script_runner.moduleAutoLoadPromise = promise
 
-script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
-`);
+__set_module_auto_load_promise__`); // The last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  setModuleAutoLoadPromise(autoLoadPromise);
 }
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;

@@ -10,13 +10,13 @@
     <title>Stlite Browser Env Test</title>
     <link
       rel="stylesheet"
-      href="http://localhost:8081/style.css"
+      href="http://127.0.0.1:8081/style.css"
     />
   </head>
   <body>
     <div id="root"></div>
     <script type="module">
-      import { mount } from "http://localhost:8081/stlite.js";
+      import { mount } from "http://127.0.0.1:8081/stlite.js";
       mount({
         files: {
           "app.py": `

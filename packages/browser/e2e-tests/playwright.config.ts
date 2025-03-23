@@ -14,19 +14,19 @@ export default defineConfig({
   webServer: [
     {
       command: "yarn serve:pages",
-      url: "http://localhost:8080",
+      url: "http://127.0.0.1:8080",
       ignoreHTTPSErrors: true,
       reuseExistingServer: true,
     },
     {
       command: "yarn serve:build",
-      url: "http://localhost:8081",
+      url: "http://127.0.0.1:8081",
       ignoreHTTPSErrors: true,
       reuseExistingServer: true,
     },
   ],
   use: {
-    baseURL: "http://localhost:8080",
+    baseURL: "http://127.0.0.1:8080",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },

@@ -16,11 +16,13 @@ export default defineConfig({
       command: "yarn serve:pages",
       url: "http://localhost:8080",
       ignoreHTTPSErrors: true,
+      reuseExistingServer: true,
     },
     {
       command: "yarn serve:build",
       url: "http://localhost:8081",
       ignoreHTTPSErrors: true,
+      reuseExistingServer: true,
     },
   ],
   use: {

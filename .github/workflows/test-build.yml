@@ -637,7 +637,7 @@ jobs:
       run: yarn test
       working-directory: packages/browser/e2e-tests
       env:
-        BUILD_DIR: ${{ runner.temp }}/artifacts/browser
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/build
 
   e2e-desktop:
     needs: [build-desktop]

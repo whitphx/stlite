@@ -4,7 +4,8 @@ export type ModuleAutoLoadCallback = (
   packagesToLoad: string[],
   packageLoadPromise: Promise<PackageData[]>,
 ) => void;
-export function tryModuleAutoLoad(
+
+function tryModuleAutoLoad(
   pyodide: PyodideInterface,
   callback: ModuleAutoLoadCallback,
   sources: string[],
@@ -41,4 +42,20 @@ export function tryModuleAutoLoad(
   callback(packagesToLoad, packageLoadPromise);
 
   return packageLoadPromise.then();
+}
+
+export function dispatchModuleAutoLoading(
+  pyodide: PyodideInterface,
+  callback: ModuleAutoLoadCallback,
+  sources: string[],
+) {
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, callback, sources);
+  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
+  const setModuleAutoLoadPromise = pyodide.runPython(`
+def __set_module_auto_load_promise__(promise):
+    from streamlit.runtime.scriptrunner import script_runner
+    script_runner.moduleAutoLoadPromise = promise
+
+__set_module_auto_load_promise__`); // The last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  setModuleAutoLoadPromise(autoLoadPromise);
 }

@@ -11,7 +11,10 @@ import {
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
-import { tryModuleAutoLoad, ModuleAutoLoadCallback } from "./module-auto-load";
+import {
+  dispatchModuleAutoLoading,
+  ModuleAutoLoadCallback,
+} from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -37,22 +40,6 @@ if (typeof global !== "undefined" && typeof global.self === "undefined") {
   // The desktop packages' NodeJS worker mode uses classic workers, for example.
   // @ts-expect-error globalThis is not defined in the Web Worker context
   self = global;
-}
-
-function dispatchModuleAutoLoading(
-  pyodide: PyodideInterface,
-  callback: ModuleAutoLoadCallback,
-  sources: string[],
-) {
-  const autoLoadPromise = tryModuleAutoLoad(pyodide, callback, sources);
-  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
-  const setModuleAutoLoadPromise = pyodide.runPython(`
-def __set_module_auto_load_promise__(promise):
-    from streamlit.runtime.scriptrunner import script_runner
-    script_runner.moduleAutoLoadPromise = promise
-
-__set_module_auto_load_promise__`); // The last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
-  setModuleAutoLoadPromise(autoLoadPromise);
 }
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;

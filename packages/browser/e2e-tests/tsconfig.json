@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "strict": true,
+    "lib": ["esnext", "dom"],
+    "types": ["node", "@playwright/test"]
+  },
+  "include": ["tests/**/*.ts"]
+}

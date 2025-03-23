@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.3] - 2025-03-23
+
+### General
+
+#### Fixed
+
+- Fix a release workflow, [#1421](https://github.com/whitphx/stlite/pull/1421).
+
 ## [0.80.2] - 2025-03-20
 
 ### `@stlite/browser`, `@stlite/kernel`

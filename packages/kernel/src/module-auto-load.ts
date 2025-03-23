@@ -1,8 +1,12 @@
 import type { PackageData, PyodideInterface } from "pyodide";
 
+export type ModuleAutoLoadCallback = (
+  packagesToLoad: string[],
+  packageLoadPromise: Promise<PackageData[]>,
+) => void;
 export function tryModuleAutoLoad(
   pyodide: PyodideInterface,
-  callback: (packagesToLoad: string[], onLoad: Promise<PackageData[]>) => void,
+  callback: ModuleAutoLoadCallback,
   sources: string[],
 ): Promise<void> {
   // Ref: `pyodide.loadPackagesFromImports` (https://github.com/pyodide/pyodide/blob/0.26.0/src/js/api.ts#L191)

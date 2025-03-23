@@ -11,7 +11,7 @@ import {
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
-import { tryModuleAutoLoad } from "./module-auto-load";
+import { tryModuleAutoLoad, ModuleAutoLoadCallback } from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
@@ -40,10 +40,6 @@ if (typeof global !== "undefined" && typeof global.self === "undefined") {
   self = global;
 }
 
-type ModuleAutoLoadCallback = (
-  packagesToLoad: string[],
-  onLoad: Promise<PackageData[]>,
-) => void;
 function dispatchModuleAutoLoading(
   pyodide: PyodideInterface,
   callback: ModuleAutoLoadCallback,

@@ -19,13 +19,13 @@ export default defineConfig({
       ignoreHTTPSErrors: true,
       reuseExistingServer: true,
     },
-    {
-      command: "yarn serve:build",
-      stdout: "pipe",
-      url: "http://127.0.0.1:8081",
-      ignoreHTTPSErrors: true,
-      reuseExistingServer: true,
-    },
+    // {
+    //   command: "yarn serve:build",
+    //   stdout: "pipe",
+    //   url: "http://127.0.0.1:8081",
+    //   ignoreHTTPSErrors: true,
+    //   reuseExistingServer: true,
+    // },
   ],
   use: {
     baseURL: "http://127.0.0.1:8080",

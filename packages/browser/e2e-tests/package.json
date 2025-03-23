@@ -1,0 +1,17 @@
+{
+  "name": "@stlite/browser-e2e-tests",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "install:browsers": "playwright install --with-deps",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.1",
+    "http-server": "^14.1.1",
+    "typescript": "^5.8.2"
+  }
+}

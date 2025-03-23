@@ -633,13 +633,16 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
 
+    - run: tar xzvf stlite-browser-v*.tgz
+      working-directory: ${{ runner.temp }}/artifacts/browser
+
     - run: ls -la ${{ runner.temp }}/artifacts/browser
 
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/browser/e2e-tests
       env:
-        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/build
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/packages/build
 
   e2e-desktop:
     needs: [build-desktop]

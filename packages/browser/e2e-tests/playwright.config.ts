@@ -13,18 +13,16 @@ export default defineConfig({
   reporter: "html",
   webServer: [
     {
-      command: "yarn serve:pages",
+      command: "http-server ./pages -p 8080 --cors",
       stdout: "pipe",
-      url: "http://127.0.0.1:8080",
+      url: "http://localhost:8080",
       ignoreHTTPSErrors: true,
-      reuseExistingServer: true,
     },
     {
-      command: "yarn serve:build",
+      command: `http-server '${process.env.BUILD_DIR || "../build"}' -p 8081 --cors`,
       stdout: "pipe",
-      url: "http://127.0.0.1:8081",
+      url: "http://localhost:8081",
       ignoreHTTPSErrors: true,
-      reuseExistingServer: true,
     },
   ],
   use: {

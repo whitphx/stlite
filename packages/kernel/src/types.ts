@@ -208,13 +208,36 @@ export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
     packagesToLoad: string[];
   };
 }
+export interface OutMessageFileWriteEvent extends OutMessageBase {
+  type: "event:file:write";
+  data: {
+    path: string;
+  };
+}
+export interface OutMessageFileRenameEvent extends OutMessageBase {
+  type: "event:file:rename";
+  data: {
+    oldPath: string;
+    newPath: string;
+  };
+}
+export interface OutMessageFileUnlinkEvent extends OutMessageBase {
+  type: "event:file:unlink";
+  data: {
+    path: string;
+  };
+}
+
 export type OutMessage =
   | OutMessageStartEvent
   | OutMessageProgressEvent
   | OutMessageErrorEvent
   | OutMessageLoadedEvent
   | OutMessageWebSocketBack
-  | OutMessageModuleAutoLoadEvent;
+  | OutMessageModuleAutoLoadEvent
+  | OutMessageFileWriteEvent
+  | OutMessageFileRenameEvent
+  | OutMessageFileUnlinkEvent;
 
 export interface ModuleAutoLoadMessageBase {
   type: string;

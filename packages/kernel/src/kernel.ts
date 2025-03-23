@@ -137,6 +137,12 @@ export interface StliteKernelOptions {
 
   onError?: (error: Error) => void;
 
+  onFileWrite?: (path: string) => void;
+
+  onFileRename?: (oldPath: string, newPath: string) => void;
+
+  onFileUnlink?: (path: string) => void;
+
   workerType?: WorkerOptions["type"];
 
   sharedWorker?: boolean;
@@ -174,6 +180,9 @@ export class StliteKernel {
   public onLoad: StliteKernelOptions["onLoad"];
   public onError: StliteKernelOptions["onError"];
   public onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"];
+  public onFileWrite: StliteKernelOptions["onFileWrite"];
+  public onFileRename: StliteKernelOptions["onFileRename"];
+  public onFileUnlink: StliteKernelOptions["onFileUnlink"];
 
   constructor(options: StliteKernelOptions) {
     this.basePath = (options.basePath ?? window.location.pathname)
@@ -184,6 +193,9 @@ export class StliteKernel {
     this.onLoad = options.onLoad;
     this.onError = options.onError;
     this.onModuleAutoLoad = options.onModuleAutoLoad;
+    this.onFileWrite = options.onFileWrite;
+    this.onFileRename = options.onFileRename;
+    this.onFileUnlink = options.onFileUnlink;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -463,6 +475,19 @@ export class StliteKernel {
               };
             }),
           );
+        break;
+      }
+      case "event:file:write": {
+        this.onFileWrite && this.onFileWrite(msg.data.path);
+        break;
+      }
+      case "event:file:rename": {
+        this.onFileRename &&
+          this.onFileRename(msg.data.oldPath, msg.data.newPath);
+        break;
+      }
+      case "event:file:unlink": {
+        this.onFileUnlink && this.onFileUnlink(msg.data.path);
         break;
       }
     }

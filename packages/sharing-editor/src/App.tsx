@@ -300,8 +300,7 @@ function App() {
           if (msg.data.loadedPackages.length > 0) {
             const additionalRequirements = msg.data.packagesToLoad;
 
-            const editor = editorRef.current;
-            editor?.addRequirements(
+            editorRef.current?.addRequirements(
               additionalRequirements.map((r) => r + " # auto-loaded"),
             );
 

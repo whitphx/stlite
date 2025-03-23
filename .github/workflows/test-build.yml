@@ -603,3 +603,84 @@ jobs:
       with:
         path: packages/vscode-stlite/vscode-stlite*.vsix
         name: vscode-stlite
+
+  e2e-browser:
+    needs: [build-browser]
+
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+
+    - name: Set up the e2e-tests environment
+      run: |
+        yarn install --frozen-lockfile
+        yarn install:browsers
+      working-directory: packages/browser/e2e-tests
+
+    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-browser
+        path: ${{ runner.temp }}/artifacts/browser
+
+    - run: tar xzvf stlite-browser-v*.tgz
+      working-directory: ${{ runner.temp }}/artifacts/browser
+
+    - name: Run the e2e-tests
+      run: yarn test
+      working-directory: packages/browser/e2e-tests
+      env:
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
+
+  e2e-desktop:
+    needs: [build-desktop]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    permissions:
+      contents: read
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+        cache: 'yarn'
+
+    - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
+
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      with:
+        name: stlite-desktop
+        path: ${{ runner.temp }}/sample_app
+
+    - name: Install the tarball
+      run: |
+        mv stlite-desktop-v*.tgz stlite-desktop.tgz
+        npm install file:stlite-desktop.tgz
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - run: npm run dump
+      working-directory: ${{ runner.temp }}/sample_app
+
+    # TODO: Run `yarn serve` and check if the app doesn't show any error.
+
+    - name: Check if electron-builder works
+      run: npm run app:dir
+      working-directory: ${{ runner.temp }}/sample_app

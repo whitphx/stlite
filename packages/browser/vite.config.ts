@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
@@ -158,5 +158,9 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     environment: "jsdom", // Same as the kernel
+    exclude: ["e2e-tests/**"],
+    typecheck: {
+      enabled: true,
+    },
   },
 }));

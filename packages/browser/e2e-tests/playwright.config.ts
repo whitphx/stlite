@@ -14,13 +14,11 @@ export default defineConfig({
   webServer: [
     {
       command: "http-server ./pages -p 8080 --cors",
-      stdout: "pipe",
       url: "http://localhost:8080",
       ignoreHTTPSErrors: true,
     },
     {
       command: `http-server '${process.env.BUILD_DIR || "../build"}' -p 8081 --cors`,
-      stdout: "pipe",
       url: "http://localhost:8081",
       ignoreHTTPSErrors: true,
     },

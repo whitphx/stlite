@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.4] - 2025-03-23
+
+### `@stlite/browser`
+
+#### Fixed
+
+- Add a E2E test suite, [#1395](https://github.com/whitphx/stlite/pull/1395).
+
 ## [0.80.3] - 2025-03-23
 
 ### General

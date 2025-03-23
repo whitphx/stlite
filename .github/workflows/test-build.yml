@@ -633,6 +633,8 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
 
+    - run: ls -la ${{ runner.temp }}/artifacts/browser
+
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/browser/e2e-tests

@@ -20,27 +20,12 @@ import type {
   OutMessage,
   InMessage,
   ReplyMessage,
-  PyodideConvertiblePrimitive,
   ModuleAutoLoadMessage,
 } from "./types";
 import { importLanguageServerLibraries } from "./language-server/language-server-loader";
 import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
-
-// In the case of ESM workers, `self` is available in a global scope.
-declare const self: WorkerGlobalScope & {
-  __logCallback__: (levelno: number, msg: string) => void;
-  __sharedWorkerMode__: boolean;
-  __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
-  __scriptFinishedCallback__: () => void;
-};
-if (typeof global !== "undefined" && typeof global.self === "undefined") {
-  // In the case of classic workers, `self` is not available in a global scope, so we need to define it here.
-  // The desktop packages' NodeJS worker mode uses classic workers, for example.
-  // @ts-expect-error globalThis is not defined in the Web Worker context
-  self = global;
-}
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
@@ -241,12 +226,12 @@ streamlit.logger.update_formatter = lambda *a, **k: None
 streamlit.logger.set_log_level = lambda *a, **k: None
 
 for name in streamlit.logger._loggers.keys():
-  if name == "root":
-      name = "streamlit"
-  logger = logging.getLogger(name)
-  logger.propagate = True
-  logger.handlers.clear()
-  logger.setLevel(logging.NOTSET)
+    if name == "root":
+        name = "streamlit"
+    logger = logging.getLogger(name)
+    logger.propagate = True
+    logger.handlers.clear()
+    logger.setLevel(logging.NOTSET)
 
 streamlit.logger._loggers = {}
 `);
@@ -262,44 +247,40 @@ streamlit.logger._loggers = {}
       console.debug(msg);
     }
   };
-  self.__logCallback__ = logCallback;
-  await pyodide.runPythonAsync(`
-def setup_loggers(streamlit_level, streamlit_message_format):
-  from js import __logCallback__
+  const setupLoggers = pyodide.runPython(`
+def __setup_loggers__(streamlit_level, streamlit_message_format, callback):
+    class JsHandler(logging.Handler):
+        def emit(self, record):
+            msg = self.format(record)
+            callback(record.levelno, msg)
 
 
-  class JsHandler(logging.Handler):
-      def emit(self, record):
-          msg = self.format(record)
-          __logCallback__(record.levelno, msg)
+    root_message_format = "%(levelname)s:%(name)s:%(message)s"
 
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_formatter = logging.Formatter(root_message_format)
+    root_handler = JsHandler()
+    root_handler.setFormatter(root_formatter)
+    root_logger.addHandler(root_handler)
+    root_logger.setLevel(logging.DEBUG)
 
-  root_message_format = "%(levelname)s:%(name)s:%(message)s"
+    streamlit_logger = logging.getLogger("streamlit")
+    streamlit_logger.propagate = False
+    streamlit_logger.handlers.clear()
+    streamlit_formatter = logging.Formatter(streamlit_message_format)
+    streamlit_handler = JsHandler()
+    streamlit_handler.setFormatter(streamlit_formatter)
+    streamlit_logger.addHandler(streamlit_handler)
+    streamlit_logger.setLevel(streamlit_level.upper())
 
-  root_logger = logging.getLogger()
-  root_logger.handlers.clear()
-  root_formatter = logging.Formatter(root_message_format)
-  root_handler = JsHandler()
-  root_handler.setFormatter(root_formatter)
-  root_logger.addHandler(root_handler)
-  root_logger.setLevel(logging.DEBUG)
-
-  streamlit_logger = logging.getLogger("streamlit")
-  streamlit_logger.propagate = False
-  streamlit_logger.handlers.clear()
-  streamlit_formatter = logging.Formatter(streamlit_message_format)
-  streamlit_handler = JsHandler()
-  streamlit_handler.setFormatter(streamlit_formatter)
-  streamlit_logger.addHandler(streamlit_handler)
-  streamlit_logger.setLevel(streamlit_level.upper())
-`);
+__setup_loggers__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
   const streamlitLogLevel = (
     streamlitConfig?.["logger.level"] ?? "INFO"
   ).toString();
   const streamlitLogMessageFormat =
     streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
-  const setupLoggers = pyodide.globals.get("setup_loggers");
-  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat);
+  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat, logCallback);
   console.debug("Set the loggers");
 
   onProgress("Mocking some Streamlit functions for the browser environment.");
@@ -320,8 +301,8 @@ streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
     console.debug("Setting up the IndexedDB filesystem synchronizer");
     // IDBFS needs to be synced by calling `pyodide.FS.syncfs`.
     // Ref: https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs
-    let fsSyncing = false; // Sometimes `__scriptFinishedCallback__` is called many time at once so we avoid unnecessary simultaneous calls of `pyodide.FS.syncfs`.
-    self.__scriptFinishedCallback__ = () => {
+    let fsSyncing = false; // Sometimes `scriptFinishedCallback` is called many time at once so we avoid unnecessary simultaneous calls of `pyodide.FS.syncfs`.
+    const scriptFinishedCallback = () => {
       console.debug("The script has finished. Syncing the filesystem.");
       if (!fsSyncing) {
         fsSyncing = true;
@@ -334,27 +315,27 @@ streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
       }
     };
     // TODO: Run the callback only for the current app in the case of SharedWorker mode, where multiple runtimes exist.
-    // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `__scriptFinishedCallback__` when the script is finished.
-    await pyodide.runPythonAsync(`
-from streamlit.runtime.app_session import AppSession
-from streamlit.runtime.scriptrunner import ScriptRunnerEvent
-from js import __scriptFinishedCallback__
+    // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `scriptFinishedCallback` when the script is finished.
+    const setupScriptFinishedCallback = await pyodide.runPython(`
+def __setup_script_finished_callback__(callback):
+    from streamlit.runtime.app_session import AppSession
+    from streamlit.runtime.scriptrunner import ScriptRunnerEvent
 
-def wrap_app_session_on_scriptrunner_event(original_method):
-  def wrapped(self, *args, **kwargs):
-      if "event" in kwargs:
-          event = kwargs["event"]
-          if event == ScriptRunnerEvent.SCRIPT_STOPPED_WITH_SUCCESS or event == ScriptRunnerEvent.SCRIPT_STOPPED_FOR_RERUN or event == ScriptRunnerEvent.SHUTDOWN:
-              __scriptFinishedCallback__()
-      return original_method(self, *args, **kwargs)
-  return wrapped
+    def wrap_app_session_on_scriptrunner_event(original_method):
+        def wrapped(self, *args, **kwargs):
+            if "event" in kwargs:
+                event = kwargs["event"]
+                if event == ScriptRunnerEvent.SCRIPT_STOPPED_WITH_SUCCESS or event == ScriptRunnerEvent.SCRIPT_STOPPED_FOR_RERUN or event == ScriptRunnerEvent.SHUTDOWN:
+                    callback()
+            return original_method(self, *args, **kwargs)
+        return wrapped
 
-AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
-`);
+    AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
+
+__setup_script_finished_callback__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+    setupScriptFinishedCallback(scriptFinishedCallback);
     console.debug("Set up the IndexedDB filesystem synchronizer");
   }
-
-  const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
   if (languageServer) {
     onProgress("Importing Language Server");
@@ -364,25 +345,28 @@ AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSe
   onProgress("Booting up the Streamlit server.");
   // The following Python code is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
-  self.__sharedWorkerMode__ = appId != null;
-  self.__streamlitFlagOptions__ = {
+  const bootstrap = await pyodide.runPython(`
+def __bootstrap__(main_script_path, flag_options, shared_worker_mode):
+    from stlite_lib.bootstrap import load_config_options, prepare
+
+    load_config_options(flag_options, shared_worker_mode)
+
+    prepare(main_script_path, [])
+
+__bootstrap__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
+  const streamlitFlagOptions = {
     // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
     "browser.gatherUsageStats": false,
     ...streamlitConfig,
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };
-  await pyodide.runPythonAsync(`
-from stlite_lib.bootstrap import load_config_options, prepare
-from js import __sharedWorkerMode__, __streamlitFlagOptions__
-
-flag_options = __streamlitFlagOptions__.to_py()
-load_config_options(flag_options, __sharedWorkerMode__)
-
-main_script_path = "${canonicalEntrypoint}"
-args = []
-
-prepare(main_script_path, args)
-`);
+  const sharedWorkerMode = appId != null;
+  bootstrap(
+    canonicalEntrypoint,
+    pyodide.toPy(streamlitFlagOptions),
+    sharedWorkerMode,
+  );
   console.debug("Set up the Streamlit configuration");
 
   console.debug("Booting up the Streamlit server");

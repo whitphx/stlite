@@ -636,8 +636,6 @@ jobs:
     - run: tar xzvf stlite-browser-v*.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
 
-    - run: ls -la ${{ runner.temp }}/artifacts/browser
-
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/browser/e2e-tests
@@ -678,11 +676,11 @@ jobs:
         npm install file:stlite-desktop.tgz
       working-directory: ${{ runner.temp }}/sample_app
 
-    - run: yarn dump
+    - run: npm run dump
       working-directory: ${{ runner.temp }}/sample_app
 
     # TODO: Run `yarn serve` and check if the app doesn't show any error.
 
     - name: Check if electron-builder works
-      run: yarn run app:dir
+      run: npm run app:dir
       working-directory: ${{ runner.temp }}/sample_app

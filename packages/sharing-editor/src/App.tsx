@@ -299,13 +299,12 @@ function App() {
         case "moduleAutoLoadSuccess": {
           if (msg.data.loadedPackages.length > 0) {
             const additionalRequirements = msg.data.packagesToLoad;
+
             const editor = editorRef.current;
-            if (editor == null) {
-              return;
-            }
-            editor.addRequirements(
+            editor?.addRequirements(
               additionalRequirements.map((r) => r + " # auto-loaded"),
             );
+
             updateAppData((cur) => {
               const newRequirements = cur.requirements.concat(
                 additionalRequirements,

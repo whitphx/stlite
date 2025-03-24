@@ -507,8 +507,9 @@ export function startWorkerEnv(
           httpServer.stop();
 
           console.debug("Booting up the Streamlit server");
+          const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
           const Server = pyodide.pyimport("stlite_lib.server.Server");
-          httpServer = Server(entrypoint);
+          httpServer = Server(canonicalEntrypoint);
           httpServer.start();
           console.debug("Booted up the Streamlit server");
 

@@ -1,10 +1,13 @@
-import type { PyodideInterface } from "pyodide";
-import type { ModuleAutoLoadMessage } from "./types";
-import type { PostMessageFn } from "./worker-runtime";
+import type { PackageData, PyodideInterface } from "pyodide";
 
-export async function tryModuleAutoLoad(
+export type ModuleAutoLoadCallback = (
+  packagesToLoad: string[],
+  packageLoadPromise: Promise<PackageData[]>,
+) => void;
+
+function tryModuleAutoLoad(
   pyodide: PyodideInterface,
-  postMessage: PostMessageFn,
+  callback: ModuleAutoLoadCallback,
   sources: string[],
 ): Promise<void> {
   // Ref: `pyodide.loadPackagesFromImports` (https://github.com/pyodide/pyodide/blob/0.26.0/src/js/api.ts#L191)
@@ -32,38 +35,27 @@ export async function tryModuleAutoLoad(
     .filter((name) => name) as string[];
 
   if (packagesToLoad.length === 0) {
-    return;
+    return Promise.resolve();
   }
 
-  const channel = new MessageChannel();
+  const packageLoadPromise = pyodide.loadPackage(packagesToLoad);
+  callback(packagesToLoad, packageLoadPromise);
 
-  postMessage(
-    {
-      type: "event:moduleAutoLoad",
-      data: {
-        packagesToLoad,
-      },
-    },
-    channel.port2,
-  );
+  return packageLoadPromise.then();
+}
 
-  try {
-    const loadedPackages = await pyodide.loadPackage(packagesToLoad);
+export function dispatchModuleAutoLoading(
+  pyodide: PyodideInterface,
+  callback: ModuleAutoLoadCallback,
+  sources: string[],
+) {
+  const autoLoadPromise = tryModuleAutoLoad(pyodide, callback, sources);
+  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
+  const setModuleAutoLoadPromise = pyodide.runPython(`
+def __set_module_auto_load_promise__(promise):
+    from streamlit.runtime.scriptrunner import script_runner
+    script_runner.moduleAutoLoadPromise = promise
 
-    channel.port1.postMessage({
-      type: "moduleAutoLoad:success",
-      data: {
-        loadedPackages,
-      },
-    } as ModuleAutoLoadMessage);
-    channel.port1.close();
-    return;
-  } catch (error) {
-    channel.port1.postMessage({
-      type: "moduleAutoLoad:error",
-      error: error as Error,
-    } as ModuleAutoLoadMessage);
-    channel.port1.close();
-    throw error;
-  }
+__set_module_auto_load_promise__`); // The last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  setModuleAutoLoadPromise(autoLoadPromise);
 }

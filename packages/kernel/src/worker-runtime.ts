@@ -1,8 +1,7 @@
 /// <reference lib="WebWorker" />
 
-import type { PyodideInterface } from "pyodide";
+import type { PackageData, PyodideInterface } from "pyodide";
 import type { PyProxy, PyBuffer } from "pyodide/ffi";
-import { PromiseDelegate } from "@stlite/common";
 import {
   resolveAppPath,
   getAppHomeDir,
@@ -12,267 +11,212 @@ import {
 import { validateRequirements } from "@stlite/common/src/requirements";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
-import { tryModuleAutoLoad } from "./module-auto-load";
+import {
+  dispatchModuleAutoLoading,
+  ModuleAutoLoadCallback,
+} from "./module-auto-load";
 import type {
   WorkerInitialData,
   OutMessage,
   InMessage,
   ReplyMessage,
-  PyodideConvertiblePrimitive,
+  ModuleAutoLoadMessage,
 } from "./types";
 import { importLanguageServerLibraries } from "./language-server/language-server-loader";
 import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
 
-// In the case of ESM workers, `self` is available in a global scope.
-declare const self: WorkerGlobalScope & {
-  __logCallback__: (levelno: number, msg: string) => void;
-  __sharedWorkerMode__: boolean;
-  __streamlitFlagOptions__: Record<string, PyodideConvertiblePrimitive>;
-  __scriptFinishedCallback__: () => void;
-  __moduleAutoLoadPromise__: Promise<unknown> | undefined;
-};
-if (typeof global !== "undefined" && typeof global.self === "undefined") {
-  // In the case of classic workers, `self` is not available in a global scope, so we need to define it here.
-  // The desktop packages' NodeJS worker mode uses classic workers, for example.
-  // @ts-expect-error globalThis is not defined in the Web Worker context
-  self = global;
-}
-
-function dispatchModuleAutoLoading(
-  pyodide: PyodideInterface,
-  postMessage: PostMessageFn,
-  sources: string[],
-): void {
-  const autoLoadPromise = tryModuleAutoLoad(pyodide, postMessage, sources);
-  // `autoInstallPromise` will be awaited in the script_runner on the Python side.
-  self.__moduleAutoLoadPromise__ = autoLoadPromise;
-  pyodide.runPythonAsync(`
-from streamlit.runtime.scriptrunner import script_runner
-from js import __moduleAutoLoadPromise__
-
-script_runner.moduleAutoLoadPromise = __moduleAutoLoadPromise__
-`);
-}
-
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
-export function startWorkerEnv(
+async function loadPyodideAndPackages(
   defaultPyodideUrl: string,
-  postMessage: PostMessageFn,
-  presetInitialData?: Partial<WorkerInitialData>,
-  appId?: string,
+  appId: string | undefined,
+  initData: WorkerInitialData,
+  onModuleAutoLoad: ModuleAutoLoadCallback,
+  onProgress: (message: string) => void,
 ) {
-  function postProgressMessage(message: string): void {
-    postMessage({
-      type: "event:progress",
-      data: {
-        message,
-      },
+  const {
+    entrypoint,
+    files,
+    archives,
+    requirements: unvalidatedRequirements,
+    prebuiltPackageNames: prebuiltPackages,
+    wheels,
+    pyodideUrl = defaultPyodideUrl,
+    streamlitConfig,
+    idbfsMountpoints,
+    nodefsMountpoints,
+    moduleAutoLoad,
+    env,
+    languageServer,
+  } = initData;
+
+  const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
+
+  if (initPyodidePromise) {
+    onProgress("Pyodide is already loaded.");
+    console.debug("Pyodide is already loaded.");
+  } else {
+    onProgress("Loading Pyodide.");
+    console.debug("Loading Pyodide.");
+    initPyodidePromise = initPyodide(pyodideUrl, {
+      stdout: console.log,
+      stderr: console.error,
+    });
+
+    if (wheels) {
+      // NOTE: It's important to install the user-specified requirements
+      // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+      requirements.unshift(wheels.streamlit);
+      requirements.unshift(wheels.stliteLib);
+    }
+
+    console.debug("Loaded Pyodide");
+  }
+  const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
+    await initPyodidePromise;
+
+  if (env) {
+    // We could've used the env parameter in pyodide initialization,
+    // but then some default environment variables like HOME were not set.
+    console.debug("Setting environment variables", env);
+    const os = pyodide.pyimport("os");
+    os.environ.update(pyodide.toPy(env));
+    console.debug("Set environment variables", os.environ);
+  }
+
+  let useIdbfs = false;
+  if (idbfsMountpoints) {
+    useIdbfs = true;
+
+    idbfsMountpoints.forEach((mountpoint) => {
+      pyodide.FS.mkdir(mountpoint);
+      pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, mountpoint);
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      pyodide.FS.syncfs(true, (err: Error) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+  if (nodefsMountpoints) {
+    Object.entries(nodefsMountpoints).forEach(([mountpoint, path]) => {
+      pyodide.FS.mkdir(mountpoint);
+      pyodide.FS.mount(
+        pyodide.FS.filesystems.NODEFS,
+        { root: path },
+        mountpoint,
+      );
     });
   }
 
-  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
+  // Mount files
+  onProgress("Mounting files.");
+  const pythonFilePaths: string[] = [];
+  await Promise.all(
+    Object.keys(files).map(async (path) => {
+      const file = files[path];
+      path = resolveAppPath(appId, path);
 
-  let httpServer: PyProxy;
-
-  const initDataPromiseDelegate = new PromiseDelegate<WorkerInitialData>();
-
-  /**
-   * Load Pyodided and initialize the interpreter.
-   *
-   * NOTE: This implementation is based on JupyterLite@v0.1.0a16.
-   *       Since v0.1.0a17, a wrapper around micropip, piplite, has been introduced
-   *       and the importing strategy of pyolite and other packages has been changed.
-   *       We might need to catch up it.
-   *       https://github.com/jupyterlite/jupyterlite/pull/310
-   */
-  async function loadPyodideAndPackages() {
-    const initialDataFromMessage = await initDataPromiseDelegate.promise;
-    const initData = {
-      ...presetInitialData,
-      ...initialDataFromMessage,
-    };
-    console.debug("Initial data", initData);
-    const {
-      entrypoint,
-      files,
-      archives,
-      requirements: unvalidatedRequirements,
-      prebuiltPackageNames: prebuiltPackages,
-      wheels,
-      pyodideUrl = defaultPyodideUrl,
-      streamlitConfig,
-      idbfsMountpoints,
-      nodefsMountpoints,
-      moduleAutoLoad,
-      env,
-      languageServer,
-    } = initData;
-
-    const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
-
-    if (initPyodidePromise) {
-      postProgressMessage("Pyodide is already loaded.");
-      console.debug("Pyodide is already loaded.");
-      pyodide = await initPyodidePromise;
-    } else {
-      postProgressMessage("Loading Pyodide.");
-      console.debug("Loading Pyodide.");
-      initPyodidePromise = initPyodide(pyodideUrl, {
-        stdout: console.log,
-        stderr: console.error,
-      });
-      pyodide = await initPyodidePromise;
-      if (env) {
-        // We could've used the env parameter in pyodide initialization,
-        // but then some default environment variables like HOME were not set.
-        const os = pyodide.pyimport("os");
-        os.environ.update(pyodide.toPy(env));
+      let data: string | ArrayBufferView;
+      if ("url" in file) {
+        console.debug(`Fetch a file from ${file.url}`);
+        data = await fetch(file.url)
+          .then((res) => res.arrayBuffer())
+          .then((buffer) => new Uint8Array(buffer));
+      } else {
+        data = file.data;
       }
 
-      if (wheels) {
-        // NOTE: It's important to install the user-specified requirements
-        // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
-        // which satisfies the following two requirements:
-        // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-        // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-        // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-        // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-        // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-        // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-        requirements.unshift(wheels.streamlit);
-        requirements.unshift(wheels.stliteLib);
+      console.debug(`Write a file "${path}"`);
+      writeFileWithParents(pyodide, path, data, files.opts);
+
+      if (path.endsWith(".py")) {
+        pythonFilePaths.push(path);
       }
+    }),
+  );
 
-      console.debug("Loaded Pyodide");
-    }
+  // Unpack archives
+  onProgress("Unpacking archives.");
+  await Promise.all(
+    archives.map(async (archive) => {
+      let buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
+      if ("url" in archive) {
+        console.debug(`Fetch an archive from ${archive.url}`);
+        buffer = await fetch(archive.url).then((res) => res.arrayBuffer());
+      } else {
+        buffer = archive.buffer;
+      }
+      const { format, options } = archive;
 
-    let useIdbfs = false;
-    if (idbfsMountpoints) {
-      useIdbfs = true;
+      console.debug(`Unpack an archive`, { format, options });
+      pyodide.unpackArchive(buffer, format, options);
+    }),
+  );
 
-      idbfsMountpoints.forEach((mountpoint) => {
-        pyodide.FS.mkdir(mountpoint);
-        pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, mountpoint);
-      });
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
 
-      await new Promise<void>((resolve, reject) => {
-        pyodide.FS.syncfs(true, (err: Error) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-    }
-    if (nodefsMountpoints) {
-      Object.entries(nodefsMountpoints).forEach(([mountpoint, path]) => {
-        pyodide.FS.mkdir(mountpoint);
-        pyodide.FS.mount(
-          pyodide.FS.filesystems.NODEFS,
-          { root: path },
-          mountpoint,
-        );
-      });
-    }
+  onProgress("Mocking some packages.");
+  console.debug("Mock pyarrow");
+  mockPyArrow(pyodide);
+  console.debug("Mocked pyarrow");
 
-    // Mount files
-    postProgressMessage("Mounting files.");
-    const pythonFilePaths: string[] = [];
-    await Promise.all(
-      Object.keys(files).map(async (path) => {
-        const file = files[path];
-        path = resolveAppPath(appId, path);
+  // NOTE: Installing packages must be AFTER restoring the archives
+  // because they may contain packages to be restored into the site-packages directory.
+  onProgress("Installing packages.");
 
-        let data: string | ArrayBufferView;
-        if ("url" in file) {
-          console.debug(`Fetch a file from ${file.url}`);
-          data = await fetch(file.url)
-            .then((res) => res.arrayBuffer())
-            .then((buffer) => new Uint8Array(buffer));
-        } else {
-          data = file.data;
-        }
+  console.debug("Installing the prebuilt packages:", prebuiltPackages);
+  await pyodide.loadPackage(prebuiltPackages);
+  console.debug("Installed the prebuilt packages");
 
-        console.debug(`Write a file "${path}"`);
-        writeFileWithParents(pyodide, path, data, files.opts);
+  console.debug("Installing the requirements:", requirements);
+  await micropip.install.callKwargs(requirements, { keep_going: true });
+  console.debug("Installed the requirements");
 
-        if (path.endsWith(".py")) {
-          pythonFilePaths.push(path);
-        }
-      }),
+  if (moduleAutoLoad) {
+    const sources = pythonFilePaths.map((path) =>
+      pyodide.FS.readFile(path, { encoding: "utf8" }),
     );
+    dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, sources);
+  }
 
-    // Unpack archives
-    postProgressMessage("Unpacking archives.");
-    await Promise.all(
-      archives.map(async (archive) => {
-        let buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
-        if ("url" in archive) {
-          console.debug(`Fetch an archive from ${archive.url}`);
-          buffer = await fetch(archive.url).then((res) => res.arrayBuffer());
-        } else {
-          buffer = archive.buffer;
-        }
-        const { format, options } = archive;
-
-        console.debug(`Unpack an archive`, { format, options });
-        pyodide.unpackArchive(buffer, format, options);
-      }),
-    );
-
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-
-    postProgressMessage("Mocking some packages.");
-    console.debug("Mock pyarrow");
-    mockPyArrow(pyodide);
-    console.debug("Mocked pyarrow");
-
-    // NOTE: Installing packages must be AFTER restoring the archives
-    // because they may contain packages to be restored into the site-packages directory.
-    postProgressMessage("Installing packages.");
-
-    console.debug("Installing the prebuilt packages:", prebuiltPackages);
-    await pyodide.loadPackage(prebuiltPackages);
-    console.debug("Installed the prebuilt packages");
-
-    console.debug("Installing the requirements:", requirements);
-    await micropip.install.callKwargs(requirements, { keep_going: true });
-    console.debug("Installed the requirements");
-
-    if (moduleAutoLoad) {
-      const sources = pythonFilePaths.map((path) =>
-        pyodide.FS.readFile(path, { encoding: "utf8" }),
-      );
-      dispatchModuleAutoLoading(pyodide, postMessage, sources);
-    }
-
-    // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
-    // at importing installed packages.
-    await pyodide.runPythonAsync(`
+  // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
+  // at importing installed packages.
+  await pyodide.runPythonAsync(`
 import importlib
 importlib.invalidate_caches()
 `);
 
-    postProgressMessage("Loading streamlit package.");
-    console.debug("Loading the Streamlit package");
-    // Importing the `streamlit` module takes most of the time,
-    // so we first run this step independently for clearer logs and easy exec-time profiling.
-    // For https://github.com/whitphx/stlite/issues/427
-    await pyodide.runPythonAsync(`
+  onProgress("Loading streamlit package.");
+  console.debug("Loading the Streamlit package");
+  // Importing the `streamlit` module takes most of the time,
+  // so we first run this step independently for clearer logs and easy exec-time profiling.
+  // For https://github.com/whitphx/stlite/issues/427
+  await pyodide.runPythonAsync(`
 import streamlit.runtime
-    `);
-    console.debug("Loaded the Streamlit package");
+  `);
+  console.debug("Loaded the Streamlit package");
 
-    postProgressMessage("Setting up the loggers.");
-    console.debug("Setting the loggers");
-    // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
-    // See https://github.com/streamlit/streamlit/issues/4742
-    await pyodide.runPythonAsync(`
+  onProgress("Setting up the loggers.");
+  console.debug("Setting the loggers");
+  // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
+  // See https://github.com/streamlit/streamlit/issues/4742
+  await pyodide.runPythonAsync(`
 import logging
 import streamlit.logger
 
@@ -291,28 +235,24 @@ for name in streamlit.logger._loggers.keys():
 
 streamlit.logger._loggers = {}
 `);
-    // Then configure the logger.
-    const logCallback = (levelno: number, msg: string) => {
-      if (levelno >= 40) {
-        console.error(msg);
-      } else if (levelno >= 30) {
-        console.warn(msg);
-      } else if (levelno >= 20) {
-        console.info(msg);
-      } else {
-        console.debug(msg);
-      }
-    };
-    self.__logCallback__ = logCallback;
-    await pyodide.runPythonAsync(`
-def setup_loggers(streamlit_level, streamlit_message_format):
-    from js import __logCallback__
-
-
+  // Then configure the logger.
+  const logCallback = (levelno: number, msg: string) => {
+    if (levelno >= 40) {
+      console.error(msg);
+    } else if (levelno >= 30) {
+      console.warn(msg);
+    } else if (levelno >= 20) {
+      console.info(msg);
+    } else {
+      console.debug(msg);
+    }
+  };
+  const setupLoggers = pyodide.runPython(`
+def __setup_loggers__(streamlit_level, streamlit_message_format, callback):
     class JsHandler(logging.Handler):
         def emit(self, record):
             msg = self.format(record)
-            __logCallback__(record.levelno, msg)
+            callback(record.levelno, msg)
 
 
     root_message_format = "%(levelname)s:%(name)s:%(message)s"
@@ -333,126 +273,172 @@ def setup_loggers(streamlit_level, streamlit_message_format):
     streamlit_handler.setFormatter(streamlit_formatter)
     streamlit_logger.addHandler(streamlit_handler)
     streamlit_logger.setLevel(streamlit_level.upper())
-`);
-    const streamlitLogLevel = (
-      streamlitConfig?.["logger.level"] ?? "INFO"
-    ).toString();
-    const streamlitLogMessageFormat =
-      streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
-    const setupLoggers = pyodide.globals.get("setup_loggers");
-    setupLoggers(streamlitLogLevel, streamlitLogMessageFormat);
-    console.debug("Set the loggers");
 
-    postProgressMessage(
-      "Mocking some Streamlit functions for the browser environment.",
-    );
-    console.debug("Mocking some Streamlit functions");
-    // Disable caching. See https://github.com/whitphx/stlite/issues/495
-    await pyodide.runPythonAsync(`
+__setup_loggers__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  const streamlitLogLevel = (
+    streamlitConfig?.["logger.level"] ?? "INFO"
+  ).toString();
+  const streamlitLogMessageFormat =
+    streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
+  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat, logCallback);
+  console.debug("Set the loggers");
+
+  onProgress("Mocking some Streamlit functions for the browser environment.");
+  console.debug("Mocking some Streamlit functions");
+  // Disable caching. See https://github.com/whitphx/stlite/issues/495
+  await pyodide.runPythonAsync(`
 import streamlit
 
 def is_cacheable_msg(msg):
-    return False
+  return False
 
 streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
 `);
-    console.debug("Mocked some Streamlit functions");
+  console.debug("Mocked some Streamlit functions");
 
-    if (useIdbfs) {
-      postProgressMessage("Setting up the IndexedDB filesystem synchronizer.");
-      console.debug("Setting up the IndexedDB filesystem synchronizer");
-      // IDBFS needs to be synced by calling `pyodide.FS.syncfs`.
-      // Ref: https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs
-      let fsSyncing = false; // Sometimes `__scriptFinishedCallback__` is called many time at once so we avoid unnecessary simultaneous calls of `pyodide.FS.syncfs`.
-      self.__scriptFinishedCallback__ = () => {
-        console.debug("The script has finished. Syncing the filesystem.");
-        if (!fsSyncing) {
-          fsSyncing = true;
-          pyodide.FS.syncfs(false, (err: Error) => {
-            fsSyncing = false;
-            if (err) {
-              console.error(err);
-            }
-          });
-        }
-      };
-      // TODO: Run the callback only for the current app in the case of SharedWorker mode, where multiple runtimes exist.
-      // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `__scriptFinishedCallback__` when the script is finished.
-      await pyodide.runPythonAsync(`
-from streamlit.runtime.app_session import AppSession
-from streamlit.runtime.scriptrunner import ScriptRunnerEvent
-from js import __scriptFinishedCallback__
-
-def wrap_app_session_on_scriptrunner_event(original_method):
-    def wrapped(self, *args, **kwargs):
-        if "event" in kwargs:
-            event = kwargs["event"]
-            if event == ScriptRunnerEvent.SCRIPT_STOPPED_WITH_SUCCESS or event == ScriptRunnerEvent.SCRIPT_STOPPED_FOR_RERUN or event == ScriptRunnerEvent.SHUTDOWN:
-                __scriptFinishedCallback__()
-        return original_method(self, *args, **kwargs)
-    return wrapped
-
-AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
-`);
-      console.debug("Set up the IndexedDB filesystem synchronizer");
-    }
-
-    const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
-
-    if (languageServer) {
-      postProgressMessage("Importing Language Server");
-      await importLanguageServerLibraries(pyodide, micropip);
-    }
-
-    postProgressMessage("Booting up the Streamlit server.");
-    // The following Python code is based on streamlit.web.cli.main_run().
-    console.debug("Setting up the Streamlit configuration");
-    self.__sharedWorkerMode__ = appId != null;
-    self.__streamlitFlagOptions__ = {
-      // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
-      "browser.gatherUsageStats": false,
-      ...streamlitConfig,
-      "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
+  if (useIdbfs) {
+    onProgress("Setting up the IndexedDB filesystem synchronizer.");
+    console.debug("Setting up the IndexedDB filesystem synchronizer");
+    // IDBFS needs to be synced by calling `pyodide.FS.syncfs`.
+    // Ref: https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs
+    let fsSyncing = false; // Sometimes `scriptFinishedCallback` is called many time at once so we avoid unnecessary simultaneous calls of `pyodide.FS.syncfs`.
+    const scriptFinishedCallback = () => {
+      console.debug("The script has finished. Syncing the filesystem.");
+      if (!fsSyncing) {
+        fsSyncing = true;
+        pyodide.FS.syncfs(false, (err: Error) => {
+          fsSyncing = false;
+          if (err) {
+            console.error(err);
+          }
+        });
+      }
     };
-    await pyodide.runPythonAsync(`
-from stlite_lib.bootstrap import load_config_options, prepare
-from js import __sharedWorkerMode__, __streamlitFlagOptions__
+    // TODO: Run the callback only for the current app in the case of SharedWorker mode, where multiple runtimes exist.
+    // Monkey-patch the `AppSession._on_scriptrunner_event` method to call `scriptFinishedCallback` when the script is finished.
+    const setupScriptFinishedCallback = await pyodide.runPython(`
+def __setup_script_finished_callback__(callback):
+    from streamlit.runtime.app_session import AppSession
+    from streamlit.runtime.scriptrunner import ScriptRunnerEvent
 
-flag_options = __streamlitFlagOptions__.to_py()
-load_config_options(flag_options, __sharedWorkerMode__)
+    def wrap_app_session_on_scriptrunner_event(original_method):
+        def wrapped(self, *args, **kwargs):
+            if "event" in kwargs:
+                event = kwargs["event"]
+                if event == ScriptRunnerEvent.SCRIPT_STOPPED_WITH_SUCCESS or event == ScriptRunnerEvent.SCRIPT_STOPPED_FOR_RERUN or event == ScriptRunnerEvent.SHUTDOWN:
+                    callback()
+            return original_method(self, *args, **kwargs)
+        return wrapped
 
-main_script_path = "${canonicalEntrypoint}"
-args = []
+    AppSession._on_scriptrunner_event = wrap_app_session_on_scriptrunner_event(AppSession._on_scriptrunner_event)
 
-prepare(main_script_path, args)
-`);
-    console.debug("Set up the Streamlit configuration");
-
-    console.debug("Booting up the Streamlit server");
-    const Server = pyodide.pyimport("stlite_lib.server.Server");
-    httpServer = Server(
-      canonicalEntrypoint,
-      appId ? getAppHomeDir(appId) : null,
-    );
-    await httpServer.start();
-    console.debug("Booted up the Streamlit server");
-
-    postMessage({
-      type: "event:loaded",
-    });
-
-    return initData;
+__setup_script_finished_callback__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+    setupScriptFinishedCallback(scriptFinishedCallback);
+    console.debug("Set up the IndexedDB filesystem synchronizer");
   }
 
-  const pyodideReadyPromise = loadPyodideAndPackages().catch((error) => {
+  if (languageServer) {
+    onProgress("Importing Language Server");
+    await importLanguageServerLibraries(pyodide, micropip);
+  }
+
+  onProgress("Booting up the Streamlit server.");
+  // The following Python code is based on streamlit.web.cli.main_run().
+  console.debug("Setting up the Streamlit configuration");
+  const bootstrap = await pyodide.runPython(`
+def __bootstrap__(main_script_path, flag_options, shared_worker_mode):
+    from stlite_lib.bootstrap import load_config_options, prepare
+
+    load_config_options(flag_options, shared_worker_mode)
+
+    prepare(main_script_path, [])
+
+__bootstrap__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
+  const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
+  const streamlitFlagOptions = {
+    // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
+    "browser.gatherUsageStats": false,
+    ...streamlitConfig,
+    "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
+  };
+  const sharedWorkerMode = appId != null;
+  bootstrap(
+    canonicalEntrypoint,
+    pyodide.toPy(streamlitFlagOptions),
+    sharedWorkerMode,
+  );
+  console.debug("Set up the Streamlit configuration");
+
+  console.debug("Booting up the Streamlit server");
+  const Server = pyodide.pyimport("stlite_lib.server.Server");
+  const httpServer = Server(
+    canonicalEntrypoint,
+    appId ? getAppHomeDir(appId) : null,
+  );
+  await httpServer.start();
+  console.debug("Booted up the Streamlit server");
+
+  return {
+    pyodide,
+    httpServer,
+    micropip,
+    initData,
+  };
+}
+
+export function startWorkerEnv(
+  defaultPyodideUrl: string,
+  postMessage: PostMessageFn,
+  presetInitialData?: Partial<WorkerInitialData>,
+  appId?: string,
+) {
+  function onProgress(message: string): void {
     postMessage({
-      type: "event:error",
+      type: "event:progress",
       data: {
-        error,
+        message,
       },
     });
-    throw error;
-  });
+  }
+
+  const onModuleAutoLoad = (
+    packagesToLoad: string[],
+    onLoad: Promise<PackageData[]>,
+  ) => {
+    const channel = new MessageChannel();
+
+    postMessage(
+      {
+        type: "event:moduleAutoLoad",
+        data: {
+          packagesToLoad,
+        },
+      },
+      channel.port2,
+    );
+
+    onLoad
+      .then((loadedPackages) => {
+        channel.port1.postMessage({
+          type: "moduleAutoLoad:success",
+          data: {
+            loadedPackages,
+          },
+        } as ModuleAutoLoadMessage);
+        channel.port1.close();
+      })
+      .catch((err) => {
+        channel.port1.postMessage({
+          type: "moduleAutoLoad:error",
+          error: err as Error,
+        } as ModuleAutoLoadMessage);
+        channel.port1.close();
+        throw err;
+      });
+  };
+
+  let pyodideReadyPromise: ReturnType<typeof loadPyodideAndPackages> | null =
+    null;
 
   /**
    * Process a message sent to the worker.
@@ -464,11 +450,47 @@ prepare(main_script_path, args)
 
     // Special case for transmitting the initial data
     if (msg.type === "initData") {
-      initDataPromiseDelegate.resolve(msg.data);
+      const initialDataFromMessage = msg.data;
+      const initData = {
+        ...presetInitialData,
+        ...initialDataFromMessage,
+      };
+      console.debug("Initial data", initData);
+
+      pyodideReadyPromise = loadPyodideAndPackages(
+        defaultPyodideUrl,
+        appId,
+        initData,
+        onModuleAutoLoad,
+        onProgress,
+      );
+
+      pyodideReadyPromise
+        .then(() => {
+          postMessage({
+            type: "event:loaded",
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          postMessage({
+            type: "event:error",
+            data: {
+              error,
+            },
+          });
+        });
       return;
     }
 
-    const { moduleAutoLoad } = await pyodideReadyPromise;
+    if (!pyodideReadyPromise) {
+      throw new Error("Pyodide initialization has not been started yet.");
+    }
+    const v = await pyodideReadyPromise;
+    const pyodide = v.pyodide;
+    let httpServer = v.httpServer;
+    const micropip = v.micropip;
+    const { moduleAutoLoad } = v.initData;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
@@ -485,8 +507,9 @@ prepare(main_script_path, args)
           httpServer.stop();
 
           console.debug("Booting up the Streamlit server");
+          const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
           const Server = pyodide.pyimport("stlite_lib.server.Server");
-          httpServer = Server(entrypoint);
+          httpServer = Server(canonicalEntrypoint);
           httpServer.start();
           console.debug("Booted up the Streamlit server");
 
@@ -593,7 +616,7 @@ prepare(main_script_path, args)
             // because its promise should be set before saving the file triggers rerunning.
             console.debug(`Auto install the requirements in ${path}`);
 
-            dispatchModuleAutoLoading(pyodide, postMessage, [fileData]);
+            dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, [fileData]);
           }
 
           console.debug(`Write a file "${path}"`);
@@ -641,8 +664,6 @@ prepare(main_script_path, args)
         }
         case "install": {
           const { requirements: unvalidatedRequirements } = msg.data;
-
-          const micropip = pyodide.pyimport("micropip");
 
           const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
           console.debug("Install the requirements:", requirements);

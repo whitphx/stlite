@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.80.5] - 2025-03-24
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Refactoring the worker, [#1419](https://github.com/whitphx/stlite/pull/1419).
+
 ## [0.80.4] - 2025-03-23
 
 ### `@stlite/browser`

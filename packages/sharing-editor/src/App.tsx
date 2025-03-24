@@ -299,17 +299,28 @@ function App() {
         case "moduleAutoLoadSuccess": {
           if (msg.data.loadedPackages.length > 0) {
             const additionalRequirements = msg.data.packagesToLoad;
-            const editor = editorRef.current;
-            if (editor == null) {
-              return;
-            }
-            editor.addRequirements(
+
+            editorRef.current?.addRequirements(
               additionalRequirements.map((r) => r + " # auto-loaded"),
             );
-            updateAppData((cur) => ({
-              ...cur,
-              requirements: cur.requirements.concat(additionalRequirements),
-            }));
+
+            updateAppData((cur) => {
+              const newRequirements = cur.requirements.concat(
+                additionalRequirements,
+              );
+
+              // Remove duplicates. The order is kept because of the use of `Set`.
+              // > You can iterate through the elements of a set in insertion order.
+              // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+              const uniqueNewRequirements = Array.from(
+                new Set(newRequirements),
+              );
+
+              return {
+                ...cur,
+                requirements: uniqueNewRequirements,
+              };
+            });
           }
           break;
         }

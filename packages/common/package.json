@@ -1,6 +1,6 @@
 {
   "name": "@stlite/common",
-  "version": "0.80.4",
+  "version": "0.80.5",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

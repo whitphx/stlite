@@ -1,11 +1,11 @@
 {
   "name": "@stlite/sharing",
-  "version": "0.80.4",
+  "version": "0.80.5",
   "private": true,
   "dependencies": {
-    "@stlite/common-react": "^0.80.4",
-    "@stlite/kernel": "^0.80.4",
-    "@stlite/sharing-common": "^0.80.4",
+    "@stlite/common-react": "^0.80.5",
+    "@stlite/kernel": "^0.80.5",
+    "@stlite/sharing-common": "^0.80.5",
     "@streamlit/app": "1.41.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

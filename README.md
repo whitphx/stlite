@@ -3,7 +3,9 @@
 **Serverless [Streamlit](https://streamlit.io/) Running Entirely in Your Browser**
 
 [![Test and Build](https://github.com/whitphx/stlite/actions/workflows/test-build.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/test-build.yml)
+[![Postbuild](https://github.com/whitphx/stlite/actions/workflows/postbuild.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/postbuild.yml)
 [![Build and Deploy GitHub Pages](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/gh-pages.yml)
+This project is tested with BrowserStack.
 
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)

@@ -306,6 +306,11 @@ class WebSocketHandler(SessionClient):
                     "No session found. Cannot register file change callback."
                 )
                 return
+            if session._local_sources_watcher is None:
+                _LOGGER.warning(
+                    "session._local_sources_watcher is None. Cannot register file change callback."
+                )
+                return
             _LOGGER.debug("Registering file change callback for session %s", session.id)
             session._local_sources_watcher.register_file_change_callback(
                 self._file_change_callback

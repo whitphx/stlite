@@ -9,7 +9,7 @@ test.describe("Basic Stlite Browser Test", () => {
     // The title should be visible when the app is loaded
     await expect(
       page.locator('h1:has-text("Stlite Browser Test")'),
-    ).toBeVisible({ timeout: 30000 });
+    ).toBeVisible();
 
     // Check if the text input is visible
     const textInput = page.locator('input[type="text"]');

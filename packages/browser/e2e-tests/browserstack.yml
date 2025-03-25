@@ -1,0 +1,9 @@
+projectName: Stlite
+buildName: "@stlite/browser:e2e-tests"
+
+platforms:
+  - deviceName: Pixel 9
+    browserName: chrome
+    osVersion: 15.0
+
+browserstackLocal: true

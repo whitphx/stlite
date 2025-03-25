@@ -11,7 +11,7 @@ test.describe("Custom Element Stlite Browser Test", () => {
     // The title should be visible when the app is loaded
     await expect(
       page.locator('h1:has-text("Custom Element Test")'),
-    ).toBeVisible({ timeout: 30000 });
+    ).toBeVisible();
 
     // Check if the selectbox is visible
     const selectbox = page.locator('input[role="combobox"]');

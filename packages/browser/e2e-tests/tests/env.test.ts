@@ -10,7 +10,7 @@ test.describe("Stlite Browser Env Test", () => {
     // Wait for the Streamlit app to load
     await expect(
       page.locator('h1:has-text("Stlite Browser Env Test")'),
-    ).toBeVisible({ timeout: 30000 });
+    ).toBeVisible();
 
     // Check if custom environment variables are displayed correctly
     await expect(page.locator('text="TEST_VAR: test_value"')).toBeVisible();

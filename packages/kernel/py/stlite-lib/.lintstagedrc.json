@@ -1,0 +1,3 @@
+{
+  "*.py": ["ruff format", "ruff check --fix"]
+}

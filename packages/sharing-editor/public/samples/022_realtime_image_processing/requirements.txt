@@ -1,1 +1,2 @@
 streamlit-fesion
+scikit-learn

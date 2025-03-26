@@ -1,2 +1,2 @@
 streamlit-fesion
-scikit-learn
+scikit-image

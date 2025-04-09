@@ -5,7 +5,7 @@ from streamlit_fesion import streamlit_fesion
 
 st.title("Serverless real-time video filter")
 st.info("""
-    Every image processing is working on your browser, like all other _stlite_ features.\\
+    Every image processing is working on your browser, like all other _Stlite_ features.\\
     Your video is **NEVER UPLOADED** to any remote servers!
 
     This sample uses [`streamlit-fesion`](https://github.com/whitphx/streamlit-fesion)

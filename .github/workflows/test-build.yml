@@ -339,8 +339,6 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
 
-    # `yarn install` often takes so long time on in the Windows env.
-    - run: yarn config set network-timeout 600000
     # About `--ignore-scripts`: Skip the `postinstall` script that runs `patch-package` because it fails on Windows: https://github.com/ds300/patch-package/issues/286
     # This is a workaround but acceptable as it's only for this testing job.
     - run: yarn install --frozen-lockfile --ignore-scripts
@@ -583,7 +581,6 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
-    - run: yarn config set network-timeout 300000  # https://github.com/yarnpkg/yarn/issues/8242
     # About `--ignore-scripts`: Skip the `postinstall` script that runs `patch-package` because it fails on Windows: https://github.com/ds300/patch-package/issues/286
     # This is a workaround but acceptable as it's only for this testing job.
     - run: yarn install --frozen-lockfile --ignore-scripts

@@ -3,7 +3,6 @@
   "name": "stlite",
   "workspaces": [
     "packages/*",
-    "streamlit/frontend",
     "streamlit/frontend/app",
     "streamlit/frontend/connection",
     "streamlit/frontend/lib",

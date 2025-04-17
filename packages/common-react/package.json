@@ -15,12 +15,16 @@
   },
   "dependencies": {
     "@stlite/kernel": "^0.80.5",
-    "@streamlit/lib": "1.41.0",
+    "@streamlit/lib": "workspace:^",
     "react-toastify": "^11.0.2"
   },
   "devDependencies": {
+    "eslint": "^8.33.0",
+    "prettier": "^3.4.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.5",
+    "vitest": "^2.1.9"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

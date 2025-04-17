@@ -42,11 +42,13 @@
     "@stlite/common": "^0.80.5",
     "@stlite/common-react": "^0.80.5",
     "@stlite/kernel": "^0.80.5",
-    "@streamlit/app": "1.41.0",
+    "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.3.4",
     "codedent": "^0.1.2",
+    "eslint": "^8.33.0",
+    "prettier": "^3.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "vite": "^5.1.5",
@@ -54,6 +56,7 @@
     "vite-plugin-static-copy": "^2.2.0",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.4.1",
+    "vitest": "^2.1.9",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

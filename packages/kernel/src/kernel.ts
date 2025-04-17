@@ -3,7 +3,7 @@
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 
-import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
+import type { IHostConfigResponse } from "@streamlit/connection";
 
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 

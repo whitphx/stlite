@@ -19,7 +19,6 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import { default as checker } from "vite-plugin-checker";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import { viteStaticCopy } from "vite-plugin-static-copy";
@@ -80,16 +79,12 @@ export default defineConfig(({ mode }) => ({
           {
             src: path.resolve(
               __dirname,
-              "../kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+              "../kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
             ),
             dest: "wheels",
           },
         ],
       }),
-    // this plugin checks for type errors on a separate process
-    checker({
-      typescript: true,
-    }),
     // For development
     {
       name: "dev-data-server",

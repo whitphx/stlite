@@ -2,11 +2,12 @@
   "name": "@stlite/sharing",
   "version": "0.80.5",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@stlite/common-react": "^0.80.5",
     "@stlite/kernel": "^0.80.5",
     "@stlite/sharing-common": "^0.80.5",
-    "@streamlit/app": "1.41.0",
+    "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "react": "^18.2.0",
@@ -16,12 +17,16 @@
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.33.0",
+    "prettier": "^3.4.2",
     "vite": "^5.1.5",
     "vite-plugin-top-level-await": "^1.4.4",
-    "vite-plugin-wasm": "^3.4.1"
+    "vite-plugin-wasm": "^3.4.1",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "scripts": {
-    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:=http://localhost:5173} vite",
+    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",
     "build": "vite build",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

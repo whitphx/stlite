@@ -19,7 +19,7 @@ export default defineConfig({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "./py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl",
+        "./py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
       ),
     },
   },

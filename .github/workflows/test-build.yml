@@ -308,6 +308,7 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
+    - run: yarn build:proto
     - run: yarn test
 
   test-desktop:

@@ -134,6 +134,10 @@ jobs:
       with:
         submodules: true
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -237,6 +241,10 @@ jobs:
       with:
         submodules: true
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -322,6 +330,10 @@ jobs:
       with:
         submodules: true
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -563,6 +575,10 @@ jobs:
       with:
         submodules: true
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -617,6 +633,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -669,6 +689,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
@@ -715,6 +739,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}

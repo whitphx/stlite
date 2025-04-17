@@ -50,10 +50,14 @@ jobs:
           **/uv.lock
 
     ## Set up Node environment
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: .nvmrc
         cache: 'yarn'
+
     - run: yarn install --frozen-lockfile
 
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github

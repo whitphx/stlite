@@ -4777,7 +4777,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-toastify: "npm:^11.0.2"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     vitest: "npm:^2.1.9"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
@@ -4791,7 +4791,7 @@ __metadata:
   dependencies:
     eslint: "npm:^8.33.0"
     prettier: "npm:^3.4.2"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     vitest: "npm:^2.1.9"
   languageName: unknown
   linkType: soft
@@ -4826,7 +4826,7 @@ __metadata:
     superstruct: "npm:^2.0.2"
     ts-node: "npm:^10.9.1"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     vite: "npm:^5.1.5"
     vite-plugin-top-level-await: "npm:^1.4.4"
     vite-plugin-wasm: "npm:^3.4.1"
@@ -4856,7 +4856,7 @@ __metadata:
     prettier: "npm:^3.4.2"
     pyodide: "npm:0.27.3"
     react: "npm:^18.2.0"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     vitest: "npm:^2.1.9"
   languageName: unknown
   linkType: soft
@@ -4872,7 +4872,7 @@ __metadata:
     prettier: "npm:^3.4.2"
     protobufjs: "npm:^7.2.4"
     ts-proto: "npm:^2.6.1"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     vitest: "npm:^2.1.9"
   languageName: unknown
   linkType: soft
@@ -4907,7 +4907,7 @@ __metadata:
     react-router-dom: "npm:^7.1.1"
     superstruct: "npm:^2.0.2"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
     usehooks-ts: "npm:^3.1.0"
     vite: "npm:^5.1.5"
     vitest: "npm:^2.1.9"
@@ -25657,7 +25657,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.6.0"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^15.4.2"
-    typescript: "npm:^4.9.5"
+    typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
 
@@ -27264,16 +27264,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.9.5":
-  version: 4.9.5
-  resolution: "typescript@npm:4.9.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/5f6cad2e728a8a063521328e612d7876e12f0d8a8390d3b3aaa452a6a65e24e9ac8ea22beb72a924fd96ea0a49ea63bb4e251fb922b12eedfb7f7a26475e5c56
-  languageName: node
-  linkType: hard
-
 "typescript@npm:^5.4.3":
   version: 5.6.3
   resolution: "typescript@npm:5.6.3"
@@ -27301,16 +27291,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/6fd7e0ed3bf23a81246878c613423730c40e8bdbfec4c6e4d7bf1b847cbb39076e56ad5f50aa9d7ebd89877999abaee216002d3f2818885e41c907caaa192cc4
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^4.9.5#optional!builtin<compat/typescript>":
-  version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/e3333f887c6829dfe0ab6c1dbe0dd1e3e2aeb56c66460cb85c5440c566f900c833d370ca34eb47558c0c69e78ced4bfe09b8f4f98b6de7afed9b84b8d1dd06a1
   languageName: node
   linkType: hard
 

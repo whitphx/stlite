@@ -204,7 +204,7 @@ export class StliteKernel {
     } else {
       this._postMessageTarget = this._worker;
     }
-    this._postMessageTarget.onmessage = (e) => {
+    this._postMessageTarget.onmessage = (e: MessageEvent<OutMessage>) => {
       const messagePort: MessagePort | undefined = e.ports[0];
       this._processWorkerMessage(e.data, messagePort);
     };

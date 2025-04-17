@@ -43,7 +43,7 @@ sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
-streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
+streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl
 streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
 
@@ -160,7 +160,6 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV_PATH)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
-	@touch $@
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)

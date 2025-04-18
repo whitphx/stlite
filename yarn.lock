@@ -4537,6 +4537,7 @@ __metadata:
     vite-plugin-top-level-await: "npm:^1.4.4"
     vite-plugin-wasm: "npm:^3.4.1"
     vite-tsconfig-paths: "npm:^5.1.4"
+    vitest: "npm:^3.0.9"
     wait-on: "npm:^8.0.1"
     winston: "npm:^3.13.0"
     yargs: "npm:^17.7.2"

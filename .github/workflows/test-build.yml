@@ -582,9 +582,7 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
-    # About `--ignore-scripts`: Skip the `postinstall` script that runs `patch-package` because it fails on Windows: https://github.com/ds300/patch-package/issues/286
-    # This is a workaround but acceptable as it's only for this testing job.
-    - run: yarn install --frozen-lockfile --ignore-scripts
+    - run: yarn install --frozen-lockfile
     - run: yarn playwright install
     - run: make common
     - name: Lint

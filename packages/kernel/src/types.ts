@@ -199,7 +199,7 @@ export interface OutMessageLoadedEvent extends OutMessageBase {
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
-    payload: Uint8Array | string;
+    payload: ArrayBuffer | string;
   };
 }
 export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {

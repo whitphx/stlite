@@ -205,8 +205,7 @@ export class StliteKernel {
       this._postMessageTarget = this._worker;
     }
     this._postMessageTarget.onmessage = (e: MessageEvent<OutMessage>) => {
-      const messagePort: MessagePort | undefined = e.ports[0];
-      this._processWorkerMessage(e.data, messagePort);
+      this._processWorkerMessage(e.data, e.ports[0]);
     };
 
     // TODO: Assert other options as well.
@@ -253,9 +252,9 @@ export class StliteKernel {
   }
 
   private handleWebSocketMessage:
-    | ((payload: Uint8Array | string) => void)
+    | ((payload: ArrayBuffer | string) => void)
     | null = null;
-  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+  public onWebSocketMessage(handler: (payload: ArrayBuffer | string) => void) {
     this.handleWebSocketMessage = handler;
   }
 

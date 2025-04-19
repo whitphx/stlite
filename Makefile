@@ -45,7 +45,7 @@ kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl
-streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
+streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
@@ -182,9 +182,11 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
 .PHONY: streamlit-frontend-lib
-streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
-$(streamlit_frontend_lib_prod): $(node_modules) $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
-	$(MAKE) -C streamlit frontend-lib-prod
+streamlit-frontend-lib: $(streamlit-frontend-lib)
+$(streamlit-frontend-lib): $(node_modules) $(kernel) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils \
+  -type f ! -path '*/dist/*' \
+  \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
+	$(MAKE) -C streamlit frontend-lib
 
 clean:
 	rm -rf $(BUILD_STATE_DIR)/*

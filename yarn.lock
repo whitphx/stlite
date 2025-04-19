@@ -4552,7 +4552,6 @@ __metadata:
   dependencies:
     "@jupyterlab/coreutils": "npm:^6.3.4"
     "@stlite/common": "npm:^0.80.5"
-    "@streamlit/connection": "workspace:^"
     "@testing-library/react": "npm:^14.1.2"
     "@tinyhttp/content-disposition": "npm:^2.2.2"
     "@types/path-browserify": "npm:^1.0.0"

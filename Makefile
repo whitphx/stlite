@@ -94,21 +94,21 @@ $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel)
+$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(streamlit-frontend-lib)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: browser
 browser: $(browser)
-$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react)
+$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react)
+$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -129,7 +129,7 @@ $(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react)
+$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -186,7 +186,7 @@ streamlit-frontend-lib: $(streamlit-frontend-lib)
 $(streamlit-frontend-lib): $(node_modules) $(kernel) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils \
   -type f ! -path '*/dist/*' \
   \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
-	$(MAKE) -C streamlit frontend-lib
+	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils}' --topological run build
 
 clean:
 	rm -rf $(BUILD_STATE_DIR)/*

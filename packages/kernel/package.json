@@ -33,7 +33,6 @@
   "dependencies": {
     "@jupyterlab/coreutils": "^6.3.4",
     "@stlite/common": "^0.80.5",
-    "@streamlit/connection": "workspace:^",
     "@tinyhttp/content-disposition": "^2.2.2",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0"

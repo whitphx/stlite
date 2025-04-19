@@ -5,7 +5,6 @@ import urllib.parse
 from typing import Callable, Final, cast
 
 import pyodide.ffi
-from streamlit import source_util
 from streamlit.proto.BackMsg_pb2 import BackMsg
 from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
 from streamlit.runtime import Runtime, RuntimeConfig, SessionClient, runtime_contextvar
@@ -239,11 +238,6 @@ class Server:
         runtime_contextvar.set(None)
         home_dir_contextvar.set(None)
 
-        # `source_util.get_pages()`, which is used from `PagesStrategyV1.get_initial_active_script`
-        # to resolve the pages info, caches the pages in the module-level variable `source_util._cached_pages`.
-        # We need to invalidate this cache to avoid using the old pages info when booting up a new server.
-        source_util.invalidate_pages_cache()
-
 
 class WebSocketHandler(SessionClient):
     """
@@ -273,7 +267,7 @@ class WebSocketHandler(SessionClient):
 
         # Omit the original implementation in browser_websocket_handler.py here,
         # and just use empty values for these objects.
-        user_info: dict[str, str | None] = dict()
+        user_info = dict()
         existing_session_id = None
 
         self._session_id = self._runtime.connect_session(

@@ -7,9 +7,9 @@ const pyodideUrl = "https://cdn.jsdelivr.net/pyodide/v0.27.3/full/pyodide.mjs";
 
 if ("postMessage" in self) {
   // Dedicated worker
-  self.onmessage = startWorkerEnv(pyodideUrl, (event, port) =>
-    port
-      ? (self as DedicatedWorkerGlobalScope).postMessage(event, [port])
+  self.onmessage = startWorkerEnv(pyodideUrl, (event, transfer) =>
+    transfer
+      ? (self as DedicatedWorkerGlobalScope).postMessage(event, transfer)
       : (self as DedicatedWorkerGlobalScope).postMessage(event),
   );
 } else {
@@ -28,9 +28,9 @@ if ("postMessage" in self) {
 
     sharedWorkerPort.onmessage = startWorkerEnv(
       pyodideUrl,
-      (event, port) =>
-        port
-          ? sharedWorkerPort.postMessage(event, [port])
+      (event, transfer) =>
+        transfer
+          ? sharedWorkerPort.postMessage(event, transfer)
           : sharedWorkerPort.postMessage(event),
       undefined,
       appId,

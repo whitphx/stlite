@@ -2,11 +2,7 @@
 
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
-
-import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
-
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
-
 import type {
   EmscriptenFile,
   EmscriptenFileUrl,
@@ -27,6 +23,11 @@ import type {
   ReplyMessageLanguageServerCodeCompletion,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
+
+// import type { IHostConfigResponse } from "@streamlit/connection";
+// XXX: This is a temporary type to avoid the circular dependency with @streamlit/connection
+// TODO: Replace this with the actual type from @streamlit/connection
+type IHostConfigResponse = Record<string, unknown>;
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;
@@ -204,9 +205,8 @@ export class StliteKernel {
     } else {
       this._postMessageTarget = this._worker;
     }
-    this._postMessageTarget.onmessage = (e) => {
-      const messagePort: MessagePort | undefined = e.ports[0];
-      this._processWorkerMessage(e.data, messagePort);
+    this._postMessageTarget.onmessage = (e: MessageEvent<OutMessage>) => {
+      this._processWorkerMessage(e.data, e.ports[0]);
     };
 
     // TODO: Assert other options as well.
@@ -253,9 +253,9 @@ export class StliteKernel {
   }
 
   private handleWebSocketMessage:
-    | ((payload: Uint8Array | string) => void)
+    | ((payload: ArrayBuffer | string) => void)
     | null = null;
-  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+  public onWebSocketMessage(handler: (payload: ArrayBuffer | string) => void) {
     this.handleWebSocketMessage = handler;
   }
 

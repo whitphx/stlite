@@ -27,6 +27,9 @@ runs:
       if: ${{ inputs.python-version-file }}
 
     ## Set up Node environment
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}

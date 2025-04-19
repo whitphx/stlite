@@ -42,9 +42,11 @@ export function resolveLogo<T extends { image: string; iconImage: string }>(
     resolveStliteObjectUrlIfNeeded(kernel, logo.image),
     resolveStliteObjectUrlIfNeeded(kernel, logo.iconImage),
   ]).then(([image, iconImage]) => {
-    logo.image = image;
-    logo.iconImage = iconImage;
-    return logo;
+    return {
+      ...logo,
+      image,
+      iconImage,
+    };
   });
 }
 

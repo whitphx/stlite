@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
-const path = require("node:path");
-const fs = require("node:fs");
-const { parse } = require("node-html-parser");
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import { parse } from "node-html-parser";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const indexHtmlPath = path.resolve(__dirname, "../build/index.html");
 

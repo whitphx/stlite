@@ -25,7 +25,10 @@ import type {
 import { importLanguageServerLibraries } from "./language-server/language-server-loader";
 import { getCodeCompletions } from "./language-server/code_completion";
 
-export type PostMessageFn = (message: OutMessage, port?: MessagePort) => void;
+export type PostMessageFn = (
+  message: OutMessage,
+  transfer?: Transferable[],
+) => void;
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
 
@@ -414,7 +417,7 @@ export function startWorkerEnv(
           packagesToLoad,
         },
       },
-      channel.port2,
+      [channel.port2],
     );
 
     onLoad
@@ -530,19 +533,30 @@ export function startWorkerEnv(
 
               if (binary) {
                 const messageProxy = message as PyBuffer;
-                const buffer = messageProxy.getBuffer("u8");
-                messageProxy.destroy();
-                const payload = new Uint8ClampedArray(
-                  buffer.data.buffer,
-                  buffer.data.byteOffset,
-                  buffer.data.byteLength,
-                );
-                postMessage({
-                  type: "websocket:message",
-                  data: {
-                    payload: new Uint8Array(payload),
-                  },
-                });
+                try {
+                  // We use toJs() rather than getBuffer(). https://pyodide.org/en/stable/usage/type-conversions.html#using-python-buffer-objects-from-javascript
+                  // getBuffer() returns a reference to the Wasm heap memory without copying it,
+                  // but it would be copied to the JS heap when it's transferred to the main thread via `postMessage()` anyway,
+                  // so we choose toJs() for simplicity.
+                  // With toJs(), the buffer is copied to the JS heap,
+                  // and the JS buffer will be transferred to the main thread via `postMessage()` with `[ab]` as the second argument.
+                  const u8 = messageProxy.toJs();
+                  const ab = u8.buffer.slice(
+                    u8.byteOffset,
+                    u8.byteOffset + u8.byteLength,
+                  );
+                  postMessage(
+                    {
+                      type: "websocket:message",
+                      data: {
+                        payload: ab,
+                      },
+                    },
+                    [ab],
+                  );
+                } finally {
+                  messageProxy.destroy();
+                }
               } else {
                 const messageStr = message as string;
                 postMessage({

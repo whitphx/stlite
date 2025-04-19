@@ -4,6 +4,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import path from "node:path";
 import fsPromises from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import fsExtra from "fs-extra";
 import {
   loadPyodide,
@@ -21,6 +22,10 @@ const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
 const pathFromScriptToWheels =
   process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
+
+// @ts-expect-error  TODO: Fix this.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Ensure that the given package is loaded by throwing an error if any error occurs in the loadPackage() function.
@@ -101,7 +106,7 @@ async function saveUsedPrebuiltPackages(
   const pyodide = await loadPyodide({
     packageCacheDir: options.pyodideRuntimeDir,
   });
-  // @ts-ignore
+  // @ts-expect-error  Access the private API of the Pyodide instance.
   pyodide._api.setCdnUrl(options.pyodideSource);
 
   await installPackages(pyodide, {
@@ -148,7 +153,7 @@ async function installPackages(
   requirements.push(stliteLibWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.41.0-cp312-none-any.whl"),
+    path.join(wheelsDir, "streamlit-1.44.1-cp312-none-any.whl"),
   );
   requirements.push(streamlitWheel);
 
@@ -171,7 +176,7 @@ async function createSitePackagesSnapshot(
   const pyodide = await loadPyodide({
     packageCacheDir: options.pyodideRuntimeDir,
   });
-  // @ts-ignore
+  // @ts-expect-error  Access the private API of the Pyodide instance.
   pyodide._api.setCdnUrl(options.pyodideSource);
 
   await ensureLoadPackage(pyodide, "micropip");
@@ -305,7 +310,6 @@ yargs(hideBin(process.argv))
   .command(
     "* [appHomeDirSource] [packages..]",
     "Put the user code and data and the snapshot of the required packages into the build artifact.",
-    () => {},
   )
   .positional("appHomeDirSource", {
     describe:
@@ -367,7 +371,7 @@ yargs(hideBin(process.argv))
     const destDir = path.resolve(projectDir, "./build");
 
     const packageJsonPath = path.resolve(projectDir, "./package.json");
-    const packageJson = require(packageJsonPath);
+    const packageJson = await fsExtra.readJson(packageJsonPath);
 
     const config = await readConfig({
       pathResolutionRoot: projectDir,

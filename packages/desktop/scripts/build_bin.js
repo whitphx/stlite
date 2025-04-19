@@ -1,14 +1,19 @@
 #!/usr/bin/env node
 
-const path = require("path");
-const fs = require("fs");
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import esbuild from "esbuild";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
 
 const infile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
 const outfile = path.resolve(__dirname, "../bin/dump_artifacts.js");
 
-require("esbuild")
+esbuild
   .build({
     entryPoints: [infile],
     bundle: true,
@@ -35,5 +40,4 @@ require("esbuild")
     const result = data.replace(matcher, "#!/usr/bin/env node");
 
     fs.writeFileSync(outfile, result);
-  })
-  .catch(() => process.exit(1));
+  });

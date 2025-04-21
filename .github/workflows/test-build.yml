@@ -743,8 +743,7 @@ jobs:
 
     - name: Install the tarball
       run: |
-        mv stlite-desktop-v*.tgz stlite-desktop.tgz
-        npm install file:stlite-desktop.tgz
+        npm install file:package.tgz
       working-directory: ${{ runner.temp }}/sample_app
 
     - run: npm run dump

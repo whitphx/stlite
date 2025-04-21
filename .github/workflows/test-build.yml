@@ -378,15 +378,10 @@ jobs:
       working-directory: packages/browser
       run: yarn pack
 
-    - name: Get the built package file path
-      id: get-package-file-path
-      working-directory: packages/browser
-      run: echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-browser-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
-
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
+        path: packages/browser/package.tgz
         name: stlite-browser
 
     - name: "Inform the package stats of @stlite/browser"
@@ -395,7 +390,7 @@ jobs:
       with:
         key: browser
         name: "@stlite/browser"
-        input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
+        input-path: packages/browser/package.tgz
 
     # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
     - name: Get the built wheel file path
@@ -536,15 +531,10 @@ jobs:
       working-directory: packages/desktop
       run: yarn pack
 
-    - name: Get the built package file path
-      id: get-package-file-path
-      working-directory: packages/desktop
-      run: echo "PACKAGE_FILE_PATH=$(find $(pwd) -name "stlite-desktop-*.tgz" -print -quit)" >> $GITHUB_OUTPUT
-
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
       with:
-        path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
+        path: packages/desktop/package.tgz
         name: stlite-desktop
 
     - name: "Inform the package stats of @stlite/desktop"
@@ -553,7 +543,7 @@ jobs:
       with:
         key: desktop
         name: "@stlite/desktop"
-        input-path: ${{ steps.get-package-file-path.outputs.PACKAGE_FILE_PATH }}
+        input-path: packages/desktop/package.tgz
 
   test-build-vscode-extension:
     needs: [set-build-info, changes]

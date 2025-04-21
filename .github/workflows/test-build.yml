@@ -577,7 +577,6 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
-    - run: yarn playwright install
     - run: make common
     - name: Lint
       run: |

@@ -4841,7 +4841,7 @@ __metadata:
     node-emoji: "npm:^2.2.0"
     node-fetch: "npm:3.3.2"
     numbro: "npm:^2.5.0"
-    parquet-wasm: "npm:^0.4.0"
+    parquet-wasm: "npm:^0.6.0"
     plotly.js: "npm:^3.0.1"
     postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^2.8.3"
@@ -21334,10 +21334,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"parquet-wasm@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "parquet-wasm@npm:0.4.0"
-  checksum: 10c0/b1beda6032962cd7e26e1c67c1093c7bea2e14e51c425d0ad6a89784cd048d021b9ce3ebf32db70f214b61bcf346c8c9b9d1c74b3c087d5f65d6e69e39989576
+"parquet-wasm@npm:^0.6.0":
+  version: 0.6.1
+  resolution: "parquet-wasm@npm:0.6.1"
+  checksum: 10c0/dcade4b006ff86edca711dacf3c71997b4a86985384fc183119f73d5dae1d0c94d3e7fa5b48845845df5db97d3eb445d6c137f3459a5d9a66a3b9b3bc0474497
   languageName: node
   linkType: hard
 

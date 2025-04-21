@@ -633,7 +633,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
 
-    - run: tar xzvf stlite-browser-v*.tgz
+    - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
 
     - name: Run the e2e-tests
@@ -686,7 +686,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
 
-    - run: tar xzvf stlite-browser-v*.tgz
+    - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
 
     - name: Run the e2e-tests

@@ -4699,7 +4699,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.4"
     eslint-plugin-react-compiler: "npm:^19.0.0-beta-40c6c23-20250301"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    eslint-plugin-streamlit-custom: "file:../eslint-plugin-streamlit-custom"
+    eslint-plugin-streamlit-custom: "workspace:^"
     eslint-plugin-testing-library: "npm:^7.1.1"
     eslint-plugin-vitest: "npm:^0.5.4"
     hard-source-webpack-plugin: "npm:^0.13.1"
@@ -4822,7 +4822,7 @@ __metadata:
     deck.gl: "npm:^9.1.5"
     dompurify: "npm:^3.2.4"
     eslint: "npm:^8.33.0"
-    eslint-plugin-streamlit-custom: "file:../eslint-plugin-streamlit-custom"
+    eslint-plugin-streamlit-custom: "workspace:^"
     eslint-plugin-vitest: "npm:^0.5.4"
     form-data-encoder: "npm:^4.0.2"
     fzy.js: "npm:^0.4.1"
@@ -13695,19 +13695,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-streamlit-custom@file:../eslint-plugin-streamlit-custom::locator=%40streamlit%2Fapp%40workspace%3Astreamlit%2Ffrontend%2Fapp":
-  version: 1.0.0
-  resolution: "eslint-plugin-streamlit-custom@file:../eslint-plugin-streamlit-custom#../eslint-plugin-streamlit-custom::hash=c66950&locator=%40streamlit%2Fapp%40workspace%3Astreamlit%2Ffrontend%2Fapp"
-  checksum: 10c0/6b9c770d5aef73537fd3d246bacd021b8828751646a35f6c752c4628e0cfd18ee4488e3f58282ea2039fd97fbd609c0e278581ffb1accbfe3a8361792c239f33
-  languageName: node
-  linkType: hard
-
-"eslint-plugin-streamlit-custom@file:../eslint-plugin-streamlit-custom::locator=%40streamlit%2Flib%40workspace%3Astreamlit%2Ffrontend%2Flib":
-  version: 1.0.0
-  resolution: "eslint-plugin-streamlit-custom@file:../eslint-plugin-streamlit-custom#../eslint-plugin-streamlit-custom::hash=c66950&locator=%40streamlit%2Flib%40workspace%3Astreamlit%2Ffrontend%2Flib"
-  checksum: 10c0/6b9c770d5aef73537fd3d246bacd021b8828751646a35f6c752c4628e0cfd18ee4488e3f58282ea2039fd97fbd609c0e278581ffb1accbfe3a8361792c239f33
-  languageName: node
-  linkType: hard
+"eslint-plugin-streamlit-custom@workspace:^, eslint-plugin-streamlit-custom@workspace:streamlit/frontend/eslint-plugin-streamlit-custom":
+  version: 0.0.0-use.local
+  resolution: "eslint-plugin-streamlit-custom@workspace:streamlit/frontend/eslint-plugin-streamlit-custom"
+  languageName: unknown
+  linkType: soft
 
 "eslint-plugin-testing-library@npm:^7.1.1":
   version: 7.1.1

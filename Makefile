@@ -70,7 +70,7 @@ $(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt
 .PHONY: node_modules
 node_modules: $(node_modules)
 $(node_modules): ./yarn.lock
-	yarn install --frozen-lockfile
+	yarn install
 	@mkdir -p $(dir $@)
 	@touch $@
 

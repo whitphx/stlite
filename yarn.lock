@@ -7689,9 +7689,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^3.1.0":
-  version: 3.3.0
-  resolution: "@vscode/vsce@npm:3.3.0"
+"@vscode/vsce@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "@vscode/vsce@npm:3.3.2"
   dependencies:
     "@azure/identity": "npm:^4.1.0"
     "@vscode/vsce-sign": "npm:^2.0.0"
@@ -7723,7 +7723,7 @@ __metadata:
       optional: true
   bin:
     vsce: vsce
-  checksum: 10c0/d32d45f38264afcd2761893fed3f2f8144de7cdefddda78e435afd63511287b3b7f1ae91302f5fdfb43f9a7575e1c9c200e3689c6f93c37c0e94485c4fcdd19e
+  checksum: 10c0/1ecaf12381fc02a2281eac0f4ff6ddf7aca5136e50961e25e13ceafe1a0828c01b34ad8d6a57e66e06de2e64b081b2a900a05fa8acd6e285f0eda1789d613edc
   languageName: node
   linkType: hard
 
@@ -28216,7 +28216,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.10"
     "@types/vscode": "npm:^1.76.0"
     "@vscode/test-web": "npm:^0.0.67"
-    "@vscode/vsce": "npm:^3.1.0"
+    "@vscode/vsce": "npm:^3.3.2"
     assert: "npm:^2.1.0"
     esbuild: "npm:^0.25.0"
     esbuild-plugin-polyfill-node: "npm:^0.3.0"

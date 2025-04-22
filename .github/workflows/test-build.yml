@@ -596,7 +596,7 @@ jobs:
         else
           VERSION=${{ github.sha }}
         fi
-        yarn run vsce package -o vscode-stlite-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
+        yarn run vsce package --no-dependencies -o vscode-stlite-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
       working-directory: packages/vscode-stlite
     - name: Upload the vsix built on Linux
       uses: actions/upload-artifact@v4

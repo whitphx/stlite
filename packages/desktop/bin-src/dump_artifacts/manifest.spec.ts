@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { coerceDesktopAppManifest } from "./manifest";
+import { coerceDesktopAppManifest } from "./manifest.js";
 
 describe("coerceDesktopAppManifest", () => {
   it("should require the entrypoint field and coerce the remaining fields", () => {

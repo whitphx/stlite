@@ -1,6 +1,6 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
 
 interface PackageInfo {
   name: string;

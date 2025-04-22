@@ -11,19 +11,23 @@ import {
   version as pyodideVersion,
   type PyodideInterface,
 } from "pyodide";
-import { PrebuiltPackagesDataReader } from "./pyodide_packages";
-import { dumpManifest } from "./manifest";
-import { readConfig } from "./config";
+import { PrebuiltPackagesDataReader } from "./pyodide_packages.js";
+import { dumpManifest } from "./manifest.js";
+import { readConfig } from "./config.js";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
-import { logger } from "./logger";
+import { logger } from "./logger.js";
+import { createRequire } from "module";
+
+// Fix the 'Dynamic require of "xxx" is not supported' error when bundled as an ESM module.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const require = createRequire(import.meta.url);
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
 const pathFromScriptToWheels =
   process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
 
-// @ts-expect-error  TODO: Fix this.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

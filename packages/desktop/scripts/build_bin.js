@@ -19,6 +19,7 @@ esbuild
     bundle: true,
     minify: true,
     platform: "node",
+    format: "esm",
     external: [
       "pyodide", // The `pyodide` package must be installed at runtime for the included Wasm files, so there is no reason to bundle it here.
       "fs-extra", // `fs-extra` and `yargs` will be installed at runtime anyway as the dependencies of `electron-builder`, so we don't have to bundle them here.

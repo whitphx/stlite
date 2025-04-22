@@ -17,11 +17,6 @@ import { readConfig } from "./config.js";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
 import { logger } from "./logger.js";
-import { createRequire } from "module";
-
-// Fix the 'Dynamic require of "xxx" is not supported' error when bundled as an ESM module.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const require = createRequire(import.meta.url);
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";

@@ -31,6 +31,14 @@ esbuild
     },
     outfile,
     logLevel: "info",
+    banner: {
+      // Fix the 'Dynamic require of "xxx" is not supported' error when bundled as an ESM module.
+      // Ref: https://github.com/evanw/esbuild/issues/1921#issuecomment-2302290651
+      js: `
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+`,
+    },
   })
   .then(() => {
     // Replace the shebang line in the output file

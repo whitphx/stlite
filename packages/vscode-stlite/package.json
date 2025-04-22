@@ -5,7 +5,6 @@
   "description": "",
   "license": "SEE LICENSE IN LICENSE",
   "version": "0.80.5",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
@@ -50,7 +49,8 @@
     }
   },
   "scripts": {
-    "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
+    "test": "yarn run pretest && yarn run runtest",
+    "runtest": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
     "pretest": "yarn run compile-web",
     "vscode:prepublish": "yarn run package-web",
     "compile-web": "yarn run check-types && node esbuild.js",
@@ -76,8 +76,11 @@
     "assert": "^2.1.0",
     "esbuild": "^0.25.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
+    "eslint": "^8.33.0",
     "glob": "^11.0.0",
     "minimatch": "^10.0.1",
-    "mocha": "^11.1.0"
+    "mocha": "^11.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
   }
 }

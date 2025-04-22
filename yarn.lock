@@ -28220,9 +28220,12 @@ __metadata:
     assert: "npm:^2.1.0"
     esbuild: "npm:^0.25.0"
     esbuild-plugin-polyfill-node: "npm:^0.3.0"
+    eslint: "npm:^8.33.0"
     glob: "npm:^11.0.0"
     minimatch: "npm:^10.0.1"
     mocha: "npm:^11.1.0"
+    prettier: "npm:^3.4.2"
+    typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
 

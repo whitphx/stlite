@@ -88,7 +88,6 @@ jobs:
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      vscode-extension: ${{ steps.filter.outputs.vscode-extension == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -116,8 +115,6 @@ jobs:
             - 'packages/sharing-common/**/*'
           desktop:
             - 'packages/desktop/**/*'
-          vscode-extension:
-            - 'packages/vscode-stlite/**/*'
 
   test-build-common:
     needs: changes
@@ -547,63 +544,6 @@ jobs:
         key: desktop
         name: "@stlite/desktop"
         input-path: packages/desktop/package.tgz
-
-  test-build-vscode-extension:
-    needs: [set-build-info, changes]
-    if: ${{ needs.changes.outputs.vscode-extension == 'true' }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        persist-credentials: false
-
-    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
-      if: runner.os == 'Windows'
-      run: npm uninstall -g yarn
-    - name: Enable Corepack
-      run: corepack enable
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-    - run: yarn install
-    - run: make common
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-      if: runner.os == 'Linux'
-      working-directory: packages/vscode-stlite
-    - run: xvfb-run -a yarn test
-      if: runner.os == 'Linux'
-      working-directory: packages/vscode-stlite
-    - run: yarn test
-      if: runner.os != 'Linux'
-      working-directory: packages/vscode-stlite
-    - name: Build
-      if: success() && matrix.os == 'ubuntu-latest'
-      env:
-        IS_RELEASE: ${{ startsWith(needs.set-build-info.outputs.tag, 'v') }}
-      run: |
-        if [ $IS_RELEASE = true ]; then
-          VERSION=$(node -p "require('./package.json').version")
-        else
-          VERSION=${{ github.sha }}
-        fi
-        yarn run vsce package --no-dependencies -o vscode-stlite-${VERSION}-${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}.vsix
-      working-directory: packages/vscode-stlite
-    - name: Upload the vsix built on Linux
-      uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      with:
-        path: packages/vscode-stlite/vscode-stlite*.vsix
-        name: vscode-stlite
 
   e2e-browser:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4

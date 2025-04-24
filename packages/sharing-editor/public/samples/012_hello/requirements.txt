@@ -1,11 +1,5 @@
 pandas
-plotly
-bokeh
-graphviz
-requests
-matplotlib
 numpy
-scipy
 altair
 pydeck
-streamlit>=1.41.0
+streamlit>=1.44.0

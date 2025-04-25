@@ -26,7 +26,7 @@
   "scripts": {
     "start:web": "vite",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
-    "build:web": "vite build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
+    "build:web": "tsc --noEmit && vite build && rimraf 'build/**/*.whl' && rimraf 'build/pypi'",
     "test": "vitest",
     "start:electron": "tsc -p electron && cross-env NODE_ENV=development concurrently \"./scripts/build_electron.js --watch\" \"electron .\"",
     "build:electron": "tsc -p electron && cross-env NODE_ENV=production ./scripts/build_electron.js",

@@ -53,6 +53,60 @@ At the root directory,
 make
 ```
 
+## Update the Streamlit package
+
+Go to the `streamlit` directory.
+
+```shell
+cd streamlit
+```
+
+Fetch the commits from the Streamlit repository.
+
+For the first time, you need to add the upstream remote repository.
+
+```shell
+git remote add upstream https://github.com/streamlit/streamlit.git
+```
+
+Then, every time you want to update the Streamlit repository, fetch the commits from the upstream repository.
+
+```shell
+git fetch upstream
+```
+
+```
+NEW_STLITE_BRANCH=stlite-1.44.1
+BASE_STLITE_BRANCH=stlite-1.41.0-2
+git checkout -b NEW_STLITE_BRANCH BASE_STLITE_BRANCH
+```
+
+```
+git rebase --onto <new-streamlit-version-tag> <latest-stlite-version-branch>
+```
+
+For example, when the latest Stlite uses the `stlite-1.41.0-2` branch and you want to update it to be based on the version `1.44.1` of Streamlit, you can run the following command:
+
+```
+git checkout -b stlite-1.44.1 stlite-1.41.0-2
+git rebase --onto 1.44.1 1.41.0 stlite-1.44.1
+```
+
+## Update the sample apps in Stlite Sharing
+
+1. Clone or pull the latest `streamlit/docs` repository.
+2. Run the following command to copy the sample apps to the `stlite/packages/sharing-editor/data/streamlit_docs` directory.
+
+```
+sh ./packages/sharing-editor/bin/copy-samples.sh path/to/streamlit/docs
+```
+
+3. (If needed) Modify the copied sample apps to be compatible with Stlite, and save the changes as patches.
+   ```
+   diff /path/to/streamlit/docs/original_file packages/sharing-editor/public/samples/modified_file > packages/sharing-editor/bin/sample-diffs/modified_file
+   ```
+   Then update `copy-samples.sh` to apply the patches to the copied sample apps.
+
 ## Release a new version
 
 You can select the next version in an interactive shell with the following command. Then it will automatically create a new commit, tag it, and push the commit to the remote repository which triggers the release process on GitHub Actions.

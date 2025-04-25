@@ -187,6 +187,8 @@ $(streamlit-frontend-lib): $(node_modules) $(kernel) $(streamlit_proto) $(shell 
   -type f ! -path '*/dist/*' \
   \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
 	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils}' --topological run build
+	@mkdir -p $(dir $@)
+	@touch $@
 
 clean:
 	rm -rf $(BUILD_STATE_DIR)/*

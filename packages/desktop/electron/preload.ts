@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
+import { AppConfig, ArchivesAPI, NodeJsWorkerAPI } from "./preload-types";
 
 const entrypointArg = process.argv
   .find((arg) => arg.startsWith("--entrypoint="))
@@ -11,14 +12,13 @@ const idbfsMountpointsArg = process.argv
   .find((arg) => arg.startsWith("--idbfs-mountpoints="))
   ?.split("=")[1];
 const idbfsMountpoints = idbfsMountpointsArg && JSON.parse(idbfsMountpointsArg);
-const appConfig = {
+const appConfig: AppConfig = {
   entrypoint,
   idbfsMountpoints,
 };
 contextBridge.exposeInMainWorld("appConfig", appConfig);
-export type AppConfig = typeof appConfig;
 
-const archivesAPI = {
+const archivesAPI: ArchivesAPI = {
   readSitePackagesSnapshot: () =>
     ipcRenderer.invoke("readSitePackagesSnapshot"),
   readPrebuiltPackageNames: () =>
@@ -27,22 +27,15 @@ const archivesAPI = {
     ipcRenderer.invoke("readStreamlitAppDirectory"),
 };
 contextBridge.exposeInMainWorld("archivesAPI", archivesAPI);
-export type ArchivesAPI = typeof archivesAPI;
 
 function getRandomInt() {
   return Math.floor(Math.random() * 1000000);
 }
 
-const nodeJsWorkerAPI = {
+const nodeJsWorkerAPI: NodeJsWorkerAPI = {
   USE_NODEJS_WORKER: process.argv.includes("--nodejs-worker"),
   initialize: () => ipcRenderer.invoke("initializeNodeJsWorker"),
-  postMessage: ({
-    data,
-    onPortMessage,
-  }: {
-    data: unknown;
-    onPortMessage: ((arg: unknown) => void) | null;
-  }) => {
+  postMessage: ({ data, onPortMessage }) => {
     console.debug("nodeJsWorkerAPI.postMessage", { data, onPortMessage });
     // When the `contextIsolation` is enabled, `MessagePort` objects cannot be transferred between contexts even with ipcRenderer.postMessage(),
     // so we need to simulate the `MessagePort` API with `ipcRenderer.on` and `ipcRenderer.send`.
@@ -55,7 +48,7 @@ const nodeJsWorkerAPI = {
       });
     }
   },
-  onMessage: (callback: (data: unknown) => void) =>
+  onMessage: (callback) =>
     ipcRenderer.on("messageFromNodeJsWorker", (_event, value) => {
       console.debug("nodeJsWorkerAPI.onMessage", value);
       callback(value);
@@ -63,4 +56,3 @@ const nodeJsWorkerAPI = {
   terminate: () => ipcRenderer.invoke("terminateNodeJsWorker"),
 };
 contextBridge.exposeInMainWorld("nodeJsWorkerAPI", nodeJsWorkerAPI);
-export type NodeJsWorkerAPI = typeof nodeJsWorkerAPI;

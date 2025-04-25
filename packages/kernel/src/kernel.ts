@@ -240,16 +240,16 @@ export class StliteKernel {
       data: {
         path,
       },
-    });
+    }).then();
   }
 
-  public sendWebSocketMessage(payload: Uint8Array) {
+  public sendWebSocketMessage(payload: Uint8Array): Promise<void> {
     return this._asyncPostMessage({
       type: "websocket:send",
       data: {
         payload,
       },
-    });
+    }).then();
   }
 
   private handleWebSocketMessage:
@@ -288,7 +288,7 @@ export class StliteKernel {
         data,
         opts,
       },
-    });
+    }).then();
   }
 
   public renameFile(oldPath: string, newPath: string): Promise<void> {
@@ -298,12 +298,12 @@ export class StliteKernel {
         oldPath,
         newPath,
       },
-    });
+    }).then();
   }
 
   public readFile(
     path: string,
-    opts?: Record<string, any>,
+    opts?: Record<string, unknown>,
   ): Promise<string | Uint8Array> {
     return this._asyncPostMessage(
       {
@@ -323,7 +323,7 @@ export class StliteKernel {
       data: {
         path,
       },
-    });
+    }).then();
   }
 
   public install(requirements: string[]): Promise<void> {
@@ -332,7 +332,7 @@ export class StliteKernel {
       data: {
         requirements,
       },
-    });
+    }).then();
   }
 
   public setEnv(env: Record<string, string>): Promise<void> {
@@ -347,7 +347,7 @@ export class StliteKernel {
       data: {
         env,
       },
-    });
+    }).then();
   }
 
   public getCodeCompletion(
@@ -378,7 +378,7 @@ export class StliteKernel {
       data: {
         entrypoint,
       },
-    });
+    }).then();
   }
 
   private _asyncPostMessage(

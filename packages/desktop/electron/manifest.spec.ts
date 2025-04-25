@@ -10,7 +10,7 @@ describe("resolveNodefsMountpoints", () => {
         }
         return `/path/to/${placeholder}`;
       },
-    } as any;
+    } as Electron.App;
 
     const nodefsMountpoints = {
       home: "{{home}}",

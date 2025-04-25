@@ -65,7 +65,9 @@ export async function initPyodide(
     loadPyodide = pyodideModule.loadPyodide;
   } else {
     importScripts(scriptURL);
-    loadPyodide = (self as any).loadPyodide;
+    loadPyodide = (
+      self as unknown as { loadPyodide: typeof Pyodide.loadPyodide }
+    ).loadPyodide;
   }
   return loadPyodide({ ...loadPyodideOptions, indexURL: pyodideIndexURL });
 }

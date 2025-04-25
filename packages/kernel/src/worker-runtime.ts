@@ -84,6 +84,7 @@ async function loadPyodideAndPackages(
 
     console.debug("Loaded Pyodide");
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
     await initPyodidePromise;
 

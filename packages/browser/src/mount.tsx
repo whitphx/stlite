@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import StreamlitApp from "./StreamlitApp";
 import { StliteKernel } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
@@ -37,13 +37,12 @@ export function mount(
     ...makeToastKernelCallbacks(toastCallbackOptions),
   });
 
-  // eslint-disable-next-line react/no-deprecated
-  ReactDOM.render(
+  const reactRoot = createRoot(container);
+  reactRoot.render(
     <React.StrictMode>
       <StreamlitApp kernel={kernel} />
       <ToastContainer />
     </React.StrictMode>,
-    container,
   );
 
   const kernelWithToast = new StliteKernelWithToast(kernel);
@@ -51,8 +50,7 @@ export function mount(
   return {
     unmount: () => {
       kernel.dispose();
-      // eslint-disable-next-line react/no-deprecated
-      ReactDOM.unmountComponentAtNode(container);
+      reactRoot.unmount();
     },
     install: (requirements: string[]) => {
       return kernelWithToast.install(requirements);

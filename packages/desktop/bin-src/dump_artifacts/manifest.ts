@@ -3,8 +3,8 @@ import * as s from "superstruct";
 import {
   type DesktopAppManifest,
   DesktopAppManifestStruct,
-} from "../../electron/manifest.js";
-import { logger } from "./logger.js";
+} from "../../electron/manifest";
+import { logger } from "./logger";
 
 export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
   const manifestData = s.mask(obj ?? {}, DesktopAppManifestStruct);

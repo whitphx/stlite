@@ -11,12 +11,12 @@ import {
   version as pyodideVersion,
   type PyodideInterface,
 } from "pyodide";
-import { PrebuiltPackagesDataReader } from "./pyodide_packages.js";
-import { dumpManifest } from "./manifest.js";
-import { readConfig } from "./config.js";
+import { PrebuiltPackagesDataReader } from "./pyodide_packages";
+import { dumpManifest } from "./manifest";
+import { readConfig } from "./config";
 import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
-import { logger } from "./logger.js";
+import { logger } from "./logger";
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";

@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as s from "superstruct";
-import { deprecationWarning } from "./logger.js";
+import { deprecationWarning } from "./logger";
 
 interface ReadConfigOptions {
   pathResolutionRoot: string;

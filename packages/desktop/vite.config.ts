@@ -107,6 +107,9 @@ export default defineConfig(({ mode }) => ({
       ),
     },
   },
+  optimizeDeps: {
+    exclude: ["parquet-wasm"],
+  },
   worker: {
     format: "es",
   },

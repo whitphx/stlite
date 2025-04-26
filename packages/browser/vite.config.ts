@@ -124,6 +124,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   assetsInclude: ["**/*.whl"],
+  optimizeDeps: {
+    exclude: ["parquet-wasm"],
+  },
   worker: {
     format: "es",
   },

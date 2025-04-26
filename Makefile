@@ -69,7 +69,7 @@ $(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt
 
 .PHONY: node_modules
 node_modules: $(node_modules)
-$(node_modules): ./yarn.lock
+$(node_modules): package.json ./yarn.lock
 	yarn install
 	@mkdir -p $(dir $@)
 	@touch $@

@@ -15163,10 +15163,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immutable@npm:4.2.3":
-  version: 4.2.3
-  resolution: "immutable@npm:4.2.3"
-  checksum: 10c0/38226efb28ae8b46888faec95585fed5c3eacf67ce8bcb81f15fcb4cd6cbceccbe2c8fcc4e0ff5b6ae69888388837bdde9cba8abd82784f0ae39fa0bebfede2c
+"immutable@npm:^4.0.0":
+  version: 4.3.7
+  resolution: "immutable@npm:4.3.7"
+  checksum: 10c0/9b099197081b22f6433003e34929da8ecddbbdc1474cdc8aa3b7669dee4adda349c06143de22def36016d1b6de5322b043eccd7a11db1dad2ca85dad4fff5435
   languageName: node
   linkType: hard
 
@@ -20895,9 +20895,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protobufjs@npm:7.2.5":
-  version: 7.2.5
-  resolution: "protobufjs@npm:7.2.5"
+"protobufjs@npm:^7.2.4, protobufjs@npm:^7.2.5":
+  version: 7.5.0
+  resolution: "protobufjs@npm:7.5.0"
   dependencies:
     "@protobufjs/aspromise": "npm:^1.1.2"
     "@protobufjs/base64": "npm:^1.1.2"
@@ -20911,7 +20911,7 @@ __metadata:
     "@protobufjs/utf8": "npm:^1.1.0"
     "@types/node": "npm:>=13.7.0"
     long: "npm:^5.0.0"
-  checksum: 10c0/12bb88965a2291ec717daddb1b7153c0e567586076da7d138c8f04558d3d0a9cad6445a3558f16c1a61f5cd9dec1a107712590daccb71763429d9b1e10d164d3
+  checksum: 10c0/21ae56998d04e31ef7f58f49ccf6cd307f06b6257fee8b53016418176a2a03083f781c42907762bfdf632f425b5cd9707bc3f23aa73a9a774292e1b7190e3689
   languageName: node
   linkType: hard
 

@@ -28,8 +28,6 @@
     "typescript": "^5.7.3"
   },
   "resolutions": {
-    "immutable": "4.2.3",
-    "protobufjs": "7.2.5",
     "@types/react": "^18.2.0"
   },
   "packageManager": "yarn@4.5.3"

@@ -165,6 +165,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        submodules: true
         persist-credentials: false
 
     - name: Enable Corepack
@@ -219,6 +220,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
+        submodules: true
         persist-credentials: false
 
     - name: Enable Corepack

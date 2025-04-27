@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing",
-  "version": "0.81.4",
+  "version": "0.81.5",
   "private": true,
   "type": "module",
   "dependencies": {

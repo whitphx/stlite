@@ -1,30 +1,4 @@
-/**
- * The app config contains various configurations that the host platform can
- * use to configure streamlit-app frontend behavior. This should to be treated as part of the public
- * API, and changes need to be backwards-compatible meaning that an old host configuration
- * should still work with a new frontend versions.
- *
- * TODO(lukasmasuch): Potentially refactor HostCommunicationManager and move this type
- * to AppContext.tsx.
- */
-declare type AppConfig = {
-    /**
-     * A list of origins that we're allowed to receive cross-iframe messages
-     * from via the browser's window.postMessage API.
-     */
-    allowedOrigins?: string[]
-    /**
-     * Whether to wait until we've received a SET_AUTH_TOKEN message before
-     * resolving deferredAuthToken.promise. The WebsocketConnection class waits
-     * for this promise to resolve before attempting to establish a connection
-     * with the Streamlit server.
-     */
-    useExternalAuthToken?: boolean
-    /**
-     * Enables custom string messages to be sent to the host
-     */
-    enableCustomParentMessages?: boolean
-}
+import type { IHostConfigResponse } from '@streamlit/connection/src/types';
 
 declare interface CanvasInterface {
     	setCanvas2D(canvas: HTMLCanvasElement): void;
@@ -110,50 +84,13 @@ declare type FSStreamOpsGen<T> = {
     	write: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
 };
 
-/**
- * The response structure of the `_stcore/host-config` endpoint.
- * This combines streamlit-lib specific configuration options with
- * streamlit-app specific options (e.g. allowed message origins).
- */
-declare type IHostConfigResponse = LibConfig & AppConfig & MetricsConfig
-
 declare type InFuncType = () => null | undefined | string | ArrayBuffer | Uint8Array | number;
-
-/**
- * The lib config contains various configurations that the host platform can
- * use to configure streamlit-lib frontend behavior. This should to be treated as part of the public
- * API, and changes need to be backwards-compatible meaning that an old host configuration
- * should still work with a new frontend versions.
- */
-declare type LibConfig = {
-    /**
-     * the mapbox token that can be configured by a platform
-     */
-    mapboxToken?: string
-
-    /**
-     * Whether to disable the full screen mode all elements / widgets.
-     */
-    disableFullscreenMode?: boolean
-
-    enforceDownloadInNewTab?: boolean
-}
 
 declare type LoadedPackages = Record<string, string>;
 
 declare interface MakeToastKernelCallbacksOptions {
     disableProgressToasts?: boolean;
     disableErrorToasts?: boolean;
-}
-
-declare type MetricsConfig = {
-    /**
-     * URL to send metrics data to via POST request.
-     * Setting to "postMessage" sends metrics events via postMessage to host.
-     * Setting to "off" disables metrics collection.
-     * If undefined, metricsUrl requested from centralized config file.
-     */
-    metricsUrl?: string | "postMessage" | "off"
 }
 
 export declare function mount(options: MountOptions, container?: HTMLElement): {

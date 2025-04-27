@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.81.0] - 2025-04-27
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.44.1, [#1451](https://github.com/whitphx/stlite/pull/1451).
+
+### `@stlite/browser`
+
+#### Fixed
+
+- Fix the `exports` field in `package.json`, [#1462](https://github.com/whitphx/stlite/pull/1462).
+
 ## [0.80.5] - 2025-03-24
 
 ### `@stlite/kernel`

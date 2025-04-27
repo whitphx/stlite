@@ -182,7 +182,7 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: yarn publish stlite-browser-v*.tgz --access public
+    - run: yarn publish package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/browser
@@ -190,7 +190,7 @@ jobs:
     - name: Create a new release
       uses: softprops/action-gh-release@v2
       with:
-        files: packages/browser/stlite-browser-v*.tgz
+        files: packages/browser/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}
 
@@ -223,7 +223,7 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: yarn publish stlite-desktop-v*.tgz --access public
+    - run: yarn publish package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/desktop
@@ -231,6 +231,6 @@ jobs:
     - name: Create a new release
       uses: softprops/action-gh-release@v2
       with:
-        files: packages/desktop/stlite-desktop-v*.tgz
+        files: packages/desktop/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}

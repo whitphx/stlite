@@ -2,11 +2,8 @@
 
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
-
-import type { IHostConfigResponse } from "@streamlit/lib/src/hostComm/types";
-
+import type { IHostConfigResponse } from "@streamlit/connection/src/types";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
-
 import type {
   EmscriptenFile,
   EmscriptenFileUrl,
@@ -204,9 +201,8 @@ export class StliteKernel {
     } else {
       this._postMessageTarget = this._worker;
     }
-    this._postMessageTarget.onmessage = (e) => {
-      const messagePort: MessagePort | undefined = e.ports[0];
-      this._processWorkerMessage(e.data, messagePort);
+    this._postMessageTarget.onmessage = (e: MessageEvent<OutMessage>) => {
+      this._processWorkerMessage(e.data, e.ports[0]);
     };
 
     // TODO: Assert other options as well.
@@ -240,22 +236,22 @@ export class StliteKernel {
       data: {
         path,
       },
-    });
+    }).then();
   }
 
-  public sendWebSocketMessage(payload: Uint8Array) {
+  public sendWebSocketMessage(payload: Uint8Array): Promise<void> {
     return this._asyncPostMessage({
       type: "websocket:send",
       data: {
         payload,
       },
-    });
+    }).then();
   }
 
   private handleWebSocketMessage:
-    | ((payload: Uint8Array | string) => void)
+    | ((payload: ArrayBuffer | string) => void)
     | null = null;
-  public onWebSocketMessage(handler: (payload: Uint8Array | string) => void) {
+  public onWebSocketMessage(handler: (payload: ArrayBuffer | string) => void) {
     this.handleWebSocketMessage = handler;
   }
 
@@ -288,7 +284,7 @@ export class StliteKernel {
         data,
         opts,
       },
-    });
+    }).then();
   }
 
   public renameFile(oldPath: string, newPath: string): Promise<void> {
@@ -298,12 +294,12 @@ export class StliteKernel {
         oldPath,
         newPath,
       },
-    });
+    }).then();
   }
 
   public readFile(
     path: string,
-    opts?: Record<string, any>,
+    opts?: Record<string, unknown>,
   ): Promise<string | Uint8Array> {
     return this._asyncPostMessage(
       {
@@ -323,7 +319,7 @@ export class StliteKernel {
       data: {
         path,
       },
-    });
+    }).then();
   }
 
   public install(requirements: string[]): Promise<void> {
@@ -332,7 +328,7 @@ export class StliteKernel {
       data: {
         requirements,
       },
-    });
+    }).then();
   }
 
   public setEnv(env: Record<string, string>): Promise<void> {
@@ -347,7 +343,7 @@ export class StliteKernel {
       data: {
         env,
       },
-    });
+    }).then();
   }
 
   public getCodeCompletion(
@@ -378,7 +374,7 @@ export class StliteKernel {
       data: {
         entrypoint,
       },
-    });
+    }).then();
   }
 
   private _asyncPostMessage(

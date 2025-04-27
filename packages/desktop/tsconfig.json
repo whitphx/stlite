@@ -18,20 +18,18 @@
     "strict": true,
     "target": "es6",
     "types": ["vite/client", "vitest/globals"],
-    // Streamlit frontend has the `paths` config in `tsconfig.dev.json`
-    // as https://github.com/streamlit/streamlit/blob/1.40.1/frontend/tsconfig.dev.json#L4-L7
-    // and this `paths` mapping is also used in the production build as import aliases
-    // as https://github.com/streamlit/streamlit/blob/1.40.1/frontend/app/craco.config.js#L102-L103
-    // So we add the same configuration here:
+    // Set the `paths` same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L5-L9.
     "paths": {
+      "~lib/*": ["./../../streamlit/frontend/lib/src/*"],
       "@streamlit/lib": ["./../../streamlit/frontend/lib/src"],
       "@streamlit/app": ["./../../streamlit/frontend/app/src"]
     }
   },
   "include": [
     "src",
-    "../../streamlit/frontend/lib/src/declarations.d.ts",
-    "../../streamlit/frontend/app/src/emotion.d.ts"
+    // Add necessary declarations same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L11.
+    "../../streamlit/frontend/lib/declarations.d.ts",
+    "../../streamlit/frontend/lib/emotion.d.ts"
   ],
   "references": [
     {

@@ -16,10 +16,10 @@ export const resolveAppPath = (
   return path.resolve(getAppHomeDir(appId), filePath);
 };
 
-function ensureParent(
-  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
-  filePath: string,
-): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PyodideWithFS = PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
+
+function ensureParent(pyodide: PyodideWithFS, filePath: string): void {
   const normalized = path.normalize(filePath);
 
   const dirPath = path.dirname(normalized);
@@ -48,7 +48,7 @@ function ensureParent(
 }
 
 export function writeFileWithParents(
-  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
+  pyodide: PyodideWithFS,
   filePath: string,
   data: string | ArrayBufferView,
   opts?: unknown,
@@ -58,7 +58,7 @@ export function writeFileWithParents(
 }
 
 export function renameWithParents(
-  pyodide: PyodideInterface & { FS: any }, // XXX: This is a temporary workaround to fix the type error.
+  pyodide: PyodideWithFS,
   oldPath: string,
   newPath: string,
 ): void {

@@ -13,25 +13,25 @@ describe("extractCustomComponentPath", () => {
   }[] = [
     {
       basePathname: "",
-      url: "http://xxx:99999/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",
+      url: "https://stlite.invalid/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",
       expected:
         "/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",
     },
     {
       basePathname: "stlite",
-      url: "http://xxx:99999/stlite/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite",
+      url: "https://stlite.invalid/stlite/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite",
       expected:
         "/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite",
     },
     {
       basePathname: "stlite/index.html",
-      url: "http://xxx:99999/stlite/index.html/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite%2Findex.html",
+      url: "https://stlite.invalid/stlite/index.html/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite%2Findex.html",
       expected:
         "/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Fstlite%2Findex.html",
     },
     {
       basePathname: "index.html",
-      url: "http://xxx:99999/index.html/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Findex.html",
+      url: "https://stlite.invalid/index.html/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Findex.html",
       expected:
         "/component/package.component/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2Findex.html",
     },

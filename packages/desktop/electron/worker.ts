@@ -21,5 +21,5 @@ const handleMessage = startWorkerEnv(
 parentPort?.on("message", ({ data, port }) => {
   console.debug("[worker thread] parentPort.onMessage", { data, port });
   const simEvent = { data, ports: [port] };
-  handleMessage(simEvent as any);
+  handleMessage(simEvent as unknown as MessageEvent);
 });

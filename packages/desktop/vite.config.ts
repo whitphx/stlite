@@ -19,7 +19,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import { default as checker } from "vite-plugin-checker";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 
@@ -38,10 +37,6 @@ export default defineConfig(({ mode }) => ({
     viteTsconfigPaths(),
     wasm(),
     topLevelAwait(),
-    // this plugin checks for type errors on a separate process
-    checker({
-      typescript: true,
-    }),
     {
       name: "inject-csp-header",
       transformIndexHtml(html) {
@@ -111,6 +106,9 @@ export default defineConfig(({ mode }) => ({
         "../../streamlit/frontend/lib/src",
       ),
     },
+  },
+  optimizeDeps: {
+    exclude: ["parquet-wasm"],
   },
   worker: {
     format: "es",

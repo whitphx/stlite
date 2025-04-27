@@ -93,7 +93,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         : null;
 
     const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-    const monacoRef = useRef<any>(null);
+    const monacoRef = useRef<Parameters<OnMount>[1] | null>(null);
     const disposableRef = useRef<IDisposable>();
 
     const handleEditorDitMount = useCallback<OnMount>(
@@ -115,7 +115,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         if (monaco) {
           // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
           // If we don't do it, the previous content will remain after changing the sample apps.
-          monaco.editor.getModels().forEach((model: any) => model.dispose());
+          monaco.editor.getModels().forEach((model) => model.dispose());
         }
 
         if (disposableRef.current) {

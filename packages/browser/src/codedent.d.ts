@@ -3,7 +3,7 @@
 declare module "codedent" {
   declare const codedent: (
     tpl: string | TemplateStringsArray,
-    ...values: any[]
+    ...values: unknown[]
   ) => string;
 
   export default codedent;

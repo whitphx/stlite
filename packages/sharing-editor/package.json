@@ -5,8 +5,8 @@
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
     "@monaco-editor/react": "^4.4.5",
-    "@stlite/common": "^0.80.5",
-    "@stlite/sharing-common": "^0.80.5",
+    "@stlite/common": "workspace:^",
+    "@stlite/sharing-common": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "classnames": "^2.3.2",
@@ -46,7 +46,15 @@
     "@types/jsdom": "^21.1.7",
     "@types/nprogress": "^0.2.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "chokidar-cli": "^3.0.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.33.0",
     "jsdom": "^20.0.3",
-    "vite": "^5.1.5"
+    "npm-run-all2": "^7.0.2",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.2",
+    "vitest": "^3.0.9"
   }
 }

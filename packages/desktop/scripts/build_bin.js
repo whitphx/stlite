@@ -1,19 +1,25 @@
 #!/usr/bin/env node
 
-const path = require("path");
-const fs = require("fs");
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import esbuild from "esbuild";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
 
 const infile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
 const outfile = path.resolve(__dirname, "../bin/dump_artifacts.js");
 
-require("esbuild")
+esbuild
   .build({
     entryPoints: [infile],
     bundle: true,
     minify: true,
     platform: "node",
+    format: "esm",
     external: [
       "pyodide", // The `pyodide` package must be installed at runtime for the included Wasm files, so there is no reason to bundle it here.
       "fs-extra", // `fs-extra` and `yargs` will be installed at runtime anyway as the dependencies of `electron-builder`, so we don't have to bundle them here.
@@ -25,6 +31,14 @@ require("esbuild")
     },
     outfile,
     logLevel: "info",
+    banner: {
+      // Fix the 'Dynamic require of "xxx" is not supported' error when bundled as an ESM module.
+      // Ref: https://github.com/evanw/esbuild/issues/1921#issuecomment-2302290651
+      js: `
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+`,
+    },
   })
   .then(() => {
     // Replace the shebang line in the output file
@@ -35,5 +49,4 @@ require("esbuild")
     const result = data.replace(matcher, "#!/usr/bin/env node");
 
     fs.writeFileSync(outfile, result);
-  })
-  .catch(() => process.exit(1));
+  });

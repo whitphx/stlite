@@ -2,7 +2,7 @@ import type {
   AppConfig,
   ArchivesAPI,
   NodeJsWorkerAPI,
-} from "../electron/preload";
+} from "../electron/preload-types";
 
 declare global {
   interface Window {

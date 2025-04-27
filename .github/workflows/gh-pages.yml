@@ -41,7 +41,7 @@ jobs:
         python-version-file: ".python-version"
 
     - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v6
       with:
         version: ">0.5.17 || <0.5.17"  # 0.5.17 has an issue https://github.com/astral-sh/uv/issues/10487
         enable-cache: true

@@ -18,5 +18,11 @@
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
     "check:prettier": "prettier --check ."
+  },
+  "devDependencies": {
+    "eslint": "^8.33.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.9"
   }
 }

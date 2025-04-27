@@ -85,7 +85,7 @@ async function readDependencies(
     fallbacks: { packages: packagesFallback },
   } = options;
 
-  let dependencies = packageJsonStliteDesktopField?.dependencies;
+  const dependencies = packageJsonStliteDesktopField?.dependencies;
   s.assert(
     dependencies,
     s.optional(s.array(s.string())),

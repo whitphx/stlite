@@ -1,13 +1,19 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ToastContainer } from "@stlite/common-react";
 
-// eslint-disable-next-line react/no-deprecated
-ReactDOM.render(
+const rootDomNode = document.getElementById("root");
+
+if (!rootDomNode) {
+  throw new Error("#root DOM element not found");
+}
+
+const reactRoot = createRoot(rootDomNode);
+
+reactRoot.render(
   <React.StrictMode>
     <App />
     <ToastContainer />
   </React.StrictMode>,
-  document.getElementById("root") as HTMLElement,
 );

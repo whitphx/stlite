@@ -101,7 +101,7 @@ export interface InMessageFileWrite extends InMessageBase {
   data: {
     path: string;
     data: string | ArrayBufferView;
-    opts?: Record<string, any>;
+    opts?: Record<string, unknown>;
   };
 }
 export interface InMessageFileRename extends InMessageBase {
@@ -121,7 +121,7 @@ export interface InMessageFileRead extends InMessageBase {
   type: "file:read";
   data: {
     path: string;
-    opts?: Record<string, any>;
+    opts?: Record<string, unknown>;
   };
 }
 export interface InMessageInstall extends InMessageBase {
@@ -199,7 +199,7 @@ export interface OutMessageLoadedEvent extends OutMessageBase {
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
   data: {
-    payload: Uint8Array | string;
+    payload: ArrayBuffer | string;
   };
 }
 export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
@@ -237,7 +237,7 @@ export type ModuleAutoLoadMessage = ModuleAutoLoadSuccess | ModuleAutoLoadError;
 interface ReplyMessageBase {
   type: string;
   error?: Error;
-  data?: any;
+  data?: unknown;
 }
 export interface ReplyMessageHttpResponse extends ReplyMessageBase {
   type: "http:response";

@@ -185,7 +185,7 @@ const createWindow = async () => {
     const eventSim = { data, port: channel.port2 };
     worker.postMessage(eventSim, [channel.port2]);
   });
-  ipcMain.handle("terminateNodeJsWorker", (ev, { data, portId }) => {
+  ipcMain.handle("terminateNodeJsWorker", (ev) => {
     validateIpcMainEvent(ev, "terminateNodeJsWorker");
 
     worker?.terminate();
@@ -267,7 +267,7 @@ app.on("web-contents-created", (event, contents) => {
   // Intercepts webView creation events and forbid all,
   // following the security best practice, "12. Verify WebView options before creation."
   // https://www.electronjs.org/docs/latest/tutorial/security#12-verify-webview-options-before-creation
-  contents.on("will-attach-webview", (event, webPreferences, params) => {
+  contents.on("will-attach-webview", (event) => {
     // Cancels all webView creation request
     event.preventDefault();
   });
@@ -284,7 +284,7 @@ app.on("web-contents-created", (event, contents) => {
   // following the security best practice, "14. Disable or limit creation of new windows."
   // https://www.electronjs.org/docs/latest/tutorial/security#14-disable-or-limit-creation-of-new-windows
   contents.setWindowOpenHandler(({ url }) => {
-    console.error("Opening a new window is not allowed.");
+    console.error("Opening a new window is not allowed.", url);
     // TODO: Implement `isSafeForExternalOpen()` below with a configurable allowed list.
     // We'll ask the operating system
     // to open this event's url in the default browser.

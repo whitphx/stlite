@@ -11,5 +11,5 @@ pydeck
 Faker
 openai<1.40.0  # `openai==1.40.0` started depending on `jiter`, which is not working in Pyodide
 vega_datasets
-streamlit>=1.41.0
+streamlit>=1.44.0
 ssl  # `openai` depends on `ssl`, which is a standard library but not vendored with Pyodide

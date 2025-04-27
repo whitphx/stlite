@@ -175,14 +175,22 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
+    - run: mkdir -p ${{ runner.temp }}/stlite-browser
     - uses: actions/download-artifact@v4
       with:
         name: stlite-browser
-        path: packages/browser
+        path: ${{ runner.temp }}/stlite-browser
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: yarn publish package.tgz --access public
+    - name: Verify artifact contents
+      run: |
+        if [ ! -f ${{ runner.temp }}/stlite-browser/package.tgz ]; then
+          echo "Error: Expected package.tgz not found in artifact." >&2
+          exit 1
+        fi
+
+    - run: yarn publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/browser
@@ -216,14 +224,22 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
+    - run: mkdir -p ${{ runner.temp }}/stlite-desktop
     - uses: actions/download-artifact@v4
       with:
         name: stlite-desktop
-        path: packages/desktop
+        path: ${{ runner.temp }}/stlite-desktop
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: yarn publish package.tgz --access public
+    - name: Verify artifact contents
+      run: |
+        if [ ! -f ${{ runner.temp }}/stlite-desktop/package.tgz ]; then
+          echo "Error: Expected package.tgz not found in artifact." >&2
+          exit 1
+        fi
+
+    - run: yarn publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/desktop

@@ -1,3 +1,3 @@
-export * from "./requirements";
-export * from "./requirements-txt";
-export * from "./promise-delegate";
+export * from "./requirements.js";
+export * from "./requirements-txt.js";
+export * from "./promise-delegate.js";

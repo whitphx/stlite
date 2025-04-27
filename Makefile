@@ -43,9 +43,9 @@ sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
-streamlit_proto := streamlit/frontend/lib/src/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.41.0-cp312-none-any.whl
-streamlit_frontend_lib_prod := streamlit/frontend/lib/dist/*
+streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl
+streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 
@@ -69,8 +69,8 @@ $(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt
 
 .PHONY: node_modules
 node_modules: $(node_modules)
-$(node_modules): ./yarn.lock
-	yarn install --frozen-lockfile
+$(node_modules): package.json ./yarn.lock
+	yarn install
 	@mkdir -p $(dir $@)
 	@touch $@
 
@@ -94,21 +94,21 @@ $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel)
+$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(streamlit-frontend-lib)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: browser
 browser: $(browser)
-$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react)
+$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react)
+$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -129,7 +129,7 @@ $(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react)
+$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -160,7 +160,6 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV_PATH)/bin/activate && \
 	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
-	@touch $@
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
@@ -178,18 +177,22 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
 	mv $$TEMP_DIR/*.pyi ./streamlit/lib/streamlit/proto/ && \
 	rmdir $$TEMP_DIR && \
-	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.41.0-py2.py3-none-any.whl && \
+	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.44.1-py3-none-any.whl && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
 .PHONY: streamlit-frontend-lib
-streamlit-frontend-lib: $(streamlit_frontend_lib_prod)
-$(streamlit_frontend_lib_prod): $(node_modules) $(kernel) $(streamlit_proto) streamlit/frontend/lib/src/**/*.ts streamlit/frontend/lib/src/**/*.tsx streamlit/frontend/lib/package.json streamlit/frontend/lib/tsconfig.json
-	$(MAKE) -C streamlit frontend-lib-prod
+streamlit-frontend-lib: $(streamlit-frontend-lib)
+$(streamlit-frontend-lib): $(node_modules) $(kernel) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils \
+  -type f ! -path '*/dist/*' \
+  \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
+	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils}' --topological run build
+	@mkdir -p $(dir $@)
+	@touch $@
 
 clean:
 	rm -rf $(BUILD_STATE_DIR)/*
 	rm -f $(TEMP_GITKEEP)
 	yarn tsc -b --clean
-	rm -rf packages/*/dist/* packages/*/build/*
+	rm -rf packages/*/dist/* packages/*/build/* streamlit/frontend/*/dist/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)

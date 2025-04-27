@@ -1,11 +1,11 @@
 // @vitest-environment node
 
-import { loadPyodide, PyodideInterface } from "pyodide";
+import { loadPyodide } from "pyodide";
 import { describe, it, expect, beforeEach } from "vitest";
-import { writeFileWithParents, renameWithParents } from "./file";
+import { writeFileWithParents, renameWithParents, PyodideWithFS } from "./file";
 
 describe("writeFileWithParents()", () => {
-  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
+  let pyodide: PyodideWithFS;
 
   beforeEach(async () => {
     pyodide = await loadPyodide({
@@ -45,7 +45,7 @@ describe("writeFileWithParents()", () => {
 });
 
 describe("renameWithParents", () => {
-  let pyodide: PyodideInterface & { FS: any }; // XXX: This is a temporary workaround to fix the type error.
+  let pyodide: PyodideWithFS;
 
   beforeEach(async () => {
     pyodide = await loadPyodide({

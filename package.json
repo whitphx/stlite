@@ -5,7 +5,12 @@
     "packages/*",
     "streamlit/frontend",
     "streamlit/frontend/app",
+    "streamlit/frontend/connection",
+    "streamlit/frontend/eslint-plugin-streamlit-custom",
     "streamlit/frontend/lib",
+    "streamlit/frontend/protobuf",
+    "streamlit/frontend/typescript-config",
+    "streamlit/frontend/utils",
     "packages/desktop/samples/*"
   ],
   "engines": {
@@ -13,37 +18,17 @@
   },
   "scripts": {
     "new-version": "lerna version --force-publish",
-    "prepare": "husky",
-    "//": "The patch-package command requires to be run at the workspace root to patch the hoisted dependencies. So we run it here.",
-    "postinstall": "patch-package --patch-dir streamlit/frontend/patches"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@lerna-lite/cli": "^3.4.0",
     "@lerna-lite/version": "^3.4.0",
-    "@types/node": "^22",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
-    "chokidar-cli": "^3.0.0",
-    "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
-    "eslint": "^8.33.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-react": "^7.32.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.2",
-    "npm-run-all2": "^7.0.2",
-    "prettier": "^3.4.2",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.19.2",
-    "typescript": "^4.9.5",
-    "vitest": "^2.1.9",
-    "wait-on": "^8.0.1"
+    "typescript": "^5.7.3"
   },
   "resolutions": {
-    "immutable": "4.2.3",
-    "protobufjs": "7.2.5",
     "@types/react": "^18.2.0"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@4.5.3"
 }

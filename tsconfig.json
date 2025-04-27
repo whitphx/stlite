@@ -24,9 +24,6 @@
     },
     {
       "path": "packages/sharing-editor"
-    },
-    {
-      "path": "packages/vscode-stlite"
     }
   ]
 }

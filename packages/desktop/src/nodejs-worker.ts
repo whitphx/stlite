@@ -1,6 +1,6 @@
 export const USE_NODEJS_WORKER = window.nodeJsWorkerAPI.USE_NODEJS_WORKER;
 
-interface MessageEventLike<T = any> {
+interface MessageEventLike<T = unknown> {
   readonly data: T;
   readonly ports: MessagePort[];
 }

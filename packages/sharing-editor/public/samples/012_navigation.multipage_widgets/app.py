@@ -10,5 +10,5 @@ def page2():
 st.sidebar.selectbox("Foo", ["A", "B", "C"], key="foo")
 st.sidebar.checkbox("Bar", key="bar")
 
-pg = st.navigation([st.Page(page1), st.Page(page2)])
+pg = st.navigation([page1, page2])
 pg.run()

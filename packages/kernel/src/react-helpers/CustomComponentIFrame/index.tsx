@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useStliteKernel } from "../StliteKernelProvider";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
@@ -92,7 +92,10 @@ const CustomComponentIFrame = React.forwardRef<
   CustomComponentIFrameProps
 >((props, ref) => {
   const kernel = useStliteKernel();
-  const path = extractCustomComponentPath(kernel.basePath, props.src);
+  const path = useMemo(
+    () => extractCustomComponentPath(kernel.basePath, props.src),
+    [kernel.basePath, props.src],
+  );
 
   if (path == null) {
     return <iframe {...props} ref={ref} />;

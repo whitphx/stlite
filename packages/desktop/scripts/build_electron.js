@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 
-const { build, context } = require("esbuild");
-const path = require("path");
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import process from "node:process";
+import { build, context } from "esbuild";
 
 // Build script using esbuild like https://esbuild.github.io/getting-started/#build-scripts
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const watch = process.argv.includes("--watch");
 const production = process.env.NODE_ENV === "production";
@@ -27,6 +32,4 @@ const production = process.env.NODE_ENV === "production";
       : null),
   },
   logLevel: "info",
-})
-  .then((buildResultOrContext) => watch && buildResultOrContext.watch())
-  .catch(() => process.exit(1));
+}).then((buildResultOrContext) => watch && buildResultOrContext.watch());

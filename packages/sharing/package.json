@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@stlite/common-react": "^0.80.5",
-    "@stlite/kernel": "^0.80.5",
-    "@stlite/sharing-common": "^0.80.5",
+    "@stlite/common-react": "workspace:^",
+    "@stlite/kernel": "workspace:^",
+    "@stlite/sharing-common": "workspace:^",
     "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

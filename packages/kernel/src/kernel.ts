@@ -24,10 +24,7 @@ import type {
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
-// import type { IHostConfigResponse } from "@streamlit/connection";
-// XXX: This is a temporary type to avoid the circular dependency with @streamlit/connection
-// TODO: Replace this with the actual type from @streamlit/connection
-type IHostConfigResponse = Record<string, unknown>;
+import type { IHostConfigResponse } from "@streamlit/connection/src/types";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;

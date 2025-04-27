@@ -4277,9 +4277,9 @@ __metadata:
   resolution: "@stlite/browser@workspace:packages/browser"
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
-    "@stlite/common": "npm:^0.80.5"
-    "@stlite/common-react": "npm:^0.80.5"
-    "@stlite/kernel": "npm:^0.80.5"
+    "@stlite/common": "workspace:^"
+    "@stlite/common-react": "workspace:^"
+    "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
@@ -4300,11 +4300,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/common-react@npm:^0.80.5, @stlite/common-react@workspace:packages/common-react":
+"@stlite/common-react@workspace:^, @stlite/common-react@workspace:packages/common-react":
   version: 0.0.0-use.local
   resolution: "@stlite/common-react@workspace:packages/common-react"
   dependencies:
-    "@stlite/kernel": "npm:^0.80.5"
+    "@stlite/kernel": "workspace:^"
     "@streamlit/lib": "workspace:^"
     eslint: "npm:^8.33.0"
     prettier: "npm:^3.4.2"
@@ -4319,7 +4319,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/common@npm:^0.80.5, @stlite/common@workspace:packages/common":
+"@stlite/common@workspace:^, @stlite/common@workspace:packages/common":
   version: 0.0.0-use.local
   resolution: "@stlite/common@workspace:packages/common"
   dependencies:
@@ -4330,14 +4330,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/desktop@npm:^0.80.5, @stlite/desktop@workspace:packages/desktop":
+"@stlite/desktop@workspace:^, @stlite/desktop@workspace:packages/desktop":
   version: 0.0.0-use.local
   resolution: "@stlite/desktop@workspace:packages/desktop"
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
-    "@stlite/common": "npm:^0.80.5"
-    "@stlite/common-react": "npm:^0.80.5"
-    "@stlite/kernel": "npm:^0.80.5"
+    "@stlite/common": "workspace:^"
+    "@stlite/common-react": "workspace:^"
+    "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
@@ -4374,12 +4374,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/kernel@npm:*, @stlite/kernel@npm:^0.80.5, @stlite/kernel@workspace:packages/kernel":
+"@stlite/kernel@npm:*, @stlite/kernel@workspace:^, @stlite/kernel@workspace:packages/kernel":
   version: 0.0.0-use.local
   resolution: "@stlite/kernel@workspace:packages/kernel"
   dependencies:
     "@jupyterlab/coreutils": "npm:^6.3.4"
-    "@stlite/common": "npm:^0.80.5"
+    "@stlite/common": "workspace:^"
+    "@streamlit/connection": "workspace:^"
     "@testing-library/react": "npm:^14.1.2"
     "@tinyhttp/content-disposition": "npm:^2.2.2"
     "@types/path-browserify": "npm:^1.0.0"
@@ -4395,7 +4396,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/sharing-common@npm:^0.80.5, @stlite/sharing-common@workspace:packages/sharing-common":
+"@stlite/sharing-common@workspace:^, @stlite/sharing-common@workspace:packages/sharing-common":
   version: 0.0.0-use.local
   resolution: "@stlite/sharing-common@workspace:packages/sharing-common"
   dependencies:
@@ -4416,8 +4417,8 @@ __metadata:
   resolution: "@stlite/sharing-editor@workspace:packages/sharing-editor"
   dependencies:
     "@monaco-editor/react": "npm:^4.4.5"
-    "@stlite/common": "npm:^0.80.5"
-    "@stlite/sharing-common": "npm:^0.80.5"
+    "@stlite/common": "workspace:^"
+    "@stlite/sharing-common": "workspace:^"
     "@types/jsdom": "npm:^21.1.7"
     "@types/nprogress": "npm:^0.2.3"
     "@types/react": "npm:^18.2.0"
@@ -4454,9 +4455,9 @@ __metadata:
   resolution: "@stlite/sharing@workspace:packages/sharing"
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
-    "@stlite/common-react": "npm:^0.80.5"
-    "@stlite/kernel": "npm:^0.80.5"
-    "@stlite/sharing-common": "npm:^0.80.5"
+    "@stlite/common-react": "workspace:^"
+    "@stlite/kernel": "workspace:^"
+    "@stlite/sharing-common": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
@@ -4487,7 +4488,7 @@ __metadata:
     "@emotion/serialize": "npm:^1.1.3"
     "@emotion/styled": "npm:^11.13.5"
     "@eslint-react/eslint-plugin": "npm:^1.36.1"
-    "@stlite/kernel": "npm:*"
+    "@stlite/kernel": "workspace:^"
     "@streamlit/connection": "workspace:^"
     "@streamlit/lib": "workspace:^"
     "@streamlit/protobuf": "workspace:^"
@@ -23332,7 +23333,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "stlite-desktop-sample-basic@workspace:packages/desktop/samples/basic"
   dependencies:
-    "@stlite/desktop": "npm:^0.80.5"
+    "@stlite/desktop": "workspace:^"
     cross-env: "npm:^7.0.3"
     electron: "npm:34.3.0"
     electron-builder: "npm:^25.1.7"
@@ -23343,7 +23344,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "stlite-desktop-sample-file-persistence-idbfs@workspace:packages/desktop/samples/file-persistence-idbfs"
   dependencies:
-    "@stlite/desktop": "npm:^0.80.5"
+    "@stlite/desktop": "workspace:^"
     cross-env: "npm:^7.0.3"
     electron: "npm:34.3.0"
     electron-builder: "npm:^25.1.7"
@@ -23354,7 +23355,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "stlite-desktop-sample-file-persistence-nodefs@workspace:packages/desktop/samples/file-persistence-nodefs"
   dependencies:
-    "@stlite/desktop": "npm:^0.80.5"
+    "@stlite/desktop": "workspace:^"
     cross-env: "npm:^7.0.3"
     electron: "npm:34.3.0"
     electron-builder: "npm:^25.1.7"

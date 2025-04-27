@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-editor",
-  "version": "0.81.3",
+  "version": "0.81.4",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {

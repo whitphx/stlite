@@ -165,7 +165,7 @@ jobs:
     steps:
     - uses: actions/setup-node@v4
       with:
-        node-version-file: ${{ env.node-version-file }}
+        node-version: 22
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
@@ -208,7 +208,7 @@ jobs:
     steps:
     - uses: actions/setup-node@v4
       with:
-        node-version-file: ${{ env.node-version-file }}
+        node-version: 22
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 

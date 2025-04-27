@@ -2,6 +2,7 @@
 
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
+import type { IHostConfigResponse } from "@streamlit/connection/src/types";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
   EmscriptenFile,
@@ -23,8 +24,6 @@ import type {
   ReplyMessageLanguageServerCodeCompletion,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
-
-import type { IHostConfigResponse } from "@streamlit/connection/src/types";
 
 // Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
 const FINAL_SLASH_RE = /\/+$/;

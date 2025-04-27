@@ -4353,7 +4353,7 @@ __metadata:
     glob: "npm:^11.0.1"
     node-html-parser: "npm:^7.0.1"
     prettier: "npm:^3.4.2"
-    pyodide: "npm:0.27.3"
+    pyodide: "npm:0.27.5"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.0.1"
@@ -4389,7 +4389,7 @@ __metadata:
     eslint: "npm:^8.33.0"
     path-browserify: "npm:^1.0.1"
     prettier: "npm:^3.4.2"
-    pyodide: "npm:0.27.3"
+    pyodide: "npm:0.27.5"
     react: "npm:^18.2.0"
     typescript: "npm:^5.7.3"
     vitest: "npm:^3.0.9"
@@ -20998,12 +20998,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.27.3":
-  version: 0.27.3
-  resolution: "pyodide@npm:0.27.3"
+"pyodide@npm:0.27.5":
+  version: 0.27.5
+  resolution: "pyodide@npm:0.27.5"
   dependencies:
     ws: "npm:^8.5.0"
-  checksum: 10c0/5395b9f18bf4bb3bcdf888d90574b12e675a028d211055e8b77ef7a17bd5bbec91effbdca835ea9f43c98060ea00386d5e41729eb75e8ba4d971970b8c9f2689
+  checksum: 10c0/86e242031a315bb8f55c778b8555c55397662f3f927e8afc4f1b9bdcb0c93cef7de708c01f63ed19d7151de6088aa555952cd1513756b9ac26bc599286452bd8
   languageName: node
   linkType: hard
 

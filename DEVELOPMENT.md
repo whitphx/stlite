@@ -75,11 +75,15 @@ Then, every time you want to update the Streamlit repository, fetch the commits 
 git fetch upstream
 ```
 
+Create a new branch for the new version based on the latest version branch.
+
 ```
 NEW_STLITE_BRANCH=stlite-1.44.1
 BASE_STLITE_BRANCH=stlite-1.41.0-2
 git checkout -b NEW_STLITE_BRANCH BASE_STLITE_BRANCH
 ```
+
+Rebase the new branch onto the latest Streamlit version tag.
 
 ```
 git rebase --onto <new-streamlit-version-tag> <latest-stlite-version-branch>

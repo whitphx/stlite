@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.81.1] - 2025-04-27
+## [0.81.2] - 2025-04-27
 
 ### General
 
@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Fixed
 
 - Fix the `exports` field in `package.json`, [#1462](https://github.com/whitphx/stlite/pull/1462).
+
+## [0.81.1]
+
+Skipped.
 
 ## [0.81.0]
 

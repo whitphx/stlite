@@ -163,23 +163,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        persist-credentials: false
-
-    - name: Enable Corepack
-      run: corepack enable
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: yarn
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
-
-    # The `yarn install` command is necessary to avoid the following error:
-    # > Usage Error: Couldn't find the node_modules state file - running an install might help (findPackageLocation)
-    - run: yarn install
 
     - run: mkdir -p ${{ runner.temp }}/stlite-browser
     - uses: actions/download-artifact@v4
@@ -196,7 +184,7 @@ jobs:
           exit 1
         fi
 
-    - run: yarn publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
+    - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/browser
@@ -218,23 +206,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-        persist-credentials: false
-
-    - name: Enable Corepack
-      run: corepack enable
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: yarn
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
-
-    # The `yarn install` command is necessary to avoid the following error:
-    # > Usage Error: Couldn't find the node_modules state file - running an install might help (findPackageLocation)
-    - run: yarn install
 
     - run: mkdir -p ${{ runner.temp }}/stlite-desktop
     - uses: actions/download-artifact@v4
@@ -251,7 +227,7 @@ jobs:
           exit 1
         fi
 
-    - run: yarn publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
+    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       working-directory: packages/desktop

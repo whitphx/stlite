@@ -323,10 +323,10 @@ st.
         "area_chart",
         "audio",
         "audio_input",
+        "auth_util",
+        "badge",
         "balloons",
         "bar_chart",
-        "bokeh_chart",
-        "button",
       ]);
     });
 

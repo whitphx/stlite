@@ -1,18 +1,26 @@
-import { DUMMY_BASE_HOST } from "../../consts";
-
 export function extractCustomComponentPath(
   basePath: string, // basePath without leading and trailing slashes.
-  url: string,
+  urlString: string,
 ): string | null {
-  const baseHostAndPath = (DUMMY_BASE_HOST + "/" + basePath).replace(/\/$/, "");
-  const regex = new RegExp(`https?://${baseHostAndPath}(/.*?$)`);
+  const url = new URL(urlString);
+  const baseUrl = new URL(basePath, "https://stlite.invalid/"); // TODO: Share the code with @streamlit/connection
 
-  const matches = url.match(regex);
+  if (url.hostname !== baseUrl.hostname) {
+    return null;
+  }
+
+  const basePathWithoutTrailingSlash = baseUrl.pathname.replace(/\/$/, "");
+  const componentPathRegex = new RegExp(
+    `^${basePathWithoutTrailingSlash}(/.*?$)`,
+  );
+  const matches = url.pathname.match(componentPathRegex);
   if (matches == null) {
     return null;
   }
 
-  return matches[1];
+  const componentPath = matches[1];
+
+  return componentPath + url.search + url.hash;
 }
 
 export function getParentPath(pathname: string): string {

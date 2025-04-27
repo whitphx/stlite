@@ -27,6 +27,7 @@ patch $SAMPLES_DIR/011_component_gallery/requirements.txt $DIFF_DIR/011_componen
 patch $SAMPLES_DIR/011_component_gallery/pages/charts.audio-purr.py $DIFF_DIR/011_component_gallery/pages/charts.audio-purr.py
 patch $SAMPLES_DIR/011_component_gallery/pages/media.logo.py $DIFF_DIR/011_component_gallery/pages/media.logo.py
 patch $SAMPLES_DIR/011_component_gallery/pages/widget.download_button.py $DIFF_DIR/011_component_gallery/pages/widget.download_button.py
+patch $SAMPLES_DIR/011_component_gallery/pages/widget.download_button_file.py $DIFF_DIR/011_component_gallery/pages/widget.download_button_file.py
 patch $SAMPLES_DIR/011_component_gallery/pages/charts.pydeck_event_state_selections.py $DIFF_DIR/011_component_gallery/pages/charts.pydeck_event_state_selections.py
 
 mv $SAMPLES_DIR/011_component_gallery/pages/navigation.multipage_widgets.py $SAMPLES_DIR/012_navigation.multipage_widgets/app.py

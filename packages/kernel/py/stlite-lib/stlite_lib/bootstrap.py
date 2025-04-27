@@ -19,12 +19,9 @@
 import logging
 import os
 import sys
-from pathlib import Path
 from typing import Any, Dict, List
 
 from streamlit import config
-from streamlit.source_util import invalidate_pages_cache
-from streamlit.watcher import watch_dir
 
 logger = logging.getLogger(__name__)
 
@@ -88,21 +85,6 @@ def load_config_options(flag_options: Dict[str, Any], multi_runtime=False) -> No
     # TODO: Fix the `config` module to be multi runtime-compatible.
     config.get_config_options(
         force_reparse=not multi_runtime, options_from_flags=options_from_flags
-    )
-
-
-def _install_pages_watcher(main_script_path_str: str) -> None:
-    def _on_pages_changed(_path: str) -> None:
-        invalidate_pages_cache()
-
-    main_script_path = Path(main_script_path_str)
-    pages_dir = main_script_path.parent / "pages"
-
-    watch_dir(
-        str(pages_dir),
-        _on_pages_changed,
-        glob_pattern="*.py",
-        allow_nonexistent=True,
     )
 
 
@@ -181,4 +163,3 @@ def prepare(
     _fix_requests()
     _fix_sys_argv(main_script_path, args)
     _fix_pydeck_mapbox_api_warning()
-    _install_pages_watcher(main_script_path)

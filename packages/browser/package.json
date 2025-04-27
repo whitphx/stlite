@@ -24,8 +24,8 @@
   "exports": {
     ".": {
       "import": {
-        "default": "./build/stlite.js",
-        "types": "./build/stlite.d.ts"
+        "types": "./build/stlite.d.ts",
+        "default": "./build/stlite.js"
       }
     },
     "./wheels/*.whl": "./build/wheels/*.whl"

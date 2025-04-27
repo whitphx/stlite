@@ -187,7 +187,6 @@ jobs:
     - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      working-directory: packages/browser
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2
@@ -230,7 +229,6 @@ jobs:
     - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      working-directory: packages/desktop
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2

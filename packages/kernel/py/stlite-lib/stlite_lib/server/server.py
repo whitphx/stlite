@@ -60,7 +60,9 @@ class Server:
 
         self._runtime.stats_mgr.register_provider(self._media_file_storage)
 
-    async def start(self) -> None:
+    async def start(
+        self, file_change_callback: Callable[[str], None] | None = None
+    ) -> None:
         """Start the server.
 
         When this returns, Streamlit is ready to accept new sessions.
@@ -71,7 +73,7 @@ class Server:
         home_dir_contextvar.set(self.app_home_dir)
 
         # In stlite, we deal with WebSocket separately.
-        self._websocket_handler = WebSocketHandler(self._runtime)
+        self._websocket_handler = WebSocketHandler(self._runtime, file_change_callback)
 
         # Based on the original impl at https://github.com/streamlit/streamlit/blob/1.18.1/lib/streamlit/web/server/server.py#L221  # noqa: E501
         base = ""  # The original impl reads the `server.baseUrlPath` config, but we use a fixed empty string.  # noqa: E501
@@ -252,9 +254,18 @@ class WebSocketHandler(SessionClient):
 
     _callback: Callable[[bytes | str, bool], None] | None
 
-    def __init__(self, runtime: Runtime) -> None:
+    def __init__(
+        self,
+        runtime: Runtime,
+        file_change_callback: Callable[[str], None] | None = None,
+    ) -> None:
         self._runtime = runtime
         self._session_id = None
+
+        # File change callback needs to be registered in this handler's `open()`
+        # because the callback is registered via the `AppSession` instance
+        # which is created after the connection is established in `open()`.
+        self._file_change_callback = file_change_callback
 
     def write_forward_msg(self, msg: ForwardMsg) -> None:
         """Send a ForwardMsg to the browser."""
@@ -275,6 +286,29 @@ class WebSocketHandler(SessionClient):
             user_info=user_info,
             existing_session_id=existing_session_id,
         )
+
+        if self._file_change_callback:
+            session_info = self._runtime._session_mgr.get_session_info(self._session_id)
+            if session_info is None:
+                _LOGGER.warning(
+                    "No session info found. Cannot register file change callback."
+                )
+                return
+            session = session_info.session
+            if session is None:
+                _LOGGER.warning(
+                    "No session found. Cannot register file change callback."
+                )
+                return
+            if session._local_sources_watcher is None:
+                _LOGGER.warning(
+                    "session._local_sources_watcher is None. Cannot register file change callback."
+                )
+                return
+            _LOGGER.debug("Registering file change callback for session %s", session.id)
+            session._local_sources_watcher.register_file_change_callback(
+                self._file_change_callback
+            )
 
     def on_close(self) -> None:
         if not self._session_id:

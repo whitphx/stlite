@@ -373,13 +373,23 @@ __bootstrap__`); // This last line evaluates to the function so it is returned f
   );
   console.debug("Set up the Streamlit configuration");
 
+  const fileChangeCallback = moduleAutoLoad
+    ? (filePath: string) => {
+        console.debug("File changed", filePath);
+        if (filePath.endsWith(".py")) {
+          const fileData = pyodide.FS.readFile(filePath, { encoding: "utf8" });
+          dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, [fileData]);
+        }
+      }
+    : undefined;
+
   console.debug("Booting up the Streamlit server");
   const Server = pyodide.pyimport("stlite_lib.server.Server");
   const httpServer = Server(
     canonicalEntrypoint,
     appId ? getAppHomeDir(appId) : null,
   );
-  await httpServer.start();
+  await httpServer.start(fileChangeCallback);
   console.debug("Booted up the Streamlit server");
 
   return {
@@ -621,18 +631,6 @@ export function startWorkerEnv(
         case "file:write": {
           const { path: rawPath, data: fileData, opts } = msg.data;
           const path = resolveAppPath(appId, rawPath);
-
-          if (
-            moduleAutoLoad &&
-            typeof fileData === "string" &&
-            path.endsWith(".py")
-          ) {
-            // Auto-install must be dispatched before writing the file
-            // because its promise should be set before saving the file triggers rerunning.
-            console.debug(`Auto install the requirements in ${path}`);
-
-            dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, [fileData]);
-          }
 
           console.debug(`Write a file "${path}"`);
           writeFileWithParents(pyodide, path, fileData, opts);

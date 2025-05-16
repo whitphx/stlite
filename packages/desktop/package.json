@@ -58,7 +58,7 @@
   "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
     "fs-extra": "^11.2.0",
-    "pyodide": "0.27.3",
+    "pyodide": "0.27.6",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

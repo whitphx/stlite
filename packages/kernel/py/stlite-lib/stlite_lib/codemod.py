@@ -911,6 +911,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     wildcard_import_monitor_targets = set(
         [
             WildcardImportTarget(module="time", attr="sleep"),
+            WildcardImportTarget(module="streamlit", attr="write"),
             WildcardImportTarget(module="streamlit", attr="write_stream"),
             WildcardImportTarget(module="asyncio", attr="run"),
         ]
@@ -924,6 +925,7 @@ def patch(code: str | ast.Module, script_path: str) -> ast.Module:
     func_call_handler = FuncCallTransformHandler(
         {
             FunctionCall(name="time.sleep"): TransformRuleAction.TIME_SLEEP,
+            FunctionCall(name="streamlit.write"): TransformRuleAction.AWAIT_CALL,
             FunctionCall(name="streamlit.write_stream"): TransformRuleAction.AWAIT_CALL,
             AttrFunctionCall(
                 obj=ReturnValue(called_function="streamlit.navigation"),

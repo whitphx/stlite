@@ -25,7 +25,9 @@
       "repositories": {
         // Submodule
         "whitphx/streamlit": {
-          "permissions": "write-all"
+          "permissions": {
+            "contents": "write"
+          }
         }
       }
     }

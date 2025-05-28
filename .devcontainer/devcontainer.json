@@ -11,6 +11,11 @@
     }
   },
 
+  "onCreateCommand": [
+    "corepack enable",
+    "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  ],
+
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
 

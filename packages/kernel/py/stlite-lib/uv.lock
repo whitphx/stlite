@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 
 [[package]]
@@ -98,7 +99,7 @@ name = "click"
 version = "8.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/96/d3/f04c7bfcf5c1862a2a5b845c6b2b360488cf47af55dfa79c98f6a6bf98b5/click-8.1.7.tar.gz", hash = "sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de", size = 336121 }
 wheels = [
@@ -615,11 +616,11 @@ wheels = [
 
 [[package]]
 name = "pyodide-py"
-version = "0.27.3"
+version = "0.27.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6c/da/3e08ffdb73c4bbb7dd17aa60dad4c8a5c193fe587c879a1b26ea8be4d072/pyodide_py-0.27.3.tar.gz", hash = "sha256:5308a2784a0f709461bb215a8b60bebfbd6a28e713ee0121474f480137742c0b", size = 49998 }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/bd/e9ca1471fee631ccca5d80ea29f4628db0e265995bb895601c1a8163fd18/pyodide_py-0.27.6.tar.gz", hash = "sha256:1a38e9d3366854838e3cbec768b3985cc51de4829b875edf086ebf7669199e20", size = 51902 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cc/72/519064954f7f6041101995f88221af68e623aceeb53b21ac7200972cdbdd/pyodide_py-0.27.3-py3-none-any.whl", hash = "sha256:9c43cd48be8100a4d3df9ebaca605f54f4a79c90fd3a2adca57c8ab17364ab79", size = 55843 },
+    { url = "https://files.pythonhosted.org/packages/6d/7e/5839bf1dff857f986cb99e4b9ed82a1e8d3fbb99b37e3f2086143ed0c74b/pyodide_py-0.27.6-py3-none-any.whl", hash = "sha256:40db910d8ee1ab3b0831799ae9d695cfe82d31eb9065a173ea3265aab0dfa943", size = 57843 },
 ]
 
 [[package]]
@@ -847,7 +848,7 @@ requires-dist = [{ name = "pyodide-http", specifier = ">=0.2.1" }]
 dev = [
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "pandas-stubs", specifier = ">=2.2.3.241009" },
-    { name = "pyodide-py", specifier = ">=0.27.3" },
+    { name = "pyodide-py", specifier = ">=0.27.6" },
     { name = "pyright", specifier = ">=1.1.384" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
@@ -879,7 +880,7 @@ dependencies = [
     { name = "toml" },
     { name = "tornado" },
     { name = "typing-extensions" },
-    { name = "watchdog", marker = "platform_system != 'Darwin'" },
+    { name = "watchdog", marker = "sys_platform != 'darwin'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d5/21/3740871ad79ee35f442f11bafec5010a3ec1916c7c9eb43ef866da641f31/streamlit-1.39.0.tar.gz", hash = "sha256:fef9de7983c4ee65c08e85607d7ffccb56b00482b1041fa62f90e4815d39df3a", size = 8360694 }
 wheels = [

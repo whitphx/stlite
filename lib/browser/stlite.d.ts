@@ -19,7 +19,31 @@ declare interface EmscriptenFileUrl {
     opts?: Record<string, string>;
 }
 
-declare interface FS {
+declare type FSNode = {
+    	timestamp: number;
+    	rdev: number;
+    	contents: Uint8Array;
+    	mode: number;
+};
+
+declare type FSStream = {
+    	tty?: boolean;
+    	seekable?: boolean;
+    	stream_ops: FSStreamOps;
+    	node: FSNode;
+};
+
+declare type FSStreamOps = FSStreamOpsGen<FSStream>;
+
+declare type FSStreamOpsGen<T> = {
+    	open: (a: T) => void;
+    	close: (a: T) => void;
+    	fsync: (a: T) => void;
+    	read: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
+    	write: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
+};
+
+declare interface FSType {
     	unlink: (path: string) => void;
     	mkdirTree: (path: string, mode?: number) => void;
     	chdir: (path: string) => void;
@@ -59,30 +83,6 @@ declare interface FS {
     	findObject(a: string, dontResolveLastLink?: boolean): any;
     	readFile(a: string): Uint8Array;
 }
-
-declare type FSNode = {
-    	timestamp: number;
-    	rdev: number;
-    	contents: Uint8Array;
-    	mode: number;
-};
-
-declare type FSStream = {
-    	tty?: boolean;
-    	seekable?: boolean;
-    	stream_ops: FSStreamOps;
-    	node: FSNode;
-};
-
-declare type FSStreamOps = FSStreamOpsGen<FSStream>;
-
-declare type FSStreamOpsGen<T> = {
-    	open: (a: T) => void;
-    	close: (a: T) => void;
-    	fsync: (a: T) => void;
-    	read: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
-    	write: (a: T, b: Uint8Array, offset: number, length: number, pos: number) => number;
-};
 
 declare type InFuncType = () => null | undefined | string | ArrayBuffer | Uint8Array | number;
 
@@ -811,7 +811,7 @@ declare class PyodideAPI {
      	 * are available as members of ``FS.filesystems``:
      	 * ``IDBFS``, ``NODEFS``, ``PROXYFS``, ``WORKERFS``.
      	 */
-    	static FS: FS;
+    	static FS: FSType;
     	/**
      	 * An alias to the `Emscripten Path API
      	 * <https://github.com/emscripten-core/emscripten/blob/main/src/library_path.js>`_.
@@ -1221,7 +1221,7 @@ declare class PyProxy {
      	 * @param options
      	 * @return The JavaScript object resulting from the conversion.
      	 */
-    	toJs({ depth, pyproxies, create_pyproxies, dict_converter, default_converter, }?: {
+    	toJs({ depth, pyproxies, create_pyproxies, dict_converter, default_converter, eager_converter, }?: {
         		/** How many layers deep to perform the conversion. Defaults to infinite */
         		depth?: number;
         		/**
@@ -1256,6 +1256,15 @@ declare class PyProxy {
          		 * documentation of :meth:`~pyodide.ffi.to_js`.
          		 */
         		default_converter?: (obj: PyProxy, convert: (obj: PyProxy) => any, cacheConversion: (obj: PyProxy, result: any) => void) => any;
+        		/**
+         		 * Optional callback to convert objects which gets called after ``str``,
+         		 * ``int``, ``float``, ``bool``, ``None``, and ``JsProxy`` are converted but
+         		 * *before* any default conversions are applied to standard data structures.
+         		 *
+         		 * Its arguments are the same as `dict_converter`.
+         		 * See the documentation of :meth:`~pyodide.ffi.to_js`.
+         		 */
+        		eager_converter?: (obj: PyProxy, convert: (obj: PyProxy) => any, cacheConversion: (obj: PyProxy, result: any) => void) => any;
         	}): any;
 }
 

@@ -1,4 +1,4 @@
-corepack enable
+sudo corepack enable
 
 make init
 

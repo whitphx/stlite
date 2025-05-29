@@ -10,6 +10,11 @@
 
   "forwardPorts": [3000, 5173],
 
+  "containerEnv": {
+    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0",
+    "NODE_OPTIONS": "--max-old-space-size=6656"
+  },
+
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "/bin/bash ./.devcontainer/postCreateCommand.sh",
 

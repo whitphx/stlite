@@ -1,7 +1,9 @@
 {
-  "name": "Stlite",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "name": "Stlite Dev Container",
   "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
     "ghcr.io/devcontainers/features/python:1": {
       "installTools": true,
       "version": "3.12.1"
@@ -10,14 +12,10 @@
       "packages": "make,protobuf-compiler,libprotobuf-dev"
     }
   },
-
-  "onCreateCommand": [
-    "corepack enable",
-    "curl -LsSf https://astral.sh/uv/install.sh | sh"
-  ],
-
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
 
   "forwardPorts": [3000, 5173],
 

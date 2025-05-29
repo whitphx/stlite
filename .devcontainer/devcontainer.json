@@ -1,13 +1,6 @@
 {
   "name": "Stlite Dev Container",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "22"
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "installTools": true,
-      "version": "3.12.1"
-    },
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
       "packages": "make,protobuf-compiler,libprotobuf-dev"
     }

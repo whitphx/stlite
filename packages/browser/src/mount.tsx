@@ -16,8 +16,10 @@ const wheelBaseUrl =
 const wheelUrls = {
   stliteLib: new URL("wheels/stlite_lib-0.1.0-py3-none-any.whl", wheelBaseUrl)
     .href,
-  streamlit: new URL("wheels/streamlit-1.44.1-cp312-none-any.whl", wheelBaseUrl)
-    .href,
+  streamlit: new URL(
+    `wheels/streamlit-${process.env.STREAMLIT_VERSION || "1.44.1"}-cp312-none-any.whl`,
+    wheelBaseUrl,
+  ).href,
 };
 
 const workerType =

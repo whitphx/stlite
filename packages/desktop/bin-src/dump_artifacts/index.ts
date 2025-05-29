@@ -11,6 +11,7 @@ import {
   version as pyodideVersion,
   type PyodideInterface,
 } from "pyodide";
+import { getStreamlitVersion } from "../../../scripts/get-streamlit-version.js";
 import { PrebuiltPackagesDataReader } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";
@@ -150,9 +151,10 @@ async function installPackages(
     path.join(wheelsDir, "stlite_lib-0.1.0-py3-none-any.whl"),
   );
   requirements.push(stliteLibWheel);
+  const streamlitVersion = getStreamlitVersion();
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.44.1-cp312-none-any.whl"),
+    path.join(wheelsDir, `streamlit-${streamlitVersion}-cp312-none-any.whl`),
   );
   requirements.push(streamlitWheel);
 

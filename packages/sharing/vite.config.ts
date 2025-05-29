@@ -56,7 +56,7 @@ export default defineConfig(({ mode }) => ({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "../kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
+        `../kernel/py/streamlit/lib/dist/streamlit-${process.env.STREAMLIT_VERSION || "1.44.1"}-cp312-none-any.whl`,
       ),
     },
   },

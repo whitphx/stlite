@@ -1,6 +1,7 @@
 {
   "private": true,
   "name": "stlite",
+  "type": "module",
   "workspaces": [
     "packages/*",
     "streamlit/frontend",

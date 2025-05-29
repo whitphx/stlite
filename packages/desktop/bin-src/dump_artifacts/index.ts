@@ -11,7 +11,7 @@ import {
   version as pyodideVersion,
   type PyodideInterface,
 } from "pyodide";
-import { getStreamlitVersion } from "../../../scripts/get-streamlit-version.js";
+import { getStreamlitVersion } from "../../../../scripts/get-streamlit-version.js";
 import { PrebuiltPackagesDataReader } from "./pyodide_packages";
 import { dumpManifest } from "./manifest";
 import { readConfig } from "./config";

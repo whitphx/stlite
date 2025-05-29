@@ -4,6 +4,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
+import { getStreamlitVersion } from "@stlite/devutils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,8 @@ const __dirname = path.dirname(__filename);
 
 const infile = path.resolve(__dirname, "../bin-src/dump_artifacts/index.ts");
 const outfile = path.resolve(__dirname, "../bin/dump_artifacts.js");
+
+const streamlitVersion = getStreamlitVersion();
 
 esbuild
   .build({
@@ -28,6 +31,7 @@ esbuild
     define: {
       "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),
       "process.env.PATH_FROM_SCRIPT_TO_WHEELS": JSON.stringify("../wheels"),
+      "process.env.STREAMLIT_VERSION": JSON.stringify(streamlitVersion),
     },
     outfile,
     logLevel: "info",

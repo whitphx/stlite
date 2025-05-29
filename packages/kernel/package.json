@@ -20,6 +20,7 @@
     "check:prettier": "prettier --check ."
   },
   "devDependencies": {
+    "@stlite/devutils": "workspace:^",
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",

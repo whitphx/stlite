@@ -26,139 +26,144 @@ import dts from "vite-plugin-dts";
 
 import path from "node:path";
 import fs from "node:fs";
+import { getStreamlitVersion } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig(({ mode }) => ({
-  base: "./",
-  plugins: [
-    react({
-      // jsxImportSource: "@emotion/react",
-      // plugins: [["@swc/plugin-emotion", {}]],
-      babel: {
-        plugins: ["@emotion/babel-plugin"],
-      },
-    }),
-    dts({
-      rollupTypes: true,
-      bundledPackages: [
-        "@stlite/kernel",
-        "@stlite/common-react",
-        "@streamlit/lib",
-        "pyodide",
-      ],
-    }),
-    viteTsconfigPaths(),
-    wasm(),
-    topLevelAwait(),
-    mode !== "test" &&
-      viteStaticCopy({
-        // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
-        // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
-        // while we need to disable inlining for the wheel files so that they are served as separate files
-        // and their URLs are to be passed to `micropip.install()`.
-        // Currently disabling inlining is not supported in the library mode:
-        // > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
-        // > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
-        //
-        // and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
-        // So, we don't use the `import()` syntax for the wheel files and rely on Vite's static asset handling.
-        // Instead, we copy the wheel files to the `dist` directory with the 'vite-plugin-static-copy' plugin
-        // and construct the their URLs manually in `mount.tsx`.
-        //
-        // Ref: This workaround is introduced in https://github.com/vitejs/vite/issues/4454#issuecomment-1588713917
-        targets: [
-          {
-            src: path.resolve(
-              __dirname,
-              "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-            ),
-            dest: "wheels",
-          },
-          {
-            src: path.resolve(
-              __dirname,
-              "../kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
-            ),
-            dest: "wheels",
-          },
+export default defineConfig(({ mode }) => {
+  const streamlitVersion = getStreamlitVersion();
+  const stliteLibWheelFileName = `stlite_lib-0.1.0-py3-none-any.whl`;
+  const streamlitWheelFileName = `streamlit-${streamlitVersion}-cp312-none-any.whl`;
+
+  return {
+    base: "./",
+    plugins: [
+      react({
+        // jsxImportSource: "@emotion/react",
+        // plugins: [["@swc/plugin-emotion", {}]],
+        babel: {
+          plugins: ["@emotion/babel-plugin"],
+        },
+      }),
+      dts({
+        rollupTypes: true,
+        bundledPackages: [
+          "@stlite/kernel",
+          "@stlite/common-react",
+          "@streamlit/lib",
+          "pyodide",
         ],
       }),
-    // For development
-    {
-      name: "dev-data-server",
-      configureServer(server) {
-        server.middlewares.use("/dev-files", (req, res, next) => {
-          if (req.method === "GET") {
-            // ファイルパスを組み立てる
-            const filePath = path.resolve(
-              __dirname,
-              "dev-files",
-              req.url?.replace(/^\//, "") || "",
-            );
+      viteTsconfigPaths(),
+      wasm(),
+      topLevelAwait(),
+      mode !== "test" &&
+        viteStaticCopy({
+          // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
+          // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
+          // while we need to disable inlining for the wheel files so that they are served as separate files
+          // and their URLs are to be passed to `micropip.install()`.
+          // Currently disabling inlining is not supported in the library mode:
+          // > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
+          // > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
+          //
+          // and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
+          // So, we don't use the `import()` syntax for the wheel files and rely on Vite's static asset handling.
+          // Instead, we copy the wheel files to the `dist` directory with the 'vite-plugin-static-copy' plugin
+          // and construct the their URLs manually in `mount.tsx`.
+          //
+          // Ref: This workaround is introduced in https://github.com/vitejs/vite/issues/4454#issuecomment-1588713917
+          targets: [
+            {
+              src: path.resolve(
+                __dirname,
+                `../kernel/py/stlite-lib/dist/${stliteLibWheelFileName}`,
+              ),
+              dest: "wheels",
+            },
+            {
+              src: path.resolve(
+                __dirname,
+                `../kernel/py/streamlit/lib/dist/${streamlitWheelFileName}`,
+              ),
+              dest: "wheels",
+            },
+          ],
+        }),
+      // For development
+      {
+        name: "dev-data-server",
+        configureServer(server) {
+          server.middlewares.use("/dev-files", (req, res, next) => {
+            if (req.method === "GET") {
+              // ファイルパスを組み立てる
+              const filePath = path.resolve(
+                __dirname,
+                "dev-files",
+                req.url?.replace(/^\//, "") || "",
+              );
 
-            if (fs.existsSync(filePath)) {
-              fs.createReadStream(filePath).pipe(res);
+              if (fs.existsSync(filePath)) {
+                fs.createReadStream(filePath).pipe(res);
+              } else {
+                res.statusCode = 404;
+                res.end("File not found");
+              }
             } else {
-              res.statusCode = 404;
-              res.end("File not found");
+              next();
             }
-          } else {
-            next();
-          }
-        });
+          });
+        },
+      },
+    ],
+    resolve: {
+      alias: {
+        "@streamlit/lib/src": path.resolve(
+          __dirname,
+          "../../streamlit/frontend/lib/src",
+        ),
+        "@streamlit/lib": path.resolve(
+          __dirname,
+          "../../streamlit/frontend/lib/src",
+        ),
       },
     },
-  ],
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
+    assetsInclude: ["**/*.whl"],
+    optimizeDeps: {
+      exclude: ["parquet-wasm"],
     },
-  },
-  assetsInclude: ["**/*.whl"],
-  optimizeDeps: {
-    exclude: ["parquet-wasm"],
-  },
-  worker: {
-    format: "es",
-  },
-  define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
-    EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
-    EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
-      process.env.EDITOR_APP_ORIGIN_REGEX,
-    ),
-  },
-  server: {
-    open: false,
-    port: 3000,
-    fs: {
-      allow: ["../.."],
+    worker: {
+      format: "es",
     },
-  },
-  build: {
-    outDir: "build",
-    sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
-    lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: "Stlite",
-      fileName: "stlite",
-      formats: ["es"],
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(mode),
+      STREAMLIT_WHEEL_FILE_NAME: JSON.stringify(streamlitWheelFileName),
+      STLITE_LIB_WHEEL_FILE_NAME: JSON.stringify(stliteLibWheelFileName),
     },
-  },
-  test: {
-    environment: "jsdom", // Same as the kernel
-    exclude: ["e2e-tests/**"],
-    typecheck: {
-      enabled: true,
+    server: {
+      open: false,
+      port: 3000,
+      fs: {
+        allow: ["../.."],
+      },
     },
-  },
-}));
+    build: {
+      outDir: "build",
+      sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
+      lib: {
+        entry: path.resolve(__dirname, "src/index.ts"),
+        name: "Stlite",
+        fileName: "stlite",
+        formats: ["es"],
+      },
+    },
+    test: {
+      environment: "jsdom", // Same as the kernel
+      exclude: ["e2e-tests/**"],
+      typecheck: {
+        enabled: true,
+      },
+    },
+  };
+});

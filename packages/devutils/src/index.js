@@ -45,5 +45,12 @@ export function getStreamlitWheelFileName() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  console.log(getStreamlitWheelFileName());
+  const subCommand = process.argv[2];
+  switch (subCommand) {
+    case "get-streamlit-wheel-file-name":
+      console.log(getStreamlitWheelFileName());
+      break;
+    default:
+      console.error(`Unknown subcommand: ${subCommand}`);
+  }
 }

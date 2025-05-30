@@ -32,6 +32,8 @@ BUILD_STATE_DIR := .make
 # - Target: Use sentinel file to track completion
 #     $(common): $(BUILD_STATE_DIR)/common/.built
 
+STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name)
+
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
@@ -44,7 +46,7 @@ desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME)
 streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
@@ -165,11 +167,11 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/MANIFEST.in
 	. $(VENV_PATH)/bin/activate && \
-	PYODIDE_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
+	PYODIDE_BUILD_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
 	PYODIDE_PYTHON_VERSION=`pyodide config get python_version` && \
 	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
-		echo "Python version mismatch: Pyodide $$PYODIDE_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
+		echo "Python version mismatch: Pyodide $$PYODIDE_BUILD_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
 	fi && \
 	TEMP_DIR=$$(mktemp -d) && \
@@ -177,7 +179,7 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
 	mv $$TEMP_DIR/*.pyi ./streamlit/lib/streamlit/proto/ && \
 	rmdir $$TEMP_DIR && \
-	pyodide py-compile --keep streamlit/lib/dist/streamlit-1.44.1-py3-none-any.whl && \
+	pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 

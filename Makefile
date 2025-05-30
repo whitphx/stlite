@@ -32,7 +32,8 @@ BUILD_STATE_DIR := .make
 # - Target: Use sentinel file to track completion
 #     $(common): $(BUILD_STATE_DIR)/common/.built
 
-STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name)
+STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name py)
+STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name cp)
 
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
@@ -46,7 +47,7 @@ desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
-streamlit_wheel := packages/kernel/py/streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME)
+streamlit_wheel := packages/kernel/py/streamlit/lib/dist/$(STREAMLIT_COMPILED_WHEEL_FILE_NAME)
 streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68

@@ -21,26 +21,32 @@ function getStreamlitVersion() {
   return runPythonScript("get_streamlit_version.py");
 }
 
-function getAbiTag() {
-  const pyodidePythonVersion = execSync('uv run pyodide config get python_version', {
-    cwd: __project_root,
-    encoding: "utf8"
-  }).trim();
+function getAbiTag(runtime) {
+  if (runtime === "py") {
+    return "py3-none-any"
+  } else if (runtime === "cp") {
+    const pyodidePythonVersion = execSync('uv run pyodide config get python_version', {
+      cwd: __project_root,
+      encoding: "utf8"
+    }).trim();
 
-  const segments = pyodidePythonVersion.match(/^(?<major>3)\.(?<minor>\d+)\.(?<patch>\d+)$/)
+    const segments = pyodidePythonVersion.match(/^(?<major>3)\.(?<minor>\d+)\.(?<patch>\d+)$/)
 
-  // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L45
-  const interpreter = "cp" + segments.groups["major"] + segments.groups["minor"]
+    // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L45
+    const interpreter = "cp" + segments.groups["major"] + segments.groups["minor"]
 
-  // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L48
-  const abiTag = interpreter + "-none-any";
+    // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L48
+    const abiTag = interpreter + "-none-any";
 
-  return abiTag;
+    return abiTag;
+  } else {
+    throw new Error(`Unknown runtime: ${runtime}`);
+  }
 }
 
-export function getStreamlitWheelFileName() {
+export function getStreamlitWheelFileName(runtime = "cp") {
   const streamlitVersion = getStreamlitVersion();
-  const abiTag = getAbiTag();
+  const abiTag = getAbiTag(runtime);
   return `streamlit-${streamlitVersion}-${abiTag}.whl`;
 }
 
@@ -48,7 +54,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const subCommand = process.argv[2];
   switch (subCommand) {
     case "get-streamlit-wheel-file-name":
-      console.log(getStreamlitWheelFileName());
+      const runtime = process.argv[3] ?? "cp";
+      console.log(getStreamlitWheelFileName(runtime));
       break;
     default:
       console.error(`Unknown subcommand: ${subCommand}`);

@@ -31,9 +31,8 @@ const streamlitWheelFileName =
       throw new Error("This code block is development purpose only.");
     }
     // @ts-expect-error  This code block is development purpose only.
-    const { getStreamlitVersion } = await import("@stlite/devutils");
-    const streamlitVersion = getStreamlitVersion();
-    return `streamlit-${streamlitVersion}-cp312-none-any.whl`;
+    const { getStreamlitWheelFileName } = await import("@stlite/devutils");
+    return getStreamlitWheelFileName();
   })());
 const stliteLibWheelFileName =
   process.env.STLITE_LIB_WHEEL_FILE_NAME ?? `stlite_lib-0.1.0-py3-none-any.whl`;

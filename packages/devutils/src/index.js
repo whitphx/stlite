@@ -7,7 +7,7 @@ const __project_root = path.resolve(__dirname, "../../..")
 
 function runPythonScript(scriptName) {
   try {
-    const result = execSync(`python ${scriptName}`, {
+    const result = execSync(`uv run python ${scriptName}`, {
       cwd: __dirname,
       encoding: "utf8",
     }).trim();
@@ -22,7 +22,7 @@ function getStreamlitVersion() {
 }
 
 function getAbiTag() {
-  const pyodidePythonVersion = execSync('pyodide config get python_version', {
+  const pyodidePythonVersion = execSync('uv run pyodide config get python_version', {
     cwd: __project_root,
     encoding: "utf8"
   }).trim();

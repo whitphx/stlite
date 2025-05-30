@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __project_root = path.resolve(__dirname, "../../..")
 
 function runPythonScript(scriptName) {
   try {
@@ -21,7 +22,20 @@ function getStreamlitVersion() {
 }
 
 function getAbiTag() {
-  return runPythonScript("get_abi_tag.py");
+  const pyodidePythonVersion = execSync('pyodide config get python_version', {
+    cwd: __project_root,
+    encoding: "utf8"
+  }).trim();
+
+  const segments = pyodidePythonVersion.match(/^(?<major>3)\.(?<minor>\d+)\.(?<patch>\d+)$/)
+
+  // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L45
+  const interpreter = "cp" + segments.groups["major"] + segments.groups["minor"]
+
+  // https://github.com/pyodide/pyodide-build/blob/3d95b522fb416a24dc860e23ff88e77cece506d8/pyodide_build/_py_compile.py#L48
+  const abiTag = interpreter + "-none-any";
+
+  return abiTag;
 }
 
 export function getStreamlitWheelFileName() {

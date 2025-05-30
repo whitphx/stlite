@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function getStreamlitVersion() {
   try {
-    const version = execSync("uv run python get_streamlit_version.py", {
+    const version = execSync("python get_streamlit_version.py", {
       cwd: __dirname,
       encoding: "utf8",
     }).trim();

@@ -18,8 +18,6 @@ import { validateRequirements, parseRequirementsTxt } from "@stlite/common";
 import { glob } from "glob";
 import { logger } from "./logger";
 
-console.log(process.env.NODE_ENV);
-
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
 const pathFromScriptToWheels =

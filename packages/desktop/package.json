@@ -39,7 +39,7 @@
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:wheels && yarn build:bin",
     "predump:dev": "yarn build:wheels && mkdir -p ./build",
-    "dump:dev": "tsx ./bin-src/dump_artifacts/index.ts",
+    "dump:dev": "cross-env NODE_ENV=development tsx ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
     "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",

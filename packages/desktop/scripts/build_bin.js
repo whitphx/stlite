@@ -31,7 +31,12 @@ esbuild
     define: {
       "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),
       "process.env.PATH_FROM_SCRIPT_TO_WHEELS": JSON.stringify("../wheels"),
-      "process.env.STREAMLIT_VERSION": JSON.stringify(streamlitVersion),
+      "process.env.STREAMLIT_WHEEL_FILE_NAME": JSON.stringify(
+        `streamlit-${streamlitVersion}-cp312-none-any.whl`,
+      ),
+      "process.env.STLITE_LIB_WHEEL_FILE_NAME": JSON.stringify(
+        `stlite_lib-0.1.0-py3-none-any.whl`,
+      ),
     },
     outfile,
     logLevel: "info",

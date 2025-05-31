@@ -1,3 +1,5 @@
+sudo corepack enable
+
 make init
 
 EDITOR_APP_ORIGIN="https://${CODESPACE_NAME}-3030.app.github.dev"

@@ -8,9 +8,3 @@
 < numpy<2
 ---
 > numpy
-12c12
-< openai
----
-> openai<1.40.0  # `openai==1.40.0` started depending on `jiter`, which is not working in Pyodide
-14a15
-> ssl  # `openai` depends on `ssl`, which is a standard library but not vendored with Pyodide

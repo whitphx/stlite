@@ -4279,6 +4279,7 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common": "workspace:^"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
@@ -4337,6 +4338,7 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common": "workspace:^"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
@@ -4353,7 +4355,7 @@ __metadata:
     glob: "npm:^11.0.1"
     node-html-parser: "npm:^7.0.1"
     prettier: "npm:^3.4.2"
-    pyodide: "npm:0.27.3"
+    pyodide: "npm:0.27.6"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.0.1"
@@ -4374,12 +4376,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stlite/devutils@workspace:^, @stlite/devutils@workspace:packages/devutils":
+  version: 0.0.0-use.local
+  resolution: "@stlite/devutils@workspace:packages/devutils"
+  languageName: unknown
+  linkType: soft
+
 "@stlite/kernel@npm:*, @stlite/kernel@workspace:^, @stlite/kernel@workspace:packages/kernel":
   version: 0.0.0-use.local
   resolution: "@stlite/kernel@workspace:packages/kernel"
   dependencies:
     "@jupyterlab/coreutils": "npm:^6.3.4"
     "@stlite/common": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@streamlit/connection": "workspace:^"
     "@testing-library/react": "npm:^14.1.2"
     "@tinyhttp/content-disposition": "npm:^2.2.2"
@@ -4389,7 +4398,7 @@ __metadata:
     eslint: "npm:^8.33.0"
     path-browserify: "npm:^1.0.1"
     prettier: "npm:^3.4.2"
-    pyodide: "npm:0.27.3"
+    pyodide: "npm:0.27.6"
     react: "npm:^18.2.0"
     typescript: "npm:^5.7.3"
     vitest: "npm:^3.0.9"
@@ -4456,6 +4465,7 @@ __metadata:
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
     "@streamlit/app": "workspace:^"
@@ -20998,12 +21008,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.27.3":
-  version: 0.27.3
-  resolution: "pyodide@npm:0.27.3"
+"pyodide@npm:0.27.6":
+  version: 0.27.6
+  resolution: "pyodide@npm:0.27.6"
   dependencies:
     ws: "npm:^8.5.0"
-  checksum: 10c0/5395b9f18bf4bb3bcdf888d90574b12e675a028d211055e8b77ef7a17bd5bbec91effbdca835ea9f43c98060ea00386d5e41729eb75e8ba4d971970b8c9f2689
+  checksum: 10c0/f4f1e6c2cdc49ae3540a874570821d20f52a8db7b2e54e977f0399766bd93fcf6e320c7a036721fb12ce7be94510cef70f3f9df473e0853a72066541e960d724
   languageName: node
   linkType: hard
 

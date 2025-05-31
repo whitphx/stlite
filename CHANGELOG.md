@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.82.0] - 2025-05-28
+
+### General
+
+#### Changed
+
+- Update Pyodide to 0.27.6, [#1477](https://github.com/whitphx/stlite/pull/1477).
+
+## [0.81.6] - 2025-04-27
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.44.1, [#1451](https://github.com/whitphx/stlite/pull/1451).
+
+### `@stlite/browser`
+
+#### Fixed
+
+- Fix the `exports` field in `package.json`, [#1462](https://github.com/whitphx/stlite/pull/1462).
+
+## [0.81.5]
+
+Skipped.
+
+## [0.81.4]
+
+Skipped.
+
+## [0.81.3]
+
+Skipped.
+
+## [0.81.2]
+
+Skipped.
+
+## [0.81.1]
+
+Skipped.
+
+## [0.81.0]
+
+Skipped.
+
 ## [0.80.5] - 2025-03-24
 
 ### `@stlite/kernel`

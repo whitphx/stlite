@@ -1,20 +1,19 @@
 {
-  "name": "Stlite",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "name": "Stlite Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
   "features": {
-    "ghcr.io/devcontainers/features/python:1": {
-      "installTools": true,
-      "version": "3.12.1"
-    },
+    "ghcr.io/va-h/devcontainers-features/uv:1": {},
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
       "packages": "make,protobuf-compiler,libprotobuf-dev"
     }
   },
 
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
-
   "forwardPorts": [3000, 5173],
+
+  "containerEnv": {
+    "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0",
+    "NODE_OPTIONS": "--max-old-space-size=6656"
+  },
 
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "/bin/bash ./.devcontainer/postCreateCommand.sh",
@@ -25,7 +24,9 @@
       "repositories": {
         // Submodule
         "whitphx/streamlit": {
-          "permissions": "write-all"
+          "permissions": {
+            "contents": "write"
+          }
         }
       }
     }

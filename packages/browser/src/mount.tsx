@@ -9,15 +9,16 @@ import {
   StliteKernelWithToast,
 } from "@stlite/common-react";
 
+declare const STLITE_LIB_WHEEL_FILE_NAME: string;
+declare const STREAMLIT_WHEEL_FILE_NAME: string;
+
 const wheelBaseUrl =
   process.env.NODE_ENV === "production"
     ? import.meta.url
     : window.location.origin;
 const wheelUrls = {
-  stliteLib: new URL("wheels/stlite_lib-0.1.0-py3-none-any.whl", wheelBaseUrl)
-    .href,
-  streamlit: new URL("wheels/streamlit-1.44.1-cp312-none-any.whl", wheelBaseUrl)
-    .href,
+  stliteLib: new URL(`wheels/${STLITE_LIB_WHEEL_FILE_NAME}`, wheelBaseUrl).href,
+  streamlit: new URL(`wheels/${STREAMLIT_WHEEL_FILE_NAME}`, wheelBaseUrl).href,
 };
 
 const workerType =

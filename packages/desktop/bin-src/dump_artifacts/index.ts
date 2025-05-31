@@ -22,6 +22,18 @@ const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";
 const pathFromScriptToWheels =
   process.env.PATH_FROM_SCRIPT_TO_WHEELS ?? "../../wheels";
+const streamlitWheelFileName =
+  process.env.STREAMLIT_WHEEL_FILE_NAME ??
+  (await (async () => {
+    if (process.env.NODE_ENV !== "development") {
+      throw new Error("This code block is development purpose only.");
+    }
+    // @ts-expect-error  This code block is development purpose only.
+    const { getStreamlitWheelFileName } = await import("@stlite/devutils");
+    return getStreamlitWheelFileName();
+  })());
+const stliteLibWheelFileName =
+  process.env.STLITE_LIB_WHEEL_FILE_NAME ?? `stlite_lib-0.1.0-py3-none-any.whl`;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -147,12 +159,12 @@ async function installPackages(
   const wheelsDir = path.join(__dirname, pathFromScriptToWheels);
   const stliteLibWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "stlite_lib-0.1.0-py3-none-any.whl"),
+    path.join(wheelsDir, stliteLibWheelFileName),
   );
   requirements.push(stliteLibWheel);
   const streamlitWheel = await prepareLocalWheel(
     pyodide,
-    path.join(wheelsDir, "streamlit-1.44.1-cp312-none-any.whl"),
+    path.join(wheelsDir, streamlitWheelFileName),
   );
   requirements.push(streamlitWheel);
 

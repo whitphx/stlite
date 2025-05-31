@@ -1,6 +1,6 @@
 {
   "name": "@stlite/desktop",
-  "version": "0.80.5",
+  "version": "0.82.0",
   "type": "module",
   "license": "Apache-2.0",
   "repository": {
@@ -30,7 +30,7 @@
     "test": "vitest",
     "start:electron": "tsc -p electron && cross-env NODE_ENV=development concurrently \"./scripts/build_electron.js --watch\" \"electron .\"",
     "build:electron": "tsc -p electron && cross-env NODE_ENV=production ./scripts/build_electron.js",
-    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.27.3/pyodide-core-0.27.3.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
+    "build:pyodide": "curl -L https://github.com/pyodide/pyodide/releases/download/0.27.6/pyodide-core-0.27.6.tar.bz2 | tar xj -C ./build --files-from=./pyodide-files.txt",
     "build:bin": "tsc -p bin-src && ./scripts/build_bin.js",
     "build:wheels": "./scripts/copy_wheels.js",
     "postbuild:web": "./scripts/post_build_web.js",
@@ -39,7 +39,7 @@
     "build:app": "yarn build:web && yarn build:electron && yarn build:pyodide",
     "build": "yarn build:app && yarn build:wheels && yarn build:bin",
     "predump:dev": "yarn build:wheels && mkdir -p ./build",
-    "dump:dev": "tsx ./bin-src/dump_artifacts/index.ts",
+    "dump:dev": "cross-env NODE_ENV=development tsx ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
     "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
@@ -58,13 +58,14 @@
   "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
     "fs-extra": "^11.2.0",
-    "pyodide": "0.27.3",
+    "pyodide": "0.27.6",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
     "@stlite/common": "workspace:^",
     "@stlite/common-react": "workspace:^",
+    "@stlite/devutils": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",

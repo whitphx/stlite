@@ -3,8 +3,9 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
+import { getStreamlitWheelFileName } from "@stlite/devutils";
 
-export default defineConfig({
+export default defineConfig(() => ({
   plugins: [react()],
   test: {
     environment: "jsdom", // We use jsdom because happy-dom does not work well with iframe.
@@ -19,9 +20,9 @@ export default defineConfig({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "./py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
+        `./py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
       ),
     },
   },
   assetsInclude: ["**/*.whl"],
-});
+}));

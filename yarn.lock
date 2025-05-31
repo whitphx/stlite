@@ -4279,6 +4279,7 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common": "workspace:^"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
@@ -4337,6 +4338,7 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common": "workspace:^"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
@@ -4374,12 +4376,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stlite/devutils@workspace:^, @stlite/devutils@workspace:packages/devutils":
+  version: 0.0.0-use.local
+  resolution: "@stlite/devutils@workspace:packages/devutils"
+  languageName: unknown
+  linkType: soft
+
 "@stlite/kernel@npm:*, @stlite/kernel@workspace:^, @stlite/kernel@workspace:packages/kernel":
   version: 0.0.0-use.local
   resolution: "@stlite/kernel@workspace:packages/kernel"
   dependencies:
     "@jupyterlab/coreutils": "npm:^6.3.4"
     "@stlite/common": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@streamlit/connection": "workspace:^"
     "@testing-library/react": "npm:^14.1.2"
     "@tinyhttp/content-disposition": "npm:^2.2.2"
@@ -4456,6 +4465,7 @@ __metadata:
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
     "@streamlit/app": "workspace:^"

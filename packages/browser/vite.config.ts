@@ -26,6 +26,7 @@ import dts from "vite-plugin-dts";
 
 import path from "node:path";
 import fs from "node:fs";
+import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
@@ -79,7 +80,7 @@ export default defineConfig(({ mode }) => ({
           {
             src: path.resolve(
               __dirname,
-              "../kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
+              `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
             ),
             dest: "wheels",
           },
@@ -132,9 +133,9 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
-    EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
-    EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
-      process.env.EDITOR_APP_ORIGIN_REGEX,
+    STREAMLIT_WHEEL_FILE_NAME: JSON.stringify(getStreamlitWheelFileName()),
+    STLITE_LIB_WHEEL_FILE_NAME: JSON.stringify(
+      "stlite_lib-0.1.0-py3-none-any.whl",
     ),
   },
   server: {

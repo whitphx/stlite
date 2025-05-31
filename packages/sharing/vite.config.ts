@@ -23,6 +23,7 @@ import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 
 import path from "path";
+import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
@@ -56,7 +57,7 @@ export default defineConfig(({ mode }) => ({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        "../kernel/py/streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
+        `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
       ),
     },
   },

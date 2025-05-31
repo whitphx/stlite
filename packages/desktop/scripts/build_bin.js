@@ -4,6 +4,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
+import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +29,12 @@ esbuild
     define: {
       "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),
       "process.env.PATH_FROM_SCRIPT_TO_WHEELS": JSON.stringify("../wheels"),
+      "process.env.STREAMLIT_WHEEL_FILE_NAME": JSON.stringify(
+        getStreamlitWheelFileName(),
+      ),
+      "process.env.STLITE_LIB_WHEEL_FILE_NAME": JSON.stringify(
+        "stlite_lib-0.1.0-py3-none-any.whl",
+      ),
     },
     outfile,
     logLevel: "info",

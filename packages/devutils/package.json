@@ -1,0 +1,12 @@
+{
+  "name": "@stlite/devutils",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "get-streamlit-wheel-file-name": "node src/index.js get-streamlit-wheel-file-name"
+  }
+}

@@ -41,6 +41,7 @@
     "@emotion/babel-plugin": "^11.13.5",
     "@stlite/common": "workspace:^",
     "@stlite/common-react": "workspace:^",
+    "@stlite/devutils": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",

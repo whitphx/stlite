@@ -5,6 +5,7 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,14 +21,13 @@ const stliteKernelDir = path.dirname(
 ); // -> /path/to/kernel/dist
 const stliteKernelPyDir = path.resolve(stliteKernelDir, "../py"); // -> /path/to/kernel/py
 
-// TODO: Set the wheel file names dynamically
 const stliteLibWheelPath = path.join(
   stliteKernelPyDir,
   "stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
 );
 const streamlitWheelPath = path.join(
   stliteKernelPyDir,
-  "streamlit/lib/dist/streamlit-1.44.1-cp312-none-any.whl",
+  `streamlit/lib/dist/${getStreamlitWheelFileName()}`,
 );
 
 // Create the `wheels` directory

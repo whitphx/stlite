@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 PYODIDE_VERSION=$(node -e 'const { version } = require("pyodide"); console.log(version)')
 echo "Downloading Pyodide $PYODIDE_VERSION"

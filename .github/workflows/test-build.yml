@@ -140,7 +140,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
     - run: yarn install
     - name: Lint
       run: |
@@ -274,7 +273,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
     - run: yarn install
 
     - name: Lint
@@ -593,8 +591,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-        cache-dependency-path: packages/browser/e2e-tests/yarn.lock
 
     - name: Set up the e2e-tests environment
       run: |
@@ -648,8 +644,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-        cache-dependency-path: packages/browser/e2e-tests/yarn.lock
 
     - name: Set up the e2e-tests environment
       run: yarn install
@@ -700,7 +694,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
 
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 

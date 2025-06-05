@@ -33,7 +33,6 @@ runs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}
-        cache: 'yarn'
       if: ${{ inputs.node-version-file }}
 
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github

@@ -77,7 +77,7 @@ async function loadPyodideAndPackages(
     // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
     // which avoids the problem of https://github.com/whitphx/stlite/issues/675
     // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    const corePackages = [];
+    const corePackages: string[] = [];
     if (wheels) {
       corePackages.push(wheels.streamlit);
       corePackages.push(wheels.stliteLib);

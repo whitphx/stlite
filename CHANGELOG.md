@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug that installing `jedi` and `lsprotocol` fails when setting up the code completion feature, [#1500](https://github.com/whitphx/stlite/pull/1500).
+
 ## [0.82.0] - 2025-05-28
 
 ### General

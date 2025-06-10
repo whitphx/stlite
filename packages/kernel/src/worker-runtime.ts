@@ -68,24 +68,25 @@ async function loadPyodideAndPackages(
       stderr: console.error,
     });
 
-    if (languageServer) {
-      requirements.unshift("lsprotocol");
-      requirements.unshift("jedi");
-    }
-
+    // NOTE: It's important to install the user-specified requirements
+    // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
+    // which satisfies the following two requirements:
+    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+    const coreRequirements = [];
     if (wheels) {
-      // NOTE: It's important to install the user-specified requirements
-      // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
-      // which satisfies the following two requirements:
-      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-      requirements.unshift(wheels.streamlit);
-      requirements.unshift(wheels.stliteLib);
+      coreRequirements.push(wheels.streamlit);
+      coreRequirements.push(wheels.stliteLib);
     }
+    if (languageServer) {
+      coreRequirements.push("jedi");
+      coreRequirements.push("lsprotocol");
+    }
+    requirements.unshift(...coreRequirements);
 
     console.debug("Loaded Pyodide");
   }

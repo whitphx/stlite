@@ -77,16 +77,16 @@ async function loadPyodideAndPackages(
     // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
     // which avoids the problem of https://github.com/whitphx/stlite/issues/675
     // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    const coreRequirements = [];
+    const corePackages = [];
     if (wheels) {
-      coreRequirements.push(wheels.streamlit);
-      coreRequirements.push(wheels.stliteLib);
+      corePackages.push(wheels.streamlit);
+      corePackages.push(wheels.stliteLib);
     }
     if (languageServer) {
-      coreRequirements.push("jedi");
-      coreRequirements.push("lsprotocol");
+      corePackages.push("jedi");
+      corePackages.push("lsprotocol");
     }
-    requirements.unshift(...coreRequirements);
+    requirements.unshift(...corePackages);
 
     console.debug("Loaded Pyodide");
   }

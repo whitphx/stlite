@@ -22,7 +22,7 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { importLanguageServerLibraries } from "./language-server/language-server-loader";
+import { defineCodeCompletionsFunction } from "./language-server/code_completion";
 import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (
@@ -67,6 +67,11 @@ async function loadPyodideAndPackages(
       stdout: console.log,
       stderr: console.error,
     });
+
+    if (languageServer) {
+      requirements.unshift("lsprotocol");
+      requirements.unshift("jedi");
+    }
 
     if (wheels) {
       // NOTE: It's important to install the user-specified requirements
@@ -343,7 +348,13 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 
   if (languageServer) {
     onProgress("Importing Language Server");
-    await importLanguageServerLibraries(pyodide, micropip);
+    console.debug("Importing Language Server");
+    try {
+      await defineCodeCompletionsFunction(pyodide);
+      console.debug("Imported Language Server");
+    } catch (err) {
+      console.error("Error while importing Language Server", err);
+    }
   }
 
   onProgress("Booting up the Streamlit server.");

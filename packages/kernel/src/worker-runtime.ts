@@ -22,7 +22,7 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { importLanguageServerLibraries } from "./language-server/language-server-loader";
+import { defineCodeCompletionsFunction } from "./language-server/code_completion";
 import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (
@@ -68,19 +68,25 @@ async function loadPyodideAndPackages(
       stderr: console.error,
     });
 
+    // NOTE: It's important to install the user-specified requirements
+    // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
+    // which satisfies the following two requirements:
+    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+    const corePackages: string[] = [];
     if (wheels) {
-      // NOTE: It's important to install the user-specified requirements
-      // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
-      // which satisfies the following two requirements:
-      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-      requirements.unshift(wheels.streamlit);
-      requirements.unshift(wheels.stliteLib);
+      corePackages.push(wheels.streamlit);
+      corePackages.push(wheels.stliteLib);
     }
+    if (languageServer) {
+      corePackages.push("jedi");
+      corePackages.push("lsprotocol");
+    }
+    requirements.unshift(...corePackages);
 
     console.debug("Loaded Pyodide");
   }
@@ -343,7 +349,13 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 
   if (languageServer) {
     onProgress("Importing Language Server");
-    await importLanguageServerLibraries(pyodide, micropip);
+    console.debug("Importing Language Server");
+    try {
+      await defineCodeCompletionsFunction(pyodide);
+      console.debug("Imported Language Server");
+    } catch (err) {
+      console.error("Error while importing Language Server", err);
+    }
   }
 
   onProgress("Booting up the Streamlit server.");

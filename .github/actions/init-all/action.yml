@@ -35,6 +35,21 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
       if: ${{ inputs.node-version-file }}
 
+    # `actions/setup-node`'s cache option doesn't work well with corepack.
+    - name: Get Yarn cache directory path
+      id: yarn-cache-path
+      run: echo "path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+      shell: bash
+      if: ${{ inputs.node-version-file }}
+    - name: Cache Yarn global dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.yarn-cache-path.outputs.path }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+      if: ${{ inputs.node-version-file }}
+
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
     # Actions are running as of 2023.05.03 - doesn't have recent versions
     # of protoc in its package repository.

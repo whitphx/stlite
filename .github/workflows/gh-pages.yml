@@ -35,42 +35,10 @@ jobs:
         submodules: true
         persist-credentials: false
 
-    ## Set up Python
-    - uses: actions/setup-python@v5
+    - uses: ./.github/actions/init-all
       with:
         python-version-file: ".python-version"
-
-    - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        version: ">0.5.17 || <0.5.17"  # 0.5.17 has an issue https://github.com/astral-sh/uv/issues/10487
-        enable-cache: true
-        cache-dependency-glob: |
-          **/requirements*.txt
-          **/uv.lock
-
-    ## Set up Node environment
-    - name: Enable Corepack
-      run: corepack enable
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: .nvmrc
-
-    - run: yarn install
-
-    # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
-    # Actions are running as of 2023.05.03 - doesn't have recent versions
-    # of protoc in its package repository.
-    # Ref: https://github.com/streamlit/streamlit/blob/1.23.1/.github/actions/make_init/action.yml#L47-L56
-    # So we download the precompiled binary from the release page and install it,
-    # following https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
-    - name: Install protoc
-      run: |
-        curl -LO $PB_REL/download/v3.20.3/protoc-3.20.3-linux-x86_64.zip
-        unzip protoc-3.20.3-linux-x86_64.zip -d $HOME/.local
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-      env:
-        PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
+        node-version-file: ".nvmrc"
 
     - name: Set up
       run: make init

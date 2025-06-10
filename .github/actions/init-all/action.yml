@@ -7,6 +7,11 @@ inputs:
   node-version-file:
     description: 'Node version file to setup'
     required: false
+  protoc:
+    description: 'Whether to install protoc'
+    required: false
+    default: true
+
 runs:
   using: "composite"
   steps:
@@ -27,6 +32,10 @@ runs:
       if: ${{ inputs.python-version-file }}
 
     ## Set up Node environment
+    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
+      if: runner.os == 'Windows' && ${{ inputs.node-version-file }}
+      run: npm uninstall -g yarn
+
     - name: Enable Corepack
       run: corepack enable
       shell: bash
@@ -64,6 +73,7 @@ runs:
       env:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
+      if: ${{ inputs.protoc }}
 
     - name: Set up Python packages
       run: make venv

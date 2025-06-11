@@ -48,7 +48,7 @@ describe("CodeCompletionProvider", () => {
       insertText: "test_function",
       detail: "Test function docstring",
       kind: CompletionItemKind.Function,
-      sortText: "aatest_function",
+      sortText: "bbtest_function",
     });
   });
 
@@ -70,8 +70,8 @@ describe("CodeCompletionProvider", () => {
       mockPosition,
     );
 
-    expect(result.suggestions[0].sortText).toBe("aatest_function"); // function
+    expect(result.suggestions[0].sortText).toBe("bbtest_function"); // function
     expect(result.suggestions[1].sortText).toBe("zz_private_var"); // private instance
-    expect(result.suggestions[2].sortText).toBe("bbparam="); // param with =
+    expect(result.suggestions[2].sortText).toBe("aaparam="); // param with =
   });
 });

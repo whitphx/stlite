@@ -176,10 +176,12 @@ st.write("Hello World")`,
               }
               case "code_completion_request": {
                 return kernel.getCodeCompletion(msg.data).then(
-                  (codeCompletion) =>
+                  (codeCompletions) =>
                     ({
                       type: "reply:code_completion_response",
-                      data: codeCompletion,
+                      data: {
+                        items: codeCompletions,
+                      },
                     }) satisfies CodeCompletionResponseMessage,
                 );
               }

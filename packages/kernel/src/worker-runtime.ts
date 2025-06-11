@@ -706,15 +706,15 @@ export function startWorkerEnv(
           });
           break;
         }
-        case "language-server:code_completion": {
+        case "code_completion": {
           if (!jedi) {
             throw new Error("Jedi is not installed");
           }
-          const codeCompletionItems = await getCodeCompletions(msg.data, jedi);
+          const codeCompletions = await getCodeCompletions(msg.data, jedi);
           reply({
-            type: "reply:language-server:code_completion",
+            type: "reply:code_completion",
             data: {
-              items: codeCompletionItems,
+              codeCompletions,
             },
           });
           break;

@@ -1,10 +1,10 @@
 import type { PyProxy } from "pyodide/ffi";
-import { CodeCompletionItem, LanguageServerRequestPayload } from "../types";
+import { CodeCompletion, CodeCompletionRequestPayload } from "../types";
 
 export async function getCodeCompletions(
-  payload: LanguageServerRequestPayload,
+  payload: CodeCompletionRequestPayload,
   jedi: PyProxy,
-): Promise<CodeCompletionItem[]> {
+): Promise<CodeCompletion[]> {
   const { code, line, column } = payload;
 
   const script = jedi.Script(code);
@@ -19,7 +19,7 @@ export async function getCodeCompletions(
     fuzzy: false,
   });
 
-  const completionItems: CodeCompletionItem[] = [];
+  const completionItems: CodeCompletion[] = [];
   for (const jediCompletion of jediCompletions.toJs()) {
     const type = jediCompletion.$type; // PyProxy.type is overridden in Pyodide. We need to access it this way. Ref: https://github.com/pyodide/pyodide/issues/4032
     completionItems.push({

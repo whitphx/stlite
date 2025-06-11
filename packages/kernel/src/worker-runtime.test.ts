@@ -16,6 +16,7 @@ import {
 import { getCodeCompletions } from "./language-server/code_completion";
 import { WorkerInitialData } from "./types";
 import { type PostMessageFn } from "./worker-runtime";
+import { PyProxy } from "pyodide/ffi";
 
 const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
 
@@ -269,7 +270,7 @@ suite(
       const code = `import streamlit as st
 st.te
 `;
-      const autocompleteResults = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 2,
@@ -279,7 +280,7 @@ st.te
       );
 
       // Should give suggestions for the word after the comma
-      expect(autocompleteResults.map((item) => item.name)).toEqual([
+      expect(codeCompletions.map((item) => item.name)).toEqual([
         "text",
         "text_area",
         "text_input",
@@ -290,7 +291,7 @@ st.te
       const code = `import streamlit as st
 st.te
 `;
-      const autocompleteResults = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 2,
@@ -299,7 +300,7 @@ st.te
         jedi,
       );
 
-      const firstItem = autocompleteResults[0];
+      const firstItem = codeCompletions[0];
       expect(firstItem.name).toEqual("altair_chart");
     });
 
@@ -308,7 +309,7 @@ st.te
       const code = `import streamlit as st
 st.
 `;
-      const autocompleteResults = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 2,
@@ -317,7 +318,7 @@ st.
         jedi,
       );
 
-      expect(autocompleteResults.map((item) => item.name).slice(0, 8)).toEqual([
+      expect(codeCompletions.map((item) => item.name).slice(0, 8)).toEqual([
         "altair_chart",
         "area_chart",
         "audio",
@@ -335,7 +336,7 @@ st.
 x = {}
 st.title()
 `;
-      const autocompleteResults = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 3,
@@ -347,7 +348,7 @@ st.title()
       // the code editors use sortText to sort the items in the list
       // before showing them on the UI
       // function arguments have always bigger priority then other suggestions
-      expect(autocompleteResults.map((item) => item.name)).toEqual(
+      expect(codeCompletions.map((item) => item.name)).toEqual(
         expect.arrayContaining(["anchor=", "body=", "help="]),
       );
     });
@@ -363,7 +364,7 @@ def handle(param_1: int, limit: str = "default") -> str:
 
 hand
 `;
-      const autocompleteResults = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 8,
@@ -372,7 +373,7 @@ hand
         jedi,
       );
 
-      expect(autocompleteResults).toEqual([
+      expect(codeCompletions).toEqual([
         expect.objectContaining({
           name: "handle",
           docstring: "This function returns the parameters as a string.",
@@ -399,7 +400,7 @@ math.cos()`;
     test("should handle invalid requests when the code contains string literals", async () => {
       const code = `'''`;
 
-      const suggestions = await getCodeCompletions(
+      const codeCompletions = await getCodeCompletions(
         {
           code: code,
           line: 1,
@@ -411,7 +412,7 @@ math.cos()`;
       // When passing a code that contains string literals directly trough
       // the JS Proxy, they are escaped and we are getting completions back
       // as you would get in any IDE
-      expect(suggestions.length).toBeGreaterThan(1);
+      expect(codeCompletions.length).toBeGreaterThan(1);
     });
   },
 );

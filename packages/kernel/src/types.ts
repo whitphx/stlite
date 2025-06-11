@@ -138,14 +138,14 @@ export interface InMessageSetEnv extends InMessageBase {
   };
 }
 
-export interface LanguageServerRequestPayload {
+export interface CodeCompletionRequestPayload {
   code: string;
   line: number;
   column: number;
 }
 export interface InMessageCodeCompletion extends InMessageBase {
-  type: "language-server:code_completion";
-  data: LanguageServerRequestPayload;
+  type: "code_completion";
+  data: CodeCompletionRequestPayload;
 }
 
 export type InMessage =
@@ -252,16 +252,15 @@ export interface ReplyMessageFileRead extends ReplyMessageBase {
   };
 }
 
-export interface CodeCompletionItem {
+export interface CodeCompletion {
   name: string;
   type: string;
   docstring: string;
 }
-export interface ReplyMessageLanguageServerCodeCompletion
-  extends ReplyMessageBase {
-  type: "reply:language-server:code_completion";
+export interface ReplyMessageCodeCompletion extends ReplyMessageBase {
+  type: "reply:code_completion";
   data: {
-    items: CodeCompletionItem[];
+    codeCompletions: CodeCompletion[];
   };
 }
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
@@ -271,7 +270,7 @@ export interface ReplyMessageGeneralReply extends ReplyMessageBase {
 export type ReplyMessage =
   | ReplyMessageHttpResponse
   | ReplyMessageFileRead
-  | ReplyMessageLanguageServerCodeCompletion
+  | ReplyMessageCodeCompletion
   | ReplyMessageGeneralReply;
 
 /**

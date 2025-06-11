@@ -72,14 +72,14 @@ export class CodeCompletionProvider
     });
 
     if (result && result.items.length) {
-      const lastCharInLine = model.getLineMaxColumn(position.lineNumber);
+      const lastColumnInLine = model.getLineMaxColumn(position.lineNumber);
       const valueInRightOfCursor = model.getValueInRange({
         startLineNumber: position.lineNumber,
         startColumn: position.column,
         endLineNumber: position.lineNumber,
-        endColumn: lastCharInLine,
+        endColumn: lastColumnInLine,
       });
-      const nextFirstNonPythonEntityIndex = valueInRightOfCursor.search(
+      const nextNonEntityCharIndex = valueInRightOfCursor.search(
         nonPythonEntityCharRegex,
       );
 
@@ -95,9 +95,9 @@ export class CodeCompletionProvider
                 startColumn: position.column,
                 endLineNumber: position.lineNumber,
                 endColumn:
-                  nextFirstNonPythonEntityIndex === -1
-                    ? lastCharInLine
-                    : position.column + nextFirstNonPythonEntityIndex,
+                  nextNonEntityCharIndex === -1
+                    ? lastColumnInLine
+                    : position.column + nextNonEntityCharIndex,
               },
               kind: getCompletionItemKind(item.type),
               sortText: getSortText(item.name, item.type),

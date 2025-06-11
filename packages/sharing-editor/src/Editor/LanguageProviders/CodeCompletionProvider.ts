@@ -7,7 +7,7 @@ import type {
 
 const nonPythonEntityCharRegex = /[^a-zA-Z0-9_]/;
 
-export type CodeCompletionCallback = (
+export type CodeCompletionFn = (
   payload: CodeCompletionRequest,
 ) => Promise<CodeCompletionResponse>;
 
@@ -62,10 +62,10 @@ export class CodeCompletionProvider
   // Run this function when the period or open parenthesis is typed
   triggerCharacters = ["(", "[", ".", " ", "@", ",", '"'];
 
-  constructor(private readonly callback: CodeCompletionCallback) {}
+  constructor(private readonly codeCompletionFn: CodeCompletionFn) {}
 
   async provideCompletionItems(model: editor.ITextModel, position: Position) {
-    const result = await this.callback({
+    const result = await this.codeCompletionFn({
       code: model.getValue(),
       line: position.lineNumber,
       column: position.column - 1,

@@ -175,12 +175,12 @@ st.write("Hello World")`,
                 return kernelWithToast.install(msg.data.requirements);
               }
               case "code_completion_request": {
-                return kernel?.getCodeCompletion(msg.data).then(
-                  (result) =>
+                return kernel.getCodeCompletion(msg.data).then(
+                  (codeCompletion) =>
                     ({
                       type: "reply:code_completion_response",
-                      data: result,
-                    }) as CodeCompletionResponseMessage,
+                      data: codeCompletion,
+                    }) satisfies CodeCompletionResponseMessage,
                 );
               }
             }

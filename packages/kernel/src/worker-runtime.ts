@@ -22,7 +22,6 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { defineCodeCompletionsFunction } from "./language-server/code_completion";
 import { getCodeCompletions } from "./language-server/code_completion";
 
 export type PostMessageFn = (
@@ -84,7 +83,6 @@ async function loadPyodideAndPackages(
     }
     if (languageServer) {
       corePackages.push("jedi");
-      corePackages.push("lsprotocol");
     }
     requirements.unshift(...corePackages);
 
@@ -345,17 +343,6 @@ def __setup_script_finished_callback__(callback):
 __setup_script_finished_callback__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
     setupScriptFinishedCallback(scriptFinishedCallback);
     console.debug("Set up the IndexedDB filesystem synchronizer");
-  }
-
-  if (languageServer) {
-    onProgress("Importing Language Server");
-    console.debug("Importing Language Server");
-    try {
-      await defineCodeCompletionsFunction(pyodide);
-      console.debug("Imported Language Server");
-    } catch (err) {
-      console.error("Error while importing Language Server", err);
-    }
   }
 
   onProgress("Booting up the Streamlit server.");
@@ -716,10 +703,15 @@ export function startWorkerEnv(
           break;
         }
         case "language-server:code_completion": {
-          const codeCompletions = await getCodeCompletions(msg.data, pyodide);
+          const codeCompletionItems = await getCodeCompletions(
+            msg.data,
+            pyodide,
+          );
           reply({
             type: "reply:language-server:code_completion",
-            data: codeCompletions,
+            data: {
+              items: codeCompletionItems,
+            },
           });
           break;
         }

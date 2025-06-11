@@ -252,19 +252,17 @@ export interface ReplyMessageFileRead extends ReplyMessageBase {
   };
 }
 
-export interface LanguageServerCodeCompletionResponse {
-  /**
-   * Decided to use unknown to avoid importing whole package and bunch of stuff
-   * from monaco-editor package that we don't need it here at all
-   * https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html
-   *
-   */
-  items: unknown[];
+export interface CodeCompletionItem {
+  name: string;
+  type: string;
+  docstring: string;
 }
 export interface ReplyMessageLanguageServerCodeCompletion
   extends ReplyMessageBase {
   type: "reply:language-server:code_completion";
-  data: LanguageServerCodeCompletionResponse;
+  data: {
+    items: CodeCompletionItem[];
+  };
 }
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";

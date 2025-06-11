@@ -10,7 +10,7 @@ inputs:
   protoc:
     description: 'Whether to install protoc'
     required: false
-    default: true
+    default: 'true'
 
 runs:
   using: "composite"
@@ -74,7 +74,7 @@ runs:
       env:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
-      if: ${{ inputs.protoc }}
+      if: ${{ inputs.protoc == 'true' }}
 
     - name: Set up Python packages
       run: make venv

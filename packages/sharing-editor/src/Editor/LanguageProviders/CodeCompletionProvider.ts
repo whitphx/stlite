@@ -59,7 +59,6 @@ function getSortText(name: string, type: string): string {
 export class CodeCompletionProvider
   implements languages.CompletionItemProvider
 {
-  // Run this function when the period or open parenthesis is typed
   triggerCharacters = ["(", "[", ".", " ", "@", ",", '"'];
 
   constructor(private readonly codeCompletionFn: CodeCompletionFn) {}

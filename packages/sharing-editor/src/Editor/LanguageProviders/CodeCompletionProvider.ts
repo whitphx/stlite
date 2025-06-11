@@ -56,7 +56,7 @@ export class CodeCompletionProvider
   implements languages.CompletionItemProvider
 {
   // Run this function when the period or open parenthesis is typed
-  triggerCharacters = [":", "[", "]", "@", "(", ",", '"', " ", "."];
+  triggerCharacters = ["(", "[", ".", " ", "@", ",", '"'];
 
   constructor(private readonly callback: CodeCompletionCallback) {}
 

@@ -20,7 +20,6 @@ import type {
   WorkerInitialData,
   StreamlitConfig,
   ModuleAutoLoadMessage,
-  CodeCompletionRequestPayload,
   CodeCompletion,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
@@ -347,7 +346,11 @@ export class StliteKernel {
   }
 
   public getCodeCompletion(
-    payload: CodeCompletionRequestPayload,
+    code: string,
+    position: {
+      line: number;
+      column: number;
+    },
   ): Promise<CodeCompletion[]> {
     if (!this._workerInitData.languageServer) {
       throw new Error(
@@ -357,7 +360,11 @@ export class StliteKernel {
     return this._asyncPostMessage(
       {
         type: "code_completion",
-        data: payload,
+        data: {
+          code,
+          line: position.line,
+          column: position.column,
+        },
       },
       "reply:code_completion",
     ).then((data) => data.codeCompletions);

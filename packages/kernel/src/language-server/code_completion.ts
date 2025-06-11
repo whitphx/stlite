@@ -1,11 +1,15 @@
 import type { PyProxy } from "pyodide/ffi";
-import { CodeCompletion, CodeCompletionRequestPayload } from "../types";
+import { CodeCompletion } from "../types";
 
 export async function getCodeCompletions(
-  payload: CodeCompletionRequestPayload,
   jedi: PyProxy,
+  code: string,
+  position: {
+    line: number;
+    column: number;
+  },
 ): Promise<CodeCompletion[]> {
-  const { code, line, column } = payload;
+  const { line, column } = position;
 
   const script = jedi.Script(code);
 

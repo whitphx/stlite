@@ -710,7 +710,11 @@ export function startWorkerEnv(
           if (!jedi) {
             throw new Error("Jedi is not installed");
           }
-          const codeCompletions = await getCodeCompletions(msg.data, jedi);
+          const { code, line, column } = msg.data;
+          const codeCompletions = await getCodeCompletions(jedi, code, {
+            line,
+            column,
+          });
           reply({
             type: "reply:code_completion",
             data: {

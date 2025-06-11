@@ -270,14 +270,10 @@ suite(
       const code = `import streamlit as st
 st.te
 `;
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 5,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 5,
+      });
 
       // Should give suggestions for the word after the comma
       expect(codeCompletions.map((item) => item.name)).toEqual([
@@ -291,14 +287,10 @@ st.te
       const code = `import streamlit as st
 st.te
 `;
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 3,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 3,
+      });
 
       const firstItem = codeCompletions[0];
       expect(firstItem.name).toEqual("altair_chart");
@@ -309,14 +301,10 @@ st.te
       const code = `import streamlit as st
 st.
 `;
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 3,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 3,
+      });
 
       expect(codeCompletions.map((item) => item.name).slice(0, 8)).toEqual([
         "altair_chart",
@@ -336,14 +324,10 @@ st.
 x = {}
 st.title()
 `;
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 3,
-          column: 9,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 3,
+        column: 9,
+      });
 
       // the code editors use sortText to sort the items in the list
       // before showing them on the UI
@@ -364,14 +348,10 @@ def handle(param_1: int, limit: str = "default") -> str:
 
 hand
 `;
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 8,
-          column: 4,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 8,
+        column: 4,
+      });
 
       expect(codeCompletions).toEqual([
         expect.objectContaining({
@@ -385,14 +365,10 @@ hand
       const code = `import math
 math.cos()`;
 
-      const suggestions = await getCodeCompletions(
-        {
-          code: code,
-          line: 3,
-          column: 5,
-        },
-        jedi,
-      );
+      const suggestions = await getCodeCompletions(jedi, code, {
+        line: 3,
+        column: 5,
+      });
 
       expect(suggestions).toEqual([]);
     });
@@ -400,14 +376,10 @@ math.cos()`;
     test("should handle invalid requests when the code contains string literals", async () => {
       const code = `'''`;
 
-      const codeCompletions = await getCodeCompletions(
-        {
-          code: code,
-          line: 1,
-          column: 1,
-        },
-        jedi,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 1,
+        column: 1,
+      });
 
       // When passing a code that contains string literals directly trough
       // the JS Proxy, they are escaped and we are getting completions back

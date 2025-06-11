@@ -495,7 +495,9 @@ export function startWorkerEnv(
     const micropip = v.micropip;
     const { moduleAutoLoad, languageServer } = v.initData;
 
-    const jedi = languageServer ? await pyodide.pyimport("jedi") : null;
+    const jedi = languageServer
+      ? ((await pyodide.pyimport("jedi")) as PyProxy)
+      : null;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
@@ -705,6 +707,9 @@ export function startWorkerEnv(
           break;
         }
         case "language-server:code_completion": {
+          if (!jedi) {
+            throw new Error("Jedi is not installed");
+          }
           const codeCompletionItems = await getCodeCompletions(msg.data, jedi);
           reply({
             type: "reply:language-server:code_completion",

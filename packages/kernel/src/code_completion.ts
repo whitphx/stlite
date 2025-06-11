@@ -25,10 +25,9 @@ export async function getCodeCompletions(
 
   const completionItems: CodeCompletion[] = [];
   for (const jediCompletion of jediCompletions.toJs()) {
-    const type = jediCompletion.$type; // PyProxy.type is overridden in Pyodide. We need to access it this way. Ref: https://github.com/pyodide/pyodide/issues/4032
     completionItems.push({
       name: jediCompletion.name,
-      type,
+      type: jediCompletion.$type, // PyProxy.type is overridden in Pyodide. We need to access it this way. Ref: https://github.com/pyodide/pyodide/issues/4032
       docstring: jediCompletion.docstring.callKwargs({ raw: true }),
     });
     jediCompletion.destroy();

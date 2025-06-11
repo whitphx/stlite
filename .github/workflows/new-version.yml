@@ -27,6 +27,7 @@ jobs:
         with:
           submodules: true
           persist-credentials: false
+          fetch-depth: 0
 
       - uses: ./.github/actions/init-all
         with:

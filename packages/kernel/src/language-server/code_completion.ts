@@ -1,14 +1,12 @@
-import type Pyodide from "pyodide";
 import type { PyProxy } from "pyodide/ffi";
 import { CodeCompletionItem, LanguageServerRequestPayload } from "../types";
 
 export async function getCodeCompletions(
   payload: LanguageServerRequestPayload,
-  pyodide: Pyodide.PyodideInterface,
+  jedi: PyProxy,
 ): Promise<CodeCompletionItem[]> {
   const { code, line, column } = payload;
 
-  const jedi = (await pyodide.pyimport("jedi")) as PyProxy;
   const script = jedi.Script(code);
 
   if (line > script._code_lines.length) {
@@ -31,8 +29,6 @@ export async function getCodeCompletions(
     });
     jediCompletion.destroy();
   }
-
-  jedi.destroy();
 
   return completionItems;
 }

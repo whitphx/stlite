@@ -493,7 +493,9 @@ export function startWorkerEnv(
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
     const micropip = v.micropip;
-    const { moduleAutoLoad } = v.initData;
+    const { moduleAutoLoad, languageServer } = v.initData;
+
+    const jedi = languageServer ? await pyodide.pyimport("jedi") : null;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
@@ -703,10 +705,7 @@ export function startWorkerEnv(
           break;
         }
         case "language-server:code_completion": {
-          const codeCompletionItems = await getCodeCompletions(
-            msg.data,
-            pyodide,
-          );
+          const codeCompletionItems = await getCodeCompletions(msg.data, jedi);
           reply({
             type: "reply:language-server:code_completion",
             data: {

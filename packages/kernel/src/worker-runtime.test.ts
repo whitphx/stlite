@@ -242,7 +242,7 @@ suite(
     timeout: 60 * 1000,
   },
   async () => {
-    let pyodide: PyodideInterface;
+    let jedi: PyProxy;
     beforeAll(async () => {
       vitest.resetModules();
       const filePath = path.resolve(
@@ -251,13 +251,14 @@ suite(
       );
       const content = await fsPromises.readFile(filePath);
 
-      pyodide = await initializeWorkerEnv({
+      const pyodide = await initializeWorkerEnv({
         entrypoint: "chat.input.py",
         files: {
           "chat.input.py": { data: content },
         },
         languageServer: true,
       });
+      jedi = await pyodide.pyimport("jedi");
     });
     afterAll(() => {
       vitest.restoreAllMocks();
@@ -274,7 +275,7 @@ st.te
           line: 2,
           column: 5,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       // Should give suggestions for the word after the comma
@@ -295,7 +296,7 @@ st.te
           line: 2,
           column: 3,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       const firstItem = autocompleteResults[0];
@@ -313,7 +314,7 @@ st.
           line: 2,
           column: 3,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       expect(autocompleteResults.map((item) => item.name).slice(0, 8)).toEqual([
@@ -340,7 +341,7 @@ st.title()
           line: 3,
           column: 9,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       // the code editors use sortText to sort the items in the list
@@ -368,7 +369,7 @@ hand
           line: 8,
           column: 4,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       expect(autocompleteResults).toEqual([
@@ -389,7 +390,7 @@ math.cos()`;
           line: 3,
           column: 5,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       expect(suggestions).toEqual([]);
@@ -404,7 +405,7 @@ math.cos()`;
           line: 1,
           column: 1,
         },
-        pyodide as PyodideInterface,
+        jedi,
       );
 
       // When passing a code that contains string literals directly trough

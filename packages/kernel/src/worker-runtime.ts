@@ -22,7 +22,7 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { getCodeCompletions } from "./language-server/code_completion";
+import { getCodeCompletions } from "./code_completion";
 
 export type PostMessageFn = (
   message: OutMessage,

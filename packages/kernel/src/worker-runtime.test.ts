@@ -13,7 +13,7 @@ import {
   test,
   vitest,
 } from "vitest";
-import { getCodeCompletions } from "./language-server/code_completion";
+import { getCodeCompletions } from "./code_completion";
 import { WorkerInitialData } from "./types";
 import { type PostMessageFn } from "./worker-runtime";
 import { PyProxy } from "pyodide/ffi";

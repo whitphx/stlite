@@ -1,5 +1,5 @@
 import type { PyProxy } from "pyodide/ffi";
-import { CodeCompletion } from "../types";
+import { CodeCompletion } from "./types";
 
 export async function getCodeCompletions(
   jedi: PyProxy,

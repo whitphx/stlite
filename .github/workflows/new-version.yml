@@ -12,6 +12,11 @@ on:
           - patch
           - minor
           - major
+      force-publish:
+        description: 'Force publish even if there are no changes'
+        required: false
+        default: false
+        type: boolean
 
 env:
   node-version-file: ".nvmrc"
@@ -35,6 +40,6 @@ jobs:
           protoc: false
 
       - name: Version packages
-        run: yarn new-version ${{ github.event.inputs.version }} --yes
+        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish && '--force-publish' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -7,6 +7,11 @@ inputs:
   node-version-file:
     description: 'Node version file to setup'
     required: false
+  protoc:
+    description: 'Whether to install protoc'
+    required: false
+    default: true
+
 runs:
   using: "composite"
   steps:
@@ -27,13 +32,32 @@ runs:
       if: ${{ inputs.python-version-file }}
 
     ## Set up Node environment
+    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
+      if: runner.os == 'Windows' && ${{ inputs.node-version-file }}
+      run: npm uninstall -g yarn
+      shell: bash
+
     - name: Enable Corepack
       run: corepack enable
       shell: bash
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ inputs.node-version-file }}
-        cache: 'yarn'
+      if: ${{ inputs.node-version-file }}
+
+    # `actions/setup-node`'s cache option doesn't work well with corepack.
+    - name: Get Yarn cache directory path
+      id: yarn-cache-path
+      run: echo "path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+      shell: bash
+      if: ${{ inputs.node-version-file }}
+    - name: Cache Yarn global dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.yarn-cache-path.outputs.path }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
       if: ${{ inputs.node-version-file }}
 
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
@@ -50,6 +74,7 @@ runs:
       env:
         PB_REL: "https://github.com/protocolbuffers/protobuf/releases"
       shell: bash
+      if: ${{ inputs.protoc }}
 
     - name: Set up Python packages
       run: make venv

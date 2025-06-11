@@ -40,10 +40,14 @@ function getSortText(name: string, type: string): string {
   if (!name || name.startsWith("_")) {
     return `zz${name}`;
   }
-  if (type === "param" && name.endsWith("=")) {
+  // Ref: https://github.com/whitphx/stlite/issues/1452
+  if (type === "function" || type === "instance") {
     return `aa${name}`;
   }
-  return `bb${name}`;
+  if (type === "param" && name.endsWith("=")) {
+    return `bb${name}`;
+  }
+  return `cc${name}`;
 }
 
 /**

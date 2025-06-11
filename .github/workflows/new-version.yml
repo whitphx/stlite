@@ -17,7 +17,7 @@ env:
   node-version-file: ".nvmrc"
 
 jobs:
-  release:
+  new-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write

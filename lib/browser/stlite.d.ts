@@ -1648,8 +1648,8 @@ declare interface StliteKernelOptions {
     sharedWorker?: boolean;
     env?: Record<string, string>;
     /**
-     * Set to true to load the python language server libraries
-     * And enable methods like getCodeCompletions
+     * Set to true to enable the Python code completion feature and make `getCodeCompletion` available.
+     * It loads some additional Python packages to support the feature.
      */
     languageServer?: boolean;
     /**

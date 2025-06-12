@@ -13,9 +13,10 @@ import {
   test,
   vitest,
 } from "vitest";
-import { getCodeCompletions } from "./language-server/code_completion";
+import { getCodeCompletions } from "./code_completion";
 import { WorkerInitialData } from "./types";
 import { type PostMessageFn } from "./worker-runtime";
+import { PyProxy } from "pyodide/ffi";
 
 const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
 
@@ -234,8 +235,15 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
 
 suite(
   "Worker language server test",
+  {
+    // the tests take bit longer to execute
+    // because we are loading pyodide,files..etc.
+    // giving extra buffer time so that the test doesn't timeout
+    // usually it takes way less time, max 7-8s
+    timeout: 60 * 1000,
+  },
   async () => {
-    let pyodide: PyodideInterface;
+    let jedi: PyProxy;
     beforeAll(async () => {
       vitest.resetModules();
       const filePath = path.resolve(
@@ -244,13 +252,14 @@ suite(
       );
       const content = await fsPromises.readFile(filePath);
 
-      pyodide = await initializeWorkerEnv({
+      const pyodide = await initializeWorkerEnv({
         entrypoint: "chat.input.py",
         files: {
           "chat.input.py": { data: content },
         },
         languageServer: true,
       });
+      jedi = await pyodide.pyimport("jedi");
     });
     afterAll(() => {
       vitest.restoreAllMocks();
@@ -261,43 +270,30 @@ suite(
       const code = `import streamlit as st
 st.te
 `;
-      const autocompleteResults = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 5,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 5,
+      });
 
       // Should give suggestions for the word after the comma
-      expect(
-        autocompleteResults.items.map((item: { label: string }) => item.label),
-      ).toEqual(["text", "text_area", "text_input"]);
+      expect(codeCompletions.map((item) => item.name)).toEqual([
+        "text",
+        "text_area",
+        "text_input",
+      ]);
     });
 
-    test("should create correct text_edit range for the words after the cursor", async () => {
-      // Should give suggestions starting with word after the cursor
+    test("should give suggestions starting with word after the cursor even when the cursor is at the middle of the word", async () => {
       const code = `import streamlit as st
 st.te
 `;
-      const autocompleteResults = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 3,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 3,
+      });
 
-      const firstItem = autocompleteResults.items[0];
-      expect(firstItem.label).toEqual("altair_chart");
-      expect(firstItem.textEdit.range.start).toEqual(
-        expect.objectContaining({ line: 2, character: 3 }),
-      );
-      expect(firstItem.textEdit.range.end).toEqual(
-        expect.objectContaining({ line: 2, character: 5 }),
-      );
+      const firstItem = codeCompletions[0];
+      expect(firstItem.name).toEqual("altair_chart");
     });
 
     test("should return suggestions for a module when no prefix after the cursor is present", async () => {
@@ -305,20 +301,12 @@ st.te
       const code = `import streamlit as st
 st.
 `;
-      const autocompleteResults = await getCodeCompletions(
-        {
-          code: code,
-          line: 2,
-          column: 3,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 2,
+        column: 3,
+      });
 
-      expect(
-        autocompleteResults.items
-          .map((item: { label: string }) => item.label)
-          .slice(0, 8),
-      ).toEqual([
+      expect(codeCompletions.map((item) => item.name).slice(0, 8)).toEqual([
         "altair_chart",
         "area_chart",
         "audio",
@@ -330,30 +318,23 @@ st.
       ]);
     });
 
-    test("should return and prioritize function arguments", async () => {
+    test("should return function arguments", async () => {
       // Should give function arguments suggestions
       const code = `import streamlit as st
 x = {}
 st.title()
 `;
-      const autocompleteResults = await getCodeCompletions(
-        {
-          code: code,
-          line: 3,
-          column: 9,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 3,
+        column: 9,
+      });
 
       // the code editors use sortText to sort the items in the list
       // before showing them on the UI
       // function arguments have always bigger priority then other suggestions
-      expect(
-        autocompleteResults.items
-          .map((item: { sortText: string }) => item.sortText)
-          .sort()
-          .slice(0, 3),
-      ).toEqual(["aaanchor=", "aabody=", "aahelp="]);
+      expect(codeCompletions.map((item) => item.name)).toEqual(
+        expect.arrayContaining(["anchor=", "body=", "help="]),
+      );
     });
 
     test("should give suggestions for local functions", async () => {
@@ -367,27 +348,16 @@ def handle(param_1: int, limit: str = "default") -> str:
 
 hand
 `;
-      const autocompleteResults = await getCodeCompletions(
-        {
-          code: code,
-          line: 8,
-          column: 4,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 8,
+        column: 4,
+      });
 
-      expect(
-        autocompleteResults.items.map(
-          (item: { label: string; documentation: string }) => ({
-            label: item.label,
-            documentation: item.documentation.trim(),
-          }),
-        ),
-      ).toEqual([
-        {
-          label: "handle",
-          documentation: "This function returns the parameters as a string.",
-        },
+      expect(codeCompletions).toEqual([
+        expect.objectContaining({
+          name: "handle",
+          docstring: "This function returns the parameters as a string.",
+        }),
       ]);
     });
 
@@ -395,45 +365,26 @@ hand
       const code = `import math
 math.cos()`;
 
-      const suggestions = await getCodeCompletions(
-        {
-          code: code,
-          line: 3,
-          column: 5,
-        },
-        pyodide as PyodideInterface,
-      );
+      const suggestions = await getCodeCompletions(jedi, code, {
+        line: 3,
+        column: 5,
+      });
 
-      expect(suggestions).toEqual(
-        expect.objectContaining({
-          items: [],
-        }),
-      );
+      expect(suggestions).toEqual([]);
     });
 
     test("should handle invalid requests when the code contains string literals", async () => {
       const code = `'''`;
 
-      const suggestions = await getCodeCompletions(
-        {
-          code: code,
-          line: 1,
-          column: 1,
-        },
-        pyodide as PyodideInterface,
-      );
+      const codeCompletions = await getCodeCompletions(jedi, code, {
+        line: 1,
+        column: 1,
+      });
 
       // When passing a code that contains string literals directly trough
       // the JS Proxy, they are escaped and we are getting completions back
       // as you would get in any IDE
-      expect(suggestions.items.length).toBeGreaterThan(1);
+      expect(codeCompletions.length).toBeGreaterThan(1);
     });
-  },
-  {
-    // the tests take bit longer to execute
-    // because we are loading pyodide,files..etc.
-    // giving extra buffer time so that the test doesn't timeout
-    // usually it takes way less time, max 7-8s
-    timeout: 60 * 1000,
   },
 );

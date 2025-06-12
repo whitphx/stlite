@@ -22,8 +22,7 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { defineCodeCompletionsFunction } from "./language-server/code_completion";
-import { getCodeCompletions } from "./language-server/code_completion";
+import { getCodeCompletions } from "./code_completion";
 
 export type PostMessageFn = (
   message: OutMessage,
@@ -84,7 +83,6 @@ async function loadPyodideAndPackages(
     }
     if (languageServer) {
       corePackages.push("jedi");
-      corePackages.push("lsprotocol");
     }
     requirements.unshift(...corePackages);
 
@@ -347,17 +345,6 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
     console.debug("Set up the IndexedDB filesystem synchronizer");
   }
 
-  if (languageServer) {
-    onProgress("Importing Language Server");
-    console.debug("Importing Language Server");
-    try {
-      await defineCodeCompletionsFunction(pyodide);
-      console.debug("Imported Language Server");
-    } catch (err) {
-      console.error("Error while importing Language Server", err);
-    }
-  }
-
   onProgress("Booting up the Streamlit server.");
   // The following Python code is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
@@ -506,7 +493,11 @@ export function startWorkerEnv(
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
     const micropip = v.micropip;
-    const { moduleAutoLoad } = v.initData;
+    const { moduleAutoLoad, languageServer } = v.initData;
+
+    const jedi = languageServer
+      ? ((await pyodide.pyimport("jedi")) as PyProxy)
+      : null;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
@@ -715,11 +706,20 @@ export function startWorkerEnv(
           });
           break;
         }
-        case "language-server:code_completion": {
-          const codeCompletions = await getCodeCompletions(msg.data, pyodide);
+        case "code_completion": {
+          if (!jedi) {
+            throw new Error("Jedi is not installed");
+          }
+          const { code, line, column } = msg.data;
+          const codeCompletions = await getCodeCompletions(jedi, code, {
+            line,
+            column,
+          });
           reply({
-            type: "reply:language-server:code_completion",
-            data: codeCompletions,
+            type: "reply:code_completion",
+            data: {
+              codeCompletions,
+            },
           });
           break;
         }

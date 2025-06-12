@@ -26,7 +26,7 @@ import { useDarkMode } from "../ColorScheme/hooks";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 import {
   CodeCompletionProvider,
-  CodeCompletionCallback,
+  CodeCompletionFn,
 } from "./LanguageProviders/CodeCompletionProvider";
 
 let newFileCount = 1;
@@ -38,7 +38,7 @@ export interface EditorRef {
 }
 export interface EditorProps {
   appData: AppData;
-  pythonCodeCompletionCallback: CodeCompletionCallback;
+  pythonCodeCompletionCallback: CodeCompletionFn;
   onFileWrite: (path: string, value: string | Uint8Array) => void;
   onFileRename: (oldPath: string, newPath: string) => void;
   onFileDelete: (path: string) => void;

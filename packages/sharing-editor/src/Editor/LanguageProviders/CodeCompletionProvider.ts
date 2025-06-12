@@ -1,13 +1,54 @@
 import type { editor, Position, languages } from "monaco-editor";
-import { CompletionItemInsertTextRule, CompletionItemKind } from "./types";
+import { CompletionItemKind } from "./types";
 import type {
   CodeCompletionRequest,
   CodeCompletionResponse,
 } from "@stlite/sharing-common/src/messages";
 
-export type CodeCompletionCallback = (
+const nonPythonEntityCharRegex = /[^a-zA-Z0-9_]/;
+
+export type CodeCompletionFn = (
   payload: CodeCompletionRequest,
 ) => Promise<CodeCompletionResponse>;
+
+function getCompletionItemKind(type: string): CompletionItemKind {
+  switch (type) {
+    case "class":
+      return CompletionItemKind.Class;
+    case "function":
+      return CompletionItemKind.Function;
+    case "instance":
+      return CompletionItemKind.Reference;
+    case "keyword":
+      return CompletionItemKind.Keyword;
+    case "module":
+      return CompletionItemKind.Module;
+    case "param":
+      return CompletionItemKind.Variable;
+    case "path":
+      return CompletionItemKind.File;
+    case "property":
+      return CompletionItemKind.Property;
+    case "statement":
+      return CompletionItemKind.Variable;
+    default:
+      return CompletionItemKind.Text;
+  }
+}
+
+function getSortText(name: string, type: string): string {
+  if (!name || name.startsWith("_")) {
+    return `zz${name}`;
+  }
+  if (type === "param" && name.endsWith("=")) {
+    return `aa${name}`;
+  }
+  // Ref: https://github.com/whitphx/stlite/issues/1452
+  if (type === "function" || type === "instance") {
+    return `bb${name}`;
+  }
+  return `cc${name}`;
+}
 
 /**
  * Provides code completion items for code editor.
@@ -18,84 +59,52 @@ export type CodeCompletionCallback = (
 export class CodeCompletionProvider
   implements languages.CompletionItemProvider
 {
-  // Run this function when the period or open parenthesis is typed
-  triggerCharacters = [":", "[", "]", "@", "(", ",", '"', " ", "."];
+  triggerCharacters = ["(", "[", ".", " ", "@", ",", '"'];
 
-  /**
-   * Here is the list that comes from language-server-protocol (used in vscode)
-   * we need to map it to monaco-editor CompletionItemKind as they differ
-   * https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#completionItemKind
-   */
-  private completionKindMap = {
-    1: CompletionItemKind.Text,
-    2: CompletionItemKind.Method,
-    3: CompletionItemKind.Function,
-    4: CompletionItemKind.Constructor,
-    5: CompletionItemKind.Field,
-    6: CompletionItemKind.Variable,
-    7: CompletionItemKind.Class,
-    8: CompletionItemKind.Interface,
-    9: CompletionItemKind.Module,
-    10: CompletionItemKind.Property,
-    11: CompletionItemKind.Unit,
-    12: CompletionItemKind.Value,
-    13: CompletionItemKind.Enum,
-    14: CompletionItemKind.Keyword,
-    15: CompletionItemKind.Snippet,
-    16: CompletionItemKind.Color,
-    17: CompletionItemKind.File,
-    18: CompletionItemKind.Reference,
-    19: CompletionItemKind.Folder,
-    20: CompletionItemKind.EnumMember,
-    21: CompletionItemKind.Constant,
-    22: CompletionItemKind.Struct,
-    23: CompletionItemKind.Event,
-    24: CompletionItemKind.Operator,
-    25: CompletionItemKind.TypeParameter,
-  } as Record<languages.CompletionItemKind, CompletionItemKind>;
+  constructor(private readonly codeCompletionFn: CodeCompletionFn) {}
 
-  constructor(private readonly callback: CodeCompletionCallback) {}
-
-  async provideCompletionItems(
-    model: editor.ITextModel,
-    position: Position,
-  ): Promise<languages.CompletionList> {
-    const result = (await this.callback({
+  async provideCompletionItems(model: editor.ITextModel, position: Position) {
+    const result = await this.codeCompletionFn({
       code: model.getValue(),
       line: position.lineNumber,
       column: position.column - 1,
-    })) as { items: languages.CompletionItem[] };
+    });
 
     if (result && result.items.length) {
+      const lastColumnInLine = model.getLineMaxColumn(position.lineNumber);
+      const valueInRightOfCursor = model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        startColumn: position.column,
+        endLineNumber: position.lineNumber,
+        endColumn: lastColumnInLine,
+      });
+      const nextNonEntityCharIndex = valueInRightOfCursor.search(
+        nonPythonEntityCharRegex,
+      );
+
       return {
-        suggestions: result.items.map((item) => this.toCompletionItem(item)),
+        suggestions: result.items.map(
+          (item) =>
+            ({
+              label: item.name,
+              insertText: item.name,
+              detail: item.docstring,
+              range: {
+                startLineNumber: position.lineNumber,
+                startColumn: position.column,
+                endLineNumber: position.lineNumber,
+                endColumn:
+                  nextNonEntityCharIndex === -1
+                    ? lastColumnInLine
+                    : position.column + nextNonEntityCharIndex,
+              },
+              kind: getCompletionItemKind(item.type),
+              sortText: getSortText(item.name, item.type),
+            }) satisfies languages.CompletionItem,
+        ),
       };
     }
 
-    return { suggestions: [] } as languages.CompletionList;
+    return { suggestions: [] };
   }
-
-  /**
-   * The StreamLit autocomplete results are using the lsp types from vscode
-   * They are slightly different with Monaco editor, especially for kind
-   */
-  private toCompletionItem = (
-    entry: languages.CompletionItem,
-  ): languages.CompletionItem => {
-    const results = {
-      label: entry.label,
-      insertText: entry.insertText || entry.label,
-      insertTextFormat: CompletionItemInsertTextRule.InsertAsSnippet,
-      sortText: entry.sortText || entry.label,
-      filterText: entry.filterText || entry.label,
-      documentation: entry.documentation,
-      detail: entry.detail,
-      range: undefined, // monaco will handle this for you :)
-      kind:
-        this.completionKindMap[entry.kind] ??
-        (entry.kind as CompletionItemKind),
-    } as unknown as languages.CompletionItem;
-
-    return results;
-  };
 }

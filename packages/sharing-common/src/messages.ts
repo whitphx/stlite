@@ -1,5 +1,4 @@
 import type { PackageData } from "pyodide";
-import type { languages } from "monaco-editor";
 
 /**
  * Messages from editor to app
@@ -73,8 +72,14 @@ export interface GeneralReplyMessage extends ReplyMessageBase {
   type: "reply";
 }
 
+export interface CodeCompletionItem {
+  name: string;
+  type: string;
+  docstring: string;
+}
+
 export interface CodeCompletionResponse {
-  items: languages.CompletionItem[];
+  items: CodeCompletionItem[];
 }
 export interface CodeCompletionResponseMessage extends ReplyMessageBase {
   type: "reply:code_completion_response";

@@ -4600,7 +4600,6 @@ __metadata:
   dependencies:
     chokidar-cli: "npm:^3.0.0"
     eslint: "npm:^8.33.0"
-    monaco-editor: "npm:^0.52.2"
     npm-run-all2: "npm:^7.0.2"
     prettier: "npm:^3.4.2"
     protobufjs: "npm:^7.2.4"

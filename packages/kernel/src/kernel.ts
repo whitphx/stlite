@@ -20,8 +20,7 @@ import type {
   WorkerInitialData,
   StreamlitConfig,
   ModuleAutoLoadMessage,
-  LanguageServerRequestPayload,
-  ReplyMessageLanguageServerCodeCompletion,
+  CodeCompletion,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -141,8 +140,8 @@ export interface StliteKernelOptions {
   env?: Record<string, string>;
 
   /**
-   * Set to true to load the python language server libraries
-   * And enable methods like getCodeCompletions
+   * Set to true to enable the Python code completion feature and make `getCodeCompletion` available.
+   * It loads some additional Python packages to support the feature.
    */
   languageServer?: boolean;
 
@@ -347,8 +346,12 @@ export class StliteKernel {
   }
 
   public getCodeCompletion(
-    payload: LanguageServerRequestPayload,
-  ): Promise<ReplyMessageLanguageServerCodeCompletion["data"]> {
+    code: string,
+    position: {
+      line: number;
+      column: number;
+    },
+  ): Promise<CodeCompletion[]> {
     if (!this._workerInitData.languageServer) {
       throw new Error(
         `Language server not loaded, please set languageServer=true to use this method`,
@@ -356,11 +359,15 @@ export class StliteKernel {
     }
     return this._asyncPostMessage(
       {
-        type: "language-server:code_completion",
-        data: payload,
+        type: "code_completion",
+        data: {
+          code,
+          line: position.line,
+          column: position.column,
+        },
       },
-      "reply:language-server:code_completion",
-    );
+      "reply:code_completion",
+    ).then((data) => data.codeCompletions);
   }
 
   /**

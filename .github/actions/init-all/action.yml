@@ -22,9 +22,8 @@ runs:
       if: ${{ inputs.python-version-file }}
 
     - name: Install the latest version of uv
-      uses: astral-sh/setup-uv@v3
+      uses: astral-sh/setup-uv@v6
       with:
-        version: ">0.5.17 || <0.5.17"  # 0.5.17 has an issue https://github.com/astral-sh/uv/issues/10487
         enable-cache: true
         cache-dependency-glob: |
           **/requirements*.txt

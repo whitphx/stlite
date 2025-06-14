@@ -40,6 +40,6 @@ jobs:
           protoc: false
 
       - name: Version packages
-        run: yarn new-version --yes ${{ github.event.inputs.force-publish && '--force-publish' }} ${{ github.event.inputs.version }}
+        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish && '--force-publish' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

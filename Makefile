@@ -32,8 +32,11 @@ BUILD_STATE_DIR := .make
 # - Target: Use sentinel file to track completion
 #     $(common): $(BUILD_STATE_DIR)/common/.built
 
-STREAMLIT_WHEEL_FILE_NAME := streamlit-1.45.1-py3-none-any.whl  # TODO: set dynamically
-STREAMLIT_COMPILED_WHEEL_FILE_NAME := streamlit-1.45.1-cp312-none-any.whl  # TODO: set dynamically
+$(if $(shell command -v uv),,@echo "WARNING: uv is not installed. Please install it first.")
+$(if $(shell command -v yarn),,@echo "WARNING: yarn is not installed. Please install it first.")
+
+STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name py)
+STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name cp)
 
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built

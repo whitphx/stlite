@@ -39,6 +39,11 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 
+      - name: Configure Git
+        run: |
+            git config --global user.name "${GITHUB_ACTOR}"
+            git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
       - name: Version packages
         run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish && '--force-publish' }}
         env:

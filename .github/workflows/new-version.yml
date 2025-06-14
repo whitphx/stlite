@@ -41,8 +41,8 @@ jobs:
 
       - name: Configure Git
         run: |
-            git config --global user.name "actions-user"
-            git config --global user.email "action@github.com"
+            git config --global user.name 'Yuichiro Tachibana (Tsuchiya)'
+            git config --global user.email 't.yic.yt@gmail.com'
 
       - name: Version packages
         run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish == 'true' && '--force-publish' || '' }} --no-push

@@ -25,7 +25,7 @@ function getAbiTag(runtime) {
   if (runtime === "py") {
     return "py3-none-any"
   } else if (runtime === "cp") {
-    const pyodidePythonVersion = execSync('uv run pyodide config get python_version', {
+    const pyodidePythonVersion = execSync('uvx --from pyodide-cli --with pyodide-build pyodide config get python_version', {
       cwd: __project_root,
       encoding: "utf8"
     }).trim();

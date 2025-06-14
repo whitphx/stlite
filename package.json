@@ -17,7 +17,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "new-version": "lerna version --force-publish",
+    "new-version": "lerna version",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -5,20 +5,12 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __project_root = path.resolve(__dirname, "../../..")
 
-function runPythonScript(scriptName) {
-  try {
-    const result = execSync(`uv run python ${scriptName}`, {
-      cwd: __dirname,
-      encoding: "utf8",
-    }).trim();
-    return result;
-  } catch (error) {
-    throw new Error(`Failed to run Python script ${scriptName}: ${error.message}`);
-  }
-}
-
 function getStreamlitVersion() {
-  return runPythonScript("get_streamlit_version.py");
+  const result = execSync(`uv run python get_streamlit_version.py`, {
+    cwd: __dirname,
+    encoding: "utf8",
+  }).trim();
+  return result;
 }
 
 function getAbiTag(runtime) {

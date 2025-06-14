@@ -45,6 +45,6 @@ jobs:
             git config --global user.email "action@github.com"
 
       - name: Version packages
-        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish == 'true' && '--force-publish' }}
+        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish == 'true' && '--force-publish' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

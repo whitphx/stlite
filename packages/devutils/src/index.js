@@ -17,10 +17,14 @@ function getAbiTag(runtime) {
   if (runtime === "py") {
     return "py3-none-any"
   } else if (runtime === "cp") {
-    const pyodidePythonVersion = execSync('uvx --from pyodide-cli --with pyodide-build pyodide config get python_version', {
-      cwd: __project_root,
-      encoding: "utf8"
-    }).trim();
+    const pyodidePythonVersion = execSync(
+      // Looks like `uvx` doesn't respect the `.python-version` file, so we need to pass the version manually. Ref: https://github.com/astral-sh/uv/issues/8206#issuecomment-2793478986
+      'uvx -p $(cat .python-version) --from pyodide-cli --with pyodide-build pyodide config get python_version',
+      {
+        cwd: __project_root,
+        encoding: "utf8"
+      }
+    ).trim();
 
     const segments = pyodidePythonVersion.match(/^(?<major>3)\.(?<minor>\d+)\.(?<patch>\d+)$/)
 

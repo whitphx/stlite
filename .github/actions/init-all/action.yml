@@ -16,11 +16,6 @@ runs:
   using: "composite"
   steps:
     ## Set up Python
-    - uses: actions/setup-python@v5
-      with:
-        python-version-file: ${{ inputs.python-version-file }}
-      if: ${{ inputs.python-version-file }}
-
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
       with:

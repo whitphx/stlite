@@ -39,13 +39,14 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 
+      - name: Version packages
+        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish == 'true' && '--force-publish' || '' }} --no-push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure Git
         run: |
             git config --global user.name "actions-user"
             git config --global user.email "action@github.com"
             git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-
-      - name: Version packages
-        run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish == 'true' && '--force-publish' || '' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            git push --follow-tags origin HEAD

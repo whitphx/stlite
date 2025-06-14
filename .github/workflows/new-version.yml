@@ -43,3 +43,10 @@ jobs:
         run: yarn new-version ${{ github.event.inputs.version }} --yes ${{ github.event.inputs.force-publish && '--force-publish' }} --no-push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Configure Git
+        run: |
+            git config --global user.name "actions-user"
+            git config --global user.email "action@github.com"
+            git push --follow-tags origin HEAD

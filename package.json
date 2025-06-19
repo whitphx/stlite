@@ -24,7 +24,7 @@
     "@lerna-lite/cli": "^4.3.0",
     "@lerna-lite/version": "^4.3.0",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.2",
+    "lint-staged": "^16.1.2",
     "typescript": "^5.7.3"
   },
   "resolutions": {

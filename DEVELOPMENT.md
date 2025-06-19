@@ -77,23 +77,18 @@ git fetch upstream
 
 Create a new branch for the new version based on the latest version branch.
 
-```
-NEW_STLITE_BRANCH=stlite-1.44.1
-BASE_STLITE_BRANCH=stlite-1.41.0-2
-git checkout -b NEW_STLITE_BRANCH BASE_STLITE_BRANCH
+```shell
+NEW_STLITE_BRANCH=stlite-1.45.1
+CURRENT_STLITE_BRANCH=stlite-1.44.1
+git checkout -b $NEW_STLITE_BRANCH $CURRENT_STLITE_BRANCH
 ```
 
 Rebase the new branch onto the latest Streamlit version tag.
 
-```
-git rebase --onto <new-streamlit-version-tag> <latest-stlite-version-branch>
-```
-
-For example, when the latest Stlite uses the `stlite-1.41.0-2` branch and you want to update it to be based on the version `1.44.1` of Streamlit, you can run the following command:
-
-```
-git checkout -b stlite-1.44.1 stlite-1.41.0-2
-git rebase --onto 1.44.1 1.41.0 stlite-1.44.1
+```shell
+NEW_BASE_STREAMLIT_VERSION_TAG=1.45.1
+CURRENT_BASE_STREAMLIT_VERSION_TAG=1.44.1
+git rebase --onto $NEW_BASE_STREAMLIT_VERSION_TAG $CURRENT_BASE_STREAMLIT_VERSION_TAG $NEW_STLITE_BRANCH
 ```
 
 ## Update the sample apps in Stlite Sharing

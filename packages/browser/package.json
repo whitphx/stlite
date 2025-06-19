@@ -1,6 +1,6 @@
 {
   "name": "@stlite/browser",
-  "version": "0.82.0",
+  "version": "0.83.0",
   "type": "module",
   "description": "Browser Stlite",
   "keywords": [
@@ -55,7 +55,7 @@
     "typescript": "^5.7.3",
     "vite": "^6.2.2",
     "vite-plugin-dts": "^4.5.3",
-    "vite-plugin-static-copy": "^2.2.0",
+    "vite-plugin-static-copy": "^3.0.0",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.4.1",
     "vitest": "^3.0.9",

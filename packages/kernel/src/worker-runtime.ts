@@ -22,8 +22,7 @@ import type {
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
-import { importLanguageServerLibraries } from "./language-server/language-server-loader";
-import { getCodeCompletions } from "./language-server/code_completion";
+import { getCodeCompletions } from "./code_completion";
 
 export type PostMessageFn = (
   message: OutMessage,
@@ -68,19 +67,24 @@ async function loadPyodideAndPackages(
       stderr: console.error,
     });
 
+    // NOTE: It's important to install the user-specified requirements
+    // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
+    // which satisfies the following two requirements:
+    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+    const corePackages: string[] = [];
     if (wheels) {
-      // NOTE: It's important to install the user-specified requirements
-      // and the custom Streamlit and stlite wheels in the same `micropip.install` call below,
-      // which satisfies the following two requirements:
-      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-      requirements.unshift(wheels.streamlit);
-      requirements.unshift(wheels.stliteLib);
+      corePackages.push(wheels.streamlit);
+      corePackages.push(wheels.stliteLib);
     }
+    if (languageServer) {
+      corePackages.push("jedi");
+    }
+    requirements.unshift(...corePackages);
 
     console.debug("Loaded Pyodide");
   }
@@ -341,11 +345,6 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
     console.debug("Set up the IndexedDB filesystem synchronizer");
   }
 
-  if (languageServer) {
-    onProgress("Importing Language Server");
-    await importLanguageServerLibraries(pyodide, micropip);
-  }
-
   onProgress("Booting up the Streamlit server.");
   // The following Python code is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
@@ -494,7 +493,11 @@ export function startWorkerEnv(
     const pyodide = v.pyodide;
     let httpServer = v.httpServer;
     const micropip = v.micropip;
-    const { moduleAutoLoad } = v.initData;
+    const { moduleAutoLoad, languageServer } = v.initData;
+
+    const jedi = languageServer
+      ? ((await pyodide.pyimport("jedi")) as PyProxy)
+      : null;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
@@ -703,11 +706,20 @@ export function startWorkerEnv(
           });
           break;
         }
-        case "language-server:code_completion": {
-          const codeCompletions = await getCodeCompletions(msg.data, pyodide);
+        case "code_completion": {
+          if (!jedi) {
+            throw new Error("Jedi is not installed");
+          }
+          const { code, line, column } = msg.data;
+          const codeCompletions = await getCodeCompletions(jedi, code, {
+            line,
+            column,
+          });
           reply({
-            type: "reply:language-server:code_completion",
-            data: codeCompletions,
+            type: "reply:code_completion",
+            data: {
+              codeCompletions,
+            },
           });
           break;
         }

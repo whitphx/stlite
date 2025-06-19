@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-editor",
-  "version": "0.82.0",
+  "version": "0.83.0",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
@@ -50,7 +50,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.33.0",
     "jsdom": "^20.0.3",
-    "npm-run-all2": "^7.0.2",
+    "npm-run-all2": "^8.0.4",
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",

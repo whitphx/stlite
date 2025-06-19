@@ -32,6 +32,9 @@ BUILD_STATE_DIR := .make
 # - Target: Use sentinel file to track completion
 #     $(common): $(BUILD_STATE_DIR)/common/.built
 
+$(if $(shell command -v uv),,@echo "WARNING: uv is not installed. Please install it first.")
+$(if $(shell command -v yarn),,@echo "WARNING: yarn is not installed. Please install it first.")
+
 STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name py)
 STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils get-streamlit-wheel-file-name cp)
 
@@ -49,6 +52,10 @@ stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/$(STREAMLIT_COMPILED_WHEEL_FILE_NAME)
 streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
+
+# To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
+# See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
+export NODE_OPTIONS := "--max-old-space-size=6144"
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 

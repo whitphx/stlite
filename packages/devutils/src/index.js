@@ -5,30 +5,26 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __project_root = path.resolve(__dirname, "../../..")
 
-function runPythonScript(scriptName) {
-  try {
-    const result = execSync(`uv run python ${scriptName}`, {
-      cwd: __dirname,
-      encoding: "utf8",
-    }).trim();
-    return result;
-  } catch (error) {
-    throw new Error(`Failed to run Python script ${scriptName}: ${error.message}`);
-  }
-}
-
 function getStreamlitVersion() {
-  return runPythonScript("get_streamlit_version.py");
+  const result = execSync(`uv run python get_streamlit_version.py`, {
+    cwd: __dirname,
+    encoding: "utf8",
+  }).trim();
+  return result;
 }
 
 function getAbiTag(runtime) {
   if (runtime === "py") {
     return "py3-none-any"
   } else if (runtime === "cp") {
-    const pyodidePythonVersion = execSync('uv run pyodide config get python_version', {
-      cwd: __project_root,
-      encoding: "utf8"
-    }).trim();
+    const pyodidePythonVersion = execSync(
+      // Looks like `uvx` doesn't respect the `.python-version` file, so we need to pass the version manually. Ref: https://github.com/astral-sh/uv/issues/8206#issuecomment-2793478986
+      'uvx -p $(cat .python-version) --from pyodide-cli --with pyodide-build pyodide config get python_version',
+      {
+        cwd: __project_root,
+        encoding: "utf8"
+      }
+    ).trim();
 
     const segments = pyodidePythonVersion.match(/^(?<major>3)\.(?<minor>\d+)\.(?<patch>\d+)$/)
 

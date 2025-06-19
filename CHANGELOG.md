@@ -1,4 +1,4 @@
-≤# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.83.0] - 2025-06-11
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.45.1, [#1487](https://github.com/whitphx/stlite/pull/1487).
+
+### `@stlite/kernel`
+
+#### Fixed
+
+- Fix a bug that installing `jedi` and `lsprotocol` fails when setting up the code completion feature, [#1500](https://github.com/whitphx/stlite/pull/1500).
 
 ## [0.82.0] - 2025-05-28
 

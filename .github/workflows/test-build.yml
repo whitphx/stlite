@@ -15,11 +15,6 @@ concurrency:
 env:
   python-version-file: ".python-version"
   node-version-file: ".nvmrc"
-  # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
-  # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
-  # The Linux VM has 7GB RAM (https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources),
-  # so we set the max memory size as 6.5 GiB like https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-  NODE_OPTIONS: "--max-old-space-size=6656"
   RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v') }}
 
 permissions: {}
@@ -135,13 +130,11 @@ jobs:
         submodules: true
         persist-credentials: false
 
-    - name: Enable Corepack
-      run: corepack enable
-    - uses: actions/setup-node@v4
+    - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-    - run: yarn install
+        protoc: false
+
     - name: Lint
       run: |
         yarn check:eslint
@@ -269,13 +262,10 @@ jobs:
         submodules: true
         persist-credentials: false
 
-    - name: Enable Corepack
-      run: corepack enable
-    - uses: actions/setup-node@v4
+    - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-    - run: yarn install
+        protoc: false
 
     - name: Lint
       run: |
@@ -356,17 +346,11 @@ jobs:
         submodules: true
         persist-credentials: false
 
-    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
-      if: runner.os == 'Windows'
-      run: npm uninstall -g yarn
-    - name: Enable Corepack
-      run: corepack enable yarn
-    - uses: actions/setup-node@v4
+    - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: yarn
+        protoc: false
 
-    - run: yarn install
     - run: make common
       working-directory: .
     - name: Lint
@@ -593,8 +577,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-        cache-dependency-path: packages/browser/e2e-tests/yarn.lock
 
     - name: Set up the e2e-tests environment
       run: |
@@ -648,8 +630,6 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
-        cache-dependency-path: packages/browser/e2e-tests/yarn.lock
 
     - name: Set up the e2e-tests environment
       run: yarn install
@@ -692,15 +672,9 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
-      if: runner.os == 'Windows'
-      run: npm uninstall -g yarn
-    - name: Enable Corepack
-      run: corepack enable
     - uses: actions/setup-node@v4
       with:
         node-version-file: ${{ env.node-version-file }}
-        cache: 'yarn'
 
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 

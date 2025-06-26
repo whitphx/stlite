@@ -6,3 +6,5 @@ coverage
 *.html
 
 tsconfig.json
+
+/e2e-tests/playwright-report

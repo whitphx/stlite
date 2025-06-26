@@ -45,13 +45,13 @@ Here is a sample HTML file.
     <title>Stlite App</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/style.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.83.0/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
     <script type="module">
-      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.83.0/build/stlite.js";
       mount(
         `
 import streamlit as st
@@ -78,7 +78,7 @@ In this sample,
 > mount(
 >   `
 > import streamlit as st
-> 
+>
 > st.markdown("This is an inline code format: \`code\`")
 > `,
 >   document.getElementById("root"),

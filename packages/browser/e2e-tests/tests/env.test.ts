@@ -1,9 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-utils";
 
 test.describe("Stlite Browser Env Test", () => {
   test("should correctly pass and display environment variables", async ({
-    page,
+    pageWithDeadLinkDetection,
   }) => {
+    const { page, expectNoDeadLinks } = pageWithDeadLinkDetection;
+
     // Navigate to the test page
     await page.goto("/env-test.html");
 
@@ -22,5 +24,8 @@ test.describe("Stlite Browser Env Test", () => {
     await expect(
       page.locator('text="PATH: /usr/local/bin:/usr/bin:/bin"'),
     ).toBeVisible();
+
+    // Check for dead links
+    expectNoDeadLinks();
   });
 });

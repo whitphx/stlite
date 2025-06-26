@@ -58,7 +58,7 @@ export function exportAsHtml(appData: AppData): string {
     <title>Stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.css"
     />
   </head>
   <body>

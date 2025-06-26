@@ -31,7 +31,7 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css`,
+      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.css`,
     );
 
     const scriptTags = dom.body.getElementsByTagName("script");
@@ -211,7 +211,7 @@ describe("exportAsHtml", () => {
     expect(linkTags.length).toBe(1);
     expect(linkTags[0].rel).toEqual("stylesheet");
     expect(linkTags[0].href).toEqual(
-      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/style.css`,
+      `https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.css`,
     );
 
     const scriptTags = dom.body.getElementsByTagName("script");

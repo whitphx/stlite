@@ -1,9 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../test-utils";
 
 test.describe("Custom Element Stlite Browser Test", () => {
   test("should load and render the custom element app correctly", async ({
-    page,
+    pageWithDeadLinkDetection,
   }) => {
+    const { page, expectNoDeadLinks } = pageWithDeadLinkDetection;
+
     // Navigate to the test page
     await page.goto("/test-app-custom-element.html");
 
@@ -35,5 +37,8 @@ test.describe("Custom Element Stlite Browser Test", () => {
     await expect(
       page.locator('text="You selected: Mobile phone"'),
     ).toBeVisible();
+
+    // Check for dead links
+    expectNoDeadLinks();
   });
 });

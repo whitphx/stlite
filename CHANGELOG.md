@@ -39,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `@stlite/browser`
 
+#### Changed
+- [BREAKING] Rename the CSS file name from `style.css` to `stlite.css` due to Vite v6, [#1451](https://github.com/whitphx/stlite/pull/1451).
+
 #### Fixed
 
 - Fix the `exports` field in `package.json`, [#1462](https://github.com/whitphx/stlite/pull/1462).
@@ -255,7 +258,7 @@ Skipped.
     mount(
       `
   import streamlit as st
-  
+
   name = st.text_input('Your name')
   st.write("Hello,", name or "world")
   `,

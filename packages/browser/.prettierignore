@@ -7,4 +7,4 @@ coverage
 
 tsconfig.json
 
-e2e-tests/playwright-report
+/e2e-tests/playwright-report

@@ -2,7 +2,7 @@
   "name": "@stlite/kernel",
   "private": true,
   "description": "",
-  "version": "0.83.0",
+  "version": "0.83.1",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.js",

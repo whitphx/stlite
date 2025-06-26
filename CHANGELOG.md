@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.83.1] - 2025-06-26
+
+### General
+
+#### Fixed
+
+- Fix the CSS file name in the README, [#1512](https://github.com/whitphx/stlite/pull/1512).
+
 ## [0.83.0] - 2025-06-11
 
 ### General

@@ -357,9 +357,11 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   const sharedWorkerMode = appId != null;
 
   // The code below is based on streamlit.web.cli.main_run().
-  const { load_config_options, prepare } = pyodide.pyimport("stlite_lib.bootstrap");
-  load_config_options(streamlitFlagOptions, sharedWorkerMode)
-  prepare(canonicalEntrypoint, [])
+  const { load_config_options, prepare } = pyodide.pyimport(
+    "stlite_lib.bootstrap",
+  );
+  load_config_options(streamlitFlagOptions, sharedWorkerMode);
+  prepare(canonicalEntrypoint, []);
   console.debug("Set up the Streamlit configuration");
 
   console.debug("Booting up the Streamlit server");

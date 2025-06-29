@@ -360,7 +360,7 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   const { load_config_options, prepare } = pyodide.pyimport(
     "stlite_lib.bootstrap",
   );
-  load_config_options(streamlitFlagOptions, sharedWorkerMode);
+  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
   prepare(canonicalEntrypoint, []);
   console.debug("Set up the Streamlit configuration");
 

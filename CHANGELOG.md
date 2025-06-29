@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### `@stlite/kernel`
+
+#### Fixed
+
+- Internal refactoring on the worker runtime, [#1518](https://github.com/whitphx/stlite/pull/1518).
+
 ## [0.83.1] - 2025-06-26
 
 ### General

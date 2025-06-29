@@ -346,7 +346,6 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   }
 
   onProgress("Booting up the Streamlit server.");
-  // The following Python code is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
   const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
   const streamlitFlagOptions = {
@@ -357,6 +356,7 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   };
   const sharedWorkerMode = appId != null;
 
+  // The code below is based on streamlit.web.cli.main_run().
   const { load_config_options, prepare } = pyodide.pyimport("stlite_lib.bootstrap");
   load_config_options(streamlitFlagOptions, sharedWorkerMode)
   prepare(canonicalEntrypoint, [])

@@ -346,17 +346,7 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   }
 
   onProgress("Booting up the Streamlit server.");
-  // The following Python code is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
-  const bootstrap = await pyodide.runPython(`
-def __bootstrap__(main_script_path, flag_options, shared_worker_mode):
-    from stlite_lib.bootstrap import load_config_options, prepare
-
-    load_config_options(flag_options, shared_worker_mode)
-
-    prepare(main_script_path, [])
-
-__bootstrap__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
   const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
   const streamlitFlagOptions = {
     // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
@@ -365,11 +355,13 @@ __bootstrap__`); // This last line evaluates to the function so it is returned f
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };
   const sharedWorkerMode = appId != null;
-  bootstrap(
-    canonicalEntrypoint,
-    pyodide.toPy(streamlitFlagOptions),
-    sharedWorkerMode,
+
+  // The code below is based on streamlit.web.cli.main_run().
+  const { load_config_options, prepare } = pyodide.pyimport(
+    "stlite_lib.bootstrap",
   );
+  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
+  prepare(canonicalEntrypoint, []);
   console.debug("Set up the Streamlit configuration");
 
   console.debug("Booting up the Streamlit server");

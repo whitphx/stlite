@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Preserve the original sys.path so that the result of each call of _fix_sys_path() is not affected by the previous calls when rebooting the server.
 orig_sys_path = sys.path.copy()
 
+
 def _fix_sys_path(main_script_path: str) -> None:
     """Add the script's folder to the sys path.
 

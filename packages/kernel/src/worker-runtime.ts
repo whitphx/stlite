@@ -39,7 +39,6 @@ async function loadPyodideAndPackages(
   onProgress: (message: string) => void,
 ) {
   const {
-    entrypoint,
     files,
     archives,
     requirements: unvalidatedRequirements,
@@ -365,7 +364,11 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   };
 }
 
-async function bootstrapServer(pyodide: PyodideInterface, appId: string | undefined, entrypoint: string) {
+async function bootstrapServer(
+  pyodide: PyodideInterface,
+  appId: string | undefined,
+  entrypoint: string,
+) {
   const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
   // The code below is based on streamlit.web.cli.main_run().
@@ -469,7 +472,11 @@ export function startWorkerEnv(
       pyodideReadyPromise
         .then(({ pyodide }) => {
           onProgress("Booting up the Streamlit server.");
-          serverReadyPromise = bootstrapServer(pyodide, appId, initData.entrypoint);
+          serverReadyPromise = bootstrapServer(
+            pyodide,
+            appId,
+            initData.entrypoint,
+          );
           return serverReadyPromise;
         })
         .then(() => {

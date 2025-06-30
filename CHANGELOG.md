@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Fixed
 
 - Internal refactoring on the worker runtime, [#1518](https://github.com/whitphx/stlite/pull/1518).
+- Fix the `reboot` method, [#1519](https://github.com/whitphx/stlite/pull/1519).
+
+### `@stlite/sharing`
+
+#### Fixed
+
+- Fix the "change entrypoint" operation by fixing the kernel `reboot` method, [#1519](https://github.com/whitphx/stlite/pull/1519).
 
 ## [0.83.1] - 2025-06-26
 

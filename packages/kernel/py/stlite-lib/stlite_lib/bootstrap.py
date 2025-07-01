@@ -25,6 +25,9 @@ from streamlit import config
 
 logger = logging.getLogger(__name__)
 
+# Preserve the original sys.path so that the result of each call of _fix_sys_path() is not affected by the previous calls when rebooting the server.
+orig_sys_path = sys.path.copy()
+
 
 def _fix_sys_path(main_script_path: str) -> None:
     """Add the script's folder to the sys path.
@@ -32,6 +35,7 @@ def _fix_sys_path(main_script_path: str) -> None:
     Python normally does this automatically, but since we exec the script
     ourselves we need to do it instead.
     """
+    sys.path = orig_sys_path.copy()
     sys.path.insert(0, os.path.dirname(main_script_path))
 
 

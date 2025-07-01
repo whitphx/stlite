@@ -39,7 +39,6 @@ async function loadPyodideAndPackages(
   onProgress: (message: string) => void,
 ) {
   const {
-    entrypoint,
     files,
     archives,
     requirements: unvalidatedRequirements,
@@ -345,9 +344,9 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
     console.debug("Set up the IndexedDB filesystem synchronizer");
   }
 
-  onProgress("Booting up the Streamlit server.");
+  // The code below is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
-  const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
+  const { load_config_options } = pyodide.pyimport("stlite_lib.bootstrap");
   const streamlitFlagOptions = {
     // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
     "browser.gatherUsageStats": false,
@@ -355,14 +354,28 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
     "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
   };
   const sharedWorkerMode = appId != null;
+  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
+  console.debug("Set up the Streamlit configuration");
+
+  return {
+    pyodide,
+    micropip,
+    initData,
+  };
+}
+
+async function bootstrapServer(
+  pyodide: PyodideInterface,
+  appId: string | undefined,
+  entrypoint: string,
+) {
+  const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
   // The code below is based on streamlit.web.cli.main_run().
-  const { load_config_options, prepare } = pyodide.pyimport(
-    "stlite_lib.bootstrap",
-  );
-  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
+  console.debug("Preparing the Streamlit environment");
+  const { prepare } = pyodide.pyimport("stlite_lib.bootstrap");
   prepare(canonicalEntrypoint, []);
-  console.debug("Set up the Streamlit configuration");
+  console.debug("Prepared the Streamlit environment");
 
   console.debug("Booting up the Streamlit server");
   const Server = pyodide.pyimport("stlite_lib.server.Server");
@@ -373,12 +386,7 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   await httpServer.start();
   console.debug("Booted up the Streamlit server");
 
-  return {
-    pyodide,
-    httpServer,
-    micropip,
-    initData,
-  };
+  return httpServer;
 }
 
 export function startWorkerEnv(
@@ -434,6 +442,7 @@ export function startWorkerEnv(
 
   let pyodideReadyPromise: ReturnType<typeof loadPyodideAndPackages> | null =
     null;
+  let serverReadyPromise: ReturnType<typeof bootstrapServer> | null = null;
 
   /**
    * Process a message sent to the worker.
@@ -461,6 +470,15 @@ export function startWorkerEnv(
       );
 
       pyodideReadyPromise
+        .then(({ pyodide }) => {
+          onProgress("Booting up the Streamlit server.");
+          serverReadyPromise = bootstrapServer(
+            pyodide,
+            appId,
+            initData.entrypoint,
+          );
+          return serverReadyPromise;
+        })
         .then(() => {
           postMessage({
             type: "event:loaded",
@@ -481,11 +499,15 @@ export function startWorkerEnv(
     if (!pyodideReadyPromise) {
       throw new Error("Pyodide initialization has not been started yet.");
     }
+    if (!serverReadyPromise) {
+      throw new Error("Streamlit server has not been started yet.");
+    }
     const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
-    let httpServer = v.httpServer;
     const micropip = v.micropip;
     const { moduleAutoLoad, languageServer } = v.initData;
+
+    const httpServer = await serverReadyPromise;
 
     const jedi = languageServer
       ? ((await pyodide.pyimport("jedi")) as PyProxy)
@@ -506,10 +528,8 @@ export function startWorkerEnv(
           httpServer.stop();
 
           console.debug("Booting up the Streamlit server");
-          const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
-          const Server = pyodide.pyimport("stlite_lib.server.Server");
-          httpServer = Server(canonicalEntrypoint);
-          httpServer.start();
+          serverReadyPromise = bootstrapServer(pyodide, appId, entrypoint);
+          await serverReadyPromise;
           console.debug("Booted up the Streamlit server");
 
           reply({

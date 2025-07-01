@@ -357,9 +357,19 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
   console.debug("Set up the Streamlit configuration");
 
+  // Load Jedi if the language server is enabled.
+  let jedi: PyProxy | undefined;
+  if (languageServer) {
+    onProgress("Loading auto-completion engine.");
+    console.debug("Loading Jedi");
+    jedi = (await pyodide.pyimport("jedi")) as PyProxy;
+    console.debug("Loaded Jedi");
+  }
+
   return {
     pyodide,
     micropip,
+    jedi,
     initData,
   };
 }
@@ -505,13 +515,10 @@ export function startWorkerEnv(
     const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
     const micropip = v.micropip;
-    const { moduleAutoLoad, languageServer } = v.initData;
+    const jedi = v.jedi;
+    const { moduleAutoLoad } = v.initData;
 
     const httpServer = await serverReadyPromise;
-
-    const jedi = languageServer
-      ? ((await pyodide.pyimport("jedi")) as PyProxy)
-      : null;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {

@@ -362,8 +362,13 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   if (languageServer) {
     onProgress("Loading auto-completion engine.");
     console.debug("Loading Jedi");
-    jedi = (await pyodide.pyimport("jedi")) as PyProxy;
-    console.debug("Loaded Jedi");
+    try {
+      jedi = (await pyodide.pyimport("jedi")) as PyProxy;
+      console.debug("Loaded Jedi");
+    } catch (error) {
+      console.error("Failed to load Jedi:", error);
+      jedi = undefined;
+    }
   }
 
   return {

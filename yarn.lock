@@ -19080,11 +19080,11 @@ __metadata:
   linkType: hard
 
 "mime@npm:^4.0.1":
-  version: 4.0.6
-  resolution: "mime@npm:4.0.6"
+  version: 4.0.7
+  resolution: "mime@npm:4.0.7"
   bin:
     mime: bin/cli.js
-  checksum: 10c0/1797b1c6da4cdb817fc18a4b8d99d6034885946f3d3680c2e4eb18bf19d4a64b42559f1eae0d1607e216f584311f9f806b5bfa1426baebeae4807bec5e14188a
+  checksum: 10c0/2fd22ee2012a3f1dcac7dd06b7dc314dd677ebcefb14355b7c9453f0092af6eabbe9d754d9849d2a1f346ddd53d716a851379be05386f7a6ccb40af4bd61f32b
   languageName: node
   linkType: hard
 

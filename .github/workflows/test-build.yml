@@ -368,6 +368,8 @@ jobs:
 
     permissions:
       pull-requests: write
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -396,6 +398,11 @@ jobs:
       with:
         path: packages/browser/package.tgz
         name: stlite-browser
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: packages/browser/package.tgz
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/set-package-stats
@@ -524,6 +531,8 @@ jobs:
 
     permissions:
       pull-requests: write
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -549,6 +558,11 @@ jobs:
       with:
         path: packages/desktop/package.tgz
         name: stlite-desktop
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: packages/desktop/package.tgz
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/set-package-stats

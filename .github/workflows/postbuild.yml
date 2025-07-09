@@ -160,6 +160,7 @@ jobs:
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -185,6 +186,25 @@ jobs:
           exit 1
         fi
 
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for browser package..."
+        gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+        
+        echo "Verifying attestation matches expected build context..."
+        gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json | jq -r '.verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' | \
+          grep -q "refs/heads/\|refs/tags/" || {
+            echo "Error: Attestation does not match expected workflow context" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -203,6 +223,7 @@ jobs:
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -227,6 +248,25 @@ jobs:
           echo "Error: Expected package.tgz not found in artifact." >&2
           exit 1
         fi
+
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for desktop package..."
+        gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+        
+        echo "Verifying attestation matches expected build context..."
+        gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json | jq -r '.verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' | \
+          grep -q "refs/heads/\|refs/tags/" || {
+            echo "Error: Attestation does not match expected workflow context" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --provenance --access public
       env:

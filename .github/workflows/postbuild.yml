@@ -71,6 +71,7 @@ jobs:
 
     permissions:
       contents: read
+      statuses: write
 
     runs-on: ubuntu-latest
 
@@ -123,6 +124,7 @@ jobs:
 
     permissions:
       contents: read
+      statuses: write
 
     runs-on: ubuntu-latest
 
@@ -194,6 +196,7 @@ jobs:
 
     permissions:
       contents: read
+      statuses: write
 
     runs-on: ${{ matrix.os }}
 

@@ -25,6 +25,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   workerType: StliteKernelOptions["workerType"];
   sharedWorker: StliteKernelOptions["sharedWorker"];
   env: StliteKernelOptions["env"];
+  languageServer: StliteKernelOptions["languageServer"];
 }>;
 
 function canonicalizeFiles(
@@ -139,6 +140,7 @@ export function parseMountOptions(options: MountOptions): {
       workerType: options.workerType,
       sharedWorker: options.sharedWorker,
       env: options.env,
+      languageServer: options.languageServer,
     },
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,

@@ -72,5 +72,11 @@ export function mount(
     readFile: (path: string, opts?: Record<string, unknown>) => {
       return kernelWithToast.readFile(path, opts);
     },
+    getCodeCompletion: (
+      code: string,
+      position: { line: number; column: number },
+    ) => {
+      return kernel.getCodeCompletion(code, position);
+    },
   };
 }

@@ -270,11 +270,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: |
-            pages deploy \
-              ${{ runner.temp }}/artifacts/sharing \
-              --project-name=stlite-sharing \
-              --branch=${{ needs.get-build-info.outputs.branch }} \
-              --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+            pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:
@@ -306,12 +302,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: |
-            pages deploy \
-              ${{ runner.temp }}/artifacts/sharing-editor \
-              --project-name=stlite-sharing-editor \
-              --branch=${{ needs.get-build-info.outputs.branch }} \
-              --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+          command: pages deploy ${{ runner.temp }}/artifacts/sharing-editor --project-name=stlite-sharing-editor --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-cloudflare-pages-deployments:

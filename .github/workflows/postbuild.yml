@@ -202,12 +202,18 @@ jobs:
           --predicate-type https://slsa.dev/provenance/v1
 
         echo "Verifying attestation matches expected build context..."
-        gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1 \
-          --format json | jq -r '.verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' | \
-          grep -q "refs/heads/\|refs/tags/" || {
-            echo "Error: Attestation does not match expected workflow context" >&2
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep -x "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
             exit 1
           }
       env:
@@ -273,13 +279,18 @@ jobs:
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1
 
-        echo "Verifying attestation matches expected build context..."
-        gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1 \
-          --format json | jq -r '.verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' | \
-          grep -q "refs/heads/\|refs/tags/" || {
-            echo "Error: Attestation does not match expected workflow context" >&2
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep -x "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
             exit 1
           }
       env:

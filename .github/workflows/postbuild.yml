@@ -62,6 +62,8 @@ jobs:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
 
   e2e-browser:
+    needs: get-build-info
+
     permissions:
       contents: read
 
@@ -99,7 +101,16 @@ jobs:
       env:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
 
+    - name: Update commit status
+      run: |
+        gh api repos/whitphx/stlite/statuses/${{ needs.get-build-info.outputs.trigger-sha }} \
+          -X POST \
+          -f state=success \
+          -f context=${{ github.job }}
+
   e2e-browser-browserstack:
+    needs: get-build-info
+
     permissions:
       contents: read
 
@@ -152,7 +163,16 @@ jobs:
       with:
         local-testing: stop
 
+    - name: Update commit status
+      run: |
+        gh api repos/whitphx/stlite/statuses/${{ needs.get-build-info.outputs.trigger-sha }} \
+          -X POST \
+          -f state=success \
+          -f context=${{ github.job }}
+
   e2e-desktop:
+    needs: get-build-info
+
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -192,6 +212,13 @@ jobs:
     - name: Check if electron-builder works
       run: npm run app:dir
       working-directory: ${{ runner.temp }}/sample_app
+
+    - name: Update commit status
+      run: |
+        gh api repos/whitphx/stlite/statuses/${{ needs.get-build-info.outputs.trigger-sha }} \
+          -X POST \
+          -f state=success \
+          -f context=${{ github.job }}
 
   deploy-sharing:
     needs: get-build-info

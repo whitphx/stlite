@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read  # Necessary to download artifacts from a different run
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
       tag: ${{ steps.build-info.outputs.tag }}
@@ -37,6 +36,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
       - name: Read build info
         id: build-info
@@ -76,7 +76,6 @@ jobs:
 
     permissions:
       contents: read
-      actions: read  # Necessary to download artifacts from a different run
 
     runs-on: ubuntu-latest
 
@@ -103,6 +102,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -125,7 +125,6 @@ jobs:
 
     permissions:
       contents: read
-      actions: read  # Necessary to download artifacts from a different run
 
     runs-on: ubuntu-latest
 
@@ -162,6 +161,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -193,7 +193,6 @@ jobs:
 
     permissions:
       contents: read
-      actions: read  # Necessary to download artifacts from a different run
 
     runs-on: ${{ matrix.os }}
 
@@ -214,6 +213,7 @@ jobs:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install the tarball
       run: |
@@ -243,7 +243,6 @@ jobs:
     permissions:
       contents: read
       deployments: write
-      actions: read  # Necessary to download artifacts from a different run
     name: Deploy @stlite/sharing to Cloudflare Pages
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
@@ -256,6 +255,7 @@ jobs:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
@@ -278,7 +278,6 @@ jobs:
     permissions:
       contents: read
       deployments: write
-      actions: read  # Necessary to download artifacts from a different run
     name: Deploy @stlite/sharing-editor to Cloudflare Pages
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
@@ -289,6 +288,7 @@ jobs:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Inject SHARING_APP_URL
         run: |
@@ -346,7 +346,6 @@ jobs:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
       attestations: read  # Necessary for verifying artifact attestations
-      actions: read  # Necessary to download artifacts from a different run
 
     runs-on: ubuntu-latest
 
@@ -363,6 +362,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/stlite-browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Verify artifact contents
       run: |
@@ -424,7 +424,6 @@ jobs:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
       attestations: read  # Necessary for verifying artifact attestations
-      actions: read  # Necessary to download artifacts from a different run
 
     runs-on: ubuntu-latest
 
@@ -441,6 +440,7 @@ jobs:
         name: stlite-desktop
         path: ${{ runner.temp }}/stlite-desktop
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Verify artifact contents
       run: |

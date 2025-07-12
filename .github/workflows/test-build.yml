@@ -394,15 +394,16 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
+      id: upload
       uses: actions/upload-artifact@v4
       with:
         path: packages/browser/package.tgz
         name: stlite-browser
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+    - uses: actions/attest-build-provenance@v2
       with:
-        subject-path: packages/browser/package.tgz
+        subject-name: stlite-browser
+        subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/set-package-stats
@@ -555,14 +556,15 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
+      id: upload
       with:
         path: packages/desktop/package.tgz
         name: stlite-desktop
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+    - uses: actions/attest-build-provenance@v2
       with:
-        subject-path: packages/desktop/package.tgz
+        subject-name: stlite-desktop
+        subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/set-package-stats

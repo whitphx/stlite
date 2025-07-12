@@ -238,7 +238,7 @@ jobs:
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
           -f state=success \
-          -f context=${{ github.job }}
+          -f context='${{ github.job }} (${{ matrix.os }})'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}

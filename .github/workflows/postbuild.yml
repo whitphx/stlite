@@ -101,6 +101,7 @@ jobs:
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
+        run-id: ${{ github.event.workflow_run.id }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -158,6 +159,7 @@ jobs:
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
+        run-id: ${{ github.event.workflow_run.id }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -208,6 +210,7 @@ jobs:
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
 
     - name: Install the tarball
       run: |

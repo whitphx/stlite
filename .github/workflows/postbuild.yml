@@ -181,8 +181,16 @@ jobs:
 
     - name: Verify artifact contents
       run: |
+        # Validate artifact directory structure and contents
         if [ ! -f ${{ runner.temp }}/stlite-browser/package.tgz ]; then
           echo "Error: Expected package.tgz not found in artifact." >&2
+          exit 1
+        fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find ${{ runner.temp }}/stlite-browser -type f ! -name "package.tgz")
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in artifact:" >&2
+          echo "$unexpected_files" >&2
           exit 1
         fi
 
@@ -205,7 +213,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
+      if: |
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

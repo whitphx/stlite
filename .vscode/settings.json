@@ -1,4 +1,13 @@
 {
   "python.analysis.extraPaths": ["./streamlit/lib"],
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "cSpell.words": [
+    "nvmrc",
+    "protoc",
+    "pyright",
+    "pytest",
+    "stlite",
+    "streamlit",
+    "venv"
+  ]
 }

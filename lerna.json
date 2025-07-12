@@ -1,11 +1,8 @@
 {
   "$schema": "node_modules/@lerna-lite/cli/schemas/lerna-schema.json",
-  "version": "0.83.1",
+  "version": "0.84.0",
   "npmClient": "yarn",
-  "packages": [
-    "packages/*",
-    "packages/desktop/samples/*"
-  ],
+  "packages": ["packages/*", "packages/desktop/samples/*"],
   "command": {
     "version": {
       "allowBranch": "main"

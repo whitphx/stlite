@@ -7,12 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.84.0] - 2025-07-12
+
 ### `@stlite/kernel`
 
 #### Fixed
 
 - Internal refactoring on the worker runtime, [#1518](https://github.com/whitphx/stlite/pull/1518).
 - Fix the `reboot` method, [#1519](https://github.com/whitphx/stlite/pull/1519).
+- Refactoring the `jedi` initialization, [#1522](https://github.com/whitphx/stlite/pull/1522).
+
+### `@stlite/browser`
+
+#### Added
+
+- Add provenance, [#1528](https://github.com/whitphx/stlite/pull/1528).
+
+### `@stlite/desktop`
+
+#### Added
+
+- Add provenance, [#1528](https://github.com/whitphx/stlite/pull/1528).
 
 ### `@stlite/sharing`
 
@@ -61,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `@stlite/browser`
 
 #### Changed
+
 - [BREAKING] Rename the CSS file name from `style.css` to `stlite.css` due to Vite v6, [#1451](https://github.com/whitphx/stlite/pull/1451).
 
 #### Fixed
@@ -279,7 +295,7 @@ Skipped.
     mount(
       `
   import streamlit as st
-
+  
   name = st.text_input('Your name')
   st.write("Hello,", name or "world")
   `,

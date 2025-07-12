@@ -110,7 +110,6 @@ jobs:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
 
     - name: Update commit status
-      shell: bash
       run: |
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
@@ -235,6 +234,7 @@ jobs:
       working-directory: ${{ runner.temp }}/sample_app
 
     - name: Update commit status
+      shell: bash
       run: |
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \

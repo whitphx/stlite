@@ -159,6 +159,8 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -179,12 +181,46 @@ jobs:
 
     - name: Verify artifact contents
       run: |
+        # Validate artifact directory structure and contents
         if [ ! -f ${{ runner.temp }}/stlite-browser/package.tgz ]; then
           echo "Error: Expected package.tgz not found in artifact." >&2
           exit 1
         fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find ${{ runner.temp }}/stlite-browser -type f ! -name "package.tgz")
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in artifact:" >&2
+          echo "$unexpected_files" >&2
+          exit 1
+        fi
 
-    - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for browser package..."
+        gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+
+        echo "Verifying attestation matches expected build context..."
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep -x "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -201,6 +237,8 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -221,12 +259,44 @@ jobs:
 
     - name: Verify artifact contents
       run: |
+        # Validate artifact directory structure and contents
         if [ ! -f ${{ runner.temp }}/stlite-desktop/package.tgz ]; then
           echo "Error: Expected package.tgz not found in artifact." >&2
           exit 1
         fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find ${{ runner.temp }}/stlite-desktop -type f ! -name "package.tgz")
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in artifact:" >&2
+          echo "$unexpected_files" >&2
+          exit 1
+        fi
 
-    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for desktop package..."
+        gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep -x "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

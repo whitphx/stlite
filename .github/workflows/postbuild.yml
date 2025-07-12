@@ -102,6 +102,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -160,6 +161,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -211,6 +213,7 @@ jobs:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
         run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install the tarball
       run: |
@@ -251,8 +254,8 @@ jobs:
         with:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
@@ -284,8 +287,8 @@ jobs:
         with:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Inject SHARING_APP_URL
         run: |

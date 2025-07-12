@@ -113,7 +113,7 @@ jobs:
 
     - name: Update commit status
       run: |
-        gh api repos/whitphx/stlite/statuses/$TRIGGER_SHA \
+        gh api repos/${{ github.repository }}/statuses/$TRIGGER_SHA \
           -X POST \
           -f state=success \
           -f context=${{ github.job }}
@@ -175,7 +175,7 @@ jobs:
 
     - name: Update commit status
       run: |
-        gh api repos/whitphx/stlite/statuses/$TRIGGER_SHA \
+        gh api repos/${{ github.repository }}/statuses/$TRIGGER_SHA \
           -X POST \
           -f state=success \
           -f context=${{ github.job }}
@@ -225,7 +225,7 @@ jobs:
 
     - name: Update commit status
       run: |
-        gh api repos/whitphx/stlite/statuses/$TRIGGER_SHA \
+        gh api repos/${{ github.repository }}/statuses/$TRIGGER_SHA \
           -X POST \
           -f state=success \
           -f context=${{ github.job }}

@@ -119,6 +119,8 @@ jobs:
           -X POST \
           -f state=success \
           -f context=${{ github.job }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   e2e-browser-browserstack:
     needs: get-build-info
@@ -183,6 +185,8 @@ jobs:
           -X POST \
           -f state=success \
           -f context=${{ github.job }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   e2e-desktop:
     needs: get-build-info
@@ -235,6 +239,8 @@ jobs:
           -X POST \
           -f state=success \
           -f context=${{ github.job }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing:
     needs: get-build-info

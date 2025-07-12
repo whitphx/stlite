@@ -400,7 +400,7 @@ jobs:
         name: stlite-browser
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v2
       with:
         subject-path: packages/browser/package.tgz
 
@@ -560,7 +560,7 @@ jobs:
         name: stlite-desktop
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v1
+      uses: actions/attest-build-provenance@v2
       with:
         subject-path: packages/desktop/package.tgz
 

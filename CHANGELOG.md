@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.84.2] - 2025-07-12
+
+### General
+
+#### Fixed
+
+- Fix CI release pipeline.
+
 ## [0.84.1] - 2025-07-12
 
 ### `@stlite/kernel`
@@ -34,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Fixed
 
 - Fix the "change entrypoint" operation by fixing the kernel `reboot` method, [#1519](https://github.com/whitphx/stlite/pull/1519).
+
+## [0.84.0] - Skipped
 
 ## [0.83.1] - 2025-06-26
 

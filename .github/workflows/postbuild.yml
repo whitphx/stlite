@@ -227,7 +227,7 @@ jobs:
     - name: Create a new release
       uses: softprops/action-gh-release@v2
       with:
-        files: packages/browser/package.tgz
+        files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}
 
@@ -303,6 +303,6 @@ jobs:
     - name: Create a new release
       uses: softprops/action-gh-release@v2
       with:
-        files: packages/desktop/package.tgz
+        files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}

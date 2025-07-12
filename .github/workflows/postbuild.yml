@@ -225,7 +225,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.1
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
@@ -301,7 +301,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.1
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true

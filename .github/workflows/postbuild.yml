@@ -200,7 +200,7 @@ jobs:
         gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1
-        
+
         echo "Verifying attestation matches expected build context..."
         gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
           --repo ${{ github.repository }} \
@@ -215,7 +215,6 @@ jobs:
 
     - name: Publish validated package
       run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
-      if: |
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -265,7 +264,7 @@ jobs:
         gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1
-        
+
         echo "Verifying attestation matches expected build context..."
         gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
           --repo ${{ github.repository }} \

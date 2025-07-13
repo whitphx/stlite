@@ -404,6 +404,10 @@ jobs:
       with:
         subject-name: stlite-browser
         subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
+      # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
+      # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
+      # while the verification is done when publishing the artifact.
+      continue-on-error: true
 
     - name: "Inform the package stats of @stlite/browser"
       uses: ./.github/actions/set-package-stats
@@ -565,6 +569,10 @@ jobs:
       with:
         subject-name: stlite-desktop
         subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
+      # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
+      # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
+      # while the verification is done when publishing the artifact.
+      continue-on-error: true
 
     - name: "Inform the package stats of @stlite/desktop"
       uses: ./.github/actions/set-package-stats

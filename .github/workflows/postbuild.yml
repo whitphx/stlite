@@ -98,7 +98,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser

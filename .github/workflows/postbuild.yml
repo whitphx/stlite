@@ -185,11 +185,18 @@ jobs:
         local-testing: stop
 
     - name: Update commit status
+      if: always()
       run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
-          -f state=success \
-          -f context=${{ github.job }}
+          -f state=${STATE} \
+          -f context=${{ github.job }} \
+          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
@@ -241,12 +248,19 @@ jobs:
       working-directory: ${{ runner.temp }}/sample_app
 
     - name: Update commit status
+      if: always()
       shell: bash
       run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
-          -f state=success \
-          -f context='${{ github.job }} (${{ matrix.os }})'
+          -f state=${STATE} \
+          -f context='${{ github.job }} (${{ matrix.os }})' \
+          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}

@@ -98,7 +98,7 @@ jobs:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
         run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
@@ -110,7 +110,13 @@ jobs:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
 
     - name: Update commit status
+      if: always()
       run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
           -f state=success \

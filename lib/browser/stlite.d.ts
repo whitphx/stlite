@@ -7,6 +7,12 @@ declare interface CanvasInterface {
     	getCanvas3D(): HTMLCanvasElement | undefined;
 }
 
+declare interface CodeCompletion {
+    name: string;
+    type: string;
+    docstring: string;
+}
+
 declare type DetailedMountOptions = SimplifiedStliteKernelOptions & MakeToastKernelCallbacksOptions;
 
 declare interface EmscriptenFile {
@@ -100,6 +106,10 @@ export declare function mount(options: MountOptions, container?: HTMLElement): {
     renameFile: (oldPath: string, newPath: string) => Promise<unknown>;
     unlink: (path: string) => Promise<unknown>;
     readFile: (path: string, opts?: Record<string, unknown>) => Promise<unknown>;
+    getCodeCompletion: (code: string, position: {
+        line: number;
+        column: number;
+    }) => Promise<CodeCompletion[]>;
 };
 
 declare type MountOptions = string | DetailedMountOptions;
@@ -1573,6 +1583,7 @@ declare type SimplifiedStliteKernelOptions = Partial<{
     workerType: StliteKernelOptions["workerType"];
     sharedWorker: StliteKernelOptions["sharedWorker"];
     env: StliteKernelOptions["env"];
+    languageServer: StliteKernelOptions["languageServer"];
 }>;
 
 declare interface StliteKernelOptions {

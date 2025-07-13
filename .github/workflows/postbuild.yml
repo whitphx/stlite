@@ -41,10 +41,15 @@ jobs:
       - name: Read build info
         id: build-info
         run: |
+          echo "branch=$(cat branch)"
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
+          echo "tag=$(cat tag)"
           echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
+          echo "trigger-sha=$(cat trigger-sha)"
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
+          echo "head-sha=$(cat head-sha)"
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
+          echo "pr-number=$(cat pr-number)"
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   inform-package-stats:
@@ -60,6 +65,191 @@ jobs:
       - uses: ./.github/actions/inform-package-stats
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+
+  e2e-browser:
+    needs: get-build-info
+
+    permissions:
+      contents: read
+      statuses: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Set up the e2e-tests environment
+      run: |
+        yarn install
+        yarn install:browsers
+      working-directory: packages/browser/e2e-tests
+
+    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-browser
+        path: ${{ runner.temp }}/artifacts/browser
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: tar xzvf package.tgz
+      working-directory: ${{ runner.temp }}/artifacts/browser
+
+    - name: Run the e2e-tests
+      run: yarn test
+      working-directory: packages/browser/e2e-tests
+      env:
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
+
+    - name: Update commit status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
+        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+          -X POST \
+          -f state=${STATE} \
+          -f context=${{ github.job }} \
+          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
+
+  e2e-browser-browserstack:
+    needs: get-build-info
+
+    permissions:
+      contents: read
+      statuses: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'BrowserStack Env Setup'
+      uses: browserstack/github-actions/setup-env@master
+      with:
+        username:  ${{ secrets.BROWSERSTACK_USERNAME }}
+        access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+    - name: 'BrowserStack Local Tunnel Setup'
+      uses: browserstack/github-actions/setup-local@master
+      with:
+        local-testing: start
+        local-identifier: random
+
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Set up the e2e-tests environment
+      run: yarn install
+      working-directory: packages/browser/e2e-tests
+
+    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
+    - uses: actions/download-artifact@v4
+      with:
+        name: stlite-browser
+        path: ${{ runner.temp }}/artifacts/browser
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: tar xzvf package.tgz
+      working-directory: ${{ runner.temp }}/artifacts/browser
+
+    - name: Run the e2e-tests
+      run: yarn test:browserstack
+      working-directory: packages/browser/e2e-tests
+      env:
+        BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
+
+    - name: 'BrowserStackLocal Stop'
+      uses: browserstack/github-actions/setup-local@master
+      with:
+        local-testing: stop
+
+    - name: Update commit status
+      run: |
+        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+          -X POST \
+          -f state=success \
+          -f context=${{ github.job }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
+
+  e2e-desktop:
+    needs: get-build-info
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    permissions:
+      contents: read
+      statuses: write
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
+
+    - name: Download artifact into the temp dir
+      uses: actions/download-artifact@v4
+      with:
+        name: stlite-desktop
+        path: ${{ runner.temp }}/sample_app
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install the tarball
+      run: |
+        npm install file:package.tgz
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - run: npm run dump
+      working-directory: ${{ runner.temp }}/sample_app
+
+    # TODO: Run `yarn serve` and check if the app doesn't show any error.
+
+    - name: Check if electron-builder works
+      run: npm run app:dir
+      working-directory: ${{ runner.temp }}/sample_app
+
+    - name: Update commit status
+      shell: bash
+      run: |
+        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+          -X POST \
+          -f state=success \
+          -f context='${{ github.job }} (${{ matrix.os }})'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
 
   deploy-sharing:
     needs: get-build-info
@@ -79,8 +269,8 @@ jobs:
         with:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
@@ -88,7 +278,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+          command: |
+            pages deploy ${{ runner.temp }}/artifacts/sharing --project-name=stlite-sharing --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-sharing-editor:
@@ -107,8 +298,8 @@ jobs:
         with:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Inject SHARING_APP_URL
         run: |
@@ -159,6 +350,8 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -179,19 +372,53 @@ jobs:
 
     - name: Verify artifact contents
       run: |
+        # Validate artifact directory structure and contents
         if [ ! -f ${{ runner.temp }}/stlite-browser/package.tgz ]; then
           echo "Error: Expected package.tgz not found in artifact." >&2
           exit 1
         fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find ${{ runner.temp }}/stlite-browser -type f ! -name "package.tgz")
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in artifact:" >&2
+          echo "$unexpected_files" >&2
+          exit 1
+        fi
 
-    - run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for browser package..."
+        gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+
+        echo "Verifying attestation matches expected build context..."
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-browser/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.1
       with:
-        files: packages/browser/package.tgz
+        files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}
 
@@ -201,6 +428,8 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
 
@@ -221,18 +450,50 @@ jobs:
 
     - name: Verify artifact contents
       run: |
+        # Validate artifact directory structure and contents
         if [ ! -f ${{ runner.temp }}/stlite-desktop/package.tgz ]; then
           echo "Error: Expected package.tgz not found in artifact." >&2
           exit 1
         fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find ${{ runner.temp }}/stlite-desktop -type f ! -name "package.tgz")
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in artifact:" >&2
+          echo "$unexpected_files" >&2
+          exit 1
+        fi
 
-    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
+    - name: Verify artifact attestation
+      run: |
+        echo "Verifying attestation for desktop package..."
+        gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+
+        VERIFICATION_RESULT=$(gh attestation verify ${{ runner.temp }}/stlite-desktop/package.tgz \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x ".github/workflows/test-build.yml" || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep "refs/tags/v" || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --provenance --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create a new release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.1
       with:
-        files: packages/desktop/package.tgz
+        files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true
         tag_name: ${{ needs.get-build-info.outputs.tag }}

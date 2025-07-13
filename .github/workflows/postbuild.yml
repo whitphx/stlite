@@ -119,7 +119,7 @@ jobs:
         fi
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
-          -f state=success \
+          -f state=${STATE} \
           -f context=${{ github.job }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

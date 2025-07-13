@@ -259,7 +259,7 @@ jobs:
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
           -f state=${STATE} \
-          -f context=${{ github.job }} \
+          -f context='${{ github.job }} (${{ matrix.os }})' \
           -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

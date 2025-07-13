@@ -110,7 +110,13 @@ jobs:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
 
     - name: Update commit status
+      if: always()
       run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
         gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
           -X POST \
           -f state=success \

@@ -394,16 +394,15 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      id: upload
       uses: actions/upload-artifact@v4
       with:
         path: packages/browser/package.tgz
         name: stlite-browser
 
-    - uses: actions/attest-build-provenance@v2
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v2
       with:
-        subject-name: stlite-browser
-        subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
+        subject-path: packages/browser/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
       # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
       # while the verification is done when publishing the artifact.
@@ -560,15 +559,14 @@ jobs:
 
     - name: Upload the built tar ball as an artifact
       uses: actions/upload-artifact@v4
-      id: upload
       with:
         path: packages/desktop/package.tgz
         name: stlite-desktop
 
-    - uses: actions/attest-build-provenance@v2
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@v2
       with:
-        subject-name: stlite-desktop
-        subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
+        subject-path: packages/desktop/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
       # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
       # while the verification is done when publishing the artifact.

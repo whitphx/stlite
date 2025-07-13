@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.85.0] - 2025-07-13
+
+### General
+
+#### Fixed
+
+- Fix CI release pipeline.
+
+### `@stlite/kernel`
+
+#### Added
+
+- Add `languageServer` option to make `getCodeCompletion` method available, [#1530](https://github.com/whitphx/stlite/pull/1530), [@andeplane](https://github.com/andeplane).
+
 ## [0.84.2] - 2025-07-12
 
 ### General

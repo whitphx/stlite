@@ -24993,12 +24993,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-poet@npm:^6.7.0":
-  version: 6.9.0
-  resolution: "ts-poet@npm:6.9.0"
+"ts-poet@npm:^6.12.0":
+  version: 6.12.0
+  resolution: "ts-poet@npm:6.12.0"
   dependencies:
     dprint-node: "npm:^1.0.8"
-  checksum: 10c0/c1e3ee6048f075407c2076c8b884b405a3402ae6c013c0af9d0f6b8a6d939c71751a954882d2bd33a606c013d4a57519f5305e0bb1fd6aa0d23edda93e6007bf
+  checksum: 10c0/605ac770055259b618ba657b88995f7851d8a6106d9c335e71c8442be51a9b8a87c501aa7ab4babb43700a32ff47dc1cd877f78892c15166ded87c311c878735
   languageName: node
   linkType: hard
 
@@ -25012,16 +25012,16 @@ __metadata:
   linkType: hard
 
 "ts-proto@npm:^2.6.1":
-  version: 2.7.0
-  resolution: "ts-proto@npm:2.7.0"
+  version: 2.7.5
+  resolution: "ts-proto@npm:2.7.5"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.0.0"
     case-anything: "npm:^2.1.13"
-    ts-poet: "npm:^6.7.0"
+    ts-poet: "npm:^6.12.0"
     ts-proto-descriptors: "npm:2.0.0"
   bin:
     protoc-gen-ts_proto: protoc-gen-ts_proto
-  checksum: 10c0/5054335ea0cb6dc386de510bfd12d17593e2777593855b14802d83718a3872758b50dd2fbe517bc198847e18e2308d49689031136829939b267a35cb03b25d87
+  checksum: 10c0/5182f7d79b1db95fa76ff6018998fc449a821ad2fdd1a17390350638ee286ef6e99f90d7e324141fac759b1674ebb3e75599022d4559970bf83761c803a33658
   languageName: node
   linkType: hard
 

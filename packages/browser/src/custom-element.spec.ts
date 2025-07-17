@@ -111,6 +111,32 @@ def foo():
     );
   });
 
+  it("parses <app-file> with url", () => {
+    const appElem = document.createElement("streamlit-app");
+    appElem.innerHTML = `
+<app-file name="app.py" url="/path/to/app.py" entrypoint>
+</app-file>
+`;
+
+    container.appendChild(appElem);
+
+    expect(mount).toHaveBeenCalledWith(
+      {
+        entrypoint: "app.py",
+        files: {
+          "app.py": {
+            url: "/path/to/app.py",
+            opts: undefined,
+          },
+        },
+        requirements: [],
+        archives: [],
+        streamlitConfig: {},
+      },
+      expect.any(HTMLElement),
+    );
+  });
+
   it("parses the textContent as the entrypoint file if no other possible child elements are available", async () => {
     const appElem = document.createElement("streamlit-app");
     appElem.innerHTML = `

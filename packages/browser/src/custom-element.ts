@@ -92,6 +92,13 @@ export function setupCustomElement(mount: typeof mountFn) {
                 throw new Error(`File with name '${name}' already exists`);
               }
 
+              if (node.hasAttribute("entrypoint")) {
+                if (entrypoint) {
+                  throw new Error("Multiple entrypoints are not allowed");
+                }
+                entrypoint = name;
+              }
+
               const url = node.getAttribute("url");
               const encoding = node.getAttribute("encoding");
               if (url) {
@@ -99,16 +106,8 @@ export function setupCustomElement(mount: typeof mountFn) {
                   url,
                   opts: encoding ? { encoding } : undefined,
                 };
-                return;
-              }
-
-              files[name] = node.textContent ? dedent(node.textContent) : "";
-
-              if (node.hasAttribute("entrypoint")) {
-                if (entrypoint) {
-                  throw new Error("Multiple entrypoints are not allowed");
-                }
-                entrypoint = name;
+              } else {
+                files[name] = node.textContent ? dedent(node.textContent) : "";
               }
               return;
             }

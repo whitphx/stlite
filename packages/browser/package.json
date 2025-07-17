@@ -1,6 +1,6 @@
 {
   "name": "@stlite/browser",
-  "version": "0.85.1",
+  "version": "0.85.2",
   "type": "module",
   "description": "Browser Stlite",
   "keywords": [

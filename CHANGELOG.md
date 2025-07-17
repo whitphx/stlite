@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.85.2] - 2025-07-17
+
+- Fix a bug of the tag-based API that `entrypoint` is not counted when specified with `url`, [1545](https://github.com/whitphx/stlite/pull/1545).
+
 ## [0.85.1] - 2025-07-13
 
 ### General

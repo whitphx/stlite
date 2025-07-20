@@ -705,18 +705,16 @@ export function startWorkerEnv(
           break;
         }
         case "install": {
-          const { requirements: unvalidatedRequirements } = msg.data;
+          const { requirements: unvalidatedRequirements, options } = msg.data;
 
           const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
           console.debug("Install the requirements:", requirements);
-          await micropip.install
-            .callKwargs(requirements, { keep_going: true })
-            .then(() => {
-              console.debug("Successfully installed");
-              reply({
-                type: "reply",
-              });
+          await micropip.install.callKwargs(requirements, options).then(() => {
+            console.debug("Successfully installed");
+            reply({
+              type: "reply",
             });
+          });
           break;
         }
         case "setEnv": {

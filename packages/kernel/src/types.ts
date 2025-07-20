@@ -61,6 +61,17 @@ export interface WorkerInitialData {
   languageServer?: boolean;
 }
 
+export interface MicropipInstallOptions {
+  keep_going: boolean;
+  deps: boolean;
+  credentials: string | null;
+  pre: boolean;
+  index_urls: string[] | string | null;
+  constraints: string[] | null;
+  reinstall: boolean;
+  verbose: boolean | number | null;
+}
+
 /**
  * Input messages from kernel to worker
  */
@@ -128,6 +139,7 @@ export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
     requirements: string[];
+    options?: MicropipInstallOptions;
   };
 }
 

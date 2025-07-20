@@ -4864,7 +4864,7 @@ __metadata:
     vitest: "npm:^3.0.9"
     wait-on: "npm:^8.0.1"
     winston: "npm:^3.13.0"
-    yargs: "npm:^17.7.2"
+    yargs: "npm:^18.0.0"
   bin:
     dump-stlite-desktop-artifacts: ./bin/dump_artifacts.js
   languageName: unknown

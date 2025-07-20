@@ -11,6 +11,7 @@ declare interface CodeCompletion {
     name: string;
     type: string;
     docstring: string;
+    complete: string;
 }
 
 declare type DetailedMountOptions = SimplifiedStliteKernelOptions & MakeToastKernelCallbacksOptions;

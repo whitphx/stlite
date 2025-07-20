@@ -256,6 +256,7 @@ export interface CodeCompletion {
   name: string;
   type: string;
   docstring: string;
+  complete: string;
 }
 export interface ReplyMessageCodeCompletion extends ReplyMessageBase {
   type: "reply:code_completion";

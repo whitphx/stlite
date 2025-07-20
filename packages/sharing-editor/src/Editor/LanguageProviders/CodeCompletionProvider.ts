@@ -87,7 +87,7 @@ export class CodeCompletionProvider
           (item) =>
             ({
               label: item.name,
-              insertText: item.name,
+              insertText: item.complete,
               detail: item.docstring,
               range: {
                 startLineNumber: position.lineNumber,

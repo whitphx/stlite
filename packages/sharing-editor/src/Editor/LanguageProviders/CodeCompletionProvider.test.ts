@@ -10,16 +10,19 @@ describe("CodeCompletionProvider", () => {
         name: "test_function",
         type: "function",
         docstring: "Test function docstring",
+        complete: "st_function",
       },
       {
         name: "_private_var",
         type: "instance",
         docstring: "Private variable",
+        complete: "rivate_var",
       },
       {
         name: "param=",
         type: "param",
         docstring: "Parameter",
+        complete: "ram=",
       },
     ],
   });
@@ -45,7 +48,7 @@ describe("CodeCompletionProvider", () => {
     expect(result.suggestions).toHaveLength(3);
     expect(result.suggestions[0]).toMatchObject({
       label: "test_function",
-      insertText: "test_function",
+      insertText: "st_function",
       detail: "Test function docstring",
       kind: CompletionItemKind.Function,
       sortText: "bbtest_function",

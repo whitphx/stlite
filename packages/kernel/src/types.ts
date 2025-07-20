@@ -42,11 +42,25 @@ export interface PyodideArchiveUrl {
 export interface StreamlitConfig {
   [key: string]: PyodideConvertiblePrimitive;
 }
+export interface MicropipInstallOptions {
+  keep_going: boolean;
+  deps: boolean;
+  credentials: string | null;
+  pre: boolean;
+  index_urls: string[] | string | null;
+  constraints: string[] | null;
+  reinstall: boolean;
+  verbose: boolean | number | null;
+}
 export interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
+  installs?: Array<{
+    requirements: string[];
+    options?: MicropipInstallOptions;
+  }>;
   prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
@@ -59,17 +73,6 @@ export interface WorkerInitialData {
   moduleAutoLoad: boolean;
   env?: Record<string, string>;
   languageServer?: boolean;
-}
-
-export interface MicropipInstallOptions {
-  keep_going: boolean;
-  deps: boolean;
-  credentials: string | null;
-  pre: boolean;
-  index_urls: string[] | string | null;
-  constraints: string[] | null;
-  reinstall: boolean;
-  verbose: boolean | number | null;
 }
 
 /**

@@ -44,6 +44,7 @@ async function loadPyodideAndPackages(
     requirements: unvalidatedRequirements,
     prebuiltPackageNames: prebuiltPackages,
     wheels,
+    installs,
     pyodideUrl = defaultPyodideUrl,
     streamlitConfig,
     idbfsMountpoints,
@@ -194,6 +195,17 @@ async function loadPyodideAndPackages(
   console.debug("Installing the requirements:", requirements);
   await micropip.install.callKwargs(requirements, { keep_going: true });
   console.debug("Installed the requirements");
+
+  if (installs) {
+    console.debug("Installing the additional requirements");
+    await Promise.all(
+      installs.map(({ requirements: unvalidatedRequirements, options }) => {
+        const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
+        console.debug("Installing the requirements:", requirements);
+        return micropip.install.callKwargs(requirements, options);
+      }),
+    );
+  }
 
   if (moduleAutoLoad) {
     const sources = pythonFilePaths.map((path) =>

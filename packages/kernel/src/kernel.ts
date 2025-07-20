@@ -75,6 +75,14 @@ export interface StliteKernelOptions {
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
 
   /**
+   * Additional packages to install.
+   * The packages specified in `requirements` will be installed in the same call of `micropip.install()`
+   * as some built-in dependencies such as `streamlit` and `stlite-lib` with the fixed options.
+   * This `installs` option is used to install packages with more flexible options
+   */
+  installs?: WorkerInitialData["installs"];
+
+  /**
    * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
    * If not specified, the default one is used.
    */

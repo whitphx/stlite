@@ -43,14 +43,14 @@ export interface StreamlitConfig {
   [key: string]: PyodideConvertiblePrimitive;
 }
 export interface MicropipInstallOptions {
-  keep_going: boolean;
-  deps: boolean;
-  credentials: string | null;
-  pre: boolean;
-  index_urls: string[] | string | null;
-  constraints: string[] | null;
-  reinstall: boolean;
-  verbose: boolean | number | null;
+  keep_going?: boolean;
+  deps?: boolean;
+  credentials?: string | null;
+  pre?: boolean;
+  index_urls?: string[] | string | null;
+  constraints?: string[] | null;
+  reinstall?: boolean;
+  verbose?: boolean | number | null;
 }
 export interface WorkerInitialData {
   entrypoint: string;

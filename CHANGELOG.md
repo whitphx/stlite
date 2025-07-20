@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.86.0] - 2025-07-20
+
+### `@stlite/kernel`
+
+- Add `complete` field to `CodeCompletion`, [#1553](https://github.com/whitphx/stlite/pull/1553).
+
+### `@stlite/browser`
+
+- Add `complete` field to the return value of `getCodeCompletion`, [#1553](https://github.com/whitphx/stlite/pull/1553).
+
 ## [0.85.2] - 2025-07-17
 
 - Fix a bug of the tag-based API that `entrypoint` is not counted when specified with `url`, [1545](https://github.com/whitphx/stlite/pull/1545).

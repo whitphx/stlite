@@ -17,6 +17,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
     EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"] // EmscriptenFile["data"] is allowed as a shorthand for convenience.
   >;
   archives: StliteKernelOptions["archives"];
+  installs: StliteKernelOptions["installs"];
   hostConfig: StliteKernelOptions["hostConfigResponse"];
   pyodideUrl: StliteKernelOptions["pyodideUrl"];
   wheelUrls: StliteKernelOptions["wheelUrls"];

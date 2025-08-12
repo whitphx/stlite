@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
 import { useStliteKernel } from "./StliteKernelProvider";
 
+// Ref: https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/connection/src/DefaultStreamlitEndpoints.ts#L47
+const MEDIA_ENDPOINT = "/media";
+
 function resolveStliteObjectUrl(
   kernel: StliteKernel,
   path: string,
@@ -28,7 +31,7 @@ function resolveStliteObjectUrlIfNeeded(
   kernel: StliteKernel,
   rawUrl: string,
 ): Promise<string> {
-  if (!rawUrl.startsWith("/media")) {
+  if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
     return Promise.resolve(rawUrl);
   }
   return resolveStliteObjectUrl(kernel, rawUrl);
@@ -98,7 +101,7 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
       return;
     }
 
-    if (!rawUrl.startsWith("/media")) {
+    if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
       return;
     }
 
@@ -131,7 +134,24 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
 export function useStliteMediaObjects<T extends { url?: string | null }>(
   inputMediaObjects: T[],
 ) {
-  const [mediaObjects, setMediaObjects] = useState(inputMediaObjects);
+  const [mediaObjects, setMediaObjects] = useState<T[]>(
+    inputMediaObjects.map((obj) => {
+      if (obj.url == null) {
+        return obj;
+      }
+      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
+        return obj;
+      }
+
+      // Unset the URL before resolving it.
+      // Some components may send requests to the URL (such as https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/lib/src/components/elements/Video/Video.tsx#L97),
+      // which leads to errors, so it should be unset when the URL points to a resource on the Streamlit server that is unreachable.
+      return {
+        ...obj,
+        url: null,
+      };
+    }),
+  );
 
   const kernel = useStliteKernel();
   useEffect(() => {
@@ -147,7 +167,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
         return obj;
       }
 
-      if (!obj.url.startsWith("/media")) {
+      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
         return obj;
       }
 

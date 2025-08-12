@@ -166,12 +166,11 @@ $(stlite-lib-wheel): $(venv) $(shell find packages/kernel/py/stlite-lib/stlite_l
 streamlit-proto: $(streamlit_proto)
 $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV_PATH)/bin/activate && \
-	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/setup.py streamlit/lib/MANIFEST.in
 	PYODIDE_BUILD_VERSION=`uv run python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`uv run python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
 	PYODIDE_PYTHON_VERSION=`uv run pyodide config get python_version` && \
@@ -182,9 +181,12 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	\
 	. $(VENV_PATH)/bin/activate && \
 	TEMP_DIR=$$(mktemp -d) && \
-	mv ./streamlit/lib/streamlit/proto/*.pyi $$TEMP_DIR/ && \
-	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
-	mv $$TEMP_DIR/*.pyi ./streamlit/lib/streamlit/proto/ && \
+	find ./streamlit/lib/streamlit/proto/ -name '*.pyi' -exec mv {} $$TEMP_DIR/ \; && \
+	pushd streamlit && \
+	rm -rfv lib/build lib/dist && \
+	cd lib ; SNOWPARK_CONDA_BUILD=true uv run python setup.py bdist_wheel && \
+	popd && \
+	find $$TEMP_DIR -name '*.pyi' -exec mv {} ./streamlit/lib/streamlit/proto/ \; && \
 	rmdir $$TEMP_DIR && \
 	uv run pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) && \
 	mkdir -p $(dir $(streamlit_wheel)) && \
@@ -205,3 +207,4 @@ clean:
 	yarn tsc -b --clean
 	rm -rf packages/*/dist/* packages/*/build/* streamlit/frontend/*/dist/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
+	$(MAKE) -C streamlit clean

@@ -20,15 +20,20 @@
     "check:prettier": "prettier --check ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@stlite/devutils": "workspace:^",
     "@testing-library/react": "^14.1.2",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^8.33.0",
+    "eslint": "^9.32.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^6.0.0-rc.1",
     "prettier": "^3.4.2",
     "pyodide": "0.27.6",
-    "typescript": "^5.7.3",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.38.0",
     "vitest": "^3.0.9"
   },
   "dependencies": {

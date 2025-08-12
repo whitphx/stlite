@@ -16,7 +16,7 @@ export interface HttpRequest {
 export interface HttpResponse {
   statusCode: number;
   headers: Headers;
-  body: Uint8Array;
+  body: Uint8Array<ArrayBuffer>;
 }
 export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
   headers: Map<string, string>;

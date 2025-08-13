@@ -34,7 +34,7 @@
     "pyodide": "0.27.6",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
-    "vitest": "^3.0.9"
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^6.3.4",

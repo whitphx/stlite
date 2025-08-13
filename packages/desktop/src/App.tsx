@@ -73,7 +73,7 @@ function App() {
 
     return () => {
       unmounted = true;
-      kernel && kernel.dispose();
+      kernel?.dispose();
     };
   }, []);
 

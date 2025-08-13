@@ -6,7 +6,7 @@ export function loadNodefsMountpoints(): Record<string, string> | undefined {
   let nodefsMountpoints;
   try {
     nodefsMountpoints = JSON.parse(nodefsMountpointsJson);
-  } catch (e) {
+  } catch {
     console.error(
       `Failed to parse NODEFS_MOUNTPOINTS as JSON: ${nodefsMountpointsJson}`,
     );

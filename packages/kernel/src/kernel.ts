@@ -430,42 +430,41 @@ export class StliteKernel {
         break;
       }
       case "event:progress": {
-        this.onProgress && this.onProgress(msg.data.message);
+        this.onProgress?.(msg.data.message);
         break;
       }
       case "event:error": {
-        this.onError && this.onError(msg.data.error);
+        this.onError?.(msg.data.error);
         break;
       }
       case "event:loaded": {
         this._loaded.resolve();
-        this.onLoad && this.onLoad();
+        this.onLoad?.();
         break;
       }
       case "websocket:message": {
         const { payload } = msg.data;
-        this.handleWebSocketMessage && this.handleWebSocketMessage(payload);
+        this.handleWebSocketMessage?.(payload);
         break;
       }
       case "event:moduleAutoLoad": {
         if (port == null) {
           throw new Error("Port is required for moduleAutoLoad event");
         }
-        this.onModuleAutoLoad &&
-          this.onModuleAutoLoad(
-            msg.data.packagesToLoad,
-            new Promise((resolve, reject) => {
-              port.onmessage = (e) => {
-                const msg: ModuleAutoLoadMessage = e.data;
-                if (msg.type === "moduleAutoLoad:success") {
-                  resolve(msg.data.loadedPackages);
-                } else {
-                  reject(msg.error);
-                }
-                port.close();
-              };
-            }),
-          );
+        this.onModuleAutoLoad?.(
+          msg.data.packagesToLoad,
+          new Promise((resolve, reject) => {
+            port.onmessage = (e) => {
+              const msg: ModuleAutoLoadMessage = e.data;
+              if (msg.type === "moduleAutoLoad:success") {
+                resolve(msg.data.loadedPackages);
+              } else {
+                reject(msg.error);
+              }
+              port.close();
+            };
+          }),
+        );
         break;
       }
     }

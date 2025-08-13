@@ -395,13 +395,13 @@ describe("exportAsHtml", () => {
 describe("escapeTextForJsTemplateLiteral", () => {
   [
     "`hello`", // Backtick
-    // eslint-disable-next-line no-template-curly-in-string
+
     "Hello ${world}!", // Placeholder
     "\\hello\\", // Backslash
   ].forEach((text) => {
     it(`escapes ${text} correctly`, () => {
       const escaped = escapeTextForJsTemplateLiteral(text);
-      const parsed = eval("`" + escaped + "`"); // eslint-disable-line no-eval
+      const parsed = eval("`" + escaped + "`");
       expect(parsed).toEqual(text);
     });
   });

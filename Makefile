@@ -179,8 +179,8 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
 		echo "Python version mismatch: Pyodide $$PYODIDE_BUILD_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
-	fi && \
-	\
+	fi
+
 	. $(VENV_PATH)/bin/activate && \
 	TEMP_DIR=$$(mktemp -d) && \
 	find ./streamlit/lib/streamlit/proto/ -name '*.pyi' -exec mv {} $$TEMP_DIR/ \; && \
@@ -189,9 +189,10 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	cd lib ; SNOWPARK_CONDA_BUILD=true uv run python setup.py bdist_wheel && \
 	popd && \
 	find $$TEMP_DIR -name '*.pyi' -exec mv {} ./streamlit/lib/streamlit/proto/ \; && \
-	rmdir $$TEMP_DIR && \
-	uv run pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) && \
-	mkdir -p $(dir $(streamlit_wheel)) && \
+	rmdir $$TEMP_DIR
+
+	uv run pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME)
+	mkdir -p $(dir $(streamlit_wheel))
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
 .PHONY: streamlit-frontend-lib

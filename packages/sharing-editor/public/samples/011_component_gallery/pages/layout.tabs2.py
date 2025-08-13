@@ -1,11 +1,12 @@
 import streamlit as st
-import numpy as np
+from numpy.random import default_rng as rng
+
+df = rng(0).standard_normal((10, 1))
 
 tab1, tab2 = st.tabs(["📈 Chart", "🗃 Data"])
-data = np.random.randn(10, 1)
 
 tab1.subheader("A tab with a chart")
-tab1.line_chart(data)
+tab1.line_chart(df)
 
 tab2.subheader("A tab with the data")
-tab2.write(data)
+tab2.write(df)

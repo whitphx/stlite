@@ -1,19 +1,14 @@
-import streamlit as st
 import pandas as pd
-import numpy as np
+import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    df = pd.DataFrame(np.random.randn(20, 3), columns=["col1", "col2", "col3"])
-    df["col4"] = np.random.choice(["A", "B", "C"], 20)
-    return df
-
-
-chart_data = load_data()
+df = pd.DataFrame(
+    rng(0).standard_normal((20, 3)), columns=["col1", "col2", "col3"]
+)
+df["col4"] = rng(0).choice(["a", "b", "c"], 20)
 
 st.scatter_chart(
-    chart_data,
+    df,
     x="col1",
     y="col2",
     color="col4",

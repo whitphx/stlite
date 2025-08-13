@@ -1,20 +1,13 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
+from numpy.random import default_rng as rng
 
+df = pd.DataFrame(
+    {
+        "col1": list(range(20)) * 3,
+        "col2": rng(0).standard_normal(60),
+        "col3": ["a"] * 20 + ["b"] * 20 + ["c"] * 20,
+    }
+)
 
-@st.cache_data
-def load_data():
-    df = pd.DataFrame(
-        {
-            "col1": np.random.randn(20),
-            "col2": np.random.randn(20),
-            "col3": np.random.choice(["A", "B", "C"], 20),
-        }
-    )
-    return df
-
-
-chart_data = load_data()
-
-st.line_chart(chart_data, x="col1", y="col2", color="col3")
+st.line_chart(df, x="col1", y="col2", color="col3")

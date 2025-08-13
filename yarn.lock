@@ -5162,7 +5162,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-hooks: "npm:^6.0.0-rc.1"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.9.2"
@@ -5188,7 +5188,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-hooks: "npm:^6.0.0-rc.1"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-toastify: "npm:^11.0.2"
@@ -5207,7 +5207,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.32.0"
     eslint: "npm:^9.32.0"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vitest: "npm:^3.2.4"
@@ -5241,7 +5241,7 @@ __metadata:
     fs-extra: "npm:^11.2.0"
     glob: "npm:^11.0.1"
     node-html-parser: "npm:^7.0.1"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     pyodide: "npm:0.27.6"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -5289,7 +5289,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-hooks: "npm:^6.0.0-rc.1"
     path-browserify: "npm:^1.0.1"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     pyodide: "npm:0.27.6"
     react: "npm:^18.2.0"
     typescript: "npm:^5.9.2"
@@ -5306,7 +5306,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     eslint: "npm:^9.32.0"
     npm-run-all2: "npm:^8.0.4"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     protobufjs: "npm:^7.2.4"
     ts-proto: "npm:^2.6.1"
     typescript: "npm:^5.9.2"
@@ -5341,7 +5341,7 @@ __metadata:
     normalize.css: "npm:^8.0.1"
     npm-run-all2: "npm:^8.0.4"
     nprogress: "npm:^0.2.0"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     re-resizable: "npm:^6.9.9"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -5377,7 +5377,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-hooks: "npm:^6.0.0-rc.1"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.9.2"
@@ -21170,15 +21170,6 @@ __metadata:
   dependencies:
     fast-diff: "npm:^1.1.2"
   checksum: 10c0/81e0027d731b7b3697ccd2129470ed9913ecb111e4ec175a12f0fcfab0096516373bf0af2fef132af50cafb0a905b74ff57996d615f59512bb9ac7378fcc64ab
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.4.2":
-  version: 3.4.2
-  resolution: "prettier@npm:3.4.2"
-  bin:
-    prettier: bin/prettier.cjs
-  checksum: 10c0/99e076a26ed0aba4ebc043880d0f08bbb8c59a4c6641cdee6cdadf2205bdd87aa1d7823f50c3aea41e015e99878d37c58d7b5f0e663bba0ef047f94e36b96446
   languageName: node
   linkType: hard
 

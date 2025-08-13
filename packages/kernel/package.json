@@ -30,7 +30,7 @@
     "eslint-plugin-prettier": "^5.5.3",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^6.0.0-rc.1",
-    "prettier": "^3.4.2",
+    "prettier": "^3.6.2",
     "pyodide": "0.27.6",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",

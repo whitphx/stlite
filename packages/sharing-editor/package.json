@@ -55,7 +55,7 @@
     "eslint-plugin-react-hooks": "^6.0.0-rc.1",
     "jsdom": "^20.0.3",
     "npm-run-all2": "^8.0.4",
-    "prettier": "^3.4.2",
+    "prettier": "^3.6.2",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",

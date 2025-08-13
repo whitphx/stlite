@@ -1,3 +1,5 @@
+SHELL := /bin/bash -eu -o pipefail -c
+
 BUILD_STATE_DIR := .make
 
 # Build State Tracking Strategy

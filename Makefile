@@ -148,7 +148,7 @@ $(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

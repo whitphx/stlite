@@ -1,5 +1,5 @@
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 
 df = px.data.iris()
 fig = px.scatter(

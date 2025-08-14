@@ -36,7 +36,7 @@ function resolvePathWithApp(app: App, inputPath: string): string {
       const resolvedPath = app.getPath(placeholder); // Ref: https://www.electronjs.org/docs/latest/api/app#appgetpathname
       return resolvedPath; // Return the resolved path if successful
     } catch (error) {
-      console.warn(`Unknown placeholder: ${placeholder}`);
+      console.warn(`Failed to resolve placeholder ${placeholder} (${error})`);
       return match; // Return the original placeholder if it cannot be resolved
     }
   });

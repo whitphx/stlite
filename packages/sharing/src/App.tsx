@@ -212,8 +212,10 @@ st.write("Hello World")`,
     return () => {
       unmounted = true;
 
-      onMessage && window.removeEventListener("message", onMessage);
-      _kernel && _kernel.dispose();
+      if (onMessage) {
+        window.removeEventListener("message", onMessage);
+      }
+      _kernel?.dispose();
     };
   }, []);
 

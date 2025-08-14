@@ -1,28 +1,19 @@
-import random
-
 import pandas as pd
 import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    return pd.DataFrame(
-        {
-            "name": ["Roadmap", "Extras", "Issues"],
-            "url": [
-                "https://roadmap.streamlit.app",
-                "https://extras.streamlit.app",
-                "https://issues.streamlit.app",
-            ],
-            "stars": [random.randint(0, 1000) for _ in range(3)],
-            "views_history": [
-                [random.randint(0, 5000) for _ in range(30)] for _ in range(3)
-            ],
-        }
-    )
-
-
-df = load_data()
+df = pd.DataFrame(
+    {
+        "name": ["Roadmap", "Extras", "Issues"],
+        "url": [
+            "https://roadmap.streamlit.app",
+            "https://extras.streamlit.app",
+            "https://issues.streamlit.app",
+        ],
+        "stars": rng(0).integers(0, 1000, size=3),
+        "views_history": rng(0).integers(0, 5000, size=(3, 30)).tolist(),
+    }
+)
 
 st.dataframe(
     df,

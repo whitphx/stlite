@@ -10,7 +10,7 @@ interface PreviewProps {
 function Preview(props: PreviewProps) {
   const mimeType = useMemo(() => mime.getType(props.path), [props.path]);
   const dataUrl = useMemo(() => {
-    const blob = new Blob([props.data]);
+    const blob = new Blob([new Uint8Array(props.data)]);
     return URL.createObjectURL(blob);
   }, [props.data]);
 

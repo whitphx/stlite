@@ -135,21 +135,18 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
   inputMediaObjects: T[],
 ) {
   const [mediaObjects, setMediaObjects] = useState<T[]>(
-    inputMediaObjects.map((obj) => {
+    inputMediaObjects.filter((obj) => {
       if (obj.url == null) {
-        return obj;
+        return true;
       }
       if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
-        return obj;
+        return true;
       }
 
-      // Unset the URL before resolving it.
-      // Some components may send requests to the URL (such as https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/lib/src/components/elements/Video/Video.tsx#L97),
-      // which leads to errors, so it should be unset when the URL points to a resource on the Streamlit server that is unreachable.
-      return {
-        ...obj,
-        url: null,
-      };
+      // Exclude image objects whose URLs are not resolved yet.
+      // Some components may send HTTP requests to the URLs (such as https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/lib/src/components/elements/Video/Video.tsx#L97),
+      // which leads to errors, so URLs should be excluded that point to the resources on the Streamlit server that are unreachable.
+      return false;
     }),
   );
 

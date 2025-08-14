@@ -1,21 +1,16 @@
-import numpy as np
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    return pd.DataFrame(
-        np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4], columns=["lat", "lon"]
-    )
-
-
-df = load_data()
+df = pd.DataFrame(
+    rng(0).standard_normal((1000, 2)) / [50, 50] + [37.76, -122.4],
+    columns=["lat", "lon"],
+)
 
 st.pydeck_chart(
     pdk.Deck(
-        map_style=None,
+        map_style=None,  # Use Streamlit theme to pick map style
         initial_view_state=pdk.ViewState(
             latitude=37.76,
             longitude=-122.4,

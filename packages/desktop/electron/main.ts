@@ -22,7 +22,8 @@ if (process.env.NODE_ENV === "development") {
           "../../.bin/electron",
         );
   console.log("Hot-reloading Electron enabled", electronPath);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("electron-reload")(__dirname, {
     electron: electronPath,
   });

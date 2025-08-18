@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/@lerna-lite/cli/schemas/lerna-schema.json",
-  "version": "0.87.0",
+  "version": "0.88.0",
   "npmClient": "yarn",
   "packages": ["packages/*", "packages/desktop/samples/*"],
   "command": {

@@ -54,8 +54,7 @@ Here is a sample HTML file.
   </head>
   <body>
     <streamlit-app>
-      import streamlit as st
-      name = st.text_input('Your name')
+      import streamlit as st name = st.text_input('Your name')
       st.write("Hello,", name or "world")
     </streamlit-app>
   </body>
@@ -315,6 +314,42 @@ mount(
   },
   document.getElementById("root"),
 );
+```
+
+### Install packages with options
+
+Specifying the `installs` option on `mount()` or calling `controller.install()` allows you to install packages with specific options that are passed to [`micropip.install`](https://micropip.pyodide.org/en/v0.7.1/project/api.html#micropip.install) internally.
+
+```js
+const controller = mount({
+  // ... other options ...
+  installs: [
+    {
+      requirements,
+      options: {
+        keep_going,
+        deps,
+        credentials,
+        pre,
+        index_urls,
+        constraints,
+        reinstall,
+        verbose,
+      },
+    },
+  ],
+});
+
+controller.install(requirements, {
+  keep_going,
+  deps,
+  credentials,
+  pre,
+  index_urls,
+  constraints,
+  reinstall,
+  verbose,
+});
 ```
 
 ### Different Stlite versions

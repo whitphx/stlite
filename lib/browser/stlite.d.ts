@@ -100,9 +100,20 @@ declare interface MakeToastKernelCallbacksOptions {
     disableErrorToasts?: boolean;
 }
 
+declare interface MicropipInstallOptions {
+    keep_going?: boolean;
+    deps?: boolean;
+    credentials?: string | null;
+    pre?: boolean;
+    index_urls?: string[] | string | null;
+    constraints?: string[] | null;
+    reinstall?: boolean;
+    verbose?: boolean | number | null;
+}
+
 export declare function mount(options: MountOptions, container?: HTMLElement): {
     unmount: () => void;
-    install: (requirements: string[]) => Promise<unknown>;
+    install: (requirements: string[], options?: MicropipInstallOptions) => Promise<unknown>;
     writeFile: (path: string, data: string | ArrayBufferView, opts?: Record<string, unknown>) => Promise<unknown>;
     renameFile: (oldPath: string, newPath: string) => Promise<unknown>;
     unlink: (path: string) => Promise<unknown>;
@@ -1576,6 +1587,7 @@ declare type SimplifiedStliteKernelOptions = Partial<{
     prebuiltPackageNames: StliteKernelOptions["prebuiltPackageNames"];
     files: Record<string, EmscriptenFile | EmscriptenFileUrl | EmscriptenFile["data"]>;
     archives: StliteKernelOptions["archives"];
+    installs: StliteKernelOptions["installs"];
     hostConfig: StliteKernelOptions["hostConfigResponse"];
     pyodideUrl: StliteKernelOptions["pyodideUrl"];
     wheelUrls: StliteKernelOptions["wheelUrls"];
@@ -1610,6 +1622,13 @@ declare interface StliteKernelOptions {
      * Archives to unpack and mount.
      */
     archives: Array<PyodideArchive | PyodideArchiveUrl>;
+    /**
+     * Additional packages to install.
+     * The packages specified in `requirements` will be installed in the same call of `micropip.install()`
+     * as some built-in dependencies such as `streamlit` and `stlite-lib` with the fixed options.
+     * This `installs` option is used to install packages with more flexible options
+     */
+    installs?: WorkerInitialData["installs"];
     /**
      * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
      * If not specified, the default one is used.
@@ -1683,6 +1702,10 @@ declare interface WorkerInitialData {
     files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
     archives: Array<PyodideArchive | PyodideArchiveUrl>;
     requirements: string[];
+    installs?: Array<{
+        requirements: string[];
+        options?: MicropipInstallOptions;
+    }>;
     prebuiltPackageNames: string[];
     pyodideUrl?: string;
     wheels?: {

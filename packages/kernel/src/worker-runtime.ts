@@ -202,7 +202,7 @@ async function loadPyodideAndPackages(
       installs.map(({ requirements: unvalidatedRequirements, options }) => {
         const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
         console.debug("Installing the requirements:", requirements);
-        return micropip.install.callKwargs(requirements, options);
+        return micropip.install.callKwargs(requirements, options ?? {});
       }),
     );
   }
@@ -721,12 +721,14 @@ export function startWorkerEnv(
 
           const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
           console.debug("Install the requirements:", requirements);
-          await micropip.install.callKwargs(requirements, options).then(() => {
-            console.debug("Successfully installed");
-            reply({
-              type: "reply",
+          await micropip.install
+            .callKwargs(requirements, options ?? {})
+            .then(() => {
+              console.debug("Successfully installed");
+              reply({
+                type: "reply",
+              });
             });
-          });
           break;
         }
         case "setEnv": {

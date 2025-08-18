@@ -1,5 +1,4 @@
 import streamlit as st
-import numpy as np
 
 vertical_alignment = st.selectbox(
     "Vertical alignment", ["top", "center", "bottom"], index=2

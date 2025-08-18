@@ -1,15 +1,9 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
 import altair as alt
+import pandas as pd
+import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    return pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
-
-
-df = load_data()
+df = pd.DataFrame(rng(0).standard_normal((20, 3)), columns=["a", "b", "c"])
 
 point_selector = alt.selection_point("point_selection")
 interval_selector = alt.selection_interval("interval_selection")
@@ -22,7 +16,9 @@ chart = (
         size="c",
         color="c",
         tooltip=["a", "b", "c"],
-        fillOpacity=alt.condition(point_selector, alt.value(1), alt.value(0.3)),
+        fillOpacity=alt.condition(
+            point_selector, alt.value(1), alt.value(0.3)
+        ),
     )
     .add_params(point_selector, interval_selector)
 )

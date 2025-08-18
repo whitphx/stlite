@@ -1,14 +1,10 @@
-import streamlit as st
 import pandas as pd
-import numpy as np
+import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    return pd.DataFrame(np.random.randn(12, 5), columns=["a", "b", "c", "d", "e"])
-
-
-df = load_data()
+df = pd.DataFrame(
+    rng(0).standard_normal((12, 5)), columns=["a", "b", "c", "d", "e"]
+)
 
 event = st.dataframe(
     df,
@@ -16,5 +12,4 @@ event = st.dataframe(
     on_select="rerun",
     selection_mode=["multi-row", "multi-column"],
 )
-
 event.selection

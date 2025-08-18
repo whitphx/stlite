@@ -1,3 +1,5 @@
+SHELL := /bin/bash -eu -o pipefail -c
+
 BUILD_STATE_DIR := .make
 
 # Build State Tracking Strategy
@@ -72,7 +74,7 @@ VENV_PATH := ./.venv
 venv: $(venv)
 $(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt
 	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
-	. $(VENV_PATH)/bin/activate && uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
 	@mkdir -p $(dir $@)
 	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"
@@ -146,7 +148,7 @@ $(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -159,36 +161,38 @@ kernel-test: $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
 $(stlite-lib-wheel): $(venv) $(shell find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py")
-	. $(VENV_PATH)/bin/activate && \
-	cd packages/kernel/py/stlite-lib && \
-	uv build
+	uv --directory packages/kernel/py/stlite-lib build
 	@touch $@
 
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
 $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 	. $(VENV_PATH)/bin/activate && \
-	$(MAKE) -C streamlit python-init-dev-only && \
 	$(MAKE) -C streamlit protobuf
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/Pipfile streamlit/lib/setup.py streamlit/lib/MANIFEST.in
-	. $(VENV_PATH)/bin/activate && \
-	PYODIDE_BUILD_VERSION=`python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
-	PYTHON_VERSION=`python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
-	PYODIDE_PYTHON_VERSION=`pyodide config get python_version` && \
+$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/setup.py streamlit/lib/MANIFEST.in
+	PYODIDE_BUILD_VERSION=`uv run python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
+	PYTHON_VERSION=`uv run python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
+	PYODIDE_PYTHON_VERSION=`uv run pyodide config get python_version` && \
 	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
 		echo "Python version mismatch: Pyodide $$PYODIDE_BUILD_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \
-	fi && \
+	fi
+
+	. $(VENV_PATH)/bin/activate && \
 	TEMP_DIR=$$(mktemp -d) && \
-	mv ./streamlit/lib/streamlit/proto/*.pyi $$TEMP_DIR/ && \
-	SNOWPARK_CONDA_BUILD=true $(MAKE) -C streamlit distribution && \
-	mv $$TEMP_DIR/*.pyi ./streamlit/lib/streamlit/proto/ && \
-	rmdir $$TEMP_DIR && \
-	pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) && \
-	mkdir -p $(dir $(streamlit_wheel)) && \
+	find ./streamlit/lib/streamlit/proto/ -name '*.pyi' -exec mv {} $$TEMP_DIR/ \; && \
+	pushd streamlit && \
+	rm -rfv lib/build lib/dist && \
+	cd lib ; SNOWPARK_CONDA_BUILD=true uv run python setup.py bdist_wheel && \
+	popd && \
+	find $$TEMP_DIR -name '*.pyi' -exec mv {} ./streamlit/lib/streamlit/proto/ \; && \
+	rmdir $$TEMP_DIR
+
+	uv run pyodide py-compile --keep streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME)
+	mkdir -p $(dir $(streamlit_wheel))
 	cp streamlit/lib/dist/$(notdir $(streamlit_wheel)) $(streamlit_wheel)
 
 .PHONY: streamlit-frontend-lib
@@ -206,3 +210,4 @@ clean:
 	yarn tsc -b --clean
 	rm -rf packages/*/dist/* packages/*/build/* streamlit/frontend/*/dist/*
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
+	$(MAKE) -C streamlit clean

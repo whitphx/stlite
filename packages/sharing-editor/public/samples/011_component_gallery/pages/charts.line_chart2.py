@@ -1,16 +1,12 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    df = pd.DataFrame(np.random.randn(20, 3), columns=["col1", "col2", "col3"])
-    return df
-
-
-chart_data = load_data()
+df = pd.DataFrame(rng(0).standard_normal((20, 3)), columns=["a", "b", "c"])
 
 st.line_chart(
-    chart_data, x="col1", y=["col2", "col3"], color=["#FF0000", "#0000FF"]  # Optional
+    df,
+    x="a",
+    y=["b", "c"],
+    color=["#FF0000", "#0000FF"],
 )

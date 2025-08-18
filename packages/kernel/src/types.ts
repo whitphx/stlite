@@ -16,7 +16,7 @@ export interface HttpRequest {
 export interface HttpResponse {
   statusCode: number;
   headers: Headers;
-  body: Uint8Array;
+  body: Uint8Array<ArrayBuffer>;
 }
 export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
   headers: Map<string, string>;
@@ -271,6 +271,7 @@ export interface CodeCompletion {
   name: string;
   type: string;
   docstring: string;
+  complete: string;
 }
 export interface ReplyMessageCodeCompletion extends ReplyMessageBase {
   type: "reply:code_completion";

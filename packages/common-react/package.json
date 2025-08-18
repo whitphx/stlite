@@ -1,6 +1,6 @@
 {
   "name": "@stlite/common-react",
-  "version": "0.85.1",
+  "version": "0.87.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -19,12 +19,17 @@
     "react-toastify": "^11.0.2"
   },
   "devDependencies": {
-    "eslint": "^8.33.0",
-    "prettier": "^3.4.2",
+    "@eslint/js": "^9.32.0",
+    "eslint": "^9.32.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^6.0.0-rc.1",
+    "prettier": "^3.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "typescript": "^5.7.3",
-    "vitest": "^3.0.9"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.38.0",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

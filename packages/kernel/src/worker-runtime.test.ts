@@ -178,6 +178,9 @@ suite("Worker intergration test running an app", async () => {
     test(
       // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
       `Running ${testSource.entrypoint}`,
+      {
+        timeout: 60 * 1000,
+      },
       async () => {
         const files = Object.fromEntries(
           await Promise.all(
@@ -225,9 +228,6 @@ with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: h
 assert not at.exception, f"Exception occurred: {at.exception}"
 assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
         `);
-      },
-      {
-        timeout: 60 * 1000,
       },
     );
   }

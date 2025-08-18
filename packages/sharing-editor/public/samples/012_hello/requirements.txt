@@ -2,4 +2,4 @@ pandas
 numpy
 altair
 pydeck
-streamlit>=1.45.0
+streamlit>=1.48.0

@@ -29,6 +29,7 @@ export async function getCodeCompletions(
       name: jediCompletion.name,
       type: jediCompletion.$type, // PyProxy.type is overridden in Pyodide. We need to access it this way. Ref: https://github.com/pyodide/pyodide/issues/4032
       docstring: jediCompletion.docstring.callKwargs({ raw: true }),
+      complete: jediCompletion.complete,
     });
     jediCompletion.destroy();
   }

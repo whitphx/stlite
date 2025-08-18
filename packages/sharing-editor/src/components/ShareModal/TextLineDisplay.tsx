@@ -11,7 +11,9 @@ function TextLineDisplay(props: TextLineDisplayProps) {
   const copiedFlagTimerRef = useRef<NodeJS.Timeout | undefined>();
   const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(props.text).then(() => {
-      copiedFlagTimerRef.current && clearTimeout(copiedFlagTimerRef.current);
+      if (copiedFlagTimerRef.current) {
+        clearTimeout(copiedFlagTimerRef.current);
+      }
       setCopied(true);
       (copiedFlagTimerRef as React.MutableRefObject<NodeJS.Timeout>).current =
         setTimeout(() => setCopied(false), 3000);

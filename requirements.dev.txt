@@ -1,2 +1,2 @@
 pip  # `pyodide xbuildenv install` which is automatically run by `pyodide py-compile` uses `pip` to install packages
-pyodide-build==0.30.4
+pyodide-build==0.30.7

@@ -53,7 +53,7 @@ export function mount(
       kernel.dispose();
       reactRoot.unmount();
     },
-    install: (requirements: string[], options: MicropipInstallOptions) => {
+    install: (requirements: string[], options?: MicropipInstallOptions) => {
       return kernelWithToast.install(requirements, options);
     },
     writeFile: (

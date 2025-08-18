@@ -54,7 +54,9 @@ Here is a sample HTML file.
   </head>
   <body>
     <streamlit-app>
-      import streamlit as st name = st.text_input('Your name')
+      import streamlit as st
+
+      name = st.text_input('Your name')
       st.write("Hello,", name or "world")
     </streamlit-app>
   </body>
@@ -117,7 +119,7 @@ In this sample,
 > mount(
 >   `
 > import streamlit as st
-> 
+>
 > st.markdown("This is an inline code format: \`code\`")
 > `,
 >   document.getElementById("root"),

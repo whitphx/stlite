@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.88.0] - 2025-08-19
+
+### `@stlite/kernel`
+
+#### Added
+
+- Add means to install packages with specific configs, [#1551](https://github.com/whitphx/stlite/pull/1551).
+
+### `@stlite/browser`
+
+#### Added
+
+- Add `installs` option on `mount()` and `options` argument on `controller.install()`, [#1551](https://github.com/whitphx/stlite/pull/1551).
+
 ## [0.87.0] - 2025-08-14
 
 ### General

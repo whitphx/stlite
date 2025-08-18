@@ -21,6 +21,7 @@ import type {
   StreamlitConfig,
   ModuleAutoLoadMessage,
   CodeCompletion,
+  MicropipInstallOptions,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -72,6 +73,14 @@ export interface StliteKernelOptions {
    * Archives to unpack and mount.
    */
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
+
+  /**
+   * Additional packages to install.
+   * The packages specified in `requirements` will be installed in the same call of `micropip.install()`
+   * as some built-in dependencies such as `streamlit` and `stlite-lib` with the fixed options.
+   * This `installs` option is used to install packages with more flexible options
+   */
+  installs?: WorkerInitialData["installs"];
 
   /**
    * The URL of `pyodide.js` or `pyodide.mjs` to be loaded in the worker.
@@ -321,11 +330,15 @@ export class StliteKernel {
     }).then();
   }
 
-  public install(requirements: string[]): Promise<void> {
+  public install(
+    requirements: string[],
+    options?: MicropipInstallOptions,
+  ): Promise<void> {
     return this._asyncPostMessage({
       type: "install",
       data: {
         requirements,
+        options,
       },
     }).then();
   }

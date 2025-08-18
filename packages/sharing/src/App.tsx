@@ -172,7 +172,9 @@ st.write("Hello World")`,
                 return kernelWithToast.unlink(msg.data.path);
               }
               case "install": {
-                return kernelWithToast.install(msg.data.requirements);
+                return kernelWithToast.install(msg.data.requirements, {
+                  keep_going: true,
+                });
               }
               case "code_completion_request": {
                 return kernel

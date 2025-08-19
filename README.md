@@ -141,14 +141,22 @@ you can use the `<streamlit-app>` tag with the `<app-file>`, and `<app-requireme
 ```html
 <streamlit-app>
   <app-file name="streamlit_app.py" entrypoint>
-    import streamlit as st import matplotlib.pyplot as plt import numpy as np
-    size = st.slider("Sample size", 100, 1000) arr = np.random.normal(1, 1,
-    size=size) fig, ax = plt.subplots() ax.hist(arr, bins=20) st.pyplot(fig)
+    import streamlit as st
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    size = st.slider("Sample size", 100, 1000)
+    arr = np.random.normal(1, 1, size=size)
+    fig, ax = plt.subplots()
+    ax.hist(arr, bins=20)
+    st.pyplot(fig)
   </app-file>
   <app-file name=".streamlit/config.toml">
     [client] toolbarMode = "viewer"
   </app-file>
-  <app-requirements> matplotlib </app-requirements>
+  <app-requirements>
+    matplotlib
+  </app-requirements>
 </streamlit-app>
 ```
 

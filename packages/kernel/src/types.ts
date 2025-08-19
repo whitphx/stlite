@@ -16,7 +16,7 @@ export interface HttpRequest {
 export interface HttpResponse {
   statusCode: number;
   headers: Headers;
-  body: Uint8Array;
+  body: Uint8Array<ArrayBuffer>;
 }
 export interface HttpResponseInMessage extends Omit<HttpResponse, "headers"> {
   headers: Map<string, string>;
@@ -42,11 +42,25 @@ export interface PyodideArchiveUrl {
 export interface StreamlitConfig {
   [key: string]: PyodideConvertiblePrimitive;
 }
+export interface MicropipInstallOptions {
+  keep_going?: boolean;
+  deps?: boolean;
+  credentials?: string | null;
+  pre?: boolean;
+  index_urls?: string[] | string | null;
+  constraints?: string[] | null;
+  reinstall?: boolean;
+  verbose?: boolean | number | null;
+}
 export interface WorkerInitialData {
   entrypoint: string;
   files: Record<string, EmscriptenFile | EmscriptenFileUrl>;
   archives: Array<PyodideArchive | PyodideArchiveUrl>;
   requirements: string[];
+  installs?: Array<{
+    requirements: string[];
+    options?: MicropipInstallOptions;
+  }>;
   prebuiltPackageNames: string[];
   pyodideUrl?: string;
   wheels?: {
@@ -128,6 +142,7 @@ export interface InMessageInstall extends InMessageBase {
   type: "install";
   data: {
     requirements: string[];
+    options?: MicropipInstallOptions;
   };
 }
 
@@ -256,6 +271,7 @@ export interface CodeCompletion {
   name: string;
   type: string;
   docstring: string;
+  complete: string;
 }
 export interface ReplyMessageCodeCompletion extends ReplyMessageBase {
   type: "reply:code_completion";

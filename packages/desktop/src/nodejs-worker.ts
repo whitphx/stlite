@@ -12,7 +12,7 @@ export class NodeJsWorkerMock {
     this.initializePromise = window.nodeJsWorkerAPI.initialize();
 
     window.nodeJsWorkerAPI.onMessage((data: unknown) => {
-      this.onmessage && this.onmessage({ data, ports: [] });
+      this.onmessage?.({ data, ports: [] });
     });
   }
 

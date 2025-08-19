@@ -1,15 +1,8 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
+from numpy.random import default_rng as rng
 
-
-@st.cache_data
-def load_data():
-    df = pd.DataFrame(np.random.randn(200, 3), columns=["a", "b", "c"])
-    return df
-
-
-df = load_data()
+df = pd.DataFrame(rng(0).standard_normal((60, 3)), columns=["a", "b", "c"])
 
 st.vega_lite_chart(
     df,
@@ -22,5 +15,4 @@ st.vega_lite_chart(
             "color": {"field": "c", "type": "quantitative"},
         },
     },
-    use_container_width=True,
 )

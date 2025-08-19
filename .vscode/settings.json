@@ -2,6 +2,7 @@
   "python.analysis.extraPaths": ["./streamlit/lib"],
   "makefile.configureOnOpen": false,
   "cSpell.words": [
+    "micropip",
     "nvmrc",
     "protoc",
     "pyright",

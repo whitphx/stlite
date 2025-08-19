@@ -1,14 +1,7 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
+from numpy.random import default_rng as rng
 
+df = pd.DataFrame(rng(0).standard_normal((20, 3)), columns=["a", "b", "c"])
 
-@st.cache_data
-def load_data():
-    df = pd.DataFrame(np.random.randn(20, 3), columns=["a", "b", "c"])
-    return df
-
-
-chart_data = load_data()
-
-st.bar_chart(chart_data)
+st.bar_chart(df)

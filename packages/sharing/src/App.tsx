@@ -172,7 +172,9 @@ st.write("Hello World")`,
                 return kernelWithToast.unlink(msg.data.path);
               }
               case "install": {
-                return kernelWithToast.install(msg.data.requirements);
+                return kernelWithToast.install(msg.data.requirements, {
+                  keep_going: true,
+                });
               }
               case "code_completion_request": {
                 return kernel
@@ -212,8 +214,10 @@ st.write("Hello World")`,
     return () => {
       unmounted = true;
 
-      onMessage && window.removeEventListener("message", onMessage);
-      _kernel && _kernel.dispose();
+      if (onMessage) {
+        window.removeEventListener("message", onMessage);
+      }
+      _kernel?.dispose();
     };
   }, []);
 

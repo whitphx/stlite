@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.88.0] - 2025-08-19
+
+### `@stlite/kernel`
+
+#### Added
+
+- Add means to install packages with specific configs, [#1551](https://github.com/whitphx/stlite/pull/1551).
+
+### `@stlite/browser`
+
+#### Added
+
+- Add `installs` option on `mount()` and `options` argument on `controller.install()`, [#1551](https://github.com/whitphx/stlite/pull/1551).
+
+## [0.87.0] - 2025-08-14
+
+### General
+
+#### Changed
+
+- Update Streamlit to 1.48.0, [#1565](https://github.com/whitphx/stlite/pull/1565).
+
+## [0.86.0] - 2025-07-20
+
+### `@stlite/kernel`
+
+- Add `complete` field to `CodeCompletion`, [#1553](https://github.com/whitphx/stlite/pull/1553).
+
+### `@stlite/browser`
+
+- Add `complete` field to the return value of `getCodeCompletion`, [#1553](https://github.com/whitphx/stlite/pull/1553).
+
+## [0.85.2] - 2025-07-17
+
+- Fix a bug of the tag-based API that `entrypoint` is not counted when specified with `url`, [1545](https://github.com/whitphx/stlite/pull/1545).
+
 ## [0.85.1] - 2025-07-13
 
 ### General

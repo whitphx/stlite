@@ -7,9 +7,9 @@ streamlit-app {
 }
 
 streamlit-app app-file,
-app-archive,
-app-requirements,
-app-config {
+streamlit-app app-archive,
+streamlit-app app-requirements,
+streamlit-app app-config {
   display: none;
 }
 

@@ -130,7 +130,7 @@ Hint: Technically, the `<streamlit-app>` tag API is a wrapper around the `mount(
 
 ### More controls
 
-If you need do more such as
+If you need to do more such as
 
 - mounting multiple files
 - installing dependencies

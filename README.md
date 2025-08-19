@@ -152,7 +152,8 @@ you can use the `<streamlit-app>` tag with the `<app-file>`, and `<app-requireme
     st.pyplot(fig)
   </app-file>
   <app-file name=".streamlit/config.toml">
-    [client] toolbarMode = "viewer"
+    [client]
+    toolbarMode = "viewer"
   </app-file>
   <app-requirements>
     matplotlib

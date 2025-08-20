@@ -72,9 +72,11 @@ VENV_PATH := ./.venv
 
 .PHONY: venv
 venv: $(venv)
-$(venv): requirements.dev.txt streamlit/lib/dev-requirements.txt
+$(venv): .python-version requirements.dev.txt streamlit/lib/dev-requirements.txt
 	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
 	uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	uv run pyodide xbuildenv uninstall
+	uv run pyodide xbuildenv install
 	@mkdir -p $(dir $@)
 	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"

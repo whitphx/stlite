@@ -184,9 +184,11 @@ async function createSitePackagesSnapshot(
 ) {
   logger.info("Create the site-packages snapshot file...");
 
-  const pyodide = await loadPyodide({
-    packageCacheDir: options.pyodideRuntimeDir,
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
+    await loadPyodide({
+      packageCacheDir: options.pyodideRuntimeDir,
+    });
   // @ts-expect-error  Access the private API of the Pyodide instance.
   pyodide._api.setCdnUrl(options.pyodideSource);
 

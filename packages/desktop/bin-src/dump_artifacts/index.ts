@@ -115,10 +115,9 @@ async function saveUsedPrebuiltPackages(
   }
 
   const pyodide = await loadPyodide({
+    packageBaseUrl: options.pyodideSource,
     packageCacheDir: options.pyodideRuntimeDir,
   });
-  // @ts-expect-error  Access the private API of the Pyodide instance.
-  pyodide._api.setCdnUrl(options.pyodideSource);
 
   await installPackages(pyodide, {
     requirements: options.requirements,
@@ -187,10 +186,9 @@ async function createSitePackagesSnapshot(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
     await loadPyodide({
+      packageBaseUrl: options.pyodideSource,
       packageCacheDir: options.pyodideRuntimeDir,
     });
-  // @ts-expect-error  Access the private API of the Pyodide instance.
-  pyodide._api.setCdnUrl(options.pyodideSource);
 
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");

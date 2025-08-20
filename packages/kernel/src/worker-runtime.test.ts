@@ -166,7 +166,7 @@ await at.run(timeout=20)
   },
 ];
 
-suite("Worker intergration test running an app", async () => {
+suite("Worker integration test running an app", async () => {
   beforeEach(() => {
     vitest.resetModules();
   });

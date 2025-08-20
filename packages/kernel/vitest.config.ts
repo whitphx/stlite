@@ -20,7 +20,7 @@ export default defineConfig(() => ({
       ),
       "streamlit.whl": path.resolve(
         __dirname,
-        `./py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
+        `./py/streamlit/lib/dist/${getStreamlitWheelFileName("cp")}`,
       ),
     },
   },

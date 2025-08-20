@@ -21,7 +21,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.24.0",
     "requests>=2.32.3",
     "ruff>=0.6.9",
-    "streamlit-aggrid>=1.0.5",
+    "streamlit-folium>=0.25.1",
 ]
 
 [build-system]

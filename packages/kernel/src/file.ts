@@ -30,8 +30,9 @@ function ensureParent(pyodide: PyodideWithFS, filePath: string): void {
   for (const dirPathSegment of dirPathSegments) {
     subDirPath += dirPathSegment;
 
-    if (pyodide.FS.analyzePath(subDirPath).exists) {
-      if (pyodide.FS.isDir(subDirPath)) {
+    const analysis = pyodide.FS.analyzePath(subDirPath);
+    if (analysis.exists && analysis.object) {
+      if (!pyodide.FS.isDir(analysis.object.mode)) {
         throw new Error(
           `"${subDirPath}" already exists and is not a directory.`,
         );

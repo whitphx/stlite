@@ -24,24 +24,26 @@ function ensureParent(pyodide: PyodideWithFS, filePath: string): void {
 
   const dirPath = path.dirname(normalized);
 
-  const dirNames = dirPath.split("/");
+  const dirPathSegments = dirPath.split(/(?=\/)/);
 
-  const chDirNames: string[] = [];
-  for (const dirName of dirNames) {
-    chDirNames.push(dirName);
-    const dirPath = chDirNames.join("/");
+  let subDirPath = "";
+  for (const dirPathSegment of dirPathSegments) {
+    subDirPath += dirPathSegment;
 
-    if (pyodide.FS.analyzePath(dirPath).exists) {
-      if (pyodide.FS.isDir(dirPath)) {
-        throw new Error(`"${dirPath}" already exists and is not a directory.`);
+    const analysis = pyodide.FS.analyzePath(subDirPath);
+    if (analysis.exists && analysis.object) {
+      if (!pyodide.FS.isDir(analysis.object.mode)) {
+        throw new Error(
+          `"${subDirPath}" already exists and is not a directory.`,
+        );
       }
       continue;
     }
 
     try {
-      pyodide.FS.mkdir(dirPath);
+      pyodide.FS.mkdir(subDirPath);
     } catch (err) {
-      console.error(`Failed to create a directory "${dirPath}"`);
+      console.error(`Failed to create a directory "${subDirPath}"`);
       throw err;
     }
   }

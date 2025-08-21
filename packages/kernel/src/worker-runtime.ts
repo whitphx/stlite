@@ -408,7 +408,7 @@ async function bootstrapServer(
   const Server = pyodide.pyimport("stlite_lib.server.Server");
   const httpServer = Server(
     canonicalEntrypoint,
-    appId ? getAppHomeDir(appId) : null,
+    appId ? getAppHomeDir(appId) : undefined,
   );
   await httpServer.start();
   console.debug("Booted up the Streamlit server");

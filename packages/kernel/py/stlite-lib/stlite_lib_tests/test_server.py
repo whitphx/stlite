@@ -206,22 +206,22 @@ async def test_http_file_delete(AppSession, setup_server):
 async def test_http_component(setup_server):
     server: Server = await setup_server()
 
-    import st_aggrid
+    import streamlit_folium
 
     with open(
-        os.path.join(st_aggrid._component_func._path, "index.html"), "rb"
-    ) as aggrid_index_html:
-        aggrid_index_html_contents = aggrid_index_html.read()
+        os.path.join(streamlit_folium._component_func._path, "index.html"), "rb"
+    ) as folium_index_html:
+        folium_index_html_contents = folium_index_html.read()
 
     on_response = Mock()
 
     server.receive_http(
         "GET",
-        rf"/component/{st_aggrid._component_func.name}/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
+        rf"/component/{streamlit_folium._component_func.name}/index.html?streamlitUrl=http%3A%2F%2Flocalhost%3A3000%2F",  # noqa: E501
         {},
         "",
         on_response,
     )
     on_response.assert_called_with(
-        200, {"Content-Type": "text/html"}, aggrid_index_html_contents
+        200, {"Content-Type": "text/html"}, folium_index_html_contents
     )

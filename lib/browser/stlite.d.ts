@@ -34,7 +34,9 @@ declare type FSNode = {
 };
 
 declare type FSStream = {
-    	tty?: boolean;
+    	tty?: {
+        		ops: object;
+        	};
     	seekable?: boolean;
     	stream_ops: FSStreamOps;
     	node: FSNode;
@@ -80,6 +82,7 @@ declare interface FSType {
     	utime: (path: string, atime: number, mtime: number) => void;
     	rmdir: (path: string) => void;
     	mount: (type: any, opts: any, mountpoint: string) => any;
+    	unmount: (mountpoint: string) => any;
     	write: (stream: FSStream, buffer: any, offset: number, length: number, position?: number) => number;
     	close: (stream: FSStream) => void;
     	ErrnoError: {
@@ -87,13 +90,95 @@ declare interface FSType {
         	};
     	registerDevice<T>(dev: number, ops: FSStreamOpsGen<T>): void;
     	syncfs(dir: boolean, oncomplete: (val: void) => void): void;
-    	findObject(a: string, dontResolveLastLink?: boolean): any;
-    	readFile(a: string): Uint8Array;
 }
 
 declare type InFuncType = () => null | undefined | string | ArrayBuffer | Uint8Array | number;
 
 declare type LoadedPackages = Record<string, string>;
+
+/**
+ * The type of a package lockfile.
+ */
+declare interface Lockfile {
+    	info: LockfileInfo;
+    	packages: Record<string, LockfilePackage>;
+}
+
+/**
+ * The lockfile platform info. The ``abi_version`` field is used to check if the
+ * lockfile is compatible with the interpreter. The remaining fields are
+ * informational.
+ */
+declare interface LockfileInfo {
+    	/**
+     	 * Machine architecture. At present, only can be wasm32. Pyodide has no wasm64
+     	 * build.
+     	 */
+    	arch: "wasm32";
+    	/**
+     	 * The ABI version is structured as ``yyyy_patch``. For the lockfile to be
+     	 * compatible with the current interpreter this field must match exactly with
+     	 * the ABI version of the interpreter.
+     	 */
+    	abi_version: string;
+    	/**
+     	 * The Emscripten versions for instance, `emscripten_4_0_9`. Different
+     	 * Emscripten versions have different ABIs so if this changes ``abi_version``
+     	 * must also change.
+     	 */
+    	platform: string;
+    	/**
+     	 * The Pyodide version the lockfile was made with. Informational only, has no
+     	 * compatibility implications. May be removed in the future.
+     	 */
+    	version: string;
+    	/**
+     	 * The Python version this lock file was made with. If the minor version
+     	 * changes (e.g, 3.12 to 3.13) this changes the ABI and the ``abi_version``
+     	 * must change too. Patch versions do not imply a change to the
+     	 * ``abi_version``.
+     	 */
+    	python: string;
+}
+
+/**
+ * A package entry in the lock file.
+ */
+declare interface LockfilePackage {
+    	/**
+     	 * The unnormalized name of the package.
+     	 */
+    	name: string;
+    	version: string;
+    	/**
+     	 * The file name or url of the package wheel. If it's relative, it will be
+     	 * resolved with respect to ``packageBaseUrl``. If there is no
+     	 * ``packageBaseUrl``, attempting to install a package with a relative
+     	 * ``file_name``  will fail.
+     	 */
+    	file_name: string;
+    	package_type: PackageType;
+    	/**
+     	 * The installation directory. Will be ``site`` except for certain system
+     	 * dynamic libraries that need to go on the global LD_LIBRARY_PATH.
+     	 */
+    	install_dir: "site" | "dynlib";
+    	/**
+     	 * Integrity. Must be present unless ``checkIntegrity: false`` is passed to
+     	 * ``loadPyodide``.
+     	 */
+    	sha256: string;
+    	/**
+     	 * The set of imports provided by this package as best we can tell. Used by
+     	 * :js:func:`pyodide.loadPackagesFromImports` to work out what packages to
+     	 * install.
+     	 */
+    	imports: string[];
+    	/**
+     	 * The set of dependencies of this package.
+     	 */
+    	depends: string[];
+}
 
 declare interface MakeToastKernelCallbacksOptions {
     disableProgressToasts?: boolean;
@@ -771,7 +856,15 @@ declare class PyMutableSequenceMethods {
     	fill(value: any, start?: number, end?: number): any;
 }
 
-declare class PyodideAPI {
+/**
+ * The return type of :js:func:`~exports.loadPyodide`. See
+ * :ref:`the pyodide api docs <js-api-pyodide>` for more information.
+ * @hidetype
+ * @docgroup exports
+ */
+declare type PyodideAPI = typeof PyodideAPI_;
+
+declare class PyodideAPI_ {
     	/** @hidden */
     	static version: string;
     	/** @hidden */
@@ -779,7 +872,7 @@ declare class PyodideAPI {
         		messageCallback?: (message: string) => void;
         		errorCallback?: (message: string) => void;
         		checkIntegrity?: boolean;
-        	}) => Promise<Array<PackageData>>;
+        	}) => Promise<PackageData[]>;
     	/** @hidden */
     	static loadedPackages: LoadedPackages;
     	/** @hidden */
@@ -1149,31 +1242,37 @@ declare class PyodideAPI {
      	 */
     	static setDebug(debug: boolean): boolean;
     	/**
-     	 *
-     	 * @param param0
-     	 * @returns
+     	 * @private
      	 */
     	static makeMemorySnapshot({ serializer, }?: {
         		serializer?: (obj: any) => any;
         	}): Uint8Array;
+    	/**
+     	 * Returns the pyodide lockfile used to load the current Pyodide instance.
+     	 * The format of the lockfile is defined in the `pyodide/pyodide-lock
+     	 * <https://github.com/pyodide/pyodide-lock>`_ repository.
+     	 */
+    	static get lockfile(): Lockfile;
+    	/**
+     	 * Returns the URL or path with respect to which relative paths in the lock
+     	 * file are resolved, or undefined.
+     	 */
+    	static get lockfileBaseUrl(): string | undefined;
 }
 
 declare interface PyodideArchive {
-    buffer: Parameters<PyodideInterface["unpackArchive"]>[0];
-    format: Parameters<PyodideInterface["unpackArchive"]>[1];
-    options?: Parameters<PyodideInterface["unpackArchive"]>[2];
+    buffer: Parameters<PyodideAPI["unpackArchive"]>[0];
+    format: Parameters<PyodideAPI["unpackArchive"]>[1];
+    options?: Parameters<PyodideAPI["unpackArchive"]>[2];
 }
 
 declare interface PyodideArchiveUrl {
     url: string;
-    format: Parameters<PyodideInterface["unpackArchive"]>[1];
-    options?: Parameters<PyodideInterface["unpackArchive"]>[2];
+    format: Parameters<PyodideAPI["unpackArchive"]>[1];
+    options?: Parameters<PyodideAPI["unpackArchive"]>[2];
 }
 
 declare type PyodideConvertiblePrimitive = string | number | boolean | null | undefined;
-
-/** @hidden */
-declare type PyodideInterface = typeof PyodideAPI;
 
 /** @deprecated Use `import type { PyProxy } from "pyodide/ffi"` instead */
 declare interface PyProxy {
@@ -1209,7 +1308,7 @@ declare class PyProxy {
     	get type(): string;
     	/**
      	 * Returns `str(o)` (unless `pyproxyToStringRepr: true` was passed to
-     	 * :js:func:`~globalThis.loadPyodide` in which case it will return `repr(o)`)
+     	 * :js:func:`~exports.loadPyodide` in which case it will return `repr(o)`)
      	 */
     	toString(): string;
     	/**
@@ -1694,6 +1793,9 @@ declare interface StreamlitConfig {
     [key: string]: PyodideConvertiblePrimitive;
 }
 
+/**
+ * @docgroup pyodide.ffi
+ */
 /** @deprecated Use `import type { TypedArray } from "pyodide/ffi"` instead */
 declare type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;
 

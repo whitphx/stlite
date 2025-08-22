@@ -119,3 +119,13 @@ yarn new-version
 ```shell
 yarn new-version --force-publish
 ```
+
+### Windows Developement
+Use WSL, you'll need to install the following to initialize your Dev environment. Afterwards follow the normal build steps
+```shell
+curl -LsSf https://astral.sh/uv/install.sh | sh
+sudo apt-get update
+sudo apt-get install build-essential
+sudo apt-get install nodejs
+sudo apt  install protobuf-compiler
+```

@@ -480,6 +480,39 @@ while the networking libraries do not work in general on the Pyodide runtime (Py
 
 Also, `urllib3` supports Pyodide since 2.2.0 as [this document](https://urllib3.readthedocs.io/en/stable/reference/contrib/emscripten.html) says.
 
+## SharedWorker mode
+
+Normally, each app created by `stlite.mount()` or `<streamlit-app>` runs in its own [worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API).
+It brings good isolation but also can lead to huge memory consumption when there are many Stlite apps running at the same time.
+
+In such a case, running the apps in a single worker can help mitigate the resource consumption, and _Stlite_ provides [**SharedWorker**](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker) mode to do it.
+
+To enable SharedWorker mode, set `shared-worker` attribute on the `<streamlit-app>` tag
+
+```html
+<streamlit-app shared-worker>
+  ...
+</streamlit-app>
+```
+
+or set the `sharedWorker` option to `true` on `stlite.mount`
+
+```js
+stlite.mount(
+  {
+    sharedWorker: true,
+    // ... other options ...
+  },
+  document.getElementById("root")
+);
+```
+
+The Python environment and file system are not isolated in the SharedWorker.
+A different home directory is set for each app (`/home/pyodide/<id>`) but the files are still accessible from all the apps running in the worker.
+Also modifications on the Python environment (e.g. installed packages or monkey-patching modules) are shared across all apps.
+
+[SharedWorker doesn't work in some browsers](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker#browser_compatibility) such as Chrome Android, and in such a case, _Stlite_ falls back to using the normal separate workers for each app.
+
 ## Limitations
 
 As _Stlite_ runs on the web browser environment ([Pyodide](https://pyodide.org/) runtime), there are things not working well. The known issues follow.

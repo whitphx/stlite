@@ -400,7 +400,7 @@ jobs:
         name: stlite-browser
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+      uses: actions/attest-build-provenance@v3
       with:
         subject-path: packages/browser/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -564,7 +564,7 @@ jobs:
         name: stlite-desktop
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+      uses: actions/attest-build-provenance@v3
       with:
         subject-path: packages/desktop/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.

@@ -338,7 +338,7 @@ jobs:
 
     steps:
       - name: Comment on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
         with:

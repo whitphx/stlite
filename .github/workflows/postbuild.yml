@@ -1,4 +1,4 @@
-name: Postbuild
+name: Post-build
 
 on:
   # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.
@@ -430,8 +430,6 @@ jobs:
 
     - name: Publish validated package
       run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2.2.1
@@ -509,9 +507,8 @@ jobs:
     - name: Update npm
       run: npm install -g npm@latest
 
-    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2.2.1

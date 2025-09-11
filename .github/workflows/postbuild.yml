@@ -1,4 +1,4 @@
-name: Postbuild
+name: Post-build
 
 on:
   # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.

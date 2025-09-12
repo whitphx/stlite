@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.89.1] - 2025-09-11
+
+### `@stlite/browser`
+
+#### Fixed
+
+- NPM trusted publishing
+
+### `@stlite/desktop`
+
+#### Fixed
+
+- NPM trusted publishing
+
 ## [0.89.0] - 2025-08-21
 
 ### General

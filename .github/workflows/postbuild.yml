@@ -1,4 +1,4 @@
-name: Postbuild
+name: Post-build
 
 on:
   # For security reasons, this workflow is separated from the test-and-build workflow and triggered by the `workflow_run` event following it.
@@ -338,7 +338,7 @@ jobs:
 
     steps:
       - name: Comment on PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
         with:
@@ -364,7 +364,7 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
-      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      id-token: write  # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
@@ -424,10 +424,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
+
     - name: Publish validated package
-      run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --provenance --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2.2.1
@@ -442,7 +444,7 @@ jobs:
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
-      id-token: write  # Necessary for provenance: https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions
+      id-token: write  # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read  # Necessary for verifying artifact attestations
 
     runs-on: ubuntu-latest
@@ -501,9 +503,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --provenance --access public
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
+
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
 
     - name: Create a new release
       uses: softprops/action-gh-release@v2.2.1

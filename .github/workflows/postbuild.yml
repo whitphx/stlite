@@ -82,7 +82,7 @@ jobs:
 
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -154,7 +154,7 @@ jobs:
 
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -219,7 +219,7 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -370,7 +370,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'
@@ -450,7 +450,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'

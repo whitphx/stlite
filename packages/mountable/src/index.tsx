@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import StreamlitApp from "./StreamlitApp";
+import AppRouter from "./AppRouter";
 import { StliteKernel } from "@stlite/kernel";
 import { getParentUrl } from "./url";
 import { parseMountOptions, MountOptions } from "./options";
@@ -31,10 +32,34 @@ if (
   }
 }
 
+export interface MountOptionsWithMode extends MountOptions {
+  mode?: "streamlit" | "dune" | "auto";
+}
+
 export function mount(
-  options: MountOptions,
+  options: MountOptionsWithMode,
   container: HTMLElement = document.body,
 ) {
+  const mode = options.mode || "streamlit"; // Default to streamlit for backward compatibility
+
+  if (mode === "dune") {
+    // For Dune mode, we don't need a kernel
+    ReactDOM.render(
+      <React.StrictMode>
+        <AppRouter mode="dune" />
+        <ToastContainer />
+      </React.StrictMode>,
+      container,
+    );
+
+    return {
+      unmount: () => {
+        ReactDOM.unmountComponentAtNode(container);
+      },
+    };
+  }
+
+  // Streamlit mode (default)
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
   const kernel = new StliteKernel({
     ...kernelOptions,
@@ -43,7 +68,7 @@ export function mount(
   });
   ReactDOM.render(
     <React.StrictMode>
-      <StreamlitApp kernel={kernel} />
+      <AppRouter kernel={kernel} mode={mode} />
       <ToastContainer />
     </React.StrictMode>,
     container,
@@ -98,6 +123,11 @@ export interface AppData {
 
 let prevApp: AppData | null = null;
 let mountedApp: any = null;
+
+// Add a new export for mounting Dune apps
+export function mountDune(container: HTMLElement = document.body) {
+  return mount({ mode: "dune" }, container);
+}
 
 window.addEventListener(
   "message",

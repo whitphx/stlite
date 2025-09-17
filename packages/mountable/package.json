@@ -170,6 +170,7 @@
     ]
   },
   "dependencies": {
-    "html2canvas": "^1.4.1"
+    "html2canvas": "^1.4.1",
+    "react-router-dom": "^6.20.0"
   }
 }

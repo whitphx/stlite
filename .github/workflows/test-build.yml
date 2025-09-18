@@ -62,7 +62,7 @@ jobs:
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
       - name: Upload build info
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: build-info
           path: |
@@ -85,10 +85,10 @@ jobs:
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
-    - uses: dorny/paths-filter@v3
+    - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
       id: filter
       with:
         filters: |
@@ -125,7 +125,7 @@ jobs:
         working-directory: packages/common
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -153,7 +153,7 @@ jobs:
         working-directory: packages/kernel
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -177,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -229,7 +229,7 @@ jobs:
         working-directory: packages/browser
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -257,7 +257,7 @@ jobs:
         working-directory: packages/sharing
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -284,7 +284,7 @@ jobs:
         working-directory: packages/sharing-editor
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -310,7 +310,7 @@ jobs:
         working-directory: packages/sharing-common
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -341,7 +341,7 @@ jobs:
         working-directory: packages/desktop
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -372,7 +372,7 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -394,13 +394,13 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         path: packages/browser/package.tgz
         name: stlite-browser
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+      uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
       with:
         subject-path: packages/browser/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -452,7 +452,7 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -474,7 +474,7 @@ jobs:
         make sharing
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         path: packages/sharing/build
         name: stlite-sharing
@@ -497,7 +497,7 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: recursive
         persist-credentials: false
@@ -514,7 +514,7 @@ jobs:
     - run: make sharing-editor
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         path: packages/sharing-editor/dist
         name: stlite-sharing-editor
@@ -539,7 +539,7 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         submodules: true
         persist-credentials: false
@@ -558,13 +558,13 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         path: packages/desktop/package.tgz
         name: stlite-desktop
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
+      uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
       with:
         subject-path: packages/desktop/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.

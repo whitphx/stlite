@@ -437,7 +437,7 @@ jobs:
       run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
 
     - name: Create a new release
-      uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+      uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
@@ -516,7 +516,7 @@ jobs:
       run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
 
     - name: Create a new release
-      uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+      uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true

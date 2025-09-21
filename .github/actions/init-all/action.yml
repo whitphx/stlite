@@ -8,6 +8,7 @@ inputs:
     description: 'Node version file to setup'
     required: false
   install-node-modules:
+    description: 'Whether to install Node.js modules using "make node_modules"'
     required: false
     default: 'true'
   protoc:

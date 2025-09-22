@@ -7,6 +7,10 @@ inputs:
   node-version-file:
     description: 'Node version file to setup'
     required: false
+  install-node-modules:
+    description: 'Whether to install Node.js modules using "make node_modules"'
+    required: false
+    default: 'true'
   protoc:
     description: 'Whether to install protoc'
     required: false
@@ -78,4 +82,4 @@ runs:
     - name: Set up Node packages
       run: make node_modules
       shell: bash
-      if: ${{ inputs.node-version-file }}
+      if: ${{ inputs.node-version-file && inputs.install-node-modules == 'true' }}

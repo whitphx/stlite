@@ -219,14 +219,11 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
-      if: runner.os == 'Windows'
-      run: npm uninstall -g yarn
-    - name: Enable Corepack
-      run: corepack enable
-    - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+    - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
+        install-node-modules: false
+        protoc: false
 
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 

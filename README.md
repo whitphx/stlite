@@ -10,6 +10,8 @@ This project is tested with BrowserStack.
 [![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
 
+<a href="https://flatt.tech/oss/gmo/trampoline" target="_blank"><img src="https://flatt.tech/assets/images/badges/gmo-oss.svg" height="20px"/></a>
+
 <img src="./assets/stlite.svg" style="background: white;" >
 
 Streamlit is a Python web app framework for the fast development of data apps. This project is to make it run completely on web browsers with the power of [Pyodide](https://pyodide.org/), WebAssembly (Wasm)-ported Python.

@@ -33,7 +33,7 @@ jobs:
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
       - name: Download build info
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: build-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -93,7 +93,7 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - run: mkdir -p ${{ runner.temp }}/artifacts/browser
-    - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -163,7 +163,7 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - run: mkdir -p ${{ runner.temp }}/artifacts/browser
-    - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -228,7 +228,7 @@ jobs:
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 
     - name: Download artifact into the temp dir
-      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
@@ -281,7 +281,7 @@ jobs:
       - run: mkdir -p ${{ runner.temp }}/artifacts/
 
       - name: Download artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
@@ -310,7 +310,7 @@ jobs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
@@ -379,7 +379,7 @@ jobs:
         scope: '@stlite'
 
     - run: mkdir -p ${{ runner.temp }}/stlite-browser
-    - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/stlite-browser
@@ -459,7 +459,7 @@ jobs:
         scope: '@stlite'
 
     - run: mkdir -p ${{ runner.temp }}/stlite-desktop
-    - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/stlite-desktop

@@ -64,7 +64,7 @@
     "vite-plugin-static-copy": "^3.0.0",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0",
-    "vitest": "^3.2.4",
+    "vitest": "^4.0.8",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

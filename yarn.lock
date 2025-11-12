@@ -4989,7 +4989,6 @@ __metadata:
     vite: "npm:^7.1.5"
     vite-plugin-dts: "npm:^4.5.3"
     vite-plugin-static-copy: "npm:^3.0.0"
-    vite-plugin-wasm: "npm:^3.5.0"
     vitest: "npm:^4.0.8"
     web-vitals: "npm:^4.2.4"
   languageName: unknown
@@ -5070,7 +5069,6 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vite: "npm:^7.1.5"
-    vite-plugin-wasm: "npm:^3.5.0"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^4.0.8"
     wait-on: "npm:^8.0.1"
@@ -5203,7 +5201,6 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vite: "npm:^7.1.5"
-    vite-plugin-wasm: "npm:^3.5.0"
     vite-tsconfig-paths: "npm:^5.1.4"
     web-vitals: "npm:^4.2.4"
   languageName: unknown
@@ -25177,15 +25174,6 @@ __metadata:
   peerDependencies:
     vite: ">=2.6.0"
   checksum: 10c0/3e1959fec626bb4f5a8ec13ff15bc40ffbc1c0ff38149bebe3f37dc2d67ed1f276f129ff7983e06946cf712e19996affd9d6868aa7d20d8921d1fe4449109b55
-  languageName: node
-  linkType: hard
-
-"vite-plugin-wasm@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "vite-plugin-wasm@npm:3.5.0"
-  peerDependencies:
-    vite: ^2 || ^3 || ^4 || ^5 || ^6 || ^7
-  checksum: 10c0/39d77b60eb10aececd41e7592ef109fb3404ea1cc3275238eb627e8f3fca9796a4f501fdbee402e7f8c8cbc0aa87b4cae5efcf7fd7de75bbf194b733558661a1
   languageName: node
   linkType: hard
 

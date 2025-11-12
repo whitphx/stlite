@@ -62,6 +62,7 @@
     "vite": "^7.1.5",
     "vite-plugin-dts": "^4.5.3",
     "vite-plugin-static-copy": "^3.0.0",
+    "vite-plugin-wasm": "^3.5.0",
     "vitest": "^4.0.8",
     "web-vitals": "^4.2.4"
   },

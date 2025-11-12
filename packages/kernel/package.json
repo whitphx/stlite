@@ -4,8 +4,9 @@
   "description": "",
   "version": "0.89.1",
   "license": "Apache-2.0",
+  "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/",
     "py/**/*.whl"

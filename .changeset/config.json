@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "whitphx/stlite" }],
+  "commit": false,
+  "fixed": [
+    [
+      "@stlite/browser",
+      "@stlite/desktop",
+      "@stlite/kernel",
+      "@stlite/common",
+      "@stlite/common-react",
+      "@stlite/sharing",
+      "@stlite/sharing-common",
+      "@stlite/sharing-editor",
+      "@stlite/devutils"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@streamlit/*"]
+}
+

@@ -81,10 +81,18 @@ $(venv): .python-version requirements.dev.txt streamlit/lib/dev-requirements.txt
 	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"
 
+CI ?= false
+
+ifeq ($(CI), true)
+	YARN_INSTALL_FLAGS := --immutable
+else
+	YARN_INSTALL_FLAGS :=
+endif
+
 .PHONY: node_modules
 node_modules: $(node_modules)
 $(node_modules): package.json $(shell find packages/ -maxdepth 2 -type f -name "package.json") $(shell find streamlit/frontend/ -maxdepth 2 -type f -name "package.json") ./yarn.lock
-	yarn install
+	yarn install $(YARN_INSTALL_FLAGS)
 	@mkdir -p $(dir $@)
 	@touch $@
 

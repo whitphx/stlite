@@ -18,7 +18,7 @@
     "@emotion/babel-plugin": "^11.13.5",
     "@eslint/js": "^9.32.0",
     "@stlite/devutils": "workspace:^",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "cross-env": "^7.0.3",
     "eslint": "^9.32.0",
     "eslint-plugin-prettier": "^5.5.3",

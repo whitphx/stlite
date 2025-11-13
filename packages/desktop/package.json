@@ -72,7 +72,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/yargs": "^17.0.32",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "electron": "34.3.0",

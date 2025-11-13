@@ -47,7 +47,7 @@
     "@streamlit/app": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "codedent": "^0.1.2",
     "eslint": "^9.32.0",
     "eslint-plugin-prettier": "^5.5.3",

@@ -83,7 +83,7 @@ $(venv): .python-version requirements.dev.txt streamlit/lib/dev-requirements.txt
 
 .PHONY: node_modules
 node_modules: $(node_modules)
-$(node_modules): package.json ./yarn.lock
+$(node_modules): package.json $(shell find packages/ -maxdepth 2 -type f -name "package.json") $(shell find streamlit/frontend/ -maxdepth 2 -type f -name "package.json") ./yarn.lock
 	yarn install
 	@mkdir -p $(dir $@)
 	@touch $@

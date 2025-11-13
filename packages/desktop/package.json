@@ -59,7 +59,7 @@
   "dependencies": {
     "fs-extra": "^11.2.0",
     "pyodide": "0.28.2",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",

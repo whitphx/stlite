@@ -20,7 +20,6 @@ import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 
 import path from "path";
 import { getStreamlitWheelFileName } from "@stlite/devutils";
@@ -39,7 +38,6 @@ export default defineConfig(({ mode }) => ({
     }),
     viteTsconfigPaths(),
     wasm(),
-    topLevelAwait(),
   ],
   resolve: {
     alias: {

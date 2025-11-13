@@ -27,7 +27,7 @@
     "@types/node": "^24.1.0",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.32.0",
     "eslint-plugin-prettier": "^5.5.3",
     "eslint-plugin-react": "^7.37.5",

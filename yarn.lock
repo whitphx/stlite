@@ -88,7 +88,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.21.3, @babel/core@npm:^7.28.0":
+"@babel/core@npm:^7.21.3, @babel/core@npm:^7.28.5":
   version: 7.28.5
   resolution: "@babel/core@npm:7.28.5"
   dependencies:
@@ -4541,13 +4541,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/pluginutils@npm:1.0.0-beta.27":
-  version: 1.0.0-beta.27
-  resolution: "@rolldown/pluginutils@npm:1.0.0-beta.27"
-  checksum: 10c0/9658f235b345201d4f6bfb1f32da9754ca164f892d1cb68154fe5f53c1df42bd675ecd409836dff46884a7847d6c00bdc38af870f7c81e05bba5c2645eb4ab9c
-  languageName: node
-  linkType: hard
-
 "@rolldown/pluginutils@npm:1.0.0-beta.47":
   version: 1.0.0-beta.47
   resolution: "@rolldown/pluginutils@npm:1.0.0-beta.47"
@@ -4981,7 +4974,7 @@ __metadata:
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
-    "@vitejs/plugin-react": "npm:^4.3.4"
+    "@vitejs/plugin-react": "npm:^5.1.1"
     codedent: "npm:^0.1.2"
     eslint: "npm:^9.32.0"
     eslint-plugin-prettier: "npm:^5.5.3"
@@ -5052,7 +5045,7 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@types/yargs": "npm:^17.0.32"
-    "@vitejs/plugin-react": "npm:^4.3.4"
+    "@vitejs/plugin-react": "npm:^5.1.1"
     concurrently: "npm:^9.1.2"
     cross-env: "npm:^7.0.3"
     electron: "npm:34.3.0"
@@ -5108,7 +5101,7 @@ __metadata:
     "@types/node": "npm:^24.1.0"
     "@types/path-browserify": "npm:^1.0.0"
     "@types/react": "npm:^18.2.0"
-    "@vitejs/plugin-react": "npm:^4.3.4"
+    "@vitejs/plugin-react": "npm:^5.1.1"
     eslint: "npm:^9.32.0"
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
@@ -5152,7 +5145,7 @@ __metadata:
     "@types/nprogress": "npm:^0.2.3"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
-    "@vitejs/plugin-react": "npm:^4.3.4"
+    "@vitejs/plugin-react": "npm:^5.1.1"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     cross-env: "npm:^7.0.3"
@@ -5197,7 +5190,7 @@ __metadata:
     "@streamlit/app": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
-    "@vitejs/plugin-react": "npm:^4.3.4"
+    "@vitejs/plugin-react": "npm:^5.1.1"
     cross-env: "npm:^7.0.3"
     eslint: "npm:^9.32.0"
     eslint-plugin-prettier: "npm:^5.5.3"
@@ -7670,19 +7663,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^4.3.4":
-  version: 4.7.0
-  resolution: "@vitejs/plugin-react@npm:4.7.0"
+"@vitejs/plugin-react@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "@vitejs/plugin-react@npm:5.1.1"
   dependencies:
-    "@babel/core": "npm:^7.28.0"
+    "@babel/core": "npm:^7.28.5"
     "@babel/plugin-transform-react-jsx-self": "npm:^7.27.1"
     "@babel/plugin-transform-react-jsx-source": "npm:^7.27.1"
-    "@rolldown/pluginutils": "npm:1.0.0-beta.27"
+    "@rolldown/pluginutils": "npm:1.0.0-beta.47"
     "@types/babel__core": "npm:^7.20.5"
-    react-refresh: "npm:^0.17.0"
+    react-refresh: "npm:^0.18.0"
   peerDependencies:
     vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
-  checksum: 10c0/692f23960972879485d647713663ec299c478222c96567d60285acf7c7dc5c178e71abfe9d2eefddef1eeb01514dacbc2ed68aad84628debf9c7116134734253
+  checksum: 10c0/e590efaea1eabfbb1beb6e8c9fac0742fd299808e3368e63b2825ce24740adb8a28fcb2668b14b7ca1bdb42890cfefe94d02dd358dcbbf8a27ddf377b9a82abf
   languageName: node
   linkType: hard
 
@@ -20976,10 +20969,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-refresh@npm:^0.17.0":
-  version: 0.17.0
-  resolution: "react-refresh@npm:0.17.0"
-  checksum: 10c0/002cba940384c9930008c0bce26cac97a9d5682bc623112c2268ba0c155127d9c178a9a5cc2212d560088d60dfd503edd808669a25f9b377f316a32361d0b23c
+"react-refresh@npm:^0.18.0":
+  version: 0.18.0
+  resolution: "react-refresh@npm:0.18.0"
+  checksum: 10c0/34a262f7fd803433a534f50deb27a148112a81adcae440c7d1cbae7ef14d21ea8f2b3d783e858cb7698968183b77755a38b4d4b5b1d79b4f4689c2f6d358fff2
   languageName: node
   linkType: hard
 

@@ -1,6 +1,6 @@
 {
   "name": "@stlite/devutils",
-  "version": "0.89.1",
+  "version": "0.90.0",
   "type": "module",
   "private": true,
   "exports": {

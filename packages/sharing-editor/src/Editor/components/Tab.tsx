@@ -136,8 +136,8 @@ function DropdownMenu(props: DropdownMenuProps) {
       setIsOpen((cur) => !cur);
     }, []);
 
-  const dropdownRefCallback = useCallback(
-    (dropdownEl: HTMLDivElement | null) => {
+  const dropdownRefCallback: React.RefCallback<HTMLDivElement> = useCallback(
+    (dropdownEl) => {
       dropdownRef.current = dropdownEl;
 
       if (dropdownEl == null || buttonRef.current == null) {

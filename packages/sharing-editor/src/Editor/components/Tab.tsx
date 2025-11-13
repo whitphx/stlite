@@ -127,9 +127,8 @@ interface DropdownMenuProps {
 }
 function DropdownMenu(props: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> =
     useCallback((event) => {
@@ -137,14 +136,20 @@ function DropdownMenu(props: DropdownMenuProps) {
       setIsOpen((cur) => !cur);
     }, []);
 
-  useEffect(() => {
-    if (isOpen && buttonRef.current && dropdownRef.current) {
+  const dropdownRefCallback: React.RefCallback<HTMLDivElement> = useCallback(
+    (dropdownEl) => {
+      dropdownRef.current = dropdownEl;
+
+      if (dropdownEl == null || buttonRef.current == null) {
+        return;
+      }
+
       const rect = buttonRef.current.getBoundingClientRect();
       let top = rect.bottom;
       let right = window.innerWidth - rect.right;
 
-      const dropdownHeight = dropdownRef.current.offsetHeight;
-      const dropdownWidth = dropdownRef.current.offsetWidth;
+      const dropdownHeight = dropdownEl.offsetHeight;
+      const dropdownWidth = dropdownEl.offsetWidth;
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
 
@@ -155,9 +160,11 @@ function DropdownMenu(props: DropdownMenuProps) {
         right = viewportWidth - dropdownWidth;
       }
 
-      setPosition({ top, right });
-    }
-  }, [isOpen]);
+      dropdownEl.style.top = `${top}px`;
+      dropdownEl.style.right = `${right}px`;
+    },
+    [],
+  );
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (buttonRef.current && buttonRef.current.contains(event.target as Node)) {
@@ -191,11 +198,9 @@ function DropdownMenu(props: DropdownMenuProps) {
         ReactDOM.createPortal(
           <menu
             className={styles.dropdownContent}
-            ref={dropdownRef}
+            ref={dropdownRefCallback}
             style={{
               position: "absolute",
-              top: position.top,
-              right: position.right,
             }}
           >
             {props.onDelete && (

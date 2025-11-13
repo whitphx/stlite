@@ -20,7 +20,6 @@ import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
-import topLevelAwait from "vite-plugin-top-level-await";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 
@@ -52,7 +51,6 @@ export default defineConfig(({ mode }) => ({
     }),
     viteTsconfigPaths(),
     wasm(),
-    topLevelAwait(),
     mode !== "test" &&
       viteStaticCopy({
         // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.90.0] - 2025-11-13
+
+### Changed
+
+- Update Streamlit to 1.50.0, [#1611](https://github.com/whitphx/stlite/pull/1611).
+
 ## [0.89.1] - 2025-09-11
 
 ### `@stlite/browser`

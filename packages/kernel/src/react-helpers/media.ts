@@ -60,21 +60,21 @@ export function useStliteResolvedLogo<
 
   const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
-    if (logo == null) {
-      return;
-    }
-
     let released = false;
     const resolvedUrls: string[] = [];
 
-    resolveLogo(kernel, logo).then((resolvedLogo) => {
-      if (released) {
-        return;
-      }
-      resolvedUrls.push(resolvedLogo.image);
-      resolvedUrls.push(resolvedLogo.iconImage);
-      setResolvedLogo(resolvedLogo);
-    });
+    if (logo == null) {
+      setResolvedLogo(null); // eslint-disable-line react-hooks/set-state-in-effect
+    } else {
+      resolveLogo(kernel, logo).then((resolvedLogo) => {
+        if (released) {
+          return;
+        }
+        resolvedUrls.push(resolvedLogo.image);
+        resolvedUrls.push(resolvedLogo.iconImage);
+        setResolvedLogo(resolvedLogo);
+      });
+    }
 
     return () => {
       resolvedUrls.forEach((objectUrl) => {

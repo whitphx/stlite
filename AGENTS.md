@@ -15,7 +15,7 @@
 
 ## Coding Style & Naming Conventions
 
-- Follow the root `.prettierrc` (2 spaces, trailing commas, semicolons) and workspace ESLint configs (`eslint-plugin-streamlit-custom`); run `yarn lint`/`lint:fix` where you edit.
+- Follow Prettier formatting (2 spaces, trailing commas, semicolons by default) as enforced by the project's configuration, and workspace ESLint configs (`eslint-plugin-streamlit-custom`); run `yarn lint`/`lint:fix` where you edit.
 - Name React components in PascalCase files, keep shared utilities in `src/lib`, and re-export from `src/index.ts`.
 - Python inside `packages/kernel/py` should stay Black-friendly (88 columns) and never commit generated wheels.
 

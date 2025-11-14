@@ -29,9 +29,9 @@
 
 - Follow Conventional Commits (`type(scope): summary`), such as `fix(browser): handle iframe sizing`; keep one logical change per commit.
 - PRs need a crisp summary, reproduction steps, screenshots for UI tweaks, and a linked issue via `Fixes #123`.
-- Call out dependency bumps in titles, highlight CI considerations (Node 22, Yarn 4), and flag risk when touching Pyodide or kernel assets.
+- Call out dependency bumps in titles, highlight CI considerations (latest Node LTS, Yarn 4), and flag risk when touching Pyodide or kernel assets.
 
 ## Security & Configuration Tips
 
-- Use Node ≥22 plus Yarn 4.5.3; rerun `make init` after runtime upgrades to refresh `.venv`.
+- Use the latest Node LTS version plus Yarn 4.5.3; rerun `make init` after runtime upgrades to refresh `.venv`.
 - Wheel builds enforce Python/Pyodide parity—honor the Makefile guardrails and keep `packages/*/dist` or `.make` out of commits.

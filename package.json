@@ -18,7 +18,9 @@
   },
   "scripts": {
     "new-version": "lerna version",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "changeset",
+    "changeset:release": "changeset tag && git push --follow-tags"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",

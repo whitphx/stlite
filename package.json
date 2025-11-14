@@ -23,6 +23,7 @@
     "changeset:release": "changeset tag && git push --follow-tags"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "@lerna-lite/cli": "^4.3.0",
     "@lerna-lite/version": "^4.3.0",

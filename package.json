@@ -21,6 +21,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "@lerna-lite/cli": "^4.3.0",
     "@lerna-lite/version": "^4.3.0",
     "husky": "^9.1.7",

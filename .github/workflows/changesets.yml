@@ -25,12 +25,21 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.CHANGESETS_APP_ID }}
+          private-key: ${{ secrets.CHANGESETS_APP_PRIVATE_KEY }}
+
       - name: Create Release Pull Request or Tag
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           publish: npm run changeset:release
         env:
-          # PRs created using `GITHUB_TOKEN` doesn't trigger CI workflows, so we use a PAT.
-          # The PAT should be fine-grained and its permissions are properly configured (R/W for Contents and Pull Requests).
+          # PRs created using `GITHUB_TOKEN` doesn't trigger CI workflows, so we need to use a PAT or app token.
+          # - The PAT should be fine-grained and its permissions are properly configured (R/W for Contents and Pull Requests).
+          # - The app token should be generated using a GitHub App that has proper permissions (R/W for Contents and Pull Requests).
           # Ref: https://github.com/orgs/community/discussions/55906
-          GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          # GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}

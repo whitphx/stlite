@@ -33,6 +33,7 @@ jobs:
           private-key: ${{ secrets.CHANGESETS_APP_PRIVATE_KEY }}
 
       - name: Create Release Pull Request or Tag
+        id: changesets
         uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           publish: npm run changeset:release
@@ -43,3 +44,8 @@ jobs:
           # Ref: https://github.com/orgs/community/discussions/55906
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           # GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}
+      - name: Call build workflow
+        if: steps.changesets.outputs.published == 'true'
+        uses: whitphx/stlite/.github/workflows/test-build.yml@main
+        with:
+          changesets-published-packages: ${{ steps.changesets.outputs.publishedPackages }}

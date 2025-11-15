@@ -31,6 +31,7 @@ jobs:
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
+      changesets-published-packages: ${{ steps.build-info.outputs.changesets-published-packages }}
     steps:
       - name: Download build info
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -51,6 +52,31 @@ jobs:
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)"
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
+          echo "changesets-published-packages=$(cat changesets-published-packages)"
+          echo "changesets-published-packages=$(cat changesets-published-packages)" >> $GITHUB_OUTPUT
+
+  get-publish-targets:
+    needs: get-build-info
+    runs-on: ubuntu-latest
+    outputs:
+      browser: ${{ steps.parse-packages.outputs.browser }}
+      desktop: ${{ steps.parse-packages.outputs.desktop }}
+    steps:
+      - name: Parse published packages
+        id: parse-packages
+        run: |
+          PACKAGES='${{ needs.get-build-info.outputs.changesets-published-packages }}'
+
+          if [ -z "$PACKAGES" ] || [ "$PACKAGES" = "[]" ]; then
+            echo "browser=" >> $GITHUB_OUTPUT
+            echo "desktop=" >> $GITHUB_OUTPUT
+          else
+            BROWSER_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/browser") | .version // ""')
+            DESKTOP_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/desktop") | .version // ""')
+
+            echo "browser=$BROWSER_VERSION" >> $GITHUB_OUTPUT
+            echo "desktop=$DESKTOP_VERSION" >> $GITHUB_OUTPUT
+          fi
 
   inform-package-stats:
     needs: get-build-info
@@ -361,8 +387,8 @@ jobs:
             });
 
   publish-browser:
-    needs: [get-build-info]
-    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
+    needs: [get-build-info, get-publish-targets]
+    if: ${{ needs.get-publish-targets.outputs.browser != '' }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -438,11 +464,11 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-build-info.outputs.tag }}
+        tag_name: ${{ needs.get-publish-targets.outputs.browser }}
 
   publish-desktop:
-    needs: [get-build-info]
-    if: ${{ startsWith(needs.get-build-info.outputs.tag, 'v') }}
+    needs: [get-build-info, get-publish-targets]
+    if: ${{ needs.get-publish-targets.outputs.desktop != '' }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -517,4 +543,4 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-build-info.outputs.tag }}
+        tag_name: ${{ needs.get-publish-targets.outputs.desktop }}

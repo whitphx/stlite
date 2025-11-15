@@ -64,9 +64,9 @@ jobs:
     steps:
       - name: Parse published packages
         id: parse-packages
+        env:
+          PACKAGES: ${{ needs.get-build-info.outputs.changesets-published-packages }}
         run: |
-          PACKAGES='${{ needs.get-build-info.outputs.changesets-published-packages }}'
-
           if [ -z "$PACKAGES" ] || [ "$PACKAGES" = "[]" ]; then
             echo "browser=" >> $GITHUB_OUTPUT
             echo "desktop=" >> $GITHUB_OUTPUT

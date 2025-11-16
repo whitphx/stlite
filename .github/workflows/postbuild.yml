@@ -296,8 +296,7 @@ jobs:
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
 
   deploy-browser-preview:
-    # needs: [get-build-info, e2e-browser]
-    needs: [get-build-info] # TMP: Skip waiting for e2e-browser to reduce execution time. Will add incremental commenting feature.
+    needs: [get-build-info, e2e-browser]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -344,6 +343,37 @@ jobs:
         command: |
           pages deploy ${{ runner.temp }}/artifacts/browser/package/build --project-name=stlite-browser-preview --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # TODO: unify with notify-cloudflare-pages-deployments
+  # For now we separate it to run the notifications in parallel for faster notifications.
+  # We need to introduce an incremental comment update mechanism to unify them.
+  notify-browser-preview-deployments:
+    needs: [get-build-info, deploy-browser-preview]
+    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const previewUrl = '${{ needs.deploy-browser-preview.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully ([log](${logUrl})).
+            * `@stlite/browser` preview URL: ${previewUrl}
+            `
+            });
 
   deploy-sharing:
     needs: get-build-info

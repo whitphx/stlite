@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.8
+
+### Patch Changes
+
+- [#1650](https://github.com/whitphx/stlite/pull/1650) [`9302dbc`](https://github.com/whitphx/stlite/commit/9302dbc7a1618daf93d23499295fbbcf3a61b775) Thanks [@whitphx](https://github.com/whitphx)! - Fix artifact attestation verification steps in the release workflow
+
 ## 0.90.7
 
 ### Patch Changes

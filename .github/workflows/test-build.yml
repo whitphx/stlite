@@ -116,7 +116,7 @@ jobs:
 
       - name: Save published packages info
         if: steps.changesets.outputs.published == 'true'
-        run: echo "${{ steps.changesets.outputs.publishedPackages }}" > changesets-published-packages
+        run: echo "${{ toJSON(steps.changesets.outputs.publishedPackages) }}" > changesets-published-packages
 
       - name: Upload published packages info
         if: steps.changesets.outputs.published == 'true'

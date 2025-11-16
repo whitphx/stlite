@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.90.10
+
+### Patch Changes
+
+- [#1656](https://github.com/whitphx/stlite/pull/1656) [`66c40ed`](https://github.com/whitphx/stlite/commit/66c40edd433b51292df1884bcdeb0b54140076eb) Thanks [@whitphx](https://github.com/whitphx)! - Fix release flow
+
 ## 0.90.9
 
 ### Patch Changes

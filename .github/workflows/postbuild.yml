@@ -328,7 +328,7 @@ jobs:
       with:
         filepath: ${{ runner.temp }}/artifacts/browser/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
-        expected-ref: refs/heads/${{ needs.get-build-info.outputs.branch }}
+        expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz

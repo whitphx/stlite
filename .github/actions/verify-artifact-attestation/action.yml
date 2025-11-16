@@ -16,11 +16,6 @@ runs:
   steps:
     - shell: bash
       run: |
-        echo "Verifying attestation for ${{ inputs.filepath }} ..."
-        gh attestation verify ${{ inputs.filepath }} \
-          --repo ${{ github.repository }} \
-          --predicate-type https://slsa.dev/provenance/v1
-
         VERIFICATION_RESULT=$(gh attestation verify ${{ inputs.filepath }} \
           --repo ${{ github.repository }} \
           --predicate-type https://slsa.dev/provenance/v1 \

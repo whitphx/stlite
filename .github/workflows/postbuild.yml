@@ -249,12 +249,6 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
-        install-node-modules: false
-        protoc: false
-
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 
     - name: Download artifact into the temp dir

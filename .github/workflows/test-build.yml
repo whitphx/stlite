@@ -92,6 +92,9 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
+      # The token created by this step has permissions defined in the GitHub App settings
+      # that are required in the following Changesets action step.
+      # This is why we can leave the job-level `permissions` field empty.
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@v2

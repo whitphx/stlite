@@ -74,7 +74,7 @@
     "@types/yargs": "^17.0.32",
     "@vitejs/plugin-react": "^5.1.1",
     "concurrently": "^9.1.2",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "electron": "34.3.0",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.25.0",

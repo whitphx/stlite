@@ -56,3 +56,7 @@ jobs:
     uses: whitphx/stlite/.github/workflows/test-build.yml@main
     with:
       changesets-published-packages: ${{ needs.changesets.outputs.publishedPackages }}
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write

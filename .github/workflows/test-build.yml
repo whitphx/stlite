@@ -42,7 +42,6 @@ jobs:
           echo "${{ github.event.pull_request.head.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "${{ github.event.pull_request.number }}" > pr-number
-          echo "" > changesets-published-packages
       - name: Save build info (push, branch)
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
@@ -51,7 +50,6 @@ jobs:
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
-          echo "" > changesets-published-packages
       - name: Save build info (push, tag)
         if: github.event_name == 'push' && github.ref_type == 'tag'
         run: |
@@ -60,16 +58,8 @@ jobs:
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
-          echo "" > changesets-published-packages
-      - name: Save build info (workflow_call)
-        if: github.event_name == 'workflow_call'
-        run: |
-          echo "${{ github.ref_name }}" > branch
-          echo "" > tag
-          echo "${{ github.sha }}" > head-sha
-          echo "${{ github.sha }}" > trigger-sha
-          echo "" > pr-number
-          echo "${{ inputs.changesets-published-packages }}" > changesets-published-packages
+      - name: Save changesets published packages info
+        run: echo "${{ inputs.changesets-published-packages }}" > changesets-published-packages
       - name: Output build info
         id: build-info
         run: |

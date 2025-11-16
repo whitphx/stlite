@@ -330,6 +330,7 @@ jobs:
         filepath: ${{ runner.temp }}/artifacts/browser/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: refs/heads/${{ needs.get-build-info.outputs.branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser

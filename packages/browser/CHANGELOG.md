@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.90.4
+
+### Patch Changes
+
+- [#1642](https://github.com/whitphx/stlite/pull/1642) [`bf43505`](https://github.com/whitphx/stlite/commit/bf435059821452bbeca84faf3162de6a896e7c98) Thanks [@whitphx](https://github.com/whitphx)! - Fix Changeset release management
+
 ## 0.90.3
 
 ### Patch Changes

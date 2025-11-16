@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.6
+
+### Patch Changes
+
+- [#1646](https://github.com/whitphx/stlite/pull/1646) [`19bdd4c`](https://github.com/whitphx/stlite/commit/19bdd4c788b4c30c8a181c9291a5b9c5dd6564b8) Thanks [@whitphx](https://github.com/whitphx)! - Fix Changesets release management
+
 ## 0.90.5
 
 ### Patch Changes

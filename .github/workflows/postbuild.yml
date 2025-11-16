@@ -349,7 +349,7 @@ jobs:
 
       - name: Inject SHARING_APP_URL
         run: |
-          echo "${{ needs.deploy-sharing.outputs.url }}" > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
+          echo '${{ needs.deploy-sharing.outputs.url }}' > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
 
       - name: Deploy
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65

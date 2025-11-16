@@ -26,12 +26,12 @@ runs:
           --predicate-type https://slsa.dev/provenance/v1 \
           --format json)
         jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
-          grep -x '${{ inputs.expected-workflow-file }}' || {
+          grep -Fx '${{ inputs.expected-workflow-file }}' || {
             echo "Error: Attestation does not match expected workflow definition path" >&2
             exit 1
           }
         jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
-          grep -x '${{ inputs.expected-ref }}' || {
+          grep -Fx '${{ inputs.expected-ref }}' || {
             echo "Error: Attestation does not match expected workflow trigger ref" >&2
             exit 1
           }

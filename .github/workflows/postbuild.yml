@@ -433,6 +433,7 @@ jobs:
         filepath: ${{ runner.temp }}/stlite-browser/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: refs/heads/main
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # Ensure npm 11.5.1 or later is installed
     - name: Update npm
@@ -491,6 +492,7 @@ jobs:
         filepath: ${{ runner.temp }}/stlite-desktop/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: refs/heads/main
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # Ensure npm 11.5.1 or later is installed
     - name: Update npm

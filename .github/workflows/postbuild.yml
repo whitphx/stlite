@@ -122,7 +122,6 @@ jobs:
         yarn install:browsers
       working-directory: packages/browser/e2e-tests
 
-    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -192,7 +191,6 @@ jobs:
       run: yarn install
       working-directory: packages/browser/e2e-tests
 
-    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -297,6 +295,86 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
 
+  deploy-browser-preview:
+    needs: [get-build-info, e2e-browser]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/browser to Cloudflare Pages for preview
+    outputs:
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+    # Checkout is needed to use local actions (`uses ./*`).
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        persist-credentials: false
+
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-browser
+        path: ${{ runner.temp }}/artifacts/browser
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify artifact contents
+      uses: ./.github/actions/verify-only-file
+      with:
+        directory: ${{ runner.temp }}/artifacts/browser
+        filename: package.tgz
+
+    - name: Verify artifact attestation
+      uses: ./.github/actions/verify-artifact-attestation
+      with:
+        filepath: ${{ runner.temp }}/artifacts/browser/package.tgz
+        expected-workflow-file: .github/workflows/test-build.yml
+        expected-ref: refs/heads/${{ needs.get-build-info.outputs.branch }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: tar xzvf package.tgz
+      working-directory: ${{ runner.temp }}/artifacts/browser
+
+    - name: Deploy
+      uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+      id: deploy
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        command: |
+          pages deploy ${{ runner.temp }}/artifacts/browser/package/build --project-name=stlite-browser-preview --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # TODO: unify with notify-cloudflare-pages-deployments
+  # For now we separate it to run the notifications in parallel for faster notifications.
+  # We need to introduce an incremental comment update mechanism to unify them.
+  notify-browser-preview-deployments:
+    needs: [get-build-info, deploy-browser-preview]
+    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const previewUrl = '${{ needs.deploy-browser-preview.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully ([log](${logUrl})).
+            * `@stlite/browser` preview URL: ${previewUrl}
+            `
+            });
+
   deploy-sharing:
     needs: get-build-info
     if: ${{ needs.get-build-info.outputs.branch }}
@@ -308,8 +386,6 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
-      - run: mkdir -p ${{ runner.temp }}/artifacts/
-
       - name: Download artifact
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
@@ -413,7 +489,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - run: mkdir -p ${{ runner.temp }}/stlite-browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -472,7 +547,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - run: mkdir -p ${{ runner.temp }}/stlite-desktop
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-desktop

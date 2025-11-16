@@ -468,7 +468,7 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-changesets-publish-targets.outputs.browser }}
+        tag_name: "@stlite/browser@${{ needs.get-changesets-publish-targets.outputs.browser }}"
 
   publish-desktop:
     needs: [get-build-info, get-changesets-publish-targets]
@@ -547,4 +547,4 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-changesets-publish-targets.outputs.desktop }}
+        tag_name: "@stlite/desktop@${{ needs.get-changesets-publish-targets.outputs.desktop }}"

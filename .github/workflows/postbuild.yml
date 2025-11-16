@@ -442,6 +442,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout is needed to use local actions (`uses ./*`).
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        persist-credentials: false
+
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
         node-version: 22
@@ -467,6 +472,7 @@ jobs:
         filepath: ${{ runner.temp }}/stlite-browser/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: refs/heads/main
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # Ensure npm 11.5.1 or later is installed
     - name: Update npm
@@ -494,6 +500,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout is needed to use local actions (`uses ./*`).
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        persist-credentials: false
+
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
         node-version: 22
@@ -519,6 +530,7 @@ jobs:
         filepath: ${{ runner.temp }}/stlite-desktop/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: refs/heads/main
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # Ensure npm 11.5.1 or later is installed
     - name: Update npm

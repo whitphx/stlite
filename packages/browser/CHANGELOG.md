@@ -1,5 +1,23 @@
 # @stlite/browser
 
+## 0.90.10
+
+### Patch Changes
+
+- [#1656](https://github.com/whitphx/stlite/pull/1656) [`66c40ed`](https://github.com/whitphx/stlite/commit/66c40edd433b51292df1884bcdeb0b54140076eb) Thanks [@whitphx](https://github.com/whitphx)! - Fix release flow
+
+## 0.90.9
+
+### Patch Changes
+
+- [#1654](https://github.com/whitphx/stlite/pull/1654) [`0663d85`](https://github.com/whitphx/stlite/commit/0663d856138cd3f1db36e86c650bcba724552242) Thanks [@whitphx](https://github.com/whitphx)! - Fix release workflow
+
+## 0.90.8
+
+### Patch Changes
+
+- [#1650](https://github.com/whitphx/stlite/pull/1650) [`9302dbc`](https://github.com/whitphx/stlite/commit/9302dbc7a1618daf93d23499295fbbcf3a61b775) Thanks [@whitphx](https://github.com/whitphx)! - Fix artifact attestation verification steps in the release workflow
+
 ## 0.90.7
 
 ### Patch Changes

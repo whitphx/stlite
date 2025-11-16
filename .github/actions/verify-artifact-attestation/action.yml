@@ -1,0 +1,39 @@
+name: Verify artifact attestation
+description: verifies an artifact has attestation with expected values
+inputs:
+  filepath:
+    required: true
+    description: Path to the downloaded artifact
+  expected-workflow-file:
+    required: true
+    description: Workflow file name expected in the attestation
+  expected-ref:
+    required: true
+    description: Ref name expected in the attestation
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        echo "Verifying attestation for ${{ inputs.filepath }} ..."
+        gh attestation verify ${{ inputs.filepath }} \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1
+
+        VERIFICATION_RESULT=$(gh attestation verify ${{ inputs.filepath }} \
+          --repo ${{ github.repository }} \
+          --predicate-type https://slsa.dev/provenance/v1 \
+          --format json)
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
+          grep -x '${{ inputs.expected-workflow-file }}' || {
+            echo "Error: Attestation does not match expected workflow definition path" >&2
+            exit 1
+          }
+        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
+          grep -x '${{ inputs.expected-ref }}' || {
+            echo "Error: Attestation does not match expected workflow trigger ref" >&2
+            exit 1
+          }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

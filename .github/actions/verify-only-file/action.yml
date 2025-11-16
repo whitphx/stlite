@@ -1,0 +1,27 @@
+name: Verify only single file exists
+description: verifies $filename exists in $directory and it's the only file existing in the directory. Typical use case is verifying contents in a downloaded artifact.
+inputs:
+  directory:
+    required: true
+    description: Directory name
+  filename:
+    required: true
+    description: A name of the file that is expected to exist in the directory.
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        # Validate the file existence
+        if [ ! -f ${{ inputs.directory }}/${{ inputs.filename }} ]; then
+          echo "Error: Expected ${{ inputs.filename }} not found in ${{ inputs.directory }}." >&2
+          exit 1
+        fi
+        # Check for unexpected files or structures
+        unexpected_files=$(find '${{ inputs.directory }}' -type f ! -name '${{ inputs.filename }}')
+        if [ -n "$unexpected_files" ]; then
+          echo "Error: Unexpected files found in ${{ inputs.directory }}:" >&2
+          echo "$unexpected_files" >&2
+          exit 1
+        fi

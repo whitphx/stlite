@@ -10,6 +10,9 @@ inputs:
   expected-ref:
     required: true
     description: Ref name expected in the attestation
+  GH_TOKEN:
+    required: true
+    description: GitHub token
 
 runs:
   using: "composite"
@@ -31,4 +34,4 @@ runs:
             exit 1
           }
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.GH_TOKEN }}

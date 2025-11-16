@@ -122,7 +122,6 @@ jobs:
         yarn install:browsers
       working-directory: packages/browser/e2e-tests
 
-    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -192,7 +191,6 @@ jobs:
       run: yarn install
       working-directory: packages/browser/e2e-tests
 
-    - run: mkdir -p ${{ runner.temp }}/artifacts/browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -352,8 +350,6 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
-      - run: mkdir -p ${{ runner.temp }}/artifacts/
-
       - name: Download artifact
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
@@ -452,7 +448,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - run: mkdir -p ${{ runner.temp }}/stlite-browser
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-browser
@@ -505,7 +500,6 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - run: mkdir -p ${{ runner.temp }}/stlite-desktop
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
         name: stlite-desktop

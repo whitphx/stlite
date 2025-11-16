@@ -7,7 +7,7 @@ on:
 permissions: {} # No permissions needed as we use a PAT. Make sure the PAT has the proper permissions. See below.
 
 jobs:
-  release:
+  changesets:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,8 +44,15 @@ jobs:
           # Ref: https://github.com/orgs/community/discussions/55906
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           # GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}
-      - name: Call build workflow
-        if: steps.changesets.outputs.published == 'true'
-        uses: whitphx/stlite/.github/workflows/test-build.yml@main
-        with:
-          changesets-published-packages: ${{ steps.changesets.outputs.publishedPackages }}
+
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+
+  call-build-workflow:
+    name: Call build workflow
+    needs: changesets
+    if: needs.changesets.outputs.published == 'true'
+    uses: whitphx/stlite/.github/workflows/test-build.yml@main
+    with:
+      changesets-published-packages: ${{ needs.changesets.outputs.publishedPackages }}

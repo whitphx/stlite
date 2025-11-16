@@ -297,7 +297,7 @@ jobs:
 
   deploy-browser-preview:
     # needs: [get-build-info, e2e-browser]
-    needs: [get-build-info] # e2e-browserを待つと長くなるのでTMP. Incrementalにコメントできる機能を足す。
+    needs: [get-build-info] # TMP: Skip waiting for e2e-browser to reduce execution time. Will add incremental commenting feature.
     runs-on: ubuntu-latest
     permissions:
       contents: read

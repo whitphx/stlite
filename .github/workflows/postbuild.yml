@@ -55,18 +55,22 @@ jobs:
           echo "changesets-published-packages=$(cat changesets-published-packages)"
           echo "changesets-published-packages=$(cat changesets-published-packages)" >> $GITHUB_OUTPUT
 
-  get-publish-targets:
-    needs: get-build-info
+  get-changesets-publish-targets:
     runs-on: ubuntu-latest
     outputs:
       browser: ${{ steps.parse-packages.outputs.browser }}
       desktop: ${{ steps.parse-packages.outputs.desktop }}
     steps:
+      - name: Download published packages info
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: changesets-published-packages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
       - name: Parse published packages
         id: parse-packages
-        env:
-          PACKAGES: ${{ needs.get-build-info.outputs.changesets-published-packages }}
         run: |
+          PACKAGES=$(cat changesets-published-packages)
           if [ -z "$PACKAGES" ] || [ "$PACKAGES" = "[]" ]; then
             echo "browser=" >> $GITHUB_OUTPUT
             echo "desktop=" >> $GITHUB_OUTPUT
@@ -387,8 +391,8 @@ jobs:
             });
 
   publish-browser:
-    needs: [get-build-info, get-publish-targets]
-    if: ${{ needs.get-publish-targets.outputs.browser != '' }}
+    needs: [get-build-info, get-changesets-publish-targets]
+    if: ${{ needs.get-changesets-publish-targets.outputs.browser != '' }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -464,11 +468,11 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-publish-targets.outputs.browser }}
+        tag_name: ${{ needs.get-changesets-publish-targets.outputs.browser }}
 
   publish-desktop:
-    needs: [get-build-info, get-publish-targets]
-    if: ${{ needs.get-publish-targets.outputs.desktop != '' }}
+    needs: [get-build-info, get-changesets-publish-targets]
+    if: ${{ needs.get-changesets-publish-targets.outputs.desktop != '' }}
 
     permissions:
       contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
@@ -543,4 +547,4 @@ jobs:
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true
-        tag_name: ${{ needs.get-publish-targets.outputs.desktop }}
+        tag_name: ${{ needs.get-changesets-publish-targets.outputs.desktop }}

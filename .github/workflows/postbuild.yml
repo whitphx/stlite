@@ -94,6 +94,8 @@ jobs:
       with:
         persist-credentials: false
         sparse-checkout: .github
+        sparse-checkout-cone-mode: false
+
     - uses: ./.github/actions/inform-package-stats
       with:
         pr-number: ${{ needs.get-build-info.outputs.pr-number }}
@@ -312,6 +314,7 @@ jobs:
       with:
         persist-credentials: false
         sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
@@ -486,6 +489,7 @@ jobs:
       with:
         persist-credentials: false
         sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
@@ -545,6 +549,7 @@ jobs:
       with:
         persist-credentials: false
         sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:

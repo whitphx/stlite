@@ -53,6 +53,7 @@ jobs:
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   get-changesets-publish-targets:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       browser: ${{ steps.parse-packages.outputs.browser }}
@@ -377,7 +378,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
-            * `@stlite/browser` preview URL: ${previewUrl}
+            * \`@stlite/browser\` preview URL: ${previewUrl}
             `
             });
 

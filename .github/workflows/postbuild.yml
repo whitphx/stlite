@@ -89,12 +89,14 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/inform-package-stats
-        with:
-          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+    # Checkout for local actions (`uses ./*`).
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        persist-credentials: false
+        sparse-checkout: .github
+    - uses: ./.github/actions/inform-package-stats
+      with:
+        pr-number: ${{ needs.get-build-info.outputs.pr-number }}
 
   e2e-browser:
     needs: get-build-info
@@ -305,10 +307,11 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
 
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
@@ -478,10 +481,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
@@ -536,10 +540,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:

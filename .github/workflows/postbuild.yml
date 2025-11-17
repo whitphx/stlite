@@ -298,7 +298,7 @@ jobs:
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
 
   deploy-browser-preview:
-    needs: [get-build-info, e2e-browser]
+    needs: [get-build-info, e2e-browser, e2e-browser-browserstack]
     runs-on: ubuntu-latest
     permissions:
       contents: read

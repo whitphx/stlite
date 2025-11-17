@@ -3,6 +3,7 @@
   "name": "stlite",
   "workspaces": [
     "packages/*",
+    "streamlit/frontend",
     "streamlit/frontend/*",
     "packages/desktop/samples/*"
   ],

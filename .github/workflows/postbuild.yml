@@ -378,7 +378,38 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
-            * \`@stlite/browser\` preview URL: ${previewUrl}
+            \`${previewUrl}/stlite.js\` can be used to preview apps like below:
+
+            \`\`\`html
+            <!DOCTYPE html>
+            <html lang="en">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>Stlite Browser preview</title>
+              </head>
+              <body>
+                <noscript>You need to enable JavaScript to run this app.</noscript>
+                <div id="root"></div>
+                <script type="module">
+            import { mount } from "${previewUrl}/stlite.js"
+            mount(
+              {
+                entrypoint: "streamlit_app.py",
+                files: {
+                  "streamlit_app.py": `import streamlit as st
+            st.write("Hello world")
+              `,
+                },
+                requirements: [],
+              },
+              document.getElementById("root"),
+            );
+
+                </script>
+              </body>
+            </html>
+            \`\`\
             `
             });
 

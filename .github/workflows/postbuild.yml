@@ -27,7 +27,6 @@ jobs:
       contents: read
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
-      tag: ${{ steps.build-info.outputs.tag }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
@@ -43,8 +42,6 @@ jobs:
         run: |
           echo "branch=$(cat branch)"
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
-          echo "tag=$(cat tag)"
-          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)"
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)"
@@ -53,6 +50,7 @@ jobs:
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
 
   get-changesets-publish-targets:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       browser: ${{ steps.parse-packages.outputs.browser }}
@@ -89,12 +87,16 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/inform-package-stats
-        with:
-          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+    # Checkout for local actions (`uses ./*`).
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      with:
+        persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
+
+    - uses: ./.github/actions/inform-package-stats
+      with:
+        pr-number: ${{ needs.get-build-info.outputs.pr-number }}
 
   e2e-browser:
     needs: get-build-info
@@ -296,7 +298,7 @@ jobs:
         TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
 
   deploy-browser-preview:
-    needs: [get-build-info, e2e-browser]
+    needs: [get-build-info, e2e-browser, e2e-browser-browserstack]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -305,10 +307,12 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       with:
@@ -328,14 +332,14 @@ jobs:
       with:
         filepath: ${{ runner.temp }}/artifacts/browser/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
-        expected-ref: refs/heads/${{ needs.get-build-info.outputs.branch }}
+        expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
       working-directory: ${{ runner.temp }}/artifacts/browser
 
     - name: Deploy
-      uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+      uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
       id: deploy
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -371,7 +375,39 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
-            * `@stlite/browser` preview URL: ${previewUrl}
+            \`${previewUrl}/stlite.js\` can be used to preview apps like below:
+
+            \`\`\`html
+            <!DOCTYPE html>
+            <html lang="en">
+              <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>Stlite Browser preview</title>
+              </head>
+              <body>
+                <noscript>You need to enable JavaScript to run this app.</noscript>
+                <div id="root"></div>
+                <script type="module">
+            import { mount } from "${previewUrl}/stlite.js"
+            mount(
+              {
+                entrypoint: "streamlit_app.py",
+                files: {
+                  "streamlit_app.py": \`
+            import streamlit as st
+            st.write("Hello world")
+            \`,
+                },
+                requirements: [],
+              },
+              document.getElementById("root"),
+            );
+
+                </script>
+              </body>
+            </html>
+            \`\`\`
             `
             });
 
@@ -395,7 +431,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -428,7 +464,7 @@ jobs:
           echo '${{ needs.deploy-sharing.outputs.url }}' > ${{ runner.temp }}/artifacts/sharing-editor/SHARING_APP_URL
 
       - name: Deploy
-        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -478,10 +514,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:
@@ -536,10 +574,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout is needed to use local actions (`uses ./*`).
+    # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
 
     - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
       with:

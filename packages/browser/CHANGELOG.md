@@ -1,5 +1,13 @@
 # @stlite/browser
 
+## 0.90.11
+
+### Patch Changes
+
+- [#1659](https://github.com/whitphx/stlite/pull/1659) [`fe90aad`](https://github.com/whitphx/stlite/commit/fe90aad6092ace0008269f791cfb666342e8841c) Thanks [@whitphx](https://github.com/whitphx)! - Fix artifact attestation verification for the preview deployment of @stlite/browser
+
+- [#1653](https://github.com/whitphx/stlite/pull/1653) [`cfebb68`](https://github.com/whitphx/stlite/commit/cfebb68175008d65ba18faf09a9c3ddfa14d96e6) Thanks [@whitphx](https://github.com/whitphx)! - Serve @stlite/browser on Cloudflare Pages
+
 ## 0.90.10
 
 ### Patch Changes

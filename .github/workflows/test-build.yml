@@ -3,7 +3,6 @@ name: Test and Build
 on:
   push:
     branches: [ "main" ]
-    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
 
@@ -15,7 +14,7 @@ concurrency:
 env:
   python-version-file: ".python-version"
   node-version-file: ".nvmrc"
-  RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/v') }}
+  RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
 
 permissions: {}
 
@@ -24,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
-      tag: ${{ steps.build-info.outputs.tag }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
@@ -33,7 +31,6 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           echo "${{ github.event.pull_request.head.ref }}" > branch
-          echo "" > tag
           echo "${{ github.event.pull_request.head.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "${{ github.event.pull_request.number }}" > pr-number
@@ -41,15 +38,6 @@ jobs:
         if: github.event_name == 'push' && github.ref_type == 'branch'
         run: |
           echo "${{ github.ref_name }}" > branch
-          echo "" > tag
-          echo "${{ github.sha }}" > head-sha
-          echo "${{ github.sha }}" > trigger-sha
-          echo "" > pr-number
-      - name: Save build info (push, tag)
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          echo "" > branch
-          echo "${{ github.ref_name }}" > tag
           echo "${{ github.sha }}" > head-sha
           echo "${{ github.sha }}" > trigger-sha
           echo "" > pr-number
@@ -57,7 +45,6 @@ jobs:
         id: build-info
         run: |
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
-          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
@@ -67,7 +54,6 @@ jobs:
           name: build-info
           path: |
             branch
-            tag
             head-sha
             trigger-sha
             pr-number
@@ -91,6 +77,7 @@ jobs:
       - uses: ./.github/actions/init-all
         with:
           node-version-file: ".nvmrc"
+          protoc: false
 
       - name: Generate a token
         id: generate-token
@@ -131,7 +118,7 @@ jobs:
       common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      stlite-lib: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      stlite-lib: 'true'  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}

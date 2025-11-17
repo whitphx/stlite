@@ -304,3 +304,6 @@ tags
 
 # Build state files
 .make/
+
+# Files generated in CI
+protoc-*-linux-x86_64.zip

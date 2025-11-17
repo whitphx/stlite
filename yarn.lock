@@ -1602,6 +1602,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@epic-web/invariant@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@epic-web/invariant@npm:1.0.0"
+  checksum: 10c0/72dbeb026e4e4eb3bc9c65739b91408ca77ab7d603a2494fa2eff3790ec22892c4caba751cffdf30f5ccf0e7ba79c1e9c96cf0a357404b9432bf1365baac23ca
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.25.12":
   version: 0.25.12
   resolution: "@esbuild/aix-ppc64@npm:0.25.12"
@@ -4809,7 +4816,7 @@ __metadata:
     "@types/yargs": "npm:^17.0.32"
     "@vitejs/plugin-react": "npm:^5.1.1"
     concurrently: "npm:^9.1.2"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     electron: "npm:34.3.0"
     electron-reload: "npm:^2.0.0-alpha.1"
     esbuild: "npm:^0.27.0"
@@ -4910,7 +4917,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.1.1"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     eslint: "npm:^9.32.0"
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
@@ -4953,7 +4960,7 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     eslint: "npm:^9.32.0"
     eslint-plugin-prettier: "npm:^5.5.3"
     eslint-plugin-react: "npm:^7.37.5"
@@ -10002,15 +10009,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-env@npm:^7.0.3":
-  version: 7.0.3
-  resolution: "cross-env@npm:7.0.3"
+"cross-env@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "cross-env@npm:10.1.0"
   dependencies:
-    cross-spawn: "npm:^7.0.1"
+    "@epic-web/invariant": "npm:^1.0.0"
+    cross-spawn: "npm:^7.0.6"
   bin:
-    cross-env: src/bin/cross-env.js
-    cross-env-shell: src/bin/cross-env-shell.js
-  checksum: 10c0/f3765c25746c69fcca369655c442c6c886e54ccf3ab8c16847d5ad0e91e2f337d36eedc6599c1227904bf2a228d721e690324446876115bc8e7b32a866735ecf
+    cross-env: dist/bin/cross-env.js
+    cross-env-shell: dist/bin/cross-env-shell.js
+  checksum: 10c0/834a862db456ba1fedf6c6da43436b123ae38f514fa286d6f0937c14fa83f13469f77f70f2812db041ae2d84f82bac627040b8686030aca27fbdf113dfa38b63
   languageName: node
   linkType: hard
 
@@ -21800,7 +21808,7 @@ __metadata:
   resolution: "stlite-desktop-sample-basic@workspace:packages/desktop/samples/basic"
   dependencies:
     "@stlite/desktop": "workspace:^"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     electron: "npm:34.3.0"
     electron-builder: "npm:^26.0.12"
   languageName: unknown
@@ -21811,7 +21819,7 @@ __metadata:
   resolution: "stlite-desktop-sample-file-persistence-idbfs@workspace:packages/desktop/samples/file-persistence-idbfs"
   dependencies:
     "@stlite/desktop": "workspace:^"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     electron: "npm:34.3.0"
     electron-builder: "npm:^26.0.12"
   languageName: unknown
@@ -21822,7 +21830,7 @@ __metadata:
   resolution: "stlite-desktop-sample-file-persistence-nodefs@workspace:packages/desktop/samples/file-persistence-nodefs"
   dependencies:
     "@stlite/desktop": "workspace:^"
-    cross-env: "npm:^7.0.3"
+    cross-env: "npm:^10.1.0"
     electron: "npm:34.3.0"
     electron-builder: "npm:^26.0.12"
   languageName: unknown

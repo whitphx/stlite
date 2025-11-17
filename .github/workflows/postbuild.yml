@@ -27,7 +27,6 @@ jobs:
       contents: read
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
-      tag: ${{ steps.build-info.outputs.tag }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
       head-sha: ${{ steps.build-info.outputs.head-sha }}
       pr-number: ${{ steps.build-info.outputs.pr-number }}
@@ -43,8 +42,6 @@ jobs:
         run: |
           echo "branch=$(cat branch)"
           echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
-          echo "tag=$(cat tag)"
-          echo "tag=$(cat tag)" >> $GITHUB_OUTPUT
           echo "trigger-sha=$(cat trigger-sha)"
           echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
           echo "head-sha=$(cat head-sha)"

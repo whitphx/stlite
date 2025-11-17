@@ -17,7 +17,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "new-version": "lerna version",
     "prepare": "husky",
     "changeset": "changeset",
     "changeset:release": "changeset tag && git push --follow-tags"
@@ -25,8 +24,6 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
-    "@lerna-lite/cli": "^4.3.0",
-    "@lerna-lite/version": "^4.3.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
     "typescript": "^5.9.2"

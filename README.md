@@ -406,10 +406,15 @@ You can use the latest version of the published _Stlite_ package with this URL.
 #### The head of the main branch
 
 ```
-https://whitphx.github.io/stlite/lib/browser/stlite.js
+https://stlite-browser-preview.pages.dev/stlite.js
 ```
 
-This URL points to the head of the main branch which is usually ahead of the released packages. However, we strongly recommend NOT to use this URL because this might be broken and there is no guarantee that this resource will be kept available in the future.
+This URL points to the head of the main branch which is usually ahead of the released packages.
+However, we strongly recommend NOT to use this URL for production because this might be broken and there is no guarantee that this resource will be kept available in the future.
+
+> [!WARNING]
+> The URL below for this purpose is not supported anymore.
+> https://whitphx.github.io/stlite/lib/browser/stlite.js
 
 ### Different Pyodide distributions (`pyodideUrl` option)
 

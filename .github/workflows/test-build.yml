@@ -91,6 +91,7 @@ jobs:
       - uses: ./.github/actions/init-all
         with:
           node-version-file: ".nvmrc"
+          protoc: false
 
       - name: Generate a token
         id: generate-token

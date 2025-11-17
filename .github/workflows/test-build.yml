@@ -131,7 +131,7 @@ jobs:
       common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      stlite-lib: true  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      stlite-lib: 'true'  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}

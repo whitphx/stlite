@@ -1,5 +1,13 @@
 # @stlite/browser
 
+## 0.90.12
+
+### Patch Changes
+
+- [#1672](https://github.com/whitphx/stlite/pull/1672) [`17f163a`](https://github.com/whitphx/stlite/commit/17f163afa79c03ff10b8d6e6d7c4e3ac1b57e624) Thanks [@whitphx](https://github.com/whitphx)! - Fix README about @stlite/browser preview URL
+
+- [#1670](https://github.com/whitphx/stlite/pull/1670) [`1cd2cc3`](https://github.com/whitphx/stlite/commit/1cd2cc30a186df1e0bb92c6a36a352aa84e4f9cb) Thanks [@whitphx](https://github.com/whitphx)! - Fix release workflow
+
 ## 0.90.11
 
 ### Patch Changes

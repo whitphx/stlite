@@ -3,14 +3,7 @@
   "name": "stlite",
   "workspaces": [
     "packages/*",
-    "streamlit/frontend",
-    "streamlit/frontend/app",
-    "streamlit/frontend/connection",
-    "streamlit/frontend/eslint-plugin-streamlit-custom",
-    "streamlit/frontend/lib",
-    "streamlit/frontend/protobuf",
-    "streamlit/frontend/typescript-config",
-    "streamlit/frontend/utils",
+    "streamlit/frontend/*",
     "packages/desktop/samples/*"
   ],
   "engines": {

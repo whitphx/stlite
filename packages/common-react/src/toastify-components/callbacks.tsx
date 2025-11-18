@@ -6,7 +6,6 @@ import { stliteStyledPromiseToast } from "./promise";
 export interface MakeToastKernelCallbacksOptions {
   disableProgressToasts?: boolean;
   disableErrorToasts?: boolean;
-  onModuleAutoLoad?: StliteKernelOptions["onModuleAutoLoad"];
 }
 export interface ToastKernelCallbacks {
   onProgress: NonNullable<StliteKernelOptions["onProgress"]>;
@@ -66,10 +65,6 @@ export function makeToastKernelCallbacks(
     packagesToLoad,
     installPromise,
   ) => {
-    if (options?.onModuleAutoLoad) {
-      options.onModuleAutoLoad(packagesToLoad, installPromise);
-    }
-
     stliteStyledPromiseToast(installPromise, {
       success: {
         render({ data }) {

@@ -9,9 +9,9 @@ function stliteStyledPromiseToast<
 >(
   promise: Promise<TData>,
   messages: ToastPromiseParams<TData, TError, TPending>,
-): ReturnType<typeof toast.promise> {
+): ReturnType<typeof toast.promise<TData, TError, TPending>> {
   const errorMessage = messages.error;
-  return toast.promise<TData, TError, TPending>(
+  return toast.promise(
     promise,
     {
       pending: messages.pending,

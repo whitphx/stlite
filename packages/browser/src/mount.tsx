@@ -1,13 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import StreamlitApp from "./StreamlitApp";
-import { MicropipInstallOptions, StliteKernel } from "@stlite/kernel";
-import { parseMountOptions, MountOptions } from "./options";
-import {
-  ToastContainer,
-  makeToastKernelCallbacks,
-  stliteStyledPromiseToast,
-} from "@stlite/common-react";
+import StreamlitAppWithToast, {
+  type StreamlitAppWithToastRef,
+} from "./StreamlitAppWithToast";
+import type { MicropipInstallOptions } from "@stlite/kernel";
+import { parseMountOptions, type MountOptions } from "./options";
 import STLITE_LIB_WHEEL from "stlite_lib.whl";
 import STREAMLIT_WHEEL from "streamlit.whl";
 
@@ -36,74 +33,52 @@ export function mount(
   container: HTMLElement = document.body,
 ) {
   const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
-  const kernel = new StliteKernel({
-    ...kernelOptions,
-    wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerType: kernelOptions.workerType ?? workerType,
-    ...makeToastKernelCallbacks(toastCallbackOptions),
-  });
+
+  const appRef = React.createRef<StreamlitAppWithToastRef>();
 
   const reactRoot = createRoot(container);
   reactRoot.render(
     <React.StrictMode>
-      <StreamlitApp kernel={kernel} />
-      <ToastContainer />
+      <StreamlitAppWithToast
+        ref={appRef}
+        kernelOptions={{
+          ...kernelOptions,
+          wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
+          workerType: kernelOptions.workerType ?? workerType,
+        }}
+        toastCallbackOptions={toastCallbackOptions}
+      />
     </React.StrictMode>,
   );
 
   return {
     unmount: () => {
-      kernel.dispose();
       reactRoot.unmount();
     },
     install: (requirements: string[], options?: MicropipInstallOptions) => {
-      return stliteStyledPromiseToast<void>(
-        kernel.install(requirements, options),
-        {
-          pending: "Installing",
-          success: "Successfully installed",
-          error: "Failed to install",
-        },
-      );
+      return appRef.current!.install(requirements, options);
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, unknown>,
     ) => {
-      return stliteStyledPromiseToast<void>(
-        kernel.writeFile(path, data, opts),
-        {
-          error: `Failed to write file: ${path}`,
-        },
-      );
+      return appRef.current!.writeFile(path, data, opts);
     },
     renameFile: (oldPath: string, newPath: string) => {
-      return stliteStyledPromiseToast<void>(
-        kernel.renameFile(oldPath, newPath),
-        {
-          error: `Failed to rename file: ${oldPath} to ${newPath}`,
-        },
-      );
+      return appRef.current!.renameFile(oldPath, newPath);
     },
     unlink: (path: string) => {
-      return stliteStyledPromiseToast<void>(kernel.unlink(path), {
-        error: `Failed to unlink file: ${path}`,
-      });
+      return appRef.current!.unlink(path);
     },
     readFile: (path: string, opts?: Record<string, unknown>) => {
-      return stliteStyledPromiseToast<Uint8Array | string>(
-        kernel.readFile(path, opts),
-        {
-          error: `Failed to read file: ${path}`,
-        },
-      );
+      return appRef.current!.readFile(path, opts);
     },
     getCodeCompletion: (
       code: string,
       position: { line: number; column: number },
     ) => {
-      return kernel.getCodeCompletion(code, position);
+      return appRef.current!.getCodeCompletion(code, position);
     },
   };
 }

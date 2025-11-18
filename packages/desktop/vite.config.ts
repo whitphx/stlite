@@ -113,10 +113,6 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
-    EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
-    EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
-      process.env.EDITOR_APP_ORIGIN_REGEX,
-    ),
   },
   server: {
     open: false,

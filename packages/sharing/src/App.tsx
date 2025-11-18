@@ -102,7 +102,29 @@ st.write("Hello World")`,
           archives: [],
           requirements: appData.requirements,
           prebuiltPackageNames: [],
-          ...makeToastKernelCallbacks(),
+          ...makeToastKernelCallbacks({
+            onModuleAutoLoad: (packagesToLoad, installPromise) => {
+              console.log("Module auto-load started", packagesToLoad);
+              installPromise
+                .then((loadedPackages) => {
+                  console.log("Module auto-load success", loadedPackages);
+                  window.parent.postMessage(
+                    {
+                      type: "moduleAutoLoadSuccess",
+                      data: {
+                        packagesToLoad,
+                        loadedPackages,
+                      },
+                      stlite: true,
+                    } as ModuleAutoLoadSuccessMessage,
+                    EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
+                  );
+                })
+                .catch((error) => {
+                  console.error("Auto install failed", error);
+                });
+            },
+          }),
           moduleAutoLoad: true,
           languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
@@ -112,29 +134,7 @@ st.write("Hello World")`,
         _kernel = kernel;
         setKernel(kernel);
 
-        const kernelWithToast = new StliteKernelWithToast(kernel, {
-          onModuleAutoLoad: (packagesToLoad, installPromise) => {
-            console.log("Module auto-load started", packagesToLoad);
-            installPromise
-              .then((loadedPackages) => {
-                console.log("Module auto-load success", loadedPackages);
-                window.parent.postMessage(
-                  {
-                    type: "moduleAutoLoadSuccess",
-                    data: {
-                      packagesToLoad,
-                      loadedPackages,
-                    },
-                    stlite: true,
-                  } as ModuleAutoLoadSuccessMessage,
-                  EDITOR_APP_ORIGIN ?? communicatedEditorOrigin, // Fall back to the origin of the last message from the editor app if the EDITOR_APP_ORIGIN is not set, i.e. in preview deployments.
-                );
-              })
-              .catch((error) => {
-                console.error("Auto install failed", error);
-              });
-          },
-        });
+        const kernelWithToast = new StliteKernelWithToast(kernel);
 
         // Handle messages from the editor
         onMessage = (event) => {

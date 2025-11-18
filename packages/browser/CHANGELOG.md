@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.90.13
+
+### Patch Changes
+
+- [#1682](https://github.com/whitphx/stlite/pull/1682) [`e4246cc`](https://github.com/whitphx/stlite/commit/e4246cc6cb297338aeb01b9c0a82f080ddd4fb47) Thanks [@whitphx](https://github.com/whitphx)! - Use vite-plugin-lib-assets to handle the wheel file assets
+
 ## 0.90.12
 
 ### Patch Changes

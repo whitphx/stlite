@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.12
+
+### Patch Changes
+
+- [#1683](https://github.com/whitphx/stlite/pull/1683) [`49e637f`](https://github.com/whitphx/stlite/commit/49e637fc9f58cbeab8ab209553c6eb3a462004c7) Thanks [@whitphx](https://github.com/whitphx)! - Refactoring build config
+
 ## 0.90.11
 
 ### Patch Changes

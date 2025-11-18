@@ -148,14 +148,14 @@ jobs:
         else
           STATE="failure"
         fi
-        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
           -X POST \
           -f state=${STATE} \
           -f context=${{ github.job }} \
           -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
+        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
 
   e2e-browser-browserstack:
     needs: get-build-info
@@ -222,14 +222,14 @@ jobs:
         else
           STATE="failure"
         fi
-        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
           -X POST \
           -f state=${STATE} \
           -f context=${{ github.job }} \
           -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
+        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
 
   e2e-desktop:
     needs: get-build-info
@@ -288,14 +288,14 @@ jobs:
         else
           STATE="failure"
         fi
-        gh api repos/${{ github.repository }}/statuses/${TRIGGER_SHA} \
+        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
           -X POST \
           -f state=${STATE} \
           -f context='${{ github.job }} (${{ matrix.os }})' \
           -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        TRIGGER_SHA: ${{ needs.get-build-info.outputs.trigger-sha }}
+        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
 
   deploy-browser-preview:
     needs: [get-build-info, e2e-browser, e2e-browser-browserstack]

@@ -22,7 +22,7 @@ export function stliteStyledPromiseToast<
                 return data ? (
                   <ErrorToastContent message={errorMessage} error={data} />
                 ) : (
-                  <>messages.error</>
+                  errorMessage
                 );
               },
               autoClose: false,

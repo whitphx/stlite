@@ -113,6 +113,7 @@ export function parseMountOptions(options: MountOptions): {
       toastCallbackOptions: {
         disableProgressToasts: false,
         disableErrorToasts: false,
+        onModuleAutoLoad: undefined,
       },
     };
   }
@@ -146,6 +147,7 @@ export function parseMountOptions(options: MountOptions): {
     toastCallbackOptions: {
       disableProgressToasts: options.disableProgressToasts || false,
       disableErrorToasts: options.disableErrorToasts || false,
+      onModuleAutoLoad: options.onModuleAutoLoad,
     },
   };
 }

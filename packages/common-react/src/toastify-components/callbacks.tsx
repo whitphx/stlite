@@ -1,8 +1,10 @@
 import { StliteKernelOptions } from "@stlite/kernel";
 import { toast, Slide, Id as ToastId } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
+import { stliteStyledPromiseToast } from "./stlite-styled-promise-toast";
 
 export interface MakeToastKernelCallbacksOptions {
+  onModuleAutoLoad?: StliteKernelOptions["onModuleAutoLoad"];
   disableProgressToasts?: boolean;
   disableErrorToasts?: boolean;
 }
@@ -10,6 +12,7 @@ export interface ToastKernelCallbacks {
   onProgress: NonNullable<StliteKernelOptions["onProgress"]>;
   onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
   onError: NonNullable<StliteKernelOptions["onError"]>;
+  onModuleAutoLoad?: StliteKernelOptions["onModuleAutoLoad"];
 }
 export function makeToastKernelCallbacks(
   options?: MakeToastKernelCallbacksOptions,
@@ -59,10 +62,31 @@ export function makeToastKernelCallbacks(
       },
     );
   };
+  const onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"] = (
+    packagesToLoad,
+    installPromise,
+  ) => {
+    if (options?.onModuleAutoLoad) {
+      options.onModuleAutoLoad(packagesToLoad, installPromise);
+    }
+
+    stliteStyledPromiseToast(installPromise, {
+      success: {
+        render({ data }) {
+          return `Auto-loaded${
+            data ? ": " + data.map((pkg) => pkg.name).join(", ") : " packages"
+          }`;
+        },
+      },
+      error: "Failed to auto-load packages",
+      pending: "Auto-loading packages",
+    });
+  };
 
   return {
     onProgress,
     onLoad,
     onError,
+    onModuleAutoLoad,
   };
 }

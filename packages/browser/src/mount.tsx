@@ -6,7 +6,7 @@ import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
   makeToastKernelCallbacks,
-  StliteKernelWithToast,
+  stliteStyledPromiseToast,
 } from "@stlite/common-react";
 import STLITE_LIB_WHEEL from "stlite_lib.whl";
 import STREAMLIT_WHEEL from "streamlit.whl";
@@ -51,31 +51,53 @@ export function mount(
     </React.StrictMode>,
   );
 
-  const kernelWithToast = new StliteKernelWithToast(kernel);
-
   return {
     unmount: () => {
       kernel.dispose();
       reactRoot.unmount();
     },
     install: (requirements: string[], options?: MicropipInstallOptions) => {
-      return kernelWithToast.install(requirements, options);
+      return stliteStyledPromiseToast<void>(
+        kernel.install(requirements, options),
+        {
+          pending: "Installing",
+          success: "Successfully installed",
+          error: "Failed to install",
+        },
+      );
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, unknown>,
     ) => {
-      return kernelWithToast.writeFile(path, data, opts);
+      return stliteStyledPromiseToast<void>(
+        kernel.writeFile(path, data, opts),
+        {
+          error: `Failed to write file: ${path}`,
+        },
+      );
     },
     renameFile: (oldPath: string, newPath: string) => {
-      return kernelWithToast.renameFile(oldPath, newPath);
+      return stliteStyledPromiseToast<void>(
+        kernel.renameFile(oldPath, newPath),
+        {
+          error: `Failed to rename file: ${oldPath} to ${newPath}`,
+        },
+      );
     },
     unlink: (path: string) => {
-      return kernelWithToast.unlink(path);
+      return stliteStyledPromiseToast<void>(kernel.unlink(path), {
+        error: `Failed to unlink file: ${path}`,
+      });
     },
     readFile: (path: string, opts?: Record<string, unknown>) => {
-      return kernelWithToast.readFile(path, opts);
+      return stliteStyledPromiseToast<Uint8Array | string>(
+        kernel.readFile(path, opts),
+        {
+          error: `Failed to read file: ${path}`,
+        },
+      );
     },
     getCodeCompletion: (
       code: string,

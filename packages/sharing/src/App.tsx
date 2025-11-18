@@ -19,6 +19,7 @@ import STREAMLIT_WHEEL from "streamlit.whl";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;
 declare const EDITOR_APP_ORIGIN: string;
+
 const wheelUrls = {
   // The resolved URLs such as STLITE_LIB_WHEEL only contain the pathnames e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl"
   // and micropip treats such path-only URLs as local file URLs e.g. "file:////assets/stlite_lib-0.1.0-py3-none-any.whl"

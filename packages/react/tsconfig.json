@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es6",
+    "types": ["vite/client", "vitest/globals"],
+    // Set the `paths` same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L5-L9.
+    "paths": {
+      "~lib/*": ["./../../streamlit/frontend/lib/src/*"],
+      "@streamlit/lib": ["./../../streamlit/frontend/lib/src"],
+      "@streamlit/app": ["./../../streamlit/frontend/app/src"]
+    }
+  },
+  "include": [
+    "src",
+    // Add necessary declarations same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L11.
+    "../../streamlit/frontend/lib/declarations.d.ts",
+    "../../streamlit/frontend/lib/emotion.d.ts",
+  ],
+  "references": [
+    {
+      "path": "../common/tsconfig.src.json"
+    },
+    {
+      "path": "../common-react/tsconfig.src.json"
+    },
+    {
+      "path": "../kernel/tsconfig.src.json"
+    }
+  ]
+}

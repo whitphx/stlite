@@ -4755,7 +4755,7 @@ __metadata:
     "@stlite/common-react": "workspace:^"
     "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
-    "@streamlit/app": "workspace:^"
+    "@stlite/react": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
@@ -4896,6 +4896,39 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vitest: "npm:^4.0.8"
+  languageName: unknown
+  linkType: soft
+
+"@stlite/react@workspace:^, @stlite/react@workspace:packages/react":
+  version: 0.0.0-use.local
+  resolution: "@stlite/react@workspace:packages/react"
+  dependencies:
+    "@emotion/babel-plugin": "npm:^11.13.5"
+    "@eslint/js": "npm:^9.32.0"
+    "@stlite/common": "workspace:^"
+    "@stlite/common-react": "workspace:^"
+    "@stlite/devutils": "workspace:^"
+    "@stlite/kernel": "workspace:^"
+    "@streamlit/app": "workspace:^"
+    "@types/react": "npm:^18.2.0"
+    "@types/react-dom": "npm:^18.2.0"
+    "@vitejs/plugin-react": "npm:^5.1.1"
+    codedent: "npm:^0.1.2"
+    eslint: "npm:^9.32.0"
+    eslint-plugin-prettier: "npm:^5.5.3"
+    eslint-plugin-react: "npm:^7.37.5"
+    eslint-plugin-react-hooks: "npm:^7.0.1"
+    prettier: "npm:^3.6.2"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    sass: "npm:^1.90.0"
+    typescript: "npm:^5.9.2"
+    typescript-eslint: "npm:^8.38.0"
+    vite: "npm:^7.1.5"
+    vite-plugin-dts: "npm:^4.5.3"
+    vite-plugin-wasm: "npm:^3.5.0"
+    vitest: "npm:^4.0.8"
+    web-vitals: "npm:^4.2.4"
   languageName: unknown
   linkType: soft
 

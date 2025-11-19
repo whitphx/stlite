@@ -44,6 +44,7 @@ node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
 common-react := $(BUILD_STATE_DIR)/common-react/.built
+react := $(BUILD_STATE_DIR)/react/.built
 browser := $(BUILD_STATE_DIR)/browser/.built
 sharing := $(BUILD_STATE_DIR)/sharing/.built
 sharing-common := $(BUILD_STATE_DIR)/sharing-common/.built
@@ -121,9 +122,16 @@ $(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" 
 	@mkdir -p $(dir $@)
 	@touch $@
 
+.PHONY: react
+react: $(react)
+$(react): $(shell find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+	cd packages/react && yarn build
+	@mkdir -p $(dir $@)
+	@touch $@
+
 .PHONY: browser
 browser: $(browser)
-$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(react)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

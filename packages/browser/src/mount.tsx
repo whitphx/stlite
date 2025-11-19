@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import StreamlitApp from "./StreamlitApp";
-import { MicropipInstallOptions, StliteKernel } from "@stlite/kernel";
+import { StliteApp } from "@stlite/react";
+import { type MicropipInstallOptions, StliteKernel } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
@@ -46,7 +46,7 @@ export function mount(
   const reactRoot = createRoot(container);
   reactRoot.render(
     <React.StrictMode>
-      <StreamlitApp kernel={kernel} />
+      <StliteApp kernel={kernel} />
       <ToastContainer />
     </React.StrictMode>,
   );

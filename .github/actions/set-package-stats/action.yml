@@ -1,14 +1,21 @@
+name: Set package stats
+description: "Set package stats"
 inputs:
   key:
     required: true
+    description: stats file key
   name:
     required: true
+    description: stats name
   input-path:
     required: true
+    description: stats source package file path
   stats-file-prefix:
     default: "package-stats."
+    description: stats file name prefix
   size-diff-warning-threshold-kib:
-    default: 128
+    default: "128"
+    description: file size warning threshold in KiB
 
 runs:
   using: "composite"

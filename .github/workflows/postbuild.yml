@@ -300,6 +300,7 @@ jobs:
 
   deploy-browser-preview:
     needs: [get-build-info, e2e-browser, e2e-browser-browserstack]
+    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -307,6 +308,7 @@ jobs:
     name: Deploy @stlite/browser to Cloudflare Pages for preview
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
+      valid: ${{ needs.e2e-browser.result == 'success' && needs.e2e-browser-browserstack.result == 'success' }}
     steps:
     # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -376,6 +378,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
+            ${{ needs.deploy-browser-preview.outputs.valid == 'true' && '' || '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' }}
             \`${previewUrl}/stlite.js\` can be used to preview apps like below:
 
             \`\`\`html

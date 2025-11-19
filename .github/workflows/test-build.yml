@@ -459,7 +459,6 @@ jobs:
     # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
     - name: Get the built wheel file path
       id: get-wheel-file-path
-      working-directory:
       run: |
         pushd packages/kernel/py/stlite-lib/dist
         echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT

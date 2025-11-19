@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.13
+
+### Patch Changes
+
+- [`4d0858c`](https://github.com/whitphx/stlite/commit/4d0858c7a8d82e29ce44c176aa255c5836522c2f) Thanks [@whitphx](https://github.com/whitphx)! - Trigger release for #1689
+
 ## 0.90.12
 
 ### Patch Changes

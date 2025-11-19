@@ -27,7 +27,7 @@ import { getStreamlitWheelFileName } from "@stlite/devutils";
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   plugins: [
     react({
       // jsxImportSource: "@emotion/react",
@@ -67,7 +67,6 @@ export default defineConfig(({ mode }) => ({
     format: "es",
   },
   define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
       process.env.EDITOR_APP_ORIGIN_REGEX,

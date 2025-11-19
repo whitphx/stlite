@@ -12,9 +12,9 @@ import STLITE_LIB_WHEEL from "stlite_lib.whl";
 import STREAMLIT_WHEEL from "streamlit.whl";
 
 const wheelBaseUrl =
-  process.env.NODE_ENV === "production"
-    ? import.meta.url
-    : window.location.origin;
+  import.meta.env.MODE === "development"
+    ? window.location.origin
+    : import.meta.url;
 
 const wheelUrls = {
   // The resolved URLs such as STLITE_LIB_WHEEL only contain the pathnames e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl"
@@ -27,7 +27,7 @@ const wheelUrls = {
 };
 
 const workerType =
-  process.env.NODE_ENV === "development"
+  import.meta.env.MODE === "development"
     ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
     : "classic"; // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
 

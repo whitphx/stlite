@@ -111,9 +111,6 @@ export default defineConfig(({ mode }) => ({
   worker: {
     format: "es",
   },
-  define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
-  },
   server: {
     open: false,
     port: 3000,

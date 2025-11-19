@@ -5,7 +5,7 @@ import { Client as Styletron } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";
 
 const engine = new Styletron({ prefix: "st-" });
-if (process.env.NODE_ENV === "development") {
+if (import.meta.env.MODE === "development") {
   // By default, loglevel only shows warnings and errors.
   log.setLevel(log.levels.DEBUG);
 }

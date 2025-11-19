@@ -1,11 +1,15 @@
+name: Inform package stats
+description: "Post comment to a pull request page about package stats"
 inputs:
   pr-number:
     required: false
     description: "The PR number to inform. If not provided, the action will infer the PR number from the event type."
   stats-file-prefix:
     default: "package-stats."
+    description: stats file name prefix
   size-diff-warning-threshold-kib:
-    default: 128
+    default: "128"
+    description: file size warning threshold in KiB
 
 runs:
   using: "composite"

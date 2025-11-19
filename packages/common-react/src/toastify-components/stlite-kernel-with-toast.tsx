@@ -1,69 +1,8 @@
-import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
-import { toast, ToastPromiseParams } from "react-toastify";
-import ErrorToastContent from "./ErrorToastContent";
+import type { StliteKernel } from "@stlite/kernel";
+import { stliteStyledPromiseToast } from "./promise";
 
-function stliteStyledPromiseToast<
-  TData = unknown,
-  TError extends Error | undefined = undefined,
-  TPending = unknown,
->(
-  promise: Promise<TData>,
-  messages: ToastPromiseParams<TData, TError, TPending>,
-): ReturnType<typeof toast.promise> {
-  const errorMessage = messages.error;
-  return toast.promise<TData, TError, TPending>(
-    promise,
-    {
-      pending: messages.pending,
-      success: messages.success,
-      error:
-        typeof errorMessage === "string"
-          ? {
-              render({ data }) {
-                return data ? (
-                  <ErrorToastContent message={errorMessage} error={data} />
-                ) : (
-                  <>messages.error</>
-                );
-              },
-              autoClose: false,
-              closeOnClick: false,
-            }
-          : errorMessage,
-    },
-    {
-      hideProgressBar: true,
-      position: "bottom-right",
-    },
-  );
-}
-
-export interface StliteKernelWithToastOptions {
-  onModuleAutoLoad?: StliteKernelOptions["onModuleAutoLoad"];
-}
 export class StliteKernelWithToast {
-  constructor(
-    private kernel: StliteKernel,
-    options?: StliteKernelWithToastOptions,
-  ) {
-    kernel.onModuleAutoLoad = (packagesToLoad, installPromise) => {
-      if (options?.onModuleAutoLoad) {
-        options.onModuleAutoLoad(packagesToLoad, installPromise);
-      }
-
-      stliteStyledPromiseToast(installPromise, {
-        success: {
-          render({ data }) {
-            return `Auto-loaded${
-              data ? ": " + data.map((pkg) => pkg.name).join(", ") : " packages"
-            }`;
-          },
-        },
-        error: "Failed to auto-load packages",
-        pending: "Auto-loading packages",
-      });
-    };
-  }
+  constructor(private kernel: StliteKernel) {}
 
   public writeFile(...args: Parameters<StliteKernel["writeFile"]>) {
     return stliteStyledPromiseToast<void>(this.kernel.writeFile(...args), {

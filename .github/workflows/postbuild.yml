@@ -300,7 +300,7 @@ jobs:
 
   deploy-browser-preview:
     needs: [get-build-info, e2e-browser, e2e-browser-browserstack]
-    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' && ! failure() ) || success() }}
+    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

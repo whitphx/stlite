@@ -24,7 +24,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 
 import path from "node:path";
-import vitePluginStliteReact from "./vite-plugin";
+import vitePluginStliteReact from "./vite-plugin/src/index";
 import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
@@ -70,7 +70,16 @@ export default defineConfig(({ mode }) => ({
         },
       ],
     }),
-    vitePluginStliteReact(),
+    vitePluginStliteReact({
+      streamlitWheelFilePath: path.resolve(
+        __dirname,
+        `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
+      ),
+      stliteLibWheelFilePath: path.resolve(
+        __dirname,
+        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+      ),
+    }),
   ],
   define: {
     "process.env.NODE_ENV":

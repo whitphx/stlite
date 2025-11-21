@@ -19,7 +19,8 @@
     "url": "https://www.whitphx.info/"
   },
   "files": [
-    "build/"
+    "build/",
+    "vite-plugin/dist/"
   ],
   "exports": {
     ".": {
@@ -30,7 +31,8 @@
     },
     "./vite-plugin": {
       "import": {
-        "default": "./vite-plugin/index.ts"
+        "types": "./vite-plugin/dist/index.d.ts",
+        "default": "./vite-plugin/dist/index.mjs"
       }
     }
   },
@@ -55,10 +57,12 @@
     "eslint-plugin-prettier": "^5.5.3",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.90.0",
+    "tsdown": "^0.16.6",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
     "vite": "^7.1.5",
@@ -70,7 +74,9 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "run-p 'build:*'",
+    "build:lib": "tsc --noEmit && vite build",
+    "build:vite-plugin": "cd vite-plugin && tsdown",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
-import StreamlitApp from "./StreamlitApp";
+import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
+import { StliteApp, createKernel } from "@stlite/react";
 import { makeToastKernelCallbacks } from "@stlite/common-react";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
 
 let pyodideUrl: string | undefined;
-if (process.env.NODE_ENV === "production" && !USE_NODEJS_WORKER) {
+if (import.meta.env.MODE === "production" && !USE_NODEJS_WORKER) {
   // The `pyodide` directory including `pyodide.js` is downloaded
   // to the build target directory at the build time for production release.
   // See the "build:pyodide" NPM script.
@@ -44,7 +44,7 @@ function App() {
           };
         });
 
-        kernel = new StliteKernel({
+        kernel = createKernel({
           entrypoint: window.appConfig.entrypoint,
           files,
           archives: [
@@ -64,7 +64,6 @@ function App() {
           worker: USE_NODEJS_WORKER
             ? (new NodeJsWorkerMock() as unknown as Worker)
             : undefined,
-          workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
           ...makeToastKernelCallbacks(),
         });
         setKernel(kernel);
@@ -77,7 +76,7 @@ function App() {
     };
   }, []);
 
-  return kernel ? <StreamlitApp kernel={kernel} /> : null;
+  return kernel ? <StliteApp kernel={kernel} /> : null;
 }
 
 export default App;

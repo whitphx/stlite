@@ -19,9 +19,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import wasm from "vite-plugin-wasm";
+import stliteReactPlugin from "@stlite/react/vite-plugin";
 
-import path from "path";
+import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
   base: "/",
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
     viteTsconfigPaths(),
-    wasm(),
+    stliteReactPlugin(),
     {
       name: "inject-csp-header",
       transformIndexHtml(html) {
@@ -99,20 +99,7 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         "../../streamlit/frontend/lib/src",
       ),
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
     },
-  },
-  optimizeDeps: {
-    exclude: ["parquet-wasm"],
-  },
-  worker: {
-    format: "es",
-  },
-  define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
   },
   server: {
     open: false,

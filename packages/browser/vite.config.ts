@@ -19,13 +19,12 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import wasm from "vite-plugin-wasm";
 import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 import dts from "vite-plugin-dts";
+import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
 import fs from "node:fs";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
@@ -50,7 +49,6 @@ export default defineConfig(({ mode }) => ({
       ],
     }),
     viteTsconfigPaths(),
-    wasm(),
     // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
     // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
     // while we need to disable inlining for the wheel files so that they are served as separate files
@@ -72,6 +70,7 @@ export default defineConfig(({ mode }) => ({
       name: "[name].[ext]",
       publicUrl: "./",
     }),
+    stliteReactPlugin(),
     // To serve files for development
     mode === "development" && {
       name: "dev-data-server",
@@ -103,29 +102,7 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         "../../streamlit/frontend/lib/src",
       ),
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "stlite_lib.whl": path.resolve(
-        __dirname,
-        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-      ),
-      "streamlit.whl": path.resolve(
-        __dirname,
-        `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
-      ),
     },
-  },
-  assetsInclude: ["**/*.whl"],
-  optimizeDeps: {
-    exclude: ["parquet-wasm"],
-  },
-  worker: {
-    format: "es",
-  },
-  define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
   },
   server: {
     open: false,

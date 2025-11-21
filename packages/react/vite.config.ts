@@ -20,7 +20,7 @@ import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
-import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 
 import path from "node:path";
@@ -50,48 +50,26 @@ export default defineConfig(({ mode }) => ({
     }),
     viteTsconfigPaths(),
     wasm(),
-    // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
-    // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
-    // while we need to disable inlining for the wheel files so that they are served as separate files
-    // and their URLs are to be passed to `micropip.install()`.
-    // Currently disabling inlining is not supported in the library mode:
-    // > If you specify build.lib, build.assetsInlineLimit will be ignored and assets will always be inlined, regardless of file size or being a Git LFS placeholder.
-    // > https://vitejs.dev/config/build-options.html#build-assetsinlinelimit
-    //
-    // and there is an open issue about this: https://github.com/vitejs/vite/issues/4454.
-    //
-    // As a workaround, we use this 'vite-plugin-lib-assets' plugin to avoid inlining of the wheel files,
-    // that was introduced in the above issue discussion as well (https://github.com/vitejs/vite/issues/4454#issuecomment-1627702924)
-    libAssetsPlugin({
-      include: "**/*.whl",
-      outputPath: "wheels",
-      // Ensure that *.whl files have proper file names following the wheel file name convention
-      // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
-      // so that micropip can recognize them correctly.
-      name: "[name].[ext]",
-      publicUrl: "./",
+    // Bundle wheel files into the build output's wheels/ directory
+    viteStaticCopy({
+      targets: [
+        {
+          src: path.resolve(
+            __dirname,
+            "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+          ),
+          dest: "wheels",
+        },
+        {
+          src: path.resolve(
+            __dirname,
+            `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
+          ),
+          dest: "wheels",
+        },
+      ],
     }),
   ],
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "stlite_lib.whl": path.resolve(
-        __dirname,
-        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-      ),
-      "streamlit.whl": path.resolve(
-        __dirname,
-        `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
-      ),
-    },
-  },
   assetsInclude: ["**/*.whl"],
   optimizeDeps: {
     exclude: ["parquet-wasm"],
@@ -100,7 +78,8 @@ export default defineConfig(({ mode }) => ({
     format: "es",
   },
   define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
+    "process.env.NODE_ENV":
+      mode === "production" ? "process.env.NODE_ENV" : JSON.stringify(mode),
   },
   server: {
     open: false,
@@ -119,7 +98,7 @@ export default defineConfig(({ mode }) => ({
       formats: ["es"],
     },
     rollupOptions: {
-      external: ["react", "react-dom"],
+      external: ["react", "react-dom", "stlite_lib.whl", "streamlit.whl"],
     },
   },
 }));

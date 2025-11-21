@@ -24,6 +24,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 
 import path from "node:path";
+import vitePluginStliteReact from "./vite-plugin";
 import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
@@ -69,14 +70,8 @@ export default defineConfig(({ mode }) => ({
         },
       ],
     }),
+    vitePluginStliteReact(),
   ],
-  assetsInclude: ["**/*.whl"],
-  optimizeDeps: {
-    exclude: ["parquet-wasm"],
-  },
-  worker: {
-    format: "es",
-  },
   define: {
     "process.env.NODE_ENV":
       mode === "production" ? "process.env.NODE_ENV" : JSON.stringify(mode),

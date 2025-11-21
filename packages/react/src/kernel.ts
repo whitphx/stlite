@@ -18,15 +18,10 @@ const wheelUrls = {
   streamlit: new URL(STREAMLIT_WHEEL, wheelBaseUrl).href,
 };
 
-const workerType =
-  process.env.NODE_ENV === "development"
-    ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-    : "classic"; // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
-
 export function createKernel(kernelOptions: StliteKernelOptions) {
   return new StliteKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerType: kernelOptions.workerType ?? workerType,
+    workerType: kernelOptions.workerType ?? "module", // Default value is "module" because Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
   });
 }

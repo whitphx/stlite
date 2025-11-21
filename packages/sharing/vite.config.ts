@@ -19,15 +19,14 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
-import wasm from "vite-plugin-wasm";
+import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "path";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   plugins: [
     react({
       // jsxImportSource: "@emotion/react",
@@ -37,7 +36,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
     viteTsconfigPaths(),
-    wasm(),
+    stliteReactPlugin(),
   ],
   resolve: {
     alias: {
@@ -45,29 +44,9 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         "../../streamlit/frontend/lib/src",
       ),
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "stlite_lib.whl": path.resolve(
-        __dirname,
-        "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
-      ),
-      "streamlit.whl": path.resolve(
-        __dirname,
-        `../kernel/py/streamlit/lib/dist/${getStreamlitWheelFileName()}`,
-      ),
     },
   },
-  assetsInclude: ["**/*.whl"],
-  optimizeDeps: {
-    exclude: ["parquet-wasm"],
-  },
-  worker: {
-    format: "es",
-  },
   define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(
       process.env.EDITOR_APP_ORIGIN_REGEX,

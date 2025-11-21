@@ -21,7 +21,7 @@
     "react-router-dom": "^7.9.6",
     "superstruct": "^2.0.2",
     "usehooks-ts": "^3.1.0",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^5.1.0"
   },
   "scripts": {
     "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",

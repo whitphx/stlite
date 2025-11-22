@@ -765,7 +765,7 @@ export function startWorkerEnv(
 
           const rawResult = await pyodide.runPythonAsync(code);
           let result: unknown;
-          if (typeof rawResult === "object" && rawResult != null) {
+          if (rawResult instanceof pyodide.ffi.PyProxy) {
             console.debug("The result is a PyProxy object");
             result = (rawResult as PyProxy).toJs();
             (rawResult as PyProxy).destroy();

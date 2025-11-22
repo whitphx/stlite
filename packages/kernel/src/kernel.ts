@@ -383,6 +383,23 @@ export class StliteKernel {
     ).then((data) => data.codeCompletions);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public runPython(code: string): Promise<any> {
+    return this.loaded
+      .then(() =>
+        this._asyncPostMessage(
+          {
+            type: "run_python",
+            data: {
+              code,
+            },
+          },
+          "reply:run_python",
+        ),
+      )
+      .then((data) => data.result);
+  }
+
   /**
    * Reboot the Streamlit server.
    * Note that we also need to refresh (rerender) the frontend app after calling this method

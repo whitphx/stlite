@@ -32,4 +32,14 @@ test.describe("Basic Stlite Browser Test", () => {
     // Check for dead links
     expectNoDeadLinks();
   });
+
+  test("controller.runPython()", async ({ page }) => {
+    await page.goto("/test-app.html");
+
+    const result = await page.evaluate(() => {
+      // @ts-expect-error window.controller is injected in test-app.html
+      return window.controller.runPython("12 + 34");
+    });
+    expect(result).toBe(46);
+  });
 });

@@ -378,7 +378,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
-            ${{ needs.deploy-browser-preview.outputs.valid == 'true' && '✅ E2E test passed' || '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' }}
+            ${{ needs.deploy-browser-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' }}
             \`${previewUrl}/stlite.js\` can be used to preview apps like below:
 
             \`\`\`html

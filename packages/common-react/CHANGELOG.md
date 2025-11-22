@@ -1,5 +1,12 @@
 # @stlite/common-react
 
+## 0.90.2
+
+### Patch Changes
+
+- Updated dependencies [[`ed1a48b`](https://github.com/whitphx/stlite/commit/ed1a48bccfd51dbae1c643baccfa5b7932c25f86)]:
+  - @stlite/kernel@0.91.0
+
 ## 0.90.1
 
 ### Patch Changes

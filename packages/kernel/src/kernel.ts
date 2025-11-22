@@ -385,15 +385,19 @@ export class StliteKernel {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public runPython(code: string): Promise<any> {
-    return this._asyncPostMessage(
-      {
-        type: "run_python",
-        data: {
-          code,
-        },
-      },
-      "reply:run_python",
-    ).then((data) => data.result);
+    return this.loaded
+      .then(() =>
+        this._asyncPostMessage(
+          {
+            type: "run_python",
+            data: {
+              code,
+            },
+          },
+          "reply:run_python",
+        ),
+      )
+      .then((data) => data.result);
   }
 
   /**

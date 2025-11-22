@@ -21,7 +21,7 @@
   "devDependencies": {
     "@stlite/desktop": "workspace:^",
     "cross-env": "^10.1.0",
-    "electron": "34.3.0",
+    "electron": "39.2.3",
     "electron-builder": "^26.3.0"
   },
   "stlite": {

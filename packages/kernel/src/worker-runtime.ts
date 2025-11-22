@@ -759,6 +759,30 @@ export function startWorkerEnv(
           });
           break;
         }
+        case "run_python": {
+          const { code } = msg.data;
+          console.debug("Run python code", code);
+
+          const rawResult = await pyodide.runPythonAsync(code);
+          let result: unknown;
+          if (typeof rawResult === "object" && rawResult != null) {
+            console.debug("The result is a PyProxy object");
+            result = (rawResult as PyProxy).toJs();
+            (rawResult as PyProxy).destroy();
+            console.debug("Converted the result to a JS object", result);
+          } else {
+            result = rawResult;
+            console.debug("The result is a JS primitive", result);
+          }
+
+          reply({
+            type: "reply:run_python",
+            data: {
+              result,
+            },
+          });
+          break;
+        }
       }
     } catch (error) {
       console.error(error);

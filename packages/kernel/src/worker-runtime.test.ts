@@ -1,8 +1,6 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import type { PyodideInterface } from "pyodide";
-import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
-import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
 import {
   afterAll,
   afterEach,
@@ -14,7 +12,7 @@ import {
   vitest,
 } from "vitest";
 import { getCodeCompletions } from "./code_completion";
-import { getWheelInstallPath, pyodideUrl } from "./test-utils";
+import { getWheelUrls, pyodideUrl } from "./test-utils";
 import type { WorkerInitialData } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 import type { PyProxy } from "pyodide/ffi";
@@ -70,14 +68,7 @@ async function initializeWorkerEnv(
           data: {
             files: options.files,
             entrypoint: options.entrypoint,
-            wheels: {
-              stliteLib: getWheelInstallPath(
-                stliteLibWheelUrl as unknown as string,
-              ),
-              streamlit: getWheelInstallPath(
-                streamlitWheelUrl as unknown as string,
-              ),
-            },
+            wheels: getWheelUrls(),
             archives: [],
             requirements: options.requirements ?? [],
             moduleAutoLoad: false,

@@ -1,9 +1,7 @@
 import { StliteKernel } from "./kernel";
-import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
-import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
 import StliteWorker from "./worker?worker";
 import { beforeAll, expect, suite, test } from "vitest";
-import { getWheelInstallPath, pyodideUrl } from "./test-utils";
+import { getWheelUrls, pyodideUrl } from "./test-utils";
 
 suite(
   "StliteKernel.runPython",
@@ -60,14 +58,7 @@ suite(
       kernel = new StliteKernel({
         worker,
         pyodideUrl,
-        wheelUrls: {
-          stliteLib: getWheelInstallPath(
-            stliteLibWheelUrl as unknown as string,
-          ),
-          streamlit: getWheelInstallPath(
-            streamlitWheelUrl as unknown as string,
-          ),
-        },
+        wheelUrls: getWheelUrls(),
         entrypoint: "app.py",
         files: {
           "app.py": {

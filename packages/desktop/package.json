@@ -97,7 +97,7 @@
     "vite": "^7.1.5",
     "vite-plugin-wasm": "^3.5.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.8",
+    "vitest": "^4.0.13",
     "wait-on": "^8.0.1",
     "winston": "^3.13.0"
   },

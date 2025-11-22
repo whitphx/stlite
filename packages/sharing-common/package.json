@@ -32,6 +32,6 @@
     "ts-proto": "^2.6.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.13"
   }
 }

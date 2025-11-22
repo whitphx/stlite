@@ -1,8 +1,6 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import type { PyodideInterface } from "pyodide";
-import stliteLibWheelUrl from "stlite_lib.whl"; // This is an alias configured in vitest.config.ts
-import streamlitWheelUrl from "streamlit.whl"; // This is an alias configured in vitest.config.ts
 import {
   afterAll,
   afterEach,
@@ -14,18 +12,10 @@ import {
   vitest,
 } from "vitest";
 import { getCodeCompletions } from "./code_completion";
-import { WorkerInitialData } from "./types";
-import { type PostMessageFn } from "./worker-runtime";
-import { PyProxy } from "pyodide/ffi";
-
-const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
-
-function getWheelInstallPath(wheelImportUrl: string): string {
-  // `wheelImportUrl` is like `/path/to/stlite_lib.whl` that is a URL path.
-  // We need to convert it to a local file path so that it can be referred to in the test environment i.e. Node.js.
-  // Also, we need to add `file://` scheme to it so that `micropip.install()` can install it.
-  return "file://" + path.resolve("." + wheelImportUrl);
-}
+import { getWheelUrls, pyodideUrl } from "./test-utils";
+import type { WorkerInitialData } from "./types";
+import type { PostMessageFn } from "./worker-runtime";
+import type { PyProxy } from "pyodide/ffi";
 
 interface InitializeWorkerEnvOptions {
   entrypoint: string;
@@ -78,14 +68,7 @@ async function initializeWorkerEnv(
           data: {
             files: options.files,
             entrypoint: options.entrypoint,
-            wheels: {
-              stliteLib: getWheelInstallPath(
-                stliteLibWheelUrl as unknown as string,
-              ),
-              streamlit: getWheelInstallPath(
-                streamlitWheelUrl as unknown as string,
-              ),
-            },
+            wheels: getWheelUrls(),
             archives: [],
             requirements: options.requirements ?? [],
             moduleAutoLoad: false,

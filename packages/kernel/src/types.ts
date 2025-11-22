@@ -163,6 +163,13 @@ export interface InMessageCodeCompletion extends InMessageBase {
   data: CodeCompletionRequestPayload;
 }
 
+export interface InMessageRunPython extends InMessageBase {
+  type: "run_python";
+  data: {
+    code: string;
+  };
+}
+
 export type InMessage =
   | InMessageInitData
   | InMessageReboot
@@ -175,7 +182,8 @@ export type InMessage =
   | InMessageFileRead
   | InMessageInstall
   | InMessageSetEnv
-  | InMessageCodeCompletion;
+  | InMessageCodeCompletion
+  | InMessageRunPython;
 
 export interface StliteWorker extends Worker {
   postMessage(message: InMessage, transfer: Transferable[]): void;
@@ -279,6 +287,12 @@ export interface ReplyMessageCodeCompletion extends ReplyMessageBase {
     codeCompletions: CodeCompletion[];
   };
 }
+export interface ReplyMessageRunPython extends ReplyMessageBase {
+  type: "reply:run_python";
+  data: {
+    result: unknown;
+  };
+}
 export interface ReplyMessageGeneralReply extends ReplyMessageBase {
   type: "reply";
   error?: Error;
@@ -287,7 +301,8 @@ export type ReplyMessage =
   | ReplyMessageHttpResponse
   | ReplyMessageFileRead
   | ReplyMessageCodeCompletion
-  | ReplyMessageGeneralReply;
+  | ReplyMessageGeneralReply
+  | ReplyMessageRunPython;
 
 /**
  * Validators

@@ -59,5 +59,8 @@ export function mount(
     ) => {
       return kernel.getCodeCompletion(code, position);
     },
+    runPython: (code: string) => {
+      return kernel.runPython(code);
+    },
   };
 }

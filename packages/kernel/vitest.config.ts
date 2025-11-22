@@ -9,7 +9,7 @@ export default defineConfig(() => ({
   plugins: [react()],
   test: {
     environment: "jsdom", // We use jsdom because happy-dom does not work well with iframe.
-    setupFiles: ["./setupTests.ts"],
+    setupFiles: ["./setupTests.ts", "@vitest/web-worker"],
     maxConcurrency: process.env.CI ? 3 : undefined,
   },
   resolve: {

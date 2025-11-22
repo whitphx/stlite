@@ -107,7 +107,7 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "include": ["src", "../../streamlit/frontend/lib/src/**/*.d.ts"],
-  "exclude": ["src/*.spec.ts", "src/*.test.ts"],
+  "exclude": ["src/*.spec.ts", "src/*.test.ts", "src/test-utils.ts"],
   "references": [
     {
       "path": "../common/tsconfig.src.json"

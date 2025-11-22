@@ -14,18 +14,10 @@ import {
   vitest,
 } from "vitest";
 import { getCodeCompletions } from "./code_completion";
-import { WorkerInitialData } from "./types";
-import { type PostMessageFn } from "./worker-runtime";
-import { PyProxy } from "pyodide/ffi";
-
-const pyodideUrl = path.resolve("../../node_modules/pyodide/pyodide.mjs"); // Installed at the Yarn workspace root;
-
-function getWheelInstallPath(wheelImportUrl: string): string {
-  // `wheelImportUrl` is like `/path/to/stlite_lib.whl` that is a URL path.
-  // We need to convert it to a local file path so that it can be referred to in the test environment i.e. Node.js.
-  // Also, we need to add `file://` scheme to it so that `micropip.install()` can install it.
-  return "file://" + path.resolve("." + wheelImportUrl);
-}
+import { getWheelInstallPath, pyodideUrl } from "./test-utils";
+import type { WorkerInitialData } from "./types";
+import type { PostMessageFn } from "./worker-runtime";
+import type { PyProxy } from "pyodide/ffi";
 
 interface InitializeWorkerEnvOptions {
   entrypoint: string;

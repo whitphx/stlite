@@ -767,8 +767,8 @@ export function startWorkerEnv(
           let result: unknown;
           if (rawResult instanceof pyodide.ffi.PyProxy) {
             console.debug("The result is a PyProxy object");
-            result = (rawResult as PyProxy).toJs();
-            (rawResult as PyProxy).destroy();
+            result = rawResult.toJs();
+            rawResult.destroy();
             console.debug("Converted the result to a JS object", result);
           } else {
             result = rawResult;

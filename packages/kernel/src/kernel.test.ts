@@ -49,6 +49,7 @@ suite(
 
       // Patching https://github.com/vitest-dev/vitest/blob/73b54ce2859d34f3847de465efb3f6affda0f8c1/packages/web-worker/src/worker.ts#L163
       function overridePostMessage(
+        this: any, // eslint-disable-line @typescript-eslint/no-explicit-any
         data: unknown,
         transferOrOptions:
           | StructuredSerializeOptions

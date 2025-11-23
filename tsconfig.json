@@ -17,6 +17,9 @@
       "path": "packages/kernel"
     },
     {
+      "path": "packages/react"
+    },
+    {
       "path": "packages/sharing"
     },
     {

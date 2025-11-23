@@ -131,17 +131,6 @@ export interface StliteKernelOptions {
 
   moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
-  onModuleAutoLoad?: (
-    packagesToLoad: string[],
-    installPromise: Promise<PackageData[]>,
-  ) => void;
-
-  onProgress?: (message: string) => void;
-
-  onLoad?: () => void;
-
-  onError?: (error: Error) => void;
-
   workerType?: WorkerOptions["type"];
 
   sharedWorker?: boolean;
@@ -161,7 +150,28 @@ export interface StliteKernelOptions {
   worker?: globalThis.Worker;
 }
 
-export class StliteKernel {
+export interface StliteKernelEventMap {
+  loadProgress: CustomEvent<string>;
+  loadFinished: Event;
+  loadError: CustomEvent<Error>;
+  moduleAutoLoad: CustomEvent<{
+    packagesToLoad: string[];
+    installPromise: Promise<PackageData[]>;
+  }>;
+}
+export type StliteKernelEventListener<K extends keyof StliteKernelEventMap> = (
+  ev: StliteKernelEventMap[K],
+) => void;
+export type StliteKernelEventHandlerObject<
+  K extends keyof StliteKernelEventMap,
+> = {
+  handleEvent(object: StliteKernelEventMap[K]): void;
+};
+export type StliteKernelEventListenerOrEventListenerObject<
+  K extends keyof StliteKernelEventMap,
+> = StliteKernelEventListener<K> | StliteKernelEventHandlerObject<K>;
+
+export class StliteKernel extends EventTarget {
   private _isDisposed = false;
 
   private _worker: StliteWorker | SharedWorker;
@@ -175,20 +185,41 @@ export class StliteKernel {
 
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
-  public onProgress: StliteKernelOptions["onProgress"];
-  public onLoad: StliteKernelOptions["onLoad"];
-  public onError: StliteKernelOptions["onError"];
-  public onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"];
+  addEventListener<K extends keyof StliteKernelEventMap>(
+    type: K,
+    listener: StliteKernelEventListenerOrEventListenerObject<K>,
+    options?: boolean | AddEventListenerOptions,
+  ): void {
+    super.addEventListener(
+      type,
+      listener as EventListenerOrEventListenerObject,
+      options,
+    );
+  }
+  removeEventListener<K extends keyof StliteKernelEventMap>(
+    type: K,
+    listener: StliteKernelEventListenerOrEventListenerObject<K>,
+    options?: boolean | EventListenerOptions,
+  ): void {
+    super.removeEventListener(
+      type,
+      listener as EventListenerOrEventListenerObject,
+      options,
+    );
+  }
+  dispatchEvent(
+    event: StliteKernelEventMap[keyof StliteKernelEventMap],
+  ): boolean {
+    return super.dispatchEvent(event);
+  }
 
   constructor(options: StliteKernelOptions) {
+    super();
+
     this.basePath = (options.basePath ?? window.location.pathname)
       .replace(FINAL_SLASH_RE, "")
       .replace(INITIAL_SLASH_RE, "");
     this.hostConfigResponse = options.hostConfigResponse ?? {};
-    this.onProgress = options.onProgress;
-    this.onLoad = options.onLoad;
-    this.onError = options.onError;
-    this.onModuleAutoLoad = options.onModuleAutoLoad;
 
     if (options.worker) {
       this._worker = options.worker;
@@ -452,24 +483,28 @@ export class StliteKernel {
    */
   private _processWorkerMessage(msg: OutMessage, port?: MessagePort): void {
     switch (msg.type) {
-      case "event:start": {
+      case "event:envSetup": {
         this._postMessageTarget.postMessage({
           type: "initData",
           data: this._workerInitData,
         });
         break;
       }
-      case "event:progress": {
-        this.onProgress?.(msg.data.message);
+      case "event:loadProgress": {
+        this.dispatchEvent(
+          new CustomEvent("loadProgress", { detail: msg.data.message }),
+        );
         break;
       }
-      case "event:error": {
-        this.onError?.(msg.data.error);
+      case "event:loadError": {
+        this.dispatchEvent(
+          new CustomEvent("loadError", { detail: msg.data.error }),
+        );
         break;
       }
-      case "event:loaded": {
+      case "event:loadFinished": {
         this._loaded.resolve();
-        this.onLoad?.();
+        this.dispatchEvent(new Event("loadFinished"));
         break;
       }
       case "websocket:message": {
@@ -481,18 +516,22 @@ export class StliteKernel {
         if (port == null) {
           throw new Error("Port is required for moduleAutoLoad event");
         }
-        this.onModuleAutoLoad?.(
-          msg.data.packagesToLoad,
-          new Promise((resolve, reject) => {
-            port.onmessage = (e) => {
-              const msg: ModuleAutoLoadMessage = e.data;
-              if (msg.type === "moduleAutoLoad:success") {
-                resolve(msg.data.loadedPackages);
-              } else {
-                reject(msg.error);
-              }
-              port.close();
-            };
+        this.dispatchEvent(
+          new CustomEvent("moduleAutoLoad", {
+            detail: {
+              packagesToLoad: msg.data.packagesToLoad,
+              installPromise: new Promise((resolve, reject) => {
+                port.onmessage = (e) => {
+                  const msg: ModuleAutoLoadMessage = e.data;
+                  if (msg.type === "moduleAutoLoad:success") {
+                    resolve(msg.data.loadedPackages);
+                  } else {
+                    reject(msg.error);
+                  }
+                  port.close();
+                };
+              }),
+            },
           }),
         );
         break;

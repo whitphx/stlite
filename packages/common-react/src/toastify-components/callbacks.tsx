@@ -1,32 +1,19 @@
-import { StliteKernelOptions } from "@stlite/kernel";
+import type { StliteKernelEventListener } from "@stlite/kernel";
 import { toast, Slide, Id as ToastId } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 import { stliteStyledPromiseToast } from "./promise";
 
-export interface MakeToastKernelCallbacksOptions {
-  disableProgressToasts?: boolean;
-  disableErrorToasts?: boolean;
-}
 export interface ToastKernelCallbacks {
-  onProgress: NonNullable<StliteKernelOptions["onProgress"]>;
-  onLoad: NonNullable<StliteKernelOptions["onLoad"]>;
-  onError: NonNullable<StliteKernelOptions["onError"]>;
-  onModuleAutoLoad: NonNullable<StliteKernelOptions["onModuleAutoLoad"]>;
+  onLoadProgress: StliteKernelEventListener<"loadProgress">;
+  onLoadFinished: StliteKernelEventListener<"loadFinished">;
+  onLoadError: StliteKernelEventListener<"loadError">;
+  onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad">;
 }
-export function makeToastKernelCallbacks(
-  options?: MakeToastKernelCallbacksOptions,
-): ToastKernelCallbacks {
-  const { disableProgressToasts = false, disableErrorToasts = false } =
-    options ?? {};
-
+export function makeToastKernelEventListeners(): ToastKernelCallbacks {
   let prevToastId: ToastId | null = null;
   const toastIds: ToastId[] = [];
-  const onProgress: StliteKernelOptions["onProgress"] = (message) => {
-    if (disableProgressToasts) {
-      return;
-    }
-
-    const id = toast(message, {
+  const onLoadProgress: StliteKernelEventListener<"loadProgress"> = (e) => {
+    const id = toast(e.detail, {
       position: "bottom-right",
       transition: Slide,
       isLoading: true,
@@ -43,16 +30,12 @@ export function makeToastKernelCallbacks(
     }
     prevToastId = id;
   };
-  const onLoad: StliteKernelOptions["onLoad"] = () => {
+  const onLoadFinished: StliteKernelEventListener<"loadFinished"> = () => {
     toastIds.forEach((id) => toast.dismiss(id));
   };
-  const onError: StliteKernelOptions["onError"] = (error) => {
-    if (disableErrorToasts) {
-      return;
-    }
-
+  const onLoadError: StliteKernelEventListener<"loadError"> = (e) => {
     toast(
-      <ErrorToastContent message="Error during booting up" error={error} />,
+      <ErrorToastContent message="Error during booting up" error={e.detail} />,
       {
         position: "bottom-right",
         type: "error",
@@ -61,10 +44,8 @@ export function makeToastKernelCallbacks(
       },
     );
   };
-  const onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"] = (
-    packagesToLoad,
-    installPromise,
-  ) => {
+  const onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad"> = (e) => {
+    const { installPromise } = e.detail;
     stliteStyledPromiseToast(installPromise, {
       success: {
         render({ data }) {
@@ -79,9 +60,9 @@ export function makeToastKernelCallbacks(
   };
 
   return {
-    onProgress,
-    onLoad,
-    onError,
+    onLoadProgress,
+    onLoadFinished,
+    onLoadError,
     onModuleAutoLoad,
   };
 }

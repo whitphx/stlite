@@ -3,7 +3,12 @@ import type {
   EmscriptenFile,
   EmscriptenFileUrl,
 } from "@stlite/kernel";
-import type { MakeToastKernelCallbacksOptions } from "@stlite/common-react";
+
+export interface ToastOptions {
+  disableProgressToasts?: boolean;
+  disableErrorToasts?: boolean;
+  disableModuleAutoLoadToasts?: boolean;
+}
 
 // Simplified version of StliteKernelOptions for the mount function.
 // This is exposed to non-typed consumers of the mount function,
@@ -88,13 +93,12 @@ function canonicalizeArchives(
 
 const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
-export type DetailedMountOptions = SimplifiedStliteKernelOptions &
-  MakeToastKernelCallbacksOptions;
+export type DetailedMountOptions = SimplifiedStliteKernelOptions & ToastOptions;
 export type MountOptions = string | DetailedMountOptions;
 
 export function parseMountOptions(options: MountOptions): {
   kernelOptions: StliteKernelOptions;
-  toastCallbackOptions: MakeToastKernelCallbacksOptions;
+  toastOptions: ToastOptions;
 } {
   if (typeof options === "string") {
     const mainScript = options;
@@ -110,9 +114,10 @@ export function parseMountOptions(options: MountOptions): {
         requirements: [],
         prebuiltPackageNames: [],
       },
-      toastCallbackOptions: {
+      toastOptions: {
         disableProgressToasts: false,
         disableErrorToasts: false,
+        disableModuleAutoLoadToasts: false,
       },
     };
   }
@@ -143,9 +148,10 @@ export function parseMountOptions(options: MountOptions): {
       env: options.env,
       languageServer: options.languageServer,
     },
-    toastCallbackOptions: {
+    toastOptions: {
       disableProgressToasts: options.disableProgressToasts || false,
       disableErrorToasts: options.disableErrorToasts || false,
+      disableModuleAutoLoadToasts: options.disableModuleAutoLoadToasts || false,
     },
   };
 }

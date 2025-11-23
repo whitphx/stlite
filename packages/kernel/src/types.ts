@@ -201,23 +201,23 @@ interface OutMessageBase {
   type: string;
   data?: unknown;
 }
-export interface OutMessageStartEvent extends OutMessageBase {
-  type: "event:start";
+export interface OutMessageEnvSetupEvent extends OutMessageBase {
+  type: "event:envSetup";
 }
-export interface OutMessageProgressEvent extends OutMessageBase {
-  type: "event:progress";
+export interface OutMessageLoadProgressEvent extends OutMessageBase {
+  type: "event:loadProgress";
   data: {
     message: string;
   };
 }
-export interface OutMessageErrorEvent extends OutMessageBase {
-  type: "event:error";
+export interface OutMessageLoadErrorEvent extends OutMessageBase {
+  type: "event:loadError";
   data: {
     error: Error;
   };
 }
-export interface OutMessageLoadedEvent extends OutMessageBase {
-  type: "event:loaded";
+export interface OutMessageLoadFinishedEvent extends OutMessageBase {
+  type: "event:loadFinished";
 }
 export interface OutMessageWebSocketBack extends OutMessageBase {
   type: "websocket:message";
@@ -232,10 +232,10 @@ export interface OutMessageModuleAutoLoadEvent extends OutMessageBase {
   };
 }
 export type OutMessage =
-  | OutMessageStartEvent
-  | OutMessageProgressEvent
-  | OutMessageErrorEvent
-  | OutMessageLoadedEvent
+  | OutMessageEnvSetupEvent
+  | OutMessageLoadProgressEvent
+  | OutMessageLoadErrorEvent
+  | OutMessageLoadFinishedEvent
   | OutMessageWebSocketBack
   | OutMessageModuleAutoLoadEvent;
 

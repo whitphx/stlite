@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.14
+
+### Patch Changes
+
+- [#1711](https://github.com/whitphx/stlite/pull/1711) [`a97285c`](https://github.com/whitphx/stlite/commit/a97285c82f718d6849965cfcd348f87d7fe8f835) Thanks [@whitphx](https://github.com/whitphx)! - Fix toast callback mechanism
+
 ## 0.90.13
 
 ### Patch Changes

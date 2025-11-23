@@ -6,7 +6,6 @@ import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
   makeToastKernelEventListeners,
-  StliteKernelWithToast,
 } from "@stlite/common-react";
 
 export function mount(
@@ -40,6 +39,18 @@ export function mount(
       kernelEventListenersForToast.onModuleAutoLoad,
     );
   }
+  kernel.addEventListener("install", kernelEventListenersForToast.onInstall);
+  kernel.addEventListener(
+    "writeFile",
+    kernelEventListenersForToast.onWriteFile,
+  );
+  kernel.addEventListener(
+    "renameFile",
+    kernelEventListenersForToast.onRenameFile,
+  );
+  kernel.addEventListener("unlink", kernelEventListenersForToast.onUnlink);
+  kernel.addEventListener("readFile", kernelEventListenersForToast.onReadFile);
+  kernel.addEventListener("reboot", kernelEventListenersForToast.onReboot);
 
   const reactRoot = createRoot(container);
   reactRoot.render(
@@ -49,31 +60,29 @@ export function mount(
     </React.StrictMode>,
   );
 
-  const kernelWithToast = new StliteKernelWithToast(kernel);
-
   return {
     unmount: () => {
       kernel.dispose();
       reactRoot.unmount();
     },
     install: (requirements: string[], options?: MicropipInstallOptions) => {
-      return kernelWithToast.install(requirements, options);
+      return kernel.install(requirements, options);
     },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,
       opts?: Record<string, unknown>,
     ) => {
-      return kernelWithToast.writeFile(path, data, opts);
+      return kernel.writeFile(path, data, opts);
     },
     renameFile: (oldPath: string, newPath: string) => {
-      return kernelWithToast.renameFile(oldPath, newPath);
+      return kernel.renameFile(oldPath, newPath);
     },
     unlink: (path: string) => {
-      return kernelWithToast.unlink(path);
+      return kernel.unlink(path);
     },
     readFile: (path: string, opts?: Record<string, unknown>) => {
-      return kernelWithToast.readFile(path, opts);
+      return kernel.readFile(path, opts);
     },
     getCodeCompletion: (
       code: string,

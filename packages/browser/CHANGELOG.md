@@ -1,5 +1,13 @@
 # @stlite/browser
 
+## 0.91.1
+
+### Patch Changes
+
+- [#1711](https://github.com/whitphx/stlite/pull/1711) [`a97285c`](https://github.com/whitphx/stlite/commit/a97285c82f718d6849965cfcd348f87d7fe8f835) Thanks [@whitphx](https://github.com/whitphx)! - Fix toast callback mechanism
+
+- [#1712](https://github.com/whitphx/stlite/pull/1712) [`306c18c`](https://github.com/whitphx/stlite/commit/306c18cb81d500375c31c6e7ff62ab135ca446ff) Thanks [@whitphx](https://github.com/whitphx)! - Use event-listener-based toasts
+
 ## 0.91.0
 
 ### Minor Changes

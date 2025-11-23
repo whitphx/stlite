@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
 import StreamlitApp from "./StreamlitApp";
-import { makeToastKernelCallbacks } from "@stlite/common-react";
+import { makeToastKernelEventListeners } from "@stlite/common-react";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
 
 let pyodideUrl: string | undefined;
@@ -65,8 +65,26 @@ function App() {
             ? (new NodeJsWorkerMock() as unknown as Worker)
             : undefined,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-          ...makeToastKernelCallbacks(),
         });
+
+        const eventListenersForToast = makeToastKernelEventListeners();
+        kernel.addEventListener(
+          "loadProgress",
+          eventListenersForToast.onLoadProgress,
+        );
+        kernel.addEventListener(
+          "loadFinished",
+          eventListenersForToast.onLoadFinished,
+        );
+        kernel.addEventListener(
+          "loadError",
+          eventListenersForToast.onLoadError,
+        );
+        kernel.addEventListener(
+          "moduleAutoLoad",
+          eventListenersForToast.onModuleAutoLoad,
+        );
+
         setKernel(kernel);
       },
     );

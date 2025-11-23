@@ -49,11 +49,11 @@ async function initializeWorkerEnv(
 
   return new Promise<PyodideInterface>((resolve, reject) => {
     const postMessage: PostMessageFn = (message) => {
-      if (message.type === "event:loaded") {
+      if (message.type === "event:loadFinished") {
         expect(initPyodideMock).toHaveBeenCalled();
         initPyodideMock.mockRestore();
         resolve(pyodide);
-      } else if (message.type === "event:error") {
+      } else if (message.type === "event:loadError") {
         reject(message.data.error);
       }
     };

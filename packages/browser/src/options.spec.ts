@@ -229,7 +229,7 @@ describe("parseMountOptions()", () => {
   });
 
   it("fills the toast callback options", () => {
-    const { toastCallbackOptions } = parseMountOptions("foo");
+    const { toastOptions: toastCallbackOptions } = parseMountOptions("foo");
     expect(toastCallbackOptions).toEqual({
       disableProgressToasts: false,
       disableErrorToasts: false,
@@ -237,7 +237,7 @@ describe("parseMountOptions()", () => {
   });
 
   it("passes the toast callback options", () => {
-    const { toastCallbackOptions } = parseMountOptions({
+    const { toastOptions: toastCallbackOptions } = parseMountOptions({
       entrypoint: "foo.py",
       disableProgressToasts: true,
       disableErrorToasts: true,

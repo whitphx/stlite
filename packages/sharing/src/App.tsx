@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
+import { StliteKernel } from "@stlite/kernel";
+import type {
+  StliteKernelOptions,
+  StliteKernelEventListener,
+} from "@stlite/kernel";
 import {
   AppData,
   extractAppDataFromUrlHash,
@@ -11,7 +15,7 @@ import {
 import StreamlitApp from "./StreamlitApp";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
 import {
-  makeToastKernelCallbacks,
+  makeToastKernelEventListeners,
   StliteKernelWithToast,
 } from "@stlite/common-react";
 import STLITE_LIB_WHEEL from "stlite_lib.whl";
@@ -96,18 +100,13 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
-        const {
-          onModuleAutoLoad: moduleAutoLoadToastCallback,
-          ...toastCallbacks
-        } = makeToastKernelCallbacks();
+        const eventListenersForToast = makeToastKernelEventListeners();
 
-        const onModuleAutoLoad: StliteKernelOptions["onModuleAutoLoad"] = (
-          packagesToLoad,
-          installPromise,
+        const onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad"> = (
+          e,
         ) => {
+          const { packagesToLoad, installPromise } = e.detail;
           console.log("Module auto-load started", packagesToLoad);
-
-          moduleAutoLoadToastCallback(packagesToLoad, installPromise);
 
           installPromise
             .then((loadedPackages) => {
@@ -136,13 +135,29 @@ st.write("Hello World")`,
           requirements: appData.requirements,
           prebuiltPackageNames: [],
           moduleAutoLoad: true,
-          onModuleAutoLoad,
-          ...toastCallbacks,
           languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
         });
+        kernel.addEventListener(
+          "loadProgress",
+          eventListenersForToast.onLoadProgress,
+        );
+        kernel.addEventListener(
+          "loadFinished",
+          eventListenersForToast.onLoadFinished,
+        );
+        kernel.addEventListener(
+          "loadError",
+          eventListenersForToast.onLoadError,
+        );
+        kernel.addEventListener(
+          "moduleAutoLoad",
+          eventListenersForToast.onModuleAutoLoad,
+        );
+        kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
+
         _kernel = kernel;
         setKernel(kernel);
 

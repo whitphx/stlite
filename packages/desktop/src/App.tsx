@@ -80,10 +80,6 @@ function App() {
           "loadError",
           eventListenersForToast.onLoadError,
         );
-        kernel.addEventListener(
-          "moduleAutoLoad",
-          eventListenersForToast.onModuleAutoLoad,
-        );
 
         setKernel(kernel);
       },

@@ -430,7 +430,7 @@ export class StliteKernel extends EventTarget {
         requirements,
         options,
       },
-    }).then<void>(() => {});
+    }).then(() => {});
 
     this.dispatchEvent(
       new CustomEvent("install", {

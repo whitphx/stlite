@@ -233,6 +233,7 @@ describe("parseMountOptions()", () => {
     expect(toastCallbackOptions).toEqual({
       disableProgressToasts: false,
       disableErrorToasts: false,
+      disableModuleAutoLoadToasts: false,
     });
   });
 
@@ -245,6 +246,7 @@ describe("parseMountOptions()", () => {
     expect(toastCallbackOptions).toEqual({
       disableProgressToasts: true,
       disableErrorToasts: true,
+      disableModuleAutoLoadToasts: false,
     });
   });
 });

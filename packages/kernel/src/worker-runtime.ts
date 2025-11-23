@@ -8,7 +8,7 @@ import {
   writeFileWithParents,
   renameWithParents,
 } from "./file";
-import { validateRequirements } from "@stlite/common/src/requirements";
+import { validateRequirements } from "@stlite/common";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
 import {
@@ -424,7 +424,7 @@ export function startWorkerEnv(
 ) {
   function onProgress(message: string): void {
     postMessage({
-      type: "event:progress",
+      type: "event:loadProgress",
       data: {
         message,
       },
@@ -508,13 +508,13 @@ export function startWorkerEnv(
         })
         .then(() => {
           postMessage({
-            type: "event:loaded",
+            type: "event:loadFinished",
           });
         })
         .catch((error) => {
           console.error(error);
           postMessage({
-            type: "event:error",
+            type: "event:loadError",
             data: {
               error,
             },
@@ -810,7 +810,7 @@ export function startWorkerEnv(
   };
 
   postMessage({
-    type: "event:start",
+    type: "event:envSetup",
   });
 
   return onmessage;

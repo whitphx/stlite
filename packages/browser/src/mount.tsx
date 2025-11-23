@@ -5,7 +5,7 @@ import { type MicropipInstallOptions } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
 import {
   ToastContainer,
-  makeToastKernelCallbacks,
+  makeToastKernelEventListeners,
   StliteKernelWithToast,
 } from "@stlite/common-react";
 
@@ -13,11 +13,33 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body,
 ) {
-  const { kernelOptions, toastCallbackOptions } = parseMountOptions(options);
-  const kernel = createKernel({
-    ...kernelOptions,
-    ...makeToastKernelCallbacks(toastCallbackOptions),
-  });
+  const { kernelOptions, toastOptions } = parseMountOptions(options);
+
+  const kernel = createKernel(kernelOptions);
+
+  const kernelEventListenersForToast = makeToastKernelEventListeners();
+  if (!toastOptions.disableProgressToasts) {
+    kernel.addEventListener(
+      "loadProgress",
+      kernelEventListenersForToast.onLoadProgress,
+    );
+    kernel.addEventListener(
+      "loadFinished",
+      kernelEventListenersForToast.onLoadFinished,
+    );
+  }
+  if (!toastOptions.disableErrorToasts) {
+    kernel.addEventListener(
+      "loadError",
+      kernelEventListenersForToast.onLoadError,
+    );
+  }
+  if (!toastOptions.disableModuleAutoLoadToasts) {
+    kernel.addEventListener(
+      "moduleAutoLoad",
+      kernelEventListenersForToast.onModuleAutoLoad,
+    );
+  }
 
   const reactRoot = createRoot(container);
   reactRoot.render(

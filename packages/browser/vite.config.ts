@@ -41,12 +41,7 @@ export default defineConfig(({ mode }) => ({
     }),
     dts({
       rollupTypes: true,
-      bundledPackages: [
-        "@stlite/kernel",
-        "@stlite/common-react",
-        "@streamlit/lib",
-        "pyodide",
-      ],
+      bundledPackages: ["@stlite/kernel", "pyodide"],
     }),
     viteTsconfigPaths(),
     // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
@@ -96,14 +91,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
   ],
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-    },
-  },
   server: {
     open: false,
     port: 3000,

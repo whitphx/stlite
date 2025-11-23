@@ -4935,29 +4935,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/common-react@workspace:^, @stlite/common-react@workspace:packages/common-react":
-  version: 0.0.0-use.local
-  resolution: "@stlite/common-react@workspace:packages/common-react"
-  dependencies:
-    "@eslint/js": "npm:^9.32.0"
-    "@stlite/kernel": "workspace:^"
-    "@streamlit/lib": "workspace:^"
-    eslint: "npm:^9.32.0"
-    eslint-plugin-prettier: "npm:^5.5.3"
-    eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-hooks: "npm:^7.0.1"
-    prettier: "npm:^3.6.2"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    react-toastify: "npm:^11.0.2"
-    typescript: "npm:^5.9.2"
-    typescript-eslint: "npm:^8.38.0"
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  languageName: unknown
-  linkType: soft
-
 "@stlite/common@workspace:^, @stlite/common@workspace:packages/common":
   version: 0.0.0-use.local
   resolution: "@stlite/common@workspace:packages/common"
@@ -5062,7 +5039,6 @@ __metadata:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@eslint/js": "npm:^9.32.0"
     "@stlite/common": "workspace:^"
-    "@stlite/common-react": "workspace:^"
     "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@streamlit/app": "workspace:^"
@@ -5078,6 +5054,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-toastify: "npm:^11.0.2"
     sass: "npm:^1.90.0"
     tsdown: "npm:^0.16.6"
     typescript: "npm:^5.9.2"

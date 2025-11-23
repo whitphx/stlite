@@ -44,7 +44,6 @@ export default defineConfig(({ mode }) => ({
       rollupTypes: true,
       bundledPackages: [
         // "@stlite/kernel",
-        // "@stlite/common-react",
         // "@streamlit/lib",
         // "pyodide",
       ],
@@ -84,14 +83,6 @@ export default defineConfig(({ mode }) => ({
   define: {
     "process.env.NODE_ENV":
       mode === "production" ? "process.env.NODE_ENV" : JSON.stringify(mode),
-  },
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-    },
   },
   server: {
     open: false,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import type { StliteKernel } from "@stlite/kernel";
 import StliteApp from "./StliteApp";
-import { makeToastKernelEventListeners } from "@stlite/common-react";
+import { makeToastKernelEventListeners } from "./toastify-components";
 
 export interface StliteAppWithToastProps {
   kernel: StliteKernel;

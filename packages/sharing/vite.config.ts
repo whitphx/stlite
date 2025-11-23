@@ -21,8 +21,6 @@ import react from "@vitejs/plugin-react";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
 
-import path from "path";
-
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
@@ -38,14 +36,6 @@ export default defineConfig(() => ({
     viteTsconfigPaths(),
     stliteReactPlugin(),
   ],
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-    },
-  },
   define: {
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),
     EDITOR_APP_ORIGIN_REGEX: JSON.stringify(

@@ -8,9 +8,6 @@
       "path": "packages/common"
     },
     {
-      "path": "packages/common-react"
-    },
-    {
       "path": "packages/desktop"
     },
     {

@@ -43,7 +43,6 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils ge
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
-common-react := $(BUILD_STATE_DIR)/common-react/.built
 react := $(BUILD_STATE_DIR)/react/.built
 browser := $(BUILD_STATE_DIR)/browser/.built
 sharing := $(BUILD_STATE_DIR)/sharing/.built
@@ -115,16 +114,9 @@ $(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules
 	@mkdir -p $(dir $@)
 	@touch $@
 
-.PHONY: common-react
-common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(streamlit-frontend-lib)
-	cd packages/common-react && yarn build
-	@mkdir -p $(dir $@)
-	@touch $@
-
 .PHONY: react
 react: $(react)
-$(react): $(shell find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+$(react): $(shell find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(streamlit-frontend-lib)
 	cd packages/react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

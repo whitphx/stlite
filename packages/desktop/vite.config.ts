@@ -21,8 +21,6 @@ import react from "@vitejs/plugin-react";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
 
-import path from "node:path";
-
 export default defineConfig(({ mode }) => ({
   base: "/",
   plugins: [
@@ -93,14 +91,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
   ],
-  resolve: {
-    alias: {
-      "@streamlit/lib/src": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-    },
-  },
   server: {
     open: false,
     port: 3000,

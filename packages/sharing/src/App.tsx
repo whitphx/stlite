@@ -12,9 +12,8 @@ import {
   ModuleAutoLoadSuccessMessage,
   CodeCompletionResponseMessage,
 } from "@stlite/sharing-common";
-import { StliteApp, createKernel } from "@stlite/react";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
-import { makeToastKernelEventListeners } from "@stlite/common-react";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;
 declare const EDITOR_APP_ORIGIN: string;
@@ -85,8 +84,6 @@ st.write("Hello World")`,
 
         console.debug("Initialize with", appData);
 
-        const eventListenersForToast = makeToastKernelEventListeners();
-
         const onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad"> = (
           e,
         ) => {
@@ -123,35 +120,7 @@ st.write("Hello World")`,
           languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
         });
-        kernel.addEventListener(
-          "loadProgress",
-          eventListenersForToast.onLoadProgress,
-        );
-        kernel.addEventListener(
-          "loadFinished",
-          eventListenersForToast.onLoadFinished,
-        );
-        kernel.addEventListener(
-          "loadError",
-          eventListenersForToast.onLoadError,
-        );
-        kernel.addEventListener(
-          "moduleAutoLoad",
-          eventListenersForToast.onModuleAutoLoad,
-        );
         kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
-        kernel.addEventListener("install", eventListenersForToast.onInstall);
-        kernel.addEventListener(
-          "writeFile",
-          eventListenersForToast.onWriteFile,
-        );
-        kernel.addEventListener(
-          "renameFile",
-          eventListenersForToast.onRenameFile,
-        );
-        kernel.addEventListener("unlink", eventListenersForToast.onUnlink);
-        kernel.addEventListener("readFile", eventListenersForToast.onReadFile);
-        kernel.addEventListener("reboot", eventListenersForToast.onReboot);
 
         _kernel = kernel;
         setKernel(kernel);
@@ -236,7 +205,7 @@ st.write("Hello World")`,
     };
   }, []);
 
-  return kernel ? <StliteApp kernel={kernel} key={appKey} /> : null;
+  return kernel ? <StliteAppWithToast kernel={kernel} key={appKey} /> : null;
 }
 
 export default App;

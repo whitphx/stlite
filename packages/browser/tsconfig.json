@@ -26,9 +26,6 @@
       "path": "../common/tsconfig.src.json"
     },
     {
-      "path": "../common-react/tsconfig.src.json"
-    },
-    {
       "path": "../kernel/tsconfig.src.json"
     }
   ]

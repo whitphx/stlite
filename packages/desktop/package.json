@@ -65,7 +65,6 @@
     "@emotion/babel-plugin": "^11.13.5",
     "@eslint/js": "^9.32.0",
     "@stlite/common": "workspace:^",
-    "@stlite/common-react": "workspace:^",
     "@stlite/devutils": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@stlite/react": "workspace:^",

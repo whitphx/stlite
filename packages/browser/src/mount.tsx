@@ -1,12 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { StliteApp, createKernel } from "@stlite/react";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
 import { type MicropipInstallOptions } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
-import {
-  ToastContainer,
-  makeToastKernelEventListeners,
-} from "@stlite/common-react";
 
 export function mount(
   options: MountOptions,
@@ -16,47 +12,10 @@ export function mount(
 
   const kernel = createKernel(kernelOptions);
 
-  const kernelEventListenersForToast = makeToastKernelEventListeners();
-  if (!toastOptions.disableProgressToasts) {
-    kernel.addEventListener(
-      "loadProgress",
-      kernelEventListenersForToast.onLoadProgress,
-    );
-    kernel.addEventListener(
-      "loadFinished",
-      kernelEventListenersForToast.onLoadFinished,
-    );
-  }
-  if (!toastOptions.disableErrorToasts) {
-    kernel.addEventListener(
-      "loadError",
-      kernelEventListenersForToast.onLoadError,
-    );
-  }
-  if (!toastOptions.disableModuleAutoLoadToasts) {
-    kernel.addEventListener(
-      "moduleAutoLoad",
-      kernelEventListenersForToast.onModuleAutoLoad,
-    );
-  }
-  kernel.addEventListener("install", kernelEventListenersForToast.onInstall);
-  kernel.addEventListener(
-    "writeFile",
-    kernelEventListenersForToast.onWriteFile,
-  );
-  kernel.addEventListener(
-    "renameFile",
-    kernelEventListenersForToast.onRenameFile,
-  );
-  kernel.addEventListener("unlink", kernelEventListenersForToast.onUnlink);
-  kernel.addEventListener("readFile", kernelEventListenersForToast.onReadFile);
-  kernel.addEventListener("reboot", kernelEventListenersForToast.onReboot);
-
   const reactRoot = createRoot(container);
   reactRoot.render(
     <React.StrictMode>
-      <StliteApp kernel={kernel} />
-      <ToastContainer />
+      <StliteAppWithToast kernel={kernel} {...toastOptions} />
     </React.StrictMode>,
   );
 

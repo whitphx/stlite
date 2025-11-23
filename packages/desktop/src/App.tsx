@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
-import { StliteApp, createKernel } from "@stlite/react";
-import { makeToastKernelEventListeners } from "@stlite/common-react";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
 
 let pyodideUrl: string | undefined;
@@ -67,20 +66,6 @@ function App() {
           workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
         });
 
-        const eventListenersForToast = makeToastKernelEventListeners();
-        kernel.addEventListener(
-          "loadProgress",
-          eventListenersForToast.onLoadProgress,
-        );
-        kernel.addEventListener(
-          "loadFinished",
-          eventListenersForToast.onLoadFinished,
-        );
-        kernel.addEventListener(
-          "loadError",
-          eventListenersForToast.onLoadError,
-        );
-
         setKernel(kernel);
       },
     );
@@ -91,7 +76,7 @@ function App() {
     };
   }, []);
 
-  return kernel ? <StliteApp kernel={kernel} /> : null;
+  return kernel ? <StliteAppWithToast kernel={kernel} /> : null;
 }
 
 export default App;

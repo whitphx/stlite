@@ -154,9 +154,34 @@ export interface StliteKernelEventMap {
   loadProgress: CustomEvent<string>;
   loadFinished: Event;
   loadError: CustomEvent<Error>;
+  install: CustomEvent<{
+    requirements: string[];
+    promise: Promise<void>;
+  }>;
+  writeFile: CustomEvent<{
+    path: string;
+    promise: Promise<void>;
+  }>;
+  renameFile: CustomEvent<{
+    oldPath: string;
+    newPath: string;
+    promise: Promise<void>;
+  }>;
+  unlink: CustomEvent<{
+    path: string;
+    promise: Promise<void>;
+  }>;
+  readFile: CustomEvent<{
+    path: string;
+    promise: Promise<string | Uint8Array>;
+  }>;
+  reboot: CustomEvent<{
+    entrypoint: string;
+    promise: Promise<void>;
+  }>;
   moduleAutoLoad: CustomEvent<{
     packagesToLoad: string[];
-    installPromise: Promise<PackageData[]>;
+    promise: Promise<PackageData[]>;
   }>;
 }
 export type StliteKernelEventListener<K extends keyof StliteKernelEventMap> = (
@@ -316,31 +341,54 @@ export class StliteKernel extends EventTarget {
     data: string | ArrayBufferView,
     opts?: Record<string, unknown>,
   ): Promise<void> {
-    return this._asyncPostMessage({
+    const promise = this._asyncPostMessage({
       type: "file:write",
       data: {
         path,
         data,
         opts,
       },
-    }).then();
+    }).then(() => {});
+
+    this.dispatchEvent(
+      new CustomEvent("writeFile", {
+        detail: {
+          path,
+          promise,
+        },
+      }),
+    );
+
+    return promise;
   }
 
   public renameFile(oldPath: string, newPath: string): Promise<void> {
-    return this._asyncPostMessage({
+    const promise = this._asyncPostMessage({
       type: "file:rename",
       data: {
         oldPath,
         newPath,
       },
-    }).then();
+    }).then(() => {});
+
+    this.dispatchEvent(
+      new CustomEvent("renameFile", {
+        detail: {
+          oldPath,
+          newPath,
+          promise,
+        },
+      }),
+    );
+
+    return promise;
   }
 
   public readFile(
     path: string,
     opts?: Record<string, unknown>,
   ): Promise<string | Uint8Array> {
-    return this._asyncPostMessage(
+    const promise = this._asyncPostMessage(
       {
         type: "file:read",
         data: {
@@ -350,6 +398,17 @@ export class StliteKernel extends EventTarget {
       },
       "reply:file:read",
     ).then((data) => data.content);
+
+    this.dispatchEvent(
+      new CustomEvent("readFile", {
+        detail: {
+          path,
+          promise,
+        },
+      }),
+    );
+
+    return promise;
   }
 
   public unlink(path: string): Promise<void> {
@@ -365,13 +424,24 @@ export class StliteKernel extends EventTarget {
     requirements: string[],
     options?: MicropipInstallOptions,
   ): Promise<void> {
-    return this._asyncPostMessage({
+    const promise = this._asyncPostMessage({
       type: "install",
       data: {
         requirements,
         options,
       },
-    }).then();
+    }).then(() => {});
+
+    this.dispatchEvent(
+      new CustomEvent("install", {
+        detail: {
+          requirements,
+          promise,
+        },
+      }),
+    );
+
+    return promise;
   }
 
   public setEnv(env: Record<string, string>): Promise<void> {
@@ -516,21 +586,23 @@ export class StliteKernel extends EventTarget {
         if (port == null) {
           throw new Error("Port is required for moduleAutoLoad event");
         }
+
+        const promise = new Promise<PackageData[]>((resolve, reject) => {
+          port.onmessage = (e) => {
+            const msg: ModuleAutoLoadMessage = e.data;
+            if (msg.type === "moduleAutoLoad:success") {
+              resolve(msg.data.loadedPackages);
+            } else {
+              reject(msg.error);
+            }
+            port.close();
+          };
+        });
         this.dispatchEvent(
           new CustomEvent("moduleAutoLoad", {
             detail: {
               packagesToLoad: msg.data.packagesToLoad,
-              installPromise: new Promise((resolve, reject) => {
-                port.onmessage = (e) => {
-                  const msg: ModuleAutoLoadMessage = e.data;
-                  if (msg.type === "moduleAutoLoad:success") {
-                    resolve(msg.data.loadedPackages);
-                  } else {
-                    reject(msg.error);
-                  }
-                  port.close();
-                };
-              }),
+              promise,
             },
           }),
         );

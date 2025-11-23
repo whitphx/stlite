@@ -173,7 +173,7 @@ export interface StliteKernelEventMap {
   }>;
   readFile: CustomEvent<{
     path: string;
-    promise: Promise<Uint8Array>;
+    promise: Promise<string | Uint8Array>;
   }>;
   reboot: CustomEvent<{
     entrypoint: string;

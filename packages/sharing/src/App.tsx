@@ -14,10 +14,7 @@ import {
 } from "@stlite/sharing-common";
 import StreamlitApp from "./StreamlitApp";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
-import {
-  makeToastKernelEventListeners,
-  StliteKernelWithToast,
-} from "@stlite/common-react";
+import { makeToastKernelEventListeners } from "@stlite/common-react";
 import STLITE_LIB_WHEEL from "stlite_lib.whl";
 import STREAMLIT_WHEEL from "streamlit.whl";
 
@@ -105,7 +102,7 @@ st.write("Hello World")`,
         const onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad"> = (
           e,
         ) => {
-          const { packagesToLoad, installPromise } = e.detail;
+          const { packagesToLoad, promise: installPromise } = e.detail;
           console.log("Module auto-load started", packagesToLoad);
 
           installPromise
@@ -157,11 +154,21 @@ st.write("Hello World")`,
           eventListenersForToast.onModuleAutoLoad,
         );
         kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
+        kernel.addEventListener("install", eventListenersForToast.onInstall);
+        kernel.addEventListener(
+          "writeFile",
+          eventListenersForToast.onWriteFile,
+        );
+        kernel.addEventListener(
+          "renameFile",
+          eventListenersForToast.onRenameFile,
+        );
+        kernel.addEventListener("unlink", eventListenersForToast.onUnlink);
+        kernel.addEventListener("readFile", eventListenersForToast.onReadFile);
+        kernel.addEventListener("reboot", eventListenersForToast.onReboot);
 
         _kernel = kernel;
         setKernel(kernel);
-
-        const kernelWithToast = new StliteKernelWithToast(kernel);
 
         // Handle messages from the editor
         onMessage = (event) => {
@@ -180,27 +187,21 @@ st.write("Hello World")`,
           (() => {
             switch (msg.type) {
               case "reboot": {
-                return kernelWithToast.reboot(msg.data.entrypoint).then(() => {
+                return kernel.reboot(msg.data.entrypoint).then(() => {
                   setAppKey((prev) => prev + 1);
                 });
               }
               case "file:write": {
-                return kernelWithToast.writeFile(
-                  msg.data.path,
-                  msg.data.content,
-                );
+                return kernel.writeFile(msg.data.path, msg.data.content);
               }
               case "file:rename": {
-                return kernelWithToast.renameFile(
-                  msg.data.oldPath,
-                  msg.data.newPath,
-                );
+                return kernel.renameFile(msg.data.oldPath, msg.data.newPath);
               }
               case "file:unlink": {
-                return kernelWithToast.unlink(msg.data.path);
+                return kernel.unlink(msg.data.path);
               }
               case "install": {
-                return kernelWithToast.install(msg.data.requirements, {
+                return kernel.install(msg.data.requirements, {
                   keep_going: true,
                 });
               }

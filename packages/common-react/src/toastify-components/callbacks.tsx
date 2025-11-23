@@ -8,6 +8,12 @@ export interface ToastKernelCallbacks {
   onLoadFinished: StliteKernelEventListener<"loadFinished">;
   onLoadError: StliteKernelEventListener<"loadError">;
   onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad">;
+  onInstall: StliteKernelEventListener<"install">;
+  onWriteFile: StliteKernelEventListener<"writeFile">;
+  onRenameFile: StliteKernelEventListener<"renameFile">;
+  onUnlink: StliteKernelEventListener<"unlink">;
+  onReadFile: StliteKernelEventListener<"readFile">;
+  onReboot: StliteKernelEventListener<"reboot">;
 }
 export function makeToastKernelEventListeners(): ToastKernelCallbacks {
   let prevToastId: ToastId | null = null;
@@ -45,8 +51,8 @@ export function makeToastKernelEventListeners(): ToastKernelCallbacks {
     );
   };
   const onModuleAutoLoad: StliteKernelEventListener<"moduleAutoLoad"> = (e) => {
-    const { installPromise } = e.detail;
-    stliteStyledPromiseToast(installPromise, {
+    const { promise } = e.detail;
+    stliteStyledPromiseToast(promise, {
       success: {
         render({ data }) {
           return `Auto-loaded${
@@ -58,11 +64,57 @@ export function makeToastKernelEventListeners(): ToastKernelCallbacks {
       pending: "Auto-loading packages",
     });
   };
+  const onInstall: StliteKernelEventListener<"install"> = (e) => {
+    const { requirements, promise } = e.detail;
+    stliteStyledPromiseToast<void>(promise, {
+      pending: "Installing",
+      success: `Successfully installed: ${requirements.join(", ")}`,
+      error: `Failed to install: ${requirements.join(", ")}`,
+    });
+  };
+  const onWriteFile: StliteKernelEventListener<"writeFile"> = (e) => {
+    const { path, promise } = e.detail;
+    stliteStyledPromiseToast<void>(promise, {
+      error: `Failed to write file: ${path}`,
+    });
+  };
+  const onRenameFile: StliteKernelEventListener<"renameFile"> = (e) => {
+    const { oldPath, newPath, promise } = e.detail;
+    stliteStyledPromiseToast<void>(promise, {
+      error: `Failed to rename file from ${oldPath} to ${newPath}`,
+    });
+  };
+  const onUnlink: StliteKernelEventListener<"unlink"> = (e) => {
+    const { path, promise } = e.detail;
+    stliteStyledPromiseToast<void>(promise, {
+      error: `Failed to unlink: ${path}`,
+    });
+  };
+  const onReadFile: StliteKernelEventListener<"readFile"> = (e) => {
+    const { path, promise } = e.detail;
+    stliteStyledPromiseToast<string | Uint8Array>(promise, {
+      error: `Failed to read file: ${path}`,
+    });
+  };
+  const onReboot: StliteKernelEventListener<"reboot"> = (e) => {
+    const { promise } = e.detail;
+    stliteStyledPromiseToast<void>(promise, {
+      pending: "Rebooting",
+      success: "Successfully rebooted",
+      error: "Failed to reboot",
+    });
+  };
 
   return {
     onLoadProgress,
     onLoadFinished,
     onLoadError,
     onModuleAutoLoad,
+    onInstall,
+    onWriteFile,
+    onRenameFile,
+    onUnlink,
+    onReadFile,
+    onReboot,
   };
 }

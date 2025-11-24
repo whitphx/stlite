@@ -101,7 +101,7 @@ export class ConnectionManager
   }
 
   public sendMessage(obj: BackMsg): void {
-    // Stltie: we call `kernel.sendWebSocketMessage` directly here instead of using `WebsocketConnection`.
+    // Stlite: we call `kernel.sendWebSocketMessage` directly here instead of using `WebsocketConnection`.
     if (this.isConnected()) {
       const msg = BackMsg.create(obj);
       const buffer = BackMsg.encode(msg).finish();

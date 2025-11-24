@@ -66,6 +66,10 @@ runs:
     # Our workflow below follows https://grpc.io/docs/protoc-installation/#install-pre-compiled-binaries-any-os
     - name: Install `protoc` binary
       run: |
+        working_dir=${{ runner.temp }}/protoc
+        mkdir -p $working_dir
+        pushd $working_dir
+
         PB_REL="https://github.com/protocolbuffers/protobuf/releases"
         PROTOC_VERSION=26.1
         curl -LO $PB_REL/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip
@@ -74,7 +78,6 @@ runs:
         protoc --version
         rm protoc-${PROTOC_VERSION}-linux-x86_64.zip
       shell: bash
-      working-directory: ${{ runner.temp }}/protoc
       if: ${{ inputs.protoc == 'true' }}
 
     - name: Set up Python packages

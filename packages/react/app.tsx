@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { StliteApp, createKernel } from "./src/index";
+import { wheelUrls } from "./src/wheels";
 import type { StliteKernelOptions } from "@stlite/kernel";
 
 const kernelOptions: StliteKernelOptions = {
@@ -18,6 +19,7 @@ st.write("This is a Streamlit app running entirely in your browser using WebAsse
   requirements: [],
   prebuiltPackageNames: [],
   archives: [],
+  wheelUrls,
 };
 
 const kernel = createKernel(kernelOptions);

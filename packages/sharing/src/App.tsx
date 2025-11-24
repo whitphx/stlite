@@ -12,7 +12,7 @@ import {
   ModuleAutoLoadSuccessMessage,
   CodeCompletionResponseMessage,
 } from "@stlite/sharing-common";
-import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
 
@@ -120,6 +120,7 @@ st.write("Hello World")`,
           moduleAutoLoad: true,
           languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
+          wheelUrls,
         });
         kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
 

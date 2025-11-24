@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { type MicropipInstallOptions } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
@@ -11,7 +11,7 @@ export function mount(
 ) {
   const { kernelOptions, toastOptions } = parseMountOptions(options);
 
-  const kernel = createKernel(kernelOptions);
+  const kernel = createKernel({ wheelUrls, ...kernelOptions });
 
   const reactRoot = createRoot(container);
   reactRoot.render(

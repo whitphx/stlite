@@ -48,10 +48,16 @@ interface MessageQueue {
   [index: number]: ForwardMsg;
 }
 
+type OriginalConnectionManagerPublicInterface = {
+  [K in keyof OriginalConnectionManager]: OriginalConnectionManager[K];
+};
+
 /**
  * Manages our connection to the Server.
  */
-export class ConnectionManager {
+export class ConnectionManager
+  implements OriginalConnectionManagerPublicInterface
+{
   private readonly props: Props;
 
   private connectionState: ConnectionState = ConnectionState.INITIAL;
@@ -111,7 +117,10 @@ export class ConnectionManager {
    * Increment the runCount on our message cache, and clear entries
    * whose age is greater than the max.
    */
-  public incrementMessageCacheRunCount(): void {
+  public incrementMessageCacheRunCount(
+    _maxMessageAge: number,
+    _fragmentIdsThisRun: string[],
+  ): void {
     // Stlite: no-op.
     // Caching is disabled in stlite. See https://github.com/whitphx/stlite/issues/495
   }

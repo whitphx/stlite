@@ -68,6 +68,7 @@ runs:
         sudo ln -s /usr/local/bin/protoc /usr/bin/protoc
         # Print out your System's protoc version:
         protoc --version
+        rm protoc-${PROTOC_VERSION}-linux-x86_64.zip
       shell: bash
       if: ${{ inputs.protoc == 'true' }}
 

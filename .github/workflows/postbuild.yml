@@ -379,7 +379,9 @@ jobs:
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
             ${{ needs.deploy-browser-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
-            \`${previewUrl}/stlite.js\` can be used to preview apps like below:
+
+            - \`${previewUrl}/stlite.js\`
+            - \`${previewUrl}/stlite.css\`
 
             \`\`\`html
             <!DOCTYPE html>
@@ -388,6 +390,7 @@ jobs:
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>Stlite Browser preview</title>
+                <link rel="stylesheet" href="${previewUrl}/stlite.css" />
               </head>
               <body>
                 <noscript>You need to enable JavaScript to run this app.</noscript>

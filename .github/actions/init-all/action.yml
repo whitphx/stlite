@@ -77,6 +77,8 @@ runs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         protoc --version
         rm protoc-${PROTOC_VERSION}-linux-x86_64.zip
+        popd
+        rm -rf $working_dir
       shell: bash
       if: ${{ inputs.protoc == 'true' }}
 

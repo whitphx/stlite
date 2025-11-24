@@ -76,7 +76,7 @@ runs:
         unzip protoc-${PROTOC_VERSION}-linux-x86_64.zip -d $HOME/.local
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         protoc --version
-        rm protoc-${PROTOC_VERSION}-linux-x86_64.zip
+
         popd
         rm -rf $working_dir
       shell: bash

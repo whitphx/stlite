@@ -13,6 +13,7 @@ import {
   CodeCompletionResponseMessage,
 } from "@stlite/sharing-common";
 import { StliteAppWithToast, createKernel } from "@stlite/react";
+import "@stlite/react/stlite.css";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;

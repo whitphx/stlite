@@ -29,6 +29,7 @@
         "default": "./build/stlite.js"
       }
     },
+    "./stlite.css": "./build/stlite.css",
     "./vite-plugin": {
       "import": {
         "types": "./vite-plugin/dist/index.d.ts",

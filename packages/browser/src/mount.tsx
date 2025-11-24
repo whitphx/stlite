@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { StliteAppWithToast, createKernel } from "@stlite/react";
+import "@stlite/react/stlite.css";
 import { type MicropipInstallOptions } from "@stlite/kernel";
 import { parseMountOptions, MountOptions } from "./options";
 

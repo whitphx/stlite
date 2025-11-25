@@ -22,7 +22,7 @@ import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 import { visualizer } from "rollup-plugin-visualizer";
 
-import path from "path";
+import path from "node:path";
 import { getStreamlitWheelFileName } from "@stlite/devutils";
 
 const BUILD_AS_FAST_AS_POSSIBLE =

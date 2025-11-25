@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.92.2
+
+### Patch Changes
+
+- [#1721](https://github.com/whitphx/stlite/pull/1721) [`a6c96be`](https://github.com/whitphx/stlite/commit/a6c96befd53a710299d0cde9060a239cfd40a240) Thanks [@whitphx](https://github.com/whitphx)! - Fix base path normalization to avoid ReDoS
+
 ## 0.92.1
 
 ### Patch Changes

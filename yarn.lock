@@ -4912,7 +4912,6 @@ __metadata:
     "@eslint/js": "npm:^9.32.0"
     "@laynezh/vite-plugin-lib-assets": "npm:^2.1.3"
     "@stlite/common": "workspace:^"
-    "@stlite/kernel": "workspace:^"
     "@stlite/react": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
@@ -5135,7 +5134,6 @@ __metadata:
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@eslint/js": "npm:^9.32.0"
-    "@stlite/kernel": "workspace:^"
     "@stlite/react": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
     "@types/react": "npm:^18.2.0"

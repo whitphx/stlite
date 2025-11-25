@@ -43,9 +43,10 @@ export default defineConfig(({ mode }) => ({
     dts({
       rollupTypes: true,
       bundledPackages: [
-        // "@stlite/kernel",
-        // "@streamlit/lib",
-        // "pyodide",
+        "@stlite/kernel",
+        "@streamlit/connection",
+        "@streamlit/protobuf",
+        "pyodide",
       ],
     }),
     viteTsconfigPaths(),

@@ -123,14 +123,14 @@ $(react): $(shell find packages/react/src -type f \( -name "*.ts" -o -name "*.ts
 
 .PHONY: browser
 browser: $(browser)
-$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(react)
+$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(common) $(react)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(react)
+$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(sharing-common) $(react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -151,7 +151,7 @@ $(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(react)
+$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(common) $(react)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

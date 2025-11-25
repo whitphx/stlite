@@ -25,8 +25,5 @@
     {
       "path": "../common/tsconfig.src.json"
     },
-    {
-      "path": "../kernel/tsconfig.src.json"
-    }
   ]
 }

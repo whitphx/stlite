@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@stlite/kernel": "workspace:^",
     "@stlite/react": "workspace:^",
     "@stlite/sharing-common": "workspace:^",
     "@types/react": "^18.2.0",

@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
     }),
     dts({
       rollupTypes: true,
-      bundledPackages: ["@stlite/kernel", "pyodide"],
+      bundledPackages: ["@stlite/react"],
     }),
     viteTsconfigPaths(),
     // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),

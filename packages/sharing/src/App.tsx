@@ -3,7 +3,7 @@ import type {
   StliteKernel,
   StliteKernelOptions,
   StliteKernelEventListener,
-} from "@stlite/kernel";
+} from "@stlite/react";
 import {
   AppData,
   extractAppDataFromUrlHash,

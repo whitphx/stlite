@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { StliteKernel, StliteKernelOptions } from "@stlite/kernel";
+import type { StliteKernel, StliteKernelOptions } from "@stlite/react";
 import { StliteAppWithToast, createKernel } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";

@@ -23,9 +23,6 @@
   "include": ["src"],
   "references": [
     {
-      "path": "../kernel/tsconfig.src.json"
-    },
-    {
       "path": "../sharing-common/tsconfig.src.json"
     }
   ]

@@ -2,7 +2,7 @@
 
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
-import type { IHostConfigResponse } from "@streamlit/connection/src/types";
+import type { IHostConfigResponse } from "@streamlit/connection";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
 import type {
   EmscriptenFile,

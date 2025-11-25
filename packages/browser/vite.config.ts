@@ -21,6 +21,7 @@ import react from "@vitejs/plugin-react";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 import dts from "vite-plugin-dts";
+import { visualizer } from "rollup-plugin-visualizer";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
@@ -90,6 +91,14 @@ export default defineConfig(({ mode }) => ({
         });
       },
     },
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/browser.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   server: {
     open: false,

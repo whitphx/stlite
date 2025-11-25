@@ -19,12 +19,15 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
+import { visualizer } from "rollup-plugin-visualizer";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
+
+import path from "node:path";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react({
       // jsxImportSource: "@emotion/react",
@@ -35,6 +38,14 @@ export default defineConfig(() => ({
     }),
     viteTsconfigPaths(),
     stliteReactPlugin(),
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/sharing.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   define: {
     EDITOR_APP_ORIGIN: JSON.stringify(process.env.EDITOR_APP_ORIGIN),

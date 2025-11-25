@@ -4924,6 +4924,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
@@ -4978,6 +4979,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.0.1"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
     ts-node: "npm:^10.9.1"
@@ -5116,6 +5118,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     react-icons: "npm:~5.4.0"
     react-router-dom: "npm:^7.9.6"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
     tsx: "npm:^4.19.2"
@@ -5147,6 +5150,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
@@ -18908,9 +18912,9 @@ __metadata:
   linkType: hard
 
 "obug@npm:^2.0.0, obug@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "obug@npm:2.1.0"
-  checksum: 10c0/bc6223a766850827573f623a6f1785ac12d26045d3bd3c9be60d739fdab1c89a768a1a0ec2e90d16897a75c9700e3dc4b7a64eeed530fd7de781b7b29fa21d6a
+  version: 2.1.1
+  resolution: "obug@npm:2.1.1"
+  checksum: 10c0/59dccd7de72a047e08f8649e94c1015ec72f94eefb6ddb57fb4812c4b425a813bc7e7cd30c9aca20db3c59abc3c85cc7a62bb656a968741d770f4e8e02bc2e78
   languageName: node
   linkType: hard
 
@@ -21503,6 +21507,28 @@ __metadata:
   bin:
     rolldown: bin/cli.mjs
   checksum: 10c0/36acdba75961f0e6c527297e284888c8aeaefd7f839a93fce9fb8de1c3a0f17c574c889f7382a2964948fcb63b551ca5bdb39f19e739da742a498e07963055f5
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-visualizer@npm:^5.12.0":
+  version: 5.14.0
+  resolution: "rollup-plugin-visualizer@npm:5.14.0"
+  dependencies:
+    open: "npm:^8.4.0"
+    picomatch: "npm:^4.0.2"
+    source-map: "npm:^0.7.4"
+    yargs: "npm:^17.5.1"
+  peerDependencies:
+    rolldown: 1.x
+    rollup: 2.x || 3.x || 4.x
+  peerDependenciesMeta:
+    rolldown:
+      optional: true
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 10c0/ec6ca9ed125bce9994ba49a340bda730661d8e8dc5c5dc014dc757185182e1eda49c6708f990cb059095e71a3741a5248f1e6ba0ced7056020692888e06b1ddf
   languageName: node
   linkType: hard
 
@@ -25740,7 +25766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:17.7.2, yargs@npm:^17.0.1, yargs@npm:^17.3.1, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
+"yargs@npm:17.7.2, yargs@npm:^17.0.1, yargs@npm:^17.3.1, yargs@npm:^17.5.1, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

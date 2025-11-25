@@ -19,7 +19,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
+import { visualizer } from "rollup-plugin-visualizer";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
+
+import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
   base: "/",
@@ -90,6 +93,14 @@ export default defineConfig(({ mode }) => ({
         );
       },
     },
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/desktop.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   server: {
     open: false,

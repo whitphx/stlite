@@ -429,6 +429,13 @@ jobs:
         . .venv/bin/activate
         make browser
 
+    - name: Upload bundle visualizer report (@stlite/browser)
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: packages/browser/stats/browser.html
+        name: visualizer-browser
+        if-no-files-found: error
+
     - name: Package
       working-directory: packages/browser
       run: yarn pack
@@ -512,6 +519,13 @@ jobs:
         . .venv/bin/activate
         make sharing
 
+    - name: Upload bundle visualizer report (@stlite/sharing)
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: packages/sharing/stats/sharing.html
+        name: visualizer-sharing
+        if-no-files-found: error
+
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       with:
@@ -552,6 +566,13 @@ jobs:
       run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
     - run: make sharing-editor
 
+    - name: Upload bundle visualizer report (@stlite/sharing-editor)
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: packages/sharing-editor/stats/sharing-editor.html
+        name: visualizer-sharing-editor
+        if-no-files-found: error
+
     - name: Upload the built directory as an artifact
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       with:
@@ -591,6 +612,13 @@ jobs:
       run: |
         . .venv/bin/activate
         make desktop
+
+    - name: Upload bundle visualizer report (@stlite/desktop)
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: packages/desktop/stats/desktop.html
+        name: visualizer-desktop
+        if-no-files-found: error
 
     - name: Package
       working-directory: packages/desktop

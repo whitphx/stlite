@@ -20,8 +20,9 @@ import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
+import { visualizer } from "rollup-plugin-visualizer";
 
-import path from "path";
+import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
   base: "/",
@@ -92,6 +93,14 @@ export default defineConfig(({ mode }) => ({
         );
       },
     },
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/desktop.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   resolve: {
     alias: {

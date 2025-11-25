@@ -4767,6 +4767,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
@@ -4846,6 +4847,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.0.1"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
     ts-node: "npm:^10.9.1"
@@ -4949,6 +4951,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     react-icons: "npm:~5.4.0"
     react-router-dom: "npm:^7.9.6"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
     tsx: "npm:^4.19.2"
@@ -4983,6 +4986,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
@@ -21190,6 +21194,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-visualizer@npm:^5.12.0":
+  version: 5.14.0
+  resolution: "rollup-plugin-visualizer@npm:5.14.0"
+  dependencies:
+    open: "npm:^8.4.0"
+    picomatch: "npm:^4.0.2"
+    source-map: "npm:^0.7.4"
+    yargs: "npm:^17.5.1"
+  peerDependencies:
+    rolldown: 1.x
+    rollup: 2.x || 3.x || 4.x
+  peerDependenciesMeta:
+    rolldown:
+      optional: true
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 10c0/ec6ca9ed125bce9994ba49a340bda730661d8e8dc5c5dc014dc757185182e1eda49c6708f990cb059095e71a3741a5248f1e6ba0ced7056020692888e06b1ddf
+  languageName: node
+  linkType: hard
+
 "rollup@npm:^4.43.0":
   version: 4.53.2
   resolution: "rollup@npm:4.53.2"
@@ -25331,7 +25357,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:17.7.2, yargs@npm:^17.0.1, yargs@npm:^17.3.1, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
+"yargs@npm:17.7.2, yargs@npm:^17.0.1, yargs@npm:^17.3.1, yargs@npm:^17.5.1, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

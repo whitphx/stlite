@@ -307,3 +307,9 @@ tags
 
 # Files generated in CI
 protoc-*-linux-x86_64.zip
+
+# Bundle visualizer reports
+packages/browser/stats/
+packages/sharing/stats/
+packages/desktop/stats/
+packages/sharing-editor/stats/

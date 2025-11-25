@@ -121,7 +121,7 @@ $(common): $(shell \
 common-react: $(common-react)
 $(common-react): $(shell \
 	find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
-	find packages/common-react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	find packages/common-react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
 ) $(node_modules) $(kernel) $(streamlit-frontend-lib)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)

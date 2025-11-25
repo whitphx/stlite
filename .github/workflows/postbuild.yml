@@ -158,7 +158,7 @@ jobs:
               .join("\n");
 
             const stickyHeader = `<!-- Visualizer Report ${headSha} -->\n`;
-            const commentBody = `${stickyHeader}## Bundle visualizer reports for \\`${headSha.slice(0, 7)}\\`\n\n${artifactLines}\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.`;
+            const commentBody = `${stickyHeader}## Bundle visualizer reports for \`${headSha.slice(0, 7)}\`\n\n${artifactLines}\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.`;
 
             const existingComments = await github.paginate(
               github.rest.issues.listComments,

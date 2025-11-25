@@ -1,12 +1,24 @@
 /*eslint-env node*/
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
+import path from "node:path";
 import selfPackageJson from "./package.json";
 
 const selfPackageVersion = selfPackageJson.version;
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/sharing-editor.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
+  ],
   define: {
     SHARING_APP_URL: JSON.stringify(process.env.SHARING_APP_URL),
     RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE: JSON.stringify(
@@ -23,4 +35,4 @@ export default defineConfig({
   test: {
     environment: "jsdom",
   },
-});
+}));

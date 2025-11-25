@@ -20,6 +20,7 @@ import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
+import { visualizer } from "rollup-plugin-visualizer";
 
 import path from "path";
 import { getStreamlitWheelFileName } from "@stlite/devutils";
@@ -38,6 +39,14 @@ export default defineConfig(({ mode }) => ({
     }),
     viteTsconfigPaths(),
     wasm(),
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/sharing.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   resolve: {
     alias: {

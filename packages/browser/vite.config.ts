@@ -22,6 +22,7 @@ import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 import dts from "vite-plugin-dts";
+import { visualizer } from "rollup-plugin-visualizer";
 
 import path from "node:path";
 import fs from "node:fs";
@@ -96,6 +97,14 @@ export default defineConfig(({ mode }) => ({
         });
       },
     },
+    mode === "production" &&
+      visualizer({
+        filename: path.resolve(__dirname, "stats/browser.html"),
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        emitFile: false,
+      }),
   ],
   resolve: {
     alias: {

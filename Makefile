@@ -152,7 +152,7 @@ $(sharing): $(shell \
 sharing-common: $(sharing-common)
 $(sharing-common): $(shell \
 	find packages/sharing-common/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
-	find packages/sharing-common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	find packages/sharing-common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
 ) $(node_modules)
 	cd packages/sharing-common && yarn build
 	@mkdir -p $(dir $@)

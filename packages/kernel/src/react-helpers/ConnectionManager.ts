@@ -35,6 +35,9 @@ import type { StliteKernel } from "../kernel";
 const LOG = getLogger("ConnectionManager");
 
 type OriginalProps = ConstructorParameters<typeof OriginalConnectionManager>[0];
+type OriginalConnectionManagerPublicInterface = {
+  [K in keyof OriginalConnectionManager]: OriginalConnectionManager[K];
+};
 
 interface Props extends OriginalProps {
   /**
@@ -47,10 +50,6 @@ interface Props extends OriginalProps {
 interface MessageQueue {
   [index: number]: ForwardMsg;
 }
-
-type OriginalConnectionManagerPublicInterface = {
-  [K in keyof OriginalConnectionManager]: OriginalConnectionManager[K];
-};
 
 /**
  * Manages our connection to the Server.

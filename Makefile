@@ -111,7 +111,7 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 common: $(common)
 $(common): $(shell \
 	find packages/common/src -type f -name "*.ts"; \
-	find packages/common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	find packages/common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
 ) $(node_modules)
 	cd packages/common && yarn build
 	@mkdir -p $(dir $@)

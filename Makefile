@@ -119,7 +119,10 @@ $(common): $(shell \
 
 .PHONY: react
 react: $(react)
-$(react): $(shell find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(streamlit-frontend-lib)
+$(react): $(shell \
+	find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(common) $(streamlit-frontend-lib)
 	cd packages/react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

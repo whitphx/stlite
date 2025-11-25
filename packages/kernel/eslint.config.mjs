@@ -27,4 +27,19 @@ export default tseslint.config(
       },
     },
   },
+  {
+    rules: {
+      "no-unused-vars": "off", // Turn off JS rule
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
 );

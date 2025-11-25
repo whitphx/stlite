@@ -109,68 +109,100 @@ $(GIT_SUBMODULES): %/.git: .gitmodules
 
 .PHONY: common
 common: $(common)
-$(common): $(shell find packages/common/src -type f -name "*.ts") $(node_modules)
+$(common): $(shell \
+	find packages/common/src -type f -name "*.ts"; \
+	find packages/common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules)
 	cd packages/common && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: common-react
 common-react: $(common-react)
-$(common-react): $(shell find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(streamlit-frontend-lib)
+$(common-react): $(shell \
+	find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/common-react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(streamlit-frontend-lib)
 	cd packages/common-react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: browser
 browser: $(browser)
-$(browser): $(shell find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+$(browser): $(shell \
+	find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/browser -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing
 sharing: $(sharing)
-$(sharing): $(shell find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/sharing/public -type f) $(node_modules) $(kernel) $(sharing-common) $(common-react) $(streamlit-frontend-lib)
+$(sharing): $(shell \
+	find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/sharing/public -type f; \
+	find packages/sharing -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(sharing-common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-common
 sharing-common: $(sharing-common)
-$(sharing-common): $(shell find packages/sharing-common/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules)
+$(sharing-common): $(shell \
+	find packages/sharing-common/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/sharing-common -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules)
 	cd packages/sharing-common && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: sharing-editor
 sharing-editor: $(sharing-editor)
-$(sharing-editor): $(shell find packages/sharing-editor/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(node_modules) $(common) $(sharing-common)
+$(sharing-editor): $(shell \
+	find packages/sharing-editor/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/sharing-editor -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(common) $(sharing-common)
 	cd packages/sharing-editor && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: desktop
 desktop: $(desktop)
-$(desktop): $(shell find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(shell find packages/desktop/electron -type f -name "*.ts") $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+$(desktop): $(shell \
+	find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/desktop/electron -type f -name "*.ts"; \
+	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel
 kernel: $(kernel)
-$(kernel): $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
+$(kernel): $(shell \
+	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
 .PHONY: kernel-test
-kernel-test: $(shell find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \) ) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+kernel-test: $(shell \
+	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vitest.config.ts" \); \
+) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
-$(stlite-lib-wheel): $(venv) $(shell find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py")
+$(stlite-lib-wheel): $(venv) $(shell \
+	find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py"; \
+	find packages/kernel/py/stlite-lib -maxdepth 1 -type f \( -name "pyproject.toml" -o -name "uv.lock" \); \
+)
 	uv --directory packages/kernel/py/stlite-lib build
 	@touch $@
 

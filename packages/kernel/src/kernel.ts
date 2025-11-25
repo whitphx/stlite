@@ -4,6 +4,7 @@ import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 import type { IHostConfigResponse } from "@streamlit/connection";
 import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+import { normalizeBasePath } from "./uri-utils";
 import type {
   EmscriptenFile,
   EmscriptenFileUrl,
@@ -24,10 +25,6 @@ import type {
   MicropipInstallOptions,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
-
-// Ref: https://github.com/streamlit/streamlit/blob/1.12.2/frontend/src/lib/UriUtil.ts#L32-L33
-const FINAL_SLASH_RE = /\/+$/;
-const INITIAL_SLASH_RE = /^\/+/;
 
 const validateEnvKey = (key: string) => {
   // Validate each variable name: it must start with a letter or underscore,
@@ -207,7 +204,6 @@ export class StliteKernel extends EventTarget {
   private _workerInitData: WorkerInitialData;
 
   public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
-
   public readonly hostConfigResponse: IHostConfigResponse; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
   addEventListener<K extends keyof StliteKernelEventMap>(
@@ -241,9 +237,9 @@ export class StliteKernel extends EventTarget {
   constructor(options: StliteKernelOptions) {
     super();
 
-    this.basePath = (options.basePath ?? window.location.pathname)
-      .replace(FINAL_SLASH_RE, "")
-      .replace(INITIAL_SLASH_RE, "");
+    this.basePath = normalizeBasePath(
+      options.basePath ?? window.location.pathname,
+    );
     this.hostConfigResponse = options.hostConfigResponse ?? {};
 
     if (options.worker) {

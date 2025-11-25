@@ -22,7 +22,7 @@ import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 import { visualizer } from "rollup-plugin-visualizer";
 
-import path from "path";
+import path from "node:path";
 
 export default defineConfig(({ mode }) => ({
   base: "/",

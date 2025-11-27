@@ -364,7 +364,7 @@ math.cos()`;
         column: 1,
       });
 
-      // When passing a code that contains string literals directly trough
+      // When passing a code that contains string literals directly through
       // the JS Proxy, they are escaped and we are getting completions back
       // as you would get in any IDE
       expect(codeCompletions.length).toBeGreaterThan(1);

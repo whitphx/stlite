@@ -495,7 +495,7 @@ class CodeBlockTransformer(ast.NodeTransformer):
             obj_origin = self._resolve_name(func_name)
             if isinstance(
                 obj_origin, str
-            ):  # When `fn` is resolved to a fully qualified name, e.g. `from mod imoprt fn`
+            ):  # When `fn` is resolved to a fully qualified name, e.g. `from mod import fn`
                 func_fully_qual_name = obj_origin
             elif isinstance(
                 obj_origin, ObjAttr

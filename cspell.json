@@ -6,7 +6,9 @@
     "cacheLocation": ".cspellcache"
   },
   "dictionaries": [
+    "en-gb",
     "python",
+    "python-common",
     "lorem-ipsum",
     "shellscript",
     "npm",
@@ -15,7 +17,12 @@
     "fullstack",
     "html",
     "css",
+    "node",
     "people-names"
+  ],
+  "ignoreRegExpList": [
+    "/@[a-zA-Z0-9-_]{4,}/g", // Username
+    "/%([2-7][0-9A-Fa-f])/" // Encoded URL string
   ],
   "ignorePaths": [
     ".git",
@@ -26,6 +33,10 @@
     "packages/*/build/**",
     "packages/*/dist/**",
     "packages/browser/e2e-tests/playwright-report/**",
+    "packages/sharing-editor/public/samples/011_component_gallery/pages/text.code-ascii.py",
+    "packages/sharing-editor/public/samples/011_component_gallery/pages/charts.graphviz_chart.py",
+    "packages/sharing-editor/public/samples/020_custom_components/pages/stmol.py",
+    "packages/sharing-editor/public/samples/030_streamlit_e2e_tests/pages/st_tooltips.py",
     "streamlit/**",
     "**/*.svg"
   ],
@@ -33,9 +44,11 @@
     // Stlite
     "stlite",
     "serverlessly",
+    "sampleapps",
     // Pyodide
     "pyodide",
     "micropip",
+    "unvendored",
     "xbuildenv",
     "syncfs",
     "idbfs",
@@ -47,9 +60,18 @@
     "healthz",
     "snowpark",
     "stmol",
+    "embedcode",
+    "geospatial",
+    "Scatterplot",
+    "rideshare",
+    "colorscale",
+    "xlat",
+    "xlon",
+    "selectslider",
     // Python
     "coro",
     "asname",
+    "kwonlyargs",
     "randn",
     "imread",
     "imdecode",
@@ -58,23 +80,55 @@
     "agraph",
     "hiplot",
     "aggrid",
+    "lottieurl",
     "fesion",
-    // npm
+    "pickable",
+    "gapminder",
+    "CARTO",
+    "py3Dmol",
+    "lsprotocol",
+    "distplot",
+    // Node/npm
     "codedent",
     "toastify",
     "superstruct",
     "styletron",
+    "quasis",
+    // react-icons
+    "Twotone",
     // Technology
     "FOUC",
     "TTFB",
+    "WEBVTT",
     "mstile",
     "gztar",
     // Services
     "kofi",
+    "Pixabay",
+    "Udacity",
     // Names
     "whitphx",
     "Yuichiro",
     "Tachibana",
-    "Tsuchiya"
+    "Tsuchiya",
+    "1littlecoder",
+    "koenvo",
+    "Fanilo",
+    "Andrianasolo",
+    "Shantala",
+    "Mukherjee",
+    "Caleb",
+    "Robey",
+    "Neelasha",
+    "Sen",
+    "Saumitra",
+    "Panchal",
+    "Xuan",
+    "Stéphane",
+    "Magnenat",
+    "RAKUDEJI",
+    "fxxu",
+    // misc
+    "Heya"
   ]
 }

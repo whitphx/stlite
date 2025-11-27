@@ -10,7 +10,7 @@ import styles from "./index.module.scss";
 import ColorSchemeSelector from "../ColorScheme/ColorSchemeSelector";
 import { useDarkMode } from "../ColorScheme/hooks";
 
-function DisableableLink(
+function ConditionalLink(
   props: React.ComponentProps<typeof Link> & { disabled?: boolean },
 ) {
   const { disabled, ...restProps } = props;
@@ -42,7 +42,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
                 [styles.active]: isActive,
               })}
             >
-              <DisableableLink
+              <ConditionalLink
                 key={sampleAppManifest.id}
                 disabled={isActive}
                 to={{
@@ -50,7 +50,7 @@ function SampleAppMenu(props: SampleAppMenuProps) {
                 }}
               >
                 {sampleAppManifest.title}
-              </DisableableLink>
+              </ConditionalLink>
             </li>
           );
         })}

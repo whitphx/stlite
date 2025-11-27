@@ -1159,7 +1159,7 @@ Skipped.
 
 #### Fixed
 
-- Ship the stlite wheels along with the `desktop` package instead of loading them fron the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
+- Ship the stlite wheels along with the `desktop` package instead of loading them from the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
 
 ## [0.45.4] - 2024-02-11
 

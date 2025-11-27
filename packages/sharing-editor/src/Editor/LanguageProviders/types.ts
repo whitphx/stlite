@@ -1,5 +1,5 @@
 /**
- * The types bellow are exact copy from monaco-editor.
+ * The types below are exact copy from monaco-editor.
  * The reason why we are not importing from there is
  * that at the moment you import something that is
  * not a type/interface, it will pull the whole

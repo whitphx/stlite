@@ -1,0 +1,80 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "cache": {
+    "cacheLocation": ".cspellcache"
+  },
+  "dictionaries": [
+    "python",
+    "lorem-ipsum",
+    "shellscript",
+    "npm",
+    "cpp",
+    "cpp-refined",
+    "fullstack",
+    "html",
+    "css",
+    "people-names"
+  ],
+  "ignorePaths": [
+    ".git",
+    ".yarn",
+    ".make",
+    ".venv",
+    "node_modules",
+    "packages/*/build/**",
+    "packages/*/dist/**",
+    "packages/browser/e2e-tests/playwright-report/**",
+    "streamlit/**",
+    "**/*.svg"
+  ],
+  "words": [
+    // Stlite
+    "stlite",
+    "serverlessly",
+    // Pyodide
+    "pyodide",
+    "micropip",
+    "xbuildenv",
+    "syncfs",
+    "idbfs",
+    "nodefs",
+    "mountpoint",
+    // Streamlit
+    "scriptrunner",
+    "stcore",
+    "healthz",
+    "snowpark",
+    "stmol",
+    // Python
+    "coro",
+    "asname",
+    "randn",
+    "imread",
+    "imdecode",
+    "skimage",
+    "sobel",
+    "agraph",
+    "hiplot",
+    "aggrid",
+    "fesion",
+    // npm
+    "codedent",
+    "toastify",
+    "superstruct",
+    "styletron",
+    // Technology
+    "FOUC",
+    "TTFB",
+    "mstile",
+    "gztar",
+    // Services
+    "kofi",
+    // Names
+    "whitphx",
+    "Yuichiro",
+    "Tachibana",
+    "Tsuchiya"
+  ]
+}

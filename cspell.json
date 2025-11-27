@@ -67,6 +67,7 @@
     "colorscale",
     "xlat",
     "xlon",
+    "agri",
     "selectslider",
     // Python
     "coro",

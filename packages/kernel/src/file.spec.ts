@@ -16,12 +16,12 @@ describe("writeFileWithParents()", () => {
   const testCases: { paths: string[] }[] = [
     { paths: ["foo.py"] },
     { paths: ["foo/bar.py"] },
-    { paths: ["foo/bar.py", "foo/hoge.py"] },
+    { paths: ["foo/bar.py", "foo/qux.py"] },
     { paths: ["foo/bar/baz.py"] },
-    { paths: ["foo/bar/baz.py", "foo/bar/hoge.py"] },
+    { paths: ["foo/bar/baz.py", "foo/bar/qux.py"] },
     { paths: ["/foo.py"] },
     { paths: ["/foo/bar.py"] },
-    { paths: ["/foo/bar.py", "/foo/hoge.py"] },
+    { paths: ["/foo/bar.py", "/foo/qux.py"] },
   ];
   testCases.forEach(({ paths }) => {
     it(`writes files (${paths})`, () => {

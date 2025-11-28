@@ -305,6 +305,9 @@ tags
 # Build state files
 .make/
 
+# cspell cache
+.cspellcache
+
 # Files generated in CI
 protoc-*-linux-x86_64.zip
 

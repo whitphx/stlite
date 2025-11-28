@@ -30,7 +30,7 @@ To address this, please try helping Streamlit understand how to hash that type
 by passing the `hash_funcs` argument into `@st.cache`. For example:
 
 ```
-@st.cache(hash_funcs={_thread.lock: my_hash_func_that_is_some_riduculously_long_name})
+@st.cache(hash_funcs={_thread.lock: my_hash_func_that_is_some_ridiculously_long_name})
 def my_func(...):
     ...
 ```

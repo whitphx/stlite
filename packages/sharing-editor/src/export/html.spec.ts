@@ -368,6 +368,7 @@ describe("exportAsHtml", () => {
                     arguments: [
                       expect.objectContaining({
                         type: "StringLiteral",
+                        // cSpell:disable-next-line
                         value: "AQIDBA==", // A base64-encoded value of `foo.dat`.
                       }),
                     ],

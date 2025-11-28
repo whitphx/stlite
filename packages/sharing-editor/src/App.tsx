@@ -23,7 +23,7 @@ import {
   parseSampleAppIdInSearchParams,
 } from "./sample-app";
 import ResponsiveSideBySidePanes from "./components/ResponsiveSideBySidePanes";
-import ResponsiveDrawoer from "./components/ResponsiveDrawer";
+import ResponsiveDrawer from "./components/ResponsiveDrawer";
 import SampleAppMenu from "./SampleAppMenu";
 import LoadingScreen from "./components/LoadingScreen";
 import {
@@ -349,9 +349,9 @@ function App() {
   return (
     <div className="App">
       {!embedMode && (
-        <ResponsiveDrawoer>
+        <ResponsiveDrawer>
           <SampleAppMenu currentSampleAppId={sampleAppId} />
-        </ResponsiveDrawoer>
+        </ResponsiveDrawer>
       )}
       {appData == null ? (
         <LoadingScreen />

@@ -11,6 +11,16 @@
 make init
 ```
 
+### Spell checking
+
+Run the shared spell checker from the repo root:
+
+```shell
+yarn cspell
+```
+
+Add project-specific terms to `cspell.json` when you need to silence false positives.
+
 ### Development of each package
 
 #### `@stlite/kernel`
@@ -121,7 +131,9 @@ yarn new-version --force-publish
 ```
 
 ### Windows Development
+
 Use WSL, you'll need to install the following to initialize your Dev environment. Afterwards follow the normal build steps
+
 ```shell
 curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo apt-get update

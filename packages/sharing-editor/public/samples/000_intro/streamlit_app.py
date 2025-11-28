@@ -32,7 +32,7 @@ The app code and data are encoded into the URL as a hash like `https://share.stl
 so you can save, share and restore the app only this the URL.
 If you are on the editor page, click the "Open App" link on the top right toolbar to see the standalone app!
 
-You can switch the editor and sharing modes by replacing the host naem in the URL,
+You can switch the editor and sharing modes by replacing the host name in the URL,
 `edit.share.stlite.net` and `share.stlite.net`.
 
 ### Tell your story!

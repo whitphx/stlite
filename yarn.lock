@@ -5578,6 +5578,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     pyodide: "npm:0.28.2"
     react: "npm:^18.2.0"
+    tsdown: "npm:^0.16.8"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vitest: "npm:^4.0.13"
@@ -24314,7 +24315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsdown@npm:^0.16.6":
+"tsdown@npm:^0.16.6, tsdown@npm:^0.16.8":
   version: 0.16.8
   resolution: "tsdown@npm:0.16.8"
   dependencies:

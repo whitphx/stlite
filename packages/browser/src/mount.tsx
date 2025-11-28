@@ -4,6 +4,7 @@ import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { type MicropipInstallOptions } from "@stlite/react";
 import { parseMountOptions, MountOptions } from "./options";
+import workerURL from "@stlite/react/worker?url&no-inline";
 
 export function mount(
   options: MountOptions,
@@ -14,6 +15,7 @@ export function mount(
   const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
+    workerUrl: kernelOptions.workerUrl ?? new URL(workerURL),
   });
 
   const reactRoot = createRoot(container);

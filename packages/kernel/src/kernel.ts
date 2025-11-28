@@ -3,7 +3,7 @@
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 import type { IHostConfigResponse } from "@streamlit/connection";
-import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+import { createCrossOriginWorker } from "./cross-origin-worker";
 import { normalizeBasePath } from "./uri-utils";
 import type {
   EmscriptenFile,
@@ -128,6 +128,8 @@ export interface StliteKernelOptions {
 
   moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
+  workerUrl?: URL;
+
   workerType?: WorkerOptions["type"];
 
   sharedWorker?: boolean;
@@ -244,15 +246,13 @@ export class StliteKernel extends EventTarget {
 
     if (options.worker) {
       this._worker = options.worker;
-    } else {
-      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-      // Read the comment in `cross-origin-worker.ts` for the detail.
-      const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        /* @vite-ignore */ // To avoid the Vite error: "[vite:worker-import-meta-url] Vite is unable to parse the worker options as the value is not static.To ignore this error, please use /* @vite-ignore */ in the worker options."
+    } else if (options.workerUrl) {
+      this._worker = createCrossOriginWorker(options.workerUrl, {
         type: options.workerType,
         shared: options.sharedWorker ?? false,
       });
-      this._worker = workerMaker.worker;
+    } else {
+      throw new Error("Either 'worker' or 'workerUrl' option must be provided");
     }
 
     if (isSharedWorker(this._worker)) {

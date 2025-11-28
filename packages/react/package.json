@@ -30,6 +30,12 @@
       }
     },
     "./stlite.css": "./build/stlite.css",
+    "./worker": {
+      "import": {
+        "types": "./build/worker/worker.d.mts",
+        "default": "./build/worker/worker.mjs"
+      }
+    },
     "./vite-plugin": {
       "import": {
         "types": "./vite-plugin/dist/index.d.ts",

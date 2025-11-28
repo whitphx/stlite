@@ -11,7 +11,10 @@ export function mount(
 ) {
   const { kernelOptions, toastOptions } = parseMountOptions(options);
 
-  const kernel = createKernel({ wheelUrls, ...kernelOptions });
+  const kernel = createKernel({
+    ...kernelOptions,
+    wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
+  });
 
   const reactRoot = createRoot(container);
   reactRoot.render(

@@ -43,7 +43,7 @@ function isSharedWorker(
   );
 }
 
-export interface StliteKernelOptions {
+export interface StliteKernelOptionsBase {
   /**
    * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
    */
@@ -128,12 +128,6 @@ export interface StliteKernelOptions {
 
   moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
-  workerUrl?: URL;
-
-  workerType?: WorkerOptions["type"];
-
-  sharedWorker?: boolean;
-
   env?: Record<string, string>;
 
   /**
@@ -141,13 +135,26 @@ export interface StliteKernelOptions {
    * It loads some additional Python packages to support the feature.
    */
   languageServer?: boolean;
+}
 
+export interface StliteKernelOptionsWorkerOptions {
+  workerUrl: URL;
+
+  workerType?: WorkerOptions["type"];
+
+  sharedWorker?: boolean;
+}
+
+export interface StliteKernelOptionsWorker {
   /**
    * The worker to be used, which can be optionally passed.
    * Desktop apps with NodeJS-backed worker is one use case.
    */
-  worker?: globalThis.Worker;
+  worker: globalThis.Worker;
 }
+
+export type StliteKernelOptions = StliteKernelOptionsBase &
+  (StliteKernelOptionsWorker | StliteKernelOptionsWorkerOptions);
 
 export interface StliteKernelEventMap {
   loadProgress: CustomEvent<string>;
@@ -244,11 +251,11 @@ export class StliteKernel extends EventTarget {
     );
     this.hostConfigResponse = options.hostConfigResponse ?? {};
 
-    if (options.worker) {
+    if ("worker" in options) {
       this._worker = options.worker;
-    } else if (options.workerUrl) {
+    } else if ("workerUrl" in options) {
       this._worker = createCrossOriginWorker(options.workerUrl, {
-        type: options.workerType,
+        type: options.workerType ?? "module", // Default value is "module" because Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
         shared: options.sharedWorker ?? false,
       });
     } else {

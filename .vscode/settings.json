@@ -1,24 +1,4 @@
 {
   "python.analysis.extraPaths": ["./streamlit/lib"],
-  "makefile.configureOnOpen": false,
-  "cSpell.words": [
-    "contextvar",
-    "Emscripten",
-    "idbfs",
-    "kwargs",
-    "micropip",
-    "mountpoint",
-    "nodefs",
-    "nvmrc",
-    "protoc",
-    "pyarrow",
-    "pyimport",
-    "pyodide",
-    "pyright",
-    "pytest",
-    "stlite",
-    "streamlit",
-    "syncfs",
-    "venv"
-  ]
+  "makefile.configureOnOpen": false
 }

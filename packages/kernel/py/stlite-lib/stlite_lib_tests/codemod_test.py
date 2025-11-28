@@ -747,7 +747,7 @@ sleep = 1
 
 foo()
 """,
-            id="sleep_in_code_block_amgiguous_resolution",
+            id="sleep_in_code_block_ambiguous_resolution",
         ),
     ],
 )

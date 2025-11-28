@@ -18,7 +18,7 @@ def get_chart(use_container_width: bool):
 
     # We create two selections:
     # - a brush that is active on the top panel
-    # - a multi-click that is active on sthe bottom panel
+    # - a multi-click that is active on the bottom panel
     brush = alt.selection_interval(encodings=["x"])
     click = alt.selection_multi(encodings=["color"])
 

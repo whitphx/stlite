@@ -5,10 +5,10 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  animation: fadein 0.3s linear 1s forwards;
+  animation: fade-in 0.3s linear 1s forwards;
 }
 
-@keyframes fadein {
+@keyframes fade-in {
   0% {
     opacity: 0;
   }

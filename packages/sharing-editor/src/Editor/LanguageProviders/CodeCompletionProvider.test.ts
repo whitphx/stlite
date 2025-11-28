@@ -3,6 +3,8 @@ import { CodeCompletionProvider } from "./CodeCompletionProvider";
 import type { editor, Position } from "monaco-editor";
 import { CompletionItemKind } from "./types";
 
+// cSpell:ignore rivate, bbtest, aaparam
+
 describe("CodeCompletionProvider", () => {
   const mockCodeCompleteFn = async () => ({
     items: [

@@ -637,7 +637,7 @@ st.write("Hello,", name or "world")
 
 #### Changed
 
-- New Stite and Stlite Sharing logos, [#1130](https://github.com/whitphx/stlite/pull/1130).
+- New Stlite and Stlite Sharing logos, [#1130](https://github.com/whitphx/stlite/pull/1130).
 
 ## [0.65.1] - 2024-09-17
 
@@ -1159,7 +1159,7 @@ Skipped.
 
 #### Fixed
 
-- Ship the stlite wheels along with the `desktop` package instead of loading them fron the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
+- Ship the stlite wheels along with the `desktop` package instead of loading them from the hosted `kernel` package, [#722](https://github.com/whitphx/stlite/pull/722).
 
 ## [0.45.4] - 2024-02-11
 

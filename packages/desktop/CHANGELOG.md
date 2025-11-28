@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.16
+
+### Patch Changes
+
+- [#1728](https://github.com/whitphx/stlite/pull/1728) [`ff078de`](https://github.com/whitphx/stlite/commit/ff078de0df5741fc3027143ed50ba5581878ce4e) Thanks [@whitphx](https://github.com/whitphx)! - Introduce cSpell and fix typo
+
 ## 0.90.15
 
 ### Patch Changes

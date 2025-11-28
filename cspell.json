@@ -29,6 +29,7 @@
     ".yarn",
     ".make",
     ".venv",
+    ".gitignore",
     "node_modules",
     "packages/*/build/**",
     "packages/*/dist/**",

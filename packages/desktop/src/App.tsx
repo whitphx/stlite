@@ -3,6 +3,7 @@ import type { StliteKernel, StliteKernelOptions } from "@stlite/react";
 import { StliteAppWithToast, createKernel } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { USE_NODEJS_WORKER, NodeJsWorkerMock } from "./nodejs-worker";
+import workerUrl from "@stlite/kernel/worker?url&no-inline";
 
 let pyodideUrl: string | undefined;
 if (import.meta.env.MODE === "production" && !USE_NODEJS_WORKER) {
@@ -61,10 +62,14 @@ function App() {
           pyodideUrl,
           wheelUrls: undefined,
           idbfsMountpoints: window.appConfig.idbfsMountpoints,
-          worker: USE_NODEJS_WORKER
-            ? (new NodeJsWorkerMock() as unknown as Worker)
-            : undefined,
-          workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+          ...(USE_NODEJS_WORKER
+            ? {
+                worker: new NodeJsWorkerMock() as unknown as Worker,
+              }
+            : {
+                workerUrl: new URL(workerUrl, import.meta.url),
+                workerType: "module", // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+              }),
         });
 
         setKernel(kernel);

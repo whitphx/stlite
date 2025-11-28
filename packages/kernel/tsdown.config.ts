@@ -16,4 +16,12 @@ export default defineConfig([
     sourcemap: true,
     noExternal: ["@stlite/common", "path-browserify"],
   },
+  {
+    entry: "./src/worker-runtime.ts",
+    dts: {
+      build: true,
+    },
+    sourcemap: true,
+    noExternal: ["@stlite/common", "path-browserify"],
+  },
 ]);

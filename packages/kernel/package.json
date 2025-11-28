@@ -17,6 +17,12 @@
         "types": "./dist/worker.d.mts",
         "default": "./dist/worker.mjs"
       }
+    },
+    "./worker-runtime": {
+      "import": {
+        "types": "./dist/worker-runtime.d.mts",
+        "default": "./dist/worker-runtime.mjs"
+      }
     }
   },
   "files": [

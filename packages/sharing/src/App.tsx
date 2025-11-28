@@ -15,6 +15,7 @@ import {
 import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { isLanguageServerEnabled, isSharedWorkerMode } from "./urlparams";
+import workerUrl from "@stlite/kernel/worker?url";
 
 declare const EDITOR_APP_ORIGIN_REGEX: string;
 declare const EDITOR_APP_ORIGIN: string;
@@ -121,6 +122,7 @@ st.write("Hello World")`,
           languageServer: isLanguageServerEnabled(),
           sharedWorker: isSharedWorkerMode(),
           wheelUrls,
+          workerUrl: new URL(workerUrl, import.meta.url),
         });
         kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
 

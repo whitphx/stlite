@@ -15,7 +15,10 @@ export function mount(
   const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerUrl: kernelOptions.workerUrl ?? new URL(workerURL),
+    workerUrl:
+      "workerUrl" in kernelOptions && kernelOptions.workerUrl
+        ? kernelOptions.workerUrl
+        : new URL(workerURL, import.meta.url),
   });
 
   const reactRoot = createRoot(container);

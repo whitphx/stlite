@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { StliteApp, createKernel } from "./src/index";
 import { wheelUrls } from "./src/wheels";
 import type { StliteKernelOptions } from "@stlite/kernel";
+import workerUrl from "@stlite/kernel/worker?url";
 
 const kernelOptions: StliteKernelOptions = {
   entrypoint: "app.py",
@@ -20,6 +21,7 @@ st.write("This is a Streamlit app running entirely in your browser using WebAsse
   prebuiltPackageNames: [],
   archives: [],
   wheelUrls,
+  workerUrl: new URL(workerUrl, import.meta.url),
 };
 
 const kernel = createKernel(kernelOptions);

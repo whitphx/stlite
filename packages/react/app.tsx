@@ -21,7 +21,9 @@ st.write("This is a Streamlit app running entirely in your browser using WebAsse
   prebuiltPackageNames: [],
   archives: [],
   wheelUrls,
-  workerUrl: new URL(workerUrl, import.meta.url),
+  worker: {
+    url: new URL(workerUrl, import.meta.url),
+  },
 };
 
 const kernel = createKernel(kernelOptions);

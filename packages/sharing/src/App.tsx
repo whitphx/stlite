@@ -120,9 +120,11 @@ st.write("Hello World")`,
           prebuiltPackageNames: [],
           moduleAutoLoad: true,
           languageServer: isLanguageServerEnabled(),
-          sharedWorker: isSharedWorkerMode(),
           wheelUrls,
-          workerUrl: new URL(workerUrl, import.meta.url),
+          worker: {
+            url: new URL(workerUrl, import.meta.url),
+            sharedWorker: isSharedWorkerMode(),
+          },
         });
         kernel.addEventListener("moduleAutoLoad", onModuleAutoLoad);
 

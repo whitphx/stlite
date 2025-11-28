@@ -10,15 +10,16 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body,
 ) {
-  const { kernelOptions, toastOptions } = parseMountOptions(options);
+  const { kernelOptions, toastOptions, sharedWorker } =
+    parseMountOptions(options);
 
   const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerUrl:
-      "workerUrl" in kernelOptions && kernelOptions.workerUrl
-        ? kernelOptions.workerUrl
-        : new URL(workerURL, import.meta.url),
+    worker: {
+      url: new URL(workerURL, import.meta.url),
+      sharedWorker,
+    },
   });
 
   const reactRoot = createRoot(container);

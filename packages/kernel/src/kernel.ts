@@ -43,7 +43,7 @@ function isSharedWorker(
   );
 }
 
-export interface StliteKernelOptionsBase {
+export interface StliteKernelOptions {
   /**
    * The file path on the Pyodide File System (Emscripten FS) to be set as a target of the `run` command.
    */
@@ -135,26 +135,16 @@ export interface StliteKernelOptionsBase {
    * It loads some additional Python packages to support the feature.
    */
   languageServer?: boolean;
+
+  worker:
+    | globalThis.Worker
+    | globalThis.SharedWorker
+    | {
+        url: URL;
+        type?: WorkerOptions["type"];
+        sharedWorker?: boolean;
+      };
 }
-
-export interface StliteKernelOptionsWorkerOptions {
-  workerUrl: URL;
-
-  workerType?: WorkerOptions["type"];
-
-  sharedWorker?: boolean;
-}
-
-export interface StliteKernelOptionsWorker {
-  /**
-   * The worker to be used, which can be optionally passed.
-   * Desktop apps with NodeJS-backed worker is one use case.
-   */
-  worker: globalThis.Worker;
-}
-
-export type StliteKernelOptions = StliteKernelOptionsBase &
-  (StliteKernelOptionsWorker | StliteKernelOptionsWorkerOptions);
 
 export interface StliteKernelEventMap {
   loadProgress: CustomEvent<string>;
@@ -250,16 +240,14 @@ export class StliteKernel extends EventTarget {
       options.basePath ?? window.location.pathname,
     );
     this.hostConfigResponse = options.hostConfigResponse ?? {};
-
-    if ("worker" in options) {
-      this._worker = options.worker;
-    } else if ("workerUrl" in options) {
-      this._worker = createCrossOriginWorker(options.workerUrl, {
-        type: options.workerType ?? "module", // Default value is "module" because Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-        shared: options.sharedWorker ?? false,
+    if ("url" in options.worker) {
+      const { url, type, sharedWorker } = options.worker;
+      this._worker = createCrossOriginWorker(url, {
+        type: type ?? "module", // Default value is "module" because Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+        shared: sharedWorker ?? false,
       });
     } else {
-      throw new Error("Either 'worker' or 'workerUrl' option must be provided");
+      this._worker = options.worker;
     }
 
     if (isSharedWorker(this._worker)) {

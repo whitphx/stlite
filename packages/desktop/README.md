@@ -1,6 +1,6 @@
 # `@stlite/desktop`
 
-<img src="./docs/images/stlite-desktop-banner-outlined.svg" style="background: white;" >
+<img src="./docs/images/stlite-desktop-banner-outlined.svg" alt="Stlite Desktop Banner" style="background: white;" >
 
 Convert your [Streamlit](https://streamlit.io/) application into a desktop app with [Stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
 

@@ -69,7 +69,6 @@ export default defineConfig(({ mode }) => ({
           dest: "wheels",
         },
         {
-          // src: fileURLToPath(import.meta.resolve("@stlite/kernel/worker")),
           src: path.resolve(__dirname, "../kernel/dist/worker.*"),
           dest: "worker",
         },

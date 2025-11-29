@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main", "feature/*" ]
+    branches: [ "main" ]
 
 concurrency:
   # https://stackoverflow.com/a/72408109

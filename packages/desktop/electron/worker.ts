@@ -2,7 +2,7 @@ import { parentPort } from "node:worker_threads";
 import {
   startWorkerEnv,
   type PostMessageFn,
-} from "@stlite/kernel/src/worker-runtime";
+} from "@stlite/kernel/worker-runtime";
 import { loadNodefsMountpoints } from "./worker-options";
 
 const postMessage: PostMessageFn = (value) => {

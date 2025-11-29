@@ -5,6 +5,12 @@ import "@stlite/react/stlite.css";
 import { type MicropipInstallOptions } from "@stlite/react";
 import { parseMountOptions, MountOptions } from "./options";
 
+const workerType =
+  // @ts-expect-error process.env.NODE_ENV is defined by Vite
+  process.env.NODE_ENV === "development"
+    ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+    : "classic"; // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
+
 export function mount(
   options: MountOptions,
   container: HTMLElement = document.body,
@@ -14,6 +20,7 @@ export function mount(
   const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
+    workerType,
   });
 
   const reactRoot = createRoot(container);

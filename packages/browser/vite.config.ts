@@ -107,6 +107,9 @@ export default defineConfig(({ mode }) => ({
       allow: ["../.."],
     },
   },
+  define: {
+    "process.env.NODE_ENV": JSON.stringify(mode),
+  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,

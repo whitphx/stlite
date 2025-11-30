@@ -8,20 +8,16 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       }
     },
-    "./worker": {
-      "import": {
-        "types": "./dist/worker.d.ts",
-        "default": "./dist/worker.js"
-      }
-    },
+    "./worker": "./dist/worker.js",
+    "./worker.js": "./dist/worker.js",
     "./worker-runtime": {
       "import": {
-        "types": "./dist/worker-runtime.d.ts",
-        "default": "./dist/worker-runtime.js"
+        "types": "./dist/worker-runtime.d.mts",
+        "default": "./dist/worker-runtime.mjs"
       }
     }
   },
@@ -30,8 +26,8 @@
     "py/**/*.whl"
   ],
   "scripts": {
-    "start": "tsc -b -w",
-    "build": "tsc -b",
+    "start": "tsdown --watch",
+    "build": "tsdown",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
@@ -53,6 +49,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
     "pyodide": "0.28.2",
+    "tsdown": "^0.16.8",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
     "vitest": "^4.0.13"

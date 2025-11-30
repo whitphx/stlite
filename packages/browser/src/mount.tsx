@@ -4,6 +4,7 @@ import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
 import "@stlite/react/stlite.css";
 import { type MicropipInstallOptions } from "@stlite/react";
 import { parseMountOptions, MountOptions } from "./options";
+import workerURL from "@stlite/react/worker?url&no-inline";
 
 const workerType =
   // @ts-expect-error process.env.NODE_ENV is defined by Vite
@@ -15,12 +16,17 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body,
 ) {
-  const { kernelOptions, toastOptions } = parseMountOptions(options);
+  const { kernelOptions, toastOptions, sharedWorker } =
+    parseMountOptions(options);
 
   const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerType,
+    worker: {
+      url: new URL(workerURL, import.meta.url),
+      type: workerType,
+      sharedWorker,
+    },
   });
 
   const reactRoot = createRoot(container);

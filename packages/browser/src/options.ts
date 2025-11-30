@@ -28,8 +28,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   wheelUrls: StliteKernelOptions["wheelUrls"];
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
-  workerType: StliteKernelOptions["workerType"];
-  sharedWorker: StliteKernelOptions["sharedWorker"];
+  sharedWorker: boolean;
   env: StliteKernelOptions["env"];
   languageServer: StliteKernelOptions["languageServer"];
 }>;
@@ -97,8 +96,9 @@ export type DetailedMountOptions = SimplifiedStliteKernelOptions & ToastOptions;
 export type MountOptions = string | DetailedMountOptions;
 
 export function parseMountOptions(options: MountOptions): {
-  kernelOptions: StliteKernelOptions;
+  kernelOptions: Omit<StliteKernelOptions, "worker">;
   toastOptions: ToastOptions;
+  sharedWorker: boolean;
 } {
   if (typeof options === "string") {
     const mainScript = options;
@@ -119,6 +119,7 @@ export function parseMountOptions(options: MountOptions): {
         disableErrorToasts: false,
         disableModuleAutoLoadToasts: false,
       },
+      sharedWorker: false,
     };
   }
 
@@ -143,8 +144,6 @@ export function parseMountOptions(options: MountOptions): {
       streamlitConfig: options.streamlitConfig,
       wheelUrls: options.wheelUrls,
       idbfsMountpoints: options.idbfsMountpoints,
-      workerType: options.workerType,
-      sharedWorker: options.sharedWorker,
       env: options.env,
       languageServer: options.languageServer,
     },
@@ -153,5 +152,6 @@ export function parseMountOptions(options: MountOptions): {
       disableErrorToasts: options.disableErrorToasts || false,
       disableModuleAutoLoadToasts: options.disableModuleAutoLoadToasts || false,
     },
+    sharedWorker: options.sharedWorker || false,
   };
 }

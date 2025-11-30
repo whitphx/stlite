@@ -55,30 +55,26 @@ function createWorker(
   }
 }
 
-export class CrossOriginWorkerMaker {
-  public readonly worker: Worker | SharedWorker;
+export function createCrossOriginWorker(
+  url: URL,
+  { shared, ...workerOptions }: { shared: boolean } & WorkerOptions,
+): Worker | SharedWorker {
+  if (isSameOrigin(url)) {
+    console.debug(`Loading a worker script from the same origin: ${url}`);
 
-  constructor(
-    url: URL,
-    { shared, ...workerOptions }: { shared: boolean } & WorkerOptions,
-  ) {
-    if (isSameOrigin(url)) {
-      console.debug(`Loading a worker script from the same origin: ${url}`);
+    // This is the normal way to load a worker script, which is the best straightforward if possible.
+    return createWorker(url, shared, workerOptions);
 
-      // This is the normal way to load a worker script, which is the best straightforward if possible.
-      this.worker = createWorker(url, shared, workerOptions);
-
-      // NOTE: We use here `if-else` checking the origin instead of `try-catch`
-      // because the `try-catch` approach doesn't work on some browsers like FireFox.
-      // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
-      // so we can't catch the error synchronously.
-    } else {
-      console.debug(`Loading a worker script from a different origin: ${url}`);
-      const workerBlobUrl = getWorkerBlobUrl(
-        url,
-        workerOptions.type === "module",
-      );
-      this.worker = createWorker(workerBlobUrl, shared, workerOptions);
-    }
+    // NOTE: We use here `if-else` checking the origin instead of `try-catch`
+    // because the `try-catch` approach doesn't work on some browsers like FireFox.
+    // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
+    // so we can't catch the error synchronously.
+  } else {
+    console.debug(`Loading a worker script from a different origin: ${url}`);
+    const workerBlobUrl = getWorkerBlobUrl(
+      url,
+      workerOptions.type === "module",
+    );
+    return createWorker(workerBlobUrl, shared, workerOptions);
   }
 }

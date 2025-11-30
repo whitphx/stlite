@@ -3,7 +3,7 @@
 import type { PackageData } from "pyodide";
 import { PromiseDelegate } from "@stlite/common";
 import type { IHostConfigResponse } from "@streamlit/connection";
-import { CrossOriginWorkerMaker as Worker } from "./cross-origin-worker";
+import { createCrossOriginWorker } from "./cross-origin-worker";
 import { normalizeBasePath } from "./uri-utils";
 import type {
   EmscriptenFile,
@@ -128,10 +128,6 @@ export interface StliteKernelOptions {
 
   moduleAutoLoad?: WorkerInitialData["moduleAutoLoad"];
 
-  workerType?: WorkerOptions["type"];
-
-  sharedWorker?: boolean;
-
   env?: Record<string, string>;
 
   /**
@@ -140,11 +136,14 @@ export interface StliteKernelOptions {
    */
   languageServer?: boolean;
 
-  /**
-   * The worker to be used, which can be optionally passed.
-   * Desktop apps with NodeJS-backed worker is one use case.
-   */
-  worker?: globalThis.Worker;
+  worker:
+    | globalThis.Worker
+    | globalThis.SharedWorker
+    | {
+        url: URL;
+        type?: WorkerOptions["type"];
+        sharedWorker?: boolean;
+      };
 }
 
 export interface StliteKernelEventMap {
@@ -241,18 +240,14 @@ export class StliteKernel extends EventTarget {
       options.basePath ?? window.location.pathname,
     );
     this.hostConfigResponse = options.hostConfigResponse ?? {};
-
-    if (options.worker) {
-      this._worker = options.worker;
-    } else {
-      // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
-      // Read the comment in `cross-origin-worker.ts` for the detail.
-      const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        /* @vite-ignore */ // To avoid the Vite error: "[vite:worker-import-meta-url] Vite is unable to parse the worker options as the value is not static.To ignore this error, please use /* @vite-ignore */ in the worker options."
-        type: options.workerType,
-        shared: options.sharedWorker ?? false,
+    if ("url" in options.worker) {
+      const { url, type, sharedWorker } = options.worker;
+      this._worker = createCrossOriginWorker(url, {
+        type: type ?? "module", // Default value is "module" because Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
+        shared: sharedWorker ?? false,
       });
-      this._worker = workerMaker.worker;
+    } else {
+      this._worker = options.worker;
     }
 
     if (isSharedWorker(this._worker)) {

@@ -68,6 +68,10 @@ export default defineConfig(({ mode }) => ({
           ),
           dest: "wheels",
         },
+        {
+          src: path.resolve(__dirname, "../kernel/dist/worker.*"),
+          dest: "worker",
+        },
       ],
     }),
     vitePluginStliteReact({

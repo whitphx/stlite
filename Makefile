@@ -183,7 +183,7 @@ $(desktop): $(shell \
 kernel: $(kernel)
 $(kernel): $(shell \
 	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
-	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
+	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsdown.config.ts" -o -name "tsconfig*.json" \); \
 ) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)

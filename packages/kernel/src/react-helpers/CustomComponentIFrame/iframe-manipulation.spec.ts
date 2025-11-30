@@ -85,6 +85,7 @@ describe("manipulateIFrameDocument", () => {
       archives: [],
       requirements: [],
       prebuiltPackageNames: [],
+      worker: {} as unknown as Worker,
     });
 
     await manipulateIFrameDocument(

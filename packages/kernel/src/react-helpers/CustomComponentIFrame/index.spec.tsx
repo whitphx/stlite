@@ -74,6 +74,7 @@ describe("<CustomComponentIFrame />", () => {
       archives: [],
       requirements: [],
       prebuiltPackageNames: [],
+      worker: {} as unknown as Worker,
     });
     function CustomIframe(props: JSX.IntrinsicElements["iframe"]) {
       return <iframe {...props} />;

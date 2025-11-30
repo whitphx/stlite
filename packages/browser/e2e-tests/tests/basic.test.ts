@@ -2,10 +2,9 @@ import { test, expect } from "../test-utils";
 
 test.describe("Basic Stlite Browser Test", () => {
   test("should load and render the basic app correctly", async ({
-    customizedPageWithDeadLinkDetection,
+    page,
+    expectNoDeadLinks,
   }) => {
-    const { page, expectNoDeadLinks } = customizedPageWithDeadLinkDetection;
-
     // Navigate to the test page
     await page.goto("/test-app.html");
 

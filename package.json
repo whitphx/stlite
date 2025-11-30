@@ -21,7 +21,7 @@
     "@changesets/cli": "^2.29.7",
     "cspell": "^8.19.4",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.5",
+    "lint-staged": "^16.2.7",
     "typescript": "^5.9.2"
   },
   "resolutions": {

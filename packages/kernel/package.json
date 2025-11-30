@@ -12,12 +12,8 @@
         "default": "./dist/index.mjs"
       }
     },
-    "./worker": {
-      "import": {
-        "types": "./dist/worker.d.mts",
-        "default": "./dist/worker.mjs"
-      }
-    },
+    "./worker": "./dist/worker.js",
+    "./worker.js": "./dist/worker.js",
     "./worker-runtime": {
       "import": {
         "types": "./dist/worker-runtime.d.mts",

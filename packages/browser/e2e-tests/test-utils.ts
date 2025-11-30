@@ -22,7 +22,7 @@ type CustomizedPageWithDeadLinkDetection = {
 export const test = base.extend<{
   customizedPageWithDeadLinkDetection: CustomizedPageWithDeadLinkDetection;
 }>({
-  customizedPageWithDeadLinkDetection: async ({ page, baseURL }, use) => {
+  page: async ({ page, baseURL }, use) => {
     // Override page.goto to handle file: protocol correctly
     const originalGoto = page.goto.bind(page);
     page.goto = async (url, options) => {
@@ -38,6 +38,12 @@ export const test = base.extend<{
       }
       return originalGoto(url, options);
     };
+
+    await use(page);
+
+    page.goto = originalGoto;
+  },
+  customizedPageWithDeadLinkDetection: async ({ page }, use) => {
 
     // Set up dead link detection
     const failedRequests: string[] = [];

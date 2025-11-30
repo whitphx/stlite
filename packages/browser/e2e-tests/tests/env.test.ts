@@ -2,9 +2,9 @@ import { test, expect } from "../test-utils";
 
 test.describe("Stlite Browser Env Test", () => {
   test("should correctly pass and display environment variables", async ({
-    pageWithDeadLinkDetection,
+    customizedPageWithDeadLinkDetection,
   }) => {
-    const { page, expectNoDeadLinks } = pageWithDeadLinkDetection;
+    const { page, expectNoDeadLinks } = customizedPageWithDeadLinkDetection;
 
     // Navigate to the test page
     await page.goto("/env-test.html");

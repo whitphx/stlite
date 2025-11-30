@@ -44,7 +44,6 @@ export const test = base.extend<{
     page.goto = originalGoto;
   },
   customizedPageWithDeadLinkDetection: async ({ page }, use) => {
-
     // Set up dead link detection
     const failedRequests: string[] = [];
     page.on("response", (response) => {

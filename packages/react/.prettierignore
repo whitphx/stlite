@@ -5,8 +5,4 @@ coverage
 # Ignore all HTML files:
 *.html
 
-# Ignore minified files:
-*.min.*
-
-dist
 tsconfig.json

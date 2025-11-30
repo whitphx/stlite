@@ -1,8 +1,4 @@
-import { darkTheme } from "@streamlit/lib/src/theme/themeConfigs";
-import {
-  getDefaultTheme,
-  AUTO_THEME_NAME,
-} from "@streamlit/lib/src/theme/utils";
+import { darkTheme, getDefaultTheme, AUTO_THEME_NAME } from "@streamlit/lib";
 
 export function isDarkTheme(): boolean {
   const themeName = getDefaultTheme().name;

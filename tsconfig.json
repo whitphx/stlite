@@ -8,13 +8,13 @@
       "path": "packages/common"
     },
     {
-      "path": "packages/common-react"
-    },
-    {
       "path": "packages/desktop"
     },
     {
       "path": "packages/kernel"
+    },
+    {
+      "path": "packages/react"
     },
     {
       "path": "packages/sharing"

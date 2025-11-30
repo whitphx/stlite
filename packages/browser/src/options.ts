@@ -2,7 +2,7 @@ import type {
   StliteKernelOptions,
   EmscriptenFile,
   EmscriptenFileUrl,
-} from "@stlite/kernel";
+} from "@stlite/react";
 
 export interface ToastOptions {
   disableProgressToasts?: boolean;

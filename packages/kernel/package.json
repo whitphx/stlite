@@ -5,8 +5,26 @@
   "version": "0.92.3",
   "license": "Apache-2.0",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./worker": {
+      "import": {
+        "types": "./dist/worker.d.ts",
+        "default": "./dist/worker.js"
+      }
+    },
+    "./worker-runtime": {
+      "import": {
+        "types": "./dist/worker-runtime.d.ts",
+        "default": "./dist/worker-runtime.js"
+      }
+    }
+  },
   "files": [
     "dist/",
     "py/**/*.whl"

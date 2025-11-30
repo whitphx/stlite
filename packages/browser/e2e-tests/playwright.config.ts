@@ -1,4 +1,9 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
+
+const pagesDir = path.resolve(__dirname, "pages");
+const fileProtocolBaseURL = pathToFileURL(pagesDir + path.sep).href;
 
 export default defineConfig({
   testDir: "./tests",
@@ -40,6 +45,27 @@ export default defineConfig({
     {
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "chromium-file-protocol",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: fileProtocolBaseURL,
+      },
+    },
+    {
+      name: "firefox-file-protocol",
+      use: {
+        ...devices["Desktop Firefox"],
+        baseURL: fileProtocolBaseURL,
+      },
+    },
+    {
+      name: "webkit-file-protocol",
+      use: {
+        ...devices["Desktop Safari"],
+        baseURL: fileProtocolBaseURL,
+      },
     },
   ],
 });

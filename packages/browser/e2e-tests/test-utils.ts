@@ -14,13 +14,10 @@ function urlOnlyHasPathAndQuery(url: string): boolean {
   }
 }
 
-type CustomizedPageWithDeadLinkDetection = {
-  page: Page;
-  expectNoDeadLinks: () => void;
-};
+type ExpectNoDeadLinksFn = () => void;
 
 export const test = base.extend<{
-  customizedPageWithDeadLinkDetection: CustomizedPageWithDeadLinkDetection;
+  expectNoDeadLinks: ExpectNoDeadLinksFn;
 }>({
   page: async ({ page, baseURL }, use) => {
     // Override page.goto to handle file: protocol correctly
@@ -43,7 +40,7 @@ export const test = base.extend<{
 
     page.goto = originalGoto;
   },
-  customizedPageWithDeadLinkDetection: async ({ page }, use) => {
+  expectNoDeadLinks: async ({ page }, use) => {
     // Set up dead link detection
     const failedRequests: string[] = [];
     page.on("response", (response) => {
@@ -58,7 +55,7 @@ export const test = base.extend<{
       ).toHaveLength(0);
     };
 
-    await use({ page, expectNoDeadLinks });
+    await use(expectNoDeadLinks);
   },
 });
 

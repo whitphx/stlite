@@ -22,6 +22,8 @@ const production = process.env.NODE_ENV === "production";
   bundle: true,
   minify: production,
   platform: "node",
+  format: "cjs",
+  tsconfig: path.resolve(__dirname, "../electron/tsconfig.json"),
   outdir: path.resolve(__dirname, "../build/electron"),
   external: ["electron", "electron-reload"],
   define: {

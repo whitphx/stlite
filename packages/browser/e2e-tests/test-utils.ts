@@ -1,22 +1,53 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { test as base, expect, Page } from "@playwright/test";
 
-type PageWithDeadLinkDetection = {
-  page: Page;
-  expectNoDeadLinks: () => void;
-};
+function urlOnlyHasPathAndQuery(url: string): boolean {
+  try {
+    new URL(url);
+
+    // e.g. "http://example.com/path"
+    return false;
+  } catch {
+    // e.g. "/path"
+    return true;
+  }
+}
+
+type ExpectNoDeadLinksFn = () => void;
 
 export const test = base.extend<{
-  pageWithDeadLinkDetection: PageWithDeadLinkDetection;
+  expectNoDeadLinks: ExpectNoDeadLinksFn;
 }>({
-  pageWithDeadLinkDetection: async ({ page }, use) => {
-    const failedRequests: string[] = [];
+  page: async ({ page, baseURL }, use) => {
+    // Override page.goto to handle file: protocol correctly
+    const originalGoto = page.goto.bind(page);
+    page.goto = async (url, options) => {
+      if (
+        baseURL &&
+        new URL(baseURL).protocol === "file:" &&
+        urlOnlyHasPathAndQuery(url)
+      ) {
+        // When using the file: protocol, "/foo.html" should be resolved to "file:///path/to/pages/foo.html"
+        const basePath = new URL(baseURL).pathname;
+        const resolvedPath = path.join(basePath, url);
+        url = pathToFileURL(resolvedPath).href;
+      }
+      return originalGoto(url, options);
+    };
 
+    await use(page);
+
+    page.goto = originalGoto;
+  },
+  expectNoDeadLinks: async ({ page }, use) => {
+    // Set up dead link detection
+    const failedRequests: string[] = [];
     page.on("response", (response) => {
       if (response.status() >= 400) {
         failedRequests.push(`${response.status()} - ${response.url()}`);
       }
     });
-
     const expectNoDeadLinks = () => {
       expect(
         failedRequests,
@@ -24,7 +55,7 @@ export const test = base.extend<{
       ).toHaveLength(0);
     };
 
-    await use({ page, expectNoDeadLinks });
+    await use(expectNoDeadLinks);
   },
 });
 

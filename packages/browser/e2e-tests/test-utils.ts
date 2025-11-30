@@ -26,7 +26,11 @@ export const test = base.extend<{
     // Override page.goto to handle file: protocol correctly
     const originalGoto = page.goto.bind(page);
     page.goto = async (url, options) => {
-      if (baseURL && new URL(baseURL).protocol === "file:" && urlOnlyHasPathAndQuery(url)) {
+      if (
+        baseURL &&
+        new URL(baseURL).protocol === "file:" &&
+        urlOnlyHasPathAndQuery(url)
+      ) {
         // When using the file: protocol, "/foo.html" should be resolved to "file:///path/to/pages/foo.html"
         const basePath = new URL(baseURL).pathname;
         const resolvedPath = path.join(basePath, url);

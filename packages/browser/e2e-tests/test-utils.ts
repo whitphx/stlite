@@ -1,4 +1,5 @@
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { test as base, expect, Page } from "@playwright/test";
 
 type CustomizedPageWithDeadLinkDetection = {
@@ -15,7 +16,9 @@ export const test = base.extend<{
     page.goto = async (url, options) => {
       if (baseURL && new URL(baseURL).protocol === "file:") {
         // When using the file: protocol, "/foo.html" should be resolved to "file:///path/to/pages/foo.html"
-        url = path.join(baseURL, url);
+        const basePath = new URL(baseURL).pathname;
+        const resolvedPath = path.join(basePath, url);
+        url = pathToFileURL(resolvedPath).href;
       }
       return originalGoto(url, options);
     };

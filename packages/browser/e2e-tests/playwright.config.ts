@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
 const pagesDir = path.resolve(__dirname, "pages");
-const fileProtocolBaseURL = pathToFileURL(pagesDir + path.sep).href;
+const fileProtocolBaseURL = pathToFileURL(pagesDir).href + "/";
 
 export default defineConfig({
   testDir: "./tests",

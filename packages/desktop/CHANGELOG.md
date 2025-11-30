@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.17
+
+### Patch Changes
+
+- [#1734](https://github.com/whitphx/stlite/pull/1734) [`67a6a72`](https://github.com/whitphx/stlite/commit/67a6a7242b3d0e967d7f30d9e63c4cfa904aface) Thanks [@whitphx](https://github.com/whitphx)! - Update Electron app build config
+
 ## 0.90.16
 
 ### Patch Changes

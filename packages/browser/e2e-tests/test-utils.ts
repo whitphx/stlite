@@ -2,6 +2,18 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { test as base, expect, Page } from "@playwright/test";
 
+function urlOnlyHasPathAndQuery(url: string): boolean {
+  try {
+    new URL(url);
+
+    // e.g. "http://example.com/path"
+    return false;
+  } catch {
+    // e.g. "/path"
+    return true;
+  }
+}
+
 type CustomizedPageWithDeadLinkDetection = {
   page: Page;
   expectNoDeadLinks: () => void;
@@ -14,7 +26,7 @@ export const test = base.extend<{
     // Override page.goto to handle file: protocol correctly
     const originalGoto = page.goto.bind(page);
     page.goto = async (url, options) => {
-      if (baseURL && new URL(baseURL).protocol === "file:") {
+      if (baseURL && new URL(baseURL).protocol === "file:" && urlOnlyHasPathAndQuery(url)) {
         // When using the file: protocol, "/foo.html" should be resolved to "file:///path/to/pages/foo.html"
         const basePath = new URL(baseURL).pathname;
         const resolvedPath = path.join(basePath, url);

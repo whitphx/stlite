@@ -1,0 +1,9 @@
+packages:
+  - "packages/common"
+  - "packages/kernel"
+  - "packages/mountable"
+  - "packages/browser"
+  - "packages/sharing"
+  - "packages/desktop"
+  - "packages/vscode-stlite"
+  - "packages/react"

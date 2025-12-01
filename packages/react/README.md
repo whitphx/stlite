@@ -1,6 +1,8 @@
-# @stlite/react
+# Stlite: In-browser Streamlit with React
 
-A React wrapper for [@stlite/browser](https://github.com/whitphx/stlite/tree/main/packages/browser) to embed Streamlit applications directly into your React projects.
+[![npm (scoped)](https://img.shields.io/npm/v/@stlite/react?label=%40stlite%2Freact)](https://www.npmjs.com/package/@stlite/react)
+
+This package provides a React component wrapper for `@stlite/browser`, allowing you to embed [Streamlit](https://streamlit.io/) applications directly into your React projects.
 
 ## Installation
 
@@ -12,50 +14,49 @@ yarn add @stlite/react @stlite/browser react react-dom
 pnpm add @stlite/react @stlite/browser react react-dom
 
 
-Also, remember to install `@stlite/browser`'s CSS file in your main application entry point (e.g., `main.tsx` or `App.tsx`):
-typescript
-// In your React app's entry file (e.g., main.tsx)
-import '@stlite/browser/dist/style.css';
-
-
 ## Usage
 
-jsx
-import React from 'react';
-import StliteApp from '@stlite/react';
+tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { StliteApp } from "@stlite/react";
+import "@stlite/browser/dist/stlite.css"; // IMPORTANT: Import the CSS file
 
-function MyReactApp() {
-  const pythonCode = `
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <StliteApp
+      code={`
 import streamlit as st
 
-st.title("Hello stlite in React!")
-name = st.text_input("What's your name?")
-if name:
-    st.write(f"Hello, {name}!")
-`;
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+`}
+    />
+  </React.StrictMode>,
+);
 
-  return (
-    <div style={{ width: '100%', height: '500px' }}>
-      <StliteApp
-        code={pythonCode}
-        requirements={['numpy', 'pandas']}
-        style={{ width: '100%', height: '100%' }}
-      />
-    </div>
-  );
-}
-
-export default MyReactApp;
-
-
-For more advanced usage and options, refer to the [@stlite/browser documentation](https://github.com/whitphx/stlite/tree/main/packages/browser). All options available in `@stlite/browser`'s `mount` function (except `code` and `files` which are managed slightly differently) can be passed as props to the `StliteApp` component.
 
 ## API Reference
 
 The `StliteApp` component accepts the following props:
 
-- `code?: string`: The Python code to run. If `files` is also provided, this code will be saved as the `entrypoint` file. If only `code` is provided, it defaults to `streamlit_app.py`.
-- `files?: Record<string, { data: string; type: "text" }> `: A record of files to be mounted on the Pyodide file system. The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`). The value is an object with `data` (string content) and `type` (`"text"`).
-- `className?: string`: Additional CSS class names for the container div.
-- `style?: React.CSSProperties`: Additional inline styles for the container div.
-- All other options from `@stlite/browser`'s `StliteMountOptions` are directly supported as props (e.g., `entrypoint`, `requirements`, `pyodideUrl`, `sharedWorker`, `disableProgressToasts`, `disableErrorToasts`, `streamlitConfig`, `env`, `installs`, `languageServer`).
+- `code?: string`: The Python code of your Streamlit application. This is mounted as `streamlit_app.py` by default.
+- `files?: Record<string, { data: string; type: "text" }>`: A record of files to be mounted on the Pyodide file system. The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`). The value is an object with `data` (string content) and `type` (`"text"`).
+- `entrypoint?: string`: The path to the Python file to be executed as the Streamlit entrypoint (e.g., `"streamlit_app.py"`). If `code` is provided and `entrypoint` is omitted, it defaults to `"streamlit_app.py"`.
+- `requirements?: string[]`: A list of Python package requirements (e.g., `["numpy", "pandas"]`).
+- `pyodideUrl?: string`: The URL to the Pyodide distribution. Defaults to the one bundled with `@stlite/browser`.
+- `sharedWorker?: boolean`: If `true`, a SharedWorker will be used to run Pyodide, allowing multiple Stlite apps on the same page to share a single Python kernel. Defaults to `false`.
+- `disableProgressToasts?: boolean`: If `true`, toasts for Pyodide/package installation progress will be disabled. Defaults to `false`.
+- `disableErrorToasts?: boolean`: If `true`, toasts for Python runtime errors will be disabled. Defaults to `false`.
+- `streamlitConfig?: Record<string, any>`: An object representing the Streamlit configuration. This will be converted to `toml` format and mounted as `.streamlit/config.toml`.
+- `env?: Record<string, string>`: An object representing environment variables to be set in the Pyodide environment.
+- `installs?: Record<string, any>[]`: A list of objects specifying custom Pyodide install configurations. Each object can contain `requirements` (a list of packages) and `options` (an object of Pyodide install options).
+- `languageServer?: boolean`: If `true`, enables the Python language server for features like code completion. Defaults to `false`.
+- `className?: string`: Additional CSS class names to apply to the container `div`.
+- `style?: React.CSSProperties`: Additional inline styles to apply to the container `div`.
+- `onLoad?: (app: StliteAppBrowser) => void`: A callback function that is called when the Stlite app is loaded and mounted successfully. It receives the `StliteAppBrowser` controller instance as an argument.
+- `onUnload?: () => void`: A callback function that is called when the Stlite app is unmounted.
+
+## License
+
+This project is licensed under the Apache License 2.0.

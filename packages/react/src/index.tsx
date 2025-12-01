@@ -1,44 +1,58 @@
-import React, { useRef, useEffect, memo } from 'react';
+import React, { useRef, useEffect } from "react";
+import type { CSSProperties } from "react";
 import {
   mount,
-  StliteApp as StliteAppBrowser, // Rename to avoid conflict with component name
+  StliteApp as StliteAppBrowser,
   StliteMountOptions,
-  File,
-} from '@stlite/browser';
+} from "@stlite/browser";
+import { toml } from "@stlite/common";
 
-// Re-export @stlite/browser's types for convenience
-export type { StliteMountOptions, File };
-// Export StliteApp type from browser package as StliteController
-export type StliteController = StliteAppBrowser;
-
-export interface StliteAppProps extends Omit<StliteMountOptions, 'code' | 'files'> {
+/**
+ * Props for the StliteApp React component.
+ *
+ * It extends StliteMountOptions from `@stlite/browser`, but redefines `code` and `files`
+ * to better suit React component usage patterns.
+ */
+export interface StliteAppProps
+  extends Omit<StliteMountOptions, "files" | "code"> {
   /**
-   * The Python code to run.
-   * If `files` prop is also provided, this code will be saved as `entrypoint` file.
-   * If only `code` is provided, it will be saved as `streamlit_app.py`.
+   * The Python code of your Streamlit application.
+   * This is mounted as `streamlit_app.py` by default.
    */
   code?: string;
   /**
    * A record of files to be mounted on the Pyodide file system.
-   * The key is the file path (e.g., "streamlit_app.py", "pages/main.py", "requirements.txt").
-   * The value is an object with `data` (string content) and `type` ("text").
+   * The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`).
+   * The value is an object with `data` (string content) and `type` (`"text"`).
    */
-  files?: Record<string, File>;
+  files?: Record<string, { data: string; type: "text" }>;
   /**
-   * Additional class name for the container div.
+   * Additional CSS class names to apply to the container `div`.
    */
   className?: string;
   /**
-   * Additional style for the container div.
+   * Additional inline styles to apply to the container `div`.
    */
-  style?: React.CSSProperties;
+  style?: CSSProperties;
+  /**
+   * A callback function that is called when the Stlite app is loaded and mounted successfully.
+   * It receives the `StliteAppBrowser` controller instance as an argument.
+   */
+  onLoad?: (app: StliteAppBrowser) => void;
+  /**
+   * A callback function that is called when the Stlite app is unmounted.
+   */
+  onUnload?: () => void;
 }
 
-const StliteApp: React.FC<StliteAppProps> = memo(({
+const DEBUG = process.env.NODE_ENV === "development";
+
+/**
+ * A React component that embeds a Streamlit application in the browser using Stlite.
+ */
+export const StliteApp: React.FC<StliteAppProps> = ({
   code,
   files,
-  className,
-  style,
   entrypoint,
   requirements,
   pyodideUrl,
@@ -49,40 +63,61 @@ const StliteApp: React.FC<StliteAppProps> = memo(({
   env,
   installs,
   languageServer,
+  className,
+  style,
+  onLoad,
+  onUnload,
 }) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const stliteAppRef = useRef<StliteAppBrowser | null>(null);
 
-  const mergedFiles = files ? { ...files } : {}; // Create a mutable copy if files exist
-  let finalEntrypoint = entrypoint;
-
-  // If `code` is provided, ensure it's added to `mergedFiles`
-  if (code !== undefined) {
-    const codeEntrypoint = entrypoint || "streamlit_app.py";
-    mergedFiles[codeEntrypoint] = { data: code, type: "text" };
-    // Only override finalEntrypoint if it wasn't explicitly set and code is provided
-    if (!entrypoint) {
-      finalEntrypoint = codeEntrypoint;
+  // Memoize derived file and entrypoint data
+  const { mergedFiles, finalEntrypoint } = React.useMemo(() => {
+    const merged = files ? { ...files } : {};
+    let entryPt = entrypoint;
+    if (code !== undefined) {
+      const codeEntrypoint = entrypoint || "streamlit_app.py";
+      merged[codeEntrypoint] = { data: code, type: "text" };
+      if (!entrypoint) {
+        entryPt = codeEntrypoint;
+      }
     }
-  }
+    return { mergedFiles: merged, finalEntrypoint: entryPt };
+  }, [code, files, entrypoint]);
+
+  // Handle Streamlit config conversion if provided
+  const configFiles = React.useMemo(() => {
+    if (streamlitConfig) {
+      return {
+        ".streamlit/config.toml": {
+          data: toml.dump(streamlitConfig),
+          type: "text" as const, // `as const` ensures `type` is `"text"` not `string`
+        },
+      };
+    }
+    return undefined;
+  }, [streamlitConfig]);
 
   // Effect to handle mounting and unmounting
   useEffect(() => {
     const rootElement = rootRef.current;
     if (!rootElement) {
-      console.error('Stlite mount element not found.');
+      if (DEBUG) console.error("Stlite mount element not found.");
       return;
     }
 
+    let isCancelled = false;
+
     // Unmount any existing app before mounting a new one
     if (stliteAppRef.current) {
-      console.log('Unmounting existing stlite app...');
+      if (DEBUG) console.log("Unmounting existing stlite app...");
       stliteAppRef.current.unmount();
       stliteAppRef.current = null;
+      onUnload?.();
     }
 
     const mountOptions: StliteMountOptions = {
-      files: mergedFiles,
+      files: { ...mergedFiles, ...configFiles },
       entrypoint: finalEntrypoint,
       requirements,
       pyodideUrl,
@@ -95,45 +130,58 @@ const StliteApp: React.FC<StliteAppProps> = memo(({
       languageServer,
     };
 
-    console.log('Mounting new stlite app with options:', mountOptions);
+    if (DEBUG)
+      console.log("Mounting new stlite app with options:", mountOptions);
     mount(mountOptions, rootElement)
       .then((app) => {
+        if (isCancelled) {
+          app.unmount();
+          if (DEBUG) console.log("Mount finished after cleanup, unmounting new app.");
+          return;
+        }
         stliteAppRef.current = app;
-        console.log('Stlite app mounted successfully.');
+        if (DEBUG) console.log("Stlite app mounted successfully.");
+        onLoad?.(app);
       })
       .catch((error) => {
-        console.error('Failed to mount stlite app:', error);
+        if (isCancelled) {
+          if (DEBUG) console.log("Mount failed after cleanup, ignoring error.");
+          return;
+        }
+        if (DEBUG) console.error("Failed to mount stlite app:", error);
       });
 
     return () => {
+      isCancelled = true;
       if (stliteAppRef.current) {
-        console.log('Cleanup: Unmounting stlite app...');
+        if (DEBUG) console.log("Cleanup: Unmounting stlite app...");
         stliteAppRef.current.unmount();
         stliteAppRef.current = null;
+        onUnload?.();
       }
     };
   }, [
-    code,
-    JSON.stringify(mergedFiles), // Deep compare files to trigger re-mount if content changes
+    mergedFiles,
     finalEntrypoint,
-    JSON.stringify(requirements),
+    requirements,
     pyodideUrl,
     sharedWorker,
     disableProgressToasts,
     disableErrorToasts,
-    JSON.stringify(streamlitConfig),
-    JSON.stringify(env),
-    JSON.stringify(installs),
+    streamlitConfig, // `streamlitConfig` directly as `useMemo` for `configFiles` ensures its stability.
+    env,
+    installs,
     languageServer,
+    onLoad,
+    onUnload,
+    configFiles, // Add configFiles to deps array since it's derived from streamlitConfig
   ]);
 
   return (
-    <div ref={rootRef} className={`stlite-react-container ${className || ''}`} style={style}>
-      {/* Streamlit app will be mounted here */}
-    </div>
+    <div
+      ref={rootRef}
+      className={`stlite-react-container${className ? ` ${className}` : ""}`}
+      style={style}
+    ></div>
   );
-});
-
-StliteApp.displayName = 'StliteApp';
-
-export default StliteApp;
+};

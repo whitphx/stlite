@@ -1,25 +1,31 @@
 {
   "name": "@stlite/react",
   "version": "0.1.0",
-  "description": "A React wrapper for @stlite/browser to embed Streamlit apps in React applications.",
+  "description": "Stlite: In-browser Streamlit with React",
   "keywords": [
     "streamlit",
     "stlite",
-    "react",
-    "wasm",
     "pyodide",
-    "browser"
+    "python",
+    "react",
+    "webassembly",
+    "wasm",
+    "web"
   ],
   "homepage": "https://github.com/whitphx/stlite/tree/main/packages/react#readme",
-  "license": "MIT",
-  "author": "Yuichiro Tachibana <yuichiro.tachibana.phx@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
     "directory": "packages/react"
   },
-  "sideEffects": false,
+  "license": "Apache-2.0",
+  "author": "Yuichiro Tachibana",
   "type": "module",
+  "main": "./dist/stlite-react.umd.cjs",
+  "module": "./dist/stlite-react.mjs",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -28,12 +34,9 @@
     },
     "./style.css": "./dist/style.css"
   },
-  "main": "./dist/stlite-react.umd.cjs",
-  "module": "./dist/stlite-react.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "scripts": {
     "dev": "vite",
@@ -43,9 +46,15 @@
   },
   "dependencies": {
     "@stlite/browser": "workspace:*",
-    "react": "^18.2.0"
+    "@stlite/common": "workspace:*"
+  },
+  "peerDependencies": {
+    "@stlite/browser": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@stlite/browser": "workspace:*",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -54,12 +63,12 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "sass": "^1.72.0"
+    "vite": "^5.2.0"
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "sideEffects": [
+    "*.css"
+  ]
 }

@@ -11,20 +11,19 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "emitDeclarationOnly": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* Type Checking */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Emit */
+    /* Declaration Output */
+    "outDir": "dist",
     "declaration": true,
-    "outDir": "./dist",
-    "declarationDir": "./dist",
-    "sourceMap": true
+    "declarationDir": "dist"
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

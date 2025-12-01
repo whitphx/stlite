@@ -453,7 +453,8 @@ jobs:
   # We need to introduce an incremental comment update mechanism to unify them.
   notify-browser-preview-deployments:
     needs: [get-build-info, deploy-browser-preview]
-    if: ${{ needs.get-build-info.outputs.pr-number != '' && failure() }}
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
+    # always() is needed to notify even if e2e tests have failed.
 
     runs-on: ubuntu-latest
     permissions:

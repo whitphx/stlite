@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { AppConfig, ArchivesAPI, NodeJsWorkerAPI } from "./preload-types";
+import type { AppConfig, ArchivesAPI, NodeJsWorkerAPI } from "./preload-types";
 
 const entrypointArg = process.argv
   .find((arg) => arg.startsWith("--entrypoint="))

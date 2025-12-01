@@ -120,11 +120,4 @@ export default defineConfig(({ mode }) => ({
       formats: ["es"],
     },
   },
-  test: {
-    environment: "jsdom", // Same as the kernel
-    exclude: ["e2e-tests/**"],
-    typecheck: {
-      enabled: true,
-    },
-  },
 }));

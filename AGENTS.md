@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-- `packages/` hosts the Yarn workspaces: `browser`, `sharing`, and `desktop` are user apps; `kernel` is the Pyodide core; `sharing-editor` is the editor client for `sharing`, and the rest (`common`, `sharing-common`, `devutils`) are support utilities.
+- `packages/` hosts the Yarn workspaces: `browser`, `sharing`, and `desktop` are user apps; `react` is a React library that the apps depend on; `kernel` is the Pyodide core that `react` depends on; `sharing-editor` is the editor client for `sharing`, and the rest (`common`, `sharing-common`, `devutils`) are support utilities.
 - `streamlit/` mirrors upstream Streamlit; `streamlit/frontend/app` is the upstream UI we reference (not build) when customizing `browser`, `sharing`, and `desktop`, while other `streamlit/frontend/*` packages (`lib`, `connection`, etc.) are consumed directly by our workspaces.
 - Supporting assets sit in `assets/`; Makefile orchestrates builds, and browser E2E specs live in `packages/browser/e2e-tests`.
 

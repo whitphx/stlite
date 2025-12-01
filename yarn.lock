@@ -5538,7 +5538,6 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vite: "npm:^7.1.5"
-    vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^4.0.13"
     wait-on: "npm:^8.0.1"
     winston: "npm:^3.13.0"
@@ -5706,7 +5705,6 @@ __metadata:
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.38.0"
     vite: "npm:^7.1.5"
-    vite-tsconfig-paths: "npm:^5.1.4"
     web-vitals: "npm:^4.2.4"
   languageName: unknown
   linkType: soft

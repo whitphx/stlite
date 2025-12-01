@@ -26,8 +26,7 @@
     "sass": "^1.90.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.38.0",
-    "vite": "^7.1.5",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite": "^7.1.5"
   },
   "scripts": {
     "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",

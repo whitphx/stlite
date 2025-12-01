@@ -18,14 +18,9 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es6",
-    "types": ["vite/client", "vitest/globals"]
+    "types": ["vite/client", "vitest/globals", "node"]
   },
-  "include": [
-    "src",
-    // Add necessary declarations same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L11.
-    "../../streamlit/frontend/lib/declarations.d.ts",
-    "../../streamlit/frontend/lib/emotion.d.ts"
-  ],
+  "include": ["src"],
   "references": [
     {
       "path": "../common/tsconfig.src.json"

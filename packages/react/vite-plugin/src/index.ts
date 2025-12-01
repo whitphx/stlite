@@ -1,4 +1,5 @@
 import type { Plugin } from "vite";
+import type { PreRenderedAsset } from "rollup";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,12 +13,14 @@ const REACT_PACKAGE_BUNDLED_WHEEL_DIR = path.resolve(
 );
 
 interface VitePluginStliteReactOptions {
+  wheelOutputDir?: string;
   streamlitWheelFilePath: string;
   stliteLibWheelFilePath?: string;
 }
 export default function vitePluginStliteReact(
   options?: VitePluginStliteReactOptions,
 ): Plugin {
+  const { wheelOutputDir = "wheels" } = options ?? {};
   return {
     name: "vite-plugin-stlite-react",
     config: (config, { mode }) => {
@@ -46,6 +49,22 @@ export default function vitePluginStliteReact(
           "process.env.NODE_ENV": JSON.stringify(mode),
         },
       };
+    },
+    outputOptions(outputOptions) {
+      const originalAssetFileNames = outputOptions.assetFileNames;
+      outputOptions.assetFileNames = (assetInfo: PreRenderedAsset) => {
+        // Preserve original .whl filenames without hashing to comply with the file name convention
+        // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
+        if (assetInfo.names?.some((name) => name.endsWith(".whl"))) {
+          return path.join(wheelOutputDir, "[name][extname]");
+        }
+        // Fall back to original behavior
+        if (typeof originalAssetFileNames === "function") {
+          return originalAssetFileNames(assetInfo);
+        }
+        return originalAssetFileNames ?? "assets/[name]-[hash][extname]";
+      };
+      return outputOptions;
     },
   };
 }

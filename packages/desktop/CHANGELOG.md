@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.18
+
+### Patch Changes
+
+- [#1739](https://github.com/whitphx/stlite/pull/1739) [`0100ea4`](https://github.com/whitphx/stlite/commit/0100ea4b8ed05cd704da0c12cd1e8beeb60f7321) Thanks [@whitphx](https://github.com/whitphx)! - Fix type import
+
 ## 0.90.17
 
 ### Patch Changes

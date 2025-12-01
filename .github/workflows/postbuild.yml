@@ -453,7 +453,7 @@ jobs:
   # We need to introduce an incremental comment update mechanism to unify them.
   notify-browser-preview-deployments:
     needs: [get-build-info, deploy-browser-preview]
-    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && failure() }}
 
     runs-on: ubuntu-latest
     permissions:

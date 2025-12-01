@@ -5589,6 +5589,7 @@ __metadata:
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
     "@eslint/js": "npm:^9.32.0"
+    "@laynezh/vite-plugin-lib-assets": "npm:^2.1.3"
     "@stlite/common": "workspace:^"
     "@stlite/devutils": "workspace:^"
     "@stlite/kernel": "workspace:^"

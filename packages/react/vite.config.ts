@@ -22,6 +22,7 @@ import viteTsconfigPaths from "vite-tsconfig-paths";
 import wasm from "vite-plugin-wasm";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
+import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 
 import path from "node:path";
 import vitePluginStliteReact from "./vite-plugin/src/index";
@@ -79,6 +80,11 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         "../kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
       ),
+    }),
+    libAssetsPlugin({
+      include: /\.(eot|woff2?|ttf)$/i,
+      name: "[name].[ext]",
+      limit: 0,
     }),
   ],
   define: {

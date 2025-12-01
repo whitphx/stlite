@@ -42,6 +42,7 @@ export default defineConfig(({ mode }) => ({
       // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention
       // so that micropip can recognize them correctly.
       name: "[name].[ext]",
+      publicUrl: "./",
     }),
     stliteReactPlugin(),
     // To serve files for development

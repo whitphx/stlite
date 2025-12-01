@@ -1,8 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { StliteAppWithToast, createKernel, wheelUrls } from "@stlite/react";
+import {
+  StliteAppWithToast,
+  createKernel,
+  type MicropipInstallOptions,
+} from "@stlite/react";
+import { wheelUrls } from "@stlite/react/wheels";
 import "@stlite/react/stlite.css";
-import { type MicropipInstallOptions } from "@stlite/react";
 import { parseMountOptions, MountOptions } from "./options";
 
 const workerType =

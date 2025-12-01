@@ -96,9 +96,11 @@ export default defineConfig(({ mode }) => ({
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: "Stlite",
-      fileName: "stlite",
+      entry: {
+        stlite: path.resolve(__dirname, "src/index.ts"),
+        wheels: path.resolve(__dirname, "src/wheels.ts"),
+      },
+      cssFileName: "stlite",
       formats: ["es"],
     },
     rollupOptions: {

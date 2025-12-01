@@ -90,10 +90,5 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "build",
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        assetFileNames: `assets/[name].[hash][extname]`, // The dot before the hash is important to make the wheel file names correct and installable
-      },
-    },
   },
 }));

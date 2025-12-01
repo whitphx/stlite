@@ -29,6 +29,12 @@
         "default": "./build/stlite.js"
       }
     },
+    "./wheels": {
+      "import": {
+        "types": "./build/wheels.d.ts",
+        "default": "./build/wheels.js"
+      }
+    },
     "./stlite.css": "./build/stlite.css",
     "./vite-plugin": {
       "import": {

@@ -42,9 +42,6 @@ export default function vitePluginStliteReact(
         optimizeDeps: {
           exclude: ["parquet-wasm"],
         },
-        worker: {
-          format: "es",
-        },
         define: {
           "process.env.NODE_ENV": JSON.stringify(mode),
         },

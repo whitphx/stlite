@@ -31,7 +31,7 @@
     "app.tsx",
     // Add necessary declarations same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L11.
     "../../streamlit/frontend/lib/declarations.d.ts",
-    "../../streamlit/frontend/lib/emotion.d.ts",
+    "../../streamlit/frontend/lib/emotion.d.ts"
   ],
   "references": [
     {

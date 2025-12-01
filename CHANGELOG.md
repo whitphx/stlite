@@ -1345,7 +1345,7 @@ Skipped
 
 - Compile the Streamlit wheel file to bytecode at build time, [#590](https://github.com/whitphx/stlite/pull/590).
 
-## [0.36.0] - 2023-07-03
+## [0.36.0] - 2024-07-03
 
 ### `@stlite/desktop`
 

@@ -1,17 +1,7 @@
 {
   "name": "@stlite/react",
   "version": "0.1.0",
-  "description": "Stlite: In-browser Streamlit with React",
-  "keywords": [
-    "streamlit",
-    "stlite",
-    "pyodide",
-    "python",
-    "react",
-    "webassembly",
-    "wasm",
-    "web"
-  ],
+  "description": "Stlite React component for embedding Streamlit apps in browsers",
   "homepage": "https://github.com/whitphx/stlite/tree/main/packages/react#readme",
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
@@ -21,11 +11,14 @@
     "url": "https://github.com/whitphx/stlite.git",
     "directory": "packages/react"
   },
-  "license": "Apache-2.0",
-  "author": "Yuichiro Tachibana",
-  "type": "module",
+  "license": "MIT",
+  "author": "Yuichiro Tachibana <yuichiro@whitphx.net>",
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/stlite-react.umd.cjs",
   "module": "./dist/stlite-react.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -34,41 +27,31 @@
     },
     "./style.css": "./dist/style.css"
   },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "@stlite/browser": "workspace:*",
-    "@stlite/common": "workspace:*"
-  },
   "peerDependencies": {
-    "@stlite/browser": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@stlite/browser": ">=0.76.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
     "@stlite/browser": "workspace:*",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "eslint": "^8.53.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
+    "eslint-plugin-react-refresh": "^0.4.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "to-toml": "^1.0.1",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0"
-  },
-  "sideEffects": [
-    "*.css"
-  ]
+    "vite": "^5.0.0"
+  }
 }

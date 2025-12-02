@@ -5,8 +5,43 @@
   "version": "0.92.3",
   "license": "Apache-2.0",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./contexts": {
+      "development": "./src/react-contexts/index.ts",
+      "import": {
+        "types": "./dist/react-contexts/index.d.ts",
+        "default": "./dist/react-contexts/index.js"
+      }
+    },
+    "./react": {
+      "development": "./src/react-helpers/index.ts",
+      "import": {
+        "types": "./dist/react-helpers/index.d.ts",
+        "default": "./dist/react-helpers/index.js"
+      }
+    },
+    "./worker": {
+      "development": "./src/worker.ts",
+      "import": {
+        "types": "./dist/worker.d.ts",
+        "default": "./dist/worker.js"
+      }
+    },
+    "./worker-runtime": {
+      "development": "./src/worker-runtime.ts",
+      "import": {
+        "types": "./dist/worker-runtime.d.ts",
+        "default": "./dist/worker-runtime.js"
+      }
+    }
+  },
   "files": [
     "dist/",
     "py/**/*.whl"

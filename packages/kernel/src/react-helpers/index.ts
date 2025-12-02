@@ -1,4 +1,3 @@
-export * from "./StliteKernelProvider";
 export * from "./ConnectionManager";
 export * from "./media";
 export * from "./download-button";

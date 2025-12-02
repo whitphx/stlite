@@ -1,7 +1,7 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import { StliteKernel } from "../../kernel";
-import { StliteKernelProvider } from "../StliteKernelProvider";
+import { StliteKernelProvider } from "@stlite/kernel/contexts";
 import CustomComponentIFrame from ".";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 

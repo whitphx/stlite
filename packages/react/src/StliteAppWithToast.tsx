@@ -76,6 +76,15 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
     kernel.addEventListener("unlink", onUnlink);
     kernel.addEventListener("readFile", onReadFile);
     kernel.addEventListener("reboot", onReboot);
+
+    return () => {
+      kernel.removeEventListener("install", onInstall);
+      kernel.removeEventListener("writeFile", onWriteFile);
+      kernel.removeEventListener("renameFile", onRenameFile);
+      kernel.removeEventListener("unlink", onUnlink);
+      kernel.removeEventListener("readFile", onReadFile);
+      kernel.removeEventListener("reboot", onReboot);
+    };
   }, [
     kernel,
     onInstall,

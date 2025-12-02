@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
     viteTsconfigPaths(),
     wasm(),
     libAssetsPlugin({
-      include: /\.(eot|woff2?|ttf)$/i,
+      include: /\.(eot|woff2?|ttf|wasm)$/i,
       name: "[name].[ext]",
       limit: 0,
       publicUrl: "./",

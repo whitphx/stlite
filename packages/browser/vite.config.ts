@@ -52,6 +52,12 @@ export default defineConfig(({ mode }) => ({
     }),
     viteTsconfigPaths(),
     wasm(),
+    libAssetsPlugin({
+      include: /\.(eot|woff2?|ttf)$/i,
+      name: "[name].[ext]",
+      limit: 0,
+      publicUrl: "./",
+    }),
     // Stlite is built with Vite's library-mode (https://vitejs.dev/guide/build.html#library-mode),
     // but the library mode enforces inlining of all the static file assets imported with the `import()` syntax,
     // while we need to disable inlining for the wheel files so that they are served as separate files

@@ -28,7 +28,7 @@
     "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
     "start": "run-p start:web start:sampleapps",
     "build:web": "tsc -b && vite build",
-    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.ts",
+    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.mts",
     "build": "yarn build:sampleapps && yarn build:web",
     "test": "vitest",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",

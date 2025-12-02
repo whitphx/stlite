@@ -6,6 +6,8 @@ import fsExtra from "fs-extra";
 import * as s from "superstruct";
 import { parseRequirementsTxt } from "@stlite/common";
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 const rootDirPath = path.resolve(__dirname, "..");
 const sampleAppRootDirPath = path.join(rootDirPath, "./public/samples");
 const srcDirPath = path.join(rootDirPath, "./src");

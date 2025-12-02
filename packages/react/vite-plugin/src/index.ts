@@ -53,7 +53,7 @@ export default function vitePluginStliteReact(
         // Preserve original .whl filenames without hashing to comply with the file name convention
         // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
         if (assetInfo.names?.some((name) => name.endsWith(".whl"))) {
-          return path.join(wheelOutputDir, "[name][extname]");
+          return `${wheelOutputDir}/[name][extname]`;
         }
         // Fall back to original behavior
         if (typeof originalAssetFileNames === "function") {

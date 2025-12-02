@@ -88,6 +88,8 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
   },
   define: {
+    // Vite library mode doesn't replace process.env.NODE_ENV automatically,
+    // so we define it manually here.
     "process.env.NODE_ENV": JSON.stringify(mode),
   },
   build: {

@@ -23,7 +23,7 @@ export default function vitePluginStliteReact(
   const { wheelOutputDir = "wheels" } = options ?? {};
   return {
     name: "vite-plugin-stlite-react",
-    config: (config, { mode }) => {
+    config: () => {
       return {
         resolve: {
           alias: {
@@ -44,9 +44,6 @@ export default function vitePluginStliteReact(
         assetsInclude: ["**/*.whl"],
         optimizeDeps: {
           exclude: ["parquet-wasm"],
-        },
-        define: {
-          "process.env.NODE_ENV": JSON.stringify(mode),
         },
       };
     },

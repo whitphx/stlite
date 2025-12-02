@@ -11,6 +11,10 @@ export default defineConfig({
         __dirname,
         "../../streamlit/frontend/lib/src",
       ),
+      "@streamlit/utils": path.resolve(
+        __dirname,
+        "../../streamlit/frontend/utils/src",
+      ),
       "@streamlit/connection": path.resolve(
         __dirname,
         "../../streamlit/frontend/connection/src",

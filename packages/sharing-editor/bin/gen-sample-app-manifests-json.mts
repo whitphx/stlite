@@ -1,10 +1,13 @@
 #!/usr/bin/env npx tsx
 
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import fsPromises from "node:fs/promises";
 import fsExtra from "fs-extra";
 import * as s from "superstruct";
 import { parseRequirementsTxt } from "@stlite/common";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const rootDirPath = path.resolve(__dirname, "..");
 const sampleAppRootDirPath = path.join(rootDirPath, "./public/samples");

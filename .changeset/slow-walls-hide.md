@@ -2,4 +2,4 @@
 "@stlite/kernel": minor
 ---
 
-Split package into different sub exports
+Split package into different sub-exports

@@ -87,6 +87,9 @@ export default defineConfig({
       publicUrl: "./",
     }),
   ],
+  define: {
+    WHEEL_BASE_URL: "import.meta.url",
+  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,

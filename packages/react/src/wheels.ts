@@ -1,17 +1,24 @@
+// Import utility for Vite to resolve wheel file URLs.
+
+// These imports will be resolved by Vite with our custom plugin to the final URLs.
+// See packages/react/vite-plugin/src/index.ts.
 import STLITE_LIB_WHEEL from "stlite_lib.whl";
 import STREAMLIT_WHEEL from "streamlit.whl";
 
-const wheelBaseUrl =
-  process.env.NODE_ENV === "production"
-    ? import.meta.url // For Vite (Rollup) production build
-    : window.location.origin; // For Vite dev server
+import type { StliteKernelOptions } from "@stlite/kernel";
 
-export const wheelUrls = {
-  // The resolved URLs such as STLITE_LIB_WHEEL only contain the pathnames e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl"
-  // and micropip treats such path-only URLs as local file URLs e.g. "file:////assets/stlite_lib-0.1.0-py3-none-any.whl"
+// WHEEL_BASE_URL is replaced with `import.meta.url`,
+// and it is intended to be finally resolved to the actual URL
+// in a downstream application's bundling process.
+declare const WHEEL_BASE_URL: string;
+
+export const wheelUrls: StliteKernelOptions["wheelUrls"] = {
+  // Vite resolves asset imports such as stlite_lib.whl and streamlit.whl above
+  // to path-only URLs in the production build, e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl".
+  // However, micropip treats such path-only URLs as local file URLs meaning "file:////assets/stlite_lib-0.1.0-py3-none-any.whl"
   // since 0.7.0 due to the change by https://github.com/pyodide/micropip/pull/145,
-  // though these URLs are actually for remote resources.
+  // while we intend them to be remote URLs.
   // So we need to convert these path-only URLs to full URLs including the protocol explicitly.
-  stliteLib: new URL(STLITE_LIB_WHEEL, wheelBaseUrl).href,
-  streamlit: new URL(STREAMLIT_WHEEL, wheelBaseUrl).href,
+  stliteLib: new URL(STLITE_LIB_WHEEL, WHEEL_BASE_URL).href,
+  streamlit: new URL(STREAMLIT_WHEEL, WHEEL_BASE_URL).href,
 };

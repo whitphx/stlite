@@ -1,62 +1,72 @@
-import React, { useEffect, useRef, useMemo } from "react";
-import type { CSSProperties } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   mount,
   StliteKernel,
   StliteMountOptions,
-} from "@stlite/browser"; // `StliteApp` from `@stlite/browser` is `StliteKernel` actually.
+  InstallOptions,
+} from "@stlite/browser"; // Assuming StliteKernel is exported from @stlite/browser
 
 /**
- * Interface for Streamlit configuration.
- *
- * @remarks
- * For example:
- * 
- * {
- *   "server": {
- *     "baseUrlPath": "streamlit_app",
- *     "port": 8501,
- *   },
- *   "global": {
- *     "logLevel": "info",
- *   },
- * }
- * 
+ * Props for the StliteApp component.
+ * Extends StliteMountOptions from `@stlite/browser` with some modifications and additions.
  */
-export interface StreamlitConfig {
-  [section: string]: {
-    [key: string]: string | number | boolean;
-  };
-}
-
-/**
- * Additional options for installing packages.
- * See https://pyodide.org/docs/stable/api/python-api.html#pyodide.install.install for details.
- *
- * @remarks
- * This type is copied from `@stlite/browser/src/types.ts` to avoid a circular dependency.
- * If `@stlite/browser` exports it, we can import it directly.
- */
-export interface InstallOptions {
-  /**
-   * Whether to install packages in the current Pyodide environment or in a new temporary environment.
-   */
-  into_pyodide?: boolean;
-}
-
 export interface StliteAppProps
-  extends Omit<StliteMountOptions, "files" | "entrypoint" | "code"> {
+  extends Omit<
+    StliteMountOptions,
+    "files" | "code" | "entrypoint" | "streamlitConfig"
+  > {
+  /**
+   * The Python code of the Streamlit app. This will be mounted as `"streamlit_app.py"`.
+   * If `files` is also provided, `code` will be merged into `files` at `streamlit_app.py`.
+   */
   code?: string;
+  /**
+   * A record of files to be mounted on the Pyodide file system.
+   * The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`).
+   * The value is an object with `data` (string content) and `type` (`"text"`).
+   */
   files?: Record<string, { data: string; type: "text" }>;
+  /**
+   * The path to the entrypoint file, relative to the Pyodide file system root.
+   * Defaults to `"streamlit_app.py"`.
+   */
   entrypoint?: string;
+  /**
+   * A record representing the content of `.streamlit/config.toml`.
+   * For example, `{"server": {"port": "80"}}`.
+   */
+  streamlitConfig?: Record<string, Record<string, string>>;
+  /**
+   * CSS class name for the root container element.
+   */
   className?: string;
-  style?: CSSProperties;
+  /**
+   * Inline CSS styles for the root container element.
+   */
+  style?: React.CSSProperties;
+  /**
+   * Callback fired when the Stlite app is successfully mounted and ready.
+   */
   onLoad?: (app: StliteKernel) => void;
+  /**
+   * Callback fired when the Stlite app is unmounted.
+   */
   onUnload?: () => void;
+  /**
+   * Additional options for `micropip.install()`.
+   */
+  installs?: InstallOptions[];
 }
 
 const DEBUG = process.env.NODE_ENV === "development";
 
+/**
+ * `StliteApp` is a React component that embeds a Streamlit application
+ * powered by Stlite (Streamlit in the browser).
+ *
+ * It manages the lifecycle of the Stlite app, mounting and unmounting it
+ * as the component is added/removed from the DOM or its props change.
+ */
 export const StliteApp: React.FC<StliteAppProps> = ({
   code,
   files,
@@ -78,7 +88,7 @@ export const StliteApp: React.FC<StliteAppProps> = ({
   const rootRef = useRef<HTMLDivElement>(null);
   const stliteAppRef = useRef<StliteKernel | null>(null);
 
-  // Memoize derived values to prevent unnecessary re-calculations and effect re-runs
+  // Memoize derived values to ensure stable references for useEffect dependencies
   const { mergedFiles, finalEntrypoint } = useMemo(() => {
     const merged = files ? { ...files } : {};
     let entryPt = entrypoint;
@@ -91,12 +101,14 @@ export const StliteApp: React.FC<StliteAppProps> = ({
       }
     }
 
+    // Convert streamlitConfig to .streamlit/config.toml file content
     if (streamlitConfig) {
       const tomlContent = Object.entries(streamlitConfig)
         .map(([section, options]) => {
           const optionsStr = Object.entries(options)
             .map(([key, value]) => {
               // Escape backslashes and double quotes for TOML basic strings
+              // Note: This is a basic escaping, full TOML spec might require more complex handling (e.g., multi-line strings, other special characters).
               const escaped = String(value)
                 .replace(/\\/g, "\\\\")
                 .replace(/"/g, '\\"');
@@ -108,10 +120,11 @@ export const StliteApp: React.FC<StliteAppProps> = ({
         .join("\n\n");
       merged[".streamlit/config.toml"] = { data: tomlContent, type: "text" };
     }
-    return { mergedFiles: merged, finalEntrypoint: entryPt };
-  }, [code, files, entrypoint, streamlitConfig]); // streamlitConfig is a dependency here; consumers should memoize it.
 
-  // Use refs for callbacks to prevent re-running the effect when they change
+    return { mergedFiles: merged, finalEntrypoint: entryPt };
+  }, [code, files, entrypoint, streamlitConfig]); // `streamlitConfig` directly used here
+
+  // Use refs for callbacks to prevent unnecessary effect re-runs
   const onLoadRef = useRef(onLoad);
   const onUnloadRef = useRef(onUnload);
 
@@ -135,6 +148,7 @@ export const StliteApp: React.FC<StliteAppProps> = ({
       if (DEBUG) console.log("Unmounting existing stlite app...");
       stliteAppRef.current.unmount();
       stliteAppRef.current = null;
+      onUnloadRef.current?.(); // Call unload handler for the unmounted instance
     }
 
     const mountOptions: StliteMountOptions = {
@@ -145,7 +159,6 @@ export const StliteApp: React.FC<StliteAppProps> = ({
       sharedWorker,
       disableProgressToasts,
       disableErrorToasts,
-      streamlitConfig,
       env,
       installs,
       languageServer,
@@ -161,7 +174,7 @@ export const StliteApp: React.FC<StliteAppProps> = ({
         }
         stliteAppRef.current = app;
         if (DEBUG) console.log("Stlite app mounted successfully.");
-        onLoadRef.current?.(app);
+        onLoadRef.current?.(app); // Call load handler for the newly mounted instance
       })
       .catch((error) => {
         if (isCancelled) return;
@@ -169,33 +182,31 @@ export const StliteApp: React.FC<StliteAppProps> = ({
       });
 
     return () => {
-      isCancelled = true; // Set cancellation flag
+      isCancelled = true; // Mark as cancelled
       if (stliteAppRef.current) {
         if (DEBUG) console.log("Cleanup: Unmounting stlite app...");
         stliteAppRef.current.unmount();
         stliteAppRef.current = null;
-        onUnloadRef.current?.();
+        onUnloadRef.current?.(); // Call unload handler during cleanup
       }
     };
   }, [
-    mergedFiles, // Stable ref from useMemo
-    finalEntrypoint, // Stable ref from useMemo
-    requirements, // Consumers should memoize
+    mergedFiles, // Stable reference from useMemo
+    finalEntrypoint, // Stable reference from useMemo
+    requirements, // Assumes consumers provide a stable reference or memoize
     pyodideUrl,
     sharedWorker,
     disableProgressToasts,
     disableErrorToasts,
-    env, // Consumers should memoize
-    installs, // Consumers should memoize
+    env, // Assumes consumers provide a stable reference or memoize
+    installs, // Assumes consumers provide a stable reference or memoize
     languageServer,
   ]);
 
   return (
     <div
       ref={rootRef}
-      className={`stlite-react-container${
-        className ? ` ${className}` : ""
-      }`}
+      className={`stlite-react-container${className ? ` ${className}` : ""}`}
       style={style}
     ></div>
   );

@@ -1,9 +1,42 @@
 {
   "name": "@stlite/react",
   "version": "0.1.0",
-  "type": "module",
+  "description": "React wrapper for stlite",
   "main": "./dist/stlite-react.umd.cjs",
   "module": "./dist/stlite-react.mjs",
+  "types": "./dist/index.d.ts",
+  "license": "MIT",
+  "author": "Yuichiro Tachibana <yuichiro@whitphx.net>",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@stlite/browser": "workspace:^",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@stlite/browser": "workspace:^",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,25 +47,5 @@
   },
   "sideEffects": [
     "*.css"
-  ],
-  "files": [
-    "dist"
-  ],
-  "license": "MIT",
-  "author": "Yuichiro Tachibana <yuichiro@whitphx.net>",
-  "devDependencies": {
-    "@stlite/browser": "0.90.0",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15",
-    "@vitejs/plugin-react": "^4.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.0"
-  },
-  "peerDependencies": {
-    "@stlite/browser": "0.90.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
-  }
+  ]
 }

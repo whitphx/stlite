@@ -1,5 +1,15 @@
 # @stlite/browser
 
+## 0.92.0
+
+### Minor Changes
+
+- [#1748](https://github.com/whitphx/stlite/pull/1748) [`f29abb7`](https://github.com/whitphx/stlite/commit/f29abb755fe5fb20ac0cd8ee2e1b6aa21c99977d) Thanks [@whitphx](https://github.com/whitphx)! - Hashing asset file names
+
+- [#1742](https://github.com/whitphx/stlite/pull/1742) [`a83a1e4`](https://github.com/whitphx/stlite/commit/a83a1e4c14ce6945b9bef5f73233fba679ff9e76) Thanks [@whitphx](https://github.com/whitphx)! - Emit font files separately from the main CSS file to prevent the CSS file from becoming huge
+
+- [#1747](https://github.com/whitphx/stlite/pull/1747) [`5ae4026`](https://github.com/whitphx/stlite/commit/5ae4026061fc33a3342313b27dc2f41bfa65f56a) Thanks [@whitphx](https://github.com/whitphx)! - Emit wasm files separately
+
 ## 0.91.2
 
 ### Patch Changes

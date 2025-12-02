@@ -1348,5 +1348,4 @@ Skipped
 ## [0.36.0] - 2024-07-03
 
 ### `@stlite/desktop`
-
 #### Added

@@ -453,7 +453,8 @@ jobs:
   # We need to introduce an incremental comment update mechanism to unify them.
   notify-browser-preview-deployments:
     needs: [get-build-info, deploy-browser-preview]
-    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
+    # always() is needed to notify even if e2e tests have failed.
 
     runs-on: ubuntu-latest
     permissions:
@@ -660,7 +661,7 @@ jobs:
       run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
 
     - name: Create a new release
-      uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
       with:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
@@ -720,7 +721,7 @@ jobs:
       run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
 
     - name: Create a new release
-      uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
       with:
         files: ${{ runner.temp }}/stlite-desktop/package.tgz
         generate_release_notes: true

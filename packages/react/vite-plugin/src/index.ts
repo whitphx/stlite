@@ -27,13 +27,13 @@ export default function vitePluginStliteReact(
       return {
         resolve: {
           alias: {
-            "stlite_lib.whl":
+            "streamlit.whl":
               options?.stliteLibWheelFilePath ??
               path.join(
                 REACT_PACKAGE_BUNDLED_WHEEL_DIR,
                 STREAMLIT_WHEEL_FILE_NAME,
               ),
-            "streamlit.whl":
+            "stlite_lib.whl":
               options?.streamlitWheelFilePath ??
               path.join(
                 REACT_PACKAGE_BUNDLED_WHEEL_DIR,

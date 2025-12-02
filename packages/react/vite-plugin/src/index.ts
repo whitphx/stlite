@@ -49,19 +49,21 @@ export default function vitePluginStliteReact(
     },
     outputOptions(outputOptions) {
       const originalAssetFileNames = outputOptions.assetFileNames;
-      outputOptions.assetFileNames = (assetInfo: PreRenderedAsset) => {
-        // Preserve original .whl filenames without hashing to comply with the file name convention
-        // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
-        if (assetInfo.names?.some((name) => name.endsWith(".whl"))) {
-          return `${wheelOutputDir}/[name][extname]`;
-        }
-        // Fall back to original behavior
-        if (typeof originalAssetFileNames === "function") {
-          return originalAssetFileNames(assetInfo);
-        }
-        return originalAssetFileNames ?? "assets/[name]-[hash][extname]";
+      return {
+        ...outputOptions,
+        assetFileNames: (assetInfo: PreRenderedAsset) => {
+          // Preserve original .whl filenames without hashing to comply with the file name convention
+          // defined in https://packaging.python.org/en/latest/specifications/binary-distribution-format/#file-name-convention.
+          if (assetInfo.names?.some((name) => name.endsWith(".whl"))) {
+            return `${wheelOutputDir}/[name][extname]`;
+          }
+          // Fall back to original behavior
+          if (typeof originalAssetFileNames === "function") {
+            return originalAssetFileNames(assetInfo);
+          }
+          return originalAssetFileNames ?? "assets/[name]-[hash][extname]";
+        },
       };
-      return outputOptions;
     },
   };
 }

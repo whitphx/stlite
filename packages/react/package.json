@@ -19,8 +19,8 @@
     "url": "https://www.whitphx.info/"
   },
   "files": [
-    "build/",
-    "vite-plugin/dist/"
+    "build/**/*",
+    "vite-plugin/dist/**/*"
   ],
   "exports": {
     ".": {

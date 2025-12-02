@@ -1,7 +1,10 @@
 import { useEffect, useMemo } from "react";
 import type { StliteKernel } from "@stlite/kernel";
 import StliteApp from "./StliteApp";
-import { makeToastKernelEventListeners } from "./toastify-components";
+import {
+  ToastContainer,
+  makeToastKernelEventListeners,
+} from "./toastify-components";
 
 export interface StliteAppWithToastProps {
   kernel: StliteKernel;
@@ -95,7 +98,12 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
     onReboot,
   ]);
 
-  return <StliteApp kernel={kernel} />;
+  return (
+    <>
+      <StliteApp kernel={kernel} />
+      <ToastContainer />
+    </>
+  );
 }
 
 export default StliteAppWithToast;

@@ -91,13 +91,6 @@ export default defineConfig(({ mode }) => ({
     "process.env.NODE_ENV":
       mode === "production" ? "process.env.NODE_ENV" : JSON.stringify(mode),
   },
-  server: {
-    open: false,
-    port: 3000,
-    fs: {
-      allow: ["../.."],
-    },
-  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,

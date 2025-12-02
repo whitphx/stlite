@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.90.19
+
+### Patch Changes
+
+- [#1749](https://github.com/whitphx/stlite/pull/1749) [`f49b1de`](https://github.com/whitphx/stlite/commit/f49b1de70fc822e7d12d4113096e77f1e0d9ed53) Thanks [@whitphx](https://github.com/whitphx)! - Fix build config
+
 ## 0.90.18
 
 ### Patch Changes

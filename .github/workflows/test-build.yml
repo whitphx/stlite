@@ -119,6 +119,7 @@ jobs:
       kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       stlite-lib: 'true'  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
@@ -143,6 +144,8 @@ jobs:
           # stlite-lib:  # We run this job anytime. See above.
           #   - 'packages/kernel/py/stlite-lib/**/*'
           #   - 'streamlit/**/*'
+          react:
+            - 'packages/react/**/*'
           browser:
             - 'packages/browser/**/*'
           sharing:
@@ -267,6 +270,34 @@ jobs:
     defaults:
       run:
         working-directory: packages/browser
+
+    steps:
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        submodules: true
+        persist-credentials: false
+    - uses: ./.github/actions/init-all
+      with:
+        python-version-file: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - run: make common
+      working-directory: .
+    - name: Lint
+      run: |
+        yarn check:eslint
+        yarn check:prettier
+    - run: yarn test
+
+  test-react:
+    needs: changes
+    if: ${{ needs.changes.outputs.react == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages/react
 
     steps:
     - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -487,6 +518,56 @@ jobs:
         key: streamlit-wheel
         name: "streamlit wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
+
+  build-react:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed.
+    needs: [set-build-info, test-kernel, test-stlite-lib, test-build-common, test-react]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write
+
+    steps:
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        submodules: true
+        persist-credentials: false
+    - uses: ./.github/actions/init-all
+      with:
+        python-version-file: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Build @stlite/react
+      run: |
+        . .venv/bin/activate
+        make react
+
+    - name: Package
+      working-directory: packages/react
+      run: yarn pack
+
+    - name: Upload the built tar ball as an artifact
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: packages/react/package.tgz
+        name: stlite-react
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+      with:
+        subject-path: packages/react/package.tgz
+      continue-on-error: true
+
+    - name: "Inform the package stats of @stlite/react"
+      uses: ./.github/actions/set-package-stats
+      continue-on-error: true
+      with:
+        key: react
+        name: "@stlite/react"
+        input-path: packages/react/package.tgz
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4

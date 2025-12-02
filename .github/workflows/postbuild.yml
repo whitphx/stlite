@@ -55,6 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       browser: ${{ steps.parse-packages.outputs.browser }}
+      react: ${{ steps.parse-packages.outputs.react }}
       desktop: ${{ steps.parse-packages.outputs.desktop }}
     steps:
       - name: Download published packages info
@@ -72,12 +73,15 @@ jobs:
           PACKAGES=$(cat changesets-published-packages)
           if [ -z "$PACKAGES" ] || [ "$PACKAGES" = "[]" ]; then
             echo "browser=" >> $GITHUB_OUTPUT
+            echo "react=" >> $GITHUB_OUTPUT
             echo "desktop=" >> $GITHUB_OUTPUT
           else
             BROWSER_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/browser") | .version // ""')
+            REACT_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/react") | .version // ""')
             DESKTOP_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/desktop") | .version // ""')
 
             echo "browser=$BROWSER_VERSION" >> $GITHUB_OUTPUT
+            echo "react=$REACT_VERSION" >> $GITHUB_OUTPUT
             echo "desktop=$DESKTOP_VERSION" >> $GITHUB_OUTPUT
           fi
 
@@ -142,6 +146,7 @@ jobs:
 
             const labels = {
               "visualizer-browser": "@stlite/browser",
+              "visualizer-react": "@stlite/react",
               "visualizer-sharing": "@stlite/sharing",
               "visualizer-sharing-editor": "@stlite/sharing-editor",
               "visualizer-desktop": "@stlite/desktop",
@@ -516,6 +521,113 @@ jobs:
             `
             });
 
+  deploy-react-preview:
+    needs: [get-build-info]
+    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy @stlite/react to Cloudflare Pages for preview
+    outputs:
+      url: ${{ steps.deploy.outputs.deployment-url }}
+      valid: 'true'
+    steps:
+    # Checkout for local actions (`uses ./*`).
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
+
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-react
+        path: ${{ runner.temp }}/artifacts/react
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify artifact contents
+      uses: ./.github/actions/verify-only-file
+      with:
+        directory: ${{ runner.temp }}/artifacts/react
+        filename: package.tgz
+
+    - name: Verify artifact attestation
+      uses: ./.github/actions/verify-artifact-attestation
+      with:
+        filepath: ${{ runner.temp }}/artifacts/react/package.tgz
+        expected-workflow-file: .github/workflows/test-build.yml
+        expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: tar xzvf package.tgz
+      working-directory: ${{ runner.temp }}/artifacts/react
+
+    - name: Deploy
+      uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+      id: deploy
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        command: |
+          pages deploy ${{ runner.temp }}/artifacts/react/package/build --project-name=stlite-react-preview --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-react-preview-deployments:
+    needs: [get-build-info, deploy-react-preview]
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const previewUrl = '${{ needs.deploy-react-preview.outputs.url }}';
+            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `Deployment completed successfully ([log](${logUrl})).
+
+            - \`${previewUrl}/stlite.js\`
+            - \`${previewUrl}/stlite.css\`
+
+            Example React usage:
+
+            \`\`\`tsx
+            import { createRoot } from "react-dom/client";
+            import { StliteApp, createKernel } from "${previewUrl}/stlite.js";
+            import "${previewUrl}/stlite.css";
+
+            (async () => {
+              const kernel = await createKernel({
+                entrypoint: "streamlit_app.py",
+                files: {
+                  "streamlit_app.py": \`
+            import streamlit as st
+            st.write("Hello world")
+            \`,
+                },
+                requirements: [],
+              });
+              createRoot(document.getElementById("root")!).render(
+                <StliteApp kernel={kernel} />
+              );
+            })();
+            \`\`\`
+            `
+            });
+
   deploy-sharing:
     needs: get-build-info
     if: ${{ needs.get-build-info.outputs.branch }}
@@ -666,6 +778,66 @@ jobs:
         files: ${{ runner.temp }}/stlite-browser/package.tgz
         generate_release_notes: true
         tag_name: "@stlite/browser@${{ needs.get-changesets-publish-targets.outputs.browser }}"
+
+  publish-react:
+    needs: [get-build-info, get-changesets-publish-targets]
+    if: ${{ needs.get-changesets-publish-targets.outputs.react != '' }}
+
+    permissions:
+      contents: write  # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write  # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
+      attestations: read  # Necessary for verifying artifact attestations
+
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout for local actions (`uses ./*`).
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        persist-credentials: false
+        sparse-checkout: .github
+        sparse-checkout-cone-mode: false
+
+    - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      with:
+        node-version: 22
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@stlite'
+
+    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-react
+        path: ${{ runner.temp }}/stlite-react
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify artifact contents
+      uses: ./.github/actions/verify-only-file
+      with:
+        directory: ${{ runner.temp }}/stlite-react
+        filename: package.tgz
+
+    - name: Verify artifact attestation
+      uses: ./.github/actions/verify-artifact-attestation
+      with:
+        filepath: ${{ runner.temp }}/stlite-react/package.tgz
+        expected-workflow-file: .github/workflows/test-build.yml
+        expected-ref: refs/heads/main
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
+
+    - name: Publish validated package
+      run: npm publish ${{ runner.temp }}/stlite-react/package.tgz --access public
+
+    - name: Create a new release
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+      with:
+        files: ${{ runner.temp }}/stlite-react/package.tgz
+        generate_release_notes: true
+        tag_name: "@stlite/react@${{ needs.get-changesets-publish-targets.outputs.react }}"
 
   publish-desktop:
     needs: [get-build-info, get-changesets-publish-targets]

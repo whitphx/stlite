@@ -24,8 +24,7 @@ export default defineConfig(({ mode }) => ({
       bundledPackages: ["@stlite/react"],
     }),
     libAssetsPlugin({
-      include: /\.(eot|woff2?|ttf)$/i,
-      name: "[name].[ext]",
+      include: /\.(eot|woff2?|ttf|wasm)$/i,
       limit: 0,
       publicUrl: "./",
     }),

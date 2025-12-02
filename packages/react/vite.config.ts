@@ -96,7 +96,7 @@ export default defineConfig({
     lib: {
       entry: {
         stlite: path.resolve(__dirname, "src/index.ts"),
-        wheels: path.resolve(__dirname, "src/wheels.ts"),
+        "vite-utils": path.resolve(__dirname, "src/vite-utils/index.ts"),
       },
       cssFileName: "stlite",
       formats: ["es"],

@@ -29,10 +29,10 @@
         "default": "./build/stlite.js"
       }
     },
-    "./wheels": {
+    "./vite-utils": {
       "import": {
-        "types": "./build/wheels.d.ts",
-        "default": "./build/wheels.js"
+        "types": "./build/vite-utils.d.ts",
+        "default": "./build/vite-utils.js"
       }
     },
     "./stlite.css": "./build/stlite.css",

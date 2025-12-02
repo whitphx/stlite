@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { StliteApp, createKernel } from "./src/index";
-import { wheelUrls } from "./src/wheels";
+import { wheelUrls } from "./src/vite-utils";
 import type { StliteKernelOptions } from "@stlite/kernel";
 
 const kernelOptions: StliteKernelOptions = {

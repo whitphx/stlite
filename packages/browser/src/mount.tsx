@@ -5,7 +5,7 @@ import {
   createKernel,
   type MicropipInstallOptions,
 } from "@stlite/react";
-import { wheelUrls } from "@stlite/react/wheels";
+import { wheelUrls } from "@stlite/react/vite-utils";
 import "@stlite/react/stlite.css";
 import { parseMountOptions, MountOptions } from "./options";
 

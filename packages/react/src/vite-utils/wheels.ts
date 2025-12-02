@@ -1,4 +1,5 @@
 // Import utility for Vite to resolve wheel file URLs.
+// Should be used only in the context of Vite bundling with our Vite plugin.
 
 // These imports will be resolved by Vite with our custom plugin to the final URLs.
 // See packages/react/vite-plugin/src/index.ts.

@@ -1,7 +1,7 @@
 # `@stlite/react`
 
-This package provides a React component for embedding Stlite applications into your React app.
-It wraps the core functionality from [`@stlite/browser`](./packages/browser/README.md).
+A React component for embedding Streamlit applications powered by [`@stlite/browser`](../browser/README.md).
+It wraps the core functionality from `@stlite/browser`, providing a familiar React interface for seamless integration into your web applications.
 
 ## Installation
 
@@ -19,7 +19,7 @@ tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { StliteApp } from "@stlite/react";
-import '@stlite/browser/dist/stlite.css'; // IMPORTANT: Import the CSS file
+import "@stlite/browser/dist/stlite.css"; // IMPORTANT: Import the CSS file
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -39,24 +39,45 @@ st.write("Hello,", name or "world")
 
 ### `StliteAppProps`
 
-Props for the `StliteApp` component. It extends `StliteMountOptions` from `@stlite/browser`
-with some additional React-specific props.
+Props for the `StliteApp` component. Extends `StliteMountOptions` from `@stlite/browser` but redefines `code` and `files`.
 
-- `code?: string`: The Python code of the Streamlit app. This prop is mutually exclusive with `files`.
-  If neither `code` nor `files` is provided, a default "Hello world" app will be displayed.
-  If `entrypoint` is not provided, `"streamlit_app.py"` will be used as the entrypoint.
+- `code?: string`: A string of Python code to be executed as the Streamlit app. This will be written to `streamlit_app.py` by default. If `files` also contains `streamlit_app.py`, this `code` prop will take precedence.
 - `files?: Record<string, { data: string; type: "text" }>`: A record of files to be mounted on the Pyodide file system. The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`). The value is an object with `data` (string content) and `type` (`"text"`).
-- `entrypoint?: string`: The entrypoint file (e.g., `"streamlit_app.py"`).
-- `requirements?: string[]`: A list of Python package names to install (e.g., `["numpy", "pandas"]`).
-- `pyodideUrl?: string`: URL of the Pyodide distribution.
-- `sharedWorker?: boolean`: If `true`, a SharedWorker will be used for the Pyodide kernel. This allows multiple Stlite apps to share the same kernel instance across tabs.
-- `disableProgressToasts?: boolean`: If `true`, the progress toasts (e.g., "Installing packages...") will be disabled.
-- `disableErrorToasts?: boolean`: If `true`, the error toasts will be disabled.
-- `streamlitConfig?: Record<string, Record<string, string>>`: A record of Streamlit configuration options to be written to `.streamlit/config.toml`.
-- `env?: Record<string, string>`: Environment variables to be set in the Pyodide environment.
-- `installs?: InstallOptions[]`: Additional options for installing Python packages.
-- `languageServer?: boolean`: If `true`, the language server will be enabled for code completion and diagnostics.
-- `className?: string`: Additional CSS class name for the root container.
-- `style?: React.CSSProperties`: Additional inline CSS styles for the root container.
-- `onLoad?: (app: StliteKernel) => void`: Callback fired when the Stlite app is successfully mounted and ready.
+- `entrypoint?: string`: The path to the entrypoint file, e.g., `"streamlit_app.py"`. Defaults to `"streamlit_app.py"` if `code` is provided and `entrypoint` is not.
+- `requirements?: string[]`: A list of PyPI package names to install (e.g., `["numpy", "pandas"]`).
+- `pyodideUrl?: string`: The URL to the Pyodide distribution.
+- `sharedWorker?: boolean`: If `true`, a SharedWorker is used to run the Pyodide kernel, allowing multiple StliteApp instances to share the same kernel.
+- `disableProgressToasts?: boolean`: If `true`, disables the progress toasts shown during installation or booting.
+- `disableErrorToasts?: boolean`: If `true`, disables error toasts.
+- `streamlitConfig?: StreamlitConfig`: An object representing the Streamlit configuration to be written to `.streamlit/config.toml`. See [`StreamlitConfig` type definition](https://github.com/whitphx/stlite/blob/main/packages/browser/src/types.ts) for details.
+- `env?: Record<string, string>`: Environment variables to set for the Pyodide runtime.
+- `installs?: InstallOptions[]`: Additional options for installing packages. See [`InstallOptions` type definition](https://github.com/whitphx/stlite/blob/main/packages/browser/src/types.ts) for details.
+- `languageServer?: boolean`: If `true`, enables the language server for features like code completion.
+- `className?: string`: Additional CSS class names to apply to the root container `div`.
+- `style?: React.CSSProperties`: Inline styles to apply to the root container `div`.
+- `onLoad?: (app: StliteKernel) => void`: Callback fired when the Stlite app is successfully mounted and ready. The `app` object is the `StliteKernel` instance.
 - `onUnload?: () => void`: Callback fired when the Stlite app is unmounted.
+
+**Note on Array and Object Props:**
+Props like `requirements`, `env`, `installs`, and `streamlitConfig` are objects or arrays. If these props are constructed inline during rendering (e.g., `requirements={["numpy"]}`), their reference will change on every render, potentially causing the Stlite app to remount unnecessarily. For optimal performance, it is highly recommended to memoize these props using `React.useMemo` or define them outside the component to ensure a stable reference across renders.
+
+tsx
+import React, { useMemo } from "react";
+// ... (other imports)
+
+function MyStliteAppWrapper() {
+  const requirements = useMemo(() => ["numpy", "pandas"], []);
+  const streamlitConfig = useMemo(() => ({
+    server: {
+      baseUrlPath: "streamlit_app",
+    },
+  }), []);
+
+  return (
+    <StliteApp
+      code="import streamlit as st; st.write('Hello')"
+      requirements={requirements}
+      streamlitConfig={streamlitConfig}
+    />
+  );
+}

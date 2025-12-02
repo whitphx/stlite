@@ -20,10 +20,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Declaration */
+    /* Type declaration output */
     "declaration": true,
+    "outDir": "./dist",
     "declarationDir": "./dist"
   },
-  "include": ["src"],
+  "include": ["src", "vite.config.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -89,7 +89,9 @@ export default defineConfig(({ mode }) => ({
   ],
   define: {
     "process.env.NODE_ENV":
-      mode === "production" ? "process.env.NODE_ENV" : JSON.stringify(mode),
+      mode === "production"
+        ? "process.env.NODE_ENV" // Keep as-is for production to enable env-based switching in downstream builds
+        : JSON.stringify(mode),
   },
   build: {
     outDir: "build",

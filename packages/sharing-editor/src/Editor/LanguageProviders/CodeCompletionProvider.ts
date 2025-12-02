@@ -3,7 +3,7 @@ import { CompletionItemKind } from "./types";
 import type {
   CodeCompletionRequest,
   CodeCompletionResponse,
-} from "@stlite/sharing-common/src/messages";
+} from "@stlite/sharing-common";
 
 const nonPythonEntityCharRegex = /[^a-zA-Z0-9_]/;
 

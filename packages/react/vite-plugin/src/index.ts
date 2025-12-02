@@ -14,7 +14,7 @@ const REACT_PACKAGE_BUNDLED_WHEEL_DIR = path.resolve(
 
 interface VitePluginStliteReactOptions {
   wheelOutputDir?: string;
-  streamlitWheelFilePath: string;
+  streamlitWheelFilePath?: string;
   stliteLibWheelFilePath?: string;
 }
 export default function vitePluginStliteReact(

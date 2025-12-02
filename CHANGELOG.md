@@ -1350,5 +1350,3 @@ Skipped
 ### `@stlite/desktop`
 
 #### Added
-
--

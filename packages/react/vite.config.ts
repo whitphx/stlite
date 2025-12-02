@@ -82,7 +82,7 @@ export default defineConfig(({ mode }) => ({
       ),
     }),
     libAssetsPlugin({
-      include: /\.(eot|woff2?|ttf)$/i,
+      include: /\.(eot|woff2?|ttf|wasm)$/i,
       name: "[name].[ext]",
       limit: 0,
     }),

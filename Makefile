@@ -251,6 +251,5 @@ clean:
 	rm -f $(TEMP_GITKEEP)
 	yarn tsc -b --clean
 	rm -rf packages/*/dist/* packages/*/build/* streamlit/frontend/*/dist/*
-	rm -f packages/sharing-common/src/proto/*.ts
 	rm -rf $(stlite-lib-wheel) $(streamlit_proto) $(streamlit_wheel) $(streamlit_frontend_lib_prod)
 	$(MAKE) -C streamlit clean

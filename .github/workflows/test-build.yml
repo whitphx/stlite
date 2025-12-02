@@ -315,7 +315,7 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
-    # - run: yarn test
+    - run: yarn test
 
   test-sharing:
     needs: changes

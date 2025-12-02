@@ -54,7 +54,6 @@ export default defineConfig(({ mode }) => ({
     wasm(),
     libAssetsPlugin({
       include: /\.(eot|woff2?|ttf|wasm)$/i,
-      name: "[name].[ext]",
       limit: 0,
       publicUrl: "./",
     }),

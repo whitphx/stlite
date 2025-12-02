@@ -19,7 +19,6 @@ export default defineConfig({
         __dirname,
         "../../streamlit/frontend/protobuf",
       ),
-      "@stlite/kernel": path.resolve(__dirname, "../kernel/src"),
     },
   },
   test: {

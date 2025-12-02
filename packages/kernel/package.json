@@ -7,18 +7,21 @@
   "type": "module",
   "exports": {
     ".": {
+      "development": "./src/index.ts",
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       }
     },
     "./worker": {
+      "development": "./src/worker.ts",
       "import": {
         "types": "./dist/worker.d.ts",
         "default": "./dist/worker.js"
       }
     },
     "./worker-runtime": {
+      "development": "./src/worker-runtime.ts",
       "import": {
         "types": "./dist/worker-runtime.d.ts",
         "default": "./dist/worker-runtime.js"

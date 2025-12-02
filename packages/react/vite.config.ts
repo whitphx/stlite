@@ -1,19 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import dts from "vite-plugin-dts";
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), dts()],
+  plugins: [react()],
   build: {
     lib: {
       entry: "src/index.tsx",
       name: "StliteReact",
       formats: ["es", "umd"],
-      fileName: (format) => {
-        if (format === "es") return "stlite-react.mjs";
-        if (format === "umd") return "stlite-react.umd.cjs";
-        return `stlite-react.${format}.js`; // Fallback
-      },
+      fileName: (format) => `stlite-react.${format === "es" ? "mjs" : "umd.cjs"}`,
     },
     rollupOptions: {
       external: ["react", "react-dom", "@stlite/browser"],
@@ -21,13 +17,13 @@ export default defineConfig({
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
-          "@stlite/browser": "StliteBrowser", // Assuming @stlite/browser exports a UMD global named StliteBrowser
+          "@stlite/browser": "StliteBrowser", // Assuming StliteBrowser is the global name for @stlite/browser
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === "style.css") {
             return "style.css";
           }
-          return assetInfo.name ?? "assets/[name]-[hash][extname]"; // More robust fallback
+          return assetInfo.name ?? "assets/[name]-[hash][extname]";
         },
       },
     },

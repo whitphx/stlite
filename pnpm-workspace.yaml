@@ -1,3 +1,4 @@
 packages:
-  - "packages/*"
-  - "streamlit"
+  - 'packages/*'
+  - 'packages/react'
+  - 'streamlit'

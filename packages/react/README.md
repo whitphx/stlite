@@ -1,6 +1,6 @@
 # `@stlite/react`
 
-A React wrapper for [`@stlite/browser`](../browser/README.md). It provides a `<StliteApp>` component to easily embed Streamlit applications into your React frontend.
+A React component for embedding Stlite applications, wrapping the core functionality from [`@stlite/browser`](../browser/README.md).
 
 ## Installation
 
@@ -38,24 +38,26 @@ st.write("Hello,", name or "world")
 
 The `StliteApp` component accepts the following props:
 
--   `code?: string`: The Python code of the Streamlit app. If `files` is also provided, this code will be mounted as `streamlit_app.py` or the value of `entrypoint` if specified.
--   `files?: Record<string, { data: string; type: "text" }>`: A record of files to be mounted on the Pyodide file system. The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`). The value is an object with `data` (string content) and `type` (`"text"`).
--   `entrypoint?: string`: The path to the entrypoint file (e.g., `"streamlit_app.py"`). If `code` is provided but `entrypoint` is not, `"streamlit_app.py"` will be used as the entrypoint.
--   `requirements?: string[]`: A list of Python package requirements (e.g., `["numpy", "pandas"]`).
--   `pyodideUrl?: string`: The URL of the Pyodide package. Defaults to the latest CDN URL.
--   `sharedWorker?: boolean`: If `true`, a SharedWorker will be used to run the Pyodide kernel, allowing multiple Stlite apps to share the same kernel. Defaults to `false`.
--   `disableProgressToasts?: boolean`: If `true`, suppresses toasts indicating Pyodide loading progress. Defaults to `false`.
--   `disableErrorToasts?: boolean`: If `true`, suppresses toasts for errors. Defaults to `false`.
--   `streamlitConfig?: StreamlitConfig`: An object representing the `~/.streamlit/config.toml` file. E.g., `{ client = { showSidebarNavigation = true } }`.
--   `env?: Record<string, string>`: Environment variables to set for the Pyodide kernel.
--   `installs?: (string | [string, InstallOptionProps])[]`: Options for `micropip.install()`.
--   `languageServer?: boolean`: If `true`, enables the Python language server for features like code completion. Defaults to `false`.
--   `className?: string`: Additional CSS class names to apply to the root container `div`.
--   `style?: React.CSSProperties`: Inline styles to apply to the root container `div`.
--   `onLoad?: (app: StliteKernel) => void`: Callback fired when the Stlite app is successfully mounted and ready, receiving the `StliteKernel` instance.
--   `onUnload?: () => void`: Callback fired when the Stlite app is unmounted.
+- `code?: string`: The Python code of your Streamlit app. If `files` is also provided, this code will be mounted as `streamlit_app.py` or the specified `entrypoint`.
+- `files?: Record<string, { data: string; type: "text" }>`: A record of files to be mounted on the Pyodide file system. The key is the file path (e.g., `"streamlit_app.py"`, `"pages/main.py"`, `"requirements.txt"`). The value is an object with `data` (string content) and `type` (`"text"`).
+- `entrypoint?: string`: The file path to run as the main Streamlit application. Defaults to `"streamlit_app.py"`.
+- `requirements?: string[]`: A list of Python package names to install (e.g., `["numpy", "pandas"]`).
+- `pyodideUrl?: string`: The URL to the Pyodide distribution. Defaults to the one from unpkg.
+- `sharedWorker?: boolean`: Whether to use a SharedWorker to run the Pyodide kernel. This allows multiple Stlite apps on the same page to share a single worker and Pyodide instance. Defaults to `false`.
+- `disableProgressToasts?: boolean`: Whether to disable the progress toasts. Defaults to `false`.
+- `disableErrorToasts?: boolean`: Whether to disable the error toasts. Defaults to `false`.
+- `streamlitConfig?: StreamlitConfig`: An object representing the Streamlit configuration to be written to `.streamlit/config.toml`. Keys are section names (e.g., `"client"`) and values are objects of key-value pairs.
+- `env?: Record<string, string>`: Environment variables to set in the Pyodide runtime.
+- `installs?: InstallOptions[]`: Advanced options for `micropip.install()`.
+- `languageServer?: boolean`: Whether to enable the Python language server for features like code completion. Defaults to `false`.
+- `className?: string`: Additional CSS class names to apply to the root container `div`.
+- `style?: React.CSSProperties`: Additional inline styles to apply to the root container `div`.
+- `onLoad?: (app: StliteKernel) => void`: Callback fired when the Stlite app is successfully mounted and ready. It receives the `StliteKernel` instance as an argument.
+- `onUnload?: () => void`: Callback fired when the Stlite app is unmounted.
 
-**Performance Note:** For `requirements`, `streamlitConfig`, `env`, and `installs` props, it is highly recommended to memoize their values using `React.useMemo` if they are objects or arrays and are not stable references across renders. Otherwise, the Stlite app might unnecessarily re-mount on every parent component re-render.
+### Performance Notes
+
+For object and array props (e.g., `requirements`, `streamlitConfig`, `env`, `installs`), if you pass inline literals or dynamically constructed objects on every render, it will cause the Stlite app to unnecessarily re-mount. To prevent this, always memoize these props using `React.useMemo`:
 
 tsx
 // Consumer should memoize array/object props:

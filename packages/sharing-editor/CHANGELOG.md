@@ -1,5 +1,19 @@
 # @stlite/sharing-editor
 
+## 0.90.2
+
+### Patch Changes
+
+- [#1752](https://github.com/whitphx/stlite/pull/1752) [`f07059d`](https://github.com/whitphx/stlite/commit/f07059db49235342bf8ded8dc85b45f948d2f58c) Thanks [@whitphx](https://github.com/whitphx)! - Fix tsconfig.json and some imports
+
+- [#1751](https://github.com/whitphx/stlite/pull/1751) [`92812c8`](https://github.com/whitphx/stlite/commit/92812c899c46d4e1b253939262a4d31dc75f3805) Thanks [@whitphx](https://github.com/whitphx)! - Internal exports for development
+
+- [#1751](https://github.com/whitphx/stlite/pull/1751) [`92812c8`](https://github.com/whitphx/stlite/commit/92812c899c46d4e1b253939262a4d31dc75f3805) Thanks [@whitphx](https://github.com/whitphx)! - Make the sample app setup script ESM
+
+- Updated dependencies [[`92812c8`](https://github.com/whitphx/stlite/commit/92812c899c46d4e1b253939262a4d31dc75f3805)]:
+  - @stlite/sharing-common@0.90.1
+  - @stlite/common@0.90.1
+
 ## 0.90.1
 
 ### Patch Changes

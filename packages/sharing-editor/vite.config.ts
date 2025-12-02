@@ -34,5 +34,8 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     environment: "jsdom",
+    typecheck: {
+      enabled: true,
+    },
   },
 }));

@@ -609,21 +609,19 @@ jobs:
             import { StliteApp, createKernel } from "${previewUrl}/stlite.js";
             import "${previewUrl}/stlite.css";
 
-            (async () => {
-              const kernel = await createKernel({
-                entrypoint: "streamlit_app.py",
-                files: {
-                  "streamlit_app.py": \`
+            const kernel = createKernel({
+              entrypoint: "streamlit_app.py",
+              files: {
+                "streamlit_app.py": \`
             import streamlit as st
             st.write("Hello world")
             \`,
-                },
-                requirements: [],
-              });
-              createRoot(document.getElementById("root")!).render(
-                <StliteApp kernel={kernel} />
-              );
-            })();
+              },
+              requirements: [],
+            });
+            createRoot(document.getElementById("root")!).render(
+              <StliteApp kernel={kernel} />
+            );
             \`\`\`
             `
             });

@@ -80,6 +80,10 @@
     "vitest": "^4.0.8",
     "web-vitals": "^4.2.4"
   },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "scripts": {
     "start": "vite",
     "build": "run-p 'build:*'",

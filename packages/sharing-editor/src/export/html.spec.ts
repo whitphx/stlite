@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { exportAsHtml, escapeTextForJsTemplateLiteral } from "./html";
 import { JSDOM } from "jsdom";
 import * as babelParser from "@babel/parser";
-import { AppData } from "@stlite/sharing-common/dist";
+import { AppData } from "@stlite/sharing-common";
 
 const jsdom = new JSDOM();
 const parser = new jsdom.window.DOMParser();

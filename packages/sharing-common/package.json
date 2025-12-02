@@ -2,8 +2,15 @@
   "name": "@stlite/sharing-common",
   "version": "0.90.0",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "license": "Apache-2.0",
   "private": true,
   "scripts": {

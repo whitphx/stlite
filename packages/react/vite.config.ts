@@ -31,7 +31,7 @@ import { getStreamlitWheelFileName } from "@stlite/devutils";
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   base: "./",
   plugins: [
     react({
@@ -87,12 +87,6 @@ export default defineConfig(({ mode }) => ({
       publicUrl: "./",
     }),
   ],
-  define: {
-    "process.env.NODE_ENV":
-      mode === "production"
-        ? "process.env.NODE_ENV" // Keep as-is for production to enable env-based switching in downstream builds
-        : JSON.stringify(mode),
-  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
@@ -108,4 +102,4 @@ export default defineConfig(({ mode }) => ({
       external: ["react", "react-dom", "stlite_lib.whl", "streamlit.whl"],
     },
   },
-}));
+});

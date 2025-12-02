@@ -309,8 +309,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
 
-    - run: make common
-      working-directory: .
     - name: Lint
       run: |
         yarn check:eslint

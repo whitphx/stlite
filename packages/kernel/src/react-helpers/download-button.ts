@@ -23,7 +23,7 @@ export function downloadFileFromStlite(
   stliteKernel: StliteKernel,
   url: string,
 ) {
-  stliteKernel
+  return stliteKernel
     .sendHttpRequest({
       method: "GET",
       path: `${url}?title=${encodeURIComponent(document.title)}`, // Ref: https://github.com/streamlit/streamlit/blob/41a1a60b6bd72b13effec1bbcc6551afa0878d23/frontend/src/components/widgets/DownloadButton/DownloadButton.tsx#L49
@@ -61,7 +61,7 @@ export function useDownloadFileFromStlite() {
 
   return useCallback(
     (url: string) => {
-      downloadFileFromStlite(stliteKernel, url);
+      return downloadFileFromStlite(stliteKernel, url);
     },
     [stliteKernel],
   );

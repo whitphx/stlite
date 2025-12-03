@@ -1,5 +1,13 @@
 # @stlite/browser
 
+## 0.93.0
+
+### Minor Changes
+
+- [#1696](https://github.com/whitphx/stlite/pull/1696) [`7d71211`](https://github.com/whitphx/stlite/commit/7d71211b376e58609e272db288663bf522830457) Thanks [@whitphx](https://github.com/whitphx)! - Use @stlite/react as the foundation instead of depending on @stlite/kernel directly
+
+- [#1696](https://github.com/whitphx/stlite/pull/1696) [`7d71211`](https://github.com/whitphx/stlite/commit/7d71211b376e58609e272db288663bf522830457) Thanks [@whitphx](https://github.com/whitphx)! - Remove `workerType` option from `mount()`
+
 ## 0.92.0
 
 ### Minor Changes

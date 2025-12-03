@@ -43,7 +43,7 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/devutils ge
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
-common-react := $(BUILD_STATE_DIR)/common-react/.built
+react := $(BUILD_STATE_DIR)/react/.built
 browser := $(BUILD_STATE_DIR)/browser/.built
 sharing := $(BUILD_STATE_DIR)/sharing/.built
 sharing-common := $(BUILD_STATE_DIR)/sharing-common/.built
@@ -117,13 +117,14 @@ $(common): $(shell \
 	@mkdir -p $(dir $@)
 	@touch $@
 
-.PHONY: common-react
-common-react: $(common-react)
-$(common-react): $(shell \
-	find packages/common-react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
-	find packages/common-react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
-) $(node_modules) $(kernel) $(streamlit-frontend-lib)
-	cd packages/common-react && yarn build
+.PHONY: react
+react: $(react)
+$(react): $(shell \
+	find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
+	find packages/react/vite-plugin/src -type f -name "*.ts"; \
+	find packages/react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+) $(node_modules) $(kernel) $(common) $(streamlit-frontend-lib)
+	cd packages/react && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 
@@ -132,7 +133,7 @@ browser: $(browser)
 $(browser): $(shell \
 	find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/browser -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+) $(node_modules) $(common) $(react)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -143,7 +144,7 @@ $(sharing): $(shell \
 	find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/sharing/public -type f; \
 	find packages/sharing -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(kernel) $(sharing-common) $(common-react) $(streamlit-frontend-lib)
+) $(node_modules) $(sharing-common) $(react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -174,7 +175,7 @@ $(desktop): $(shell \
 	find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/desktop/electron -type f -name "*.ts"; \
 	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(kernel) $(common) $(common-react) $(streamlit-frontend-lib)
+) $(node_modules) $(common) $(react)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

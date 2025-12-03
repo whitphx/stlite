@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.93.1
+
+### Patch Changes
+
+- [#1754](https://github.com/whitphx/stlite/pull/1754) [`5782557`](https://github.com/whitphx/stlite/commit/5782557ada0f661aadd64ffb7071ec0f148665da) Thanks [@whitphx](https://github.com/whitphx)! - Internal package structure update
+
 ## 0.93.0
 
 ### Minor Changes

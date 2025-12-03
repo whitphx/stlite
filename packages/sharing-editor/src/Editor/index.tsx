@@ -167,7 +167,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         files.forEach((file) => {
           const baseName = file.name.split("/").pop()?.toLowerCase();
           const isRequirementsFile =
-            baseName === "requirements.txt" || baseName === REQUIREMENTS_FILENAME;
+            baseName === "requirements.txt" ||
+            baseName === REQUIREMENTS_FILENAME;
 
           if (isRequirementsFile) {
             const requirements = parseRequirementsTxt(
@@ -189,12 +190,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           setTabFileNames((cur) => [...cur, file.name]);
         });
       },
-      [
-        onFileWrite,
-        onRequirementsChange,
-        focusTabNext,
-        setCurrentFileName,
-      ],
+      [onFileWrite, onRequirementsChange, focusTabNext, setCurrentFileName],
     );
 
     const handleFileDelete = useCallback(
@@ -241,11 +237,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       const uri = monaco.Uri.parse(REQUIREMENTS_FILENAME);
       const model =
         monaco.editor.getModel(uri) ??
-        monaco.editor.createModel(
-          defaultRequirementsTextValue,
-          "text",
-          uri,
-        );
+        monaco.editor.createModel(defaultRequirementsTextValue, "text", uri);
 
       if (model.getValue() !== defaultRequirementsTextValue) {
         model.setValue(defaultRequirementsTextValue);

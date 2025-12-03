@@ -194,9 +194,10 @@ export type StliteKernelEventListenerOrEventListenerObject<
 > = StliteKernelEventListener<K> | StliteKernelEventHandlerObject<K>;
 
 export class StliteKernel extends EventTarget {
+  public readonly _worker: StliteWorker | SharedWorker; // Made public for advanced use cases as an unstable API. You can use it but there is no stability guarantee for future releases.
+
   private _isDisposed = false;
 
-  private _worker: StliteWorker | SharedWorker;
   private _postMessageTarget: StliteWorker | StliteMessagePort;
 
   private _loaded = new PromiseDelegate<void>();

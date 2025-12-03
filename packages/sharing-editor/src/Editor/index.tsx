@@ -234,6 +234,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         return;
       }
 
+      // Keep the Monaco model for `requirements` in sync with the latest parsed
+      // text while the tab is selected. We rely on the model so that imperative
+      // updates from `addRequirements` append to the most recent content rather
+      // than a stale default value.
       const uri = monaco.Uri.parse(REQUIREMENTS_FILENAME);
       const model =
         monaco.editor.getModel(uri) ??

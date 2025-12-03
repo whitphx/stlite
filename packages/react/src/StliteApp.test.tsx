@@ -4,7 +4,7 @@ import type { StliteKernel } from "@stlite/kernel";
 import StliteApp from "./StliteApp";
 
 vi.mock("@streamlit/app/src/ThemedApp", async () => {
-  const { useStliteKernel } = await import("@stlite/kernel");
+  const { useStliteKernel } = await import("@stlite/kernel/contexts");
 
   const MockThemedApp = ({
     streamlitExecutionStartedAt,

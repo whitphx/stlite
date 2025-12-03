@@ -1,5 +1,6 @@
 import log from "loglevel";
-import { type StliteKernel, StliteKernelProvider } from "@stlite/kernel";
+import type { StliteKernel } from "@stlite/kernel";
+import { StliteKernelProvider } from "@stlite/kernel/contexts";
 import ThemedApp from "@streamlit/app/src/ThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";

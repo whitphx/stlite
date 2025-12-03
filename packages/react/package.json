@@ -80,7 +80,7 @@
     "vite-plugin-static-copy": "^3.1.4",
     "vite-plugin-wasm": "^3.5.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.8",
+    "vitest": "^4.0.15",
     "web-vitals": "^4.2.4"
   },
   "peerDependencies": {

@@ -2,7 +2,7 @@ import type {
   StliteKernelOptions,
   EmscriptenFile,
   EmscriptenFileUrl,
-} from "@stlite/kernel";
+} from "@stlite/react";
 
 export interface ToastOptions {
   disableProgressToasts?: boolean;
@@ -28,7 +28,6 @@ export type SimplifiedStliteKernelOptions = Partial<{
   wheelUrls: StliteKernelOptions["wheelUrls"];
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
   idbfsMountpoints: StliteKernelOptions["idbfsMountpoints"];
-  workerType: StliteKernelOptions["workerType"];
   sharedWorker: StliteKernelOptions["sharedWorker"];
   env: StliteKernelOptions["env"];
   languageServer: StliteKernelOptions["languageServer"];
@@ -97,7 +96,7 @@ export type DetailedMountOptions = SimplifiedStliteKernelOptions & ToastOptions;
 export type MountOptions = string | DetailedMountOptions;
 
 export function parseMountOptions(options: MountOptions): {
-  kernelOptions: StliteKernelOptions;
+  kernelOptions: Omit<StliteKernelOptions, "workerType">;
   toastOptions: ToastOptions;
 } {
   if (typeof options === "string") {
@@ -143,7 +142,6 @@ export function parseMountOptions(options: MountOptions): {
       streamlitConfig: options.streamlitConfig,
       wheelUrls: options.wheelUrls,
       idbfsMountpoints: options.idbfsMountpoints,
-      workerType: options.workerType,
       sharedWorker: options.sharedWorker,
       env: options.env,
       languageServer: options.languageServer,

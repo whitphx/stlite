@@ -1,31 +1,16 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import StreamlitApp from "./StreamlitApp";
-import { MicropipInstallOptions, StliteKernel } from "@stlite/kernel";
-import { parseMountOptions, MountOptions } from "./options";
 import {
-  ToastContainer,
-  makeToastKernelEventListeners,
-} from "@stlite/common-react";
-import STLITE_LIB_WHEEL from "stlite_lib.whl";
-import STREAMLIT_WHEEL from "streamlit.whl";
-
-const wheelBaseUrl =
-  process.env.NODE_ENV === "production"
-    ? import.meta.url
-    : window.location.origin;
-
-const wheelUrls = {
-  // The resolved URLs such as STLITE_LIB_WHEEL only contain the pathnames e.g. "/assets/stlite_lib-0.1.0-py3-none-any.whl"
-  // and micropip treats such path-only URLs as local file URLs e.g. "file:////assets/stlite_lib-0.1.0-py3-none-any.whl"
-  // since 0.7.0 due to the change by https://github.com/pyodide/micropip/pull/145,
-  // though these URLs are actually for remote resources.
-  // So we need to convert these path-only URLs to full URLs including the protocol explicitly.
-  stliteLib: new URL(STLITE_LIB_WHEEL, wheelBaseUrl).href,
-  streamlit: new URL(STREAMLIT_WHEEL, wheelBaseUrl).href,
-};
+  StliteAppWithToast,
+  createKernel,
+  type MicropipInstallOptions,
+} from "@stlite/react";
+import { wheelUrls } from "@stlite/react/vite-utils";
+import "@stlite/react/stlite.css";
+import { parseMountOptions, MountOptions } from "./options";
 
 const workerType =
+  // @ts-expect-error process.env.NODE_ENV is defined by Vite
   process.env.NODE_ENV === "development"
     ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
     : "classic"; // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
@@ -35,53 +20,17 @@ export function mount(
   container: HTMLElement = document.body,
 ) {
   const { kernelOptions, toastOptions } = parseMountOptions(options);
-  const kernel = new StliteKernel({
+
+  const kernel = createKernel({
     ...kernelOptions,
     wheelUrls: kernelOptions.wheelUrls ?? wheelUrls,
-    workerType: kernelOptions.workerType ?? workerType,
+    workerType,
   });
-
-  const kernelEventListenersForToast = makeToastKernelEventListeners();
-  if (!toastOptions.disableProgressToasts) {
-    kernel.addEventListener(
-      "loadProgress",
-      kernelEventListenersForToast.onLoadProgress,
-    );
-    kernel.addEventListener(
-      "loadFinished",
-      kernelEventListenersForToast.onLoadFinished,
-    );
-  }
-  if (!toastOptions.disableErrorToasts) {
-    kernel.addEventListener(
-      "loadError",
-      kernelEventListenersForToast.onLoadError,
-    );
-  }
-  if (!toastOptions.disableModuleAutoLoadToasts) {
-    kernel.addEventListener(
-      "moduleAutoLoad",
-      kernelEventListenersForToast.onModuleAutoLoad,
-    );
-  }
-  kernel.addEventListener("install", kernelEventListenersForToast.onInstall);
-  kernel.addEventListener(
-    "writeFile",
-    kernelEventListenersForToast.onWriteFile,
-  );
-  kernel.addEventListener(
-    "renameFile",
-    kernelEventListenersForToast.onRenameFile,
-  );
-  kernel.addEventListener("unlink", kernelEventListenersForToast.onUnlink);
-  kernel.addEventListener("readFile", kernelEventListenersForToast.onReadFile);
-  kernel.addEventListener("reboot", kernelEventListenersForToast.onReboot);
 
   const reactRoot = createRoot(container);
   reactRoot.render(
     <React.StrictMode>
-      <StreamlitApp kernel={kernel} />
-      <ToastContainer />
+      <StliteAppWithToast kernel={kernel} {...toastOptions} />
     </React.StrictMode>,
   );
 

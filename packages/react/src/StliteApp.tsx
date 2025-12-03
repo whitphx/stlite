@@ -12,10 +12,10 @@ if (process.env.NODE_ENV === "development") {
 
 const streamlitExecutionStartedAt = Date.now();
 
-export interface StreamlitAppProps {
+export interface StliteAppProps {
   kernel: StliteKernel;
 }
-function StreamlitApp(props: StreamlitAppProps) {
+function StliteApp(props: StliteAppProps) {
   return (
     <StliteKernelProvider kernel={props.kernel}>
       <StyletronProvider value={engine}>
@@ -25,4 +25,4 @@ function StreamlitApp(props: StreamlitAppProps) {
   );
 }
 
-export default StreamlitApp;
+export default StliteApp;

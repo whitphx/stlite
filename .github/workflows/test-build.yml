@@ -311,8 +311,7 @@ jobs:
       run: |
         yarn check:eslint
         yarn check:prettier
-    # TODO: Enable tests after fixing the test failures.
-    # - run: yarn test
+    - run: yarn test
 
   test-sharing:
     needs: changes

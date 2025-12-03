@@ -4,31 +4,15 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      // Point to source packages so tests can run before building dependency workspaces.
-      "@streamlit/lib": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/lib/src",
-      ),
-      "@streamlit/utils": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/utils/src",
-      ),
-      "@streamlit/connection": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/connection/src",
-      ),
-      "@streamlit/protobuf": path.resolve(
-        __dirname,
-        "../../streamlit/frontend/protobuf",
-      ),
-    },
-  },
   test: {
     environment: "jsdom",
     typecheck: {
       enabled: true,
+    },
+    alias: {
+      "@streamlit/lib": path.resolve(__dirname, "./mock/empty.js"),
+      "@streamlit/protobuf": path.resolve(__dirname, "./mock/empty.js"),
+      "@streamlit/connection": path.resolve(__dirname, "./mock/empty.js"),
     },
   },
 });

@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.95.0
+
+### Minor Changes
+
+- [#1763](https://github.com/whitphx/stlite/pull/1763) [`07538a5`](https://github.com/whitphx/stlite/commit/07538a5dc3652a3f80b57a8ab1739454cbbd86a7) Thanks [@whitphx](https://github.com/whitphx)! - Expose kernel.\_worker as an unstable API
+
 ## 0.94.0
 
 ### Minor Changes

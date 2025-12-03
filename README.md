@@ -6,8 +6,9 @@
 [![Postbuild](https://github.com/whitphx/stlite/actions/workflows/postbuild.yml/badge.svg)](https://github.com/whitphx/stlite/actions/workflows/postbuild.yml)
 This project is tested with BrowserStack.
 
-[![npm (scoped)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
+[![npm (@stlite/browser)](https://img.shields.io/npm/v/@stlite/browser?label=%40stlite%2Fbrowser)](https://www.npmjs.com/package/@stlite/browser)
 [![npm (@stlite/desktop)](https://img.shields.io/npm/v/@stlite/desktop?label=%40stlite%2Fdesktop)](https://www.npmjs.com/package/@stlite/desktop)
+[![npm (@stlite/react)](https://img.shields.io/npm/v/@stlite/react?label=%40stlite%2Freact)](https://www.npmjs.com/package/@stlite/react)
 
 <a href="https://flatt.tech/oss/gmo/trampoline" target="_blank"><img src="https://flatt.tech/assets/images/badges/gmo-oss.svg" height="20px"/></a>
 
@@ -24,6 +25,10 @@ Visit [Stlite Sharing](https://edit.share.stlite.net/).
 ## Create a desktop app (`@stlite/desktop`)
 
 See [`@stlite/desktop`](./packages/desktop/README.md).
+
+## Integrate _Stlite_ into your React app (`@stlite/react`)
+
+See [`@stlite/react`](./packages/react/README.md).
 
 ## Use _Stlite_ on your web page (`@stlite/browser`)
 

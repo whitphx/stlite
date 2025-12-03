@@ -13,6 +13,20 @@
         "default": "./dist/index.js"
       }
     },
+    "./contexts": {
+      "development": "./src/react-contexts/index.ts",
+      "import": {
+        "types": "./dist/react-contexts/index.d.ts",
+        "default": "./dist/react-contexts/index.js"
+      }
+    },
+    "./react": {
+      "development": "./src/react-helpers/index.ts",
+      "import": {
+        "types": "./dist/react-helpers/index.d.ts",
+        "default": "./dist/react-helpers/index.js"
+      }
+    },
     "./worker": {
       "development": "./src/worker.ts",
       "import": {

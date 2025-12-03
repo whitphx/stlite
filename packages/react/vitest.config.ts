@@ -11,8 +11,6 @@ export default defineConfig({
     },
     alias: {
       "@streamlit/lib": path.resolve(__dirname, "./mock/empty.js"),
-      "@streamlit/protobuf": path.resolve(__dirname, "./mock/empty.js"),
-      "@streamlit/connection": path.resolve(__dirname, "./mock/empty.js"),
     },
   },
 });

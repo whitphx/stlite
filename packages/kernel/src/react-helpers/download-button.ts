@@ -1,4 +1,6 @@
+import { useCallback } from "react";
 import type { StliteKernel } from "../kernel";
+import { useStliteKernel } from "@stlite/kernel/contexts";
 import { parse } from "@tinyhttp/content-disposition";
 
 export function getFileNameFromContentDispositionHeader(
@@ -21,7 +23,7 @@ export function downloadFileFromStlite(
   stliteKernel: StliteKernel,
   url: string,
 ) {
-  stliteKernel
+  return stliteKernel
     .sendHttpRequest({
       method: "GET",
       path: `${url}?title=${encodeURIComponent(document.title)}`, // Ref: https://github.com/streamlit/streamlit/blob/41a1a60b6bd72b13effec1bbcc6551afa0878d23/frontend/src/components/widgets/DownloadButton/DownloadButton.tsx#L49
@@ -52,4 +54,15 @@ export function downloadFileFromStlite(
       URL.revokeObjectURL(objectUrl);
       link.remove();
     });
+}
+
+export function useDownloadFileFromStlite() {
+  const stliteKernel = useStliteKernel();
+
+  return useCallback(
+    (url: string) => {
+      return downloadFileFromStlite(stliteKernel, url);
+    },
+    [stliteKernel],
+  );
 }

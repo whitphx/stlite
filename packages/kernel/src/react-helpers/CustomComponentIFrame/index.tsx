@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useStliteKernel } from "../StliteKernelProvider";
+import { useStliteKernel } from "@stlite/kernel/contexts";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 

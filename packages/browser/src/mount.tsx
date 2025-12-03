@@ -68,7 +68,7 @@ export function mount(
       return kernel.runPython(code);
     },
     /**
-     * Exposed for advanced use cases as an unstable API.
+     * Made public for advanced use cases as an unstable API.
      * You can use it but there is no stability guarantee for future releases.
      */
     _kernel: kernel,

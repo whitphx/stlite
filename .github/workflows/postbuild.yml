@@ -210,6 +210,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+
     steps:
     - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       with:
@@ -238,7 +244,7 @@ jobs:
       working-directory: ${{ runner.temp }}/artifacts/browser
 
     - name: Run the e2e-tests
-      run: yarn test
+      run: yarn test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       working-directory: packages/browser/e2e-tests
       env:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
@@ -259,6 +265,51 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
+
+    - name: Upload blob report to GitHub Actions Artifacts
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: blob-report-${{ matrix.shardIndex }}
+        path: packages/browser/e2e-tests/blob-report
+        retention-days: 1
+
+  merge-e2e-browser-reports:
+    # Merge Playwright reports, even if some shards have failed
+    if: ${{ !cancelled() }}
+    needs: [e2e-browser]
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        persist-credentials: false
+    - name: Enable Corepack
+      run: corepack enable
+    - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      with:
+        node-version-file: ${{ env.node-version-file }}
+    - name: Install dependencies
+      run: yarn install
+      working-directory: packages/browser/e2e-tests
+
+    - name: Download blob reports from GitHub Actions Artifacts
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        path: packages/browser/e2e-tests/all-blob-reports
+        pattern: blob-report-*
+        merge-multiple: true
+
+    - name: Merge into HTML Report
+      run: yarn playwright merge-reports --reporter html ./all-blob-reports
+      working-directory: packages/browser/e2e-tests
+
+    - name: Upload HTML report
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        name: html-report--attempt-${{ github.run_attempt }}
+        path: packages/browser/e2e-tests/playwright-report
+        retention-days: 14
 
   e2e-browser-browserstack:
     needs: get-build-info

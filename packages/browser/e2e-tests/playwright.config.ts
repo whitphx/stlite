@@ -15,7 +15,7 @@ export default defineConfig({
   expect: {
     timeout: process.env.CI ? 60_000 : undefined,
   },
-  reporter: "html",
+  reporter: process.env.CI ? "blob" : "html",
   webServer: [
     {
       command: "http-server ./pages -p 8080 --cors",

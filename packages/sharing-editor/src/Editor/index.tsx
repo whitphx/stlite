@@ -165,6 +165,20 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     const handleFileUpload = useCallback<FileUploaderProps["onUpload"]>(
       (files) => {
         files.forEach((file) => {
+          const baseName = file.name.split("/").pop()?.toLowerCase();
+          const isRequirementsFile =
+            baseName === "requirements.txt" ||
+            baseName === REQUIREMENTS_FILENAME;
+
+          if (isRequirementsFile) {
+            const requirements = parseRequirementsTxt(
+              new TextDecoder().decode(file.data),
+            );
+            onRequirementsChange(requirements);
+            setCurrentFileName(REQUIREMENTS_FILENAME);
+            return;
+          }
+
           if (file.type.startsWith("text")) {
             const text = new TextDecoder().decode(file.data);
             onFileWrite(file.name, text);
@@ -176,7 +190,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           setTabFileNames((cur) => [...cur, file.name]);
         });
       },
-      [onFileWrite, focusTabNext],
+      [onFileWrite, onRequirementsChange, focusTabNext, setCurrentFileName],
     );
 
     const handleFileDelete = useCallback(
@@ -209,6 +223,30 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       () => appData.requirements.join("\n"),
       [appData.requirements],
     );
+
+    useEffect(() => {
+      if (currentFileName !== REQUIREMENTS_FILENAME) {
+        return;
+      }
+
+      const monaco = monacoRef.current;
+      if (monaco == null) {
+        return;
+      }
+
+      // Keep the Monaco model for `requirements` in sync with the latest parsed
+      // text while the tab is selected. We rely on the model so that imperative
+      // updates from `addRequirements` append to the most recent content rather
+      // than a stale default value.
+      const uri = monaco.Uri.parse(REQUIREMENTS_FILENAME);
+      const model =
+        monaco.editor.getModel(uri) ??
+        monaco.editor.createModel(defaultRequirementsTextValue, "text", uri);
+
+      if (model.getValue() !== defaultRequirementsTextValue) {
+        model.setValue(defaultRequirementsTextValue);
+      }
+    }, [currentFileName, defaultRequirementsTextValue]);
 
     useImperativeHandle(
       ref,

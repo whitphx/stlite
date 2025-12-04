@@ -337,11 +337,13 @@ export class StliteKernel extends EventTarget {
     });
   }
 
-  public writeFile(
+  public async writeFile(
     path: string,
     data: string | ArrayBufferView,
     opts?: Record<string, unknown>,
   ): Promise<void> {
+    await this.loaded;
+
     const promise = this._asyncPostMessage({
       type: "file:write",
       data: {
@@ -349,7 +351,7 @@ export class StliteKernel extends EventTarget {
         data,
         opts,
       },
-    }).then(() => {});
+    });
 
     this.dispatchEvent(
       new CustomEvent("writeFile", {
@@ -360,17 +362,19 @@ export class StliteKernel extends EventTarget {
       }),
     );
 
-    return promise;
+    await promise;
   }
 
-  public renameFile(oldPath: string, newPath: string): Promise<void> {
+  public async renameFile(oldPath: string, newPath: string): Promise<void> {
+    await this.loaded;
+
     const promise = this._asyncPostMessage({
       type: "file:rename",
       data: {
         oldPath,
         newPath,
       },
-    }).then(() => {});
+    });
 
     this.dispatchEvent(
       new CustomEvent("renameFile", {
@@ -382,13 +386,15 @@ export class StliteKernel extends EventTarget {
       }),
     );
 
-    return promise;
+    await promise;
   }
 
-  public readFile(
+  public async readFile(
     path: string,
     opts?: Record<string, unknown>,
   ): Promise<string | Uint8Array> {
+    await this.loaded;
+
     const promise = this._asyncPostMessage(
       {
         type: "file:read",
@@ -412,26 +418,30 @@ export class StliteKernel extends EventTarget {
     return promise;
   }
 
-  public unlink(path: string): Promise<void> {
-    return this._asyncPostMessage({
+  public async unlink(path: string): Promise<void> {
+    await this.loaded;
+
+    await this._asyncPostMessage({
       type: "file:unlink",
       data: {
         path,
       },
-    }).then();
+    });
   }
 
-  public install(
+  public async install(
     requirements: string[],
     options?: MicropipInstallOptions,
   ): Promise<void> {
+    await this.loaded;
+
     const promise = this._asyncPostMessage({
       type: "install",
       data: {
         requirements,
         options,
       },
-    }).then(() => {});
+    });
 
     this.dispatchEvent(
       new CustomEvent("install", {
@@ -442,25 +452,27 @@ export class StliteKernel extends EventTarget {
       }),
     );
 
-    return promise;
+    await promise;
   }
 
-  public setEnv(env: Record<string, string>): Promise<void> {
+  public async setEnv(env: Record<string, string>): Promise<void> {
     Object.keys(env).forEach((key) => {
       if (!validateEnvKey(key)) {
         throw new Error(`Invalid environment variable name: "${key}"`);
       }
     });
 
-    return this._asyncPostMessage({
+    await this.loaded;
+
+    await this._asyncPostMessage({
       type: "setEnv",
       data: {
         env,
       },
-    }).then();
+    });
   }
 
-  public getCodeCompletion(
+  public async getCodeCompletion(
     code: string,
     position: {
       line: number;
@@ -472,6 +484,9 @@ export class StliteKernel extends EventTarget {
         `Language server not loaded, please set languageServer=true to use this method`,
       );
     }
+
+    await this.loaded;
+
     return this._asyncPostMessage(
       {
         type: "code_completion",
@@ -486,7 +501,9 @@ export class StliteKernel extends EventTarget {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public runPython(code: string): Promise<any> {
+  public async runPython(code: string): Promise<any> {
+    await this.loaded;
+
     return this.loaded
       .then(() =>
         this._asyncPostMessage(
@@ -507,13 +524,15 @@ export class StliteKernel extends EventTarget {
    * Note that we also need to refresh (rerender) the frontend app after calling this method
    * to reflect the changes on the user-facing side.
    */
-  public reboot(entrypoint: string): Promise<void> {
-    return this._asyncPostMessage({
+  public async reboot(entrypoint: string): Promise<void> {
+    await this.loaded;
+
+    await this._asyncPostMessage({
       type: "reboot",
       data: {
         entrypoint,
       },
-    }).then();
+    });
   }
 
   private _asyncPostMessage(

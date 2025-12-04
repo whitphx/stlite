@@ -200,8 +200,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
               : file.data;
             onFileWrite(file.name, data).then(() => {
               focusTabNext(file.name);
+              setTabFileNames((cur) => [...cur, file.name]);
             });
-            setTabFileNames((cur) => [...cur, file.name]);
           }
         }
       },

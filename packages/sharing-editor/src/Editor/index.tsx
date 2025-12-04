@@ -165,7 +165,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     const handleFileUpload = useCallback<FileUploaderProps["onUpload"]>(
       async (files) => {
         const isRequirementsFile = (filename: string): boolean => {
-          const baseName = basename(filename)?.toLowerCase();
+          const baseName = basename(filename).toLowerCase();
           return (
             baseName === "requirements.txt" ||
             baseName === REQUIREMENTS_FILENAME

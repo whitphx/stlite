@@ -14,10 +14,7 @@ export function readArrayBuffer(file: File): Promise<ArrayBuffer> {
   });
 }
 
-export function basename(path: string): string | undefined {
+export function basename(path: string): string {
   const parts = path.split("/");
-  if (parts.length === 0) {
-    return undefined;
-  }
   return parts[parts.length - 1];
 }

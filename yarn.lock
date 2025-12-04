@@ -5454,7 +5454,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.1.1"
     concurrently: "npm:^9.1.2"
     cross-env: "npm:^10.1.0"
-    electron: "npm:34.3.0"
+    electron: "npm:39.2.5"
     electron-reload: "npm:^2.0.0-alpha.1"
     esbuild: "npm:^0.27.0"
     eslint: "npm:^9.39.1"
@@ -7293,12 +7293,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.9.0":
-  version: 20.19.24
-  resolution: "@types/node@npm:20.19.24"
+"@types/node@npm:^22.7.7":
+  version: 22.19.1
+  resolution: "@types/node@npm:22.19.1"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/c872ce80a1e832fe035a3c94a27acb2d6e45ffa1209c0241ac6e2d405db8d6f47eea7a2509b5c2dbedae6231dafb9dbed873dd5daaebbad1f11fdaa58726ce5e
+  checksum: 10c0/6edd93aea86da740cb7872626839cd6f4a67a049d3a3a6639cb592c620ec591408a30989ab7410008d1a0b2d4985ce50f1e488e79c033e4476d3bec6833b0a2f
   languageName: node
   linkType: hard
 
@@ -12845,16 +12845,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:34.3.0":
-  version: 34.3.0
-  resolution: "electron@npm:34.3.0"
+"electron@npm:39.2.5":
+  version: 39.2.5
+  resolution: "electron@npm:39.2.5"
   dependencies:
     "@electron/get": "npm:^2.0.0"
-    "@types/node": "npm:^20.9.0"
+    "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/b2343c28eb109bd878a61962d71105300cb3a1f8997cfb1fb81746ba213bc61b16a536eae5c0d8a654b4573f309c8157a136ade94bf6207842c022f505720fee
+  checksum: 10c0/d2c396cdbbd06c56c7a55264d485421501fcd65ffb1d88f6865766ffabd9c6ad912be75225c148f6087fe773c25537f5d870d79eba7a599136756c10b20cf38f
   languageName: node
   linkType: hard
 
@@ -22969,7 +22969,7 @@ __metadata:
   dependencies:
     "@stlite/desktop": "workspace:^"
     cross-env: "npm:^10.1.0"
-    electron: "npm:34.3.0"
+    electron: "npm:39.2.5"
     electron-builder: "npm:^26.3.0"
   languageName: unknown
   linkType: soft
@@ -22980,7 +22980,7 @@ __metadata:
   dependencies:
     "@stlite/desktop": "workspace:^"
     cross-env: "npm:^10.1.0"
-    electron: "npm:34.3.0"
+    electron: "npm:39.2.5"
     electron-builder: "npm:^26.3.0"
   languageName: unknown
   linkType: soft
@@ -22991,7 +22991,7 @@ __metadata:
   dependencies:
     "@stlite/desktop": "workspace:^"
     cross-env: "npm:^10.1.0"
-    electron: "npm:34.3.0"
+    electron: "npm:39.2.5"
     electron-builder: "npm:^26.3.0"
   languageName: unknown
   linkType: soft

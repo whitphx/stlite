@@ -21,13 +21,13 @@ import FileUploader, {
 import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
-// import { isDarkMode } from "../color-mode";
 import { useDarkMode } from "../ColorScheme/hooks";
 import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 import {
   CodeCompletionProvider,
   CodeCompletionFn,
 } from "./LanguageProviders/CodeCompletionProvider";
+import { basename } from "./file";
 
 let newFileCount = 1;
 
@@ -39,11 +39,11 @@ export interface EditorRef {
 export interface EditorProps {
   appData: AppData;
   pythonCodeCompletionCallback: CodeCompletionFn;
-  onFileWrite: (path: string, value: string | Uint8Array) => void;
-  onFileRename: (oldPath: string, newPath: string) => void;
-  onFileDelete: (path: string) => void;
-  onRequirementsChange: (requirements: string[]) => void;
-  onEntrypointChange: (entrypoint: string) => void;
+  onFileWrite: (path: string, value: string | Uint8Array) => Promise<void>;
+  onFileRename: (oldPath: string, newPath: string) => Promise<void>;
+  onFileDelete: (path: string) => Promise<void>;
+  onRequirementsChange: (requirements: string[]) => Promise<void>;
+  onEntrypointChange: (entrypoint: string) => Promise<void>;
 }
 
 const Editor = React.forwardRef<EditorRef, EditorProps>(
@@ -163,32 +163,47 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
     }, []);
 
     const handleFileUpload = useCallback<FileUploaderProps["onUpload"]>(
-      (files) => {
-        files.forEach((file) => {
-          const baseName = file.name.split("/").pop()?.toLowerCase();
-          const isRequirementsFile =
+      async (files) => {
+        const isRequirementsFile = (filename: string): boolean => {
+          const baseName = basename(filename).toLowerCase();
+          return (
             baseName === "requirements.txt" ||
-            baseName === REQUIREMENTS_FILENAME;
+            baseName === REQUIREMENTS_FILENAME
+          );
+        };
 
-          if (isRequirementsFile) {
+        const sortedFiles = Array.from(files).sort((a, b) => {
+          // Process requirements files first
+          // so that dependencies are installed before other files are written.
+          const aIsRequirementsFile = isRequirementsFile(a.name);
+          const bIsRequirementsFile = isRequirementsFile(b.name);
+
+          if (aIsRequirementsFile && !bIsRequirementsFile) {
+            return -1;
+          }
+          if (!aIsRequirementsFile && bIsRequirementsFile) {
+            return 1;
+          }
+          return a.name.localeCompare(b.name);
+        });
+
+        for (const file of sortedFiles) {
+          if (isRequirementsFile(file.name)) {
             const requirements = parseRequirementsTxt(
               new TextDecoder().decode(file.data),
             );
-            onRequirementsChange(requirements);
+            await onRequirementsChange(requirements);
             setCurrentFileName(REQUIREMENTS_FILENAME);
-            return;
-          }
-
-          if (file.type.startsWith("text")) {
-            const text = new TextDecoder().decode(file.data);
-            onFileWrite(file.name, text);
-            focusTabNext(file.name);
           } else {
-            onFileWrite(file.name, file.data);
-            focusTabNext(file.name);
+            const data = file.type.startsWith("text")
+              ? new TextDecoder().decode(file.data)
+              : file.data;
+            onFileWrite(file.name, data).then(() => {
+              focusTabNext(file.name);
+              setTabFileNames((cur) => [...cur, file.name]);
+            });
           }
-          setTabFileNames((cur) => [...cur, file.name]);
-        });
+        }
       },
       [onFileWrite, onRequirementsChange, focusTabNext, setCurrentFileName],
     );

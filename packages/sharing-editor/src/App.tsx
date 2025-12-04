@@ -145,8 +145,8 @@ function App() {
   const editorRef = useRef<EditorRef>(null);
 
   const handleFileWrite = useCallback<EditorProps["onFileWrite"]>(
-    (path, value) => {
-      iframeRef.current?.postMessage({
+    async (path, value) => {
+      await iframeRef.current?.postMessage({
         type: "file:write",
         data: {
           path,
@@ -181,7 +181,7 @@ function App() {
   );
 
   const handleFileRename = useCallback<EditorProps["onFileRename"]>(
-    (oldPath, newPath) => {
+    async (oldPath, newPath) => {
       if (oldPath === newPath) {
         return;
       }
@@ -192,7 +192,7 @@ function App() {
         return;
       }
 
-      iframeRef.current?.postMessage({
+      await iframeRef.current?.postMessage({
         type: "file:rename",
         data: {
           oldPath,
@@ -223,8 +223,8 @@ function App() {
   );
 
   const handleFileDelete = useCallback<EditorProps["onFileDelete"]>(
-    (path) => {
-      iframeRef.current?.postMessage({
+    async (path) => {
+      await iframeRef.current?.postMessage({
         type: "file:unlink",
         data: {
           path,
@@ -250,8 +250,8 @@ function App() {
   const handleRequirementsChange = useCallback<
     EditorProps["onRequirementsChange"]
   >(
-    (requirements) => {
-      iframeRef.current?.postMessage({
+    async (requirements) => {
+      await iframeRef.current?.postMessage({
         type: "install",
         data: {
           requirements,
@@ -269,8 +269,8 @@ function App() {
   );
 
   const handleEntrypointChange = useCallback<EditorProps["onEntrypointChange"]>(
-    (entrypoint) => {
-      iframeRef.current?.postMessage({
+    async (entrypoint) => {
+      await iframeRef.current?.postMessage({
         type: "reboot",
         data: {
           entrypoint,

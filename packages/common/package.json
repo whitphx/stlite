@@ -27,11 +27,8 @@
     "check:prettier": "prettier --check ."
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
-    "eslint": "^9.32.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.38.0",
     "vitest": "^4.0.15"
   }
 }

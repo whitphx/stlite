@@ -30,14 +30,11 @@
     "protobufjs": "^7.2.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
     "chokidar-cli": "^3.0.0",
-    "eslint": "^9.32.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
     "ts-proto": "^2.6.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.38.0",
     "vitest": "^4.0.15"
   }
 }

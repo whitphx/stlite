@@ -13,3 +13,11 @@ export function readArrayBuffer(file: File): Promise<ArrayBuffer> {
     reader.readAsArrayBuffer(file);
   });
 }
+
+export function basename(path: string): string | undefined {
+  const parts = path.split("/");
+  if (parts.length === 0) {
+    return undefined;
+  }
+  return parts[parts.length - 1];
+}

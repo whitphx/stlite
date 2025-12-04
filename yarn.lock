@@ -5594,6 +5594,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stlite/sharing-editor@workspace:packages/sharing-editor"
   dependencies:
+    "@eslint/js": "npm:^9.39.1"
     "@monaco-editor/react": "npm:^4.4.5"
     "@stlite/common": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
@@ -5605,6 +5606,11 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     cross-env: "npm:^10.1.0"
+    eslint: "npm:^9.39.1"
+    eslint-config-prettier: "npm:^10.1.8"
+    eslint-plugin-prettier: "npm:^5.5.4"
+    eslint-plugin-react: "npm:^7.37.5"
+    eslint-plugin-react-hooks: "npm:^7.0.1"
     jsdom: "npm:^20.0.3"
     mime: "npm:^4.0.1"
     monaco-editor: "npm:^0.52.2"
@@ -5622,6 +5628,7 @@ __metadata:
     superstruct: "npm:^2.0.2"
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.9.2"
+    typescript-eslint: "npm:^8.46.2"
     usehooks-ts: "npm:^3.1.0"
     vite: "npm:^7.1.5"
     vitest: "npm:^4.0.15"

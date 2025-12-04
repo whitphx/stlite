@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.96.0
+
+### Minor Changes
+
+- [#1768](https://github.com/whitphx/stlite/pull/1768) [`7be169b`](https://github.com/whitphx/stlite/commit/7be169ba5f2829f02ef516ba50d71533aa193e18) Thanks [@whitphx](https://github.com/whitphx)! - Make the kernel methods wait for the initialization process before sending the message to the worker
+
 ## 0.95.0
 
 ### Minor Changes

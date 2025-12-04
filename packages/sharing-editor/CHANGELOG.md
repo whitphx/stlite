@@ -1,5 +1,11 @@
 # @stlite/sharing-editor
 
+## 0.90.3
+
+### Patch Changes
+
+- [#1769](https://github.com/whitphx/stlite/pull/1769) [`c9f0eee`](https://github.com/whitphx/stlite/commit/c9f0eeea3f965d19ec1d68a450f2afbab2df1d8b) Thanks [@whitphx](https://github.com/whitphx)! - Run package installation first then update files when files are uploaded
+
 ## 0.90.2
 
 ### Patch Changes

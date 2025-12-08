@@ -6,7 +6,7 @@
  * monaco-editor code in your final bundle.
  *
  */
-// https://microsoft.github.io/monaco-editor/typedoc/enums/CompletionItemKind.html
+// https://microsoft.github.io/monaco-editor/typedoc/enums/languages.CompletionItemKind.html
 export enum CompletionItemKind {
   Method = 0,
   Function = 1,
@@ -35,17 +35,6 @@ export enum CompletionItemKind {
   TypeParameter = 24,
   User = 25,
   Issue = 26,
-  Snippet = 27,
-}
-
-export enum CompletionItemInsertTextRule {
-  /**
-   * Adjust whitespace/indentation of multiline insert texts to
-   * match the current line indentation.
-   */
-  KeepWhitespace = 1,
-  /**
-   * `insertText` is a snippet.
-   */
-  InsertAsSnippet = 4,
+  Tool = 27,
+  Snippet = 28,
 }

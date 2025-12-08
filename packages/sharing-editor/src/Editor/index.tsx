@@ -22,7 +22,7 @@ import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 import { useDarkMode } from "../ColorScheme/hooks";
-import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
+import type { IDisposable } from "monaco-editor";
 import {
   CodeCompletionProvider,
   CodeCompletionFn,

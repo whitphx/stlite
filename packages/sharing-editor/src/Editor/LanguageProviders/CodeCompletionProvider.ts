@@ -1,5 +1,4 @@
-import type { editor, Position, languages } from "monaco-editor";
-import { CompletionItemKind } from "./types";
+import { editor, Position, languages } from "monaco-editor";
 import type {
   CodeCompletionRequest,
   CodeCompletionResponse,
@@ -11,28 +10,28 @@ export type CodeCompletionFn = (
   payload: CodeCompletionRequest,
 ) => Promise<CodeCompletionResponse>;
 
-function getCompletionItemKind(type: string): CompletionItemKind {
+function getCompletionItemKind(type: string): languages.CompletionItemKind {
   switch (type) {
     case "class":
-      return CompletionItemKind.Class;
+      return languages.CompletionItemKind.Class;
     case "function":
-      return CompletionItemKind.Function;
+      return languages.CompletionItemKind.Function;
     case "instance":
-      return CompletionItemKind.Reference;
+      return languages.CompletionItemKind.Reference;
     case "keyword":
-      return CompletionItemKind.Keyword;
+      return languages.CompletionItemKind.Keyword;
     case "module":
-      return CompletionItemKind.Module;
+      return languages.CompletionItemKind.Module;
     case "param":
-      return CompletionItemKind.Variable;
+      return languages.CompletionItemKind.Variable;
     case "path":
-      return CompletionItemKind.File;
+      return languages.CompletionItemKind.File;
     case "property":
-      return CompletionItemKind.Property;
+      return languages.CompletionItemKind.Property;
     case "statement":
-      return CompletionItemKind.Variable;
+      return languages.CompletionItemKind.Variable;
     default:
-      return CompletionItemKind.Text;
+      return languages.CompletionItemKind.Text;
   }
 }
 

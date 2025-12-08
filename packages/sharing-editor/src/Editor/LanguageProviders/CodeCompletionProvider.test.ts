@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CodeCompletionProvider } from "./CodeCompletionProvider";
 import type { editor, Position } from "monaco-editor";
-import { CompletionItemKind } from "./types";
+import { languages } from "monaco-editor";
 
 // cSpell:ignore rivate, bbtest, aaparam
 
@@ -52,7 +52,7 @@ describe("CodeCompletionProvider", () => {
       label: "test_function",
       insertText: "st_function",
       detail: "Test function docstring",
-      kind: CompletionItemKind.Function,
+      kind: languages.CompletionItemKind.Function,
       sortText: "bbtest_function",
     });
   });

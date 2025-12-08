@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
   "dependencies": {
-    "@monaco-editor/react": "^4.4.5",
+    "@monaco-editor/react": "^4.7.0",
     "@stlite/common": "workspace:^",
     "@stlite/sharing-common": "workspace:^",
     "@types/react": "^18.2.0",

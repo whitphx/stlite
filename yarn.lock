@@ -4007,7 +4007,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@monaco-editor/react@npm:^4.4.5":
+"@monaco-editor/react@npm:^4.7.0":
   version: 4.7.0
   resolution: "@monaco-editor/react@npm:4.7.0"
   dependencies:
@@ -5595,7 +5595,7 @@ __metadata:
   resolution: "@stlite/sharing-editor@workspace:packages/sharing-editor"
   dependencies:
     "@eslint/js": "npm:^9.39.1"
-    "@monaco-editor/react": "npm:^4.4.5"
+    "@monaco-editor/react": "npm:^4.7.0"
     "@stlite/common": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
     "@types/jsdom": "npm:^21.1.7"

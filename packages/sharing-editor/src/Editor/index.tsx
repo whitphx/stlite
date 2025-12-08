@@ -94,7 +94,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
 
     const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
-    const handleEditorDitMount = useCallback<OnMount>((editor) => {
+    const handleEditorDidMount = useCallback<OnMount>((editor) => {
       editorRef.current = editor;
     }, []);
 
@@ -388,7 +388,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
                     ? currentFile.content.text
                     : undefined
               }
-              onMount={handleEditorDitMount}
+              onMount={handleEditorDidMount}
               theme={isDarkMode ? "vs-dark" : "vs"}
             />
           </div>

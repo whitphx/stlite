@@ -1,4 +1,5 @@
-import { editor, Position, languages } from "monaco-editor";
+import type { editor, Position } from "monaco-editor";
+import { languages } from "monaco-editor";
 import type {
   CodeCompletionRequest,
   CodeCompletionResponse,

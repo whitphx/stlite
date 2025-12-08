@@ -1,5 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
-# Copyright (c) Yuichiro Tachibana (Tsuchiya) (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,24 +43,24 @@ def animation_demo() -> None:
     for frame_num, a in enumerate(np.linspace(0.0, 4 * np.pi, 100)):
         # Here were setting value for these two elements.
         progress_bar.progress(frame_num)
-        frame_text.text("Frame %i/100" % (frame_num + 1))
+        frame_text.text(f"Frame {frame_num + 1}/100")
 
         # Performing some fractal wizardry.
         c = separation * np.exp(1j * a)
-        Z = np.tile(x, (n, 1)) + 1j * np.tile(y, (1, m))
-        C = np.full((n, m), c)
-        M: Any = np.full((n, m), True, dtype=bool)
-        N = np.zeros((n, m))
+        z = np.tile(x, (n, 1)) + 1j * np.tile(y, (1, m))
+        c_matrix = np.full((n, m), c)
+        m_matrix: Any = np.full((n, m), True, dtype=bool)
+        n_matrix = np.zeros((n, m))
 
         for i in range(iterations):
-            Z[M] = Z[M] * Z[M] + C[M]
-            M[np.abs(Z) > 2] = False
-            N[M] = i
+            z[m_matrix] = z[m_matrix] * z[m_matrix] + c_matrix[m_matrix]
+            m_matrix[np.abs(z) > 2] = False
+            n_matrix[m_matrix] = i
 
         # Update the image placeholder by calling the image() function on it.
-        image.image(1.0 - (N / N.max()), use_column_width=True)
+        image.image(1.0 - (n_matrix / n_matrix.max()), width='content')
 
-        # NOTE: We need to sleep for a bit in a loop on stlite, i.e. web browser environments.
+        # NOTE: We need to sleep for a bit in a loop on Stlite, i.e. web browser environments.
         # This is because we're using a single-threaded event loop, and
         # we need to give it a chance to process other events.
         time.sleep(1/30)
@@ -73,18 +72,17 @@ def animation_demo() -> None:
     # Streamlit widgets automatically run the script from top to bottom. Since
     # this button is not connected to any other logic, it just causes a plain
     # rerun.
-    st.button("Re-run")
+    st.button("Rerun")
 
 
-st.set_page_config(page_title="Animation Demo", page_icon=":material/animation:")
-st.markdown("# Animation Demo")
-st.sidebar.header("Animation Demo")
+st.set_page_config(page_title="Animation demo", page_icon=":material/animation:")
+st.title("Animation demo")
 st.write(
-    """This app shows how you can use Streamlit to build cool animations.
-It displays an animated fractal based on the the Julia Set. Use the slider
-to tune different parameters."""
+    """
+    This app shows how you can use Streamlit to build cool animations.
+    It displays an animated fractal based on the Julia Set. Use the slider
+    to tune different parameters.
+    """
 )
-
 animation_demo()
-
 show_code(animation_demo)

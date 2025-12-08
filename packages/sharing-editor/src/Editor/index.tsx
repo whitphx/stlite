@@ -25,7 +25,7 @@ import { useDarkMode } from "../ColorScheme/hooks";
 import type { IDisposable } from "monaco-editor";
 import {
   CodeCompletionProvider,
-  CodeCompletionFn,
+  type CodeCompletionFn,
 } from "./LanguageProviders/CodeCompletionProvider";
 import { basename } from "./file";
 

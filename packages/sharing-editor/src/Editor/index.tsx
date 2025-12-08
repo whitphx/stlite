@@ -104,6 +104,16 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       if (monaco == null) {
         return;
       }
+      return () => {
+        // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
+        // If we don't do it, the previous content will remain after changing the sample apps.
+        monaco.editor.getModels().forEach((model) => model.dispose());
+      };
+    }, [monaco]);
+    useEffect(() => {
+      if (monaco == null) {
+        return;
+      }
 
       const disposables: IDisposable[] = [];
 
@@ -115,10 +125,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       );
 
       return () => {
-        // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
-        // If we don't do it, the previous content will remain after changing the sample apps.
-        monaco.editor.getModels().forEach((model) => model.dispose());
-
         disposables.forEach((d) => d.dispose());
       };
     }, [monaco, pythonCodeCompletionCallback]);

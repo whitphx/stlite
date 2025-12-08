@@ -6,7 +6,8 @@ import React, {
   useEffect,
   useImperativeHandle,
 } from "react";
-import MonacoEditor, { OnMount } from "@monaco-editor/react";
+import MonacoEditor, { OnMount, useMonaco } from "@monaco-editor/react";
+import type { IDisposable } from "monaco-editor";
 import { AppData } from "@stlite/sharing-common";
 import { parseRequirementsTxt } from "@stlite/common";
 import TabBar from "./components/TabBar";
@@ -22,7 +23,6 @@ import AddButton from "./components/AddButton";
 import SaveButton from "./components/SaveButton";
 import styles from "./Editor.module.scss";
 import { useDarkMode } from "../ColorScheme/hooks";
-import type { IDisposable } from "monaco-editor/esm/vs/editor/editor.api";
 import {
   CodeCompletionProvider,
   CodeCompletionFn,
@@ -93,36 +93,35 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         : null;
 
     const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-    const monacoRef = useRef<Parameters<OnMount>[1] | null>(null);
-    const disposableRef = useRef<IDisposable>();
 
-    const handleEditorDitMount = useCallback<OnMount>(
-      (editor, monaco) => {
-        editorRef.current = editor;
-        monacoRef.current = monaco;
+    const handleEditorDitMount = useCallback<OnMount>((editor) => {
+      editorRef.current = editor;
+    }, []);
 
-        disposableRef.current = monaco.languages.registerCompletionItemProvider(
-          "python",
-          new CodeCompletionProvider(pythonCodeCompletionCallback),
-        );
-      },
-      [pythonCodeCompletionCallback],
-    );
+    const monaco = useMonaco();
 
     useEffect(() => {
-      return () => {
-        const monaco = monacoRef.current;
-        if (monaco) {
-          // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
-          // If we don't do it, the previous content will remain after changing the sample apps.
-          monaco.editor.getModels().forEach((model) => model.dispose());
-        }
+      if (monaco == null) {
+        return;
+      }
 
-        if (disposableRef.current) {
-          disposableRef.current.dispose();
-        }
+      const disposables: IDisposable[] = [];
+
+      disposables.push(
+        monaco.languages.registerCompletionItemProvider(
+          "python",
+          new CodeCompletionProvider(pythonCodeCompletionCallback),
+        ),
+      );
+
+      return () => {
+        // Clear all the existing models. Ref: https://stackoverflow.com/a/62466612/13103190
+        // If we don't do it, the previous content will remain after changing the sample apps.
+        monaco.editor.getModels().forEach((model) => model.dispose());
+
+        disposables.forEach((d) => d.dispose());
       };
-    }, []);
+    }, [monaco, pythonCodeCompletionCallback]);
 
     const handleSave = useCallback(() => {
       if (currentFileName == null) {
@@ -244,7 +243,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
         return;
       }
 
-      const monaco = monacoRef.current;
       if (monaco == null) {
         return;
       }
@@ -261,13 +259,12 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
       if (model.getValue() !== defaultRequirementsTextValue) {
         model.setValue(defaultRequirementsTextValue);
       }
-    }, [currentFileName, defaultRequirementsTextValue]);
+    }, [monaco, currentFileName, defaultRequirementsTextValue]);
 
     useImperativeHandle(
       ref,
       () => ({
         addRequirements: (additionalRequirements) => {
-          const monaco = monacoRef.current;
           if (monaco == null) {
             return;
           }
@@ -292,7 +289,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(
           model.setValue(newValue);
         },
       }),
-      [defaultRequirementsTextValue],
+      [monaco, defaultRequirementsTextValue],
     );
 
     const isDarkMode = useDarkMode();

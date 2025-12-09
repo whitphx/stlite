@@ -26,8 +26,7 @@ def data_frame_demo() -> None:
     def get_un_data() -> pd.DataFrame:
         # AWS_BUCKET_URL = "http://streamlit-demo-data.s3-us-west-2.amazonaws.com"
         # df = pd.read_csv(AWS_BUCKET_URL + "/agri.csv.gz")
-        with open("./agri.csv.gz", "rb") as f:
-            df = pd.read_csv(f)
+        df = pd.read_csv("./agri.csv.gz")
         return df.set_index("Region")
 
     try:

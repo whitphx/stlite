@@ -6,7 +6,7 @@ The source files have been copied from https://github.com/streamlit/streamlit/tr
 - `animation_demo.py`
   - Added `time.sleep(1/30)` in the animation loop to allow event loop processing in the _Stlite_ environment.
 - `dataframe_demo.py` has been modified as follows.
-  - `agri.csv.gz` is pre-downloaded and provided as a local file because accessing remote files from the _stlite_ environment has the CORS problem.
+  - `agri.csv.gz` is pre-downloaded and provided as a local file because accessing remote files from the _Stlite_ environment has the CORS problem.
     - This file has been downloaded at 2022-10-14 02:24:56 (JST).
 
 ## License

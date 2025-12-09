@@ -1,6 +1,0 @@
-pandas
-numpy
-altair
-pydeck
-opencv-python
-streamlit>=1.50.0

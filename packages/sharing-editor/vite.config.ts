@@ -18,6 +18,22 @@ export default defineConfig(({ mode }) => ({
         brotliSize: true,
         emitFile: false,
       }),
+    // To serve files for development
+    mode === "development" && {
+      name: "dev-data-server",
+      configureServer(server) {
+        // Workaround for serving .gz files with correct Content-Type
+        // Ref: https://github.com/vitejs/vite/issues/12266
+        server.middlewares.use("/samples", (req, res, next) => {
+          if (req.originalUrl?.endsWith(".gz")) {
+            res.setHeader("Content-Type", "application/x-gzip");
+            // `res.removeHeader("Content-Encoding")` does not work
+            res.setHeader("Content-Encoding", "invalid-value");
+          }
+          next();
+        });
+      },
+    },
   ],
   define: {
     SHARING_APP_URL: JSON.stringify(process.env.SHARING_APP_URL),

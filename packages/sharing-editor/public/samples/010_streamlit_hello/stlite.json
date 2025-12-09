@@ -1,4 +1,4 @@
 {
   "title": "Streamlit Hello",
-  "entrypoint": "Hello.py"
+  "entrypoint": "streamlit_app.py"
 }

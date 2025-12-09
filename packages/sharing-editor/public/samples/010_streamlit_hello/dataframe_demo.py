@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@ import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-def data_frame_demo():
+def data_frame_demo() -> None:
     @st.cache_data
-    def get_UN_data():
+    def get_un_data() -> pd.DataFrame:
         # AWS_BUCKET_URL = "http://streamlit-demo-data.s3-us-west-2.amazonaws.com"
         # df = pd.read_csv(AWS_BUCKET_URL + "/agri.csv.gz")
         df = pd.read_csv("./agri.csv.gz")
         return df.set_index("Region")
 
     try:
-        df = get_UN_data()
+        df = get_un_data()
         countries = st.multiselect(
             "Choose countries", list(df.index), ["China", "United States of America"]
         )
@@ -39,7 +39,8 @@ def data_frame_demo():
         else:
             data = df.loc[countries]
             data /= 1000000.0
-            st.write("### Gross Agricultural Production ($B)", data.sort_index())
+            st.subheader("Gross agricultural production ($B)")
+            st.dataframe(data.sort_index())
 
             data = data.T.reset_index()
             data = pd.melt(data, id_vars=["index"]).rename(
@@ -56,23 +57,16 @@ def data_frame_demo():
             )
             st.altair_chart(chart, use_container_width=True)
     except URLError as e:
-        st.error(
-            """
-            **This demo requires internet access.**
-            Connection error: %s
-        """
-            % e.reason
-        )
+        st.error(f"This demo requires internet access. Connection error: {e.reason}")
 
 
-st.set_page_config(page_title="DataFrame Demo", page_icon=":material/table:")
-st.markdown("# DataFrame Demo")
-st.sidebar.header("DataFrame Demo")
+st.set_page_config(page_title="DataFrame demo", page_icon=":material/table:")
+st.title("DataFrame demo")
 st.write(
-    """This demo shows how to use `st.write` to visualize Pandas DataFrames.
-(Data courtesy of the [UN Data Explorer](http://data.un.org/Explorer.aspx).)"""
+    """
+    This demo shows how to use `st.dataframe` to visualize a Pandas DataFrame.
+    Data courtesy of the [UN Data Explorer](http://data.un.org/Explorer.aspx).
+    """
 )
-
 data_frame_demo()
-
 show_code(data_frame_demo)

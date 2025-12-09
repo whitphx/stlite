@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-def mapping_demo():
+def mapping_demo() -> None:
     @st.cache_data
-    def from_data_file(filename):
+    def from_data_file(filename: str) -> pd.DataFrame:
         url = (
             "https://raw.githubusercontent.com/streamlit/"
-            "example-data/master/hello/v1/%s" % filename
+            f"example-data/master/hello/v1/{filename}"
         )
         return pd.read_json(url)
 
     try:
-        ALL_LAYERS = {
-            "Bike Rentals": pdk.Layer(
+        all_layers = {
+            "Bike rentals": pdk.Layer(
                 "HexagonLayer",
                 data=from_data_file("bike_rental_stats.json"),
                 get_position=["lon", "lat"],
@@ -41,7 +41,7 @@ def mapping_demo():
                 elevation_range=[0, 1000],
                 extruded=True,
             ),
-            "Bart Stop Exits": pdk.Layer(
+            "Bart stop exits": pdk.Layer(
                 "ScatterplotLayer",
                 data=from_data_file("bart_stop_stats.json"),
                 get_position=["lon", "lat"],
@@ -49,7 +49,7 @@ def mapping_demo():
                 get_radius="[exits]",
                 radius_scale=0.05,
             ),
-            "Bart Stop Names": pdk.Layer(
+            "Bart stop names": pdk.Layer(
                 "TextLayer",
                 data=from_data_file("bart_stop_stats.json"),
                 get_position=["lon", "lat"],
@@ -58,7 +58,7 @@ def mapping_demo():
                 get_size=10,
                 get_alignment_baseline="'bottom'",
             ),
-            "Outbound Flow": pdk.Layer(
+            "Outbound flow": pdk.Layer(
                 "ArcLayer",
                 data=from_data_file("bart_path_stats.json"),
                 get_source_position=["lon", "lat"],
@@ -72,10 +72,10 @@ def mapping_demo():
                 width_max_pixels=30,
             ),
         }
-        st.sidebar.markdown("### Map Layers")
+        st.sidebar.subheader("Map layers")
         selected_layers = [
             layer
-            for layer_name, layer in ALL_LAYERS.items()
+            for layer_name, layer in all_layers.items()
             if st.sidebar.checkbox(layer_name, True)
         ]
         if selected_layers:
@@ -95,23 +95,19 @@ def mapping_demo():
             st.error("Please choose at least one layer above.")
     except URLError as e:
         st.error(
-            """
+            f"""
             **This demo requires internet access.**
-            Connection error: %s
+            Connection error: {e.reason}
         """
-            % e.reason
         )
 
 
-st.set_page_config(page_title="Mapping Demo", page_icon=":material/public:")
-st.markdown("# Mapping Demo")
-st.sidebar.header("Mapping Demo")
+st.set_page_config(page_title="Mapping demo", page_icon=":material/public:")
+st.title("Mapping demo")
 st.write(
-    """This demo shows how to use
-[`st.pydeck_chart`](https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart)
-to display geospatial data."""
+    """
+    This demo shows how to use `st.pydeck_chart` to display geospatial data.
+    """
 )
-
 mapping_demo()
-
 show_code(mapping_demo)

@@ -21,8 +21,8 @@
     "people-names"
   ],
   "ignoreRegExpList": [
-    "/@[a-zA-Z0-9-_]{4,}/g", // Username
-    "/%([2-7][0-9A-Fa-f])/" // Encoded URL string
+    "@[a-zA-Z0-9-_]{4,}", // Username
+    "%([2-7][0-9A-Fa-f])" // Encoded URL string
   ],
   "ignorePaths": [
     ".git",

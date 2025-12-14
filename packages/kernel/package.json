@@ -77,7 +77,7 @@
     "vitest": "^4.0.15"
   },
   "dependencies": {
-    "@jupyterlab/coreutils": "^6.3.4",
+    "@jupyterlab/coreutils": "^6.5.0",
     "@stlite/common": "workspace:^",
     "@streamlit/connection": "workspace:^",
     "@tinyhttp/content-disposition": "^2.2.2",

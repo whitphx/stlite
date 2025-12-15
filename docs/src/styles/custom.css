@@ -1,14 +1,14 @@
 :root {
-    /* Stlite Brand Color: #f44b4b -> Milder: #f06262 */
-    --sl-color-accent-low: #3d1414;
-    --sl-color-accent: #f06262;
-    --sl-color-accent-high: #ffd6d6;
+    /* Stlite Brand Color: #f44b4b -> Milder: #f06262 -> Vivid but soft: #ff6b6b */
+    --sl-color-accent-low: #3f1515;
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #ffe3e3;
 }
 
 [data-theme='light'] {
-    --sl-color-accent-low: #feeaea;
-    --sl-color-accent: #f06262;
-    --sl-color-accent-high: #9b2c2c;
+    --sl-color-accent-low: #fff0f0;
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #c22e2e;
 }
 
 /* Remove theme color from GitHub logo */
@@ -18,9 +18,4 @@ a[href="https://github.com/whitphx/stlite"] {
 
 a[href="https://github.com/whitphx/stlite"]:hover {
     color: var(--sl-color-gray-1) !important;
-}
-
-/* Hide site title text (logo replaces it) */
-.site-title {
-    font-size: 0 !important;
 }

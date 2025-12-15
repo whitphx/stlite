@@ -1,0 +1,12 @@
+:root {
+    /* Stlite Brand Color: #f44b4b -> Milder: #f06262 */
+    --sl-color-accent-low: #3d1414;
+    --sl-color-accent: #f06262;
+    --sl-color-accent-high: #ffd6d6;
+}
+
+[data-theme='light'] {
+    --sl-color-accent-low: #feeaea;
+    --sl-color-accent: #f06262;
+    --sl-color-accent-high: #9b2c2c;
+}

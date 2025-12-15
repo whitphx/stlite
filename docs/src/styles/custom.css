@@ -5,10 +5,30 @@
     --sl-color-accent-high: #ffe3e3;
 }
 
+[data-theme='dark'] {
+    /* Use vivid red as the main accent color in dark mode */
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #ffe3e3;
+    --sl-color-accent-low: #3f1515;
+}
+
 [data-theme='light'] {
     --sl-color-accent-low: #fff0f0;
     --sl-color-accent: #ff6b6b;
     --sl-color-accent-high: #c22e2e;
+}
+
+/* Force vivid primary button in dark mode */
+[data-theme='dark'] .sl-link-button.primary {
+    background-color: #ff6b6b !important;
+    color: var(--sl-color-black) !important;
+    border-color: #ff6b6b !important;
+}
+
+[data-theme='dark'] .sl-link-button.primary:hover {
+    background-color: #ff8585 !important;
+    /* Slightly lighter on hover */
+    color: var(--sl-color-black) !important;
 }
 
 /* Remove theme color from GitHub logo */

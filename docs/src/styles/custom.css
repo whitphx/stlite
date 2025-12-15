@@ -151,6 +151,9 @@ img[alt="Snowflake"].h-100 {
     height: auto;
     width: 300px;
     /* Adjust size as needed for title replacement */
+    display: block;
+    margin: 0 auto;
+    /* Center the block image */
 }
 
 .hero-tagline h1 {

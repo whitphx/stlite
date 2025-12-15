@@ -31,6 +31,79 @@
     color: var(--sl-color-black) !important;
 }
 
+/* Hide site title text (logo replaces it) */
+.site-title {
+    font-size: 0 !important;
+}
+
+/* Sponsor Layout Styles */
+.sponsors-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.sponsor-tier {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.sponsor-logo {
+    display: block;
+    object-fit: contain;
+    /* Ensure visibility on dark mode - add white bg and padding */
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.sponsor-logo:hover {
+    transform: scale(1.05);
+}
+
+.h-100 {
+    height: 100px;
+    width: auto;
+}
+
+.h-72 {
+    height: 72px;
+    width: auto;
+}
+
+.h-50 {
+    height: 50px;
+    width: auto;
+}
+
+/* Specific fix for Snowflake logo which is wide */
+img[alt="Snowflake"].h-100 {
+    /* Maintain aspect ratio but constrain height */
+    height: 100px;
+}
+
+/* Support links layout */
+.support-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.sponsors-footer {
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
 /* Remove theme color from GitHub logo */
 a[href="https://github.com/whitphx/stlite"] {
     color: var(--sl-color-gray-1) !important;

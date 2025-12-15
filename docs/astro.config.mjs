@@ -10,6 +10,7 @@ export default defineConfig({
 			logo: {
 				light: './src/assets/stlite.svg',
 				dark: './src/assets/stlite-dark.svg',
+				replacesTitle: true,
 			},
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/whitphx/stlite' }],
 			customCss: [

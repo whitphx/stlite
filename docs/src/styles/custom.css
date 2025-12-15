@@ -10,3 +10,17 @@
     --sl-color-accent: #f06262;
     --sl-color-accent-high: #9b2c2c;
 }
+
+/* Remove theme color from GitHub logo */
+a[href="https://github.com/whitphx/stlite"] {
+    color: var(--sl-color-gray-1) !important;
+}
+
+a[href="https://github.com/whitphx/stlite"]:hover {
+    color: var(--sl-color-gray-1) !important;
+}
+
+/* Hide site title text (logo replaces it) */
+.site-title {
+    font-size: 0 !important;
+}

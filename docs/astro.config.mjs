@@ -7,7 +7,15 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'Stlite',
+			logo: {
+				light: './src/assets/stlite.svg',
+				dark: './src/assets/stlite-dark.svg',
+			},
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/whitphx/stlite' }],
+			customCss: [
+				// Relative path to your custom CSS file
+				'./src/styles/custom.css',
+			],
 			sidebar: [
 				{ label: 'Introduction', link: '/' },
 				{ label: '@stlite/browser', slug: 'browser' },

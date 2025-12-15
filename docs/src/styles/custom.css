@@ -111,6 +111,8 @@ img[alt="Snowflake"].h-100 {
     gap: 3rem;
     padding: 2rem 0;
     align-items: center;
+    text-align: center;
+    /* Ensure text is centered on mobile */
 }
 
 @media (min-width: 768px) {

@@ -146,6 +146,20 @@ export interface InMessageInstall extends InMessageBase {
   };
 }
 
+export interface AddMockPackageOptions {
+  force?: boolean;
+  persistent?: boolean;
+}
+export interface InMessageAddMockPackage extends InMessageBase {
+  type: "add_mock_package";
+  data: {
+    name: string;
+    version: string;
+    modules?: Record<string, string>;
+    options?: AddMockPackageOptions;
+  };
+}
+
 export interface InMessageSetEnv extends InMessageBase {
   type: "setEnv";
   data: {
@@ -183,6 +197,7 @@ export type InMessage =
   | InMessageInstall
   | InMessageSetEnv
   | InMessageCodeCompletion
+  | InMessageAddMockPackage
   | InMessageRunPython;
 
 export interface StliteWorker extends Worker {

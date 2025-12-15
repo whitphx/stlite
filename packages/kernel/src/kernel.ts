@@ -23,6 +23,7 @@ import type {
   ModuleAutoLoadMessage,
   CodeCompletion,
   MicropipInstallOptions,
+  AddMockPackageOptions,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -451,6 +452,27 @@ export class StliteKernel extends EventTarget {
         },
       }),
     );
+
+    await promise;
+  }
+
+  public async addMockPackage(
+    name: string,
+    version: string,
+    modules?: Record<string, string>,
+    options?: AddMockPackageOptions,
+  ): Promise<void> {
+    await this.loaded;
+
+    const promise = this._asyncPostMessage({
+      type: "add_mock_package",
+      data: {
+        name,
+        version,
+        modules,
+        options,
+      },
+    });
 
     await promise;
   }

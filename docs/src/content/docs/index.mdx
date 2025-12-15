@@ -2,22 +2,32 @@
 title: Stlite
 description: Serverless Streamlit Running Entirely in Your Browser
 template: splash
-hero:
-  tagline: Serverless Streamlit Running Entirely in Your Browser
-  image:
-    light: ../../assets/stlite.svg
-    dark: ../../assets/stlite-dark.svg
-  actions:
-    - text: Get Started
-      link: /browser
-      icon: right-arrow
-      variant: primary
-    - text: View on GitHub
-      link: https://github.com/whitphx/stlite
-      icon: external
-      variant: secondary
 ---
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+import stliteLogoLight from '../../assets/stlite.svg';
+import stliteLogoDark from '../../assets/stlite-dark.svg';
+import { Image } from 'astro:assets';
+
+<div class="hero-custom-layout">
+  <div class="hero-left">
+    <div class="hero-logo-container">
+       <Image src={stliteLogoDark} alt="Stlite Logo" class="hero-logo light:sl-hidden" />
+       <Image src={stliteLogoLight} alt="Stlite Logo" class="hero-logo dark:sl-hidden" />
+    </div>
+    <div class="hero-tagline">
+      <h1>Serverless Streamlit Running Entirely in Your Browser</h1>
+    </div>
+    <div class="hero-actions">
+      <LinkButton href="/browser" icon="right-arrow" variant="primary">Get Started</LinkButton>
+      <LinkButton href="https://github.com/whitphx/stlite" icon="external" variant="secondary">View on GitHub</LinkButton>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="playground-placeholder">
+      <p>Live Playground Demo (Coming Soon)</p>
+    </div>
+  </div>
+</div>
 
 <CardGrid stagger>
 	<Card title="@stlite/browser" icon="rocket">

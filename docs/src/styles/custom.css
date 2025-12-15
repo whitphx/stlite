@@ -104,6 +104,81 @@ img[alt="Snowflake"].h-100 {
     margin-bottom: 2rem;
 }
 
+/* Custom Hero Layout */
+.hero-custom-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding: 2rem 0;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .hero-custom-layout {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    .hero-left {
+        flex: 1;
+        max-width: 50%;
+    }
+
+    .hero-right {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .hero-actions {
+        justify-content: flex-start;
+    }
+}
+
+.hero-logo-container {
+    margin-bottom: 1.5rem;
+}
+
+.hero-logo {
+    max-width: 100%;
+    height: auto;
+    width: 300px;
+    /* Adjust size as needed for title replacement */
+}
+
+.hero-tagline h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 2rem;
+    color: var(--sl-color-white);
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* Center on mobile */
+}
+
+.playground-placeholder {
+    width: 100%;
+    max-width: 500px;
+    height: 350px;
+    background-color: var(--sl-color-gray-6);
+    border: 2px dashed var(--sl-color-gray-4);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--sl-color-gray-3);
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
 /* Remove theme color from GitHub logo */
 a[href="https://github.com/whitphx/stlite"] {
     color: var(--sl-color-gray-1) !important;

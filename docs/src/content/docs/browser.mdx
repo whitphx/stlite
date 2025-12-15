@@ -1,0 +1,195 @@
+---
+title: "@stlite/browser"
+description: Mount a Streamlit app on a static web page.
+---
+
+`@stlite/browser` allows you to mount a Streamlit app on a static web page using a `<script>` tag.
+
+## Installation & Usage
+
+You can use _Stlite_ on your web page by loading the JavaScript and CSS files via `<script>` and `<link>` tags.
+
+### Using `<streamlit-app>` tag
+
+The easiest way is using the `<streamlit-app>` custom element.
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
+    />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js"
+    ></script>
+  </head>
+  <body>
+    <streamlit-app>
+      import streamlit as st
+
+      name = st.text_input('Your name')
+      st.write("Hello,", name or "world")
+    </streamlit-app>
+  </body>
+</html>
+```
+
+### Using `mount()` function
+
+For more control, you can use the `mount()` function.
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js";
+      mount(
+        {
+            entrypoint: "streamlit_app.py",
+            files: {
+                "streamlit_app.py": `
+import streamlit as st
+
+name = st.text_input('Your name')
+st.write("Hello,", name or "world")
+`
+            }
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>
+```
+
+## Advanced Features
+
+### Multipage apps
+
+You can create multipage apps by mounting multiple files, including an entrypoint and page files in a `pages/` directory.
+
+```js
+mount(
+  {
+    entrypoint: "👋_Hello.py",
+    files: {
+      "👋_Hello.py": `
+import streamlit as st
+st.title("Main page")
+`,
+      "pages/1_⭐️_Page1.py": `
+import streamlit as st
+st.title("Page 1")
+`,
+    },
+  },
+  document.getElementById("root"),
+);
+```
+
+### Installing Packages
+
+Use the `requirements` option to install Python packages.
+
+```js
+mount(
+  {
+    requirements: ["matplotlib", "pandas"],
+    entrypoint: "streamlit_app.py",
+    files: {
+        // ...
+    }
+  },
+  document.getElementById("root"),
+);
+```
+
+### SharedWorker Mode
+
+To reduce memory consumption when running multiple Stlite apps, enable `SharedWorker` mode.
+
+```html
+<streamlit-app shared-worker>
+  ...
+</streamlit-app>
+```
+
+Or with `mount()`:
+
+```js
+mount(
+  {
+    sharedWorker: true,
+    // ...
+  },
+  document.getElementById("root")
+);
+```
+
+> [!NOTE]
+> SharedWorker does not work in some environments like Chrome for Android. Stlite will fall back to standard Workers in these cases.
+
+## API Reference
+
+### `mount(options, container)`
+
+Matches the Streamlit app to the given HTML container.
+
+**Parameters:**
+
+- `options`: `object` | `string`
+  - If a string is provided, it is treated as the content of the `streamlit_app.py` file.
+  - If an object is provided, it must be a `MountOptions` object (see below).
+- `container`: `HTMLElement` (optional, default: `document.body`)
+  - The DOM element to mount the app into.
+
+**Returns:**
+
+A `StliteController` object with the following methods:
+
+- `unmount()`: Unmounts the app and disposes the kernel.
+- `install(requirements)`: Installs additional packages.
+- `writeFile(path, data, opts)`: Writes a file to the virtual filesystem.
+- `readFile(path, opts)`: Reads a file from the virtual filesystem.
+- `unlink(path)`: Deletes a file.
+- `renameFile(oldPath, newPath)`: Renames a file.
+
+### `MountOptions`
+
+Configuration object for `mount()`.
+
+| Property | Type | Description |
+| :--- | :--- | :--- |
+| `entrypoint` | `string` | The file path of the main script (e.g., `"streamlit_app.py"`). Required if `files` is an object. |
+| `files` | `Record<string, FileContent>` | An object mapping file paths to their content. Content can be a string, `Uint8Array`, or an object `{ url: string }`. |
+| `requirements` | `string[]` | A list of Python packages to install at startup. |
+| `streamlitConfig` | `Record<string, any>` | Streamlit configuration options (e.g., `{ "client.toolbarMode": "viewer" }`). |
+| `archives` | `ArchiveObject[]` | List of archive files (e.g., zip) to download and unpack. |
+| `pyodideUrl` | `string` | Custom URL for the Pyodide interpreter. |
+| `sharedWorker` | `boolean` | Whether to use a SharedWorker. |
+| `idbfsMountpoints` | `string[]` | List of paths to mount with IDBFS (IndexedDB-based persistent file system). |

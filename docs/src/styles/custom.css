@@ -118,12 +118,17 @@ img[alt="Snowflake"].h-100 {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        text-align: left;
+        text-align: center;
+        /* Changed from left to center for everything in left col? No, usually cleaner */
     }
 
     .hero-left {
         flex: 1;
         max-width: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Center content horizontally in the flex column */
     }
 
     .hero-right {
@@ -132,9 +137,7 @@ img[alt="Snowflake"].h-100 {
         justify-content: center;
     }
 
-    .hero-actions {
-        justify-content: flex-start;
-    }
+    /* Removed hero-actions justify-content: flex-start to allow default center */
 }
 
 .hero-logo-container {
@@ -154,6 +157,7 @@ img[alt="Snowflake"].h-100 {
     line-height: 1.2;
     margin-bottom: 2rem;
     color: var(--sl-color-white);
+    /* Ensure text alignment follows parent */
 }
 
 .hero-actions {
@@ -161,7 +165,7 @@ img[alt="Snowflake"].h-100 {
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    /* Center on mobile */
+    /* Always center */
 }
 
 .playground-placeholder {

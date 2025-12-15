@@ -29,6 +29,13 @@ import { Image } from 'astro:assets';
   </div>
 </div>
 
+<style>{`
+  /* Hide the default Starlight title on this page */
+  h1#_top {
+    display: none !important;
+  }
+`}</style>
+
 <CardGrid stagger>
 	<Card title="@stlite/browser" icon="rocket">
 		Use Stlite on your web page. [Read more](/browser)

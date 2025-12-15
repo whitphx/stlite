@@ -320,7 +320,10 @@ export class StliteKernel extends EventTarget {
     this.handleWebSocketMessage = handler;
   }
 
-  public sendHttpRequest(request: HttpRequest): Promise<HttpResponse> {
+  public sendHttpRequest(
+    request: HttpRequest,
+    signal?: AbortSignal,
+  ): Promise<HttpResponse> {
     return this._asyncPostMessage(
       {
         type: "http:request",
@@ -329,6 +332,7 @@ export class StliteKernel extends EventTarget {
         },
       },
       "http:response",
+      signal,
     ).then((data) => {
       return {
         ...data.response,
@@ -537,19 +541,49 @@ export class StliteKernel extends EventTarget {
 
   private _asyncPostMessage(
     message: InMessage,
+    signal?: AbortSignal,
   ): Promise<ReplyMessageGeneralReply["data"]>;
   private _asyncPostMessage<T extends ReplyMessage["type"]>(
     message: InMessage,
     expectedReplyType: T,
+    signal?: AbortSignal,
   ): Promise<Extract<ReplyMessage, { type: T }>["data"]>;
   private _asyncPostMessage(
     message: InMessage,
-    expectedReplyType = "reply",
+    arg2?: string | AbortSignal,
+    arg3?: AbortSignal,
   ): Promise<ReplyMessage["data"]> {
+    let expectedReplyType = "reply";
+    let signal: AbortSignal | undefined;
+
+    if (typeof arg2 === "string") {
+      expectedReplyType = arg2;
+      signal = arg3;
+    } else if (arg2) {
+      signal = arg2 as AbortSignal;
+    }
+
+    if (signal && signal.aborted) {
+      return Promise.reject(new DOMException("Aborted", "AbortError"));
+    }
+
     return new Promise((resolve, reject) => {
       const channel = new MessageChannel();
 
+      const onAbort = () => {
+        channel.port1.close();
+        reject(new DOMException("Aborted", "AbortError"));
+      };
+
+      if (signal) {
+        signal.addEventListener("abort", onAbort, { once: true });
+      }
+
       channel.port1.onmessage = (e: MessageEvent<ReplyMessage>) => {
+        if (signal) {
+          signal.removeEventListener("abort", onAbort);
+        }
+
         channel.port1.close();
         const msg = e.data;
         if (msg.error) {

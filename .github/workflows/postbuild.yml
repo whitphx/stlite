@@ -33,7 +33,7 @@ jobs:
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
       - name: Download build info
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: build-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Download published packages info
         id: download-changesets-published-packages
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: changesets-published-packages
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -233,7 +233,7 @@ jobs:
         yarn install:browsers
       working-directory: packages/browser/e2e-tests
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -294,7 +294,7 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         path: packages/browser/e2e-tests/all-blob-reports
         pattern: blob-report-*
@@ -347,7 +347,7 @@ jobs:
       run: yarn install
       working-directory: packages/browser/e2e-tests
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -412,7 +412,7 @@ jobs:
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 
     - name: Download artifact into the temp dir
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
@@ -470,7 +470,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -591,7 +591,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-react
         path: ${{ runner.temp }}/artifacts/react
@@ -673,7 +673,7 @@ jobs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
@@ -702,7 +702,7 @@ jobs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
@@ -777,7 +777,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/stlite-browser
@@ -837,7 +837,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-react
         path: ${{ runner.temp }}/stlite-react
@@ -897,7 +897,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/stlite-desktop

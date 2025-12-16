@@ -9,7 +9,7 @@ import stliteLogoDark from '../../assets/stlite-dark.svg';
 import { Image } from 'astro:assets';
 
 <div class="hero-custom-layout">
-  <div class="hero-left">
+  <div class="hero-content">
     <div class="hero-logo-container">
        <Image src={stliteLogoDark} alt="Stlite Logo" class="hero-logo hero-logo-dark" />
        <Image src={stliteLogoLight} alt="Stlite Logo" class="hero-logo hero-logo-light" />
@@ -18,15 +18,13 @@ import { Image } from 'astro:assets';
       <h1>Serverless Streamlit Running Entirely in Your Browser</h1>
     </div>
     <div class="hero-actions">
-      <LinkButton href="/browser" icon="right-arrow" variant="primary">Get Started</LinkButton>
-      <LinkButton href="https://github.com/whitphx/stlite" icon="external" variant="secondary">View on GitHub</LinkButton>
+      <LinkButton href="/browser" variant="primary">Get Started</LinkButton>
+      <LinkButton href="https://github.com/whitphx/stlite" variant="secondary" icon="external">View on GitHub</LinkButton>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="playground-placeholder">
-      <p>Live Playground Demo (Coming Soon)</p>
-    </div>
-  </div>
+  {/* <div class="hero-playground-container">
+    TODO: Implement the Playground component here.
+  </div> */}
 </div>
 
 <style>{`

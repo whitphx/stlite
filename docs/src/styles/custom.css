@@ -113,33 +113,32 @@ img[alt="Snowflake"].h-100 {
     align-items: center;
     text-align: center;
     /* Ensure text is centered on mobile */
+    width: 100%;
 }
 
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    /* Constrain text width for readability */
+}
+
+.hero-playground-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Remove Split View Media Query overrides since we want stacked on desktop too */
 @media (min-width: 768px) {
-    .hero-custom-layout {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        text-align: center;
-        /* Changed from left to center for everything in left col? No, usually cleaner */
-    }
 
-    .hero-left {
-        flex: 1;
-        max-width: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        /* Center content horizontally in the flex column */
+    /* Optimization for larger screens if needed, but currently stacked is requested */
+    .hero-content {
+        max-width: 900px;
     }
-
-    .hero-right {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-    }
-
-    /* Removed hero-actions justify-content: flex-start to allow default center */
 }
 
 .hero-logo-container {
@@ -172,6 +171,8 @@ img[alt="Snowflake"].h-100 {
     margin-bottom: 2rem;
     color: var(--sl-color-white);
     /* Ensure text alignment follows parent */
+    text-wrap: balance;
+    /* Improve semantic word breaking */
 }
 
 .hero-actions {
@@ -180,21 +181,6 @@ img[alt="Snowflake"].h-100 {
     flex-wrap: wrap;
     justify-content: center;
     /* Always center */
-}
-
-.playground-placeholder {
-    width: 100%;
-    max-width: 500px;
-    height: 350px;
-    background-color: var(--sl-color-gray-6);
-    border: 2px dashed var(--sl-color-gray-4);
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--sl-color-gray-3);
-    font-weight: bold;
-    font-size: 1.2rem;
 }
 
 /* Remove theme color from GitHub logo */

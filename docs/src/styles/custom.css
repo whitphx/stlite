@@ -156,6 +156,15 @@ img[alt="Snowflake"].h-100 {
     /* Center the block image */
 }
 
+/* Theme-based logo toggling */
+[data-theme='light'] .hero-logo-dark {
+    display: none !important;
+}
+
+[data-theme='dark'] .hero-logo-light {
+    display: none !important;
+}
+
 .hero-tagline h1 {
     font-size: 2.5rem;
     font-weight: 800;

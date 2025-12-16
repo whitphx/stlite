@@ -5,6 +5,7 @@ description: Convert your Streamlit application into a desktop app.
 
 `@stlite/desktop` allows you to convert your [Streamlit](https://streamlit.io/) application into a desktop app with [Stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
 
+import { Code } from '@astrojs/starlight/components';
 import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outlined.svg';
 
 <img src={stliteDesktopBanner.src} alt="Stlite Desktop Banner" style="background: white;" />
@@ -15,38 +16,9 @@ import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outl
 
 Create a `package.json` file for your new project:
 
-```json
-{
-  "name": "my-app",
-  "version": "0.1.0",
-  "main": "./build/electron/main.js",
-  "scripts": {
-    "dump": "dump-stlite-desktop-artifacts",
-    "serve": "cross-env NODE_ENV=production electron .",
-    "app:dir": "electron-builder --dir",
-    "app:dist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
-  },
-  "build": {
-    "files": ["build/**/*"],
-    "directories": {
-      "buildResources": "assets"
-    }
-  },
-  "devDependencies": {
-    "@stlite/desktop": "^0.79.5",
-    "cross-env": "^7.0.3",
-    "electron": "34.3.0",
-    "electron-builder": "^25.1.8"
-  },
-  "stlite": {
-    "desktop": {
-      "files": ["app.py"],
-      "entrypoint": "app.py"
-    }
-  }
-}
-```
+import packageJson from '../../examples/desktop/package.json?raw';
+
+<Code code={packageJson} lang="json" title="package.json" />
 
 Run installation:
 ```bash
@@ -59,11 +31,9 @@ yarn install
 
 Create `app.py`:
 
-```python
-import streamlit as st
+import appPy from '../../examples/desktop/app.py?raw';
 
-st.write("Hello from Stlite Desktop!")
-```
+<Code code={appPy} lang="python" title="app.py" />
 
 ### 3. Build & Run
 

@@ -10075,7 +10075,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"astro@npm:^5.1.1":
+"astro@npm:^5.16.6":
   version: 5.16.6
   resolution: "astro@npm:5.16.6"
   dependencies:
@@ -13661,7 +13661,7 @@ __metadata:
   resolution: "docs@workspace:docs"
   dependencies:
     "@astrojs/starlight": "npm:^0.37.1"
-    astro: "npm:^5.1.1"
+    astro: "npm:^5.16.6"
     sharp: "npm:^0.34.2"
   languageName: unknown
   linkType: soft

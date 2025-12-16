@@ -24,8 +24,11 @@ import helloWorldHtml from '../../examples/browser/hello-world.html?raw';
 For more control, you can use the `mount()` function.
 
 import mountHtml from '../../examples/browser/mount.html?raw';
+import pkg from '@stlite/browser/package.json';
 
-<Code code={mountHtml} lang="html" title="mount.html" />
+export const mountHtmlWithVersion = mountHtml.replace(/{{VERSION}}/g, pkg.version);
+
+<Code code={mountHtmlWithVersion} lang="html" title="mount.html" />
 
 ## Advanced Features
 

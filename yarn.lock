@@ -6139,7 +6139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stlite/browser@workspace:packages/browser":
+"@stlite/browser@workspace:*, @stlite/browser@workspace:packages/browser":
   version: 0.0.0-use.local
   resolution: "@stlite/browser@workspace:packages/browser"
   dependencies:
@@ -13661,6 +13661,7 @@ __metadata:
   resolution: "docs@workspace:docs"
   dependencies:
     "@astrojs/starlight": "npm:^0.37.1"
+    "@stlite/browser": "workspace:*"
     astro: "npm:^5.16.6"
     sharp: "npm:^0.34.2"
   languageName: unknown

@@ -6,13 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>Stlite App</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@{{VERSION}}/build/stlite.css" />
 </head>
 
 <body>
     <div id="root"></div>
     <script type="module">
-        import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js";
+        import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@{{VERSION}}/build/stlite.js";
         mount(
             {
                 entrypoint: "streamlit_app.py",

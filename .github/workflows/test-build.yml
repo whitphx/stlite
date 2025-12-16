@@ -49,7 +49,7 @@ jobs:
           echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
           echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
       - name: Upload build info
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: build-info
           path: |
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload published packages info
         if: steps.changesets.outputs.published == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: changesets-published-packages
           path: changesets-published-packages
@@ -457,7 +457,7 @@ jobs:
         make browser
 
     - name: Upload bundle visualizer report (@stlite/browser)
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/browser/stats/browser.html
         name: visualizer-browser
@@ -468,7 +468,7 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/browser/package.tgz
         name: stlite-browser
@@ -546,7 +546,7 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/react/package.tgz
         name: stlite-react
@@ -597,14 +597,14 @@ jobs:
         make sharing
 
     - name: Upload bundle visualizer report (@stlite/sharing)
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/sharing/stats/sharing.html
         name: visualizer-sharing
         if-no-files-found: error
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/sharing/build
         name: stlite-sharing
@@ -644,14 +644,14 @@ jobs:
     - run: make sharing-editor
 
     - name: Upload bundle visualizer report (@stlite/sharing-editor)
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/sharing-editor/stats/sharing-editor.html
         name: visualizer-sharing-editor
         if-no-files-found: error
 
     - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/sharing-editor/dist
         name: stlite-sharing-editor
@@ -691,7 +691,7 @@ jobs:
         make desktop
 
     - name: Upload bundle visualizer report (@stlite/desktop)
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/desktop/stats/desktop.html
         name: visualizer-desktop
@@ -702,7 +702,7 @@ jobs:
       run: yarn pack
 
     - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         path: packages/desktop/package.tgz
         name: stlite-desktop

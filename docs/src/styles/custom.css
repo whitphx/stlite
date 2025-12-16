@@ -100,19 +100,16 @@ img[alt="Snowflake"].h-100 {
 
 .sponsors-footer {
     text-align: center;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
 }
 
-/* Custom Hero Layout */
+/* Custom Homepage Hero Layout */
 .hero-custom-layout {
     display: flex;
     flex-direction: column;
-    gap: 3rem;
-    padding: 2rem 0;
-    align-items: center;
-    text-align: center;
-    /* Ensure text is centered on mobile */
+    gap: 2rem;
     width: 100%;
 }
 
@@ -120,9 +117,9 @@ img[alt="Snowflake"].h-100 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
+    padding: 4rem 1rem;
     width: 100%;
-    max-width: 800px;
-    /* Constrain text width for readability */
 }
 
 .hero-playground-container {
@@ -142,14 +139,16 @@ img[alt="Snowflake"].h-100 {
 }
 
 .hero-logo-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .hero-logo {
-    max-width: 100%;
     height: auto;
-    width: 300px;
-    /* Adjust size as needed for title replacement */
+    width: 200px;
+    max-width: 100%;
     display: block;
     margin: 0 auto;
     /* Center the block image */
@@ -183,11 +182,11 @@ img[alt="Snowflake"].h-100 {
     /* Always center */
 }
 
-/* Remove theme color from GitHub logo */
-a[href="https://github.com/whitphx/stlite"] {
+/* Remove theme color from neutral links (e.g. GitHub) */
+.neutral-link {
     color: var(--sl-color-gray-1) !important;
 }
 
-a[href="https://github.com/whitphx/stlite"]:hover {
+.neutral-link:hover {
     color: var(--sl-color-gray-1) !important;
 }

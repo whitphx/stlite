@@ -429,7 +429,7 @@ jobs:
 
   build-browser:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-kernel, test-stlite-lib, test-build-common, test-browser]
+    needs: [set-build-info, build-react, test-kernel, test-stlite-lib, test-build-common, test-browser]
 
     runs-on: ubuntu-latest
 
@@ -447,6 +447,17 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+
+    - name: Download build cache for @stlite/react dependents
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-react-build-cache
+        path: artifacts/react
+
+    - name: Restore cached builds for dependencies
+      run: |
+        tar -xzf artifacts/react/react-build-cache.tar.gz
+        touch .make/common/.built .make/kernel/.built .make/streamlit-frontend-lib/.built .make/react/.built
 
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
@@ -565,9 +576,32 @@ jobs:
         name: "@stlite/react"
         input-path: packages/react/package.tgz
 
+    - name: Archive build cache for dependents
+      run: |
+        tar -czf react-build-cache.tar.gz \
+          .make/common/.built \
+          .make/kernel/.built \
+          .make/react/.built \
+          .make/streamlit-frontend-lib/.built \
+          packages/common/dist \
+          packages/kernel/dist \
+          packages/kernel/py/stlite-lib/dist \
+          packages/kernel/py/streamlit/lib/dist \
+          packages/react/build \
+          packages/react/vite-plugin/dist \
+          streamlit/frontend/connection/dist \
+          streamlit/frontend/protobuf/proto.d.ts \
+          streamlit/frontend/utils/dist
+
+    - name: Upload build cache for dependents
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: react-build-cache.tar.gz
+        name: stlite-react-build-cache
+
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-kernel, test-stlite-lib, test-sharing-common, test-sharing]
+    needs: [set-build-info, build-react, test-kernel, test-stlite-lib, test-sharing-common, test-sharing]
 
     runs-on: ubuntu-latest
 
@@ -584,6 +618,17 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+
+    - name: Download build cache for @stlite/react dependents
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-react-build-cache
+        path: artifacts/react
+
+    - name: Restore cached builds for dependencies
+      run: |
+        tar -xzf artifacts/react/react-build-cache.tar.gz
+        touch .make/common/.built .make/kernel/.built .make/streamlit-frontend-lib/.built .make/react/.built
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
       if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
@@ -666,7 +711,7 @@ jobs:
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-build-common, test-kernel, test-stlite-lib, test-desktop]
+    needs: [set-build-info, build-react, test-build-common, test-kernel, test-stlite-lib, test-desktop]
 
     runs-on: ubuntu-latest
 
@@ -684,6 +729,17 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+
+    - name: Download build cache for @stlite/react dependents
+      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      with:
+        name: stlite-react-build-cache
+        path: artifacts/react
+
+    - name: Restore cached builds for dependencies
+      run: |
+        tar -xzf artifacts/react/react-build-cache.tar.gz
+        touch .make/common/.built .make/kernel/.built .make/streamlit-frontend-lib/.built .make/react/.built
 
     - name: Build @stlite/desktop
       run: |

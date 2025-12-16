@@ -3,6 +3,8 @@ title: "@stlite/browser"
 description: Mount a Streamlit app on a static web page.
 ---
 
+import { Code } from '@astrojs/starlight/components';
+
 `@stlite/browser` allows you to mount a Streamlit app on a static web page using a `<script>` tag.
 
 ## Installation & Usage
@@ -13,79 +15,17 @@ You can use _Stlite_ on your web page by loading the JavaScript and CSS files vi
 
 The easiest way is using the `<streamlit-app>` custom element.
 
-```html
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>Stlite App</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
-    />
-    <script
-      type="module"
-      src="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js"
-    ></script>
-  </head>
-  <body>
-    <streamlit-app>
-      import streamlit as st
+import helloWorldHtml from '../../examples/browser/hello-world.html?raw';
 
-      name = st.text_input('Your name')
-      st.write("Hello,", name or "world")
-    </streamlit-app>
-  </body>
-</html>
-```
+<Code code={helloWorldHtml} lang="html" title="hello-world.html" />
 
 ### Using `mount()` function
 
 For more control, you can use the `mount()` function.
 
-```html
-<!doctype html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>Stlite App</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.css"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module">
-      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.85.1/build/stlite.js";
-      mount(
-        {
-            entrypoint: "streamlit_app.py",
-            files: {
-                "streamlit_app.py": `
-import streamlit as st
+import mountHtml from '../../examples/browser/mount.html?raw';
 
-name = st.text_input('Your name')
-st.write("Hello,", name or "world")
-`
-            }
-        },
-        document.getElementById("root"),
-      );
-    </script>
-  </body>
-</html>
-```
+<Code code={mountHtml} lang="html" title="mount.html" />
 
 ## Advanced Features
 
@@ -93,63 +33,31 @@ st.write("Hello,", name or "world")
 
 You can create multipage apps by mounting multiple files, including an entrypoint and page files in a `pages/` directory.
 
-```js
-mount(
-  {
-    entrypoint: "👋_Hello.py",
-    files: {
-      "👋_Hello.py": `
-import streamlit as st
-st.title("Main page")
-`,
-      "pages/1_⭐️_Page1.py": `
-import streamlit as st
-st.title("Page 1")
-`,
-    },
-  },
-  document.getElementById("root"),
-);
-```
+import multipageJs from '../../examples/browser/multipage.js?raw';
+
+<Code code={multipageJs} lang="js" title="multipage.js" />
 
 ### Installing Packages
 
 Use the `requirements` option to install Python packages.
 
-```js
-mount(
-  {
-    requirements: ["matplotlib", "pandas"],
-    entrypoint: "streamlit_app.py",
-    files: {
-        // ...
-    }
-  },
-  document.getElementById("root"),
-);
-```
+import installPackagesJs from '../../examples/browser/install-packages.js?raw';
+
+<Code code={installPackagesJs} lang="js" title="install-packages.js" />
 
 ### SharedWorker Mode
 
 To reduce memory consumption when running multiple Stlite apps, enable `SharedWorker` mode.
 
-```html
-<streamlit-app shared-worker>
-  ...
-</streamlit-app>
-```
+import sharedWorkerHtml from '../../examples/browser/shared-worker.html?raw';
+
+<Code code={sharedWorkerHtml} lang="html" title="shared-worker.html" />
 
 Or with `mount()`:
 
-```js
-mount(
-  {
-    sharedWorker: true,
-    // ...
-  },
-  document.getElementById("root")
-);
-```
+import sharedWorkerJs from '../../examples/browser/shared-worker.js?raw';
+
+<Code code={sharedWorkerJs} lang="js" title="shared-worker.js" />
 
 > [!NOTE]
 > SharedWorker does not work in some environments like Chrome for Android. Stlite will fall back to standard Workers in these cases.

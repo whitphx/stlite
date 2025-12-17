@@ -6184,7 +6184,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stlite/desktop@workspace:^, @stlite/desktop@workspace:packages/desktop":
+"@stlite/desktop@workspace:*, @stlite/desktop@workspace:^, @stlite/desktop@workspace:packages/desktop":
   version: 0.0.0-use.local
   resolution: "@stlite/desktop@workspace:packages/desktop"
   dependencies:
@@ -13662,6 +13662,7 @@ __metadata:
   dependencies:
     "@astrojs/starlight": "npm:^0.37.1"
     "@stlite/browser": "workspace:*"
+    "@stlite/desktop": "workspace:*"
     astro: "npm:^5.16.6"
     sharp: "npm:^0.34.2"
   languageName: unknown

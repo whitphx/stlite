@@ -17,8 +17,11 @@ import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outl
 Create a `package.json` file for your new project:
 
 import packageJson from '../../examples/desktop/package.json?raw';
+import pkg from '@stlite/desktop/package.json';
 
-<Code code={packageJson} lang="json" title="package.json" />
+export const packageJsonWithVersion = packageJson.replace('{{VERSION}}', pkg.version);
+
+<Code code={packageJsonWithVersion} lang="json" title="package.json" />
 
 Run installation:
 ```bash

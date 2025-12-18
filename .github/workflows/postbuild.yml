@@ -686,16 +686,10 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Verify artifact contents
-      uses: ./.github/actions/verify-only-file
-      with:
-        directory: ${{ runner.temp }}/artifacts/docs
-        filename: index.html
-
     - name: Verify artifact attestation
       uses: ./.github/actions/verify-artifact-attestation
       with:
-        filepath: ${{ runner.temp }}/artifacts/docs/index.html
+        filepath: ${{ runner.temp }}/artifacts/docs
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -28,7 +28,8 @@
         "default": "./build/stlite.js"
       }
     },
-    "./wheels/*.whl": "./build/wheels/*.whl"
+    "./wheels/*.whl": "./build/wheels/*.whl",
+    "./package.json": "./package.json"
   },
   "browser": "./build/stlite.js",
   "types": "./build/stlite.d.ts",

@@ -723,3 +723,41 @@ jobs:
         key: desktop
         name: "@stlite/desktop"
         input-path: packages/desktop/package.tgz
+
+  build-docs:
+    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed.
+
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write
+
+    steps:
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      with:
+        submodules: true
+        persist-credentials: false
+    - uses: ./.github/actions/init-all
+      with:
+        python-version-file: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+
+    - name: Build docs
+      run: |
+        yarn build
+      working-directory: docs
+
+    - name: Upload the built directory as an artifact
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      with:
+        path: docs/dist
+        name: stlite-docs
+
+    - name: Generate artifact attestation
+      uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+      with:
+        subject-path: docs/dist
+      continue-on-error: true

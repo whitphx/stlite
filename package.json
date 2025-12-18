@@ -5,7 +5,8 @@
     "packages/*",
     "streamlit/frontend",
     "streamlit/frontend/*",
-    "packages/desktop/samples/*"
+    "packages/desktop/samples/*",
+    "docs"
   ],
   "engines": {
     "node": ">=22"

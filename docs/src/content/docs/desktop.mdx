@@ -1,0 +1,129 @@
+---
+title: "@stlite/desktop"
+description: Convert your Streamlit application into a desktop app.
+---
+
+`@stlite/desktop` allows you to convert your [Streamlit](https://streamlit.io/) application into a desktop app with [Stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
+
+import { Code } from '@astrojs/starlight/components';
+import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outlined.svg';
+
+<img src={stliteDesktopBanner.src} alt="Stlite Desktop Banner" style="background: white;" />
+
+## Quick Start
+
+### 1. Initialize Project
+
+Create a `package.json` file for your new project:
+
+import packageJson from '../../examples/desktop/package.json?raw';
+import pkg from '@stlite/desktop/package.json';
+
+export const packageJsonWithVersion = packageJson.replace('{{VERSION}}', pkg.version);
+
+<Code code={packageJsonWithVersion} lang="json" title="package.json" />
+
+Run installation:
+```bash
+npm install
+# or
+yarn install
+```
+
+### 2. Create Application
+
+Create `app.py`:
+
+import appPy from '../../examples/desktop/app.py?raw';
+
+<Code code={appPy} lang="python" title="app.py" />
+
+### 3. Build & Run
+
+**Dump artifacts (prepare build):**
+```bash
+npm run dump
+```
+
+**Preview:**
+```bash
+npm run serve
+```
+
+**Distribute:**
+```bash
+npm run app:dist
+```
+This generates the application files (`.app`, `.exe`, etc.) in the `dist` directory.
+
+## Configuration
+
+Configure your app via the `stlite.desktop` section in `package.json`.
+
+### Files and Dependencies
+
+```json
+"stlite": {
+  "desktop": {
+    "files": ["app.py", "pages/*.py", "assets"],
+    "entrypoint": "app.py",
+    "dependencies": ["numpy", "pandas"],
+    "requirementsTxtFiles": ["requirements.txt"]
+  }
+}
+```
+
+- **files**: Files and directories to include.
+- **entrypoint**: The main script to run.
+- **dependencies**: List of packages to install.
+- **requirementsTxtFiles**: List of `requirements.txt` files to install.
+
+### UI Customization
+
+Hide the toolbar and hamburger menu (Embed mode):
+
+```json
+"stlite": {
+  "desktop": {
+    "embed": true
+  }
+}
+```
+
+## File System & Persistence
+
+### IndexedDB Persistence
+
+Mount an IndexedDB-backed directory to persist files across restarts.
+
+```json
+"stlite": {
+  "desktop": {
+    "idbfsMountpoints": ["/mnt"]
+  }
+}
+```
+
+### Local File Access (NodeJS Worker)
+
+To access the host OS file system, enable `nodeJsWorker` and mount directories.
+
+```json
+"stlite": {
+  "desktop": {
+    "nodeJsWorker": true,
+    "nodefsMountpoints": {
+      "/mnt": "."
+    }
+  }
+}
+```
+
+This mounts the current directory (`.`) of the host to `/mnt` in the virtual file system.
+
+> [!TIP]
+> You can use placeholders like `{{home}}`, `{{userData}}`, `{{temp}}` in the host paths.
+
+## Limitations
+
+- **External Links**: Navigation to external URLs (e.g. `st.markdown("[link](https://...)")`) is restricted for security.

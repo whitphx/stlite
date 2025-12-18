@@ -1,0 +1,192 @@
+:root {
+    /* Stlite Brand Color: #f44b4b -> Milder: #f06262 -> Vivid but soft: #ff6b6b */
+    --sl-color-accent-low: #3f1515;
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #ffe3e3;
+}
+
+[data-theme='dark'] {
+    /* Use vivid red as the main accent color in dark mode */
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #ffe3e3;
+    --sl-color-accent-low: #3f1515;
+}
+
+[data-theme='light'] {
+    --sl-color-accent-low: #fff0f0;
+    --sl-color-accent: #ff6b6b;
+    --sl-color-accent-high: #c22e2e;
+}
+
+/* Force vivid primary button in dark mode */
+[data-theme='dark'] .sl-link-button.primary {
+    background-color: #ff6b6b !important;
+    color: var(--sl-color-black) !important;
+    border-color: #ff6b6b !important;
+}
+
+[data-theme='dark'] .sl-link-button.primary:hover {
+    background-color: #ff8585 !important;
+    /* Slightly lighter on hover */
+    color: var(--sl-color-black) !important;
+}
+
+/* Hide site title text (logo replaces it) */
+.site-title {
+    font-size: 0 !important;
+}
+
+/* Sponsor Layout Styles */
+.sponsors-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.sponsor-tier {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.sponsor-logo {
+    display: block;
+    object-fit: contain;
+    /* Ensure visibility on dark mode - add white bg and padding */
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.sponsor-logo:hover {
+    transform: scale(1.05);
+}
+
+.h-100 {
+    height: 100px;
+    width: auto;
+}
+
+.h-72 {
+    height: 72px;
+    width: auto;
+}
+
+.h-50 {
+    height: 50px;
+    width: auto;
+}
+
+/* Specific fix for Snowflake logo which is wide */
+img[alt="Snowflake"].h-100 {
+    /* Maintain aspect ratio but constrain height */
+    height: 100px;
+}
+
+/* Support links layout */
+.support-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.sponsors-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Custom Homepage Hero Layout */
+.hero-custom-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 1rem;
+    width: 100%;
+}
+
+.hero-playground-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Remove Split View Media Query overrides since we want stacked on desktop too */
+@media (min-width: 768px) {
+
+    /* Optimization for larger screens if needed, but currently stacked is requested */
+    .hero-content {
+        max-width: 900px;
+    }
+}
+
+.hero-logo-container {
+    margin-bottom: 2rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-logo {
+    height: auto;
+    width: 200px;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+    /* Center the block image */
+}
+
+/* Theme-based logo toggling */
+[data-theme='light'] .hero-logo-dark {
+    display: none !important;
+}
+
+[data-theme='dark'] .hero-logo-light {
+    display: none !important;
+}
+
+.hero-tagline h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 2rem;
+    color: var(--sl-color-white);
+    /* Ensure text alignment follows parent */
+    text-wrap: balance;
+    /* Improve semantic word breaking */
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* Always center */
+}
+
+/* Remove theme color from neutral links (e.g. GitHub) */
+.neutral-link {
+    color: var(--sl-color-gray-1) !important;
+}
+
+.neutral-link:hover {
+    color: var(--sl-color-gray-1) !important;
+}

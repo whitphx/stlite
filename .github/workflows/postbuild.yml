@@ -680,7 +680,6 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-      id: download
       with:
         name: stlite-docs
         path: ${{ runner.temp }}/artifacts/docs
@@ -690,7 +689,7 @@ jobs:
     - name: Verify artifact attestation
       uses: ./.github/actions/verify-artifact-attestation
       with:
-        filepath: ${{ steps.download.outputs.download-path }}
+        filepath: "${{ runner.temp }}/artifacts/docs/index.html" # XXX: Only index.html is verified while it may be better to verify all files, which takes a longer time though.
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

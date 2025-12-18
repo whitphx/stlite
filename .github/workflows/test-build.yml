@@ -746,7 +746,6 @@ jobs:
       working-directory: docs
 
     - name: Upload the built directory as an artifact
-      id: upload
       uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       with:
         path: docs/dist
@@ -756,5 +755,4 @@ jobs:
       uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
       with:
         subject-path: stlite-docs
-        subject-digest: sha256:${{ steps.upload.outputs.artifact-digest }}
       continue-on-error: true

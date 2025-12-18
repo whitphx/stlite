@@ -689,7 +689,7 @@ jobs:
     - name: Verify artifact attestation
       uses: ./.github/actions/verify-artifact-attestation
       with:
-        filepath: "${{ runner.temp }}/artifacts/docs/index.html" # XXX: Only index.html is verified while it may be better to verify all files, which takes a longer time though.
+        filepath: "${{ runner.temp }}/artifacts/docs/index.html" # XXX: Only index.html is verified because the verification command only supports a single file input, while it may be better to verify all files, which takes a longer time though.
         expected-workflow-file: .github/workflows/test-build.yml
         expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

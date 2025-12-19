@@ -1,0 +1,128 @@
+---
+title: Stlite
+description: Serverless Streamlit Running Entirely in Your Browser
+template: splash
+---
+import { LinkButton, Card, CardGrid } from '@astrojs/starlight/components';
+import stliteLogoLight from '../../assets/stlite.svg';
+import stliteLogoDark from '../../assets/stlite-dark.svg';
+import { Image } from 'astro:assets';
+
+<div class="hero-custom-layout">
+  <div class="hero-content">
+    <div class="hero-logo-container">
+       <Image src={stliteLogoDark} alt="Stlite Logo" class="hero-logo hero-logo-dark" />
+       <Image src={stliteLogoLight} alt="Stlite Logo" class="hero-logo hero-logo-light" />
+    </div>
+    <div class="hero-tagline">
+      <h1>Serverless Streamlit Running Entirely in Your Browser</h1>
+    </div>
+    <div class="hero-actions">
+      <LinkButton href="/browser" variant="primary">Get Started</LinkButton>
+      <LinkButton href="https://github.com/whitphx/stlite" variant="secondary" icon="external">View on GitHub</LinkButton>
+    </div>
+  </div>
+  {/* <div class="hero-playground-container">
+    TODO: Implement the Playground component here.
+  </div> */}
+</div>
+
+<style>{`
+  /* Hide the default Starlight title on this page */
+  h1#_top {
+    display: none !important;
+  }
+`}</style>
+
+<CardGrid stagger>
+	<Card title="@stlite/browser" icon="rocket">
+		Use Stlite on your web page. [Read more](/browser)
+	</Card>
+	<Card title="@stlite/react" icon="puzzle">
+		Integrate Stlite into your React app. [Read more](/react)
+	</Card>
+    <Card title="@stlite/desktop" icon="laptop">
+        Create a desktop app. [Read more](/desktop)
+    </Card>
+</CardGrid>
+
+## Sponsors
+
+<div class="sponsors-layout">
+  <div class="sponsor-tier tier-1">
+    <a href="https://streamlit.io/" target="_blank">
+      <img src="https://streamlit.io/images/brand/streamlit-mark-color.png" alt="Streamlit" class="sponsor-logo h-100" />
+    </a>
+    <a href="https://www.snowflake.com/" target="_blank">
+      <img src="https://docs.snowflake.com/_images/logo-snowflake-sans-text.png" alt="Snowflake" class="sponsor-logo h-100" />
+    </a>
+  </div>
+
+  <div class="sponsor-tier tier-2">
+    <a href="https://www.lambdatest.com/?utm_source=stlite&utm_medium=sponsor" target="_blank">
+      <img src="https://www.lambdatest.com/blue-logo.png" alt="LambdaTest" class="sponsor-logo h-72" />
+    </a>
+  </div>
+
+  <div class="sponsor-tier tier-3">
+    <a href="https://hal9.com/" target="_blank">
+      <img src="https://hal9.com/logo/hal9-square-black.png" alt="Hal9" class="sponsor-logo h-50" />
+    </a>
+    <a href="https://rakudeji.com/" target="_blank">
+      <img src="https://imagedelivery.net/uODi9j-67fGrJlC0UtMj5w/3c47faee-8dab-41fa-ded6-681bdc3e9500/desktop" alt="RAKUDEJI" class="sponsor-logo h-50" />
+    </a>
+  </div>
+</div>
+
+<div class="sponsors-footer">
+  <p>They are sponsoring me on <a href="https://github.com/sponsors/whitphx">GitHub Sponsors</a>! <a href="#support-the-project">Support the project</a>.</p>
+</div>
+
+
+
+## Resources
+
+- [📖 Streamlit meets WebAssembly - stlite, by whitphx](https://www.whitphx.info/posts/20221104-streamlit-wasm-stlite/): A blog post covering from some technical surveys to the usages of the online editor _Stlite Sharing_, self-hosting apps, and the desktop app bundler.
+- [📺 "Serverless Streamlit + OpenCV Python Web App Tutorial", by 1littlecoder, YouTube](https://youtu.be/7Qja9ZAWcfw): A quick tutorial to develop an OpenCV image processing app with _Stlite_ that runs completely on browsers.
+- [📖 "New library: stlite, a port of Streamlit to Wasm, powered by Pyodide", Streamlit Community](https://discuss.streamlit.io/t/new-library-stlite-a-port-of-streamlit-to-wasm-powered-by-pyodide/25556):
+  The Stlite thread at the Streamlit online forum.
+- [📺 "Stlite - Streamlit without Server - powered by Pyodide (WebAssembly)", by 1littlecoder, YouTube](https://youtu.be/VQdktxgbmmg):
+  A quick tutorial with local app development and GitHub Pages deployment.
+- [📺 "How to Convert a Streamlit App to an .EXE Executable", by Fanilo Andrianasolo, YouTube](https://youtu.be/3wZ7GRbr91g):
+  A tutorial to convert a Streamlit app to an executable file with _Stlite_ and a demo to run it on an offline machine.
+- [📖 "Is This the Easiest Way to Build Your Streamlit App?", by Shantala Mukherjee](https://onlyweb.hashnode.dev/is-this-the-easiest-way-to-build-your-streamlit-app)
+- [📖 "The Best Python Desktop App Framework?", by Caleb Robey at Depot Analytics](https://www.depotanalytics.co/post/the-best-python-desktop-app-framework)
+- [📖 "Python-Based Data Viz (With No Installation Required)", by Sam Minot](https://towardsdatascience.com/python-based-data-viz-with-no-installation-required-aaf2358c881)
+- [📖 "Converting Streamlit application to exe file", by Neelasha Sen](https://ploomber.io/blog/streamlit_exe/)
+- [📖 "Streamlit + Stlite: Beyond Data Science Applications", by Saumitra Panchal](https://medium.com/@saumitrapanchal/streamlit-stlite-beyond-data-science-applications-23de64648883)
+- [📖 "stlite: Serverless Streamlit — Run Your Apps in the Browser", by Alan Jones](https://medium.com/codefile/stlite-serverless-streamlit-d1dcf5be35f8)
+
+## Samples
+
+### ⚡️Serverless Image Processing App
+
+Image processing with OpenCV works on the client side.
+
+- Repository📌: https://github.com/whitphx/stlite-image-processing-app
+- Online demo🎈: https://whitphx.github.io/stlite-image-processing-app/
+
+<details>
+  <summary>See the tutorial video</summary>
+
+[Serverless Streamlit + OpenCV Python Web App Tutorial](https://youtu.be/7Qja9ZAWcfw), crafted by [1littlecoder](https://www.youtube.com/c/1littlecoder).
+
+[![Serverless Streamlit + OpenCV Python Web App Tutorial](https://img.youtube.com/vi/7Qja9ZAWcfw/0.jpg)](https://youtu.be/7Qja9ZAWcfw)
+
+</details>
+
+
+
+## Support the project
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)
+
+[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" />](https://www.buymeacoffee.com/whitphx)
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/whitphx?label=Sponsor%20me%20on%20GitHub%20Sponsors&style=social)](https://github.com/sponsors/whitphx)
+
+Contact the author: [Twitter](https://twitter.com/whitphx) / [LinkedIn](https://www.linkedin.com/in/whitphx/).

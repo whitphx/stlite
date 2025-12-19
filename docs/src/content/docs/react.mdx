@@ -1,0 +1,67 @@
+---
+title: "@stlite/react"
+description: React bindings for running Streamlit entirely in the browser.
+---
+
+`@stlite/react` provides React bindings for running Streamlit entirely in the browser with Stlite. It connects the Pyodide-backed kernel to the Streamlit UI.
+
+import { Code } from '@astrojs/starlight/components';
+
+## Installation
+
+```bash
+npm install @stlite/react
+```
+
+## Usage
+
+### 1. Configuration (Vite)
+
+Update `vite.config.ts` to add the helper plugin so some assets are bundled correctly.
+Import `stliteReactPlugin` from `@stlite/react/vite-plugin`.
+
+import viteConfigTs from '../../examples/react/vite.config.ts?raw';
+
+<Code code={viteConfigTs} lang="ts" title="vite.config.ts" />
+
+### 2. Implementation
+
+Create a kernel, pass the bundled wheel URLs, and render the app.
+
+import AppTsx from '../../examples/react/App.tsx?raw';
+
+<Code code={AppTsx} lang="tsx" title="App.tsx" />
+
+## Components
+
+### `<StliteAppWithToast />`
+
+A wrapper around `<StliteApp />` that includes toast notifications for:
+- Loading progress
+- Errors
+- Module auto-loading
+
+**Props:**
+
+- `kernel`: `StliteKernel` - The kernel instance created with `createKernel`.
+- `disableProgressToasts`: `boolean` (optional)
+- `disableErrorToasts`: `boolean` (optional)
+- `disableModuleAutoLoadToasts`: `boolean` (optional)
+
+### `<StliteApp />`
+
+The core component that renders the Streamlit app UI. It does not show any toast notifications.
+
+**Props:**
+
+- `kernel`: `StliteKernel` - The kernel instance.
+
+## API Reference
+
+### `createKernel(options)`
+
+Creates a new `StliteKernel` instance.
+
+**Options:**
+
+See the `StliteKernelOptions` in `@stlite/browser` documentation (conceptually similar, though typed strictly in TypeScript). The key difference is `wheelUrls` which should be imported from `@stlite/react/vite-utils` to ensure correct asset loading with Vite.

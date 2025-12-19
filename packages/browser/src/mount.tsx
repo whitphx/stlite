@@ -42,6 +42,14 @@ export function mount(
     install: (requirements: string[], options?: MicropipInstallOptions) => {
       return kernel.install(requirements, options);
     },
+    addMockPackage: (
+      name: string,
+      version: string,
+      modules?: Record<string, string>,
+      persistent?: boolean,
+    ) => {
+      return kernel.addMockPackage(name, version, modules, persistent);
+    },
     writeFile: (
       path: string,
       data: string | ArrayBufferView,

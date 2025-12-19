@@ -455,6 +455,27 @@ export class StliteKernel extends EventTarget {
     await promise;
   }
 
+  public async addMockPackage(
+    name: string,
+    version: string,
+    modules?: Record<string, string>,
+    persistent?: boolean,
+  ): Promise<void> {
+    await this.loaded;
+
+    const promise = this._asyncPostMessage({
+      type: "add_mock_package",
+      data: {
+        name,
+        version,
+        modules,
+        persistent,
+      },
+    });
+
+    await promise;
+  }
+
   public async setEnv(env: Record<string, string>): Promise<void> {
     Object.keys(env).forEach((key) => {
       if (!validateEnvKey(key)) {

@@ -783,6 +783,25 @@ export function startWorkerEnv(
           });
           break;
         }
+        case "add_mock_package": {
+          const { name, version, modules, persistent } = msg.data;
+          console.debug("Add a mock package:", {
+            name,
+            version,
+            modules,
+            persistent,
+          });
+          micropip.add_mock_package.callKwargs({
+            name,
+            version,
+            modules: pyodide.toPy(modules),
+            persistent,
+          });
+          reply({
+            type: "reply",
+          });
+          break;
+        }
       }
     } catch (error) {
       console.error(error);

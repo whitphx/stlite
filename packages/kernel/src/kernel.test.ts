@@ -48,5 +48,30 @@ pytz.__version__
       `);
       expect(result).toBe("2025.2");
     });
+
+    test("kernel.addMockPackage() can mock a package", async () => {
+      await kernel.addMockPackage("foo", "1.2.3");
+      const result = await kernel.runPython(`
+import foo
+foo.__name__
+      `);
+      expect(result).toBe("foo");
+    });
+
+    test("kernel.addMockPackage() can mock a package with options", async () => {
+      await kernel.addMockPackage(
+        "mock_pkg",
+        "1.2.3",
+        {
+          mock_pkg: "version = '1.2.3'",
+        },
+        true,
+      );
+      const result = await kernel.runPython(`
+import mock_pkg
+mock_pkg.version
+      `);
+      expect(result).toBe("1.2.3");
+    });
   },
 );

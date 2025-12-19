@@ -27,17 +27,17 @@ export default defineConfig({
 					tag: 'link',
 					attrs: {
 						rel: 'icon',
-						href: '/favicon-48x48.png',
-						sizes: '48x48',
+						href: '/favicon.svg',
+						sizes: 'any',
+						type: 'image/svg+xml',
 					},
 				},
 				{
 					tag: 'link',
 					attrs: {
 						rel: 'icon',
-						href: '/favicon.svg',
-						sizes: 'any',
-						type: 'image/svg+xml',
+						href: '/favicon-48x48.png',
+						sizes: '48x48',
 					},
 				},
 				{

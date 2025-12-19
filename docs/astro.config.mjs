@@ -22,6 +22,39 @@ export default defineConfig({
 				{ label: '@stlite/react', slug: 'react' },
 				{ label: '@stlite/desktop', slug: 'desktop' },
 			],
+			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon.svg',
+						sizes: 'any',
+						type: 'image/svg+xml',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon-48x48.png',
+						sizes: '48x48',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'apple-touch-icon',
+						href: '/apple-touch-icon.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'manifest',
+						href: '/site.webmanifest',
+					},
+				},
+			],
 		}),
 	],
 });

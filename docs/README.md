@@ -31,6 +31,14 @@ Images can be added to `src/assets/` and embedded in Markdown with a relative li
 
 Static assets, like favicons, can be placed in the `public/` directory.
 
+### Favicon generation
+
+When updating the site icon (`src/assets/icon.svg`), regenerate the favicon assets:
+
+```bash
+npm run gen:favicon
+```
+
 ## 🧞 Commands
 
 All commands are run from the root of the project, from a terminal:

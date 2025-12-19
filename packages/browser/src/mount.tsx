@@ -4,7 +4,6 @@ import {
   StliteAppWithToast,
   createKernel,
   type MicropipInstallOptions,
-  type AddMockPackageOptions,
 } from "@stlite/react";
 import { wheelUrls } from "@stlite/react/vite-utils";
 import "@stlite/react/stlite.css";
@@ -47,9 +46,9 @@ export function mount(
       name: string,
       version: string,
       modules?: Record<string, string>,
-      options?: AddMockPackageOptions,
+      persistent?: boolean,
     ) => {
-      return kernel.addMockPackage(name, version, modules, options);
+      return kernel.addMockPackage(name, version, modules, persistent);
     },
     writeFile: (
       path: string,

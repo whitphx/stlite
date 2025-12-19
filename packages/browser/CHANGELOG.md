@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.95.0
+
+### Minor Changes
+
+- [#1786](https://github.com/whitphx/stlite/pull/1786) [`430ee6f`](https://github.com/whitphx/stlite/commit/430ee6f81da90a7706c188872dad6da38941667b) Thanks [@whitphx](https://github.com/whitphx)! - Add API to call micropip.add_mock_package
+
 ## 0.94.0
 
 ### Minor Changes

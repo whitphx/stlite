@@ -8,7 +8,7 @@ export default defineConfig({
 		starlight({
 			title: 'Stlite',
 			logo: {
-				src: './src/assets/stlite.svg',
+				src: './src/assets/logo-themed.svg',
 				replacesTitle: true,
 			},
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/whitphx/stlite' }],

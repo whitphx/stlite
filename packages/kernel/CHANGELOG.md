@@ -1,5 +1,15 @@
 # @stlite/kernel
 
+## 0.97.0
+
+### Minor Changes
+
+- [#1786](https://github.com/whitphx/stlite/pull/1786) [`430ee6f`](https://github.com/whitphx/stlite/commit/430ee6f81da90a7706c188872dad6da38941667b) Thanks [@whitphx](https://github.com/whitphx)! - Add API to call micropip.add_mock_package
+
+### Patch Changes
+
+- [#1785](https://github.com/whitphx/stlite/pull/1785) [`effa582`](https://github.com/whitphx/stlite/commit/effa5827a298f798decba3d554e60c84660f94cc) Thanks [@whitphx](https://github.com/whitphx)! - Internal update to support AbortSignal on the pseudo HTTP requests
+
 ## 0.96.0
 
 ### Minor Changes

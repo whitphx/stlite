@@ -4,15 +4,13 @@ description: Serverless Streamlit Running Entirely in Your Browser
 template: splash
 ---
 import { LinkButton, Card, CardGrid } from '@astrojs/starlight/components';
-import stliteLogoLight from '../../assets/stlite.svg';
-import stliteLogoDark from '../../assets/stlite-dark.svg';
+import stliteLogo from '../../assets/logo-themed.svg';
 import { Image } from 'astro:assets';
 
 <div class="hero-custom-layout">
   <div class="hero-content">
     <div class="hero-logo-container">
-       <Image src={stliteLogoDark} alt="Stlite Logo" class="hero-logo hero-logo-dark" />
-       <Image src={stliteLogoLight} alt="Stlite Logo" class="hero-logo hero-logo-light" />
+       <Image src={stliteLogo} alt="Stlite Logo" class="hero-logo" />
     </div>
     <div class="hero-tagline">
       <h1>Serverless Streamlit Running Entirely in Your Browser</h1>

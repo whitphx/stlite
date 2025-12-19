@@ -731,34 +731,6 @@ export function startWorkerEnv(
             });
           break;
         }
-        case "add_mock_package": {
-          const { name, version, modules, options } = msg.data;
-
-          console.debug("Add a mock package:", name, version, modules, options);
-          const locals = pyodide.toPy({
-            name,
-            version,
-            modules,
-            options: options || {},
-          });
-          try {
-            pyodide.runPython(
-              `
-import micropip
-import importlib
-micropip.add_mock_package(name, version, modules=modules, **options)
-importlib.invalidate_caches()
-              `,
-              { globals: locals },
-            );
-          } finally {
-            locals.destroy();
-          }
-          reply({
-            type: "reply",
-          });
-          break;
-        }
         case "setEnv": {
           const { env } = msg.data;
           const os = pyodide.pyimport("os");
@@ -808,6 +780,25 @@ importlib.invalidate_caches()
             data: {
               result,
             },
+          });
+          break;
+        }
+        case "add_mock_package": {
+          const { name, version, modules, persistent } = msg.data;
+          console.debug("Add a mock package:", {
+            name,
+            version,
+            modules,
+            persistent,
+          });
+          micropip.add_mock_package.callKwargs({
+            name,
+            version,
+            modules: pyodide.toPy(modules),
+            persistent,
+          });
+          reply({
+            type: "reply",
           });
           break;
         }

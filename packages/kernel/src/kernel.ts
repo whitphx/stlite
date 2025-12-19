@@ -23,7 +23,6 @@ import type {
   ModuleAutoLoadMessage,
   CodeCompletion,
   MicropipInstallOptions,
-  AddMockPackageOptions,
 } from "./types";
 import { assertStreamlitConfig } from "./types";
 
@@ -460,7 +459,7 @@ export class StliteKernel extends EventTarget {
     name: string,
     version: string,
     modules?: Record<string, string>,
-    options?: AddMockPackageOptions,
+    persistent?: boolean,
   ): Promise<void> {
     await this.loaded;
 
@@ -470,7 +469,7 @@ export class StliteKernel extends EventTarget {
         name,
         version,
         modules,
-        options,
+        persistent,
       },
     });
 

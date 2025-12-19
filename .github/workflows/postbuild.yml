@@ -729,7 +729,7 @@ jobs:
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
 
-            - \`${previewUrl}\`
+            ${previewUrl}
             `
             });
 

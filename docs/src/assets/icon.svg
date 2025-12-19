@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   id="svg1"
+   width="900"
+   height="900"
+   viewBox="90 20 900 900"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg" >
+   <g
+      id="g9"
+      transform="matrix(0.65976454,0,0,0.65976454,162.092,-411.0193)"
+      >
+      <path
+         id="path2"
+         d="m 0,0 -150,-258 426,157 c 69,26 89,34 111,116 l 46,171 -730,-61 c -73,-6 -86,-16 -106,-49 z"
+         fill="#f44b4b"
+         transform="matrix(1.3333333,0,0,-1.3333333,537.33333,1408)"
+      />
+      <path
+         id="path4"
+         d="M 0,0 -226,42 -376,-216 50,-59 C 77,-49 80,-21 0,0"
+         fill="#ad4a52"
+         transform="matrix(1.3333333,0,0,-1.3333333,838.66667,1464)"
+      />
+      <path
+         id="path6"
+         d="m 0,0 259,-49 c 64,-13 164,-35 198,-85 l -298,-25 c -23,0 -33,7 -53,31 z"
+         fill="#ff7f7f"
+         transform="matrix(1.3333333,0,0,-1.3333333,306.66667,914.66667)"
+      />
+   </g>
+</svg>

@@ -210,11 +210,11 @@ img[alt="Snowflake"].h-100 {
     /* Center on mobile default */
 }
 
-/* Remove theme color from neutral links (e.g. GitHub) */
-.neutral-link {
+/* Neutralize GitHub icon color */
+.social-icons a[href*="github.com"] {
     color: var(--sl-color-gray-1) !important;
 }
 
-.neutral-link:hover {
-    color: var(--sl-color-gray-1) !important;
+.social-icons a[href*="github.com"]:hover {
+    color: var(--sl-color-white) !important;
 }

@@ -109,6 +109,7 @@ img[alt="Snowflake"].h-100 {
 .hero-custom-layout {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2rem;
     width: 100%;
 }

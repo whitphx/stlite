@@ -1,7 +1,7 @@
 import log from "loglevel";
 import type { StliteKernel } from "@stlite/kernel";
 import { StliteKernelProvider } from "@stlite/kernel/contexts";
-import ThemedApp from "@streamlit/app/src/ThemedApp";
+import StliteThemedApp from "./StliteThemedApp";
 import { Client as Styletron } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";
 
@@ -20,7 +20,7 @@ function StliteApp(props: StliteAppProps) {
   return (
     <StliteKernelProvider kernel={props.kernel}>
       <StyletronProvider value={engine}>
-        <ThemedApp streamlitExecutionStartedAt={streamlitExecutionStartedAt} />
+        <StliteThemedApp streamlitExecutionStartedAt={streamlitExecutionStartedAt} />
       </StyletronProvider>
     </StliteKernelProvider>
   );

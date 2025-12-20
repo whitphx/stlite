@@ -116,7 +116,7 @@ img[alt="Snowflake"].h-100 {
 
 .hero-content {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
     text-align: center;
     padding: 4rem 1rem;
@@ -131,11 +131,37 @@ img[alt="Snowflake"].h-100 {
 }
 
 /* Remove Split View Media Query overrides since we want stacked on desktop too */
-@media (min-width: 768px) {
-
-    /* Optimization for larger screens if needed, but currently stacked is requested */
+@media (min-width: 960px) {
     .hero-content {
-        max-width: 900px;
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        max-width: 1100px;
+        /* Wider max-width for side-by-side */
+    }
+
+    .hero-copy {
+        flex: 1;
+        padding-right: 4rem;
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-actions {
+        justify-content: flex-start;
+    }
+
+    .hero-logo-container {
+        width: 40%;
+        max-width: 400px;
+        margin-bottom: 0;
+        justify-content: flex-end;
+    }
+
+    .hero-logo {
+        width: 100%;
+        margin: 0;
     }
 }
 
@@ -180,7 +206,7 @@ img[alt="Snowflake"].h-100 {
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    /* Always center */
+    /* Center on mobile default */
 }
 
 /* Remove theme color from neutral links (e.g. GitHub) */

@@ -14,7 +14,7 @@
 
 [data-theme='light'] {
     --sl-color-accent-low: #fff0f0;
-    --sl-color-accent: #ff6b6b;
+    --sl-color-accent: #ff4b4b;
     --sl-color-accent-high: #c22e2e;
 }
 
@@ -109,16 +109,18 @@ img[alt="Snowflake"].h-100 {
 .hero-custom-layout {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2rem;
     width: 100%;
 }
 
 .hero-content {
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: center;
     text-align: center;
-    padding: 4rem 1rem;
+    padding: 0 1rem 4rem;
+    /* Less padding on top for mobile */
     width: 100%;
 }
 
@@ -129,25 +131,58 @@ img[alt="Snowflake"].h-100 {
     margin-top: 1rem;
 }
 
-/* Remove Split View Media Query overrides since we want stacked on desktop too */
-@media (min-width: 768px) {
+.hero-copy {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-    /* Optimization for larger screens if needed, but currently stacked is requested */
+/* Responsive hero layout: stacked on mobile, side-by-side (row) on desktop */
+@media (min-width: 960px) {
     .hero-content {
-        max-width: 900px;
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        /* Wider max-width for side-by-side */
+        max-width: 1100px;
+        padding: 4rem 1rem;
+    }
+
+    .hero-copy {
+        flex: 1;
+        padding-right: 4rem;
+        align-items: flex-start;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-actions {
+        justify-content: flex-start;
+    }
+
+    .hero-logo-container {
+        width: 40%;
+        max-width: 500px;
+        margin-bottom: 0;
+        justify-content: flex-end;
+    }
+
+    .hero-logo {
+        width: 100%;
+        margin: 0;
     }
 }
 
 .hero-logo-container {
     margin-bottom: 2rem;
-    width: 100%;
     display: flex;
     justify-content: center;
 }
 
 .hero-logo {
     height: auto;
-    width: 200px;
+    width: 320px;
     max-width: 100%;
     display: block;
     margin: 0 auto;
@@ -165,19 +200,28 @@ img[alt="Snowflake"].h-100 {
     /* Improve semantic word breaking */
 }
 
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    color: var(--sl-color-gray-2);
+    text-wrap: balance;
+}
+
 .hero-actions {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    /* Always center */
+    /* Center on mobile default */
 }
 
-/* Remove theme color from neutral links (e.g. GitHub) */
-.neutral-link {
+/* Neutralize GitHub icon color */
+.social-icons a[href*="github.com"] {
     color: var(--sl-color-gray-1) !important;
 }
 
-.neutral-link:hover {
-    color: var(--sl-color-gray-1) !important;
+.social-icons a[href*="github.com"]:hover {
+    color: var(--sl-color-white) !important;
 }

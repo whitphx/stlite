@@ -131,6 +131,13 @@ img[alt="Snowflake"].h-100 {
     margin-top: 1rem;
 }
 
+.hero-copy {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* Responsive hero layout: stacked on mobile, side-by-side (row) on desktop */
 @media (min-width: 960px) {
     .hero-content {

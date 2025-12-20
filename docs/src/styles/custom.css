@@ -165,6 +165,15 @@ img[alt="Snowflake"].h-100 {
     /* Improve semantic word breaking */
 }
 
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    color: var(--sl-color-gray-2);
+    text-wrap: balance;
+}
+
 .hero-actions {
     display: flex;
     gap: 1rem;

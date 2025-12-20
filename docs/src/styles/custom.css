@@ -154,7 +154,7 @@ img[alt="Snowflake"].h-100 {
 
     .hero-logo-container {
         width: 40%;
-        max-width: 400px;
+        max-width: 500px;
         margin-bottom: 0;
         justify-content: flex-end;
     }
@@ -167,14 +167,13 @@ img[alt="Snowflake"].h-100 {
 
 .hero-logo-container {
     margin-bottom: 2rem;
-    width: 100%;
     display: flex;
     justify-content: center;
 }
 
 .hero-logo {
     height: auto;
-    width: 200px;
+    width: 320px;
     max-width: 100%;
     display: block;
     margin: 0 auto;

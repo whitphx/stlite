@@ -22,7 +22,7 @@
     "@stlite/desktop": "workspace:^",
     "cross-env": "^10.1.0",
     "electron": "34.3.0",
-    "electron-builder": "^26.3.0"
+    "electron-builder": "^26.4.0"
   },
   "stlite": {
     "desktop": {

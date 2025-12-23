@@ -71,7 +71,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
-    "pyodide": "0.28.2",
+    "pyodide": "0.29.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.46.2",
     "vitest": "^4.0.15"

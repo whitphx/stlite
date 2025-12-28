@@ -17,16 +17,13 @@ import type { WorkerInitialData } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 import type { PyProxy } from "pyodide/ffi";
 
-interface InitializeWorkerEnvOptions {
+interface CallStartWorkerEnvOptions {
   entrypoint: string;
   files: WorkerInitialData["files"];
   requirements?: WorkerInitialData["requirements"];
   languageServer?: boolean;
 }
-async function initializeWorkerEnv(
-  options: InitializeWorkerEnvOptions,
-  appId?: string,
-): Promise<PyodideInterface> {
+async function mockStartWorkerEnv() {
   const pyodideLoader: typeof import("./pyodide-loader") =
     await vitest.importActual("./pyodide-loader");
   const initPyodide = pyodideLoader.initPyodide;
@@ -48,38 +45,51 @@ async function initializeWorkerEnv(
   // to reset the module cache and re-import the module.
   const { startWorkerEnv } = await import("./worker-runtime");
 
-  return new Promise<PyodideInterface>((resolve, reject) => {
-    const postMessage: PostMessageFn = (message) => {
-      if (message.type === "event:loadFinished") {
-        expect(initPyodideMock).toHaveBeenCalled();
-        initPyodideMock.mockRestore();
-        resolve(pyodide);
-      } else if (message.type === "event:loadError") {
-        reject(message.data.error);
-      }
-    };
+  return function callStartWorkerEnv(
+    options: CallStartWorkerEnvOptions,
+    appId?: string,
+  ) {
+    return new Promise<PyodideInterface>((resolve, reject) => {
+      const postMessage: PostMessageFn = (message) => {
+        if (message.type === "event:loadFinished") {
+          if (!pyodide) {
+            throw new Error(
+              "Unexpected case; initPyodide must have been called once before this point.",
+            );
+          }
+          resolve(pyodide);
+        } else if (message.type === "event:loadError") {
+          reject(message.data.error);
+        }
+      };
 
-    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined, appId);
+      const onMessage = startWorkerEnv(
+        pyodideUrl,
+        postMessage,
+        undefined,
+        appId,
+      );
 
-    // Send the initializer message to the worker.
-    onMessage(
-      new MessageEvent("message", {
-        data: {
-          type: "initData",
+      // Send the initializer message to the worker.
+      onMessage(
+        new MessageEvent("message", {
           data: {
-            files: options.files,
-            entrypoint: options.entrypoint,
-            wheels: getWheelUrls(),
-            archives: [],
-            requirements: options.requirements ?? [],
-            moduleAutoLoad: false,
-            prebuiltPackageNames: [],
-            languageServer: options.languageServer ?? false,
+            type: "initData",
+            data: {
+              files: options.files,
+              entrypoint: options.entrypoint,
+              wheels: getWheelUrls(),
+              archives: [],
+              requirements: options.requirements ?? [],
+              moduleAutoLoad: false,
+              prebuiltPackageNames: [],
+              languageServer: options.languageServer ?? false,
+            },
           },
-        },
-      }),
-    );
-  });
+        }),
+      );
+    });
+  };
 }
 
 const TEST_SOURCES: {
@@ -210,7 +220,8 @@ suite("Worker integration test running an app", async () => {
           ),
         );
 
-        const pyodide = await initializeWorkerEnv({
+        const callStartWorkerEnv = await mockStartWorkerEnv();
+        const pyodide = await callStartWorkerEnv({
           entrypoint: testSource.entrypoint,
           files,
           requirements: testSource.requirements,
@@ -255,10 +266,12 @@ suite(
             ),
           );
 
+          const callStartWorkerEnv = await mockStartWorkerEnv();
+
           const appIds = ["foo", "bar", "baz"];
           await Promise.all(
             appIds.map(async (appId) => {
-              const pyodide = await initializeWorkerEnv(
+              const pyodide = await callStartWorkerEnv(
                 {
                   entrypoint: testSource.entrypoint,
                   files,
@@ -299,7 +312,8 @@ suite(
       );
       const content = await fsPromises.readFile(filePath);
 
-      const pyodide = await initializeWorkerEnv({
+      const callStartWorkerEnv = await mockStartWorkerEnv();
+      const pyodide = await callStartWorkerEnv({
         entrypoint: "chat.input.py",
         files: {
           "chat.input.py": { data: content },

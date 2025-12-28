@@ -69,6 +69,10 @@ export default defineConfig({
           ),
           dest: "wheels",
         },
+        {
+          src: path.resolve(__dirname, "src/global.css"),
+          dest: ".",
+        },
       ],
     }),
     vitePluginStliteReact({

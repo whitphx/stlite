@@ -36,6 +36,7 @@
       }
     },
     "./stlite.css": "./build/stlite.css",
+    "./global.css": "./build/global.css",
     "./vite-plugin": {
       "import": {
         "types": "./vite-plugin/dist/index.d.ts",

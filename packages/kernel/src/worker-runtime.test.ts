@@ -238,7 +238,7 @@ suite("Worker integration test running an app", async () => {
 });
 
 suite(
-  "Worker integration test running an app with multiple appId",
+  "Worker integration test running an app with multiple appId (SharedWorker scenario)",
   async () => {
     beforeEach(() => {
       vitest.resetModules();
@@ -282,7 +282,7 @@ suite(
 
               await runSmokeTest(
                 pyodide,
-                testSource.entrypoint,
+                `${appId}/${testSource.entrypoint}`,
                 testSource.additionalAppTestCode,
               );
             }),

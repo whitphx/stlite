@@ -25,6 +25,7 @@ interface InitializeWorkerEnvOptions {
 }
 async function initializeWorkerEnv(
   options: InitializeWorkerEnvOptions,
+  appId?: string,
 ): Promise<PyodideInterface> {
   const pyodideLoader: typeof import("./pyodide-loader") =
     await vitest.importActual("./pyodide-loader");
@@ -58,7 +59,7 @@ async function initializeWorkerEnv(
       }
     };
 
-    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
+    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined, appId);
 
     // Send the initializer message to the worker.
     onMessage(
@@ -215,6 +216,84 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
     );
   }
 });
+
+suite(
+  "Worker integration test running an app with multiple appId",
+  async () => {
+    beforeEach(() => {
+      vitest.resetModules();
+    });
+    afterEach(() => {
+      vitest.restoreAllMocks();
+    });
+
+    for (const testSource of TEST_SOURCES) {
+      test(
+        // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
+        `Running ${testSource.entrypoint}`,
+        {
+          timeout: 60 * 1000,
+        },
+        async () => {
+          const files = Object.fromEntries(
+            await Promise.all(
+              Object.entries(testSource.files).map(
+                async ([filename, filepath]) => {
+                  const content = await fsPromises.readFile(filepath);
+                  return [filename, { data: content }];
+                },
+              ),
+            ),
+          );
+
+          const appIds = ["foo", "bar", "baz"];
+          await Promise.all(
+            appIds.map(async (appId) => {
+              const pyodide = await initializeWorkerEnv(
+                {
+                  entrypoint: testSource.entrypoint,
+                  files,
+                  requirements: testSource.requirements,
+                },
+                appId,
+              );
+
+              pyodide.globals.set(
+                "__additionalAppTestCode__",
+                testSource.additionalAppTestCode,
+              );
+
+              // The code above setting up the worker env is good enough to check if the worker is set up correctly,
+              // but it doesn't check the error occurred inside the Streamlit app running in the worker.
+              // So, we use the code below to test if the Streamlit app runs without any error.
+              await pyodide.runPythonAsync(`
+import ast
+import asyncio
+import warnings
+from streamlit.testing.v1 import AppTest
+
+at = AppTest.from_file("${testSource.entrypoint}")
+
+with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
+    warnings.simplefilter("always")
+    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+
+    await at.run()
+
+    if __additionalAppTestCode__:
+        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+        await eval(bytecode)
+
+assert not at.exception, f"Exception occurred: {at.exception}"
+assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
+        `);
+            }),
+          );
+        },
+      );
+    }
+  },
+);
 
 suite(
   "Worker language server test",

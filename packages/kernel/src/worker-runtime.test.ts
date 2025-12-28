@@ -41,8 +41,9 @@ async function mockStartWorkerEnv() {
     initPyodide: initPyodideMock,
   }));
 
-  // Use async-import in combination with `vi.resetModules()` in `beforeEach()`
+  // Use async-import in combination with `vi.resetModules()`
   // to reset the module cache and re-import the module.
+  vitest.resetModules();
   const { startWorkerEnv } = await import("./worker-runtime");
 
   return function callStartWorkerEnv(
@@ -240,9 +241,6 @@ suite("Worker integration test running an app", async () => {
 suite(
   "Worker integration test running an app with multiple appId (SharedWorker scenario)",
   async () => {
-    beforeEach(() => {
-      vitest.resetModules();
-    });
     afterEach(() => {
       vitest.restoreAllMocks();
     });

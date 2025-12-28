@@ -150,6 +150,39 @@ await at.run(timeout=20)
   },
 ];
 
+async function runSmokeTest(
+  pyodide: PyodideInterface,
+  entrypoint: string,
+  additionalAppTestCode?: string,
+) {
+  pyodide.globals.set("__additionalAppTestCode__", additionalAppTestCode);
+
+  // The code above setting up the worker env is good enough to check if the worker is set up correctly,
+  // but it doesn't check the error occurred inside the Streamlit app running in the worker.
+  // So, we use the code below to test if the Streamlit app runs without any error.
+  await pyodide.runPythonAsync(`
+import ast
+import asyncio
+import warnings
+from streamlit.testing.v1 import AppTest
+
+at = AppTest.from_file("${entrypoint}")
+
+with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
+    warnings.simplefilter("always")
+    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+
+    await at.run()
+
+    if __additionalAppTestCode__:
+        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+        await eval(bytecode)
+
+assert not at.exception, f"Exception occurred: {at.exception}"
+assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
+        `);
+}
+
 suite("Worker integration test running an app", async () => {
   beforeEach(() => {
     vitest.resetModules();
@@ -183,35 +216,11 @@ suite("Worker integration test running an app", async () => {
           requirements: testSource.requirements,
         });
 
-        pyodide.globals.set(
-          "__additionalAppTestCode__",
+        await runSmokeTest(
+          pyodide,
+          testSource.entrypoint,
           testSource.additionalAppTestCode,
         );
-
-        // The code above setting up the worker env is good enough to check if the worker is set up correctly,
-        // but it doesn't check the error occurred inside the Streamlit app running in the worker.
-        // So, we use the code below to test if the Streamlit app runs without any error.
-        await pyodide.runPythonAsync(`
-import ast
-import asyncio
-import warnings
-from streamlit.testing.v1 import AppTest
-
-at = AppTest.from_file("${testSource.entrypoint}")
-
-with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
-    warnings.simplefilter("always")
-    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
-
-    await at.run()
-
-    if __additionalAppTestCode__:
-        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-        await eval(bytecode)
-
-assert not at.exception, f"Exception occurred: {at.exception}"
-assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
-        `);
       },
     );
   }
@@ -258,35 +267,11 @@ suite(
                 appId,
               );
 
-              pyodide.globals.set(
-                "__additionalAppTestCode__",
+              await runSmokeTest(
+                pyodide,
+                testSource.entrypoint,
                 testSource.additionalAppTestCode,
               );
-
-              // The code above setting up the worker env is good enough to check if the worker is set up correctly,
-              // but it doesn't check the error occurred inside the Streamlit app running in the worker.
-              // So, we use the code below to test if the Streamlit app runs without any error.
-              await pyodide.runPythonAsync(`
-import ast
-import asyncio
-import warnings
-from streamlit.testing.v1 import AppTest
-
-at = AppTest.from_file("${testSource.entrypoint}")
-
-with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
-    warnings.simplefilter("always")
-    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
-
-    await at.run()
-
-    if __additionalAppTestCode__:
-        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-        await eval(bytecode)
-
-assert not at.exception, f"Exception occurred: {at.exception}"
-assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
-        `);
             }),
           );
         },

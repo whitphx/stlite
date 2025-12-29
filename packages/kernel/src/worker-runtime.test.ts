@@ -195,9 +195,6 @@ assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
 }
 
 suite("Worker integration test running an app", async () => {
-  beforeEach(() => {
-    vitest.resetModules();
-  });
   afterEach(() => {
     vitest.restoreAllMocks();
   });

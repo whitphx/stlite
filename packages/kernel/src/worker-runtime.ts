@@ -221,6 +221,7 @@ async function loadPyodideAndPackages(
         console.error("Failed to install the system packages");
         systemPackagesInstallPromiseDelegate.reject(err);
       }
+      throw err;
     });
 
   if (installs) {

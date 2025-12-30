@@ -207,7 +207,7 @@ async function loadPyodideAndPackages(
     packagesToInstall = requirements;
   }
   console.debug("Installing the packages:", packagesToInstall);
-  micropip.install
+  await micropip.install
     .callKwargs(packagesToInstall, { keep_going: true })
     .then(() => {
       if (shouldInstallSystemPackages) {

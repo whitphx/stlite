@@ -8,7 +8,7 @@ import {
   writeFileWithParents,
   renameWithParents,
 } from "./file";
-import { PromiseDelegate, validateRequirements } from "@stlite/common";
+import { validateRequirements } from "@stlite/common";
 import { initPyodide } from "./pyodide-loader";
 import { mockPyArrow } from "./mock";
 import {

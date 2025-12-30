@@ -220,7 +220,7 @@ async function loadPyodideAndPackages(
     await Promise.all(
       installs.map(({ requirements: unvalidatedRequirements, options }) => {
         const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
-        console.debug("Installing the packages:", requirements);
+        console.debug("Installing the requirements:", requirements);
         return micropip.install.callKwargs(requirements, options ?? {});
       }),
     );

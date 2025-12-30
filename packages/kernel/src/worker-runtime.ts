@@ -30,8 +30,8 @@ export type PostMessageFn = (
 ) => void;
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
-let systemPackagesInstallRequested = false;
-const systemPackagesInstallPromiseDelegate = new PromiseDelegate<void>();
+let micropipInstallPromiseChain = Promise.resolve();
+let systemPackagesInstalled = false;
 
 async function loadPyodideAndPackages(
   defaultPyodideUrl: string,
@@ -57,14 +57,6 @@ async function loadPyodideAndPackages(
   } = initData;
 
   const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
-
-  let shouldInstallSystemPackages: boolean;
-  if (!systemPackagesInstallRequested) {
-    systemPackagesInstallRequested = true;
-    shouldInstallSystemPackages = true;
-  } else {
-    shouldInstallSystemPackages = false;
-  }
 
   if (initPyodidePromise) {
     onProgress("Pyodide is already loaded.");
@@ -182,47 +174,46 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage(prebuiltPackages);
   console.debug("Installed the prebuilt packages");
 
-  let packagesToInstall: string[];
-  if (shouldInstallSystemPackages) {
-    console.debug("System packages will be installed");
-    // NOTE: It's important to install the user-specified requirements
-    // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
-    // which satisfies the following two requirements:
-    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    const corePackages: string[] = [];
-    if (wheels) {
-      corePackages.push(wheels.streamlit);
-      corePackages.push(wheels.stliteLib);
-    }
-    if (languageServer) {
-      corePackages.push("jedi");
-    }
-    packagesToInstall = [...requirements, ...corePackages];
-  } else {
-    packagesToInstall = requirements;
-  }
-  console.debug("Installing the packages:", packagesToInstall);
-  await micropip.install
-    .callKwargs(packagesToInstall, { keep_going: true })
-    .then(() => {
-      if (shouldInstallSystemPackages) {
-        console.debug("System packages installed.");
-        systemPackagesInstallPromiseDelegate.resolve();
-      }
-    })
-    .catch((err: Error) => {
-      console.error("Failed to install the packages:", err);
-      if (shouldInstallSystemPackages) {
-        console.error("Failed to install the system packages");
-        systemPackagesInstallPromiseDelegate.reject(err);
-      }
-      throw err;
+  const runInstall = async () => {
+    console.debug("Installing the packages:", {
+      requirements,
+      systemPackagesInstalled,
     });
+    const systemPackagesToInstall: string[] = [];
+    if (!systemPackagesInstalled) {
+      console.debug("System packages will be installed");
+      // NOTE: It's important to install the user-specified requirements
+      // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+      if (wheels) {
+        systemPackagesToInstall.push(wheels.streamlit);
+        systemPackagesToInstall.push(wheels.stliteLib);
+      }
+      if (languageServer) {
+        systemPackagesToInstall.push("jedi");
+      }
+    }
+    const packagesToInstall = [...systemPackagesToInstall, ...requirements];
+    console.debug("Installing the packages:", packagesToInstall);
+    await micropip.install.callKwargs(packagesToInstall, { keep_going: true });
+    if (systemPackagesToInstall.length > 0) {
+      console.debug("Installed the system packages");
+      systemPackagesInstalled = true;
+    }
+    console.debug("Installed the packages");
+  };
+
+  // Make sure runInstall is executed only once at the same time across all the sessions.
+  micropipInstallPromiseChain = micropipInstallPromiseChain.then(() =>
+    runInstall(),
+  );
+  await micropipInstallPromiseChain;
 
   if (installs) {
     console.debug("Installing the additional requirements");
@@ -250,9 +241,6 @@ importlib.invalidate_caches()
 `);
 
   onProgress("Loading streamlit package.");
-  console.debug("Waiting for the system packages to be installed");
-  await systemPackagesInstallPromiseDelegate.promise;
-  console.debug("System packages installation completed");
   console.debug("Loading the Streamlit package");
   // Importing the `streamlit` module takes most of the time,
   // so we first run this step independently for clearer logs and easy exec-time profiling.

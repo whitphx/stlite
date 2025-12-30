@@ -292,26 +292,24 @@ suite(
 
           const appIds = ["foo", "bar", "baz"];
 
-          let pyodide: PyodideInterface;
-          await Promise.all(
-            appIds.map(async (appId) => {
-              const currentPyodide = await callStartWorkerEnv(
+          const pyodideObjects = await Promise.all(
+            appIds.map((appId) =>
+              callStartWorkerEnv(
                 {
                   entrypoint: testSource.entrypoint,
                   files,
                   requirements: testSource.requirements,
                 },
                 appId,
-              );
-
-              if (pyodide) {
-                if (pyodide !== currentPyodide) {
-                  throw new Error("pyodide is not the same reference");
-                }
-              }
-              pyodide = currentPyodide;
-            }),
+              ),
+            ),
           );
+
+          // Assert all pyodideObjects[i] are the same reference.
+          for (let i = 1; i < pyodideObjects.length; i++) {
+            expect(pyodideObjects[i]).toBe(pyodideObjects[0]);
+          }
+          const pyodide: PyodideInterface = pyodideObjects[0];
 
           expect(
             initPyodideMock,

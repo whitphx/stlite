@@ -16,6 +16,7 @@ import { getWheelUrls, pyodideUrl } from "./test-utils";
 import type { WorkerInitialData } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 import type { PyProxy } from "pyodide/ffi";
+import { getAppHomeDir, resolveAppPath } from "./file";
 
 interface CallStartWorkerEnvOptions {
   entrypoint: string;
@@ -293,12 +294,11 @@ suite(
                 appId,
               );
 
-              const homeDir = `/home/pyodide/${appId}`;
               await runStreamlitTest(
                 pyodide,
-                `${homeDir}/${testSource.entrypoint}`,
+                resolveAppPath(appId, testSource.entrypoint),
                 testSource.additionalAppTestCode,
-                homeDir,
+                getAppHomeDir(appId),
               );
             }),
           );

@@ -1,6 +1,7 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import type { PyodideInterface } from "pyodide";
+import type { PyProxy } from "pyodide/ffi";
 import {
   afterAll,
   afterEach,
@@ -11,12 +12,11 @@ import {
   test,
   vitest,
 } from "vitest";
+import { getAppHomeDir, resolveAppPath } from "./file";
 import { getCodeCompletions } from "./code_completion";
 import { getWheelUrls, pyodideUrl } from "./test-utils";
 import type { WorkerInitialData } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
-import type { PyProxy } from "pyodide/ffi";
-import { getAppHomeDir, resolveAppPath } from "./file";
 
 interface CallStartWorkerEnvOptions {
   entrypoint: string;

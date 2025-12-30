@@ -210,10 +210,14 @@ async function loadPyodideAndPackages(
   };
 
   // Make sure runInstall is executed only once at the same time across all the sessions.
-  micropipInstallPromiseChain = micropipInstallPromiseChain.then(() =>
-    runInstall(),
-  );
-  await micropipInstallPromiseChain;
+  // Use a per-call promise to observe errors, while keeping the shared chain from remaining rejected.
+  const currentInstall = micropipInstallPromiseChain.then(() => runInstall());
+  micropipInstallPromiseChain = currentInstall.catch((error) => {
+    console.error("Package installation failed:", error);
+    // Swallow the error here so that the shared chain is reset to a resolved state
+    // and future sessions can retry installation.
+  });
+  await currentInstall;
 
   if (installs) {
     console.debug("Installing the additional requirements");

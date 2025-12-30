@@ -160,7 +160,7 @@ await at.run(timeout=20)
   },
 ];
 
-async function runSmokeTest(
+async function runStreamlitTest(
   pyodide: PyodideInterface,
   entrypoint: string,
   additionalAppTestCode?: string,
@@ -171,7 +171,7 @@ async function runSmokeTest(
   // The code above setting up the worker env is good enough to check if the worker is set up correctly,
   // but it doesn't check the error occurred inside the Streamlit app running in the worker.
   // So, we use the code below to test if the Streamlit app runs without any error.
-  const runStreamlitTest = await pyodide.runPython(`
+  const runTestPyFunc = await pyodide.runPython(`
 import ast
 import asyncio
 import warnings
@@ -201,7 +201,7 @@ async def run_streamlit_test(entrypoint, home_dir = None):
 run_streamlit_test
 `);
 
-  await runStreamlitTest(entrypoint, runtimeHomeDir);
+  await runTestPyFunc(entrypoint, runtimeHomeDir);
 }
 
 suite("Worker integration test running an app", async () => {
@@ -239,7 +239,7 @@ suite("Worker integration test running an app", async () => {
           requirements: testSource.requirements,
         });
 
-        await runSmokeTest(
+        await runStreamlitTest(
           pyodide,
           testSource.entrypoint,
           testSource.additionalAppTestCode,
@@ -294,7 +294,7 @@ suite(
               );
 
               const homeDir = `/home/pyodide/${appId}`;
-              await runSmokeTest(
+              await runStreamlitTest(
                 pyodide,
                 `${homeDir}/${testSource.entrypoint}`,
                 testSource.additionalAppTestCode,

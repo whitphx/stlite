@@ -30,7 +30,7 @@ export type PostMessageFn = (
 ) => void;
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
-let micropipInstallPromiseChain = Promise.resolve();
+let micropipInstallPromiseChain: Promise<void> = Promise.resolve();
 let systemPackagesInstalled = false;
 
 async function loadPyodideAndPackages(
@@ -174,7 +174,7 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage(prebuiltPackages);
   console.debug("Installed the prebuilt packages");
 
-  const runInstall = async () => {
+  const runInstall = async (): Promise<void> => {
     console.debug("Installing the packages:", {
       requirements,
       systemPackagesInstalled,

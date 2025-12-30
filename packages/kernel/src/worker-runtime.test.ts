@@ -46,7 +46,7 @@ async function mockStartWorkerEnv() {
   // and the module is re-imported when vitest.resetModules() is called.
   const { startWorkerEnv } = await import("./worker-runtime");
 
-  return function callStartWorkerEnv(
+  function callStartWorkerEnv(
     options: CallStartWorkerEnvOptions,
     appId?: string,
   ) {
@@ -90,6 +90,11 @@ async function mockStartWorkerEnv() {
         }),
       );
     });
+  }
+
+  return {
+    initPyodideMock,
+    callStartWorkerEnv,
   };
 }
 
@@ -233,12 +238,14 @@ suite("Worker integration test running an app", async () => {
           ),
         );
 
-        const callStartWorkerEnv = await mockStartWorkerEnv();
+        const { callStartWorkerEnv, initPyodideMock } =
+          await mockStartWorkerEnv();
         const pyodide = await callStartWorkerEnv({
           entrypoint: testSource.entrypoint,
           files,
           requirements: testSource.requirements,
         });
+        expect(initPyodideMock).toHaveBeenCalledOnce();
 
         await runStreamlitTest(
           pyodide,
@@ -280,7 +287,8 @@ suite(
             ),
           );
 
-          const callStartWorkerEnv = await mockStartWorkerEnv();
+          const { callStartWorkerEnv, initPyodideMock } =
+            await mockStartWorkerEnv();
 
           const appIds = ["foo", "bar", "baz"];
           await Promise.all(
@@ -293,6 +301,8 @@ suite(
                 },
                 appId,
               );
+
+              expect(initPyodideMock).toHaveBeenCalledOnce();
 
               await runStreamlitTest(
                 pyodide,
@@ -327,7 +337,7 @@ suite(
       );
       const content = await fsPromises.readFile(filePath);
 
-      const callStartWorkerEnv = await mockStartWorkerEnv();
+      const { callStartWorkerEnv } = await mockStartWorkerEnv();
       const pyodide = await callStartWorkerEnv({
         entrypoint: "chat.input.py",
         files: {

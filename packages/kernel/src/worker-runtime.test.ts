@@ -165,33 +165,44 @@ async function runSmokeTest(
   pyodide: PyodideInterface,
   entrypoint: string,
   additionalAppTestCode?: string,
+  runtimeHomeDir?: string,
 ) {
   pyodide.globals.set("__additionalAppTestCode__", additionalAppTestCode);
 
   // The code above setting up the worker env is good enough to check if the worker is set up correctly,
   // but it doesn't check the error occurred inside the Streamlit app running in the worker.
   // So, we use the code below to test if the Streamlit app runs without any error.
-  await pyodide.runPythonAsync(`
+  const runStreamlitTest = await pyodide.runPython(`
 import ast
 import asyncio
 import warnings
 from streamlit.testing.v1 import AppTest
+from stlite_lib.server.task_context import home_dir_contextvar
 
-at = AppTest.from_file("${entrypoint}")
 
-with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
-    warnings.simplefilter("always")
-    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+async def run_streamlit_test(entrypoint, home_dir = None):
+    at = AppTest.from_file(entrypoint)
 
-    await at.run()
+    with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
+        warnings.simplefilter("always")
+        warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
 
-    if __additionalAppTestCode__:
-        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-        await eval(bytecode)
+        if home_dir:
+            home_dir_contextvar.set(home_dir)
+        await at.run()
 
-assert not at.exception, f"Exception occurred: {at.exception}"
-assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
-        `);
+        if __additionalAppTestCode__:
+            bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+            await eval(bytecode)
+
+    assert not at.exception, f"Exception occurred: {at.exception}"
+    assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
+
+
+run_streamlit_test
+`);
+
+  await runStreamlitTest(entrypoint, runtimeHomeDir);
 }
 
 suite("Worker integration test running an app", async () => {
@@ -275,10 +286,12 @@ suite(
                 appId,
               );
 
+              const homeDir = `/home/pyodide/${appId}`;
               await runSmokeTest(
                 pyodide,
-                `${appId}/${testSource.entrypoint}`,
+                `${homeDir}/${testSource.entrypoint}`,
                 testSource.additionalAppTestCode,
+                homeDir,
               );
             }),
           );

@@ -239,7 +239,7 @@ importlib.invalidate_caches()
   onProgress("Loading streamlit package.");
   console.debug("Waiting for the system packages to be installed");
   await systemPackagesInstallPromiseDelegate.promise;
-  console.debug("Loaded the system packages");
+  console.debug("System packages installation completed");
   console.debug("Loading the Streamlit package");
   // Importing the `streamlit` module takes most of the time,
   // so we first run this step independently for clearer logs and easy exec-time profiling.

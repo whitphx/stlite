@@ -291,9 +291,11 @@ suite(
             await mockStartWorkerEnv();
 
           const appIds = ["foo", "bar", "baz"];
+
+          let pyodide: PyodideInterface;
           await Promise.all(
             appIds.map(async (appId) => {
-              const pyodide = await callStartWorkerEnv(
+              const currentPyodide = await callStartWorkerEnv(
                 {
                   entrypoint: testSource.entrypoint,
                   files,
@@ -302,15 +304,29 @@ suite(
                 appId,
               );
 
-              expect(initPyodideMock).toHaveBeenCalledOnce();
+              if (pyodide) {
+                if (pyodide !== currentPyodide) {
+                  throw new Error("pyodide is not the same reference");
+                }
+              }
+              pyodide = currentPyodide;
+            }),
+          );
 
-              await runStreamlitTest(
+          expect(
+            initPyodideMock,
+            "initPyodide() should be called once across multiple app initializations",
+          ).toHaveBeenCalledOnce();
+
+          await Promise.all(
+            appIds.map((appId) =>
+              runStreamlitTest(
                 pyodide,
                 resolveAppPath(appId, testSource.entrypoint),
                 testSource.additionalAppTestCode,
                 getAppHomeDir(appId),
-              );
-            }),
+              ),
+            ),
           );
         },
       );

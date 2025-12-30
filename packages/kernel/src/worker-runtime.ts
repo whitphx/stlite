@@ -182,6 +182,7 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage(prebuiltPackages);
   console.debug("Installed the prebuilt packages");
 
+  let packagesToInstall: string[];
   if (shouldInstallSystemPackages) {
     console.debug("System packages will be installed");
     // NOTE: It's important to install the user-specified requirements
@@ -201,22 +202,26 @@ async function loadPyodideAndPackages(
     if (languageServer) {
       corePackages.push("jedi");
     }
-    requirements.unshift(...corePackages);
+    packagesToInstall = [...requirements, ...corePackages];
+  } else {
+    packagesToInstall = requirements;
   }
-  console.debug("Installing the requirements:", requirements);
-  micropip.install.callKwargs(requirements, { keep_going: true }).then(() => {
-    if (shouldInstallSystemPackages) {
-      console.debug("System packages installed.");
-      systemPackagesInstallPromiseDelegate.resolve();
-    }
-  });
+  console.debug("Installing the packages:", packagesToInstall);
+  micropip.install
+    .callKwargs(packagesToInstall, { keep_going: true })
+    .then(() => {
+      if (shouldInstallSystemPackages) {
+        console.debug("System packages installed.");
+        systemPackagesInstallPromiseDelegate.resolve();
+      }
+    });
 
   if (installs) {
     console.debug("Installing the additional requirements");
     await Promise.all(
       installs.map(({ requirements: unvalidatedRequirements, options }) => {
         const requirements = validateRequirements(unvalidatedRequirements); // Blocks the not allowed wheel URL schemes.
-        console.debug("Installing the requirements:", requirements);
+        console.debug("Installing the packages:", requirements);
         return micropip.install.callKwargs(requirements, options ?? {});
       }),
     );

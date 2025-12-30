@@ -214,6 +214,13 @@ async function loadPyodideAndPackages(
         console.debug("System packages installed.");
         systemPackagesInstallPromiseDelegate.resolve();
       }
+    })
+    .catch((err: Error) => {
+      console.error("Failed to install the packages:", err);
+      if (shouldInstallSystemPackages) {
+        console.error("Failed to install the system packages");
+        systemPackagesInstallPromiseDelegate.reject(err);
+      }
     });
 
   if (installs) {

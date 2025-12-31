@@ -106,7 +106,7 @@ class DirectorySyncCoroutineProxy(Coroutine):
     def __next__(self):
         """
         Implement the iterator protocol by delegating to send(None).
-        
+
         When the coroutine completes, send() will raise StopIteration with the
         return value, which is the expected behavior for the iterator protocol
         and will propagate naturally to signal completion.

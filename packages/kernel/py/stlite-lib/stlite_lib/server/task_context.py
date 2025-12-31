@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 @dataclass
 class DirectoryConfig:
     cwd: str
-    home_dir: str
+    home_dir: str | None
 
 
 class TaskSpecificDirectoryConfig:
@@ -20,40 +20,46 @@ class TaskSpecificDirectoryConfig:
     """
 
     def __init__(self, initial_home_dir: str):
-        self.dir_config = DirectoryConfig(
+        self.context_dir_config = DirectoryConfig(
             cwd=initial_home_dir,
             home_dir=initial_home_dir,
         )
         self.old_dir_config: list[DirectoryConfig] = []
 
     def __enter__(self):
-        self.old_dir_config.append(DirectoryConfig(os.getcwd(), os.environ.get("HOME")))
+        current = DirectoryConfig(os.getcwd(), os.environ.get("HOME"))
+        self.old_dir_config.append(current)
 
         _LOGGER.debug(
             "Setting task-specific directories: %s -> %s",
-            self.old_dir_config,
-            self.dir_config,
+            current,
+            self.context_dir_config,
         )
 
-        os.chdir(self.dir_config.cwd)
-        os.environ["HOME"] = self.dir_config.home_dir
+        self._apply_config(self.context_dir_config)
 
     def __exit__(self, *excinfo):
         # Save the current state that may have been updated during the code execution in the context.
-        self.dir_config = DirectoryConfig(os.getcwd(), os.environ.get("HOME"))
+        self.context_dir_config = DirectoryConfig(os.getcwd(), os.environ.get("HOME"))
+        restored = self.old_dir_config.pop()
 
         _LOGGER.debug(
             "Restoring task-specific directories: %s -> %s",
-            self.dir_config,
-            self.old_dir_config,
+            self.context_dir_config,
+            restored,
         )
 
-        old = self.old_dir_config.pop()
-        os.chdir(old.cwd)
-        os.environ["HOME"] = old.home_dir
+        self._apply_config(restored)
+
+    def _apply_config(self, config: DirectoryConfig):
+        os.chdir(config.cwd)
+        if config.home_dir is not None:
+            os.environ["HOME"] = config.home_dir
+        else:
+            del os.environ["HOME"]
 
 
-home_dir_contextvar = ContextVar[str]("home_dir")
+home_dir_contextvar = ContextVar[str | None]("home_dir")
 
 
 class DirectorySyncCoroutineProxy(Coroutine):

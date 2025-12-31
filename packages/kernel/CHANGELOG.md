@@ -1,5 +1,13 @@
 # @stlite/kernel
 
+## 0.97.1
+
+### Patch Changes
+
+- [#1810](https://github.com/whitphx/stlite/pull/1810) [`ab61ff2`](https://github.com/whitphx/stlite/commit/ab61ff21b5dc200f6add1ebc9a7a7e039592ef65) Thanks [@whitphx](https://github.com/whitphx)! - Hook the task switch to reset the per-app CWD and home dir
+
+- [#1808](https://github.com/whitphx/stlite/pull/1808) [`b410f9b`](https://github.com/whitphx/stlite/commit/b410f9bcc47836228eeccea75efb11d8351155d4) Thanks [@whitphx](https://github.com/whitphx)! - Fix the race condition at the server initialization in SharedWorker mode
+
 ## 0.97.0
 
 ### Minor Changes

@@ -84,11 +84,7 @@ class DirectorySyncCoroutineProxy(Coroutine):
         This method is called by the event loop when the task is scheduled to run.
         """
         with self._directory_context:
-            try:
-                return self.iter.send(value)
-            except StopIteration as e:
-                # Propagate StopIteration when the coroutine completes
-                raise StopIteration(e.value)
+            return self.iter.send(value)
 
     def throw(self, typ, val=None, tb=None):
         """Propagate exceptions into the wrapped coroutine."""

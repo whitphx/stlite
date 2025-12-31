@@ -20,9 +20,8 @@ class TaskSpecificDirectoryConfig:
             cwd=initial_home_dir,
             home_dir=initial_home_dir,
         )
-        self.old_dir_config: list[
-            DirectoryConfig
-        ] = []  # Ref: `contextlib.chdir`, https://github.com/python/cpython/blob/7e3a5a7e791b742a74c64810f221854191b94c1f/Lib/contextlib.py#L807
+        # Use `list` here inspired by the implementation of `contextlib.chdir`, https://github.com/python/cpython/blob/7e3a5a7e791b742a74c64810f221854191b94c1f/Lib/contextlib.py#L807
+        self.old_dir_config: list[DirectoryConfig] = []
 
     def __enter__(self):
         current = DirectoryConfig(os.getcwd(), os.environ.get("HOME"))

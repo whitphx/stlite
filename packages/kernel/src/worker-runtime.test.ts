@@ -167,7 +167,7 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 """.strip()
 
 assert at.main[1].value == _LOREM_IPSUM, "at.main[1].value is not valid"
-assert at.main[3].value == _LOREM_IPSUM, "at.main[1].value is not valid"
+assert at.main[3].value == _LOREM_IPSUM, "at.main[3].value is not valid"
 `,
   },
   {

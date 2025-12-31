@@ -88,11 +88,13 @@ class DirectorySyncCoroutineProxy(Coroutine):
 
     def throw(self, typ, val=None, tb=None):
         """Propagate exceptions into the wrapped coroutine."""
-        return self.iter.throw(typ, val, tb)
+        with self._directory_context:
+            return self.iter.throw(typ, val, tb)
 
     def close(self):
         """Close the wrapped coroutine."""
-        return self.iter.close()
+        with self._directory_context:
+            return self.iter.close()
 
     def __await__(self):
         """Allow the proxy itself to be awaited."""

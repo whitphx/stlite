@@ -56,8 +56,7 @@ class TaskSpecificDirectoryConfig:
         if config.home_dir is not None:
             os.environ["HOME"] = config.home_dir
         else:
-            if "HOME" in os.environ:
-                del os.environ["HOME"]
+            os.environ.pop("HOME", None)
 
 
 home_dir_contextvar: ContextVar[str | None] = ContextVar("home_dir")

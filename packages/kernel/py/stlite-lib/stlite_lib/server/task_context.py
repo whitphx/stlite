@@ -59,7 +59,7 @@ class TaskSpecificDirectoryConfig:
             del os.environ["HOME"]
 
 
-home_dir_contextvar = ContextVar[str | None]("home_dir")
+home_dir_contextvar: ContextVar[str | None] = ContextVar("home_dir")
 
 
 class DirectorySyncCoroutineProxy(Coroutine):

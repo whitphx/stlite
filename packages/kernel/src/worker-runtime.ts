@@ -30,6 +30,8 @@ export type PostMessageFn = (
 ) => void;
 
 let initPyodidePromise: Promise<PyodideInterface> | null = null;
+let micropipInstallPromiseChain: Promise<void> = Promise.resolve();
+let systemPackagesInstalled = false;
 
 async function loadPyodideAndPackages(
   defaultPyodideUrl: string,
@@ -66,26 +68,6 @@ async function loadPyodideAndPackages(
       stdout: console.log,
       stderr: console.error,
     });
-
-    // NOTE: It's important to install the user-specified requirements
-    // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
-    // which satisfies the following two requirements:
-    // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
-    // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
-    // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
-    // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
-    // which avoids the problem of https://github.com/whitphx/stlite/issues/675
-    // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
-    const corePackages: string[] = [];
-    if (wheels) {
-      corePackages.push(wheels.streamlit);
-      corePackages.push(wheels.stliteLib);
-    }
-    if (languageServer) {
-      corePackages.push("jedi");
-    }
-    requirements.unshift(...corePackages);
-
     console.debug("Loaded Pyodide");
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -192,9 +174,50 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage(prebuiltPackages);
   console.debug("Installed the prebuilt packages");
 
-  console.debug("Installing the requirements:", requirements);
-  await micropip.install.callKwargs(requirements, { keep_going: true });
-  console.debug("Installed the requirements");
+  const runInstall = async (): Promise<void> => {
+    console.debug("Installing the packages:", {
+      requirements,
+      systemPackagesInstalled,
+    });
+    const systemPackagesToInstall: string[] = [];
+    if (!systemPackagesInstalled) {
+      console.debug("System packages will be installed");
+      // NOTE: It's important to install the user-specified requirements
+      // and the core packages such as the customized Streamlit and stlite-lib wheels in the same `micropip.install` call below,
+      // which satisfies the following two requirements:
+      // 1. It allows users to specify the versions of Streamlit's dependencies via requirements.txt
+      // before these versions are automatically resolved by micropip when installing Streamlit from the custom wheel
+      // (installing the user-reqs must be earlier than or equal to installing the custom wheels).
+      // 2. It also resolves the `streamlit` package version required by the user-specified requirements to the appropriate version,
+      // which avoids the problem of https://github.com/whitphx/stlite/issues/675
+      // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
+      if (wheels) {
+        systemPackagesToInstall.push(wheels.streamlit);
+        systemPackagesToInstall.push(wheels.stliteLib);
+      }
+      if (languageServer) {
+        systemPackagesToInstall.push("jedi");
+      }
+    }
+    const packagesToInstall = [...systemPackagesToInstall, ...requirements];
+    console.debug("Installing the packages:", packagesToInstall);
+    await micropip.install.callKwargs(packagesToInstall, { keep_going: true });
+    if (systemPackagesToInstall.length > 0) {
+      console.debug("Installed the system packages");
+      systemPackagesInstalled = true;
+    }
+    console.debug("Installed the packages");
+  };
+
+  // Make sure runInstall is executed only once at the same time across all the sessions.
+  // Use a per-call promise to observe errors, while keeping the shared chain from remaining rejected.
+  const currentInstall = micropipInstallPromiseChain.then(() => runInstall());
+  micropipInstallPromiseChain = currentInstall.catch((error) => {
+    console.error("Package installation failed:", error);
+    // Swallow the error here so that the shared chain is reset to a resolved state
+    // and future sessions can retry installation.
+  });
+  await currentInstall;
 
   if (installs) {
     console.debug("Installing the additional requirements");

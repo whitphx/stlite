@@ -152,6 +152,21 @@ const TEST_SOURCES: {
     additionalAppTestCode: `
 at.button[0].click()
 await at.run(timeout=20)
+
+assert len(at.main) == 4
+assert at.main[0].type == "button", "at.main[0].type == 'button'"
+assert at.main[1].type == "markdown", "at.main[1].type == 'markdown'"
+assert at.main[2].type == "arrow_data_frame", "at.main[2].type == 'arrow_data_frame'"
+assert at.main[3].type == "markdown", "at.main[3].type == 'markdown'"
+
+_LOREM_IPSUM = """
+Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+""".strip()
+
+assert at.main[1].value == _LOREM_IPSUM, "at.main[1].value is not valid"
+assert at.main[3].value == _LOREM_IPSUM, "at.main[1].value is not valid"
 `,
   },
   {
@@ -207,7 +222,12 @@ async def run_streamlit_test(entrypoint, home_dir = None):
 run_streamlit_test
 `);
 
-  await runTestPyFunc(entrypoint, runtimeHomeDir);
+  try {
+    await runTestPyFunc(entrypoint, runtimeHomeDir);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }
 
 suite("Worker integration test running an app", async () => {

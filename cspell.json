@@ -72,6 +72,7 @@
     "selectslider",
     // Python
     "coro",
+    "excinfo",
     "asname",
     "kwonlyargs",
     "randn",

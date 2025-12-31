@@ -1,6 +1,7 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import type { PyodideInterface } from "pyodide";
+import type { PyProxy } from "pyodide/ffi";
 import {
   afterAll,
   afterEach,
@@ -11,21 +12,19 @@ import {
   test,
   vitest,
 } from "vitest";
+import { getAppHomeDir, resolveAppPath } from "./file";
 import { getCodeCompletions } from "./code_completion";
 import { getWheelUrls, pyodideUrl } from "./test-utils";
 import type { WorkerInitialData } from "./types";
 import type { PostMessageFn } from "./worker-runtime";
-import type { PyProxy } from "pyodide/ffi";
 
-interface InitializeWorkerEnvOptions {
+interface CallStartWorkerEnvOptions {
   entrypoint: string;
   files: WorkerInitialData["files"];
   requirements?: WorkerInitialData["requirements"];
   languageServer?: boolean;
 }
-async function initializeWorkerEnv(
-  options: InitializeWorkerEnvOptions,
-): Promise<PyodideInterface> {
+async function mockStartWorkerEnv() {
   const pyodideLoader: typeof import("./pyodide-loader") =
     await vitest.importActual("./pyodide-loader");
   const initPyodide = pyodideLoader.initPyodide;
@@ -43,46 +42,65 @@ async function initializeWorkerEnv(
     initPyodide: initPyodideMock,
   }));
 
-  // Use async-import in combination with `vi.resetModules()` in `beforeEach()`
-  // to reset the module cache and re-import the module.
+  // Use async-import here so that the module cache is reset
+  // and the module is re-imported when vitest.resetModules() is called.
   const { startWorkerEnv } = await import("./worker-runtime");
 
-  return new Promise<PyodideInterface>((resolve, reject) => {
-    const postMessage: PostMessageFn = (message) => {
-      if (message.type === "event:loadFinished") {
-        expect(initPyodideMock).toHaveBeenCalled();
-        initPyodideMock.mockRestore();
-        resolve(pyodide);
-      } else if (message.type === "event:loadError") {
-        reject(message.data.error);
-      }
-    };
+  function callStartWorkerEnv(
+    options: CallStartWorkerEnvOptions,
+    appId?: string,
+  ) {
+    return new Promise<PyodideInterface>((resolve, reject) => {
+      const postMessage: PostMessageFn = (message) => {
+        if (message.type === "event:loadFinished") {
+          if (!pyodide) {
+            throw new Error(
+              "Unexpected case; initPyodide must have been called once before this point.",
+            );
+          }
+          resolve(pyodide);
+        } else if (message.type === "event:loadError") {
+          reject(message.data.error);
+        }
+      };
 
-    const onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
+      const onMessage = startWorkerEnv(
+        pyodideUrl,
+        postMessage,
+        undefined,
+        appId,
+      );
 
-    // Send the initializer message to the worker.
-    onMessage(
-      new MessageEvent("message", {
-        data: {
-          type: "initData",
+      // Send the initializer message to the worker.
+      onMessage(
+        new MessageEvent("message", {
           data: {
-            files: options.files,
-            entrypoint: options.entrypoint,
-            wheels: getWheelUrls(),
-            archives: [],
-            requirements: options.requirements ?? [],
-            moduleAutoLoad: false,
-            prebuiltPackageNames: [],
-            languageServer: options.languageServer ?? false,
+            type: "initData",
+            data: {
+              files: options.files,
+              entrypoint: options.entrypoint,
+              wheels: getWheelUrls(),
+              archives: [],
+              requirements: options.requirements ?? [],
+              moduleAutoLoad: false,
+              prebuiltPackageNames: [],
+              languageServer: options.languageServer ?? false,
+            },
           },
-        },
-      }),
-    );
-  });
+        }),
+      );
+    });
+  }
+
+  return {
+    initPyodideMock,
+    callStartWorkerEnv,
+  };
 }
 
 const TEST_SOURCES: {
-  files: Record<string, string>;
+  name?: string;
+  files: Record<string, string | { content: string }>;
   entrypoint: string;
   requirements?: string[];
   additionalAppTestCode?: string;
@@ -135,7 +153,62 @@ const TEST_SOURCES: {
     additionalAppTestCode: `
 at.button[0].click()
 await at.run(timeout=20)
+
+assert len(at.main) == 4
+assert at.main[0].type == "button", "at.main[0].type == 'button'"
+assert at.main[1].type == "markdown", "at.main[1].type == 'markdown'"
+assert at.main[2].type == "arrow_data_frame", "at.main[2].type == 'arrow_data_frame'"
+assert at.main[3].type == "markdown", "at.main[3].type == 'markdown'"
+
+_LOREM_IPSUM = """
+Lorem ipsum dolor sit amet, **consectetur adipiscing** elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+""".strip()
+
+assert at.main[1].value == _LOREM_IPSUM, "at.main[1].value is not valid"
+assert at.main[3].value == _LOREM_IPSUM, "at.main[3].value is not valid"
 `,
+  },
+  {
+    name: "Use CWD per app",
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        content: `
+import asyncio
+import os
+from uuid import uuid4
+
+uniq = str(uuid4())  # Unique string per app
+
+with open("data.txt", "w") as f:  # The target file should be in the per-app CWD
+    f.write(uniq)
+
+await asyncio.sleep(0.1)  # Task switch; run apps with different appIds
+
+with open("data.txt", "r") as f:  # After task switch, the CWD should be reset
+    read_data = f.read()
+
+assert read_data == uniq, "read_data == uniq; CWD should be reset after task switch"
+
+# Create a subdirectory and change the CWD
+uniq_subdir = str(uuid4())
+os.mkdir(uniq_subdir)
+os.chdir(uniq_subdir)
+
+with open("sub_data.txt", "w") as f:
+    f.write(uniq)
+
+await asyncio.sleep(0.1)  # Task switch
+
+with open("sub_data.txt", "r") as f:  # After task switch, the CWD should be reset to the per-app CWD that was updated by os.chdir() before the task switch
+    read_data = f.read()
+
+assert read_data == uniq, "read_data == uniq; CWD should be reset to the per-app CWD that was updated by os.chdir() before the task switch"
+`,
+      },
+    },
   },
   {
     // Checks if the Parquet serializer's auto-fixing of non-string column names works. Ref: https://github.com/whitphx/stlite/issues/978
@@ -149,10 +222,55 @@ await at.run(timeout=20)
   },
 ];
 
+async function runStreamlitTest(
+  pyodide: PyodideInterface,
+  entrypoint: string,
+  additionalAppTestCode?: string,
+  runtimeHomeDir?: string,
+) {
+  pyodide.globals.set("__additionalAppTestCode__", additionalAppTestCode);
+
+  // The code above setting up the worker env is good enough to check if the worker is set up correctly,
+  // but it doesn't check the error occurred inside the Streamlit app running in the worker.
+  // So, we use the code below to test if the Streamlit app runs without any error.
+  const runTestPyFunc = await pyodide.runPython(`
+import ast
+import asyncio
+import warnings
+from streamlit.testing.v1 import AppTest
+from stlite_lib.server.task_context import home_dir_contextvar
+
+
+async def run_streamlit_test(entrypoint, home_dir = None):
+    at = AppTest.from_file(entrypoint)
+
+    with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
+        warnings.simplefilter("always")
+        warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+
+        if home_dir:
+            home_dir_contextvar.set(home_dir)
+        await at.run()
+
+        if __additionalAppTestCode__:
+            bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+            await eval(bytecode)
+
+    assert not at.exception, f"Exception occurred: {at.exception}"
+    assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
+
+
+run_streamlit_test
+`);
+
+  await runTestPyFunc(entrypoint, runtimeHomeDir);
+}
+
 suite("Worker integration test running an app", async () => {
   beforeEach(() => {
     vitest.resetModules();
   });
+
   afterEach(() => {
     vitest.restoreAllMocks();
   });
@@ -160,7 +278,7 @@ suite("Worker integration test running an app", async () => {
   for (const testSource of TEST_SOURCES) {
     test(
       // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
-      `Running ${testSource.entrypoint}`,
+      testSource.name ?? `Running ${testSource.entrypoint}`,
       {
         timeout: 60 * 1000,
       },
@@ -168,53 +286,113 @@ suite("Worker integration test running an app", async () => {
         const files = Object.fromEntries(
           await Promise.all(
             Object.entries(testSource.files).map(
-              async ([filename, filepath]) => {
-                const content = await fsPromises.readFile(filepath);
+              async ([filename, filepathOrContent]) => {
+                const content =
+                  typeof filepathOrContent === "string"
+                    ? await fsPromises.readFile(filepathOrContent)
+                    : filepathOrContent.content;
                 return [filename, { data: content }];
               },
             ),
           ),
         );
 
-        const pyodide = await initializeWorkerEnv({
+        const { callStartWorkerEnv, initPyodideMock } =
+          await mockStartWorkerEnv();
+        const pyodide = await callStartWorkerEnv({
           entrypoint: testSource.entrypoint,
           files,
           requirements: testSource.requirements,
         });
+        expect(initPyodideMock).toHaveBeenCalledOnce();
 
-        pyodide.globals.set(
-          "__additionalAppTestCode__",
+        await runStreamlitTest(
+          pyodide,
+          testSource.entrypoint,
           testSource.additionalAppTestCode,
         );
-
-        // The code above setting up the worker env is good enough to check if the worker is set up correctly,
-        // but it doesn't check the error occurred inside the Streamlit app running in the worker.
-        // So, we use the code below to test if the Streamlit app runs without any error.
-        await pyodide.runPythonAsync(`
-import ast
-import asyncio
-import warnings
-from streamlit.testing.v1 import AppTest
-
-at = AppTest.from_file("${testSource.entrypoint}")
-
-with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
-    warnings.simplefilter("always")
-    warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
-
-    await at.run()
-
-    if __additionalAppTestCode__:
-        bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-        await eval(bytecode)
-
-assert not at.exception, f"Exception occurred: {at.exception}"
-assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"
-        `);
       },
     );
   }
 });
+
+suite(
+  "Worker integration test running an app with multiple appId (SharedWorker scenario)",
+  async () => {
+    beforeEach(() => {
+      vitest.resetModules();
+    });
+
+    afterEach(() => {
+      vitest.restoreAllMocks();
+    });
+
+    for (const testSource of TEST_SOURCES) {
+      test(
+        // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
+        testSource.name ?? `Running ${testSource.entrypoint}`,
+        {
+          timeout: 60 * 1000,
+        },
+        async () => {
+          const files = Object.fromEntries(
+            await Promise.all(
+              Object.entries(testSource.files).map(
+                async ([filename, filepathOrContent]) => {
+                  const content =
+                    typeof filepathOrContent === "string"
+                      ? await fsPromises.readFile(filepathOrContent)
+                      : filepathOrContent.content;
+                  return [filename, { data: content }];
+                },
+              ),
+            ),
+          );
+
+          const { callStartWorkerEnv, initPyodideMock } =
+            await mockStartWorkerEnv();
+
+          const appIds = ["foo", "bar", "baz"];
+
+          const pyodideObjects = await Promise.all(
+            appIds.map((appId) =>
+              callStartWorkerEnv(
+                {
+                  entrypoint: testSource.entrypoint,
+                  files,
+                  requirements: testSource.requirements,
+                },
+                appId,
+              ),
+            ),
+          );
+
+          // Assert all pyodideObjects[i] are the same reference.
+          for (let i = 1; i < pyodideObjects.length; i++) {
+            expect(pyodideObjects[i]).toBe(pyodideObjects[0]);
+          }
+          const pyodide: PyodideInterface = pyodideObjects[0];
+
+          expect(
+            initPyodideMock,
+            "initPyodide() should be called once across multiple app initializations",
+          ).toHaveBeenCalledOnce();
+
+          await Promise.all(
+            appIds.map((appId) =>
+              runStreamlitTest(
+                pyodide,
+                resolveAppPath(appId, testSource.entrypoint),
+                testSource.additionalAppTestCode,
+                getAppHomeDir(appId),
+              ),
+            ),
+          );
+        },
+      );
+    }
+  },
+);
 
 suite(
   "Worker language server test",
@@ -235,7 +413,8 @@ suite(
       );
       const content = await fsPromises.readFile(filePath);
 
-      const pyodide = await initializeWorkerEnv({
+      const { callStartWorkerEnv } = await mockStartWorkerEnv();
+      const pyodide = await callStartWorkerEnv({
         entrypoint: "chat.input.py",
         files: {
           "chat.input.py": { data: content },

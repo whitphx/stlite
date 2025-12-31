@@ -65,7 +65,11 @@ class Server:
 
         When this returns, Streamlit is ready to accept new sessions.
         """
-        _LOGGER.debug("Starting server...")
+        _LOGGER.debug(
+            "Starting server (runtime: %s, app_home_dir: %s)",
+            self._runtime,
+            self.app_home_dir,
+        )
 
         runtime_contextvar.set(self._runtime)
         home_dir_contextvar.set(self.app_home_dir)
@@ -109,6 +113,12 @@ class Server:
         if not re.match(make_url_path_regex(STREAM_ENDPOINT), path):
             raise RuntimeError("Invalid WebSocket endpoint")
 
+        _LOGGER.debug(
+            "Starting WebSocket (runtime: %s, app_home_dir: %s)",
+            self._runtime,
+            self.app_home_dir,
+        )
+
         runtime_contextvar.set(self._runtime)
         home_dir_contextvar.set(self.app_home_dir)
 
@@ -132,6 +142,12 @@ class Server:
         # Set the runtime and home dir context vars for the current task.
         # For example, `BackMsg(rerunScript=...)` in the WebSocket message triggers the next run,
         # so setting the context vars here is necessary for it.
+        _LOGGER.debug(
+            "Setting task-specific home directory (runtime: %s, app_home_dir: %s)",
+            self._runtime,
+            self.app_home_dir,
+        )
+
         runtime_contextvar.set(self._runtime)
         home_dir_contextvar.set(self.app_home_dir)
 

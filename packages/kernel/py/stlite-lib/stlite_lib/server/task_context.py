@@ -74,7 +74,7 @@ class DirectorySyncCoroutineProxy(Coroutine):
         # Extract the underlying iterator/generator
         self.iter = coro.__await__()
 
-        home_dir = home_dir_contextvar.get()
+        home_dir = home_dir_contextvar.get(None)
         self._directory_context = (
             TaskSpecificDirectoryConfig(home_dir) if home_dir else nullcontext()
         )

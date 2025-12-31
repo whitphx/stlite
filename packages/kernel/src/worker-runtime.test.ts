@@ -263,12 +263,7 @@ async def run_streamlit_test(entrypoint, home_dir = None):
 run_streamlit_test
 `);
 
-  try {
-    await runTestPyFunc(entrypoint, runtimeHomeDir);
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+  await runTestPyFunc(entrypoint, runtimeHomeDir);
 }
 
 suite("Worker integration test running an app", async () => {

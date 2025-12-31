@@ -15,16 +15,14 @@ class DirectoryConfig:
 
 
 class TaskSpecificDirectoryConfig:
-    """
-    Ref: `contextlib.chdir`, https://github.com/python/cpython/blob/7e3a5a7e791b742a74c64810f221854191b94c1f/Lib/contextlib.py#L802
-    """
-
     def __init__(self, initial_home_dir: str):
         self.context_dir_config = DirectoryConfig(
             cwd=initial_home_dir,
             home_dir=initial_home_dir,
         )
-        self.old_dir_config: list[DirectoryConfig] = []
+        self.old_dir_config: list[
+            DirectoryConfig
+        ] = []  # Ref: `contextlib.chdir`, https://github.com/python/cpython/blob/7e3a5a7e791b742a74c64810f221854191b94c1f/Lib/contextlib.py#L807
 
     def __enter__(self):
         current = DirectoryConfig(os.getcwd(), os.environ.get("HOME"))

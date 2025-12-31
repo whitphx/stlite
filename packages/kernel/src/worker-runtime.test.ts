@@ -99,7 +99,8 @@ async function mockStartWorkerEnv() {
 }
 
 const TEST_SOURCES: {
-  files: Record<string, string>;
+  name?: string;
+  files: Record<string, string | { content: string }>;
   entrypoint: string;
   requirements?: string[];
   additionalAppTestCode?: string;
@@ -168,6 +169,46 @@ nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 assert at.main[1].value == _LOREM_IPSUM, "at.main[1].value is not valid"
 assert at.main[3].value == _LOREM_IPSUM, "at.main[1].value is not valid"
 `,
+  },
+  {
+    name: "Use CWD per app",
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        content: `
+import asyncio
+import os
+from uuid import uuid4
+
+uniq = str(uuid4())  # Unique string per app
+
+with open("data.txt", "w") as f:  # The target file should be in the per-app CWD
+    f.write(uniq)
+
+await asyncio.sleep(0.1)  # Task switch; run apps with different appIds
+
+with open("data.txt", "r") as f:  # After task switch, the CWD should be reset
+    read_data = f.read()
+
+assert read_data == uniq, "read_data == uniq; CWD should be reset after task switch"
+
+# Create a subdirectory and change the CWD
+uniq_subdir = str(uuid4())
+os.mkdir(uniq_subdir)
+os.chdir(uniq_subdir)
+
+with open("sub_data.txt", "w") as f:
+    f.write(uniq)
+
+await asyncio.sleep(0.1)  # Task switch
+
+with open("sub_data.txt", "r") as f:  # After task switch, the CWD should be reset to the per-app CWD that was updated by os.chdir() before the task switch
+    read_data = f.read()
+
+assert read_data == uniq, "read_data == uniq; CWD should be reset to the per-app CWD that was updated by os.chdir() before the task switch"
+`,
+      },
+    },
   },
   {
     // Checks if the Parquet serializer's auto-fixing of non-string column names works. Ref: https://github.com/whitphx/stlite/issues/978
@@ -242,7 +283,7 @@ suite("Worker integration test running an app", async () => {
   for (const testSource of TEST_SOURCES) {
     test(
       // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
-      `Running ${testSource.entrypoint}`,
+      testSource.name ?? `Running ${testSource.entrypoint}`,
       {
         timeout: 60 * 1000,
       },
@@ -250,8 +291,11 @@ suite("Worker integration test running an app", async () => {
         const files = Object.fromEntries(
           await Promise.all(
             Object.entries(testSource.files).map(
-              async ([filename, filepath]) => {
-                const content = await fsPromises.readFile(filepath);
+              async ([filename, filepathOrContent]) => {
+                const content =
+                  typeof filepathOrContent === "string"
+                    ? await fsPromises.readFile(filepathOrContent)
+                    : filepathOrContent.content;
                 return [filename, { data: content }];
               },
             ),
@@ -291,7 +335,7 @@ suite(
     for (const testSource of TEST_SOURCES) {
       test(
         // NOTE: Vitest doesn't support concurrent tests in a single file: https://github.com/vitest-dev/vitest/issues/1530
-        `Running ${testSource.entrypoint}`,
+        testSource.name ?? `Running ${testSource.entrypoint}`,
         {
           timeout: 60 * 1000,
         },
@@ -299,8 +343,11 @@ suite(
           const files = Object.fromEntries(
             await Promise.all(
               Object.entries(testSource.files).map(
-                async ([filename, filepath]) => {
-                  const content = await fsPromises.readFile(filepath);
+                async ([filename, filepathOrContent]) => {
+                  const content =
+                    typeof filepathOrContent === "string"
+                      ? await fsPromises.readFile(filepathOrContent)
+                      : filepathOrContent.content;
                   return [filename, { data: content }];
                 },
               ),

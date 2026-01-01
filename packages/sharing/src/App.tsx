@@ -208,7 +208,13 @@ st.write("Hello World")`,
     };
   }, []);
 
-  return kernel ? <StliteAppWithToast kernel={kernel} key={appKey} /> : null;
+  return kernel ? (
+    <StliteAppWithToast
+      kernel={kernel}
+      key={appKey}
+      mountDocumentStyles={true}
+    />
+  ) : null;
 }
 
 export default App;

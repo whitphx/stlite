@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import type { StliteKernel } from "@stlite/kernel";
 import StliteApp from "./StliteApp";
 
-vi.mock("@streamlit/app/src/ThemedApp", async () => {
+vi.mock("./StliteThemedApp", async () => {
   const { useStliteKernel } = await import("@stlite/kernel/contexts");
 
   const MockThemedApp = ({

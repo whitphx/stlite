@@ -15,18 +15,17 @@ import { globalStyles } from "./globalStyles";
 export interface RootStyleProviderProps {
   theme: ThemeConfig;
   children: React.ReactNode;
+  styleNonce?: string;
 }
 
-const nonce = document.currentScript?.nonce || "";
-
 export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
-  const { children, theme } = props;
+  const { children, theme, styleNonce } = props;
 
   const uniqueId = useId();
 
   const cache = createCache({
     key: `st-emotion-cache-${uniqueId}`,
-    ...(nonce && { nonce }),
+    ...(styleNonce && { nonce: styleNonce }),
   });
 
   return (

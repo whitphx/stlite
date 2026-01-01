@@ -11,17 +11,19 @@ import { useThemeManager } from "@streamlit/app/src/util/useThemeManager";
 import { RootStyleProvider } from "./StliteRootStyleProvider";
 
 export interface ThemedAppProps {
+  styleNonce?: string;
   streamlitExecutionStartedAt: number;
 }
 
 const ThemedApp = ({
+  styleNonce,
   streamlitExecutionStartedAt,
 }: ThemedAppProps): JSX.Element => {
   const [themeManager, fontFaces, fontSources] = useThemeManager();
   const { activeTheme } = themeManager;
 
   return (
-    <RootStyleProvider theme={activeTheme}>
+    <RootStyleProvider theme={activeTheme} styleNonce={styleNonce}>
       <WindowDimensionsProvider>
         {/* The data grid requires one root level portal element for rendering cell overlays */}
         <PortalProvider>

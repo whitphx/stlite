@@ -15,12 +15,14 @@ const streamlitExecutionStartedAt = Date.now();
 
 export interface StliteAppProps {
   kernel: StliteKernel;
+  styleNonce?: string;
 }
 function StliteApp(props: StliteAppProps) {
   return (
     <StliteKernelProvider kernel={props.kernel}>
       <StyletronProvider value={engine}>
         <StliteThemedApp
+          styleNonce={props.styleNonce}
           streamlitExecutionStartedAt={streamlitExecutionStartedAt}
         />
       </StyletronProvider>

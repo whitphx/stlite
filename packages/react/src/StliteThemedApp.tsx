@@ -1,30 +1,24 @@
 // Based on streamlit/frontend/app/src/ThemedApp.tsx
 
-import React from "react"
+import FontFaceDeclaration from "@streamlit/app/src/components/FontFaceDeclaration";
 
-import FontFaceDeclaration from "@streamlit/app/src/components/FontFaceDeclaration"
+import FontSources from "@streamlit/app/src/components/FontSources";
+import { PortalProvider, WindowDimensionsProvider } from "@streamlit/lib";
 
-import FontSources from "@streamlit/app/src/components/FontSources"
-import {
-  PortalProvider,
-  WindowDimensionsProvider,
-} from "@streamlit/lib"
+import AppWithScreencast from "@streamlit/app/src/App";
 
-
-import AppWithScreencast from "@streamlit/app/src/App"
-
-import { useThemeManager } from "@streamlit/app/src/util/useThemeManager"
-import { RootStyleProvider } from "./StliteRootStyleProvider"
+import { useThemeManager } from "@streamlit/app/src/util/useThemeManager";
+import { RootStyleProvider } from "./StliteRootStyleProvider";
 
 export interface ThemedAppProps {
-  streamlitExecutionStartedAt: number
+  streamlitExecutionStartedAt: number;
 }
 
 const ThemedApp = ({
   streamlitExecutionStartedAt,
 }: ThemedAppProps): JSX.Element => {
-  const [themeManager, fontFaces, fontSources] = useThemeManager()
-  const { activeTheme } = themeManager
+  const [themeManager, fontFaces, fontSources] = useThemeManager();
+  const { activeTheme } = themeManager;
 
   return (
     <RootStyleProvider theme={activeTheme}>
@@ -42,7 +36,7 @@ const ThemedApp = ({
         </PortalProvider>
       </WindowDimensionsProvider>
     </RootStyleProvider>
-  )
-}
+  );
+};
 
-export default ThemedApp
+export default ThemedApp;

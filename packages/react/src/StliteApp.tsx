@@ -20,7 +20,9 @@ function StliteApp(props: StliteAppProps) {
   return (
     <StliteKernelProvider kernel={props.kernel}>
       <StyletronProvider value={engine}>
-        <StliteThemedApp streamlitExecutionStartedAt={streamlitExecutionStartedAt} />
+        <StliteThemedApp
+          streamlitExecutionStartedAt={streamlitExecutionStartedAt}
+        />
       </StyletronProvider>
     </StliteKernelProvider>
   );

@@ -1,8 +1,8 @@
 // Based on streamlit/frontend/lib/src/theme/globalStyles.ts
 
-import { css, SerializedStyles } from "@emotion/react"
-import { transparentize } from "color2k"
-import type { EmotionTheme } from "@streamlit/lib"
+import { css, SerializedStyles } from "@emotion/react";
+import { transparentize } from "color2k";
+import type { EmotionTheme } from "@streamlit/lib";
 
 /**
  * Contains various styles that are applied globally to the app.
@@ -194,4 +194,4 @@ export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
       -webkit-print-color-adjust: exact;
     }
   }
-`
+`;

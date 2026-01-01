@@ -92,6 +92,8 @@
     "lsprotocol",
     "distplot",
     // Node/npm
+    "baseui",
+    "basewebTheme",
     "codedent",
     "toastify",
     "superstruct",

@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- [`2722b06`](https://github.com/whitphx/stlite/commit/2722b06dbf7b1c262ddc1bf14f0ae1d74ca11556) Thanks [@whitphx](https://github.com/whitphx)! - Trigger release for https://github.com/whitphx/stlite/pull/1808 and https://github.com/whitphx/stlite/pull/1810
+- [`2722b06`](https://github.com/whitphx/stlite/commit/2722b06dbf7b1c262ddc1bf14f0ae1d74ca11556) Thanks [@whitphx](https://github.com/whitphx)! - Trigger release for https://github.com/whitphx/stlite/pull/1808 (Fix the race condition at the server initialization in SharedWorker mode) and https://github.com/whitphx/stlite/pull/1810 (Hook the task switch to reset the per-app CWD and home dir)
 
 - Updated dependencies [[`2722b06`](https://github.com/whitphx/stlite/commit/2722b06dbf7b1c262ddc1bf14f0ae1d74ca11556)]:
   - @stlite/react@0.1.1

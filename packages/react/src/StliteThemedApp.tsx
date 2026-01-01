@@ -13,17 +13,23 @@ import { RootStyleProvider } from "./StliteRootStyleProvider";
 export interface ThemedAppProps {
   styleNonce?: string;
   streamlitExecutionStartedAt: number;
+  mountDocumentStyles?: boolean;
 }
 
 const ThemedApp = ({
   styleNonce,
   streamlitExecutionStartedAt,
+  mountDocumentStyles,
 }: ThemedAppProps): JSX.Element => {
   const [themeManager, fontFaces, fontSources] = useThemeManager();
   const { activeTheme } = themeManager;
 
   return (
-    <RootStyleProvider theme={activeTheme} styleNonce={styleNonce}>
+    <RootStyleProvider
+      theme={activeTheme}
+      styleNonce={styleNonce}
+      mountDocumentStyles={mountDocumentStyles}
+    >
       <WindowDimensionsProvider>
         {/* The data grid requires one root level portal element for rendering cell overlays */}
         <PortalProvider>

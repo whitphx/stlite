@@ -12,6 +12,7 @@ export interface StliteAppWithToastProps {
   disableErrorToasts?: boolean;
   disableModuleAutoLoadToasts?: boolean;
   styleNonce?: string;
+  mountDocumentStyles?: boolean;
 }
 
 function StliteAppWithToast(props: StliteAppWithToastProps) {
@@ -101,7 +102,11 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
 
   return (
     <>
-      <StliteApp kernel={kernel} styleNonce={props.styleNonce} />
+      <StliteApp
+        kernel={kernel}
+        styleNonce={props.styleNonce}
+        mountDocumentStyles={props.mountDocumentStyles}
+      />
       <ToastContainer />
     </>
   );

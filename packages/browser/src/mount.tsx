@@ -19,7 +19,8 @@ export function mount(
   options: MountOptions,
   container: HTMLElement = document.body,
 ) {
-  const { kernelOptions, toastOptions } = parseMountOptions(options);
+  const { kernelOptions, toastOptions, mountDocumentStyles } =
+    parseMountOptions(options);
 
   const kernel = createKernel({
     ...kernelOptions,
@@ -30,7 +31,11 @@ export function mount(
   const reactRoot = createRoot(container);
   reactRoot.render(
     <React.StrictMode>
-      <StliteAppWithToast kernel={kernel} {...toastOptions} />
+      <StliteAppWithToast
+        kernel={kernel}
+        {...toastOptions}
+        mountDocumentStyles={mountDocumentStyles}
+      />
     </React.StrictMode>,
   );
 

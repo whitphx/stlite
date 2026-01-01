@@ -1,6 +1,6 @@
 // Based on streamlit/frontend/lib/src/RootStyleProvider.tsx
 
-import React, { ReactElement } from "react";
+import React, { ReactElement, useId } from "react";
 import createCache from "@emotion/cache";
 import {
   CacheProvider,
@@ -18,16 +18,16 @@ export interface RootStyleProviderProps {
 }
 
 const nonce = document.currentScript?.nonce || "";
-const cache = createCache({
-  // The key field is required but only matters if there's more than one
-  // emotion cache in use. This will probably never be true for us, so we just
-  // set it arbitrarily.
-  key: "st-emotion-cache",
-  ...(nonce && { nonce }),
-});
 
 export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
   const { children, theme } = props;
+
+  const uniqueId = useId();
+
+  const cache = createCache({
+    key: `st-emotion-cache-${uniqueId}`,
+    ...(nonce && { nonce }),
+  });
 
   return (
     <BaseProvider

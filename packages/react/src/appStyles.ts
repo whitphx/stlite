@@ -5,12 +5,12 @@ import { transparentize } from "color2k";
 import type { EmotionTheme } from "@streamlit/lib";
 
 /**
- * Contains various styles that are applied globally to the app.
+ * Contains various styles that are applied to the app.
  *
- * Please only add styles here if they are truly global. Putting styles to the
+ * Please only add styles here if they are truly app-wide. Putting styles to the
  * individual components should be strongly preferred.
  */
-export const globalStyles = (theme: EmotionTheme): SerializedStyles => css`
+export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // Override the base font-size value here.
   font-size: ${theme.fontSizes.baseFontSize}px;
 

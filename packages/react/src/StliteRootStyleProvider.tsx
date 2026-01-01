@@ -10,7 +10,7 @@ import {
 
 import { BaseProvider } from "baseui";
 import { ThemeConfig } from "@streamlit/lib";
-import { globalStyles } from "./globalStyles";
+import { appStyles } from "./appStyles";
 
 export interface RootStyleProviderProps {
   theme: ThemeConfig;
@@ -46,7 +46,7 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
           <ClassNames>
             {({ css, cx }) => (
               <div
-                className={cx(css(globalStyles(theme.emotion)), "stlite-root")}
+                className={cx(css(appStyles(theme.emotion)), "stlite-root")}
               >
                 {children}
               </div>

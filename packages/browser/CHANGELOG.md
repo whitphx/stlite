@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.95.1
+
+### Patch Changes
+
+- [`2722b06`](https://github.com/whitphx/stlite/commit/2722b06dbf7b1c262ddc1bf14f0ae1d74ca11556) Thanks [@whitphx](https://github.com/whitphx)! - Trigger release for https://github.com/whitphx/stlite/pull/1808 and https://github.com/whitphx/stlite/pull/1810
+
 ## 0.95.0
 
 ### Minor Changes

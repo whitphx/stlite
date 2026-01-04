@@ -94,6 +94,10 @@ const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
 export type DetailedMountOptions = SimplifiedStliteKernelOptions &
   ToastOptions & {
+    /**
+     * Controls whether document-level styles (e.g. `html`, `body`) are applied globally.
+     * Set this to `false` in embedded scenarios to avoid style conflicts with the host page.
+     */
     mountDocumentStyles?: boolean;
   };
 export type MountOptions = string | DetailedMountOptions;

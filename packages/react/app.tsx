@@ -44,10 +44,10 @@ reactRoot.render(
   <React.StrictMode>
     <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteApp kernel={kernel1} />
+        <StliteApp kernel={kernel1} mountDocumentStyles={false} />
       </div>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteApp kernel={kernel2} />
+        <StliteApp kernel={kernel2} mountDocumentStyles={false} />
       </div>
     </div>
   </React.StrictMode>,

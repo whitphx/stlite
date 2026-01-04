@@ -11,8 +11,15 @@ import { useThemeManager } from "@streamlit/app/src/util/useThemeManager";
 import { RootStyleProvider } from "./StliteRootStyleProvider";
 
 export interface ThemedAppProps {
+  /**
+   * Nonce to apply to style tags for Content Security Policy (CSP) support.
+   */
   styleNonce?: string;
   streamlitExecutionStartedAt: number;
+  /**
+   * Whether to mount document-level (html, body) styles globally.
+   * Enable for standalone apps; disable for embedded or side-by-side instances.
+   */
   mountDocumentStyles?: boolean;
 }
 

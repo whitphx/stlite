@@ -21,8 +21,10 @@ vi.mock("./StliteThemedApp", async () => {
         data-testid="themed-app"
         data-kernel-id={kernel.__testId}
         data-started-at={streamlitExecutionStartedAt}
-        data-style-nonce={styleNonce}
-        data-mount-document-styles={mountDocumentStyles}
+        {...(styleNonce !== undefined && { "data-style-nonce": styleNonce })}
+        {...(mountDocumentStyles !== undefined && {
+          "data-mount-document-styles": mountDocumentStyles,
+        })}
       />
     );
   };

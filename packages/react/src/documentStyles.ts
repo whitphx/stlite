@@ -7,14 +7,6 @@ export const documentStyles = css`
     margin: 0;
   }
 
-  body.embedded {
-    overflow: hidden;
-  }
-
-  body.embedded:hover {
-    overflow: auto;
-  }
-
   @media print {
     html {
       height: 100%;

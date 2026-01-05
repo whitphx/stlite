@@ -174,5 +174,4 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
       border-radius: ${theme.radii.full};
     }
   }
-
 `;

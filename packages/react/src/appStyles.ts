@@ -175,14 +175,4 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
     }
   }
 
-  // Set height to 100% for printing, otherwise the page on Safari might be blank
-  @media print {
-    & {
-      height: 100%;
-      // make background-colors appear by default (e.g. the sidebar background,
-      // widget background, multi-select element background, ...)
-      print-color-adjust: exact;
-      -webkit-print-color-adjust: exact;
-    }
-  }
 `;

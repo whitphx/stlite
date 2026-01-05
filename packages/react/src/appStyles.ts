@@ -37,15 +37,6 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   -webkit-tap-highlight-color: ${transparentize(theme.colors.black, 1)}; // 4
   -webkit-font-smoothing: auto;
 
-  // Embedded Overflow Management
-  &.embedded {
-    overflow: hidden;
-  }
-
-  &.embedded:hover {
-    overflow: auto;
-  }
-
   // Future-proof rule: in browsers that support :focus-visible, suppress the focus outline
   // on elements that programmatically receive focus but wouldn't normally show a visible
   // focus outline. In general, this would mean that the outline is only applied if the

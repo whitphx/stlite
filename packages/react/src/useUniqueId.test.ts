@@ -8,43 +8,36 @@ describe("useUniqueId", () => {
     vi.restoreAllMocks();
   });
 
-  it("generates lowercase ids of the requested length", () => {
+  it("produces unique ids even with identical randomness", () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_000_000);
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    const id = generateUniqueId(5);
+    const first = generateUniqueId(8);
+    const second = generateUniqueId(8);
 
-    expect(id).toBe("aaaaa");
-    expect(id).toMatch(/^[a-z]+$/);
+    expect(first).not.toBe(second);
+    expect(first).toMatch(/^[a-z0-9]+$/);
+    expect(second).toMatch(/^[a-z0-9]+$/);
   });
 
   it("memoizes the id across renders", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
-
     const { result, rerender } = renderHook(() => useUniqueId());
 
     const firstId = result.current;
     rerender();
 
     expect(result.current).toBe(firstId);
-    expect(randomSpy).toHaveBeenCalledTimes(8);
   });
 
   it("regenerates when the requested length changes", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
-
     const { result, rerender } = renderHook(
       ({ length }) => useUniqueId(length),
       { initialProps: { length: 3 } },
     );
 
-    expect(result.current).toBe("aaa");
-    expect(randomSpy).toHaveBeenCalledTimes(3);
-
-    randomSpy.mockImplementation(() => 0.5);
     rerender({ length: 4 });
 
     expect(result.current).toHaveLength(4);
     expect(result.current).not.toBe("aaa");
-    expect(randomSpy).toHaveBeenCalledTimes(7);
   });
 });

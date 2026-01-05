@@ -1,6 +1,6 @@
 // Based on streamlit/frontend/lib/src/RootStyleProvider.tsx
 
-import React, { ReactElement, useId, useMemo } from "react";
+import React, { ReactElement, useMemo } from "react";
 import createCache from "@emotion/cache";
 import {
   CacheProvider,
@@ -13,6 +13,7 @@ import { BaseProvider } from "baseui";
 import { ThemeConfig } from "@streamlit/lib";
 import { appStyles } from "./appStyles";
 import { documentStyles } from "./documentStyles";
+import { useUniqueId } from "./useUniqueId";
 
 export interface RootStyleProviderProps {
   theme: ThemeConfig;
@@ -24,12 +25,12 @@ export interface RootStyleProviderProps {
 export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
   const { children, theme, styleNonce, mountDocumentStyles } = props;
 
-  const uniqueId = useId();
+  const uniqueId = useUniqueId();
 
   const cache = useMemo(
     () =>
       createCache({
-        key: `st-emotion-cache-${uniqueId}`,
+        key: `st-${uniqueId}`,
         ...(styleNonce && { nonce: styleNonce }),
       }),
     [uniqueId, styleNonce],

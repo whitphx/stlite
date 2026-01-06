@@ -92,12 +92,20 @@ function canonicalizeArchives(
 
 const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
-export type DetailedMountOptions = SimplifiedStliteKernelOptions & ToastOptions;
+export type DetailedMountOptions = SimplifiedStliteKernelOptions &
+  ToastOptions & {
+    /**
+     * Controls whether document-level styles (e.g. `html`, `body`) are applied globally.
+     * Set this to `false` in embedded scenarios to avoid style conflicts with the host page.
+     */
+    mountDocumentStyles?: boolean;
+  };
 export type MountOptions = string | DetailedMountOptions;
 
 export function parseMountOptions(options: MountOptions): {
   kernelOptions: Omit<StliteKernelOptions, "workerType">;
   toastOptions: ToastOptions;
+  mountDocumentStyles: boolean;
 } {
   if (typeof options === "string") {
     const mainScript = options;
@@ -118,6 +126,7 @@ export function parseMountOptions(options: MountOptions): {
         disableErrorToasts: false,
         disableModuleAutoLoadToasts: false,
       },
+      mountDocumentStyles: true,
     };
   }
 
@@ -151,5 +160,6 @@ export function parseMountOptions(options: MountOptions): {
       disableErrorToasts: options.disableErrorToasts || false,
       disableModuleAutoLoadToasts: options.disableModuleAutoLoadToasts || false,
     },
+    mountDocumentStyles: options.mountDocumentStyles ?? true,
   };
 }

@@ -2,17 +2,16 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { StliteApp, createKernel } from "./src/index";
 import { wheelUrls } from "./src/vite-utils";
-import type { StliteKernelOptions } from "@stlite/kernel";
 
-const kernelOptions: StliteKernelOptions = {
+const kernel1 = createKernel({
   entrypoint: "app.py",
   files: {
     "app.py": {
       data: `
 import streamlit as st
 
-st.title("Hello, stlite!")
-st.write("This is a Streamlit app running entirely in your browser using WebAssembly and Pyodide.")
+st.write("Hello, stlite!")
+st.write("App 1")
 `,
     },
   },
@@ -20,14 +19,36 @@ st.write("This is a Streamlit app running entirely in your browser using WebAsse
   prebuiltPackageNames: [],
   archives: [],
   wheelUrls,
-};
+});
+const kernel2 = createKernel({
+  entrypoint: "app.py",
+  files: {
+    "app.py": {
+      data: `
+import streamlit as st
 
-const kernel = createKernel(kernelOptions);
+st.write("Hello, stlite!")
+st.write("App 2")
+`,
+    },
+  },
+  requirements: [],
+  prebuiltPackageNames: [],
+  archives: [],
+  wheelUrls,
+});
 
 const reactRoot = createRoot(document.getElementById("root") as HTMLElement);
 
 reactRoot.render(
   <React.StrictMode>
-    <StliteApp kernel={kernel} />
+    <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
+      <div style={{ position: "relative", flex: 1 }}>
+        <StliteApp kernel={kernel1} mountDocumentStyles={false} />
+      </div>
+      <div style={{ position: "relative", flex: 1 }}>
+        <StliteApp kernel={kernel2} mountDocumentStyles={false} />
+      </div>
+    </div>
   </React.StrictMode>,
 );

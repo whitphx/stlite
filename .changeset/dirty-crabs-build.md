@@ -5,4 +5,4 @@
 "@stlite/react": minor
 ---
 
-Fix style structure to provide an option to encapsute the style in each mounted app
+Fix style structure to provide an option to encapsulate the style in each mounted app

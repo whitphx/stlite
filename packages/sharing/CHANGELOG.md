@@ -1,5 +1,16 @@
 # @stlite/sharing
 
+## 0.92.0
+
+### Minor Changes
+
+- [#1807](https://github.com/whitphx/stlite/pull/1807) [`6f8ed99`](https://github.com/whitphx/stlite/commit/6f8ed99e53191319d6911d67876e5de8178311d6) Thanks [@whitphx](https://github.com/whitphx)! - Fix style structure to provide an option to encapsulate the style in each mounted app
+
+### Patch Changes
+
+- Updated dependencies [[`381d7d3`](https://github.com/whitphx/stlite/commit/381d7d30e0b12edba6852e47eb94f3e826b1cdb3), [`6f8ed99`](https://github.com/whitphx/stlite/commit/6f8ed99e53191319d6911d67876e5de8178311d6)]:
+  - @stlite/react@0.2.0
+
 ## 0.91.2
 
 ### Patch Changes

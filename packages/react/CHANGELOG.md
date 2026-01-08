@@ -1,5 +1,15 @@
 # @stlite/react
 
+## 0.2.0
+
+### Minor Changes
+
+- [#1807](https://github.com/whitphx/stlite/pull/1807) [`6f8ed99`](https://github.com/whitphx/stlite/commit/6f8ed99e53191319d6911d67876e5de8178311d6) Thanks [@whitphx](https://github.com/whitphx)! - Fix style structure to provide an option to encapsulate the style in each mounted app
+
+### Patch Changes
+
+- [#1818](https://github.com/whitphx/stlite/pull/1818) [`381d7d3`](https://github.com/whitphx/stlite/commit/381d7d30e0b12edba6852e47eb94f3e826b1cdb3) Thanks [@whitphx](https://github.com/whitphx)! - Fix Emotion cache key error by updating generateUniqueId to use only alphabetical characters. Previously, the function generated alphanumeric IDs (e.g., "st-1mk594xl") which caused Emotion to throw an error: "Emotion key must only contain lower case alphabetical characters and - but "st-1mk594xl" was passed". The function now generates IDs containing only lowercase letters (a-z) to comply with Emotion's requirements.
+
 ## 0.1.1
 
 ### Patch Changes

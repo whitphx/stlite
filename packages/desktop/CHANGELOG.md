@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.92.0
+
+### Minor Changes
+
+- [#1807](https://github.com/whitphx/stlite/pull/1807) [`6f8ed99`](https://github.com/whitphx/stlite/commit/6f8ed99e53191319d6911d67876e5de8178311d6) Thanks [@whitphx](https://github.com/whitphx)! - Fix style structure to provide an option to encapsulate the style in each mounted app
+
 ## 0.91.2
 
 ### Patch Changes

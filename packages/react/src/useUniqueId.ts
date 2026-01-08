@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 let idCounter = 0;
 
 function randomChars(count: number): string {
@@ -19,11 +19,22 @@ function randomChars(count: number): string {
   ).join("");
 }
 
+export function toAlphabeticString(num: number): string {
+  if (num === 0) return "a";
+  const chars: string[] = [];
+  let n = num;
+  while (n > 0) {
+    chars.unshift(ALPHABET[n % ALPHABET.length]);
+    n = Math.floor(n / ALPHABET.length);
+  }
+  return chars.join("");
+}
+
 export function generateUniqueId(length = 8): string {
   if (length <= 0) return "";
 
-  const counterPart = (idCounter++).toString(36);
-  const timePart = Date.now().toString(36);
+  const counterPart = toAlphabeticString(idCounter++);
+  const timePart = toAlphabeticString(Date.now());
   const base = `${counterPart}${timePart}${randomChars(length)}`;
 
   if (base.length >= length) {

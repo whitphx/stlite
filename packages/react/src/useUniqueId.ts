@@ -19,7 +19,7 @@ function randomChars(count: number): string {
   ).join("");
 }
 
-function toAlphabeticString(num: number): string {
+export function toAlphabeticString(num: number): string {
   if (num === 0) return "a";
   const chars: string[] = [];
   let n = num;

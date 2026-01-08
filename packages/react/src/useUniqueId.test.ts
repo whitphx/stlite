@@ -1,6 +1,51 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook } from "@testing-library/react";
-import { generateUniqueId, useUniqueId } from "./useUniqueId";
+import {
+  generateUniqueId,
+  toAlphabeticString,
+  useUniqueId,
+} from "./useUniqueId";
+
+describe("toAlphabeticString", () => {
+  it("converts 0 to 'a'", () => {
+    expect(toAlphabeticString(0)).toBe("a");
+  });
+
+  it("converts single-digit numbers correctly", () => {
+    expect(toAlphabeticString(1)).toBe("b");
+    expect(toAlphabeticString(2)).toBe("c");
+    expect(toAlphabeticString(25)).toBe("z");
+  });
+
+  it("converts to two characters when exceeding alphabet length", () => {
+    expect(toAlphabeticString(26)).toBe("ba");
+    expect(toAlphabeticString(27)).toBe("bb");
+    expect(toAlphabeticString(51)).toBe("bz");
+  });
+
+  it("converts larger numbers correctly", () => {
+    expect(toAlphabeticString(52)).toBe("ca");
+    expect(toAlphabeticString(675)).toBe("zz");
+    expect(toAlphabeticString(676)).toBe("baa");
+  });
+
+  it("produces only alphabetical characters", () => {
+    for (let i = 0; i < 1000; i++) {
+      const result = toAlphabeticString(i);
+      expect(result).toMatch(/^[a-z]+$/);
+      expect(result.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("produces unique strings for different inputs", () => {
+    const results = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      const result = toAlphabeticString(i);
+      expect(results.has(result)).toBe(false);
+      results.add(result);
+    }
+  });
+});
 
 describe("useUniqueId", () => {
   afterEach(() => {

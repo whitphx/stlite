@@ -16,8 +16,8 @@ describe("useUniqueId", () => {
     const second = generateUniqueId(8);
 
     expect(first).not.toBe(second);
-    expect(first).toMatch(/^[a-z0-9]+$/);
-    expect(second).toMatch(/^[a-z0-9]+$/);
+    expect(first).toMatch(/^[a-z]+$/);
+    expect(second).toMatch(/^[a-z]+$/);
   });
 
   it("memoizes the id across renders", () => {

@@ -2,7 +2,7 @@
   "name": "@stlite/kernel",
   "private": true,
   "description": "",
-  "version": "0.97.1",
+  "version": "0.97.2",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {

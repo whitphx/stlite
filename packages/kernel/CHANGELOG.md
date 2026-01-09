@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.97.2
+
+### Patch Changes
+
+- [#1822](https://github.com/whitphx/stlite/pull/1822) [`8465993`](https://github.com/whitphx/stlite/commit/846599387f5a1cd15aebf92c95dc93927054be85) Thanks [@whitphx](https://github.com/whitphx)! - Add console log to navigate to the SharedWorker inspector for debugging purposes
+
 ## 0.97.1
 
 ### Patch Changes

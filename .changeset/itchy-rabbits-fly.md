@@ -2,4 +2,4 @@
 "@stlite/kernel": patch
 ---
 
-Add console log to navigate to the SharedWorker inspect for the debug purpose
+Add console log to navigate to the SharedWorker inspector for debugging purposes

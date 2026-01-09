@@ -32,9 +32,9 @@ export function stliteStyledPromiseToast<
           : errorMessage,
     },
     {
-      ...options,
       hideProgressBar: true,
       position: "bottom-right",
+      ...options,
     },
   );
 }

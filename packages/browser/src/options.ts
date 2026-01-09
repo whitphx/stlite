@@ -20,9 +20,27 @@ export interface StyleOptions {
    *
    * Set this to `false` in embedded scenarios (such as when mounting inside an
    * existing application or iframe) to avoid unexpected style conflicts with
+
+/**
+ * Options that control how styles are applied by the browser integration.
+ */
+export interface StyleOptions {
+  /**
+   * Controls whether document-level styles (e.g. global CSS rules) are mounted
+   * into the host document.
+   *
+   * Set this to `false` in embedded scenarios (such as when mounting inside an
+   * existing application or iframe) to avoid unexpected style conflicts with
    * the host page.
    */
   mountDocumentStyles: boolean;
+  /**
+   * Optional nonce to attach to injected `<style>` elements.
+   *
+   * This is typically used with a Content Security Policy (CSP) that requires
+   * a nonce on inline styles. When provided, the nonce value will be applied
+   * to styles created by this library so they are allowed by CSP.
+   */
   /**
    * Optional nonce to attach to injected `<style>` elements.
    *

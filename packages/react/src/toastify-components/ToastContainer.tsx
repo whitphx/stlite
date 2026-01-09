@@ -1,8 +1,8 @@
-import { ToastContainer as DefaultToastContainer } from "react-toastify";
+import { Id, ToastContainer as DefaultToastContainer } from "react-toastify";
 import { isDarkTheme } from "./theme";
 
 interface ToastContainerProps {
-  toastContainerId: string;
+  toastContainerId: Id;
 }
 function ToastContainer({ toastContainerId }: ToastContainerProps) {
   return (

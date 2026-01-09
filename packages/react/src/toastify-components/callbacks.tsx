@@ -1,5 +1,5 @@
-import type { StliteKernelEventListener } from "@stlite/kernel";
 import { toast, Slide, Id } from "react-toastify";
+import type { StliteKernelEventListener } from "@stlite/kernel";
 import ErrorToastContent from "./ErrorToastContent";
 import { stliteStyledPromiseToast } from "./promise";
 

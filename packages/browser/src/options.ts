@@ -183,7 +183,7 @@ export function parseMountOptions(options: MountOptions): {
     },
     styleOptions: {
       mountDocumentStyles: options.mountDocumentStyles ?? true,
-      styleNonce: options.styleNonce ?? undefined,
+      styleNonce: options.styleNonce,
     },
   };
 }

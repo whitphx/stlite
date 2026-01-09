@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useId } from "react";
 import type { StliteKernel } from "@stlite/kernel";
 import StliteApp from "./StliteApp";
 import {
@@ -23,6 +23,8 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
     disableModuleAutoLoadToasts,
   } = props;
 
+  const toastContainerId = useId();
+
   const {
     onLoadProgress,
     onLoadFinished,
@@ -34,7 +36,10 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
     onUnlink,
     onReadFile,
     onReboot,
-  } = useMemo(() => makeToastKernelEventListeners(), []);
+  } = useMemo(
+    () => makeToastKernelEventListeners(toastContainerId),
+    [toastContainerId],
+  );
 
   useEffect(() => {
     if (disableProgressToasts) {
@@ -107,7 +112,7 @@ function StliteAppWithToast(props: StliteAppWithToastProps) {
         styleNonce={props.styleNonce}
         mountDocumentStyles={props.mountDocumentStyles}
       />
-      <ToastContainer />
+      <ToastContainer toastContainerId={toastContainerId} />
     </>
   );
 }

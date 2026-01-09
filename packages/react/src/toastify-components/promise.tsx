@@ -1,4 +1,4 @@
-import { toast, ToastPromiseParams } from "react-toastify";
+import { toast, ToastOptions, ToastPromiseParams } from "react-toastify";
 import ErrorToastContent from "./ErrorToastContent";
 
 export function stliteStyledPromiseToast<
@@ -8,6 +8,7 @@ export function stliteStyledPromiseToast<
 >(
   promise: Promise<TData>,
   messages: ToastPromiseParams<TData, TError, TPending>,
+  options?: ToastOptions<TData>,
 ): ReturnType<typeof toast.promise<TData, TError, TPending>> {
   const errorMessage = messages.error;
   return toast.promise(
@@ -31,6 +32,7 @@ export function stliteStyledPromiseToast<
           : errorMessage,
     },
     {
+      ...options,
       hideProgressBar: true,
       position: "bottom-right",
     },

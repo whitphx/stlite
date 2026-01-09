@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { StliteApp, createKernel } from "./src/index";
+import { StliteAppWithToast, createKernel } from "./src/index";
 import { wheelUrls } from "./src/vite-utils";
 
 const kernel1 = createKernel({
@@ -44,10 +44,10 @@ reactRoot.render(
   <React.StrictMode>
     <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteApp kernel={kernel1} mountDocumentStyles={false} />
+        <StliteAppWithToast kernel={kernel1} mountDocumentStyles={false} />
       </div>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteApp kernel={kernel2} mountDocumentStyles={false} />
+        <StliteAppWithToast kernel={kernel2} mountDocumentStyles={false} />
       </div>
     </div>
   </React.StrictMode>,

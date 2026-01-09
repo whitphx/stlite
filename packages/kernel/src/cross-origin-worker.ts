@@ -42,6 +42,9 @@ function createWorker(
 ): Worker | SharedWorker {
   if (shared) {
     if (typeof window.SharedWorker !== "undefined") {
+      console.log(
+        "Using SharedWorker. Visit chrome://inspect/#workers (Chrome) or about:debugging#/runtime/this-firefox (Firefox) to see the console output of the worker.",
+      );
       return new SharedWorker(url, workerOptions);
     } else {
       // e.g. Chrome for Android

@@ -1,10 +1,14 @@
-import { ToastContainer as DefaultToastContainer } from "react-toastify";
+import { Id, ToastContainer as DefaultToastContainer } from "react-toastify";
 import { isDarkTheme } from "./theme";
 
-function ToastContainer() {
+interface ToastContainerProps {
+  toastContainerId: Id;
+}
+function ToastContainer({ toastContainerId }: ToastContainerProps) {
   return (
     <DefaultToastContainer
-      style={{ zIndex: 999999 }}
+      containerId={toastContainerId}
+      style={{ zIndex: 999999, position: "absolute", overflow: "hidden" }}
       theme={isDarkTheme() ? "dark" : "light"}
     />
   );

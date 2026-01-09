@@ -5,9 +5,14 @@ import type {
 } from "@stlite/react";
 
 export interface ToastOptions {
-  disableProgressToasts?: boolean;
-  disableErrorToasts?: boolean;
-  disableModuleAutoLoadToasts?: boolean;
+  disableProgressToasts: boolean;
+  disableErrorToasts: boolean;
+  disableModuleAutoLoadToasts: boolean;
+}
+
+export interface StyleOptions {
+  mountDocumentStyles: boolean;
+  styleNonce?: string;
 }
 
 // Simplified version of StliteKernelOptions for the mount function.
@@ -93,19 +98,14 @@ function canonicalizeArchives(
 const DEFAULT_ENTRYPOINT = "streamlit_app.py";
 
 export type DetailedMountOptions = SimplifiedStliteKernelOptions &
-  ToastOptions & {
-    /**
-     * Controls whether document-level styles (e.g. `html`, `body`) are applied globally.
-     * Set this to `false` in embedded scenarios to avoid style conflicts with the host page.
-     */
-    mountDocumentStyles?: boolean;
-  };
+  Partial<ToastOptions> &
+  Partial<StyleOptions>;
 export type MountOptions = string | DetailedMountOptions;
 
 export function parseMountOptions(options: MountOptions): {
   kernelOptions: Omit<StliteKernelOptions, "workerType">;
   toastOptions: ToastOptions;
-  mountDocumentStyles: boolean;
+  styleOptions: StyleOptions;
 } {
   if (typeof options === "string") {
     const mainScript = options;
@@ -126,7 +126,10 @@ export function parseMountOptions(options: MountOptions): {
         disableErrorToasts: false,
         disableModuleAutoLoadToasts: false,
       },
-      mountDocumentStyles: true,
+      styleOptions: {
+        mountDocumentStyles: true,
+        styleNonce: undefined,
+      },
     };
   }
 
@@ -160,6 +163,9 @@ export function parseMountOptions(options: MountOptions): {
       disableErrorToasts: options.disableErrorToasts || false,
       disableModuleAutoLoadToasts: options.disableModuleAutoLoadToasts || false,
     },
-    mountDocumentStyles: options.mountDocumentStyles ?? true,
+    styleOptions: {
+      mountDocumentStyles: options.mountDocumentStyles ?? true,
+      styleNonce: options.styleNonce ?? undefined,
+    },
   };
 }

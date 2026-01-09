@@ -249,4 +249,46 @@ describe("parseMountOptions()", () => {
       disableModuleAutoLoadToasts: false,
     });
   });
+
+  it("fills the style options with defaults", () => {
+    const { styleOptions } = parseMountOptions("foo");
+    expect(styleOptions).toEqual({
+      mountDocumentStyles: true,
+      styleNonce: undefined,
+    });
+  });
+
+  it("passes the styleNonce option when provided", () => {
+    const { styleOptions } = parseMountOptions({
+      entrypoint: "foo.py",
+      styleNonce: "test-nonce-123",
+    });
+    expect(styleOptions).toEqual({
+      mountDocumentStyles: true,
+      styleNonce: "test-nonce-123",
+    });
+  });
+
+  it("passes the mountDocumentStyles option when provided", () => {
+    const { styleOptions } = parseMountOptions({
+      entrypoint: "foo.py",
+      mountDocumentStyles: false,
+    });
+    expect(styleOptions).toEqual({
+      mountDocumentStyles: false,
+      styleNonce: undefined,
+    });
+  });
+
+  it("passes both style options when provided", () => {
+    const { styleOptions } = parseMountOptions({
+      entrypoint: "foo.py",
+      mountDocumentStyles: false,
+      styleNonce: "custom-nonce",
+    });
+    expect(styleOptions).toEqual({
+      mountDocumentStyles: false,
+      styleNonce: "custom-nonce",
+    });
+  });
 });

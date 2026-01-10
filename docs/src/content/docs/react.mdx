@@ -6,6 +6,14 @@ description: React bindings for running Streamlit entirely in the browser.
 `@stlite/react` provides React bindings for running Streamlit entirely in the browser with Stlite. It connects the Pyodide-backed kernel to the Streamlit UI.
 
 import { Code } from '@astrojs/starlight/components';
+import { transformReactDemoImports } from '../../utils/transform-imports';
+
+import viteConfigTs from '../../examples/react/vite.config.ts?raw';
+import basicAppRaw from '../../../../packages/react/demos/basic/App.tsx?raw';
+import multiAppRaw from '../../../../packages/react/demos/multi-app/App.tsx?raw';
+
+export const basicApp = transformReactDemoImports(basicAppRaw);
+export const multiApp = transformReactDemoImports(multiAppRaw);
 
 ## Installation
 
@@ -20,17 +28,32 @@ npm install @stlite/react
 Update `vite.config.ts` to add the helper plugin so some assets are bundled correctly.
 Import `stliteReactPlugin` from `@stlite/react/vite-plugin`.
 
-import viteConfigTs from '../../examples/react/vite.config.ts?raw';
-
 <Code code={viteConfigTs} lang="ts" title="vite.config.ts" />
 
 ### 2. Implementation
 
 Create a kernel, pass the bundled wheel URLs, and render the app.
 
-import AppTsx from '../../examples/react/App.tsx?raw';
+<Code code={basicApp} lang="tsx" title="App.tsx" />
 
-<Code code={AppTsx} lang="tsx" title="App.tsx" />
+:::note
+Don't forget to import the CSS file in your app entry point:
+```tsx
+import "@stlite/react/stlite.css";
+```
+:::
+
+## Examples
+
+### Multiple Apps
+
+You can run multiple Stlite apps on the same page by creating separate kernel instances.
+
+<Code code={multiApp} lang="tsx" title="MultiApp.tsx" />
+
+:::tip
+When running multiple apps, set `mountDocumentStyles={false}` to prevent style conflicts between apps.
+:::
 
 ## Components
 
@@ -44,6 +67,7 @@ A wrapper around `<StliteApp />` that includes toast notifications for:
 **Props:**
 
 - `kernel`: `StliteKernel` - The kernel instance created with `createKernel`.
+- `mountDocumentStyles`: `boolean` (optional, default: `true`) - Whether to mount global document styles.
 - `disableProgressToasts`: `boolean` (optional)
 - `disableErrorToasts`: `boolean` (optional)
 - `disableModuleAutoLoadToasts`: `boolean` (optional)
@@ -55,6 +79,7 @@ The core component that renders the Streamlit app UI. It does not show any toast
 **Props:**
 
 - `kernel`: `StliteKernel` - The kernel instance.
+- `mountDocumentStyles`: `boolean` (optional, default: `true`) - Whether to mount global document styles.
 
 ## API Reference
 

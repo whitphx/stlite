@@ -11,9 +11,11 @@ import { transformReactDemoImports } from '../../utils/transform-imports';
 import viteConfigTs from '../../examples/react/vite.config.ts?raw';
 import basicAppRaw from '../../../../packages/react/demos/basic/App.tsx?raw';
 import multiAppRaw from '../../../../packages/react/demos/multi-app/App.tsx?raw';
+import sharedWorkerAppRaw from '../../../../packages/react/demos/shared-worker/App.tsx?raw';
 
 export const basicApp = transformReactDemoImports(basicAppRaw);
 export const multiApp = transformReactDemoImports(multiAppRaw);
+export const sharedWorkerApp = transformReactDemoImports(sharedWorkerAppRaw);
 
 ## Installation
 
@@ -55,6 +57,19 @@ You can run multiple Stlite apps on the same page by creating separate kernel in
 When embedding apps in a non-fullscreen manner, set `mountDocumentStyles={false}` to prevent setting global styles.
 :::
 
+### Shared Worker Mode
+
+When running multiple apps, you can enable **SharedWorker mode** to reduce memory usage. In this mode, all apps share a single Pyodide worker instead of each having their own.
+
+<Code code={sharedWorkerApp} lang="tsx" title="SharedWorkerApp.tsx" />
+
+:::note
+- SharedWorker mode shares the Python environment and installed packages across all apps
+- Each app still has its own home directory (`/home/pyodide/<app-id>`)
+- SharedWorker is not supported in all browsers (e.g., Chrome on Android, older Safari versions)
+- If SharedWorker is not supported, the app will automatically fall back to a dedicated worker
+:::
+
 ## Components
 
 ### `<StliteAppWithToast />`
@@ -87,6 +102,12 @@ The core component that renders the Streamlit app UI. It does not show any toast
 
 Creates a new `StliteKernel` instance.
 
-**Options:**
+**Key Options:**
 
-See the `StliteKernelOptions` in `@stlite/browser` documentation (conceptually similar, though typed strictly in TypeScript). The key difference is `wheelUrls` which should be imported from `@stlite/react/vite-utils` to ensure correct asset loading with Vite.
+- `entrypoint`: `string` - The main Python file to run.
+- `files`: `Record<string, FileContent>` - Virtual file system contents.
+- `requirements`: `string[]` - Python packages to install via micropip.
+- `wheelUrls`: `WheelUrls` - Wheel URLs from `@stlite/react/vite-utils`.
+- `sharedWorker`: `boolean` (optional) - Enable SharedWorker mode for reduced memory when running multiple apps.
+
+See the `StliteKernelOptions` in `@stlite/browser` documentation for the complete list of options.

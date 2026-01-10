@@ -30,6 +30,10 @@ export default defineConfig({
         main: path.resolve(__dirname, "index.html"),
         basic: path.resolve(__dirname, "demos/basic/index.html"),
         "multi-app": path.resolve(__dirname, "demos/multi-app/index.html"),
+        "shared-worker": path.resolve(
+          __dirname,
+          "demos/shared-worker/index.html",
+        ),
       },
       // These are external in the lib build and handled by the stlite plugin
       external: ["stlite_lib.whl", "streamlit.whl"],

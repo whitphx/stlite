@@ -1,3 +1,5 @@
+// Disable react-hooks/rules-of-hooks: Playwright's fixture `use()` function
+// triggers a false positive (ESLint thinks it's React's `use` hook).
 /* eslint-disable react-hooks/rules-of-hooks */
 import { test as base, expect, Page } from "@playwright/test";
 

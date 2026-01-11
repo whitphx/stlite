@@ -1,5 +1,5 @@
-import { StliteAppWithToast, createKernel } from "../../src/index";
-import { wheelUrls } from "../../src/vite-utils";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { wheelUrls } from "@stlite/react/vite-utils";
 
 const kernel = createKernel({
   entrypoint: "app.py",

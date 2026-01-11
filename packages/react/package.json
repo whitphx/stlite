@@ -24,12 +24,14 @@
   ],
   "exports": {
     ".": {
+      "development": "./src/index.ts",
       "import": {
         "types": "./build/stlite.d.ts",
         "default": "./build/stlite.js"
       }
     },
     "./vite-utils": {
+      "development": "./src/vite-utils/index.ts",
       "import": {
         "types": "./build/vite-utils.d.ts",
         "default": "./build/vite-utils.js"

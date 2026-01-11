@@ -1,5 +1,5 @@
-import { StliteAppWithToast, createKernel } from "../../src/index";
-import { wheelUrls } from "../../src/vite-utils";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { wheelUrls } from "@stlite/react/vite-utils";
 
 // Create kernels with sharedWorker: true to share a single worker between apps.
 // This reduces memory usage when running multiple apps on the same page.

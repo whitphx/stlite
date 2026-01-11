@@ -6,16 +6,11 @@ description: React bindings for running Streamlit entirely in the browser.
 `@stlite/react` provides React bindings for running Streamlit entirely in the browser with Stlite. It connects the Pyodide-backed kernel to the Streamlit UI.
 
 import { Code } from '@astrojs/starlight/components';
-import { transformReactDemoImports } from '../../utils/transform-imports';
 
 import viteConfigTs from '../../examples/react/vite.config.ts?raw';
-import basicAppRaw from '../../../../packages/react/demos/basic/App.tsx?raw';
-import multiAppRaw from '../../../../packages/react/demos/multi-app/App.tsx?raw';
-import sharedWorkerAppRaw from '../../../../packages/react/demos/shared-worker/App.tsx?raw';
-
-export const basicApp = transformReactDemoImports(basicAppRaw);
-export const multiApp = transformReactDemoImports(multiAppRaw);
-export const sharedWorkerApp = transformReactDemoImports(sharedWorkerAppRaw);
+import basicApp from '../../../../packages/react/demos/basic/App.tsx?raw';
+import multiApp from '../../../../packages/react/demos/multi-app/App.tsx?raw';
+import sharedWorkerApp from '../../../../packages/react/demos/shared-worker/App.tsx?raw';
 
 ## Installation
 

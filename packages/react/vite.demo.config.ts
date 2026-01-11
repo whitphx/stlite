@@ -39,11 +39,4 @@ export default defineConfig({
       external: ["stlite_lib.whl", "streamlit.whl"],
     },
   },
-  resolve: {
-    alias: {
-      // Resolve demo imports to the built library
-      "../../src/index": path.resolve(__dirname, "build/stlite.js"),
-      "../../src/vite-utils": path.resolve(__dirname, "build/vite-utils.js"),
-    },
-  },
 });

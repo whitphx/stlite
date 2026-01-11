@@ -22,8 +22,8 @@ export default defineConfig({
     wasm(),
   ],
   build: {
-    outDir: "build",
-    emptyOutDir: false, // Don't clear the lib build output
+    outDir: "demo-dist",
+    emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
       input: {

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = !!process.env.CI;
-const buildDir = process.env.BUILD_DIR || "../build";
+const buildDir = process.env.BUILD_DIR || "../demo-dist";
 
 export default defineConfig({
   testDir: "./tests",

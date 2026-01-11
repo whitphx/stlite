@@ -418,14 +418,25 @@ jobs:
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - run: tar xzvf package.tgz
-      working-directory: ${{ runner.temp }}/artifacts/react
+    - name: Extract package and set up for demo build
+      run: |
+        tar xzvf ${{ runner.temp }}/artifacts/react/package.tgz -C ${{ runner.temp }}/artifacts/react
+        # Copy the built artifacts to packages/react/build so demos can resolve @stlite/react
+        cp -r ${{ runner.temp }}/artifacts/react/package/build packages/react/
+
+    - name: Install dependencies for demo build
+      run: yarn install
+      working-directory: packages/react
+
+    - name: Build demos
+      run: yarn build:demo
+      working-directory: packages/react
 
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/react/e2e-tests
       env:
-        BUILD_DIR: ${{ runner.temp }}/artifacts/react/package/build
+        BUILD_DIR: ../demo-dist
 
     - name: Update commit status
       if: always()

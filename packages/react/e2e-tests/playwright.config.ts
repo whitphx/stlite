@@ -12,9 +12,6 @@ export default defineConfig({
   timeout: 180_000, // 3 minutes - Stlite takes time to load
   expect: {
     timeout: 120_000,
-    toHaveScreenshot: {
-      maxDiffPixelRatio: 0.02, // Allow up to 2% pixel difference for cross-browser/run variations
-    },
   },
   reporter: isCI ? "blob" : "html",
   webServer: isCI

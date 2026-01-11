@@ -25,8 +25,8 @@ test.describe("Shared Worker Demo", () => {
     const helloTexts = page.locator('text="Hello, stlite!"');
     await expect(helloTexts).toHaveCount(2);
 
-    // Both should show the shared counter
-    const counterTexts = page.locator('text="Shared counter:"');
+    // Both should show the shared counter (text includes the count value)
+    const counterTexts = page.getByText(/Shared counter: \d+/);
     await expect(counterTexts).toHaveCount(2);
 
     // Check for dead links
@@ -39,6 +39,8 @@ test.describe("Shared Worker Demo", () => {
     await expect(page.locator('text="Shared Worker App 2"')).toBeVisible();
     const helloTexts = page.locator('text="Hello, stlite!"');
     await expect(helloTexts).toHaveCount(2);
+    const counterTexts = page.getByText(/Shared counter: \d+/);
+    await expect(counterTexts).toHaveCount(2);
 
     await expect(page).toHaveScreenshot("shared-worker.png", {
       fullPage: true,

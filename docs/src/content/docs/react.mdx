@@ -7,6 +7,11 @@ description: React bindings for running Streamlit entirely in the browser.
 
 import { Code } from '@astrojs/starlight/components';
 
+import viteConfigTs from '../../../../packages/react/demos/vite.config.ts?raw';
+import basicApp from '../../../../packages/react/demos/basic/App.tsx?raw';
+import multiApp from '../../../../packages/react/demos/multi-app/App.tsx?raw';
+import sharedWorkerApp from '../../../../packages/react/demos/multi-app-shared-worker/App.tsx?raw';
+
 ## Installation
 
 ```bash
@@ -20,17 +25,45 @@ npm install @stlite/react
 Update `vite.config.ts` to add the helper plugin so some assets are bundled correctly.
 Import `stliteReactPlugin` from `@stlite/react/vite-plugin`.
 
-import viteConfigTs from '../../examples/react/vite.config.ts?raw';
-
 <Code code={viteConfigTs} lang="ts" title="vite.config.ts" />
 
 ### 2. Implementation
 
 Create a kernel, pass the bundled wheel URLs, and render the app.
 
-import AppTsx from '../../examples/react/App.tsx?raw';
+<Code code={basicApp} lang="tsx" title="App.tsx" />
 
-<Code code={AppTsx} lang="tsx" title="App.tsx" />
+:::note
+Don't forget to import the CSS file in your app entry point:
+```tsx
+import "@stlite/react/stlite.css";
+```
+:::
+
+## Examples
+
+### Multiple Apps
+
+You can run multiple Stlite apps on the same page by creating separate kernel instances.
+
+<Code code={multiApp} lang="tsx" title="MultiApp.tsx" />
+
+:::tip
+When embedding apps in a non-fullscreen manner, set `mountDocumentStyles={false}` to prevent setting global styles.
+:::
+
+### Shared Worker Mode
+
+When running multiple apps, you can enable **SharedWorker mode** to reduce memory usage. In this mode, all apps share a single Pyodide worker instead of each having their own.
+
+<Code code={sharedWorkerApp} lang="tsx" title="SharedWorkerApp.tsx" />
+
+:::note
+- SharedWorker mode shares the Python environment and installed packages across all apps
+- Each app still has its own home directory (`/home/pyodide/<app-id>`)
+- SharedWorker is not supported in all browsers (e.g., Chrome on Android)
+- If SharedWorker is not supported, the app will automatically fall back to a dedicated worker
+:::
 
 ## Components
 
@@ -44,6 +77,7 @@ A wrapper around `<StliteApp />` that includes toast notifications for:
 **Props:**
 
 - `kernel`: `StliteKernel` - The kernel instance created with `createKernel`.
+- `mountDocumentStyles`: `boolean` (optional, default: `true`) - Whether to mount global document styles.
 - `disableProgressToasts`: `boolean` (optional)
 - `disableErrorToasts`: `boolean` (optional)
 - `disableModuleAutoLoadToasts`: `boolean` (optional)
@@ -55,6 +89,7 @@ The core component that renders the Streamlit app UI. It does not show any toast
 **Props:**
 
 - `kernel`: `StliteKernel` - The kernel instance.
+- `mountDocumentStyles`: `boolean` (optional, default: `true`) - Whether to mount global document styles.
 
 ## API Reference
 
@@ -62,6 +97,12 @@ The core component that renders the Streamlit app UI. It does not show any toast
 
 Creates a new `StliteKernel` instance.
 
-**Options:**
+**Key Options:**
 
-See the `StliteKernelOptions` in `@stlite/browser` documentation (conceptually similar, though typed strictly in TypeScript). The key difference is `wheelUrls` which should be imported from `@stlite/react/vite-utils` to ensure correct asset loading with Vite.
+- `entrypoint`: `string` - The main Python file to run.
+- `files`: `Record<string, FileContent>` - Virtual file system contents.
+- `requirements`: `string[]` - Python packages to install via micropip.
+- `wheelUrls`: `WheelUrls` - Wheel URLs from `@stlite/react/vite-utils`.
+- `sharedWorker`: `boolean` (optional) - Enable SharedWorker mode for reduced memory when running multiple apps.
+
+See the `StliteKernelOptions` in `@stlite/browser` documentation for the complete list of options.

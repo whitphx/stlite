@@ -1,0 +1,73 @@
+import { test, expect, waitForStliteReady } from "../test-utils";
+
+test.describe("Multi-App Demo", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/demos/multi-app/");
+    // Wait for both apps to be ready
+    await waitForStliteReady(page);
+  });
+
+  test("renders both apps correctly and matches snapshot", async ({
+    page,
+    expectNoDeadLinks,
+  }) => {
+    // Check if both apps are visible with their respective text
+    await expect(page.locator('text="App 1"')).toBeVisible();
+    await expect(page.locator('text="App 2"')).toBeVisible();
+
+    // Both should show "Hello, stlite!"
+    const helloTexts = page.locator('text="Hello, stlite!"');
+    await expect(helloTexts).toHaveCount(2);
+
+    // Both should show the counter (text includes the count value)
+    const counterTexts = page.getByText(/Counter: \d+/);
+    await expect(counterTexts).toHaveCount(2);
+
+    // Check for dead links
+    expectNoDeadLinks();
+
+    // Take snapshot
+    await expect(page).toHaveScreenshot("multi-app.png", {
+      fullPage: true,
+    });
+  });
+
+  test("counters work independently in each app", async ({ page }) => {
+    // Wait for both apps to be fully rendered
+    await expect(page.locator('text="App 1"')).toBeVisible();
+    await expect(page.locator('text="App 2"')).toBeVisible();
+
+    // Get the two app containers (left and right)
+    const apps = page.locator('div[style*="flex: 1"]');
+    const app1 = apps.nth(0);
+    const app2 = apps.nth(1);
+
+    // Verify initial counter values are 0
+    await expect(app1.getByText("Counter: 0")).toBeVisible();
+    await expect(app2.getByText("Counter: 0")).toBeVisible();
+
+    // Click increment button in App 1
+    await app1.getByRole("button", { name: "Increment counter" }).click();
+
+    // Verify App 1's counter incremented to 1
+    await expect(app1.getByText("Counter: 1")).toBeVisible();
+    // Verify App 2's counter is still 0 (independent session state)
+    await expect(app2.getByText("Counter: 0")).toBeVisible();
+
+    // Click increment button in App 2
+    await app2.getByRole("button", { name: "Increment counter" }).click();
+
+    // Verify App 2's counter incremented to 1
+    await expect(app2.getByText("Counter: 1")).toBeVisible();
+    // Verify App 1's counter is still 1 (unchanged)
+    await expect(app1.getByText("Counter: 1")).toBeVisible();
+
+    // Click increment button in App 1 again
+    await app1.getByRole("button", { name: "Increment counter" }).click();
+
+    // Verify App 1's counter incremented to 2
+    await expect(app1.getByText("Counter: 2")).toBeVisible();
+    // Verify App 2's counter is still 1
+    await expect(app2.getByText("Counter: 1")).toBeVisible();
+  });
+});

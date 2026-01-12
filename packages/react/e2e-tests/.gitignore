@@ -1,0 +1,6 @@
+node_modules/
+demo-dist/
+test-results/
+playwright-report/
+playwright/.cache/
+.yarn/

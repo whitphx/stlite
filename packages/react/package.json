@@ -24,12 +24,14 @@
   ],
   "exports": {
     ".": {
+      "development": "./src/index.ts",
       "import": {
         "types": "./build/stlite.d.ts",
         "default": "./build/stlite.js"
       }
     },
     "./vite-utils": {
+      "development": "./src/vite-utils/index.ts",
       "import": {
         "types": "./build/vite-utils.d.ts",
         "default": "./build/vite-utils.js"
@@ -94,6 +96,10 @@
     "build:lib": "tsc --noEmit && vite build",
     "build:vite-plugin": "cd vite-plugin && tsdown",
     "test": "vitest",
+    "test:e2e": "yarn --cwd e2e-tests test",
+    "test:e2e:headed": "yarn --cwd e2e-tests test:headed",
+    "test:e2e:ui": "yarn --cwd e2e-tests test:ui",
+    "test:e2e:update-snapshots": "yarn --cwd e2e-tests test:update-snapshots",
     "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
     "fix:prettier": "prettier --write .",
     "check:eslint": "eslint 'src/**/*.{ts,tsx}'",

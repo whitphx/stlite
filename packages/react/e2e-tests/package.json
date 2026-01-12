@@ -1,20 +1,23 @@
 {
-  "name": "@stlite/browser-e2e-tests",
+  "name": "@stlite/react-e2e-tests",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "build:demo": "vite build --config vite.demo.config.ts",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
+    "test:update-snapshots": "playwright test --update-snapshots",
     "install:browsers": "playwright install --with-deps",
-    "test:browserstack": "browserstack-node-sdk playwright test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
-    "browserstack-node-sdk": "^1.34.54",
+    "@vitejs/plugin-react": "^5.1.1",
     "http-server": "^14.1.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vite": "^7.1.5"
   },
   "packageManager": "yarn@4.5.3"
 }

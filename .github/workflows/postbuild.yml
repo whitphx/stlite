@@ -430,7 +430,8 @@ jobs:
       run: |
         tar xzvf ${{ runner.temp }}/artifacts/react/package.tgz -C ${{ runner.temp }}/artifacts/react
         # Copy the built artifacts to packages/react/build so demos can resolve @stlite/react
-        cp -r ${{ runner.temp }}/artifacts/react/package/build packages/react/
+        cp -r ${{ runner.temp }}/artifacts/react/package/build packages/react/build
+        cp -r ${{ runner.temp }}/artifacts/react/package/vite-plugin/dist packages/react/vite-plugin/dist
 
     - name: Set up the e2e-tests environment
       run: |

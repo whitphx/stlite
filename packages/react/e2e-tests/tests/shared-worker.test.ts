@@ -1,10 +1,12 @@
 import { test, expect, waitForStliteReady } from "../test-utils";
 
 test.describe("Shared Worker Demo", () => {
-  // Skip SharedWorker tests on browsers that don't support it
+  // Skip on Playwright's WebKit - SharedWorker works in real Safari but
+  // Playwright's WebKit build has issues with it. This is a test environment
+  // limitation, not a browser compatibility issue.
   test.skip(
     ({ browserName }) => browserName === "webkit",
-    "SharedWorker is not fully supported in WebKit",
+    "SharedWorker not working in Playwright's WebKit (works in real Safari)",
   );
 
   test.beforeEach(async ({ page }) => {

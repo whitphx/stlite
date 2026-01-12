@@ -54,4 +54,7 @@ export default defineConfig({
     },
   ],
   snapshotDir: "./snapshots",
+  // Exclude platform from snapshot names to allow cross-platform snapshot matching
+  snapshotPathTemplate:
+    "{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}-{projectName}{ext}",
 });

@@ -442,12 +442,12 @@ jobs:
     - name: Build demos
       run: yarn build:demo
       working-directory: packages/react/e2e-tests
+      env:
+        NODE_OPTIONS: "--max-old-space-size=6144"
 
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/react/e2e-tests
-      env:
-        BUILD_DIR: ./demo-dist
 
     - name: Update commit status
       if: always()

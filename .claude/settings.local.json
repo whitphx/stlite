@@ -1,44 +1,9 @@
 {
   "permissions": {
-    "allow": [
-      "Edit",
-      "WebSearch",
-
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-
-      "Bash(corepack enable)",
-      "Bash(yarn install)",
-      "Bash(yarn install:browsers:*)",
-      "Bash(yarn workspaces list:*)",
-      "Bash(yarn list:*)",
-      "Bash(yarn why:*)",
-
-      "Bash(yarn build)",
-      "Bash(yarn build:*)",
-      "Bash(NODE_OPTIONS=* yarn build:*)",
-
-      "Bash(yarn test:*)",
-      "Bash(CI=* BUILD_DIR=* yarn test:*)",
-
-      "Bash(npx playwright:*)",
-      "Bash(npx playwright test:*)",
-      "Bash(BUILD_DIR=* npx playwright test:*)",
-
-      "Bash(yarn changeset:*)",
-      "Bash(yarn init:*)",
-      "Bash(yarn exec:*)",
-      "Bash(yarn run-s:*)",
-      "Bash(timeout * yarn start:*)",
-
-      "Bash(make:*)",
-
-      "Bash(ls:*)",
-      "Bash(grep:*)",
-      "Bash(curl:*)",
-      "Bash(lsof:*)",
-      "Bash(xargs kill -9)"
-    ]
+    "allow": ["Edit", "WebSearch"]
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
   }
 }

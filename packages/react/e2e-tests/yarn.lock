@@ -482,7 +482,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.42.1":
+"@playwright/test@npm:^1.55.1":
   version: 1.57.0
   resolution: "@playwright/test@npm:1.57.0"
   dependencies:
@@ -679,7 +679,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stlite/react-e2e-tests@workspace:."
   dependencies:
-    "@playwright/test": "npm:^1.42.1"
+    "@playwright/test": "npm:^1.55.1"
     "@vitejs/plugin-react": "npm:^5.1.1"
     http-server: "npm:^14.1.1"
     typescript: "npm:^5.8.2"

@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.55.1",
     "@vitejs/plugin-react": "^5.1.1",
     "http-server": "^14.1.1",
     "typescript": "^5.8.2",

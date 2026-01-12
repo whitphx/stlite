@@ -183,88 +183,54 @@ runs:
 
           fs.writeFileSync('comment.txt', comment);
 
-    - name: Post a message to Pull Request threads
+    - name: Get target PR number
+      id: get-pr-number
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
         COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
+        result-encoding: string
         script: |
-          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
-
-          const fs = require("fs");
-
-          const commentBody = fs.readFileSync('comment.txt');
-
-          async function getTargetPullRequests() {
-            if (process.env.PR_NUMBER) {
-              return [
-                (await github.rest.pulls.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: process.env.PR_NUMBER,
-                })).data
-              ];
-            }
-            if (context.eventName === "pull_request") {
-              return [context.payload.pull_request];
-            }
-            if (context.eventName === "push" || context.eventName === "workflow_run") {
-              const pullRequests = (
-                await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  commit_sha: process.env.COMMIT_SHA,
-                })
-              ).data;
-              const openPullRequests = pullRequests.filter(pr => pr.state === "open")
-              return openPullRequests;
-            }
-            throw new Error(`Unsupported event type: ${context.eventName}`);
+          if (process.env.PR_NUMBER) {
+            return process.env.PR_NUMBER;
           }
-          const targetPullRequests = await getTargetPullRequests();
-
-          core.startGroup('Found PRs:')
-          console.log(targetPullRequests)
-          core.endGroup()
-
-          const stickyCommentHeader = `<!-- Sticky Stat Comment ${process.env.COMMIT_SHA} -->\n`;
-
-          for (const pr of targetPullRequests) {
-            const title = `## Package Stats on [\`${process.env.COMMIT_SHA.slice(0, 7)}\`](${pr.html_url}/commits/${process.env.COMMIT_SHA})\n\n`;
-            const commentText = title + commentBody;
-
-            const stickyCommentText = stickyCommentHeader + commentText
-
-            const existingComments = await github.paginate(
-              github.rest.issues.listComments,
-              {
+          if (context.eventName === "pull_request") {
+            return String(context.payload.pull_request.number);
+          }
+          if (context.eventName === "push" || context.eventName === "workflow_run") {
+            const pullRequests = (
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: pr.number,
-              }
-            );
-
-            const existingComment = existingComments.find(comment =>
-              comment.body.startsWith(stickyCommentHeader) && comment.user.login === 'github-actions[bot]'
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: stickyCommentText,
-              });
-              core.info(`Updated comment on PR #${pr.number}`);
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                body: stickyCommentText,
-              });
-              core.info(`Created comment on PR #${pr.number}`);
+                commit_sha: process.env.COMMIT_SHA,
+              })
+            ).data;
+            const openPullRequests = pullRequests.filter(pr => pr.state === "open");
+            if (openPullRequests.length > 0) {
+              return String(openPullRequests[0].number);
             }
           }
+          return "";
+
+    - name: Read comment content
+      if: steps.get-pr-number.outputs.result != ''
+      id: read-comment
+      shell: bash
+      run: |
+        cd "$PACKAGE_STATS_WORKING_DIR"
+        {
+          echo 'CONTENT<<EOF'
+          cat comment.txt
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Add package stats section to sticky comment
+      if: steps.get-pr-number.outputs.result != ''
+      uses: ./.github/actions/sticky-comment-add-section
+      with:
+        pr-number: ${{ steps.get-pr-number.outputs.result }}
+        section-id: package-stats
+        section-title: "## Package Stats"
+        section-content: ${{ steps.read-comment.outputs.CONTENT }}
+        order: "10"

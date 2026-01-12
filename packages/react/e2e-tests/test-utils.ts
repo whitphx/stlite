@@ -28,7 +28,7 @@ export const test = base.extend<{
 });
 
 /**
- * Wait for the Stlite app container to be present.
+ * Wait for the Stlite app container to be visible.
  *
  * Typical Stlite initialization times:
  * - Pyodide download + init: 10-30s (varies by network/caching)
@@ -46,7 +46,10 @@ export async function waitForStliteReady(
   page: Page,
   timeout = 60_000,
 ): Promise<void> {
-  await page.waitForSelector('[data-testid="stAppViewContainer"]', { timeout });
+  await page.waitForSelector('[data-testid="stAppViewContainer"]', {
+    timeout,
+    state: "visible",
+  });
 }
 
 export { expect } from "@playwright/test";

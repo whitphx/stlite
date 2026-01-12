@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Bash(yarn test:*)",
+      "Bash(git add:*)",
+      "Bash(yarn changeset:*)",
+      "Bash(ls:*)",
+      "Bash(git commit:*)",
+      "Bash(yarn workspaces list:*)",
+      "Bash(timeout 15 yarn start:*)",
+      "Bash(yarn install)",
+      "Bash(corepack enable)",
+      "Bash(yarn init:*)",
+      "Bash(yarn install:browsers:*)",
+      "Bash(yarn test:update-snapshots:*)",
+      "Bash(yarn build)",
+      "Bash(yarn run-s:*)",
+      "Bash(grep:*)",
+      "Bash(yarn list:*)",
+      "Bash(yarn why:*)",
+      "Bash(yarn exec:*)",
+      "Bash(make:*)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=6144\" yarn build:demo:*)",
+      "Bash(CI=true BUILD_DIR=../build yarn test:*)",
+      "Bash(curl:*)",
+      "Bash(yarn build:lib:*)",
+      "Bash(yarn build:demo)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" yarn build:demo:*)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=8192\" yarn build:*)",
+      "Bash(BUILD_DIR=\"../build\" npx playwright test:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright:*)",
+      "WebSearch",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}

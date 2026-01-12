@@ -92,7 +92,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "yarn build:lib && yarn build:vite-plugin",
+    "build": "run-p 'build:*'",
     "build:lib": "tsc --noEmit && vite build",
     "build:vite-plugin": "cd vite-plugin && tsdown",
     "test": "vitest",

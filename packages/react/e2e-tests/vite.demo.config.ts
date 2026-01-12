@@ -3,19 +3,17 @@
  * This builds the demo apps for E2E testing and preview deployments.
  */
 
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import stliteReactPlugin from "@stlite/react/vite-plugin";
-
+import { mergeConfig } from "vite";
 import path from "node:path";
+
+import baseConfig from "../demos/vite.config";
 
 // Demo source files are in the parent directory
 const reactPackageDir = path.resolve(__dirname, "..");
 
-export default defineConfig({
+export default mergeConfig(baseConfig, {
   root: reactPackageDir,
   base: "./",
-  plugins: [react(), stliteReactPlugin()],
   build: {
     outDir: path.resolve(__dirname, "demo-dist"),
     emptyOutDir: true,

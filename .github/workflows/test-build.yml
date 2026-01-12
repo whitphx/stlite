@@ -551,12 +551,6 @@ jobs:
         path: packages/react/package.tgz
         name: stlite-react
 
-    - name: Upload demo build for E2E tests
-      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-      with:
-        path: packages/react/demo-dist
-        name: stlite-react-demo
-
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
       with:

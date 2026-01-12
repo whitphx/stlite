@@ -213,6 +213,16 @@ When you set the `stlite.desktop.nodeJsWorker` field in your `package.json` to `
 }
 ```
 
+#### Security considerations
+
+When NodeJS worker mode is enabled, the Python code executes within a Node.js worker thread in the main process. This means:
+
+- **The Python code has the same privileges as the Node.js process itself.** It can access the file system, spawn child processes, make network requests, and perform any operation that Node.js can do.
+- **There is no sandbox.** Unlike the default Web Worker mode (which runs in a browser-like sandboxed environment), NodeJS worker mode provides no isolation between your Python code and the host operating system.
+- **You are responsible for the security of your app.** If your app executes untrusted Python code or loads untrusted packages, those could potentially harm the user's system.
+
+This is an intentional design to enable powerful features like direct file system access via NODEFS. However, you should only use this mode when you trust all Python code and packages that your app will execute.
+
 ## Limitations
 
 - Navigation to external resources like `st.markdown("[link](https://streamlit.io/)")` does not work for security. See https://github.com/whitphx/stlite/pull/445 and let us know if you have use cases where you have to use such external links.

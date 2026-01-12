@@ -3,6 +3,8 @@ import { wheelUrls } from "@stlite/react/vite-utils";
 
 // Create kernels with sharedWorker: true to share a single worker between apps.
 // This reduces memory usage when running multiple apps on the same page.
+// Note: SharedWorker shares the Python runtime, but each app has its own
+// independent session state. Data is NOT shared between apps.
 // Note: SharedWorker is not supported in all browsers (e.g., Chrome Android).
 const kernel1 = createKernel({
   entrypoint: "app.py",
@@ -14,14 +16,13 @@ import streamlit as st
 st.write("Hello, stlite!")
 st.write("Shared Worker App 1")
 
-# This variable is shared across all apps using the same SharedWorker
-if "shared_counter" not in st.session_state:
-    st.session_state.shared_counter = 0
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
 
-if st.button("Increment shared counter"):
-    st.session_state.shared_counter += 1
+if st.button("Increment counter"):
+    st.session_state.counter += 1
 
-st.write(f"Shared counter: {st.session_state.shared_counter}")
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },
@@ -41,14 +42,13 @@ import streamlit as st
 st.write("Hello, stlite!")
 st.write("Shared Worker App 2")
 
-# This variable is shared across all apps using the same SharedWorker
-if "shared_counter" not in st.session_state:
-    st.session_state.shared_counter = 0
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
 
-if st.button("Increment shared counter"):
-    st.session_state.shared_counter += 1
+if st.button("Increment counter"):
+    st.session_state.counter += 1
 
-st.write(f"Shared counter: {st.session_state.shared_counter}")
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },

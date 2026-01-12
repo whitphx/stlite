@@ -15,7 +15,7 @@ test.describe("Shared Worker Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("smoke: renders both apps without errors", async ({
+  test("renders both apps correctly and matches snapshot", async ({
     page,
     expectNoDeadLinks,
   }) => {
@@ -27,23 +27,14 @@ test.describe("Shared Worker Demo", () => {
     const helloTexts = page.locator('text="Hello, stlite!"');
     await expect(helloTexts).toHaveCount(2);
 
-    // Both should show the shared counter (text includes the count value)
-    const counterTexts = page.getByText(/Shared counter: \d+/);
+    // Both should show the counter (text includes the count value)
+    const counterTexts = page.getByText(/Counter: \d+/);
     await expect(counterTexts).toHaveCount(2);
 
     // Check for dead links
     expectNoDeadLinks();
-  });
 
-  test("snapshot: matches baseline", async ({ page }) => {
-    // Wait for actual content to be rendered (same criteria as smoke test)
-    await expect(page.locator('text="Shared Worker App 1"')).toBeVisible();
-    await expect(page.locator('text="Shared Worker App 2"')).toBeVisible();
-    const helloTexts = page.locator('text="Hello, stlite!"');
-    await expect(helloTexts).toHaveCount(2);
-    const counterTexts = page.getByText(/Shared counter: \d+/);
-    await expect(counterTexts).toHaveCount(2);
-
+    // Take snapshot
     await expect(page).toHaveScreenshot("shared-worker.png", {
       fullPage: true,
     });
@@ -60,37 +51,31 @@ test.describe("Shared Worker Demo", () => {
     const app2 = apps.nth(1);
 
     // Verify initial counter values are 0
-    await expect(app1.getByText("Shared counter: 0")).toBeVisible();
-    await expect(app2.getByText("Shared counter: 0")).toBeVisible();
+    await expect(app1.getByText("Counter: 0")).toBeVisible();
+    await expect(app2.getByText("Counter: 0")).toBeVisible();
 
     // Click increment button in App 1
-    await app1
-      .getByRole("button", { name: "Increment shared counter" })
-      .click();
+    await app1.getByRole("button", { name: "Increment counter" }).click();
 
     // Verify App 1's counter incremented to 1
-    await expect(app1.getByText("Shared counter: 1")).toBeVisible();
-    // Verify App 2's counter is still 0
-    await expect(app2.getByText("Shared counter: 0")).toBeVisible();
+    await expect(app1.getByText("Counter: 1")).toBeVisible();
+    // Verify App 2's counter is still 0 (independent session state)
+    await expect(app2.getByText("Counter: 0")).toBeVisible();
 
     // Click increment button in App 2
-    await app2
-      .getByRole("button", { name: "Increment shared counter" })
-      .click();
+    await app2.getByRole("button", { name: "Increment counter" }).click();
 
     // Verify App 2's counter incremented to 1
-    await expect(app2.getByText("Shared counter: 1")).toBeVisible();
+    await expect(app2.getByText("Counter: 1")).toBeVisible();
     // Verify App 1's counter is still 1 (unchanged)
-    await expect(app1.getByText("Shared counter: 1")).toBeVisible();
+    await expect(app1.getByText("Counter: 1")).toBeVisible();
 
     // Click increment button in App 1 again
-    await app1
-      .getByRole("button", { name: "Increment shared counter" })
-      .click();
+    await app1.getByRole("button", { name: "Increment counter" }).click();
 
     // Verify App 1's counter incremented to 2
-    await expect(app1.getByText("Shared counter: 2")).toBeVisible();
+    await expect(app1.getByText("Counter: 2")).toBeVisible();
     // Verify App 2's counter is still 1
-    await expect(app2.getByText("Shared counter: 1")).toBeVisible();
+    await expect(app2.getByText("Counter: 1")).toBeVisible();
   });
 });

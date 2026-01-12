@@ -7,7 +7,7 @@ test.describe("Multi-App Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("smoke: renders both apps without errors", async ({
+  test("renders both apps correctly and matches snapshot", async ({
     page,
     expectNoDeadLinks,
   }) => {
@@ -21,15 +21,8 @@ test.describe("Multi-App Demo", () => {
 
     // Check for dead links
     expectNoDeadLinks();
-  });
 
-  test("snapshot: matches baseline", async ({ page }) => {
-    // Wait for actual content to be rendered (same criteria as smoke test)
-    await expect(page.locator('text="App 1"')).toBeVisible();
-    await expect(page.locator('text="App 2"')).toBeVisible();
-    const helloTexts = page.locator('text="Hello, stlite!"');
-    await expect(helloTexts).toHaveCount(2);
-
+    // Take snapshot
     await expect(page).toHaveScreenshot("multi-app.png", {
       fullPage: true,
     });

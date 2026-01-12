@@ -6,7 +6,10 @@ test.describe("Basic Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("smoke: renders without errors", async ({ page, expectNoDeadLinks }) => {
+  test("renders correctly and matches snapshot", async ({
+    page,
+    expectNoDeadLinks,
+  }) => {
     // Check if the title is visible
     await expect(page.locator('h1:has-text("Hello, Stlite!")')).toBeVisible();
 
@@ -21,9 +24,14 @@ test.describe("Basic Demo", () => {
 
     // Check for dead links
     expectNoDeadLinks();
+
+    // Take snapshot
+    await expect(page).toHaveScreenshot("basic-app.png", {
+      fullPage: true,
+    });
   });
 
-  test("interaction: text input updates greeting", async ({ page }) => {
+  test("text input updates greeting", async ({ page }) => {
     const textInput = page.locator('input[type="text"]');
     await expect(textInput).toBeVisible();
 
@@ -33,18 +41,5 @@ test.describe("Basic Demo", () => {
 
     // Check if the greeting is updated
     await expect(page.locator('text="Hello, Playwright!"')).toBeVisible();
-  });
-
-  test("snapshot: matches baseline", async ({ page }) => {
-    // Wait for actual content to be rendered (same criteria as smoke test)
-    await expect(page.locator('h1:has-text("Hello, Stlite!")')).toBeVisible();
-    await expect(page.locator('input[type="text"]')).toBeVisible();
-    await expect(
-      page.locator('text="This app runs entirely in your browser."'),
-    ).toBeVisible();
-
-    await expect(page).toHaveScreenshot("basic-app.png", {
-      fullPage: true,
-    });
   });
 });

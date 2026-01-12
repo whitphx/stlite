@@ -183,8 +183,8 @@ runs:
 
           fs.writeFileSync('comment.txt', comment);
 
-    - name: Get target PR number
-      id: get-pr-number
+    - name: Get target PR numbers
+      id: get-pr-numbers
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
@@ -192,11 +192,12 @@ runs:
       with:
         result-encoding: string
         script: |
+          // Returns a JSON array of PR numbers
           if (process.env.PR_NUMBER) {
-            return process.env.PR_NUMBER;
+            return JSON.stringify([parseInt(process.env.PR_NUMBER)]);
           }
           if (context.eventName === "pull_request") {
-            return String(context.payload.pull_request.number);
+            return JSON.stringify([context.payload.pull_request.number]);
           }
           if (context.eventName === "push" || context.eventName === "workflow_run") {
             const pullRequests = (
@@ -208,13 +209,12 @@ runs:
             ).data;
             const openPullRequests = pullRequests.filter(pr => pr.state === "open");
             if (openPullRequests.length > 0) {
-              return String(openPullRequests[0].number);
+              return JSON.stringify(openPullRequests.map(pr => pr.number));
             }
           }
-          return "";
+          return "[]";
 
     - name: Read comment content
-      if: steps.get-pr-number.outputs.result != ''
       id: read-comment
       shell: bash
       run: |
@@ -225,12 +225,137 @@ runs:
           echo 'EOF'
         } >> "$GITHUB_OUTPUT"
 
-    - name: Add package stats section to sticky comment
-      if: steps.get-pr-number.outputs.result != ''
-      uses: ./.github/actions/sticky-comment-add-section
+    - name: Add package stats section to sticky comment for all PRs
+      if: steps.get-pr-numbers.outputs.result != '[]'
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      env:
+        PR_NUMBERS: ${{ steps.get-pr-numbers.outputs.result }}
+        SECTION_CONTENT: ${{ steps.read-comment.outputs.CONTENT }}
       with:
-        pr-number: ${{ steps.get-pr-number.outputs.result }}
-        section-id: package-stats
-        section-title: "## Package Stats"
-        section-content: ${{ steps.read-comment.outputs.CONTENT }}
-        order: "10"
+        script: |
+          const prNumbers = JSON.parse(process.env.PR_NUMBERS);
+          const sectionContent = process.env.SECTION_CONTENT;
+          const sectionId = "package-stats";
+          const sectionTitle = "## Package Stats";
+          const sectionOrder = 10;
+
+          if (prNumbers.length === 0) {
+            core.info("No PRs to update.");
+            return;
+          }
+
+          const COMMENT_HEADER = "<!-- Unified CI Report -->";
+          const SECTION_START_MARKER = (id) => `<!-- section:${id}:start -->`;
+          const SECTION_END_MARKER = (id) => `<!-- section:${id}:end -->`;
+          const SECTION_ORDER_MARKER = (id, order) => `<!-- section:${id}:order:${order} -->`;
+
+          function parseSections(body) {
+            const sections = [];
+            const sectionRegex = /<!-- section:([^:]+):start -->\s*<!-- section:[^:]+:order:(\d+) -->\s*([\s\S]*?)<!-- section:[^:]+:end -->/g;
+            let match;
+            while ((match = sectionRegex.exec(body)) !== null) {
+              sections.push({
+                id: match[1],
+                order: parseInt(match[2]),
+                content: match[3].trim(),
+              });
+            }
+            return sections;
+          }
+
+          function buildCommentBody(sections) {
+            const title = "# CI Report\n\n";
+            const sectionsContent = sections
+              .map((section) => {
+                return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
+              })
+              .join("\n\n---\n\n");
+            return `${COMMENT_HEADER}\n${title}${sectionsContent}`;
+          }
+
+          for (const prNumber of prNumbers) {
+            core.info(`Updating PR #${prNumber}...`);
+
+            // Retry logic for race conditions
+            const MAX_RETRIES = 3;
+            const RETRY_DELAY_MS = 1000;
+
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+              try {
+                // Find existing sticky comment
+                const comments = await github.paginate(
+                  github.rest.issues.listComments,
+                  {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                  }
+                );
+
+                const existingComment = comments.find(
+                  (comment) =>
+                    comment.body?.startsWith(COMMENT_HEADER) &&
+                    comment.user?.login === "github-actions[bot]"
+                );
+
+                // Get existing sections
+                let sections = existingComment ? parseSections(existingComment.body) : [];
+
+                // Create new section content
+                const newSectionContent = `${sectionTitle}\n\n${sectionContent}`;
+
+                // Update or add section
+                const existingIndex = sections.findIndex((s) => s.id === sectionId);
+                if (existingIndex >= 0) {
+                  sections[existingIndex] = {
+                    id: sectionId,
+                    order: sectionOrder,
+                    content: newSectionContent,
+                  };
+                } else {
+                  sections.push({
+                    id: sectionId,
+                    order: sectionOrder,
+                    content: newSectionContent,
+                  });
+                }
+
+                // Sort sections by order
+                sections.sort((a, b) => a.order - b.order);
+
+                const commentBody = buildCommentBody(sections);
+
+                // Create or update comment
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: commentBody,
+                  });
+                  core.info(`Updated unified comment on PR #${prNumber}`);
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: commentBody,
+                  });
+                  core.info(`Created unified comment on PR #${prNumber}`);
+                }
+
+                // Success - exit retry loop
+                break;
+              } catch (error) {
+                const isConflict = error.status === 409 || error.status === 422;
+
+                if (isConflict && attempt < MAX_RETRIES) {
+                  core.warning(`Attempt ${attempt} for PR #${prNumber} failed due to conflict, retrying...`);
+                  await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+                  continue;
+                }
+
+                throw error;
+              }
+            }
+          }

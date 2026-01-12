@@ -6,7 +6,7 @@ inputs:
     description: "The PR number to post the comment to"
   section-id:
     required: true
-    description: "Unique identifier for this section (used to update existing sections)"
+    description: "Unique identifier for this section (used to update existing sections). Must not contain colons."
   section-title:
     required: true
     description: "Display title for this section (markdown header, e.g., '## Package Stats')"
@@ -42,26 +42,16 @@ runs:
             return;
           }
 
+          // Validate section ID doesn't contain colons (used as delimiter in markers)
+          if (sectionId.includes(":")) {
+            core.setFailed(`Section ID "${sectionId}" contains colons, which are not allowed as they are used as delimiters in comment markers.`);
+            return;
+          }
+
           const COMMENT_HEADER = "<!-- Unified CI Report -->";
           const SECTION_START_MARKER = (id) => `<!-- section:${id}:start -->`;
           const SECTION_END_MARKER = (id) => `<!-- section:${id}:end -->`;
           const SECTION_ORDER_MARKER = (id, order) => `<!-- section:${id}:order:${order} -->`;
-
-          // Find existing sticky comment
-          const existingComments = await github.paginate(
-            github.rest.issues.listComments,
-            {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            }
-          );
-
-          const existingComment = existingComments.find(
-            (comment) =>
-              comment.body?.startsWith(COMMENT_HEADER) &&
-              comment.user?.login === "github-actions[bot]"
-          );
 
           // Parse existing sections from comment
           function parseSections(body) {
@@ -78,58 +68,103 @@ runs:
             return sections;
           }
 
-          // Get existing sections
-          let sections = existingComment ? parseSections(existingComment.body) : [];
-
-          // Create new section content
-          const newSectionContent = `${sectionTitle}\n\n${sectionContent}`;
-
-          // Update or add section
-          const existingIndex = sections.findIndex((s) => s.id === sectionId);
-          if (existingIndex >= 0) {
-            sections[existingIndex] = {
-              id: sectionId,
-              order: sectionOrder,
-              content: newSectionContent,
-            };
-            core.info(`Updated existing section: ${sectionId}`);
-          } else {
-            sections.push({
-              id: sectionId,
-              order: sectionOrder,
-              content: newSectionContent,
-            });
-            core.info(`Added new section: ${sectionId}`);
+          // Build comment body from sections
+          function buildCommentBody(sections) {
+            const title = "# CI Report\n\n";
+            const sectionsContent = sections
+              .map((section) => {
+                return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
+              })
+              .join("\n\n---\n\n");
+            return `${COMMENT_HEADER}\n${title}${sectionsContent}`;
           }
 
-          // Sort sections by order
-          sections.sort((a, b) => a.order - b.order);
+          // Find existing sticky comment
+          async function findStickyComment() {
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+              }
+            );
+            return comments.find(
+              (comment) =>
+                comment.body?.startsWith(COMMENT_HEADER) &&
+                comment.user?.login === "github-actions[bot]"
+            );
+          }
 
-          // Build comment body
-          const title = "# CI Report\n\n";
-          const sectionsContent = sections
-            .map((section) => {
-              return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
-            })
-            .join("\n\n---\n\n");
+          // Retry logic to handle race conditions
+          const MAX_RETRIES = 3;
+          const RETRY_DELAY_MS = 1000;
 
-          const commentBody = `${COMMENT_HEADER}\n${title}${sectionsContent}`;
+          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+              const existingComment = await findStickyComment();
 
-          // Create or update comment
-          if (existingComment) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: existingComment.id,
-              body: commentBody,
-            });
-            core.info(`Updated unified comment on PR #${prNumber}`);
-          } else {
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: commentBody,
-            });
-            core.info(`Created unified comment on PR #${prNumber}`);
+              // Get existing sections
+              let sections = existingComment ? parseSections(existingComment.body) : [];
+
+              // Create new section content
+              const newSectionContent = `${sectionTitle}\n\n${sectionContent}`;
+
+              // Update or add section
+              const existingIndex = sections.findIndex((s) => s.id === sectionId);
+              if (existingIndex >= 0) {
+                sections[existingIndex] = {
+                  id: sectionId,
+                  order: sectionOrder,
+                  content: newSectionContent,
+                };
+                core.info(`Updated existing section: ${sectionId}`);
+              } else {
+                sections.push({
+                  id: sectionId,
+                  order: sectionOrder,
+                  content: newSectionContent,
+                });
+                core.info(`Added new section: ${sectionId}`);
+              }
+
+              // Sort sections by order
+              sections.sort((a, b) => a.order - b.order);
+
+              const commentBody = buildCommentBody(sections);
+
+              // Create or update comment
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: commentBody,
+                });
+                core.info(`Updated unified comment on PR #${prNumber}`);
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: commentBody,
+                });
+                core.info(`Created unified comment on PR #${prNumber}`);
+              }
+
+              // Success - exit retry loop
+              break;
+            } catch (error) {
+              // Check if it's a conflict error (HTTP 409) or similar race condition
+              const isConflict = error.status === 409 || error.status === 422;
+
+              if (isConflict && attempt < MAX_RETRIES) {
+                core.warning(`Attempt ${attempt} failed due to conflict, retrying in ${RETRY_DELAY_MS}ms...`);
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+                continue;
+              }
+
+              // Re-throw if not a conflict or max retries reached
+              throw error;
+            }
           }

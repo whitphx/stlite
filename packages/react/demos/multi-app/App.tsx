@@ -10,6 +10,14 @@ import streamlit as st
 
 st.write("Hello, stlite!")
 st.write("App 1")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },
@@ -27,6 +35,14 @@ import streamlit as st
 
 st.write("Hello, stlite!")
 st.write("App 2")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },

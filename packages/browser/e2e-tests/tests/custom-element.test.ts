@@ -40,4 +40,26 @@ test.describe("Custom Element Stlite Browser Test", () => {
     // Check for dead links
     expectNoDeadLinks();
   });
+
+  test("should load app from src attribute", async ({
+    page,
+    expectNoDeadLinks,
+  }) => {
+    // Navigate to the test page with src attribute
+    await page.goto("/test-app-src-attribute.html");
+
+    // Wait for the Streamlit app to load
+    // The title should be visible when the app is loaded
+    await expect(
+      page.locator('h1:has-text("Source Attribute Test")'),
+    ).toBeVisible();
+
+    // Check that the content from the external file is rendered
+    await expect(
+      page.locator('text="This app was loaded from a src attribute!"'),
+    ).toBeVisible();
+
+    // Check for dead links
+    expectNoDeadLinks();
+  });
 });

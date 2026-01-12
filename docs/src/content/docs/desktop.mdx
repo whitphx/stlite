@@ -104,9 +104,9 @@ Mount an IndexedDB-backed directory to persist files across restarts.
 }
 ```
 
-### Local File Access (NodeJS Worker)
+### Local File Access (NODEFS)
 
-To access the host OS file system, enable `nodeJsWorker` and mount directories.
+To access the host OS file system, you need to enable [NodeJS Worker Mode](#nodejs-worker-mode) and mount directories using `nodefsMountpoints`.
 
 ```json
 "stlite": {
@@ -124,7 +124,43 @@ This mounts the current directory (`.`) of the host to `/mnt` in the virtual fil
 > [!TIP]
 > You can use placeholders like `{{home}}`, `{{userData}}`, `{{temp}}` in the host paths.
 
-#### Security Considerations
+## NodeJS Worker Mode
+
+By default, Stlite executes Python code on Pyodide running in a [Web Worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) dispatched by the renderer process. The renderer process is a browser process, so it's sandboxed from the host OS.
+
+When you set `nodeJsWorker` to `true`, Stlite dispatches the worker as a [Node.js Worker Thread](https://nodejs.org/api/worker_threads.html) that runs in the main process. This enables features that require direct access to the host system, such as [NODEFS](#local-file-access-nodefs).
+
+```json
+"stlite": {
+  "desktop": {
+    "nodeJsWorker": true
+  }
+}
+```
+
+### Full JavaScript/Node.js Access
+
+In NodeJS worker mode, the Python code has full access to the Node.js JavaScript environment through Pyodide's `js` module and `pyodide.code.run_js()`. This allows you to call any Node.js API directly from Python.
+
+For example, you can execute shell commands:
+
+```python
+import pyodide
+
+result = pyodide.code.run_js('''
+require("child_process").execSync("whoami").toString().trim()
+''')
+print(result)  # Prints the current username
+```
+
+This opens up powerful possibilities for desktop applications, such as:
+- Running system commands and scripts
+- Accessing Node.js native modules
+- Integrating with other system tools and services
+
+However, this also means your Python code has the same level of access as any Node.js application running on the user's machine. See the [Security Considerations](#security-considerations) below.
+
+### Security Considerations
 
 When NodeJS worker mode is enabled, the Python code executes within a Node.js worker thread in the main process. This means:
 

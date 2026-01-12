@@ -5,8 +5,7 @@
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import viteTsconfigPaths from "vite-tsconfig-paths";
-import wasm from "vite-plugin-wasm";
+import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
 
@@ -16,15 +15,7 @@ const reactPackageDir = path.resolve(__dirname, "..");
 export default defineConfig({
   root: reactPackageDir,
   base: "./",
-  plugins: [
-    react({
-      babel: {
-        plugins: ["@emotion/babel-plugin"],
-      },
-    }),
-    viteTsconfigPaths(),
-    wasm(),
-  ],
+  plugins: [react(), stliteReactPlugin()],
   build: {
     outDir: path.resolve(__dirname, "demo-dist"),
     emptyOutDir: true,
@@ -42,8 +33,6 @@ export default defineConfig({
           "demos/shared-worker/index.html",
         ),
       },
-      // These are external in the lib build and handled by the stlite plugin
-      external: ["stlite_lib.whl", "streamlit.whl"],
     },
   },
 });

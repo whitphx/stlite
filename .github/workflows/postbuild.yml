@@ -444,13 +444,13 @@ jobs:
 
     - name: Build demos
       run: yarn build:demo
-      working-directory: packages/react
+      working-directory: packages/react/e2e-tests
 
     - name: Run the e2e-tests
       run: yarn test
       working-directory: packages/react/e2e-tests
       env:
-        BUILD_DIR: ../demo-dist
+        BUILD_DIR: ./demo-dist
 
     - name: Update commit status
       if: always()

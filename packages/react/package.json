@@ -94,7 +94,6 @@
     "start": "vite",
     "build": "yarn build:lib && yarn build:vite-plugin",
     "build:lib": "tsc --noEmit && vite build",
-    "build:demo": "vite build --config vite.demo.config.ts",
     "build:vite-plugin": "cd vite-plugin && tsdown",
     "test": "vitest",
     "test:e2e": "yarn --cwd e2e-tests test",

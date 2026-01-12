@@ -10,7 +10,11 @@ import wasm from "vite-plugin-wasm";
 
 import path from "node:path";
 
+// Demo source files are in the parent directory
+const reactPackageDir = path.resolve(__dirname, "..");
+
 export default defineConfig({
+  root: reactPackageDir,
   base: "./",
   plugins: [
     react({
@@ -22,16 +26,19 @@ export default defineConfig({
     wasm(),
   ],
   build: {
-    outDir: "demo-dist",
+    outDir: path.resolve(__dirname, "demo-dist"),
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, "index.html"),
-        basic: path.resolve(__dirname, "demos/basic/index.html"),
-        "multi-app": path.resolve(__dirname, "demos/multi-app/index.html"),
+        main: path.resolve(reactPackageDir, "index.html"),
+        basic: path.resolve(reactPackageDir, "demos/basic/index.html"),
+        "multi-app": path.resolve(
+          reactPackageDir,
+          "demos/multi-app/index.html",
+        ),
         "shared-worker": path.resolve(
-          __dirname,
+          reactPackageDir,
           "demos/shared-worker/index.html",
         ),
       },

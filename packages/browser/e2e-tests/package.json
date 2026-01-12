@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.55.1",
     "browserstack-node-sdk": "^1.34.54",
     "http-server": "^14.1.1",
     "typescript": "^5.8.2"

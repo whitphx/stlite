@@ -46,4 +46,49 @@ test.describe("Shared Worker Demo", () => {
       fullPage: true,
     });
   });
+
+  test("counters work independently in each app", async ({ page }) => {
+    // Wait for both apps to be fully rendered
+    await expect(page.locator('text="Shared Worker App 1"')).toBeVisible();
+    await expect(page.locator('text="Shared Worker App 2"')).toBeVisible();
+
+    // Get the two app containers (left and right)
+    const apps = page.locator('div[style*="flex: 1"]');
+    const app1 = apps.nth(0);
+    const app2 = apps.nth(1);
+
+    // Verify initial counter values are 0
+    await expect(app1.getByText("Shared counter: 0")).toBeVisible();
+    await expect(app2.getByText("Shared counter: 0")).toBeVisible();
+
+    // Click increment button in App 1
+    await app1
+      .getByRole("button", { name: "Increment shared counter" })
+      .click();
+
+    // Verify App 1's counter incremented to 1
+    await expect(app1.getByText("Shared counter: 1")).toBeVisible();
+    // Verify App 2's counter is still 0
+    await expect(app2.getByText("Shared counter: 0")).toBeVisible();
+
+    // Click increment button in App 2
+    await app2
+      .getByRole("button", { name: "Increment shared counter" })
+      .click();
+
+    // Verify App 2's counter incremented to 1
+    await expect(app2.getByText("Shared counter: 1")).toBeVisible();
+    // Verify App 1's counter is still 1 (unchanged)
+    await expect(app1.getByText("Shared counter: 1")).toBeVisible();
+
+    // Click increment button in App 1 again
+    await app1
+      .getByRole("button", { name: "Increment shared counter" })
+      .click();
+
+    // Verify App 1's counter incremented to 2
+    await expect(app1.getByText("Shared counter: 2")).toBeVisible();
+    // Verify App 2's counter is still 1
+    await expect(app2.getByText("Shared counter: 1")).toBeVisible();
+  });
 });

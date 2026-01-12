@@ -1,6 +1,6 @@
 import { test, expect, waitForStliteReady } from "../test-utils";
 
-test.describe("Shared Worker Demo", () => {
+test.describe("Multi-App Shared Worker Demo", () => {
   // Skip on Playwright's WebKit - SharedWorker works in real Safari but
   // Playwright's WebKit build has issues with it. This is a test environment
   // limitation, not a browser compatibility issue.
@@ -10,7 +10,7 @@ test.describe("Shared Worker Demo", () => {
   );
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/demos/shared-worker/");
+    await page.goto("/demos/multi-app-shared-worker/");
     // Wait for both apps to be ready
     await waitForStliteReady(page);
   });
@@ -35,7 +35,7 @@ test.describe("Shared Worker Demo", () => {
     expectNoDeadLinks();
 
     // Take snapshot
-    await expect(page).toHaveScreenshot("shared-worker.png", {
+    await expect(page).toHaveScreenshot("multi-app-shared-worker.png", {
       fullPage: true,
     });
   });

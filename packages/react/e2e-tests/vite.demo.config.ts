@@ -26,9 +26,9 @@ export default mergeConfig(baseConfig, {
           reactPackageDir,
           "demos/multi-app/index.html",
         ),
-        "shared-worker": path.resolve(
+        "multi-app-shared-worker": path.resolve(
           reactPackageDir,
-          "demos/shared-worker/index.html",
+          "demos/multi-app-shared-worker/index.html",
         ),
       },
     },

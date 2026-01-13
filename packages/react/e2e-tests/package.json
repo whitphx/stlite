@@ -9,6 +9,7 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:update-snapshots": "playwright test --update-snapshots",
+    "test:update-snapshots-linux": "./scripts/update-snapshots-linux.sh",
     "install:browsers": "playwright install --with-deps",
     "typecheck": "tsc --noEmit"
   },

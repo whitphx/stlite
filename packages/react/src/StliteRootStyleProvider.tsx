@@ -19,11 +19,11 @@ export interface RootStyleProviderProps {
   theme: ThemeConfig;
   children: React.ReactNode;
   styleNonce?: string;
-  mountDocumentStyles?: boolean;
+  disableDocumentStyles?: boolean;
 }
 
 export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
-  const { children, theme, styleNonce, mountDocumentStyles } = props;
+  const { children, theme, styleNonce, disableDocumentStyles } = props;
 
   const uniqueId = useUniqueId();
 
@@ -48,10 +48,10 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
       <CacheProvider value={cache}>
         <EmotionThemeProvider theme={theme.emotion}>
           {/*
-            Mount the document-level styles (e.g. `html`, `body`) if requested.
+            Mount the document-level styles (e.g. `html`, `body`) unless disabled.
             These styles are "global" in the traditional sense and may affect the host page.
            */}
-          {mountDocumentStyles && <Global styles={documentStyles} />}
+          {!disableDocumentStyles && <Global styles={documentStyles} />}
           <ClassNames>
             {({ css, cx }) => (
               <div

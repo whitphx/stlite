@@ -77,9 +77,7 @@ function App() {
     };
   }, []);
 
-  return kernel ? (
-    <StliteAppWithToast kernel={kernel} mountDocumentStyles={true} />
-  ) : null;
+  return kernel ? <StliteAppWithToast kernel={kernel} /> : null;
 }
 
 export default App;

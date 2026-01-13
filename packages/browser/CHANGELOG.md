@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 0.97.0
+
+### Minor Changes
+
+- [#1821](https://github.com/whitphx/stlite/pull/1821) [`3436a4c`](https://github.com/whitphx/stlite/commit/3436a4ceee1c20ae06534693a0be2b3bc464f13d) Thanks [@whitphx](https://github.com/whitphx)! - Fix ToastContainer to be contained by the app screen region
+
 ## 0.96.0
 
 ### Minor Changes

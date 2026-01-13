@@ -1,14 +1,15 @@
-import { test, expect } from "../test-utils";
+import { test, expect, waitForStliteReady } from "../test-utils";
 
 test.describe("Custom Element Stlite Browser Test", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/test-app-custom-element.html");
+    await waitForStliteReady(page);
+  });
+
   test("should load and render the custom element app correctly", async ({
     page,
     expectNoDeadLinks,
   }) => {
-    // Navigate to the test page
-    await page.goto("/test-app-custom-element.html");
-
-    // Wait for the Streamlit app to load
     // The title should be visible when the app is loaded
     await expect(
       page.locator('h1:has-text("Custom Element Test")'),

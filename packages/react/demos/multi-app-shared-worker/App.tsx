@@ -63,10 +63,10 @@ export function App() {
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteAppWithToast kernel={kernel1} mountDocumentStyles={false} />
+        <StliteAppWithToast kernel={kernel1} disableDocumentStyles />
       </div>
       <div style={{ position: "relative", flex: 1 }}>
-        <StliteAppWithToast kernel={kernel2} mountDocumentStyles={false} />
+        <StliteAppWithToast kernel={kernel2} disableDocumentStyles />
       </div>
     </div>
   );

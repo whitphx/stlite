@@ -253,7 +253,7 @@ describe("parseMountOptions()", () => {
   it("fills the style options with defaults", () => {
     const { styleOptions } = parseMountOptions("foo");
     expect(styleOptions).toEqual({
-      mountDocumentStyles: true,
+      disableDocumentStyles: false,
       styleNonce: undefined,
     });
   });
@@ -264,18 +264,18 @@ describe("parseMountOptions()", () => {
       styleNonce: "test-nonce-123",
     });
     expect(styleOptions).toEqual({
-      mountDocumentStyles: true,
+      disableDocumentStyles: false,
       styleNonce: "test-nonce-123",
     });
   });
 
-  it("passes the mountDocumentStyles option when provided", () => {
+  it("passes the disableDocumentStyles option when provided", () => {
     const { styleOptions } = parseMountOptions({
       entrypoint: "foo.py",
-      mountDocumentStyles: false,
+      disableDocumentStyles: true,
     });
     expect(styleOptions).toEqual({
-      mountDocumentStyles: false,
+      disableDocumentStyles: true,
       styleNonce: undefined,
     });
   });
@@ -283,11 +283,11 @@ describe("parseMountOptions()", () => {
   it("passes both style options when provided", () => {
     const { styleOptions } = parseMountOptions({
       entrypoint: "foo.py",
-      mountDocumentStyles: false,
+      disableDocumentStyles: true,
       styleNonce: "custom-nonce",
     });
     expect(styleOptions).toEqual({
-      mountDocumentStyles: false,
+      disableDocumentStyles: true,
       styleNonce: "custom-nonce",
     });
   });

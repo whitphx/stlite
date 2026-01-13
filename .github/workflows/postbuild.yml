@@ -434,9 +434,7 @@ jobs:
         cp -r ${{ runner.temp }}/artifacts/react/package/vite-plugin/dist packages/react/vite-plugin/dist
 
     - name: Set up the e2e-tests environment
-      run: |
-        yarn install
-        yarn install:browsers
+      run: yarn install
       working-directory: packages/react/e2e-tests
 
     - name: Build demos
@@ -445,9 +443,29 @@ jobs:
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"
 
-    - name: Run the e2e-tests
-      run: yarn test
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> $GITHUB_OUTPUT
       working-directory: packages/react/e2e-tests
+
+    # Run tests in Playwright Docker container for consistent font rendering with local snapshots
+    - name: Run the e2e-tests
+      run: |
+        docker run --rm \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/demo-dist:/app/demo-dist:ro" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/tests:/app/tests:ro" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/test-utils.ts:/app/test-utils.ts:ro" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/playwright.config.ts:/app/playwright.config.ts:ro" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/snapshots:/app/snapshots:ro" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/test-results:/app/test-results" \
+          -v "${{ github.workspace }}/packages/react/e2e-tests/blob-report:/app/blob-report" \
+          -w /app \
+          --ipc=host \
+          "mcr.microsoft.com/playwright:v${{ steps.playwright-version.outputs.version }}" \
+          /bin/bash -c "
+            npm install @playwright/test@${{ steps.playwright-version.outputs.version }} http-server &&
+            npx playwright test --config=playwright.config.ts
+          "
 
     - name: Update commit status
       if: always()

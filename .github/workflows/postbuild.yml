@@ -385,6 +385,96 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
 
+  e2e-react:
+    needs: get-build-info
+
+    permissions:
+      contents: read
+      statuses: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      with:
+        persist-credentials: false
+
+    - name: Enable Corepack
+      run: corepack enable
+    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+      with:
+        node-version-file: ${{ env.node-version-file }}
+
+    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      with:
+        name: stlite-react
+        path: ${{ runner.temp }}/artifacts/react
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify artifact contents
+      uses: ./.github/actions/verify-only-file
+      with:
+        directory: ${{ runner.temp }}/artifacts/react
+        filename: package.tgz
+
+    - name: Verify artifact attestation
+      uses: ./.github/actions/verify-artifact-attestation
+      with:
+        filepath: ${{ runner.temp }}/artifacts/react/package.tgz
+        expected-workflow-file: .github/workflows/test-build.yml
+        expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract package and set up for demo build
+      run: |
+        tar xzvf ${{ runner.temp }}/artifacts/react/package.tgz -C ${{ runner.temp }}/artifacts/react
+        # Copy the built artifacts to packages/react/build so demos can resolve @stlite/react
+        cp -r ${{ runner.temp }}/artifacts/react/package/build packages/react/build
+        cp -r ${{ runner.temp }}/artifacts/react/package/vite-plugin/dist packages/react/vite-plugin/dist
+
+    - name: Set up the e2e-tests environment
+      run: yarn install
+      working-directory: packages/react/e2e-tests
+
+    - name: Build demos
+      run: yarn build:demo
+      working-directory: packages/react/e2e-tests
+      env:
+        NODE_OPTIONS: "--max-old-space-size=6144"
+
+    # Run tests in Playwright Docker container for consistent font rendering with local snapshots
+    - name: Run the e2e-tests
+      run: ./scripts/run-in-docker.sh
+      working-directory: packages/react/e2e-tests
+
+    - name: Update commit status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          STATE="success"
+        else
+          STATE="failure"
+        fi
+        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
+          -X POST \
+          -f state=${STATE} \
+          -f context=${{ github.job }} \
+          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
+
+    - name: Upload HTML report
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      with:
+        name: e2e-react-html-report--attempt-${{ github.run_attempt }}
+        path: |
+          packages/react/e2e-tests/playwright-report
+          packages/react/e2e-tests/test-results/
+        retention-days: 14
+
   e2e-desktop:
     needs: get-build-info
 
@@ -573,7 +663,7 @@ jobs:
             });
 
   deploy-react-preview:
-    needs: [get-build-info]
+    needs: [get-build-info, e2e-react]
     if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
@@ -582,7 +672,7 @@ jobs:
     name: Deploy @stlite/react to Cloudflare Pages for preview
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
-      valid: 'true'
+      valid: ${{ needs.e2e-react.result == 'success' }}
     steps:
     # Checkout for local actions (`uses ./*`).
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -649,6 +739,7 @@ jobs:
               repo: context.repo.repo,
               issue_number: prNumber,
               body: `Deployment completed successfully ([log](${logUrl})).
+            ${{ needs.deploy-react-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
 
             Importable URLs:
             - \`${previewUrl}/stlite.js\`

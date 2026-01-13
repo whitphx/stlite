@@ -1,0 +1,30 @@
+{
+  "name": "@stlite/react-e2e-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:update-snapshots": "playwright test --update-snapshots",
+    "test:docker": "./scripts/run-in-docker.sh",
+    "test:docker:update-snapshots": "./scripts/update-snapshots-linux.sh",
+    "install:browsers": "playwright install --with-deps",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@types/node": "^25.0.6",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^5.1.1",
+    "http-server": "^14.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.8.2",
+    "vite": "^7.1.5"
+  },
+  "packageManager": "yarn@4.5.3"
+}

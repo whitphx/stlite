@@ -1,7 +1,5 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { StliteAppWithToast, createKernel } from "./src/index";
-import { wheelUrls } from "./src/vite-utils";
+import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { wheelUrls } from "@stlite/react/vite-utils";
 
 const kernel1 = createKernel({
   entrypoint: "app.py",
@@ -12,6 +10,14 @@ import streamlit as st
 
 st.write("Hello, stlite!")
 st.write("App 1")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },
@@ -29,6 +35,14 @@ import streamlit as st
 
 st.write("Hello, stlite!")
 st.write("App 2")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
 `,
     },
   },
@@ -38,10 +52,8 @@ st.write("App 2")
   wheelUrls,
 });
 
-const reactRoot = createRoot(document.getElementById("root") as HTMLElement);
-
-reactRoot.render(
-  <React.StrictMode>
+export function App() {
+  return (
     <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
       <div style={{ position: "relative", flex: 1 }}>
         <StliteAppWithToast kernel={kernel1} mountDocumentStyles={false} />
@@ -50,5 +62,5 @@ reactRoot.render(
         <StliteAppWithToast kernel={kernel2} mountDocumentStyles={false} />
       </div>
     </div>
-  </React.StrictMode>,
-);
+  );
+}

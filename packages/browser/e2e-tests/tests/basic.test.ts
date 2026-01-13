@@ -1,4 +1,4 @@
-import { test, expect } from "../test-utils";
+import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Basic Stlite Browser Test", () => {
   test.beforeEach(async ({ page }) => {
@@ -7,7 +7,7 @@ test.describe("Basic Stlite Browser Test", () => {
     // First view: the title should be visible when the app is loaded
     await expect(
       page.locator('h1:has-text("Stlite Browser Test")'),
-    ).toBeVisible({ timeout: 60_000 });
+    ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
   });
 
   test("should load and render the basic app correctly", async ({

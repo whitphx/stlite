@@ -1,4 +1,4 @@
-import { test, expect } from "../test-utils";
+import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Stlite Browser Env Test", () => {
   test.beforeEach(async ({ page }) => {
@@ -7,7 +7,7 @@ test.describe("Stlite Browser Env Test", () => {
     // First view: wait for the Streamlit app to load
     await expect(
       page.locator('h1:has-text("Stlite Browser Env Test")'),
-    ).toBeVisible({ timeout: 60_000 });
+    ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
   });
 
   test("should correctly pass and display environment variables", async ({

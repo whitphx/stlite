@@ -1,5 +1,19 @@
 # @stlite/react
 
+## 1.0.0
+
+### Major Changes
+
+- [#1837](https://github.com/whitphx/stlite/pull/1837) [`813b89e`](https://github.com/whitphx/stlite/commit/813b89e12eaf11e6522aedd75b57ba7bfb2a8bb4) Thanks [@whitphx](https://github.com/whitphx)! - Rename `mountDocumentStyles` to `disableDocumentStyles` with inverted meaning.
+
+  **Breaking Change:** The `mountDocumentStyles` prop/option has been renamed to `disableDocumentStyles` with inverted logic:
+  - Old: `mountDocumentStyles: true` (default) meant document styles were mounted
+  - New: `disableDocumentStyles: false` (default) means document styles are mounted
+
+  **Migration:**
+  - `mountDocumentStyles={true}` → remove the prop (default behavior)
+  - `mountDocumentStyles={false}` → `disableDocumentStyles={true}`
+
 ## 0.3.0
 
 ### Minor Changes

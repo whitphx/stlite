@@ -1,20 +1,19 @@
-import { test, expect, waitForStliteReady } from "../test-utils";
+import { test, expect } from "../test-utils";
 
 test.describe("Custom Element Stlite Browser Test", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/test-app-custom-element.html");
-    await waitForStliteReady(page);
+
+    // First view: the title should be visible when the app is loaded
+    await expect(
+      page.locator('h1:has-text("Custom Element Test")'),
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test("should load and render the custom element app correctly", async ({
     page,
     expectNoDeadLinks,
   }) => {
-    // The title should be visible when the app is loaded
-    await expect(
-      page.locator('h1:has-text("Custom Element Test")'),
-    ).toBeVisible();
-
     // Check if the selectbox is visible
     const selectbox = page.locator('input[role="combobox"]');
     await expect(selectbox).toBeVisible();

@@ -1,32 +1,27 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <title>Stlite Browser Custom Element Test</title>
-    <link
-      rel="stylesheet"
-      href="http://localhost:8081/stlite.css"
-    />
-    <script type="module" src="http://localhost:8081/stlite.js"></script>
-  </head>
-  <body>
-    <h1>Custom Element Test</h1>
 
-    <streamlit-app>
-      import streamlit as st
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Stlite Browser Custom Element Test</title>
+  <link rel="stylesheet" href="http://localhost:8081/stlite.css" />
+  <script type="module" src="http://localhost:8081/stlite.js"></script>
+</head>
 
-      st.title("Custom Element Test")
+<body>
+  <streamlit-app>
+    import streamlit as st
 
-      option = st.selectbox(
-          'How would you like to be contacted?',
-          ('Email', 'Home phone', 'Mobile phone'))
+    st.title("Custom Element Test")
 
-      st.write('You selected:', option)
-    </streamlit-app>
-  </body>
+    option = st.selectbox(
+    'How would you like to be contacted?',
+    ('Email', 'Home phone', 'Mobile phone'))
+
+    st.write('You selected:', option)
+  </streamlit-app>
+</body>
+
 </html>

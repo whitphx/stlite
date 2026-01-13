@@ -6,8 +6,7 @@ const isCI = !!process.env.CI;
 
 // Stlite tests require longer timeouts due to Pyodide loading time.
 // CI uses longer timeouts for additional buffer.
-const timeout = isCI ? 180_000 : 120_000;
-const expectTimeout = isCI ? 120_000 : 60_000;
+const timeout = isCI ? 60_000 : 30_000;
 
 const pagesDir = path.resolve(__dirname, "pages");
 const fileProtocolBaseURL = pathToFileURL(pagesDir).href + "/";
@@ -19,9 +18,6 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   timeout,
-  expect: {
-    timeout: expectTimeout,
-  },
   reporter: process.env.CI ? "blob" : "html",
   webServer: [
     {

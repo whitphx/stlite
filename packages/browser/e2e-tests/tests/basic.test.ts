@@ -1,20 +1,19 @@
-import { test, expect, waitForStliteReady } from "../test-utils";
+import { test, expect } from "../test-utils";
 
 test.describe("Basic Stlite Browser Test", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/test-app.html");
-    await waitForStliteReady(page);
+
+    // First view: the title should be visible when the app is loaded
+    await expect(
+      page.locator('h1:has-text("Stlite Browser Test")'),
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test("should load and render the basic app correctly", async ({
     page,
     expectNoDeadLinks,
   }) => {
-    // The title should be visible when the app is loaded
-    await expect(
-      page.locator('h1:has-text("Stlite Browser Test")'),
-    ).toBeVisible();
-
     // Check if the text input is visible
     const textInput = page.locator('input[type="text"]');
     await expect(textInput).toBeVisible();

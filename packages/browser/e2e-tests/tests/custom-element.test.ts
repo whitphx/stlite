@@ -1,19 +1,19 @@
-import { test, expect } from "../test-utils";
+import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Custom Element Stlite Browser Test", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/test-app-custom-element.html");
+
+    // First view: the title should be visible when the app is loaded
+    await expect(
+      page.locator('h1:has-text("Custom Element Test")'),
+    ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
+  });
+
   test("should load and render the custom element app correctly", async ({
     page,
     expectNoDeadLinks,
   }) => {
-    // Navigate to the test page
-    await page.goto("/test-app-custom-element.html");
-
-    // Wait for the Streamlit app to load
-    // The title should be visible when the app is loaded
-    await expect(
-      page.locator('h1:has-text("Custom Element Test")'),
-    ).toBeVisible();
-
     // Check if the selectbox is visible
     const selectbox = page.locator('input[role="combobox"]');
     await expect(selectbox).toBeVisible();

@@ -471,7 +471,9 @@ jobs:
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: e2e-react-html-report--attempt-${{ github.run_attempt }}
-        path: packages/react/e2e-tests/playwright-report
+        path: |
+          packages/react/e2e-tests/playwright-report
+          packages/react/e2e-tests/test-results/
         retention-days: 14
 
   e2e-desktop:

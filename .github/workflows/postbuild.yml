@@ -582,20 +582,19 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Add browser preview section to sticky comment
+      - name: Add browser preview section to sticky comment (success)
+        if: needs.deploy-browser-preview.result == 'success'
         uses: ./.github/actions/sticky-comment-add-section
         env:
           PREVIEW_URL: ${{ needs.deploy-browser-preview.outputs.url }}
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          E2E_WARNING: ${{ needs.deploy-browser-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
           section-id: deploy-browser
           section-title: "## @stlite/browser Preview"
           order: "30"
           section-content: |
-            Deployment completed successfully ([log](${{ env.LOG_URL }})).
-            ${{ env.E2E_WARNING }}
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).${{ needs.deploy-browser-preview.outputs.valid != 'true' && ' _**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
 
             - `${{ env.PREVIEW_URL }}/stlite.js`
             - `${{ env.PREVIEW_URL }}/stlite.css`
@@ -636,6 +635,19 @@ jobs:
             ```
 
             </details>
+
+      - name: Add browser preview section to sticky comment (failure)
+        if: needs.deploy-browser-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-browser
+          section-title: "## @stlite/browser Preview"
+          order: "30"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   deploy-react-preview:
     needs: [get-build-info, e2e-react]
@@ -705,20 +717,19 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Add react preview section to sticky comment
+      - name: Add react preview section to sticky comment (success)
+        if: needs.deploy-react-preview.result == 'success'
         uses: ./.github/actions/sticky-comment-add-section
         env:
           PREVIEW_URL: ${{ needs.deploy-react-preview.outputs.url }}
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          E2E_WARNING: ${{ needs.deploy-react-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
           section-id: deploy-react
           section-title: "## @stlite/react Preview"
           order: "35"
           section-content: |
-            Deployment completed successfully ([log](${{ env.LOG_URL }})).
-            ${{ env.E2E_WARNING }}
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).${{ needs.deploy-react-preview.outputs.valid != 'true' && ' _**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
 
             Importable URLs:
             - `${{ env.PREVIEW_URL }}/stlite.js`
@@ -728,6 +739,19 @@ jobs:
             import { StliteApp, createKernel } from "${{ env.PREVIEW_URL }}/stlite.js";
             import "${{ env.PREVIEW_URL }}/stlite.css";
             ```
+
+      - name: Add react preview section to sticky comment (failure)
+        if: needs.deploy-react-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-react
+          section-title: "## @stlite/react Preview"
+          order: "35"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   deploy-docs-preview:
     needs: [get-build-info]
@@ -787,7 +811,8 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Add docs preview section to sticky comment
+      - name: Add docs preview section to sticky comment (success)
+        if: needs.deploy-docs-preview.result == 'success'
         uses: ./.github/actions/sticky-comment-add-section
         env:
           PREVIEW_URL: ${{ needs.deploy-docs-preview.outputs.url }}
@@ -801,6 +826,19 @@ jobs:
             Deployment completed successfully ([log](${{ env.LOG_URL }})).
 
             ${{ env.PREVIEW_URL }}
+
+      - name: Add docs preview section to sticky comment (failure)
+        if: needs.deploy-docs-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-docs
+          section-title: "## Docs Preview"
+          order: "40"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
 
   deploy-sharing:
@@ -866,7 +904,7 @@ jobs:
 
   notify-cloudflare-pages-deployments:
     needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
-    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
 
     runs-on: ubuntu-latest
     permissions:
@@ -879,7 +917,8 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Add sharing preview section to sticky comment
+      - name: Add sharing preview section to sticky comment (success)
+        if: needs.deploy-sharing.result == 'success' && needs.deploy-sharing-editor.result == 'success'
         uses: ./.github/actions/sticky-comment-add-section
         env:
           SHARING_URL: ${{ needs.deploy-sharing.outputs.url }}
@@ -895,6 +934,19 @@ jobs:
 
             - Sharing App: ${{ env.SHARING_URL }}
             - Sharing Editor: ${{ env.SHARING_EDITOR_URL }}
+
+      - name: Add sharing preview section to sticky comment (failure)
+        if: needs.deploy-sharing.result == 'failure' || needs.deploy-sharing-editor.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-sharing
+          section-title: "## Sharing Preview"
+          order: "45"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   publish-browser:
     needs: [get-build-info, get-changesets-publish-targets]

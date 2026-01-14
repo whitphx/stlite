@@ -251,7 +251,7 @@ runs:
 
           function parseSections(body) {
             const sections = [];
-            const sectionRegex = /<!-- section:([^:]+):start -->\s*<!-- section:[^:]+:order:(\d+) -->\s*([\s\S]*?)<!-- section:[^:]+:end -->/g;
+            const sectionRegex = /<!-- section:([A-Za-z0-9_-]+):start -->\s*<!-- section:\1:order:(\d+) -->\s*([\s\S]*?)<!-- section:\1:end -->/g;
             let match;
             while ((match = sectionRegex.exec(body)) !== null) {
               sections.push({

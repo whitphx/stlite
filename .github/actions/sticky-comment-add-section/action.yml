@@ -6,7 +6,7 @@ inputs:
     description: "The PR number to post the comment to"
   section-id:
     required: true
-    description: "Unique identifier for this section (used to update existing sections). Must not contain colons."
+    description: "Unique identifier for this section (used to update existing sections). Must only contain alphanumeric characters, hyphens, and underscores."
   section-title:
     required: true
     description: "Display title for this section (markdown header, e.g., '## Package Stats')"
@@ -42,9 +42,13 @@ runs:
             return;
           }
 
-          // Validate section ID doesn't contain colons (used as delimiter in markers)
-          if (sectionId.includes(":")) {
-            core.setFailed(`Section ID "${sectionId}" contains colons, which are not allowed as they are used as delimiters in comment markers.`);
+          // Validate section ID: non-empty, safe characters only
+          if (!sectionId || typeof sectionId !== "string") {
+            core.setFailed("Section ID is required and must be a non-empty string.");
+            return;
+          }
+          if (!/^[A-Za-z0-9_-]+$/.test(sectionId)) {
+            core.setFailed(`Section ID "${sectionId}" is invalid. It may only contain alphanumeric characters, hyphens, and underscores.`);
             return;
           }
 
@@ -56,7 +60,7 @@ runs:
           // Parse existing sections from comment
           function parseSections(body) {
             const sections = [];
-            const sectionRegex = /<!-- section:([^:]+):start -->\s*<!-- section:[^:]+:order:(\d+) -->\s*([\s\S]*?)<!-- section:[^:]+:end -->/g;
+            const sectionRegex = /<!-- section:([A-Za-z0-9_-]+):start -->\s*<!-- section:\1:order:(\d+) -->\s*([\s\S]*?)<!-- section:\1:end -->/g;
             let match;
             while ((match = sectionRegex.exec(body)) !== null) {
               sections.push({

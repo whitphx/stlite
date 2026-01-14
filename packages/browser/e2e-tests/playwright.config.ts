@@ -2,19 +2,22 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
+const isCI = !!process.env.CI;
+
+// Stlite tests require longer timeouts due to Pyodide loading time.
+// CI uses longer timeouts for additional buffer.
+const timeout = isCI ? 60_000 : 30_000;
+
 const pagesDir = path.resolve(__dirname, "pages");
 const fileProtocolBaseURL = pathToFileURL(pagesDir).href + "/";
 
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  timeout: process.env.CI ? 60_000 : undefined,
-  expect: {
-    timeout: process.env.CI ? 60_000 : undefined,
-  },
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  timeout,
   reporter: process.env.CI ? "blob" : "html",
   webServer: [
     {

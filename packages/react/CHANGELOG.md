@@ -1,5 +1,33 @@
 # @stlite/react
 
+## 1.0.0
+
+### Major Changes
+
+- [#1837](https://github.com/whitphx/stlite/pull/1837) [`813b89e`](https://github.com/whitphx/stlite/commit/813b89e12eaf11e6522aedd75b57ba7bfb2a8bb4) Thanks [@whitphx](https://github.com/whitphx)! - Rename `mountDocumentStyles` to `disableDocumentStyles` with inverted meaning.
+
+  **Breaking Change:** The `mountDocumentStyles` prop/option has been renamed to `disableDocumentStyles` with inverted logic:
+  - Old: `mountDocumentStyles: true` (default) meant document styles were mounted
+  - New: `disableDocumentStyles: false` (default) means document styles are mounted
+
+  **Migration:**
+  - `mountDocumentStyles={true}` → remove the prop (default behavior)
+  - `mountDocumentStyles={false}` → `disableDocumentStyles={true}`
+
+## 0.3.0
+
+### Minor Changes
+
+- [#1821](https://github.com/whitphx/stlite/pull/1821) [`3436a4c`](https://github.com/whitphx/stlite/commit/3436a4ceee1c20ae06534693a0be2b3bc464f13d) Thanks [@whitphx](https://github.com/whitphx)! - Fix ToastContainer to be contained by the app screen region
+
+### Patch Changes
+
+- [#1827](https://github.com/whitphx/stlite/pull/1827) [`8ff48cf`](https://github.com/whitphx/stlite/commit/8ff48cf899099f67267a5f3ada328240b28e5127) Thanks [@whitphx](https://github.com/whitphx)! - Improve demo apps and E2E tests:
+  - Add counter functionality to multi-app demos to demonstrate independent session state
+  - Rename shared-worker demo to multi-app-shared-worker for clarity
+  - Combine smoke and snapshot tests to reduce E2E execution time
+  - Remove unnecessary inline styles from basic demo
+
 ## 0.2.0
 
 ### Minor Changes

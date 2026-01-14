@@ -9,11 +9,11 @@ vi.mock("./StliteThemedApp", async () => {
   const MockThemedApp = ({
     streamlitExecutionStartedAt,
     styleNonce,
-    mountDocumentStyles,
+    disableDocumentStyles,
   }: {
     streamlitExecutionStartedAt: number;
     styleNonce?: string;
-    mountDocumentStyles?: boolean;
+    disableDocumentStyles?: boolean;
   }) => {
     const kernel = useStliteKernel() as StliteKernel & { __testId?: string };
     return (
@@ -22,8 +22,8 @@ vi.mock("./StliteThemedApp", async () => {
         data-kernel-id={kernel.__testId}
         data-started-at={streamlitExecutionStartedAt}
         {...(styleNonce !== undefined && { "data-style-nonce": styleNonce })}
-        {...(mountDocumentStyles !== undefined && {
-          "data-mount-document-styles": mountDocumentStyles,
+        {...(disableDocumentStyles !== undefined && {
+          "data-disable-document-styles": disableDocumentStyles,
         })}
       />
     );
@@ -65,27 +65,29 @@ describe("StliteApp", () => {
     expect(themedApp.getAttribute("data-style-nonce")).toBe(testNonce);
   });
 
-  it("passes mountDocumentStyles prop through to StliteThemedApp", () => {
+  it("passes disableDocumentStyles prop through to StliteThemedApp", () => {
     const kernel = new EventTarget() as StliteKernel & { __testId?: string };
     kernel.__testId = "fake-kernel";
 
-    render(<StliteApp kernel={kernel} mountDocumentStyles={true} />);
+    render(<StliteApp kernel={kernel} disableDocumentStyles={true} />);
 
     const themedApp = screen.getByTestId("themed-app");
-    expect(themedApp.getAttribute("data-mount-document-styles")).toBe("true");
+    expect(themedApp.getAttribute("data-disable-document-styles")).toBe("true");
   });
 
-  it("passes mountDocumentStyles=false correctly to StliteThemedApp", () => {
+  it("passes disableDocumentStyles=false correctly to StliteThemedApp", () => {
     const kernel = new EventTarget() as StliteKernel & { __testId?: string };
     kernel.__testId = "fake-kernel";
 
-    render(<StliteApp kernel={kernel} mountDocumentStyles={false} />);
+    render(<StliteApp kernel={kernel} disableDocumentStyles={false} />);
 
     const themedApp = screen.getByTestId("themed-app");
-    expect(themedApp.getAttribute("data-mount-document-styles")).toBe("false");
+    expect(themedApp.getAttribute("data-disable-document-styles")).toBe(
+      "false",
+    );
   });
 
-  it("handles undefined styleNonce and mountDocumentStyles props", () => {
+  it("handles undefined styleNonce and disableDocumentStyles props", () => {
     const kernel = new EventTarget() as StliteKernel & { __testId?: string };
     kernel.__testId = "fake-kernel";
 
@@ -93,10 +95,10 @@ describe("StliteApp", () => {
 
     const themedApp = screen.getByTestId("themed-app");
     expect(themedApp.getAttribute("data-style-nonce")).toBeNull();
-    expect(themedApp.getAttribute("data-mount-document-styles")).toBeNull();
+    expect(themedApp.getAttribute("data-disable-document-styles")).toBeNull();
   });
 
-  it("passes both styleNonce and mountDocumentStyles props together", () => {
+  it("passes both styleNonce and disableDocumentStyles props together", () => {
     const kernel = new EventTarget() as StliteKernel & { __testId?: string };
     kernel.__testId = "fake-kernel";
     const testNonce = "combined-test-nonce";
@@ -105,12 +107,12 @@ describe("StliteApp", () => {
       <StliteApp
         kernel={kernel}
         styleNonce={testNonce}
-        mountDocumentStyles={true}
+        disableDocumentStyles={true}
       />,
     );
 
     const themedApp = screen.getByTestId("themed-app");
     expect(themedApp.getAttribute("data-style-nonce")).toBe(testNonce);
-    expect(themedApp.getAttribute("data-mount-document-styles")).toBe("true");
+    expect(themedApp.getAttribute("data-disable-document-styles")).toBe("true");
   });
 });

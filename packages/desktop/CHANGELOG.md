@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.92.1
+
+### Patch Changes
+
+- [#1828](https://github.com/whitphx/stlite/pull/1828) [`28db6f0`](https://github.com/whitphx/stlite/commit/28db6f0639c0cb57ed2ad3b420160fd3f3ade3f2) Thanks [@whitphx](https://github.com/whitphx)! - Add security considerations documentation for NodeJS worker mode
+
 ## 0.92.0
 
 ### Minor Changes

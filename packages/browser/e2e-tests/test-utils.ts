@@ -1,6 +1,12 @@
+// Disable react-hooks/rules-of-hooks: Playwright's fixture `use()` function
+// triggers a false positive (ESLint thinks it's React's `use` hook).
+/* eslint-disable react-hooks/rules-of-hooks */
+
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { test as base, expect, Page } from "@playwright/test";
+import { test as base, expect } from "@playwright/test";
+
+export const FIRST_VIEW_TIMEOUT = 60_000;
 
 function urlOnlyHasPathAndQuery(url: string): boolean {
   try {

@@ -16,6 +16,9 @@ inputs:
   size-diff-warning-threshold-kib:
     default: "128"
     description: file size warning threshold in KiB
+  pr-number:
+    required: false
+    description: "The PR number to inform. If not provided, the inform-package-stats step will be skipped."
 
 runs:
   using: "composite"
@@ -118,6 +121,8 @@ runs:
         name: ${{ steps.create-stats-json.outputs.OUTPUT_FILENAME }}
 
     - uses: ./.github/actions/inform-package-stats
+      if: ${{ inputs.pr-number != '' }}
       with:
+        pr-number: ${{ inputs.pr-number }}
         stats-file-prefix: ${{ inputs.stats-file-prefix }}
         size-diff-warning-threshold-kib: ${{ inputs.size-diff-warning-threshold-kib }}

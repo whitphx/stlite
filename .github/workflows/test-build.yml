@@ -489,6 +489,7 @@ jobs:
         key: browser
         name: "@stlite/browser"
         input-path: packages/browser/package.tgz
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
     # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
     - name: Get the built wheel file path
@@ -507,6 +508,7 @@ jobs:
         key: stlite-lib-wheel
         name: "stlite-lib wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
     - name: "Inform the package stats of streamlit wheel"
       uses: ./.github/actions/set-package-stats
       continue-on-error: true
@@ -514,6 +516,7 @@ jobs:
         key: streamlit-wheel
         name: "streamlit wheel (built as a part of @stlite/browser)"
         input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
   build-react:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed.
@@ -564,6 +567,7 @@ jobs:
         key: react
         name: "@stlite/react"
         input-path: packages/react/package.tgz
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
   build-sharing:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -616,6 +620,7 @@ jobs:
         key: sharing
         name: "stlite sharing"
         input-path: packages/sharing/build
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
   build-sharing-editor:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -663,6 +668,7 @@ jobs:
         key: sharing-editor
         name: "stlite sharing editor"
         input-path: packages/sharing-editor/dist
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
   build-desktop:
     if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -723,6 +729,7 @@ jobs:
         key: desktop
         name: "@stlite/desktop"
         input-path: packages/desktop/package.tgz
+        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
 
   build-docs:
     runs-on: ubuntu-latest

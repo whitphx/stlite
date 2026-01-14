@@ -103,9 +103,92 @@ jobs:
       with:
         pr-number: ${{ needs.get-build-info.outputs.pr-number }}
 
-  inform-visualizer:
+  deploy-visualizers:
     needs: get-build-info
-    if: ${{ needs.get-build-info.outputs.pr-number }}
+    if: ${{ needs.get-build-info.outputs.branch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy bundle visualizers to Cloudflare Pages
+    outputs:
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - name: Create visualizers directory structure
+        run: mkdir -p ${{ runner.temp }}/visualizers
+
+      - name: Download visualizer artifacts
+        id: download
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: visualizer-*
+          path: ${{ runner.temp }}/artifacts
+          merge-multiple: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Organize visualizers into subdirectories
+        if: steps.download.outcome == 'success'
+        run: |
+          # Create structure: /browser/index.html, /sharing/index.html, etc.
+          for dir in ${{ runner.temp }}/artifacts/visualizer-*; do
+            if [ -d "$dir" ]; then
+              name=$(basename "$dir" | sed 's/^visualizer-//')
+              mkdir -p "${{ runner.temp }}/visualizers/$name"
+              # Find HTML file and copy as index.html
+              html_file=$(find "$dir" -name "*.html" | head -1)
+              if [ -n "$html_file" ]; then
+                cp "$html_file" "${{ runner.temp }}/visualizers/$name/index.html"
+              fi
+            fi
+          done
+
+          # Create index page listing all visualizers
+          cat > "${{ runner.temp }}/visualizers/index.html" << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head><title>Bundle Visualizers</title></head>
+          <body>
+          <h1>Bundle Visualizer Reports</h1>
+          <ul>
+          HTMLEOF
+
+          for dir in ${{ runner.temp }}/visualizers/*/; do
+            name=$(basename "$dir")
+            echo "<li><a href=\"./$name/\">$name</a></li>" >> "${{ runner.temp }}/visualizers/index.html"
+          done
+
+          cat >> "${{ runner.temp }}/visualizers/index.html" << 'HTMLEOF'
+          </ul>
+          </body>
+          </html>
+          HTMLEOF
+
+      - name: Check if visualizers exist
+        id: check
+        run: |
+          # Check if there are any subdirectories (actual visualizers, not just index.html)
+          if [ -d "${{ runner.temp }}/visualizers" ] && [ "$(find ${{ runner.temp }}/visualizers -mindepth 1 -maxdepth 1 -type d | head -1)" ]; then
+            echo "has-visualizers=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-visualizers=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy
+        if: steps.check.outputs.has-visualizers == 'true'
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: |
+            pages deploy ${{ runner.temp }}/visualizers --project-name=stlite-bundle-visualizer-reports --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  inform-visualizer:
+    needs: [get-build-info, deploy-visualizers]
+    if: ${{ needs.get-build-info.outputs.pr-number && always() }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -116,55 +199,38 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Get visualizer artifact links
+      - name: Get visualizer links
         id: get-visualizers
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
-        with:
-          result-encoding: string
-          script: |
-            const runId = process.env.WORKFLOW_RUN_ID;
+          DEPLOYMENT_URL: ${{ needs.deploy-visualizers.outputs.url }}
+          DEPLOYMENT_RESULT: ${{ needs.deploy-visualizers.result }}
+        run: |
+          if [ "$DEPLOYMENT_RESULT" != "success" ] || [ -z "$DEPLOYMENT_URL" ]; then
+            echo "result=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-            const artifacts = await github.paginate(
-              github.rest.actions.listWorkflowRunArtifacts,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                run_id: runId,
-              }
-            );
+          # Generate links for each visualizer
+          cat > /tmp/visualizers.md << EOF
+          View the interactive bundle reports directly:
 
-            const visualizers = artifacts.filter((artifact) =>
-              artifact.name.startsWith("visualizer-")
-            );
+          - **@stlite/browser**: [Bundle report]($DEPLOYMENT_URL/browser/)
+          - **@stlite/sharing**: [Bundle report]($DEPLOYMENT_URL/sharing/)
+          - **@stlite/sharing-editor**: [Bundle report]($DEPLOYMENT_URL/sharing-editor/)
+          - **@stlite/desktop**: [Bundle report]($DEPLOYMENT_URL/desktop/)
 
-            if (visualizers.length === 0) {
-              core.info("No visualizer artifacts found for this run.");
-              return "";
-            }
+          Or view all visualizers: $DEPLOYMENT_URL
+          EOF
 
-            const labels = {
-              "visualizer-browser": "@stlite/browser",
-              "visualizer-react": "@stlite/react",
-              "visualizer-sharing": "@stlite/sharing",
-              "visualizer-sharing-editor": "@stlite/sharing-editor",
-              "visualizer-desktop": "@stlite/desktop",
-            };
+          # Remove leading whitespace from each line
+          sed -i 's/^          //' /tmp/visualizers.md
 
-            const artifactLines = visualizers
-              .map((artifact) => {
-                const label =
-                  labels[artifact.name] ??
-                  artifact.name.replace(/^visualizer-/, "");
-                const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
-                return `- **${label}**: [Bundle report](${url})`;
-              })
-              .join("\n");
+          # Use delimiter for multiline output
+          echo "result<<MDEOF" >> $GITHUB_OUTPUT
+          cat /tmp/visualizers.md >> $GITHUB_OUTPUT
+          echo "MDEOF" >> $GITHUB_OUTPUT
 
-            return artifactLines + "\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.";
-
-      - name: Add visualizer section to sticky comment
+      - name: Add visualizer section to sticky comment (success)
         if: steps.get-visualizers.outputs.result != ''
         uses: ./.github/actions/sticky-comment-add-section
         with:
@@ -173,6 +239,20 @@ jobs:
           section-title: "## Bundle Visualizer Reports"
           section-content: ${{ steps.get-visualizers.outputs.result }}
           order: "20"
+
+      - name: Add visualizer section to sticky comment (failure)
+        if: needs.deploy-visualizers.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: visualizer
+          section-title: "## Bundle Visualizer Reports"
+          section-content: |
+            Visualizer deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
+          order: "20"
+
   e2e-browser:
     needs: get-build-info
 

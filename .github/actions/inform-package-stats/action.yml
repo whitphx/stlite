@@ -183,192 +183,88 @@ runs:
 
           fs.writeFileSync('comment.txt', comment);
 
-    - name: Get target PR numbers
-      id: get-pr-numbers
+    - name: Post a message to Pull Request threads
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
-        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
         COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        # When the event is `pull_request`, `github.sha` points to a temporary merge commit, so we use `github.event.pull_request.head.sha` instead. Ref: https://github.com/orgs/community/discussions/47804#discussioncomment-5026092
       with:
-        result-encoding: string
         script: |
-          // Returns a JSON array of PR numbers
-          if (process.env.PR_NUMBER) {
-            return JSON.stringify([parseInt(process.env.PR_NUMBER)]);
+          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
+
+          const fs = require("fs");
+
+          const commentBody = fs.readFileSync('comment.txt');
+
+          async function getTargetPullRequests() {
+            if (process.env.PR_NUMBER) {
+              return [
+                (await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: process.env.PR_NUMBER,
+                })).data
+              ];
+            }
+            if (context.eventName === "pull_request") {
+              return [context.payload.pull_request];
+            }
+            if (context.eventName === "push" || context.eventName === "workflow_run") {
+              const pullRequests = (
+                await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: process.env.COMMIT_SHA,
+                })
+              ).data;
+              const openPullRequests = pullRequests.filter(pr => pr.state === "open")
+              return openPullRequests;
+            }
+            throw new Error(`Unsupported event type: ${context.eventName}`);
           }
-          if (context.eventName === "pull_request") {
-            return JSON.stringify([context.payload.pull_request.number]);
-          }
-          if (context.eventName === "push" || context.eventName === "workflow_run") {
-            const pullRequests = (
-              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+          const targetPullRequests = await getTargetPullRequests();
+
+          core.startGroup('Found PRs:')
+          console.log(targetPullRequests)
+          core.endGroup()
+
+          const stickyCommentHeader = `<!-- Sticky Stat Comment ${process.env.COMMIT_SHA} -->\n`;
+
+          for (const pr of targetPullRequests) {
+            const title = `## Package Stats on [\`${process.env.COMMIT_SHA.slice(0, 7)}\`](${pr.html_url}/commits/${process.env.COMMIT_SHA})\n\n`;
+            const commentText = title + commentBody;
+
+            const stickyCommentText = stickyCommentHeader + commentText
+
+            const existingComments = await github.paginate(
+              github.rest.issues.listComments,
+              {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                commit_sha: process.env.COMMIT_SHA,
-              })
-            ).data;
-            const openPullRequests = pullRequests.filter(pr => pr.state === "open");
-            if (openPullRequests.length > 0) {
-              return JSON.stringify(openPullRequests.map(pr => pr.number));
-            }
-          }
-          return "[]";
-
-    - name: Read comment content
-      id: read-comment
-      shell: bash
-      run: |
-        cd "$PACKAGE_STATS_WORKING_DIR"
-        {
-          echo 'CONTENT<<EOF'
-          cat comment.txt
-          echo 'EOF'
-        } >> "$GITHUB_OUTPUT"
-
-    - name: Add package stats section to sticky comment for all PRs
-      if: steps.get-pr-numbers.outputs.result != '[]'
-      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
-      env:
-        PR_NUMBERS: ${{ steps.get-pr-numbers.outputs.result }}
-        SECTION_CONTENT: ${{ steps.read-comment.outputs.CONTENT }}
-      with:
-        script: |
-          const prNumbers = JSON.parse(process.env.PR_NUMBERS);
-          const sectionContent = process.env.SECTION_CONTENT;
-          const sectionId = "package-stats";
-          // Validate sectionId to match the same constraints used by the parser and sticky-comment actions
-          if (!/^[A-Za-z0-9_-]+$/.test(sectionId)) {
-            throw new Error(`Invalid sectionId "${sectionId}". It must match /^[A-Za-z0-9_-]+$/ to be compatible with sticky comment parsing.`);
-          }
-          const sectionTitle = "## Package Stats";
-          const sectionOrder = 10;
-
-          if (prNumbers.length === 0) {
-            core.info("No PRs to update.");
-            return;
-          }
-
-          const COMMENT_HEADER = "<!-- Unified CI Report -->";
-          const SECTION_START_MARKER = (id) => `<!-- section:${id}:start -->`;
-          const SECTION_END_MARKER = (id) => `<!-- section:${id}:end -->`;
-          const SECTION_ORDER_MARKER = (id, order) => `<!-- section:${id}:order:${order} -->`;
-
-          function parseSections(body) {
-            const sections = [];
-            const sectionRegex = /<!-- section:([A-Za-z0-9_-]+):start -->\s*<!-- section:\1:order:(\d+) -->\s*([\s\S]*?)<!-- section:\1:end -->/g;
-            let match;
-            while ((match = sectionRegex.exec(body)) !== null) {
-              sections.push({
-                id: match[1],
-                order: parseInt(match[2]),
-                content: match[3].trim(),
-              });
-            }
-            return sections;
-          }
-
-          function buildCommentBody(sections) {
-            const title = "# CI Report\n\n";
-            const sectionsContent = sections
-              .map((section) => {
-                return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
-              })
-              .join("\n\n---\n\n");
-            return `${COMMENT_HEADER}\n${title}${sectionsContent}`;
-          }
-
-          for (const prNumber of prNumbers) {
-            core.info(`Updating PR #${prNumber}...`);
-
-            // Retry logic to handle race conditions when multiple jobs update concurrently.
-            // This handles:
-            // - 409 Conflict: Comment was modified between read and update
-            // - 422 Unprocessable Entity: Validation failed due to stale data
-            // - 403 Forbidden: Rate limiting (secondary rate limit)
-            // Note: If two jobs simultaneously find no existing comment and both create one,
-            // both creates will succeed (no error), potentially resulting in duplicate comments.
-            // This is a rare edge case that would require manual cleanup.
-            const MAX_RETRIES = 3;
-            const RETRY_DELAY_MS = 1000;
-
-            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-              try {
-                // Fetch comment inside the loop so retries get fresh data
-                const comments = await github.paginate(
-                  github.rest.issues.listComments,
-                  {
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: prNumber,
-                  }
-                );
-
-                const existingComment = comments.find(
-                  (comment) =>
-                    comment.body?.startsWith(COMMENT_HEADER) &&
-                    comment.user?.login === "github-actions[bot]"
-                );
-
-                // Get existing sections
-                let sections = existingComment ? parseSections(existingComment.body) : [];
-
-                // Create new section content
-                const newSectionContent = `${sectionTitle}\n\n${sectionContent}`;
-
-                // Update or add section
-                const existingIndex = sections.findIndex((s) => s.id === sectionId);
-                if (existingIndex >= 0) {
-                  sections[existingIndex] = {
-                    id: sectionId,
-                    order: sectionOrder,
-                    content: newSectionContent,
-                  };
-                } else {
-                  sections.push({
-                    id: sectionId,
-                    order: sectionOrder,
-                    content: newSectionContent,
-                  });
-                }
-
-                // Sort sections by order
-                sections.sort((a, b) => a.order - b.order);
-
-                const commentBody = buildCommentBody(sections);
-
-                // Create or update comment
-                if (existingComment) {
-                  await github.rest.issues.updateComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    comment_id: existingComment.id,
-                    body: commentBody,
-                  });
-                  core.info(`Updated unified comment on PR #${prNumber}`);
-                } else {
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: prNumber,
-                    body: commentBody,
-                  });
-                  core.info(`Created unified comment on PR #${prNumber}`);
-                }
-
-                // Success - exit retry loop
-                break;
-              } catch (error) {
-                // Check if it's a retryable error
-                const isRetryable = error.status === 409 || error.status === 422 || error.status === 403;
-
-                if (isRetryable && attempt < MAX_RETRIES) {
-                  core.warning(`Attempt ${attempt} for PR #${prNumber} failed with status ${error.status}, retrying...`);
-                  await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
-                  continue;
-                }
-
-                throw error;
+                issue_number: pr.number,
               }
+            );
+
+            const existingComment = existingComments.find(comment =>
+              comment.body.startsWith(stickyCommentHeader) && comment.user.login === 'github-actions[bot]'
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: stickyCommentText,
+              });
+              core.info(`Updated comment on PR #${pr.number}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: stickyCommentText,
+              });
+              core.info(`Created comment on PR #${pr.number}`);
             }
           }

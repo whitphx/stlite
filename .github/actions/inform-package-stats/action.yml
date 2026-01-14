@@ -183,58 +183,22 @@ runs:
 
           fs.writeFileSync('comment.txt', comment);
 
-    - name: Post a message to Pull Request thread
-      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
-      env:
-        PR_NUMBER: ${{ inputs.pr-number }}
+    - name: Read comment content
+      id: read-comment
+      shell: bash
+      run: |
+        cd "$PACKAGE_STATS_WORKING_DIR"
+        {
+          echo 'CONTENT<<EOF'
+          cat comment.txt
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Add package stats section to sticky comment
+      uses: ./.github/actions/sticky-comment-add-section
       with:
-        script: |
-          process.chdir(process.env.PACKAGE_STATS_WORKING_DIR);
-
-          const fs = require("fs");
-
-          const commentBody = fs.readFileSync('comment.txt');
-
-          const prNumber = Number(process.env.PR_NUMBER);
-          const pr = (await github.rest.pulls.get({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: prNumber,
-          })).data;
-          const commitSha = pr.head.sha;
-
-          const stickyCommentHeader = `<!-- Sticky Stat Comment ${commitSha} -->\n`;
-          const title = `## Package Stats on [\`${commitSha.slice(0, 7)}\`](${pr.html_url}/commits/${commitSha})\n\n`;
-          const commentText = title + commentBody;
-          const stickyCommentText = stickyCommentHeader + commentText;
-
-          const existingComments = await github.paginate(
-            github.rest.issues.listComments,
-            {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            }
-          );
-
-          const existingComment = existingComments.find(comment =>
-            comment.body.startsWith(stickyCommentHeader) && comment.user.login === 'github-actions[bot]'
-          );
-
-          if (existingComment) {
-            await github.rest.issues.updateComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: existingComment.id,
-              body: stickyCommentText,
-            });
-            core.info(`Updated comment on PR #${prNumber}`);
-          } else {
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: stickyCommentText,
-            });
-            core.info(`Created comment on PR #${prNumber}`);
-          }
+        pr-number: ${{ inputs.pr-number }}
+        section-id: package-stats
+        section-title: "## Package Stats"
+        section-content: ${{ steps.read-comment.outputs.CONTENT }}
+        order: "10"

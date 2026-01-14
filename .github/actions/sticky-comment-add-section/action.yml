@@ -1,0 +1,182 @@
+name: Add section to sticky comment
+description: "Add or update a section in the unified PR sticky comment"
+inputs:
+  pr-number:
+    required: true
+    description: "The PR number to post the comment to"
+  section-id:
+    required: true
+    description: "Unique identifier for this section (used to update existing sections). Must only contain alphanumeric characters, hyphens, and underscores."
+  section-title:
+    required: true
+    description: "Display title for this section (markdown header, e.g., '## Package Stats')"
+  section-content:
+    required: true
+    description: "Markdown content for this section"
+  order:
+    required: false
+    default: "50"
+    description: "Sort order for this section (lower numbers appear first)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add/update section in sticky comment
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+      env:
+        PR_NUMBER: ${{ inputs.pr-number }}
+        SECTION_ID: ${{ inputs.section-id }}
+        SECTION_TITLE: ${{ inputs.section-title }}
+        SECTION_CONTENT: ${{ inputs.section-content }}
+        SECTION_ORDER: ${{ inputs.order }}
+      with:
+        script: |
+          const prNumber = parseInt(process.env.PR_NUMBER);
+          const sectionId = process.env.SECTION_ID;
+          const sectionTitle = process.env.SECTION_TITLE;
+          const sectionContent = process.env.SECTION_CONTENT;
+          const sectionOrder = parseInt(process.env.SECTION_ORDER) || 50;
+
+          if (!prNumber || isNaN(prNumber)) {
+            core.info("No valid PR number provided, skipping comment update.");
+            return;
+          }
+
+          // Validate section ID: non-empty, safe characters only
+          if (!sectionId || typeof sectionId !== "string") {
+            core.setFailed("Section ID is required and must be a non-empty string.");
+            return;
+          }
+          if (!/^[A-Za-z0-9_-]+$/.test(sectionId)) {
+            core.setFailed(`Section ID "${sectionId}" is invalid. It may only contain alphanumeric characters, hyphens, and underscores.`);
+            return;
+          }
+
+          const COMMENT_HEADER = "<!-- Unified CI Report -->";
+          const SECTION_START_MARKER = (id) => `<!-- section:${id}:start -->`;
+          const SECTION_END_MARKER = (id) => `<!-- section:${id}:end -->`;
+          const SECTION_ORDER_MARKER = (id, order) => `<!-- section:${id}:order:${order} -->`;
+
+          // Parse existing sections from comment
+          function parseSections(body) {
+            const sections = [];
+            const sectionRegex = /<!-- section:([A-Za-z0-9_-]+):start -->\s*<!-- section:\1:order:(\d+) -->\s*([\s\S]*?)<!-- section:\1:end -->/g;
+            let match;
+            while ((match = sectionRegex.exec(body)) !== null) {
+              sections.push({
+                id: match[1],
+                order: parseInt(match[2]),
+                content: match[3].trim(),
+              });
+            }
+            return sections;
+          }
+
+          // Build comment body from sections
+          function buildCommentBody(sections) {
+            const title = "# CI Report\n\n";
+            const sectionsContent = sections
+              .map((section) => {
+                return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
+              })
+              .join("\n\n---\n\n");
+            return `${COMMENT_HEADER}\n${title}${sectionsContent}`;
+          }
+
+          // Find existing sticky comment
+          async function findStickyComment() {
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+              }
+            );
+            return comments.find(
+              (comment) =>
+                comment.body?.startsWith(COMMENT_HEADER) &&
+                comment.user?.login === "github-actions[bot]"
+            );
+          }
+
+          // Retry logic to handle race conditions when multiple jobs update concurrently.
+          // This handles:
+          // - 409 Conflict: Comment was modified between read and update
+          // - 422 Unprocessable Entity: Validation failed due to stale data
+          // - 403 Forbidden: Rate limiting (secondary rate limit)
+          // Note: If two jobs simultaneously find no existing comment and both create one,
+          // both creates will succeed (no error), potentially resulting in duplicate comments.
+          // This is a rare edge case that would require manual cleanup.
+          const MAX_RETRIES = 3;
+          const RETRY_DELAY_MS = 1000;
+
+          for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+              // Fetch comment inside the loop so retries get fresh data
+              const existingComment = await findStickyComment();
+
+              // Get existing sections
+              let sections = existingComment ? parseSections(existingComment.body) : [];
+
+              // Create new section content
+              const newSectionContent = `${sectionTitle}\n\n${sectionContent}`;
+
+              // Update or add section
+              const existingIndex = sections.findIndex((s) => s.id === sectionId);
+              if (existingIndex >= 0) {
+                sections[existingIndex] = {
+                  id: sectionId,
+                  order: sectionOrder,
+                  content: newSectionContent,
+                };
+                core.info(`Updated existing section: ${sectionId}`);
+              } else {
+                sections.push({
+                  id: sectionId,
+                  order: sectionOrder,
+                  content: newSectionContent,
+                });
+                core.info(`Added new section: ${sectionId}`);
+              }
+
+              // Sort sections by order
+              sections.sort((a, b) => a.order - b.order);
+
+              const commentBody = buildCommentBody(sections);
+
+              // Create or update comment
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingComment.id,
+                  body: commentBody,
+                });
+                core.info(`Updated unified comment on PR #${prNumber}`);
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: commentBody,
+                });
+                core.info(`Created unified comment on PR #${prNumber}`);
+              }
+
+              // Success - exit retry loop
+              break;
+            } catch (error) {
+              // Check if it's a retryable error
+              const isRetryable = error.status === 409 || error.status === 422 || error.status === 403;
+
+              if (isRetryable && attempt < MAX_RETRIES) {
+                core.warning(`Attempt ${attempt} failed with status ${error.status}, retrying in ${RETRY_DELAY_MS}ms...`);
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+                continue;
+              }
+
+              // Re-throw if not retryable or max retries reached
+              throw error;
+            }
+          }

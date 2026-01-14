@@ -100,12 +100,20 @@ runs:
             );
           }
 
-          // Retry logic to handle race conditions
+          // Retry logic to handle race conditions when multiple jobs update concurrently.
+          // This handles:
+          // - 409 Conflict: Comment was modified between read and update
+          // - 422 Unprocessable Entity: Validation failed due to stale data
+          // - 403 Forbidden: Rate limiting (secondary rate limit)
+          // Note: If two jobs simultaneously find no existing comment and both create one,
+          // both creates will succeed (no error), potentially resulting in duplicate comments.
+          // This is a rare edge case that would require manual cleanup.
           const MAX_RETRIES = 3;
           const RETRY_DELAY_MS = 1000;
 
           for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
+              // Fetch comment inside the loop so retries get fresh data
               const existingComment = await findStickyComment();
 
               // Get existing sections
@@ -159,16 +167,16 @@ runs:
               // Success - exit retry loop
               break;
             } catch (error) {
-              // Check if it's a conflict error (HTTP 409) or similar race condition
-              const isConflict = error.status === 409 || error.status === 422;
+              // Check if it's a retryable error
+              const isRetryable = error.status === 409 || error.status === 422 || error.status === 403;
 
-              if (isConflict && attempt < MAX_RETRIES) {
-                core.warning(`Attempt ${attempt} failed due to conflict, retrying in ${RETRY_DELAY_MS}ms...`);
+              if (isRetryable && attempt < MAX_RETRIES) {
+                core.warning(`Attempt ${attempt} failed with status ${error.status}, retrying in ${RETRY_DELAY_MS}ms...`);
                 await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
                 continue;
               }
 
-              // Re-throw if not a conflict or max retries reached
+              // Re-throw if not retryable or max retries reached
               throw error;
             }
           }

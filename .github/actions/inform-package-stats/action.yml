@@ -236,6 +236,10 @@ runs:
           const prNumbers = JSON.parse(process.env.PR_NUMBERS);
           const sectionContent = process.env.SECTION_CONTENT;
           const sectionId = "package-stats";
+          // Validate sectionId to match the same constraints used by the parser and sticky-comment actions
+          if (!/^[A-Za-z0-9_-]+$/.test(sectionId)) {
+            throw new Error(`Invalid sectionId "${sectionId}". It must match /^[A-Za-z0-9_-]+$/ to be compatible with sticky comment parsing.`);
+          }
           const sectionTitle = "## Package Stats";
           const sectionOrder = 10;
 
@@ -276,13 +280,20 @@ runs:
           for (const prNumber of prNumbers) {
             core.info(`Updating PR #${prNumber}...`);
 
-            // Retry logic for race conditions
+            // Retry logic to handle race conditions when multiple jobs update concurrently.
+            // This handles:
+            // - 409 Conflict: Comment was modified between read and update
+            // - 422 Unprocessable Entity: Validation failed due to stale data
+            // - 403 Forbidden: Rate limiting (secondary rate limit)
+            // Note: If two jobs simultaneously find no existing comment and both create one,
+            // both creates will succeed (no error), potentially resulting in duplicate comments.
+            // This is a rare edge case that would require manual cleanup.
             const MAX_RETRIES = 3;
             const RETRY_DELAY_MS = 1000;
 
             for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
               try {
-                // Find existing sticky comment
+                // Fetch comment inside the loop so retries get fresh data
                 const comments = await github.paginate(
                   github.rest.issues.listComments,
                   {
@@ -347,10 +358,11 @@ runs:
                 // Success - exit retry loop
                 break;
               } catch (error) {
-                const isConflict = error.status === 409 || error.status === 422;
+                // Check if it's a retryable error
+                const isRetryable = error.status === 409 || error.status === 422 || error.status === 403;
 
-                if (isConflict && attempt < MAX_RETRIES) {
-                  core.warning(`Attempt ${attempt} for PR #${prNumber} failed due to conflict, retrying...`);
+                if (isRetryable && attempt < MAX_RETRIES) {
+                  core.warning(`Attempt ${attempt} for PR #${prNumber} failed with status ${error.status}, retrying...`);
                   await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
                   continue;
                 }

@@ -110,22 +110,22 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - name: Post bundle visualizer links
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
+
+      - name: Get visualizer artifact links
+        id: get-visualizers
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
-          HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
           WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
         with:
+          result-encoding: string
           script: |
             const runId = process.env.WORKFLOW_RUN_ID;
-            const headSha =
-              process.env.HEAD_SHA || context.payload.workflow_run?.head_sha;
 
-            if (!headSha) {
-              core.setFailed("Head SHA is not available.");
-              return;
-            }
             const artifacts = await github.paginate(
               github.rest.actions.listWorkflowRunArtifacts,
               {
@@ -141,7 +141,7 @@ jobs:
 
             if (visualizers.length === 0) {
               core.info("No visualizer artifacts found for this run.");
-              return;
+              return "";
             }
 
             const labels = {
@@ -162,45 +162,17 @@ jobs:
               })
               .join("\n");
 
-            const stickyHeader = `<!-- Visualizer Report ${headSha} -->\n`;
-            const commentBody = `${stickyHeader}## Bundle visualizer reports for \`${headSha.slice(0, 7)}\`\n\n${artifactLines}\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.`;
+            return artifactLines + "\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.";
 
-            const existingComments = await github.paginate(
-              github.rest.issues.listComments,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: Number(process.env.PR_NUMBER),
-              }
-            );
-
-            const existingComment = existingComments.find(
-              (comment) =>
-                comment.body.startsWith(stickyHeader) &&
-                comment.user?.login === "github-actions[bot]"
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: commentBody,
-              });
-              core.info(
-                `Updated visualizer report comment on PR #${process.env.PR_NUMBER}`
-              );
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: Number(process.env.PR_NUMBER),
-                body: commentBody,
-              });
-              core.info(
-                `Created visualizer report comment on PR #${process.env.PR_NUMBER}`
-              );
-            }
+      - name: Add visualizer section to sticky comment
+        if: steps.get-visualizers.outputs.result != ''
+        uses: ./.github/actions/sticky-comment-add-section
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: visualizer
+          section-title: "## Bundle Visualizer Reports"
+          section-content: ${{ steps.get-visualizers.outputs.result }}
+          order: "20"
   e2e-browser:
     needs: get-build-info
 
@@ -594,9 +566,6 @@ jobs:
           pages deploy ${{ runner.temp }}/artifacts/browser/package/build --project-name=stlite-browser-preview --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-  # TODO: unify with notify-cloudflare-pages-deployments
-  # For now we separate it to run the notifications in parallel for faster notifications.
-  # We need to introduce an incremental comment update mechanism to unify them.
   notify-browser-preview-deployments:
     needs: [get-build-info, deploy-browser-preview]
     if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
@@ -607,60 +576,78 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Comment on PR
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          script: |
-            const prNumber = process.env.PR_NUMBER;
-            const previewUrl = '${{ needs.deploy-browser-preview.outputs.url }}';
-            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
 
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `Deployment completed successfully ([log](${logUrl})).
-            ${{ needs.deploy-browser-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
+      - name: Add browser preview section to sticky comment (success)
+        if: needs.deploy-browser-preview.result == 'success'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          PREVIEW_URL: ${{ needs.deploy-browser-preview.outputs.url }}
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-browser
+          section-title: "## @stlite/browser Preview"
+          order: "30"
+          section-content: |
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).${{ needs.deploy-browser-preview.outputs.valid != 'true' && ' _**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
 
-            - \`${previewUrl}/stlite.js\`
-            - \`${previewUrl}/stlite.css\`
+            - `${{ env.PREVIEW_URL }}/stlite.js`
+            - `${{ env.PREVIEW_URL }}/stlite.css`
 
-            \`\`\`html
+            <details>
+            <summary>Example HTML</summary>
+
+            ```html
             <!DOCTYPE html>
             <html lang="en">
               <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>Stlite Browser preview</title>
-                <link rel="stylesheet" href="${previewUrl}/stlite.css" />
+                <link rel="stylesheet" href="${{ env.PREVIEW_URL }}/stlite.css" />
               </head>
               <body>
                 <noscript>You need to enable JavaScript to run this app.</noscript>
                 <div id="root"></div>
                 <script type="module">
-            import { mount } from "${previewUrl}/stlite.js"
+            import { mount } from "${{ env.PREVIEW_URL }}/stlite.js"
             mount(
               {
                 entrypoint: "streamlit_app.py",
                 files: {
-                  "streamlit_app.py": \`
+                  "streamlit_app.py": `
             import streamlit as st
             st.write("Hello world")
-            \`,
+            `,
                 },
                 requirements: [],
               },
               document.getElementById("root"),
             );
-
                 </script>
               </body>
             </html>
-            \`\`\`
-            `
-            });
+            ```
+
+            </details>
+
+      - name: Add browser preview section to sticky comment (failure)
+        if: needs.deploy-browser-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-browser
+          section-title: "## @stlite/browser Preview"
+          order: "30"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   deploy-react-preview:
     needs: [get-build-info, e2e-react]
@@ -724,33 +711,47 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Comment on PR
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          script: |
-            const prNumber = process.env.PR_NUMBER;
-            const previewUrl = '${{ needs.deploy-react-preview.outputs.url }}';
-            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
 
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `Deployment completed successfully ([log](${logUrl})).
-            ${{ needs.deploy-react-preview.outputs.valid != 'true' && '_**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
+      - name: Add react preview section to sticky comment (success)
+        if: needs.deploy-react-preview.result == 'success'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          PREVIEW_URL: ${{ needs.deploy-react-preview.outputs.url }}
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-react
+          section-title: "## @stlite/react Preview"
+          order: "35"
+          section-content: |
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).${{ needs.deploy-react-preview.outputs.valid != 'true' && ' _**⛔ However, the e2e tests have failed, so the preview build may be broken. Please check the test results above.**_' || '' }}
 
             Importable URLs:
-            - \`${previewUrl}/stlite.js\`
-            - \`${previewUrl}/stlite.css\`
+            - `${{ env.PREVIEW_URL }}/stlite.js`
+            - `${{ env.PREVIEW_URL }}/stlite.css`
 
-            \`\`\`tsx
-            import { StliteApp, createKernel } from "${previewUrl}/stlite.js";
-            import "${previewUrl}/stlite.css";
-            \`\`\`
-            `
-            });
+            ```tsx
+            import { StliteApp, createKernel } from "${{ env.PREVIEW_URL }}/stlite.js";
+            import "${{ env.PREVIEW_URL }}/stlite.css";
+            ```
+
+      - name: Add react preview section to sticky comment (failure)
+        if: needs.deploy-react-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-react
+          section-title: "## @stlite/react Preview"
+          order: "35"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   deploy-docs-preview:
     needs: [get-build-info]
@@ -804,25 +805,40 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Comment on PR
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          script: |
-            const prNumber = process.env.PR_NUMBER;
-            const previewUrl = '${{ needs.deploy-docs-preview.outputs.url }}';
-            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
 
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `Deployment completed successfully ([log](${logUrl})).
+      - name: Add docs preview section to sticky comment (success)
+        if: needs.deploy-docs-preview.result == 'success'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          PREVIEW_URL: ${{ needs.deploy-docs-preview.outputs.url }}
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-docs
+          section-title: "## Docs Preview"
+          order: "40"
+          section-content: |
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).
 
-            ${previewUrl}
-            `
-            });
+            ${{ env.PREVIEW_URL }}
+
+      - name: Add docs preview section to sticky comment (failure)
+        if: needs.deploy-docs-preview.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-docs
+          section-title: "## Docs Preview"
+          order: "40"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
 
   deploy-sharing:
@@ -888,33 +904,49 @@ jobs:
 
   notify-cloudflare-pages-deployments:
     needs: [get-build-info, deploy-sharing, deploy-sharing-editor]
-    if: ${{ needs.get-build-info.outputs.pr-number != '' }}
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
 
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
 
     steps:
-      - name: Comment on PR
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
-          script: |
-            const prNumber = process.env.PR_NUMBER;
-            const sharingUrl = '${{ needs.deploy-sharing.outputs.url }}';
-            const sharingEditorUrl = '${{ needs.deploy-sharing-editor.outputs.url }}';
-            const logUrl = 'https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
 
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `Deployment completed successfully ([log](${logUrl})).
-            * Sharing App: ${sharingUrl}
-            * Sharing Editor: ${sharingEditorUrl}
-            `
-            });
+      - name: Add sharing preview section to sticky comment (success)
+        if: needs.deploy-sharing.result == 'success' && needs.deploy-sharing-editor.result == 'success'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          SHARING_URL: ${{ needs.deploy-sharing.outputs.url }}
+          SHARING_EDITOR_URL: ${{ needs.deploy-sharing-editor.outputs.url }}
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-sharing
+          section-title: "## Sharing Preview"
+          order: "45"
+          section-content: |
+            Deployment completed successfully ([log](${{ env.LOG_URL }})).
+
+            - Sharing App: ${{ env.SHARING_URL }}
+            - Sharing Editor: ${{ env.SHARING_EDITOR_URL }}
+
+      - name: Add sharing preview section to sticky comment (failure)
+        if: needs.deploy-sharing.result == 'failure' || needs.deploy-sharing-editor.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: deploy-sharing
+          section-title: "## Sharing Preview"
+          order: "45"
+          section-content: |
+            ⚠️ Deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
 
   publish-browser:
     needs: [get-build-info, get-changesets-publish-targets]

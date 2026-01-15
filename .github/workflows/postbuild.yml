@@ -103,9 +103,164 @@ jobs:
       with:
         pr-number: ${{ needs.get-build-info.outputs.pr-number }}
 
-  inform-visualizer:
+  deploy-visualizer-reports:
     needs: get-build-info
-    if: ${{ needs.get-build-info.outputs.pr-number }}
+    if: ${{ needs.get-build-info.outputs.branch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      url: ${{ steps.deploy.outputs.deployment-url }}
+      has-reports: ${{ steps.check-artifacts.outputs.has-reports }}
+    steps:
+      - name: Check for visualizer artifacts
+        id: check-artifacts
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+        with:
+          script: |
+            const runId = process.env.WORKFLOW_RUN_ID;
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+              }
+            );
+            const visualizers = artifacts.filter((artifact) =>
+              artifact.name.startsWith("visualizer-")
+            );
+            const hasReports = visualizers.length > 0;
+            core.setOutput("has-reports", hasReports ? "true" : "");
+            if (!hasReports) {
+              core.info("No visualizer artifacts found for this run.");
+            }
+
+      - name: Download visualizer-browser artifact
+        if: steps.check-artifacts.outputs.has-reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: visualizer-browser
+          path: ${{ runner.temp }}/visualizer-reports/browser
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Download visualizer-sharing artifact
+        if: steps.check-artifacts.outputs.has-reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: visualizer-sharing
+          path: ${{ runner.temp }}/visualizer-reports/sharing
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Download visualizer-sharing-editor artifact
+        if: steps.check-artifacts.outputs.has-reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: visualizer-sharing-editor
+          path: ${{ runner.temp }}/visualizer-reports/sharing-editor
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Download visualizer-desktop artifact
+        if: steps.check-artifacts.outputs.has-reports
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: visualizer-desktop
+          path: ${{ runner.temp }}/visualizer-reports/desktop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Generate index.html
+        if: steps.check-artifacts.outputs.has-reports
+        run: |
+          cd ${{ runner.temp }}/visualizer-reports
+
+          # Create index.html with links to all available reports
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bundle Visualizer Reports</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem;
+                background: #f5f5f5;
+              }
+              h1 { color: #333; }
+              .reports {
+                display: grid;
+                gap: 1rem;
+                margin-top: 2rem;
+              }
+              .report-link {
+                display: block;
+                padding: 1rem 1.5rem;
+                background: white;
+                border-radius: 8px;
+                text-decoration: none;
+                color: #0066cc;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                transition: transform 0.2s, box-shadow 0.2s;
+              }
+              .report-link:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+              }
+              .report-link .package { font-weight: bold; }
+              .report-link .file { color: #666; font-size: 0.9em; }
+              .not-found { color: #999; }
+            </style>
+          </head>
+          <body>
+            <h1>Bundle Visualizer Reports</h1>
+            <div class="reports">
+          EOF
+
+          # Add links for each available report
+          for dir in browser sharing sharing-editor desktop; do
+            if [ -d "$dir" ]; then
+              # Find the HTML file in the directory
+              html_file=$(find "$dir" -name "*.html" -type f | head -1)
+              if [ -n "$html_file" ]; then
+                package_name="@stlite/$dir"
+                echo "    <a class=\"report-link\" href=\"$html_file\"><span class=\"package\">$package_name</span><br><span class=\"file\">$(basename "$html_file")</span></a>" >> index.html
+              fi
+            fi
+          done
+
+          cat >> index.html << 'EOF'
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to Cloudflare Pages
+        if: steps.check-artifacts.outputs.has-reports
+        uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: |
+            pages deploy ${{ runner.temp }}/visualizer-reports --project-name=stlite-bundle-visualizer-reports --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+
+  notify-visualizer-reports:
+    needs: [get-build-info, deploy-visualizer-reports]
+    if: ${{ needs.get-build-info.outputs.pr-number != '' && always() }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -116,63 +271,39 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - name: Get visualizer artifact links
-        id: get-visualizers
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-        env:
-          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
-        with:
-          result-encoding: string
-          script: |
-            const runId = process.env.WORKFLOW_RUN_ID;
-
-            const artifacts = await github.paginate(
-              github.rest.actions.listWorkflowRunArtifacts,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                run_id: runId,
-              }
-            );
-
-            const visualizers = artifacts.filter((artifact) =>
-              artifact.name.startsWith("visualizer-")
-            );
-
-            if (visualizers.length === 0) {
-              core.info("No visualizer artifacts found for this run.");
-              return "";
-            }
-
-            const labels = {
-              "visualizer-browser": "@stlite/browser",
-              "visualizer-react": "@stlite/react",
-              "visualizer-sharing": "@stlite/sharing",
-              "visualizer-sharing-editor": "@stlite/sharing-editor",
-              "visualizer-desktop": "@stlite/desktop",
-            };
-
-            const artifactLines = visualizers
-              .map((artifact) => {
-                const label =
-                  labels[artifact.name] ??
-                  artifact.name.replace(/^visualizer-/, "");
-                const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}/artifacts/${artifact.id}`;
-                return `- **${label}**: [Bundle report](${url})`;
-              })
-              .join("\n");
-
-            return artifactLines + "\n\nDownload the artifact and open the contained HTML locally to inspect the bundle makeup.";
-
-      - name: Add visualizer section to sticky comment
-        if: steps.get-visualizers.outputs.result != ''
+      - name: Add visualizer section to sticky comment (success)
+        if: needs.deploy-visualizer-reports.result == 'success' && needs.deploy-visualizer-reports.outputs.has-reports
         uses: ./.github/actions/sticky-comment-add-section
+        env:
+          PREVIEW_URL: ${{ needs.deploy-visualizer-reports.outputs.url }}
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
           section-id: visualizer
           section-title: "## Bundle Visualizer Reports"
-          section-content: ${{ steps.get-visualizers.outputs.result }}
           order: "20"
+          section-content: |
+            Bundle visualizer reports are available at:
+            ${{ env.PREVIEW_URL }}
+
+            - [@stlite/browser](${{ env.PREVIEW_URL }}/browser/browser.html)
+            - [@stlite/sharing](${{ env.PREVIEW_URL }}/sharing/sharing.html)
+            - [@stlite/sharing-editor](${{ env.PREVIEW_URL }}/sharing-editor/sharing-editor.html)
+            - [@stlite/desktop](${{ env.PREVIEW_URL }}/desktop/desktop.html)
+
+      - name: Add visualizer section to sticky comment (failure)
+        if: needs.deploy-visualizer-reports.result == 'failure'
+        uses: ./.github/actions/sticky-comment-add-section
+        env:
+          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          section-id: visualizer
+          section-title: "## Bundle Visualizer Reports"
+          order: "20"
+          section-content: |
+            ⚠️ Bundle visualizer deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
+
   e2e-browser:
     needs: get-build-info
 

@@ -197,7 +197,7 @@ jobs:
 
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -260,7 +260,7 @@ jobs:
         persist-credentials: false
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version-file: ${{ env.node-version-file }}
     - name: Install dependencies
@@ -313,7 +313,7 @@ jobs:
 
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -375,7 +375,7 @@ jobs:
 
     - name: Enable Corepack
       run: corepack enable
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version-file: ${{ env.node-version-file }}
 
@@ -977,7 +977,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'
@@ -1037,7 +1037,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'
@@ -1097,7 +1097,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+    - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'

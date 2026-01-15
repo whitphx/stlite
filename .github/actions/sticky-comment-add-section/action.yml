@@ -11,8 +11,11 @@ inputs:
     required: true
     description: "Display title for this section (markdown header, e.g., '## Package Stats')"
   section-content:
-    required: true
-    description: "Markdown content for this section"
+    required: false
+    description: "Markdown content for this section. Mutually exclusive with section-content-file."
+  section-content-file:
+    required: false
+    description: "Path to a file containing the markdown content for this section. Use this for large content to avoid 'argument too long' errors. Mutually exclusive with section-content."
   order:
     required: false
     default: "50"
@@ -28,14 +31,37 @@ runs:
         SECTION_ID: ${{ inputs.section-id }}
         SECTION_TITLE: ${{ inputs.section-title }}
         SECTION_CONTENT: ${{ inputs.section-content }}
+        SECTION_CONTENT_FILE: ${{ inputs.section-content-file }}
         SECTION_ORDER: ${{ inputs.order }}
       with:
         script: |
+          const fs = require("fs");
+
           const prNumber = parseInt(process.env.PR_NUMBER);
           const sectionId = process.env.SECTION_ID;
           const sectionTitle = process.env.SECTION_TITLE;
-          const sectionContent = process.env.SECTION_CONTENT;
+          const sectionContentRaw = process.env.SECTION_CONTENT;
+          const sectionContentFile = process.env.SECTION_CONTENT_FILE;
           const sectionOrder = parseInt(process.env.SECTION_ORDER) || 50;
+
+          // Validate that exactly one of section-content or section-content-file is provided
+          let sectionContent;
+          if (sectionContentRaw && sectionContentFile) {
+            core.setFailed("Only one of section-content or section-content-file should be provided, not both.");
+            return;
+          } else if (sectionContentRaw) {
+            sectionContent = sectionContentRaw;
+          } else if (sectionContentFile) {
+            try {
+              sectionContent = fs.readFileSync(sectionContentFile, "utf8");
+            } catch (error) {
+              core.setFailed(`Failed to read section content from file: ${sectionContentFile}. Error: ${error.message}`);
+              return;
+            }
+          } else {
+            core.setFailed("Either section-content or section-content-file must be provided.");
+            return;
+          }
 
           if (!prNumber || isNaN(prNumber)) {
             core.info("No valid PR number provided, skipping comment update.");

@@ -113,6 +113,7 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.deployment-url }}
       has-reports: ${{ steps.check-artifacts.outputs.has-reports }}
+      report-links: ${{ steps.generate-links.outputs.links }}
     steps:
       - name: Check for visualizer artifacts
         id: check-artifacts
@@ -248,6 +249,25 @@ jobs:
           </html>
           EOF
 
+      - name: Generate report links
+        if: steps.check-artifacts.outputs.has-reports
+        id: generate-links
+        run: |
+          cd ${{ runner.temp }}/visualizer-reports
+          links=""
+          for dir in browser sharing sharing-editor desktop; do
+            if [ -d "$dir" ]; then
+              html_file=$(find "$dir" -name "*.html" -type f | head -1)
+              if [ -n "$html_file" ]; then
+                links="${links}- [@stlite/${dir}](\${PREVIEW_URL}/${html_file})\n"
+              fi
+            fi
+          done
+          # Use EOF delimiter for multiline output
+          echo "links<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$links" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Deploy to Cloudflare Pages
         if: steps.check-artifacts.outputs.has-reports
         uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3.14.1
@@ -271,12 +291,24 @@ jobs:
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
+      - name: Generate report links with URL
+        if: needs.deploy-visualizer-reports.result == 'success' && needs.deploy-visualizer-reports.outputs.has-reports
+        id: format-links
+        env:
+          PREVIEW_URL: ${{ needs.deploy-visualizer-reports.outputs.url }}
+          REPORT_LINKS: ${{ needs.deploy-visualizer-reports.outputs.report-links }}
+        run: |
+          # Substitute ${PREVIEW_URL} placeholder with actual URL
+          formatted=$(echo "$REPORT_LINKS" | sed "s|\${PREVIEW_URL}|${PREVIEW_URL}|g")
+          echo "formatted<<EOF" >> $GITHUB_OUTPUT
+          echo "$formatted" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Add visualizer section to sticky comment (success)
         if: needs.deploy-visualizer-reports.result == 'success' && needs.deploy-visualizer-reports.outputs.has-reports
         uses: ./.github/actions/sticky-comment-add-section
         env:
           PREVIEW_URL: ${{ needs.deploy-visualizer-reports.outputs.url }}
-          LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
           section-id: visualizer
@@ -286,10 +318,7 @@ jobs:
             Bundle visualizer reports are available at:
             ${{ env.PREVIEW_URL }}
 
-            - [@stlite/browser](${{ env.PREVIEW_URL }}/browser/browser.html)
-            - [@stlite/sharing](${{ env.PREVIEW_URL }}/sharing/sharing.html)
-            - [@stlite/sharing-editor](${{ env.PREVIEW_URL }}/sharing-editor/sharing-editor.html)
-            - [@stlite/desktop](${{ env.PREVIEW_URL }}/desktop/desktop.html)
+            ${{ steps.format-links.outputs.formatted }}
 
       - name: Add visualizer section to sticky comment (failure)
         if: needs.deploy-visualizer-reports.result == 'failure'

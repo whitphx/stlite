@@ -19,6 +19,9 @@ inputs:
   pr-number:
     required: false
     description: "The PR number to inform. If not provided, the inform-package-stats step will be skipped."
+  sticky-id:
+    required: false
+    description: "Unique identifier for this sticky comment. Defaults to github.sha."
 
 runs:
   using: "composite"
@@ -124,5 +127,6 @@ runs:
       if: ${{ inputs.pr-number != '' }}
       with:
         pr-number: ${{ inputs.pr-number }}
+        sticky-id: ${{ inputs.sticky-id }}
         stats-file-prefix: ${{ inputs.stats-file-prefix }}
         size-diff-warning-threshold-kib: ${{ inputs.size-diff-warning-threshold-kib }}

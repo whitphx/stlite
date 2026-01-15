@@ -102,6 +102,7 @@ jobs:
     - uses: ./.github/actions/inform-package-stats
       with:
         pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+        sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
 
   inform-visualizer:
     needs: get-build-info
@@ -169,6 +170,7 @@ jobs:
         uses: ./.github/actions/sticky-comment-add-section
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: visualizer
           section-title: "## Bundle Visualizer Reports"
           section-content: ${{ steps.get-visualizers.outputs.result }}
@@ -590,6 +592,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-browser
           section-title: "## @stlite/browser Preview"
           order: "30"
@@ -643,6 +646,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-browser
           section-title: "## @stlite/browser Preview"
           order: "30"
@@ -725,6 +729,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-react
           section-title: "## @stlite/react Preview"
           order: "35"
@@ -747,6 +752,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-react
           section-title: "## @stlite/react Preview"
           order: "35"
@@ -819,6 +825,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-docs
           section-title: "## Docs Preview"
           order: "40"
@@ -834,6 +841,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-docs
           section-title: "## Docs Preview"
           order: "40"
@@ -926,6 +934,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-sharing
           section-title: "## Sharing Preview"
           order: "45"
@@ -942,6 +951,7 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: deploy-sharing
           section-title: "## Sharing Preview"
           order: "45"

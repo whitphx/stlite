@@ -6212,7 +6212,7 @@ __metadata:
     glob: "npm:^13.0.0"
     node-html-parser: "npm:^7.0.1"
     prettier: "npm:^3.6.2"
-    pyodide: "npm:0.28.2"
+    pyodide: "npm:0.29.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.1.2"
@@ -6263,7 +6263,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^7.0.1"
     path-browserify: "npm:^1.0.1"
     prettier: "npm:^3.6.2"
-    pyodide: "npm:0.28.2"
+    pyodide: "npm:0.29.0"
     react: "npm:^18.2.0"
     typescript: "npm:^5.9.2"
     typescript-eslint: "npm:^8.46.2"
@@ -7731,6 +7731,13 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10c0/bf3f811843117900d7084b9d0c852da9a044d12eb40e6de73b552598a6843c21291a8a381b0532644574beecd5e3491c5ff3a0365ab86b15d59862c025384844
+  languageName: node
+  linkType: hard
+
+"@types/emscripten@npm:^1.41.4":
+  version: 1.41.5
+  resolution: "@types/emscripten@npm:1.41.5"
+  checksum: 10c0/ae816da716f896434e59df7a71b67c71ae7e85ca067a32aef1616572fc4757459515d42ade6f5b8fd8d69733a9dbd0cf23010fec5b2f41ce52c09501aa350e45
   languageName: node
   linkType: hard
 
@@ -22622,12 +22629,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.28.2":
-  version: 0.28.2
-  resolution: "pyodide@npm:0.28.2"
+"pyodide@npm:0.29.0":
+  version: 0.29.0
+  resolution: "pyodide@npm:0.29.0"
   dependencies:
+    "@types/emscripten": "npm:^1.41.4"
     ws: "npm:^8.5.0"
-  checksum: 10c0/751260ca329ee45665ed61c77f5ad278d8f17248e57a0a560171ed77a238286eec0bfa4ab96993dbc052f3ae9fa0126b4fda96f608cace35de1a2976d4199b26
+  checksum: 10c0/c24c22e4c9f6da78813705b066e9dc2b39e70d2014ff3fe5a9fa14077cdb843f741bb5302c30f60fd043c5873bb808b6abe7cd5508f5b3699067d858c7ee81d8
   languageName: node
   linkType: hard
 

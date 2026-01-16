@@ -105,12 +105,8 @@ jobs:
         sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
 
   inform-visualizer:
-    # Depend on inform-package-stats to serialize sticky comment updates.
-    # Without this, both jobs run concurrently and may each create their own
-    # comment (finding no existing comment due to timing), resulting in
-    # duplicate comments or lost sections from race conditions.
-    needs: [get-build-info, inform-package-stats]
-    if: ${{ !cancelled() && needs.get-build-info.outputs.pr-number }}
+    needs: get-build-info
+    if: ${{ needs.get-build-info.outputs.pr-number }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

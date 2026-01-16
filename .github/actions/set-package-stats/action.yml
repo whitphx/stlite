@@ -21,7 +21,7 @@ inputs:
     description: "The PR number to inform. If not provided, the inform-package-stats step will be skipped."
   sticky-id:
     required: false
-    description: "Unique identifier for this sticky comment, passed to sticky-comment-add-section (defaults to github.sha downstream via `${{ inputs.sticky-id || github.sha }}`)."
+    description: "Unique identifier for this sticky comment, passed to sticky-comment-add-section (defaults to github.sha downstream)."
 
 runs:
   using: "composite"

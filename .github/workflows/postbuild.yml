@@ -225,7 +225,6 @@ jobs:
               }
               .report-link .package { font-weight: bold; }
               .report-link .file { color: #666; font-size: 0.9em; }
-              .not-found { color: #999; }
             </style>
           </head>
           <body>

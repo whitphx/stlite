@@ -26,6 +26,6 @@ test.describe("Stlite Browser Env Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

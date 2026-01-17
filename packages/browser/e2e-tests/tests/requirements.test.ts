@@ -1,4 +1,4 @@
-import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
+import { test, expect } from "../test-utils";
 
 test.describe("Requirements Installation Test", () => {
   // Extended timeout for package installation
@@ -33,6 +33,6 @@ test.describe("Requirements Installation Test", () => {
     await expect(page.locator('text="Charlie"')).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

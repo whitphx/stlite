@@ -123,7 +123,7 @@ export default defineConfig(({ mode }) => ({
       // Disable strict fs access for worktree support
       // The worktree is located in a .git subdirectory path which Vite normally restricts
       strict: false,
-      allow: [path.resolve(__dirname, "../.."), "."],
+      allow: [path.resolve(__dirname, "../..")],
     },
   },
   define: {

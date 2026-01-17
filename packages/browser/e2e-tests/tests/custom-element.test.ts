@@ -38,6 +38,6 @@ test.describe("Custom Element Stlite Browser Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

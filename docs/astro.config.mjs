@@ -60,7 +60,7 @@ export default defineConfig({
 	vite: {
 		server: {
 			fs: {
-				deny: ['.env', '.env.*', '*.{crt,pem}', '**/.git/!(.worktrees-gw)'],
+				deny: ['.env', '.env.*', '*.{crt,pem}'],
 			}
 		}
 	}

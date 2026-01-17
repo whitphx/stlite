@@ -28,7 +28,7 @@ if "count" not in st.session_state:
 if st.button("Click me"):
     st.session_state.count += 1
 
-st.write(f"Button clicked {st.session_state.count} times")
+st.write(f"Button clicked {st.session_state.count} {'time' if st.session_state.count == 1 else 'times'}")
 `,
           },
         },

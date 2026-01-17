@@ -1,6 +1,6 @@
 /**
  * Build script for E2E test demos.
- * Copies demo HTML files from ../demos/ to ./pages-dist/
+ * Copies demo HTML files from ../../demos/ to ../pages-dist/
  * and replaces URL placeholders with localhost URLs for testing.
  */
 
@@ -22,7 +22,7 @@ const REPLACEMENTS: Record<string, string> = {
 function processFile(content: string): string {
   let result = content;
   for (const [placeholder, value] of Object.entries(REPLACEMENTS)) {
-    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, "\\$&"), "g"), value);
+    result = result.replaceAll(placeholder, value);
   }
   return result;
 }

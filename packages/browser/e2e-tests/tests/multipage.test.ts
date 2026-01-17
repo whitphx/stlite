@@ -20,7 +20,7 @@ test.describe("Multipage App Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 
   test("should navigate between pages", async ({ page, expectNoDeadLinks }) => {
@@ -42,6 +42,6 @@ test.describe("Multipage App Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

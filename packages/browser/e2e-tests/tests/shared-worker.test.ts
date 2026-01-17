@@ -33,7 +33,7 @@ test.describe("SharedWorker Mode Test", () => {
 
     // Check updated count
     await expect(
-      page.locator('text="Button clicked 1 times"'),
+      page.locator('text="Button clicked 1 time"'),
     ).toBeVisible();
 
     // Click again
@@ -43,6 +43,6 @@ test.describe("SharedWorker Mode Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

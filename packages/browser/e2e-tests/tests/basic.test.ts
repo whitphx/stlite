@@ -29,7 +29,7 @@ test.describe("Basic Stlite Browser Test", () => {
     await expect(page.locator('text="Hello, Playwright"')).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 
   test("controller.runPython()", async ({ page }) => {

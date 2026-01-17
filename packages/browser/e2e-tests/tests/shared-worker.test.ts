@@ -5,9 +5,9 @@ test.describe("SharedWorker Mode Test", () => {
     await page.goto("/shared-worker/");
 
     // First view: the title should be visible when the app is loaded
-    await expect(
-      page.locator('h1:has-text("SharedWorker Demo")'),
-    ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
+    await expect(page.locator('h1:has-text("SharedWorker Demo")')).toBeVisible({
+      timeout: FIRST_VIEW_TIMEOUT,
+    });
   });
 
   test("should load and render app in SharedWorker mode", async ({
@@ -24,23 +24,17 @@ test.describe("SharedWorker Mode Test", () => {
     await expect(button).toBeVisible();
 
     // Check initial count
-    await expect(
-      page.locator('text="Button clicked 0 times"'),
-    ).toBeVisible();
+    await expect(page.locator('text="Button clicked 0 times"')).toBeVisible();
 
     // Click the button
     await button.click();
 
     // Check updated count
-    await expect(
-      page.locator('text="Button clicked 1 time"'),
-    ).toBeVisible();
+    await expect(page.locator('text="Button clicked 1 time"')).toBeVisible();
 
     // Click again
     await button.click();
-    await expect(
-      page.locator('text="Button clicked 2 times"'),
-    ).toBeVisible();
+    await expect(page.locator('text="Button clicked 2 times"')).toBeVisible();
 
     // Check for dead links
     await expectNoDeadLinks();

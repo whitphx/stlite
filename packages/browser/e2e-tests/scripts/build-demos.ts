@@ -48,7 +48,9 @@ function copyDir(src: string, dest: string): void {
       }
 
       fs.writeFileSync(destPath, content);
-      console.log(`Copied: ${path.relative(DEMOS_DIR, srcPath)} -> ${path.relative(OUTPUT_DIR, destPath)}`);
+      console.log(
+        `Copied: ${path.relative(DEMOS_DIR, srcPath)} -> ${path.relative(OUTPUT_DIR, destPath)}`,
+      );
     }
   }
 }

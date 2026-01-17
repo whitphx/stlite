@@ -182,8 +182,21 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
         continue-on-error: true
 
-      - name: Generate index.html
+      - name: Check downloaded visualizer reports
+        id: check-downloaded-reports
         if: steps.check-artifacts.outputs.has-reports
+        run: |
+          REPORTS_DIR="${{ runner.temp }}/visualizer-reports"
+          if find "$REPORTS_DIR" -type f -name '*.html' -print -quit | grep -q .; then
+            echo "has-downloaded-reports=true" >> "$GITHUB_OUTPUT"
+            echo "At least one visualizer report HTML file was found."
+          else
+            echo "has-downloaded-reports=" >> "$GITHUB_OUTPUT"
+            echo "No visualizer report HTML files were found after download steps. Skipping index generation."
+          fi
+
+      - name: Generate index.html
+        if: steps.check-artifacts.outputs.has-reports && steps.check-downloaded-reports.outputs.has-downloaded-reports
         run: |
           cd ${{ runner.temp }}/visualizer-reports
 

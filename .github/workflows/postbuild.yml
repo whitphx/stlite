@@ -278,6 +278,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: |
             pages deploy ${{ runner.temp }}/visualizer-reports --project-name=stlite-bundle-visualizer-reports --branch=${{ needs.get-build-info.outputs.branch }} --commit-hash=${{ needs.get-build-info.outputs.trigger-sha }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
   notify-visualizer-reports:
     needs: [get-build-info, deploy-visualizer-reports]
@@ -329,11 +330,24 @@ jobs:
           LOG_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
           section-id: visualizer
           section-title: "## Bundle Visualizer Reports"
           order: "20"
           section-content: |
             ⚠️ Bundle visualizer deployment failed. Check the [workflow logs](${{ env.LOG_URL }}) for details.
+
+      - name: Add visualizer section to sticky comment (no reports)
+        if: needs.deploy-visualizer-reports.result == 'success' && needs.deploy-visualizer-reports.outputs.has-reports == ''
+        uses: ./.github/actions/sticky-comment-add-section
+        with:
+          pr-number: ${{ needs.get-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
+          section-id: visualizer
+          section-title: "## Bundle Visualizer Reports"
+          order: "20"
+          section-content: |
+            No bundle visualizer reports were generated for this build.
 
   e2e-browser:
     needs: get-build-info

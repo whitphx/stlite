@@ -4,8 +4,22 @@ description: Mount a Streamlit app on a static web page.
 ---
 
 import { Code } from '@astrojs/starlight/components';
+import pkg from '@stlite/browser/package.json';
 
 `@stlite/browser` allows you to mount a Streamlit app on a static web page using a `<script>` tag.
+
+{/* Import demo files from SSoT location */}
+import customElementHtml from '../../../../packages/browser/demos/custom-element/index.html?raw';
+import mountHtml from '../../../../packages/browser/demos/basic-mount/index.html?raw';
+import multipageHtml from '../../../../packages/browser/demos/multipage/index.html?raw';
+import requirementsHtml from '../../../../packages/browser/demos/requirements/index.html?raw';
+import sharedWorkerHtml from '../../../../packages/browser/demos/shared-worker/index.html?raw';
+
+{/* Helper to replace placeholders with CDN URLs */}
+export const cdnBase = `https://cdn.jsdelivr.net/npm/@stlite/browser@${pkg.version}/build`;
+export const toCdn = (html) => html
+  .replace(/\{\{STLITE_JS_URL\}\}/g, `${cdnBase}/stlite.js`)
+  .replace(/\{\{STLITE_CSS_URL\}\}/g, `${cdnBase}/stlite.css`);
 
 ## Installation & Usage
 
@@ -15,20 +29,13 @@ You can use _Stlite_ on your web page by loading the JavaScript and CSS files vi
 
 The easiest way is using the `<streamlit-app>` custom element.
 
-import helloWorldHtml from '../../examples/browser/hello-world.html?raw';
-
-<Code code={helloWorldHtml} lang="html" title="hello-world.html" />
+<Code code={toCdn(customElementHtml)} lang="html" title="hello-world.html" />
 
 ### Using `mount()` function
 
 For more control, you can use the `mount()` function.
 
-import mountHtml from '../../examples/browser/mount.html?raw';
-import pkg from '@stlite/browser/package.json';
-
-export const mountHtmlWithVersion = mountHtml.replace(/{{VERSION}}/g, pkg.version);
-
-<Code code={mountHtmlWithVersion} lang="html" title="mount.html" />
+<Code code={toCdn(mountHtml)} lang="html" title="mount.html" />
 
 ## Advanced Features
 
@@ -36,31 +43,19 @@ export const mountHtmlWithVersion = mountHtml.replace(/{{VERSION}}/g, pkg.versio
 
 You can create multipage apps by mounting multiple files, including an entrypoint and page files in a `pages/` directory.
 
-import multipageJs from '../../examples/browser/multipage.js?raw';
-
-<Code code={multipageJs} lang="js" title="multipage.js" />
+<Code code={toCdn(multipageHtml)} lang="html" title="multipage.html" />
 
 ### Installing Packages
 
 Use the `requirements` option to install Python packages.
 
-import installPackagesJs from '../../examples/browser/install-packages.js?raw';
-
-<Code code={installPackagesJs} lang="js" title="install-packages.js" />
+<Code code={toCdn(requirementsHtml)} lang="html" title="requirements.html" />
 
 ### SharedWorker Mode
 
 To reduce memory consumption when running multiple Stlite apps, enable `SharedWorker` mode.
 
-import sharedWorkerHtml from '../../examples/browser/shared-worker.html?raw';
-
-<Code code={sharedWorkerHtml} lang="html" title="shared-worker.html" />
-
-Or with `mount()`:
-
-import sharedWorkerJs from '../../examples/browser/shared-worker.js?raw';
-
-<Code code={sharedWorkerJs} lang="js" title="shared-worker.js" />
+<Code code={toCdn(sharedWorkerHtml)} lang="html" title="shared-worker.html" />
 
 :::note
 SharedWorker does not work in some environments like Chrome for Android. Stlite will fall back to standard Workers in these cases.

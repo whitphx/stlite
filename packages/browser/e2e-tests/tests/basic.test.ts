@@ -2,7 +2,7 @@ import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Basic Stlite Browser Test", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/test-app.html");
+    await page.goto("/basic-mount/");
 
     // First view: the title should be visible when the app is loaded
     await expect(

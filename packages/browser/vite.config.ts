@@ -119,12 +119,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     open: false,
     port: 3000,
-    fs: {
-      // Disable strict fs access for worktree support
-      // The worktree is located in a .git subdirectory path which Vite normally restricts
-      strict: false,
-      allow: [path.resolve(__dirname, "../..")],
-    },
   },
   define: {
     // Vite library mode doesn't replace process.env.NODE_ENV automatically,

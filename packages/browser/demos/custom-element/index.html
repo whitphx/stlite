@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Custom Element</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+    <script type="module" src="{{STLITE_JS_URL}}"></script>
+  </head>
+  <body>
+    <streamlit-app>
+import streamlit as st
+
+st.title("Custom Element Test")
+
+option = st.selectbox(
+    'How would you like to be contacted?',
+    ('Email', 'Home phone', 'Mobile phone'))
+
+st.write('You selected:', option)
+    </streamlit-app>
+  </body>
+</html>

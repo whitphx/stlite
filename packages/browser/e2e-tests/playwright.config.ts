@@ -1,6 +1,9 @@
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isCI = !!process.env.CI;
 
@@ -8,7 +11,7 @@ const isCI = !!process.env.CI;
 // CI uses longer timeouts for additional buffer.
 const timeout = isCI ? 60_000 : 30_000;
 
-const pagesDir = path.resolve(__dirname, "pages");
+const pagesDir = path.resolve(__dirname, "pages-dist");
 const fileProtocolBaseURL = pathToFileURL(pagesDir).href + "/";
 
 export default defineConfig({
@@ -21,7 +24,7 @@ export default defineConfig({
   reporter: process.env.CI ? "blob" : "html",
   webServer: [
     {
-      command: "http-server ./pages -p 8080 --cors",
+      command: "http-server ./pages-dist -p 8080 --cors",
       url: "http://localhost:8080",
       ignoreHTTPSErrors: true,
     },

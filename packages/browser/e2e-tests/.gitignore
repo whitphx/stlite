@@ -5,6 +5,9 @@ test-results/
 dist/
 .playwright/
 
+# Built demos for testing
+pages-dist/
+
 # Logs
 *.log
 log/

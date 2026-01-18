@@ -1,16 +1,63 @@
 import type { mount as mountFn } from "./mount";
 import type { MountOptions, DetailedMountOptions } from "./options";
+import { resolveUrl } from "./options";
 import { parseRequirementsTxt } from "@stlite/common";
 import dedent from "codedent";
 import "./custom-element.css";
 
+/**
+ * Extracts a filename from a URL path.
+ * Examples:
+ *   /streamlit-pages/index.py → index.py
+ *   /app.py?version=1 → app.py
+ *   /api/get-app → streamlit_app.py (fallback)
+ */
+export function extractFilenameFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url, window.location.href);
+    const pathname = urlObj.pathname;
+    const filename = pathname.split("/").pop() || "";
+
+    // If the filename looks like a Python file, use it
+    if (filename.endsWith(".py")) {
+      return filename;
+    }
+
+    // Fallback to default filename
+    return "streamlit_app.py";
+  } catch {
+    // If URL parsing fails, try simple extraction
+    const pathWithoutQuery = url.split("?")[0];
+    const filename = pathWithoutQuery.split("/").pop() || "";
+
+    if (filename.endsWith(".py")) {
+      return filename;
+    }
+
+    return "streamlit_app.py";
+  }
+}
+
 /*
 Supported syntaxes:
+
 ## Simple code block
 <streamlit-app>
   import streamlit as st
 
   st.write("Hello world")
+</streamlit-app>
+
+## Load from URL using src attribute
+<streamlit-app src="/app.py"></streamlit-app>
+
+## src attribute with additional files and requirements
+<streamlit-app src="/main.py">
+  <app-file name="utils.py" url="/utils.py"></app-file>
+  <app-requirements>
+    numpy
+    pandas
+  </app-requirements>
 </streamlit-app>
 
 ## More configurable syntax with child elements
@@ -60,17 +107,35 @@ export function setupCustomElement(mount: typeof mountFn) {
     }
 
     parseOptions = (): MountOptions => {
-      let entrypoint: string | null = null;
       const files: NonNullable<DetailedMountOptions["files"]> = {};
       let requirementsText = "";
       const archives: NonNullable<DetailedMountOptions["archives"]> = [];
       const streamlitConfig: NonNullable<
         DetailedMountOptions["streamlitConfig"]
       > = {};
+
+      // Check for src attribute first - it takes priority over inline content
+      const srcUrl = this.getAttribute("src");
+      let entrypoint: string | null = null;
+      let hasSrcEntrypoint = false;
+
+      if (srcUrl) {
+        // Extract filename from URL and use it as entrypoint
+        entrypoint = extractFilenameFromUrl(srcUrl);
+        hasSrcEntrypoint = true;
+        files[entrypoint] = {
+          url: resolveUrl(srcUrl),
+        };
+      }
+
       const textContents: string[] = [];
 
       this.childNodes.forEach((node) => {
         if (node instanceof Text) {
+          // Skip text content if src attribute is present (like <script src="">)
+          if (hasSrcEntrypoint) {
+            return;
+          }
           const textContent = node.textContent;
           if (textContent == null) {
             return;
@@ -92,7 +157,8 @@ export function setupCustomElement(mount: typeof mountFn) {
                 throw new Error(`File with name '${name}' already exists`);
               }
 
-              if (node.hasAttribute("entrypoint")) {
+              // Ignore entrypoint attribute on <app-file> if src is present
+              if (!hasSrcEntrypoint && node.hasAttribute("entrypoint")) {
                 if (entrypoint) {
                   throw new Error("Multiple entrypoints are not allowed");
                 }
@@ -137,6 +203,7 @@ export function setupCustomElement(mount: typeof mountFn) {
         }
       });
 
+      // If no src and no <app-file entrypoint>, use inline text content
       if (entrypoint === null) {
         if (textContents.length === 0) {
           throw new Error("No content found");

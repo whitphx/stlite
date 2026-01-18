@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, protocol, net } from "electron";
+import { app, BrowserWindow, ipcMain, protocol, net, Menu } from "electron";
 import * as path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import workerThreads from "node:worker_threads";
@@ -31,6 +31,10 @@ if (process.env.NODE_ENV === "development") {
 
 const createWindow = async () => {
   const manifest = await readManifest();
+
+  if (manifest.appMenu === false) {
+    Menu.setApplicationMenu(null);
+  }
 
   const additionalArguments: string[] = [];
   additionalArguments.push(

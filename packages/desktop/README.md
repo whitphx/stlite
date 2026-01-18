@@ -125,6 +125,23 @@ If you want to hide the toolbar, hamburger menu, and footer, add the following t
 }
 ```
 
+### Hide the application menu
+
+If you want to hide the application menu bar (File, Edit, View, etc.), set `stlite.desktop.appMenu` to `false`:
+
+```json
+{
+  // ...other fields...
+  "stlite": {
+    "desktop": {
+      "appMenu": false
+    }
+  }
+}
+```
+
+On Windows and Linux, this removes the menu bar from the window entirely. On macOS, this removes the application menu from the menu bar at the top of the screen.
+
 ### File system
 
 _Stlite_ runs your Python code on [Pyodide](https://pyodide.org/), a CPython runtime compiled to Wasm, and Pyodide's backend, Emscripten, provides a virtual file system.

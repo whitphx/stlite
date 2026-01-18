@@ -2,18 +2,22 @@
   "name": "@stlite/browser-e2e-tests",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "build:demos": "tsx scripts/build-demos.ts",
+    "pretest": "yarn build:demos",
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui",
+    "test:headed": "yarn build:demos && playwright test --headed",
+    "test:ui": "yarn build:demos && playwright test --ui",
     "install:browsers": "playwright install --with-deps",
-    "test:browserstack": "browserstack-node-sdk playwright test",
+    "test:browserstack": "yarn build:demos && browserstack-node-sdk playwright test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
     "browserstack-node-sdk": "^1.49.0",
     "http-server": "^14.1.1",
+    "tsx": "^4.19.0",
     "typescript": "^5.8.2"
   },
   "packageManager": "yarn@4.5.3"

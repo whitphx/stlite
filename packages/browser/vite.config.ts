@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, type Plugin } from "vitest/config";
 import react from "@vitejs/plugin-react";
 // import react from "@vitejs/plugin-react-swc"
 import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
@@ -8,6 +8,37 @@ import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
 import fs from "node:fs";
+
+// Plugin to serve demos with placeholder substitution in dev mode
+function demoPlaceholderPlugin(): Plugin {
+  return {
+    name: "demo-placeholder",
+    transformIndexHtml: {
+      order: "pre",
+      handler(html, ctx) {
+        // Only transform demo HTML files
+        if (ctx.filename.includes("/demos/")) {
+          return html
+            .replace(/\{\{STLITE_JS_URL\}\}/g, "/src/index.ts")
+            .replace(/\{\{STLITE_CSS_URL\}\}/g, "/src/styles.css");
+        }
+        return html;
+      },
+    },
+    configureServer(server) {
+      // Middleware to serve demo directories (route /demos/xxx/ to /demos/xxx/index.html)
+      server.middlewares.use("/demos", (req, res, next) => {
+        const urlPath = req.url?.split("?")[0] || "";
+        if (urlPath === "" || urlPath === "/" || !urlPath.includes(".")) {
+          // This is a directory request, redirect to index.html handled by Vite
+          const normalizedPath = urlPath.replace(/\/$/, "");
+          req.url = `${normalizedPath}/index.html${req.url?.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""}`;
+        }
+        next();
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => ({
   base: "./",
@@ -50,6 +81,8 @@ export default defineConfig(({ mode }) => ({
       publicUrl: "./",
     }),
     stliteReactPlugin(),
+    // To serve demo files with placeholder substitution for development
+    mode === "development" && demoPlaceholderPlugin(),
     // To serve files for development
     mode === "development" && {
       name: "dev-data-server",

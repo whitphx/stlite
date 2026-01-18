@@ -17,16 +17,16 @@ export interface ThemedAppProps {
   styleNonce?: string;
   streamlitExecutionStartedAt: number;
   /**
-   * Whether to mount document-level (html, body) styles globally.
-   * Enable for standalone apps; disable for embedded or side-by-side instances.
+   * Whether to disable document-level (html, body) styles globally.
+   * Enable for embedded or side-by-side instances; leave disabled for standalone apps.
    */
-  mountDocumentStyles?: boolean;
+  disableDocumentStyles?: boolean;
 }
 
 const ThemedApp = ({
   styleNonce,
   streamlitExecutionStartedAt,
-  mountDocumentStyles,
+  disableDocumentStyles,
 }: ThemedAppProps): JSX.Element => {
   const [themeManager, fontFaces, fontSources] = useThemeManager();
   const { activeTheme } = themeManager;
@@ -35,7 +35,7 @@ const ThemedApp = ({
     <RootStyleProvider
       theme={activeTheme}
       styleNonce={styleNonce}
-      mountDocumentStyles={mountDocumentStyles}
+      disableDocumentStyles={disableDocumentStyles}
     >
       <WindowDimensionsProvider>
         {/* The data grid requires one root level portal element for rendering cell overlays */}

@@ -1,5 +1,25 @@
 # @stlite/browser
 
+## 1.0.0
+
+### Major Changes
+
+- [#1837](https://github.com/whitphx/stlite/pull/1837) [`813b89e`](https://github.com/whitphx/stlite/commit/813b89e12eaf11e6522aedd75b57ba7bfb2a8bb4) Thanks [@whitphx](https://github.com/whitphx)! - Rename `mountDocumentStyles` to `disableDocumentStyles` with inverted meaning.
+
+  **Breaking Change:** The `mountDocumentStyles` prop/option has been renamed to `disableDocumentStyles` with inverted logic:
+  - Old: `mountDocumentStyles: true` (default) meant document styles were mounted
+  - New: `disableDocumentStyles: false` (default) means document styles are mounted
+
+  **Migration:**
+  - `mountDocumentStyles={true}` → remove the prop (default behavior)
+  - `mountDocumentStyles={false}` → `disableDocumentStyles={true}`
+
+## 0.97.0
+
+### Minor Changes
+
+- [#1821](https://github.com/whitphx/stlite/pull/1821) [`3436a4c`](https://github.com/whitphx/stlite/commit/3436a4ceee1c20ae06534693a0be2b3bc464f13d) Thanks [@whitphx](https://github.com/whitphx)! - Fix ToastContainer to be contained by the app screen region
+
 ## 0.96.0
 
 ### Minor Changes

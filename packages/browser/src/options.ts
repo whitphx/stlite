@@ -15,14 +15,14 @@ export interface ToastOptions {
  */
 export interface StyleOptions {
   /**
-   * Controls whether document-level styles (e.g. global CSS rules) are mounted
-   * into the host document.
+   * Controls whether document-level styles (e.g. global CSS rules) are disabled
+   * from being mounted into the host document.
    *
-   * Set this to `false` in embedded scenarios (such as when mounting inside an
+   * Set this to `true` in embedded scenarios (such as when mounting inside an
    * existing application or iframe) to avoid unexpected style conflicts with
    * the host page.
    */
-  mountDocumentStyles: boolean;
+  disableDocumentStyles: boolean;
   /**
    * Optional nonce to attach to injected `<style>` elements.
    *
@@ -145,7 +145,7 @@ export function parseMountOptions(options: MountOptions): {
         disableModuleAutoLoadToasts: false,
       },
       styleOptions: {
-        mountDocumentStyles: true,
+        disableDocumentStyles: false,
         styleNonce: undefined,
       },
     };
@@ -182,7 +182,7 @@ export function parseMountOptions(options: MountOptions): {
       disableModuleAutoLoadToasts: options.disableModuleAutoLoadToasts || false,
     },
     styleOptions: {
-      mountDocumentStyles: options.mountDocumentStyles ?? true,
+      disableDocumentStyles: options.disableDocumentStyles ?? false,
       styleNonce: options.styleNonce,
     },
   };

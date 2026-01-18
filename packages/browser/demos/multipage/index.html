@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Multipage App</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          entrypoint: "Hello.py",
+          files: {
+            "Hello.py": `
+import streamlit as st
+
+st.title("Main page")
+st.write("Welcome to the multipage app demo!")
+st.write("Use the sidebar to navigate between pages.")
+`,
+            "pages/1_Page1.py": `
+import streamlit as st
+
+st.title("Page 1")
+st.write("This is the first page.")
+`,
+            "pages/2_Page2.py": `
+import streamlit as st
+
+st.title("Page 2")
+st.write("This is the second page.")
+`,
+          },
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - SharedWorker</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          sharedWorker: true,
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
+import streamlit as st
+
+st.title("SharedWorker Demo")
+st.write("This app runs in SharedWorker mode.")
+st.write("Multiple Stlite apps can share the same Python worker to reduce memory usage.")
+
+if "count" not in st.session_state:
+    st.session_state.count = 0
+
+if st.button("Click me"):
+    st.session_state.count += 1
+
+st.write(f"Button clicked {st.session_state.count} {'time' if st.session_state.count == 1 else 'times'}")
+`,
+          },
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

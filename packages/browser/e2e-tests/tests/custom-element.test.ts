@@ -2,7 +2,7 @@ import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Custom Element Stlite Browser Test", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/test-app-custom-element.html");
+    await page.goto("/custom-element/");
 
     // First view: the title should be visible when the app is loaded
     await expect(
@@ -38,6 +38,6 @@ test.describe("Custom Element Stlite Browser Test", () => {
     ).toBeVisible();
 
     // Check for dead links
-    expectNoDeadLinks();
+    await expectNoDeadLinks();
   });
 });

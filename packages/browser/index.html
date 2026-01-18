@@ -3,75 +3,70 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stlite Browser dev page</title>
+    <title>@stlite/browser Demos</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      h1 {
+        color: #333;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        margin: 1rem 0;
+      }
+      a {
+        color: #0066cc;
+        text-decoration: none;
+        font-size: 1.2rem;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+      }
+    </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <script type="module">
-import { mount } from "/src/index.ts"
-mount(
-  //     `import streamlit as st
-
-  // st.write("Hello world")
-  //     `,
-  {
-    entrypoint: "streamlit_app.py",
-    files: {
-      "streamlit_app.py": `import streamlit as st
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-
-st.markdown("Files in \`.\`:")
-st.write(os.listdir("."))
-
-st.markdown("\`./foo/foo.txt\`:")
-with open("./foo/foo.txt") as f:
-  st.write(f.read())
-
-st.markdown("\`./bar.txt\`:")
-with open("./bar.txt") as f:
-  st.write(f.read())
-
-size = st.slider("Sample size", 100, 1000)
-
-arr = np.random.normal(1, 1, size=size)
-fig, ax = plt.subplots()
-ax.hist(arr, bins=20)
-
-st.pyplot(fig)
-
-st.latex(r'''
-   a + ar + a r^2 + a r^3 + \\cdots + a r^{n-1} =
-   \\sum_{k=0}^{n-1} ar^k =
-   a \\left(\\frac{1-r^{n}}{1-r}\\right)
-   ''')
-
-import pandas as pd
-import numpy as np
-
-df = pd.DataFrame(
-   np.random.randn(1000, 2) / [50, 50] + [37.76, -122.4],
-   columns=['lat', 'lon'])
-
-st.map(df)
-  `,
-      "bar.txt": {
-        url: "/dev-files/bar.txt",
-      },
-    },
-    archives: [
-      {
-        url: "/dev-files/foo.zip",
-        format: "zip",
-      },
-    ],
-    requirements: ["matplotlib"],
-  },
-  document.getElementById("root"),
-);
-
-    </script>
+    <h1>@stlite/browser Demos</h1>
+    <p>Select a demo to run:</p>
+    <ul>
+      <li>
+        <a href="/demos/basic-mount/">Basic Mount</a>
+        <div class="description">Using the mount() function</div>
+      </li>
+      <li>
+        <a href="/demos/custom-element/">Custom Element</a>
+        <div class="description">Using the &lt;streamlit-app&gt; tag</div>
+      </li>
+      <li>
+        <a href="/demos/env-variables/">Environment Variables</a>
+        <div class="description">Passing environment variables to Python</div>
+      </li>
+      <li>
+        <a href="/demos/multipage/">Multipage App</a>
+        <div class="description">Multi-page Streamlit application</div>
+      </li>
+      <li>
+        <a href="/demos/requirements/">Requirements</a>
+        <div class="description">Installing Python packages</div>
+      </li>
+      <li>
+        <a href="/demos/shared-worker/">SharedWorker</a>
+        <div class="description">
+          Multiple apps sharing a single worker for reduced memory usage
+        </div>
+      </li>
+    </ul>
   </body>
 </html>

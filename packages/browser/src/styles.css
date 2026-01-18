@@ -1,0 +1,2 @@
+/* Re-export @stlite/react styles for dev mode */
+@import "@stlite/react/stlite.css";

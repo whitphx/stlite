@@ -4,6 +4,9 @@ inputs:
   pr-number:
     required: true
     description: "The PR number to inform."
+  sticky-id:
+    required: false
+    description: "Unique identifier for this sticky comment, passed to sticky-comment-add-section (defaults to github.sha downstream)."
   stats-file-prefix:
     default: "package-stats."
     description: stats file name prefix
@@ -183,22 +186,13 @@ runs:
 
           fs.writeFileSync('comment.txt', comment);
 
-    - name: Read comment content
-      id: read-comment
-      shell: bash
-      run: |
-        cd "$PACKAGE_STATS_WORKING_DIR"
-        {
-          echo 'CONTENT<<EOF'
-          cat comment.txt
-          echo 'EOF'
-        } >> "$GITHUB_OUTPUT"
-
+    # Pass content via file to avoid "argument too long" errors when the package stats content is large.
     - name: Add package stats section to sticky comment
       uses: ./.github/actions/sticky-comment-add-section
       with:
         pr-number: ${{ inputs.pr-number }}
+        sticky-id: ${{ inputs.sticky-id }}
         section-id: package-stats
         section-title: "## Package Stats"
-        section-content: ${{ steps.read-comment.outputs.CONTENT }}
+        section-content-file: ${{ env.PACKAGE_STATS_WORKING_DIR }}/comment.txt
         order: "10"

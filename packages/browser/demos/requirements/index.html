@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Requirements</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          requirements: ["pandas"],
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
+import streamlit as st
+import pandas as pd
+
+st.title("Requirements Demo")
+st.write("This demo shows how to install Python packages.")
+
+# Create a simple DataFrame
+df = pd.DataFrame({
+    'Name': ['Alice', 'Bob', 'Charlie'],
+    'Age': [25, 30, 35],
+    'City': ['New York', 'London', 'Paris']
+})
+
+st.write("Here's a DataFrame created with pandas:")
+st.dataframe(df)
+`,
+          },
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

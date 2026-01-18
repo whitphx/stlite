@@ -1,9 +1,12 @@
 name: Add section to sticky comment
-description: "Add or update a section in the unified PR sticky comment"
+description: "Add or update a section in a PR sticky comment identified by sticky-id"
 inputs:
   pr-number:
     required: true
     description: "The PR number to post the comment to"
+  sticky-id:
+    required: false
+    description: "Unique identifier for this sticky comment. Each unique ID gets its own comment. Defaults to github.sha (commit SHA). Must only contain alphanumeric characters, hyphens, and underscores."
   section-id:
     required: true
     description: "Unique identifier for this section (used to update existing sections). Must only contain alphanumeric characters, hyphens, and underscores."
@@ -11,8 +14,11 @@ inputs:
     required: true
     description: "Display title for this section (markdown header, e.g., '## Package Stats')"
   section-content:
-    required: true
-    description: "Markdown content for this section"
+    required: false
+    description: "Markdown content for this section. Mutually exclusive with section-content-file."
+  section-content-file:
+    required: false
+    description: "Path to a file containing the markdown content for this section. Use this for large content to avoid 'argument too long' errors. Mutually exclusive with section-content."
   order:
     required: false
     default: "50"
@@ -25,20 +31,55 @@ runs:
       uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
       env:
         PR_NUMBER: ${{ inputs.pr-number }}
+        STICKY_ID: ${{ inputs.sticky-id || github.sha }}
         SECTION_ID: ${{ inputs.section-id }}
         SECTION_TITLE: ${{ inputs.section-title }}
         SECTION_CONTENT: ${{ inputs.section-content }}
+        SECTION_CONTENT_FILE: ${{ inputs.section-content-file }}
         SECTION_ORDER: ${{ inputs.order }}
       with:
         script: |
+          const fs = require("fs");
+
           const prNumber = parseInt(process.env.PR_NUMBER);
+          const stickyId = process.env.STICKY_ID;
           const sectionId = process.env.SECTION_ID;
           const sectionTitle = process.env.SECTION_TITLE;
-          const sectionContent = process.env.SECTION_CONTENT;
+          const sectionContentRaw = process.env.SECTION_CONTENT;
+          const sectionContentFile = process.env.SECTION_CONTENT_FILE;
           const sectionOrder = parseInt(process.env.SECTION_ORDER) || 50;
+
+          // Validate that exactly one of section-content or section-content-file is provided
+          let sectionContent;
+          if (sectionContentRaw && sectionContentFile) {
+            core.setFailed("Only one of section-content or section-content-file should be provided, not both.");
+            return;
+          } else if (sectionContentRaw) {
+            sectionContent = sectionContentRaw;
+          } else if (sectionContentFile) {
+            try {
+              sectionContent = fs.readFileSync(sectionContentFile, "utf8");
+            } catch (error) {
+              core.setFailed(`Failed to read section content from file: ${sectionContentFile}. Error: ${error.message}`);
+              return;
+            }
+          } else {
+            core.setFailed("Either section-content or section-content-file must be provided.");
+            return;
+          }
 
           if (!prNumber || isNaN(prNumber)) {
             core.info("No valid PR number provided, skipping comment update.");
+            return;
+          }
+
+          // Validate sticky ID: non-empty, safe characters only
+          if (!stickyId || typeof stickyId !== "string") {
+            core.setFailed("Sticky ID is required and must be a non-empty string.");
+            return;
+          }
+          if (!/^[A-Za-z0-9_-]+$/.test(stickyId)) {
+            core.setFailed(`Sticky ID "${stickyId}" is invalid. It may only contain alphanumeric characters, hyphens, and underscores.`);
             return;
           }
 
@@ -52,7 +93,8 @@ runs:
             return;
           }
 
-          const COMMENT_HEADER = "<!-- Unified CI Report -->";
+          // Comment header with sticky ID - each unique ID gets its own sticky comment
+          const COMMENT_HEADER = `<!-- CI Report:${stickyId} -->`;
           const SECTION_START_MARKER = (id) => `<!-- section:${id}:start -->`;
           const SECTION_END_MARKER = (id) => `<!-- section:${id}:end -->`;
           const SECTION_ORDER_MARKER = (id, order) => `<!-- section:${id}:order:${order} -->`;
@@ -74,7 +116,9 @@ runs:
 
           // Build comment body from sections
           function buildCommentBody(sections) {
-            const title = "# CI Report\n\n";
+            // Use short form for display if it looks like a commit SHA (40 hex chars)
+            const displayId = /^[a-f0-9]{40}$/i.test(stickyId) ? stickyId.substring(0, 7) : stickyId;
+            const title = `# CI Report for ${displayId}\n\n`;
             const sectionsContent = sections
               .map((section) => {
                 return `${SECTION_START_MARKER(section.id)}\n${SECTION_ORDER_MARKER(section.id, section.order)}\n${section.content}\n${SECTION_END_MARKER(section.id)}`;
@@ -100,12 +144,13 @@ runs:
             );
           }
 
-          // Retry logic to handle race conditions when multiple jobs update concurrently.
+          // Retry logic to handle race conditions when multiple jobs update the same sticky comment.
+          // Each unique sticky ID gets its own comment, identified by the ID in the header.
           // This handles:
           // - 409 Conflict: Comment was modified between read and update
           // - 422 Unprocessable Entity: Validation failed due to stale data
           // - 403 Forbidden: Rate limiting (secondary rate limit)
-          // Note: If two jobs simultaneously find no existing comment and both create one,
+          // Note: If two jobs for the same sticky ID simultaneously find no existing comment and both create one,
           // both creates will succeed (no error), potentially resulting in duplicate comments.
           // This is a rare edge case that would require manual cleanup.
           const MAX_RETRIES = 3;
@@ -130,14 +175,14 @@ runs:
                   order: sectionOrder,
                   content: newSectionContent,
                 };
-                core.info(`Updated existing section: ${sectionId}`);
+                core.info(`Updated existing section "${sectionId}" for sticky ID "${stickyId}"`);
               } else {
                 sections.push({
                   id: sectionId,
                   order: sectionOrder,
                   content: newSectionContent,
                 });
-                core.info(`Added new section: ${sectionId}`);
+                core.info(`Added new section "${sectionId}" for sticky ID "${stickyId}"`);
               }
 
               // Sort sections by order
@@ -153,7 +198,7 @@ runs:
                   comment_id: existingComment.id,
                   body: commentBody,
                 });
-                core.info(`Updated unified comment on PR #${prNumber}`);
+                core.info(`Updated comment for sticky ID "${stickyId}" on PR #${prNumber}`);
               } else {
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
@@ -161,7 +206,7 @@ runs:
                   issue_number: prNumber,
                   body: commentBody,
                 });
-                core.info(`Created unified comment on PR #${prNumber}`);
+                core.info(`Created comment for sticky ID "${stickyId}" on PR #${prNumber}`);
               }
 
               // Success - exit retry loop

@@ -4,13 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:demos": "tsx scripts/build-demos.ts",
-    "pretest": "yarn build:demos",
+    "build:demo": "tsx scripts/build-demos.ts",
     "test": "playwright test",
-    "test:headed": "yarn build:demos && playwright test --headed",
-    "test:ui": "yarn build:demos && playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
     "install:browsers": "playwright install --with-deps",
-    "test:browserstack": "yarn build:demos && browserstack-node-sdk playwright test",
+    "test:browserstack": "browserstack-node-sdk playwright test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

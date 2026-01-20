@@ -22,15 +22,15 @@ test.describe("Requirements Installation Test", () => {
       page.locator('text="This demo shows how to install Python packages."'),
     ).toBeVisible();
 
-    // Check if the DataFrame is rendered (pandas was installed and used)
-    await expect(
-      page.locator('text="Here\'s a DataFrame created with pandas:"'),
-    ).toBeVisible();
+    // Check if Faker examples subheader is visible
+    await expect(page.locator('text="Faker Examples"')).toBeVisible();
 
-    // Check if the DataFrame contains expected data
-    await expect(page.locator('text="Alice"')).toBeVisible();
-    await expect(page.locator('text="Bob"')).toBeVisible();
-    await expect(page.locator('text="Charlie"')).toBeVisible();
+    // Check if Faker output is rendered (faker was installed and used)
+    // With seed 12345, the output is deterministic
+    await expect(page.locator("text=/^Name:/")).toBeVisible();
+    await expect(page.locator("text=/^Email:/")).toBeVisible();
+    await expect(page.locator("text=/^Address:/")).toBeVisible();
+    await expect(page.locator("text=/^Company:/")).toBeVisible();
 
     // Check for dead links
     await expectNoDeadLinks();

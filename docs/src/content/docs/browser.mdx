@@ -10,6 +10,7 @@ import pkg from '@stlite/browser/package.json';
 
 {/* Import demo files from SSoT location */}
 import customElementHtml from '../../../../packages/browser/demos/custom-element/index.html?raw';
+import srcAttributeHtml from '../../../../packages/browser/demos/src-attribute/index.html?raw';
 import mountHtml from '../../../../packages/browser/demos/basic-mount/index.html?raw';
 import multipageHtml from '../../../../packages/browser/demos/multipage/index.html?raw';
 import requirementsHtml from '../../../../packages/browser/demos/requirements/index.html?raw';
@@ -30,6 +31,26 @@ You can use _Stlite_ on your web page by loading the JavaScript and CSS files vi
 The easiest way is using the `<streamlit-app>` custom element.
 
 <Code code={toCdn(customElementHtml)} lang="html" title="custom-element.html" />
+
+#### Loading from an external file
+
+You can load the app from an external Python file using the `src` attribute:
+
+<Code code={toCdn(srcAttributeHtml)} lang="html" title="src-attribute.html" />
+
+The filename is extracted from the URL path (e.g., `./app.py` becomes `app.py` in the virtual filesystem).
+
+You can also combine the `src` attribute with child elements to add additional files and requirements:
+
+```html
+<streamlit-app src="./main.py">
+  <app-file name="utils.py" url="./utils.py"></app-file>
+  <app-requirements>
+    numpy
+    pandas
+  </app-requirements>
+</streamlit-app>
+```
 
 ### Using `mount()` function
 
@@ -100,3 +121,47 @@ Configuration object for `mount()`.
 | `pyodideUrl` | `string` | Custom URL for the Pyodide interpreter. |
 | `sharedWorker` | `boolean` | Whether to use a SharedWorker. |
 | `idbfsMountpoints` | `string[]` | List of paths to mount with IDBFS (IndexedDB-based persistent file system). |
+
+### `<streamlit-app>` Custom Element
+
+The `<streamlit-app>` custom element provides a declarative way to embed Streamlit apps.
+
+#### Attributes
+
+| Attribute | Description |
+| :--- | :--- |
+| `src` | URL to load the main Python file from. The filename is extracted from the URL path. |
+| `shared-worker` | Enable SharedWorker mode for reduced memory usage. |
+
+#### Child Elements
+
+| Element | Description |
+| :--- | :--- |
+| `<app-file name="..." [url="..."] [entrypoint]>` | Define a file. Use `url` to load from URL, or place content inside the tag. Add `entrypoint` to mark as the main script. |
+| `<app-requirements>` | List Python packages to install (one per line, like requirements.txt). |
+| `<app-archive url="..." format="...">` | Load and unpack an archive file (zip, tar.gz). |
+
+#### Usage Modes
+
+1. **Inline code**: Place Python code directly inside `<streamlit-app>`:
+   ```html
+   <streamlit-app>
+     import streamlit as st
+     st.write("Hello")
+   </streamlit-app>
+   ```
+
+2. **External file via `src`**: Load from a URL:
+   ```html
+   <streamlit-app src="./app.py"></streamlit-app>
+   ```
+
+3. **Child elements**: Use `<app-file>` with `entrypoint` attribute:
+   ```html
+   <streamlit-app>
+     <app-file name="app.py" entrypoint>
+       import streamlit as st
+       st.write("Hello")
+     </app-file>
+   </streamlit-app>
+   ```

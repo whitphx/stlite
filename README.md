@@ -646,9 +646,9 @@ Image processing with OpenCV works on the client side.
 
 [<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img src="https://docs.snowflake.com/_images/logo-snowflake-sans-text.png" height="100" />](https://www.snowflake.com/)
 
-### LambdaTest
+### TestMu AI
 
-[<img src="https://www.lambdatest.com/blue-logo.png" width="400" height="72" />](https://www.lambdatest.com/?utm_source=stlite&utm_medium=sponsor)
+[<picture><source media="(prefers-color-scheme: dark)" srcset="https://assets.testmu.ai/resources/images/logos/white-logo.png" height="85"><source media="(prefers-color-scheme: light)" srcset="https://assets.testmu.ai/resources/images/logos/black-logo.png" height="85"><img alt="TestMu AI logo" src="https://assets.testmu.ai/resources/images/logos/white-logo.png" height="85"></picture>](https://www.testmu.ai?utm_source=stlite&utm_medium=sponsor)
 
 ### Hal9
 

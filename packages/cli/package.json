@@ -1,0 +1,28 @@
+{
+  "name": "@stlite/cli",
+  "version": "0.63.1",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "stlite": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@stlite/sharing-common": "^0.64.2",
+    "@types/yargs": "^17.0.32",
+    "yargs": "^17.7.2"
+  }
+}

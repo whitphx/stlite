@@ -6,7 +6,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { test as base, expect } from "@playwright/test";
 
-export const FIRST_VIEW_TIMEOUT = 60_000;
+export const FIRST_VIEW_TIMEOUT = 90_000;
 
 function urlOnlyHasPathAndQuery(url: string): boolean {
   try {

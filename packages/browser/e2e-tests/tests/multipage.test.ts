@@ -9,16 +9,19 @@ async function ensureSidebarExpanded(page: Page): Promise<void> {
   const sidebarNav = page.locator('[data-testid="stSidebarNav"]');
   const collapseControl = page.locator('[data-testid="stExpandSidebarButton"]');
 
-  // If the sidebar is already visible, no action needed
-  if (await sidebarNav.isVisible()) {
+  // First, wait briefly for the sidebar to become visible; if it does, no action needed
+  try {
+    await expect(sidebarNav).toBeVisible({ timeout: 2000 });
     return;
+  } catch {
+    // Sidebar did not become visible within the timeout; try expanding it via the collapse control.
   }
 
-  // On narrow viewports, click the collapse control to expand the sidebar
-  if (await collapseControl.isVisible()) {
-    await collapseControl.click();
-    await expect(sidebarNav).toBeVisible();
-  }
+  // On narrow viewports, wait for the collapse control, click it to expand the sidebar,
+  // then assert that the sidebar nav is visible.
+  await expect(collapseControl).toBeVisible({ timeout: 2000 });
+  await collapseControl.click();
+  await expect(sidebarNav).toBeVisible();
 }
 
 test.describe("Multipage App Test", () => {

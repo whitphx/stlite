@@ -1,6 +1,14 @@
 import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("SharedWorker Mode Test", () => {
+  // Skip on Playwright's WebKit - SharedWorker works in real Safari but
+  // Playwright's WebKit build has issues with it. This is a test environment
+  // limitation, not a browser compatibility issue.
+  test.skip(
+    ({ browserName }) => browserName === "webkit",
+    "SharedWorker not working in Playwright's WebKit (works in real Safari)",
+  );
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/shared-worker/index.html");
 

@@ -1,4 +1,25 @@
 import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
+import type { Page } from "@playwright/test";
+
+/**
+ * Ensures the sidebar is expanded. On narrow viewports, the sidebar is collapsed
+ * by default and needs to be expanded by clicking the collapse control button.
+ */
+async function ensureSidebarExpanded(page: Page): Promise<void> {
+  const sidebarNav = page.locator('[data-testid="stSidebarNav"]');
+  const collapseControl = page.locator('[data-testid="stExpandSidebarButton"]');
+
+  // If the sidebar is already visible, no action needed
+  if (await sidebarNav.isVisible()) {
+    return;
+  }
+
+  // On narrow viewports, click the collapse control to expand the sidebar
+  if (await collapseControl.isVisible()) {
+    await collapseControl.click();
+    await expect(sidebarNav).toBeVisible();
+  }
+}
 
 test.describe("Multipage App Test", () => {
   test.beforeEach(async ({ page }) => {
@@ -24,6 +45,9 @@ test.describe("Multipage App Test", () => {
   });
 
   test("should navigate between pages", async ({ page, expectNoDeadLinks }) => {
+    // Ensure sidebar is expanded (handles narrow viewports)
+    await ensureSidebarExpanded(page);
+
     // Check sidebar navigation exists
     await expect(page.locator('[data-testid="stSidebarNav"]')).toBeVisible();
 
@@ -31,6 +55,9 @@ test.describe("Multipage App Test", () => {
     await page.locator('a:has-text("Page1")').click();
     await expect(page.locator('h1:has-text("Page 1")')).toBeVisible();
     await expect(page.locator('text="This is the first page."')).toBeVisible();
+
+    // Ensure sidebar is expanded after navigation (it may collapse on narrow viewports)
+    await ensureSidebarExpanded(page);
 
     // Navigate to Page 2
     await page.locator('a:has-text("Page2")').click();

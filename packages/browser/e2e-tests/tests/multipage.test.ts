@@ -7,7 +7,9 @@ import type { Page } from "@playwright/test";
  */
 async function ensureSidebarExpanded(page: Page): Promise<void> {
   const sidebarNav = page.locator('[data-testid="stSidebarNav"]');
-  const collapseControl = page.locator('[data-testid="stExpandSidebarButton"]');
+  const expandSidebarButton = page.locator(
+    '[data-testid="stExpandSidebarButton"]',
+  );
 
   // First, wait briefly for the sidebar to become visible; if it does, no action needed
   try {
@@ -19,8 +21,8 @@ async function ensureSidebarExpanded(page: Page): Promise<void> {
 
   // On narrow viewports, wait for the collapse control, click it to expand the sidebar,
   // then assert that the sidebar nav is visible.
-  await expect(collapseControl).toBeVisible({ timeout: 2000 });
-  await collapseControl.click();
+  await expect(expandSidebarButton).toBeVisible({ timeout: 2000 });
+  await expandSidebarButton.click();
   await expect(sidebarNav).toBeVisible();
 }
 

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 /**
  * Ensures the sidebar is expanded. On narrow viewports, the sidebar is collapsed
- * by default and needs to be expanded by clicking the collapse control button.
+ * by default and needs to be expanded by clicking the sidebar expand button.
  */
 async function ensureSidebarExpanded(page: Page): Promise<void> {
   const sidebarNav = page.locator('[data-testid="stSidebarNav"]');
@@ -11,18 +11,17 @@ async function ensureSidebarExpanded(page: Page): Promise<void> {
     '[data-testid="stExpandSidebarButton"]',
   );
 
-  // First, wait briefly for the sidebar to become visible; if it does, no action needed
-  try {
-    await expect(sidebarNav).toBeVisible({ timeout: 2000 });
+  // If the sidebar is already visible, no action needed
+  if (await sidebarNav.isVisible()) {
     return;
-  } catch {
-    // Sidebar did not become visible within the timeout; try expanding it via the collapse control.
   }
 
-  // On narrow viewports, wait for the collapse control, click it to expand the sidebar,
-  // then assert that the sidebar nav is visible.
-  await expect(expandSidebarButton).toBeVisible({ timeout: 2000 });
-  await expandSidebarButton.click();
+  // On narrow viewports, click the expand button to show the sidebar
+  await expandSidebarButton
+    .waitFor({ state: "visible", timeout: 2000 })
+    .then(() => expandSidebarButton.click());
+
+  // Final verification that the sidebar is now visible
   await expect(sidebarNav).toBeVisible();
 }
 

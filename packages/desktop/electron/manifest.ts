@@ -9,6 +9,7 @@ export const DesktopAppManifestStruct = s.object({
   idbfsMountpoints: s.optional(s.array(s.string())),
   nodeJsWorker: s.defaulted(s.boolean(), false),
   nodefsMountpoints: s.optional(s.record(s.string(), s.string())),
+  appMenu: s.defaulted(s.boolean(), true),
 });
 export type DesktopAppManifest = s.Infer<typeof DesktopAppManifestStruct>;
 

@@ -7,7 +7,26 @@ describe("coerceDesktopAppManifest", () => {
       coerceDesktopAppManifest({
         entrypoint: "foo.py",
       }),
-    ).toEqual({ entrypoint: "foo.py", embed: false, nodeJsWorker: false });
+    ).toEqual({
+      entrypoint: "foo.py",
+      embed: false,
+      nodeJsWorker: false,
+      appMenu: true,
+    });
+  });
+
+  it("should allow appMenu to be set to false", () => {
+    expect(
+      coerceDesktopAppManifest({
+        entrypoint: "foo.py",
+        appMenu: false,
+      }),
+    ).toEqual({
+      entrypoint: "foo.py",
+      embed: false,
+      nodeJsWorker: false,
+      appMenu: false,
+    });
   });
 
   it("should throw an error when `idbfsMountpoints` is set with `nodeJsWorker` is true", () => {

@@ -40,16 +40,16 @@ test.describe("Custom Element Stlite Browser Test", () => {
     // Check for dead links
     await expectNoDeadLinks();
   });
+});
 
+test.describe("Source Attribute Test", () => {
   test("should load app from src attribute", async ({
     page,
     expectNoDeadLinks,
   }) => {
-    // Navigate to the src-attribute demo
     await page.goto("/src-attribute/");
 
     // Wait for the Streamlit app to load
-    // The title should be visible when the app is loaded
     await expect(
       page.locator('h1:has-text("Source Attribute Test")'),
     ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });

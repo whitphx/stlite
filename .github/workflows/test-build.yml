@@ -474,7 +474,7 @@ jobs:
         name: stlite-browser
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
+      uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
       with:
         subject-path: packages/browser/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -558,7 +558,7 @@ jobs:
         name: stlite-react
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
+      uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
       with:
         subject-path: packages/react/package.tgz
       continue-on-error: true
@@ -720,7 +720,7 @@ jobs:
         name: stlite-desktop
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
+      uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
       with:
         subject-path: packages/desktop/package.tgz
       # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -766,7 +766,7 @@ jobs:
         name: stlite-docs
 
     - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
+      uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
       with:
         subject-path: docs/dist
       continue-on-error: true

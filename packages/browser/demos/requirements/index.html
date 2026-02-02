@@ -12,25 +12,26 @@
       import { mount } from "{{STLITE_JS_URL}}";
       mount(
         {
-          requirements: ["pandas"],
+          requirements: ["faker"],
           entrypoint: "streamlit_app.py",
           files: {
             "streamlit_app.py": `
 import streamlit as st
-import pandas as pd
+from faker import Faker
+
+# Set seed for deterministic output (useful for testing)
+Faker.seed(12345)
+fake = Faker()
 
 st.title("Requirements Demo")
 st.write("This demo shows how to install Python packages.")
 
-# Create a simple DataFrame
-df = pd.DataFrame({
-    'Name': ['Alice', 'Bob', 'Charlie'],
-    'Age': [25, 30, 35],
-    'City': ['New York', 'London', 'Paris']
-})
+st.subheader("Faker Examples")
 
-st.write("Here's a DataFrame created with pandas:")
-st.dataframe(df)
+st.write("Name: " + fake.name())
+st.write("Email: " + fake.email())
+st.write("Address: " + fake.address().replace("\\n", ", "))
+st.write("Company: " + fake.company())
 `,
           },
         },

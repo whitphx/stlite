@@ -2,7 +2,7 @@ import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
 test.describe("Stlite Browser Env Test", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/env-variables/");
+    await page.goto("/env-variables/index.html");
 
     // First view: wait for the Streamlit app to load
     await expect(

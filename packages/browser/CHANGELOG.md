@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 1.0.1
+
+### Patch Changes
+
+- [#1859](https://github.com/whitphx/stlite/pull/1859) [`df56e3c`](https://github.com/whitphx/stlite/commit/df56e3c1db321cff9e9a92d03f21f32c0c14ce2b) Thanks [@whitphx](https://github.com/whitphx)! - Skip pushing browser history upon multi-page app navigations when the page is opened via file: protocol because it causes SecurityError due to the file: protocol restriction
+
 ## 1.0.0
 
 ### Major Changes

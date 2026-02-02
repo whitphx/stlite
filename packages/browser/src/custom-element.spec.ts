@@ -300,6 +300,16 @@ import streamlit as st
     );
   });
 
+  it("throws descriptive error when app-file name conflicts with src filename", () => {
+    const appElem = document.createElement("streamlit-app");
+    appElem.setAttribute("src", "/app.py");
+    appElem.innerHTML = `<app-file name="app.py">content</app-file>`;
+
+    expect(() => container.appendChild(appElem)).toThrow(
+      "File with name 'app.py' conflicts with the 'src' attribute",
+    );
+  });
+
   it("extracts filename from URL with query string", async () => {
     const appElem = document.createElement("streamlit-app");
     appElem.setAttribute("src", "/app.py?version=1&cache=false");

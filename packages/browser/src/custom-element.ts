@@ -118,10 +118,12 @@ export function setupCustomElement(mount: typeof mountFn) {
       const srcUrl = this.getAttribute("src");
       let entrypoint: string | null = null;
       let hasSrcEntrypoint = false;
+      let srcFilename: string | null = null;
 
       if (srcUrl) {
         // Extract filename from URL and use it as entrypoint
         entrypoint = extractFilenameFromUrl(srcUrl);
+        srcFilename = entrypoint;
         hasSrcEntrypoint = true;
         files[entrypoint] = {
           url: resolveUrl(srcUrl),
@@ -154,6 +156,13 @@ export function setupCustomElement(mount: typeof mountFn) {
                 throw new Error("Attribute 'name' is required for <app-file>");
               }
               if (files[name]) {
+                if (name === srcFilename) {
+                  throw new Error(
+                    `File with name '${name}' conflicts with the 'src' attribute. ` +
+                      `The 'src' attribute already defines a file named '${name}'. ` +
+                      `Remove the conflicting <app-file> or use a different filename.`,
+                  );
+                }
                 throw new Error(`File with name '${name}' already exists`);
               }
 

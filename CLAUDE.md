@@ -1147,7 +1147,7 @@ yarn new-version --force-publish  # Force publish without changes
 
 **Git Hooks** (Husky):
 
-- Pre-commit: Runs `lint-staged` (Prettier on _.md, _.json)
+- Pre-commit: Runs `lint-staged` (Prettier on *.md, *.json)
 
 ---
 

@@ -336,7 +336,7 @@ Stlite uses Emscripten's file system API (inherited from Pyodide):
 
 1. Make needs a single file to track when a target was last built
 2. Directory timestamps are unreliable (update on any file change)
-3. JS/TS builds output multiple files (_.js, _.d.ts, etc.)
+3. JS/TS builds output multiple files (\*.js, \*.d.ts, etc.)
 4. Provides reliable timestamp for dependency tracking
 
 ### Key Makefile Targets

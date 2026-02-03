@@ -4,7 +4,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
+import { getStreamlitWheelFileName } from "@stlite/tooling";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

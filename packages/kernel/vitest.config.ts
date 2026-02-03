@@ -3,7 +3,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
+import { getStreamlitWheelFileName } from "@stlite/tooling";
 
 export default defineConfig(() => ({
   plugins: [react()],

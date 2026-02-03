@@ -26,7 +26,7 @@ import libAssetsPlugin from "@laynezh/vite-plugin-lib-assets";
 
 import path from "node:path";
 import vitePluginStliteReact from "./vite-plugin/src/index";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
+import { getStreamlitWheelFileName } from "@stlite/tooling";
 
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;

@@ -1,5 +1,5 @@
 import { defineConfig } from "tsdown";
-import { getStreamlitWheelFileName } from "@stlite/devutils";
+import { getStreamlitWheelFileName } from "@stlite/tooling";
 
 const STREAMLIT_WHEEL_FILE_NAME = getStreamlitWheelFileName();
 

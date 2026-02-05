@@ -31,7 +31,7 @@ import { getStreamlitWheelFileName } from "@stlite/devutils";
 const BUILD_AS_FAST_AS_POSSIBLE =
   process.env.BUILD_AS_FAST_AS_POSSIBLE || false;
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: "./",
   plugins: [
     react({
@@ -90,6 +90,13 @@ export default defineConfig({
   define: {
     WHEEL_BASE_URL: "import.meta.url",
   },
+  resolve: {
+    // We use a custom conditional export key for development mode in this package
+    // to distinguish it from the consumer projects' development mode (e.g., `@stlite/browser`).
+    // This ensures consumers use the built files from this package rather than source files,
+    // so we don't add a standard "development" conditional export here.
+    conditions: mode === "development" ? ["self-development"] : undefined,
+  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,
@@ -105,4 +112,4 @@ export default defineConfig({
       external: ["react", "react-dom", "stlite_lib.whl", "streamlit.whl"],
     },
   },
-});
+}));

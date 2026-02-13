@@ -66,7 +66,7 @@ stlite/
 │   ├── sharing/               # Sharing viewer app
 │   ├── sharing-editor/        # Sharing editor app
 │   ├── sharing-common/        # Shared code for sharing
-│   └── devutils/              # Build system utilities
+│   └── tooling/               # Build system utilities
 │
 ├── streamlit/                 # Git submodule: whitphx's Streamlit fork
 │   ├── frontend/              # Streamlit React components
@@ -87,6 +87,7 @@ stlite/
 ### Workspace Configuration
 
 **Root `package.json` workspaces:**
+
 ```json
 {
   "workspaces": [
@@ -217,6 +218,7 @@ make clean
 ```
 
 **Worker Types:**
+
 - **Dedicated Worker** (default): Each app runs in its own isolated worker
 - **SharedWorker** (opt-in): Multiple apps share a single worker to reduce memory usage
   - Not supported in all browsers (e.g., Chrome Android)
@@ -247,11 +249,13 @@ make clean
 ```
 
 **Why Replace `streamlit.web`?**
+
 - Tornado (HTTP server) cannot run on Pyodide
 - Full HTTP server is unnecessary for browser-based apps
 - Smaller bundle size is critical for web deployment
 
 **stlite-lib** (`packages/kernel/py/stlite-lib/`):
+
 - Implements Streamlit's server interface without Tornado
 - Handles WebSocket-like communication with the main thread
 - Performs AST transformations for Pyodide compatibility
@@ -262,12 +266,14 @@ make clean
 **Source**: Git submodule at `streamlit/` pointing to `https://github.com/whitphx/streamlit.git`
 
 **Branch Naming Convention**:
+
 ```
 stlite-<streamlit-version>
 Examples: stlite-1.44.1, stlite-1.45.1
 ```
 
 **Updating Streamlit** (from `DEVELOPMENT.md`):
+
 ```bash
 cd streamlit
 git remote add upstream https://github.com/streamlit/streamlit.git
@@ -287,6 +293,7 @@ git rebase --onto 1.45.1 1.44.1 $NEW_STLITE_BRANCH
 Stlite uses Emscripten's file system API (inherited from Pyodide):
 
 **File System Types:**
+
 - **MEMFS** (default): In-memory, ephemeral (lost on reload)
   - Mounted at: `/`, `/home`, etc.
 - **IDBFS**: Persistent storage via browser's IndexedDB
@@ -319,15 +326,17 @@ Stlite uses Emscripten's file system API (inherited from Pyodide):
 **Primary Tool**: Makefile with sentinel-based incremental builds
 
 **Sentinel File Strategy**:
+
 - Build state tracked in `.make/` directory
 - Each target creates a `.built` sentinel file on completion
 - Dependencies tracked via `find` commands for source files
 - Prevents infinite rebuild loops and unnecessary rebuilds
 
 **Why Sentinel Files?**
+
 1. Make needs a single file to track when a target was last built
 2. Directory timestamps are unreliable (update on any file change)
-3. JS/TS builds output multiple files (*.js, *.d.ts, etc.)
+3. JS/TS builds output multiple files (\*.js, \*.d.ts, etc.)
 4. Provides reliable timestamp for dependency tracking
 
 ### Key Makefile Targets
@@ -365,13 +374,16 @@ make all            # Build all user-facing packages (default)
 #### Python Wheel Building
 
 **1. stlite-lib Wheel** (`stlite_lib-0.1.0-py3-none-any.whl`):
+
 ```bash
 uv --directory packages/kernel/py/stlite-lib build
 ```
+
 - Pure Python wheel (no compilation needed)
 - Contains custom Streamlit server implementation
 
 **2. Streamlit Wheel** (compiled for Pyodide):
+
 ```bash
 # Build pure Python wheel
 cd streamlit/lib && uv run python setup.py bdist_wheel
@@ -387,6 +399,7 @@ cp streamlit/lib/dist/streamlit-*-cp313-*.whl \
 ```
 
 **Python Version Check**:
+
 - Makefile enforces Python version must match Pyodide's version
 - Current: Python 3.13.2 (defined in `.python-version`)
 - Verified during `streamlit-wheel` target
@@ -394,6 +407,7 @@ cp streamlit/lib/dist/streamlit-*-cp313-*.whl \
 #### TypeScript Compilation
 
 **Project References Architecture**:
+
 - Root `tsconfig.json` references all package configs
 - Each package has:
   - `tsconfig.json` - Project root (references src & test configs)
@@ -401,6 +415,7 @@ cp streamlit/lib/dist/streamlit-*-cp313-*.whl \
   - `tsconfig.test.json` - Test compilation (if applicable)
 
 **Compilation Settings** (common across packages):
+
 ```json
 {
   "compilerOptions": {
@@ -427,22 +442,23 @@ export default defineConfig({
     lib: {
       entry: "src/index.ts",
       formats: ["es"],
-      fileName: "stlite"
+      fileName: "stlite",
     },
     outDir: "build",
-    sourcemap: true
+    sourcemap: true,
   },
   plugins: [
     react({
       babel: {
-        plugins: ["@emotion/babel-plugin"]
-      }
-    })
-  ]
+        plugins: ["@emotion/babel-plugin"],
+      },
+    }),
+  ],
 });
 ```
 
 **Common Vite Plugins**:
+
 - `@vitejs/plugin-react` - React Fast Refresh + Emotion support
 - `vite-plugin-dts` - TypeScript declaration generation
 - `@laynezh/vite-plugin-lib-assets` - Asset handling (fonts, wasm, wheels)
@@ -474,12 +490,14 @@ export CI=true                                    # Immutable Yarn installs in C
 **Build**: TypeScript compilation only (`tsc -b`)
 
 **Key Exports**:
+
 - Type definitions shared across packages
 - Utility types for Streamlit integration
 
 **Dependencies**: None (base package)
 
 **Development**:
+
 ```bash
 cd packages/common
 yarn build  # Compile TypeScript
@@ -495,6 +513,7 @@ yarn test   # Run Vitest tests
 **Location**: `packages/kernel/`
 
 **Key Responsibilities**:
+
 - Pyodide initialization and loading
 - Web Worker and SharedWorker lifecycle management
 - File system abstractions (MEMFS, IDBFS, NODEFS)
@@ -503,6 +522,7 @@ yarn test   # Run Vitest tests
 - Python-JavaScript bridge
 
 **Exports**:
+
 - `/` - Main kernel API (createKernel, StliteKernel)
 - `/contexts` - React contexts (StliteKernelContext, etc.)
 - `/react` - React helpers (useStliteKernel, etc.)
@@ -510,6 +530,7 @@ yarn test   # Run Vitest tests
 - `/worker-runtime` - Worker runtime internals
 
 **Key Files**:
+
 - `src/worker.ts` - Web Worker entry point
 - `src/kernel.ts` - Main kernel class
 - `src/worker-runtime.ts` - Runtime management
@@ -528,12 +549,14 @@ yarn test   # Run Vitest tests
    - Bytecode-compiled for faster loading
 
 **Dependencies**:
+
 - `pyodide@0.28.2` - Python runtime
 - `@stlite/common` - Shared types
 - `path-browserify` - Node path for browsers
 - `@jupyterlab/coreutils` - Jupyter utilities
 
 **Development**:
+
 ```bash
 cd packages/kernel
 
@@ -552,6 +575,7 @@ make stlite-lib-wheel streamlit-wheel
 ```
 
 **Important Notes**:
+
 - **Python version MUST match Pyodide**: Currently 3.13.2
 - Wheels are bundled into the package via Vite
 - Worker files are built separately (not included in main bundle)
@@ -565,27 +589,32 @@ make stlite-lib-wheel streamlit-wheel
 **Location**: `packages/react/`
 
 **Key Components**:
+
 - `StliteApp` - Basic Streamlit app wrapper
 - `StliteAppWithToast` - App with progress/error notifications
 - `createKernel()` - Kernel factory function
 
 **Exports**:
+
 - `/` - Main React components
 - `/vite-utils` - Helper utilities for Vite builds
 - `/stlite.css` - Component styles
 - `/vite-plugin` - Vite plugin for bundling Python wheels
 
 **Build System**:
+
 - Vite library mode for main package
 - `tsdown` for vite-plugin (faster than Vite for Node.js targets)
 
 **Dependencies**:
+
 - `react@18.2.0`, `react-dom@18.2.0`
 - `@stlite/kernel` - Core runtime
 - `react-toastify@11.0.2` - Toast notifications
 - `@emotion/styled` - Styled components
 
 **Development**:
+
 ```bash
 cd packages/react
 yarn build
@@ -593,6 +622,7 @@ yarn test
 ```
 
 **Usage Example**:
+
 ```typescript
 import { StliteAppWithToast } from "@stlite/react";
 
@@ -623,6 +653,7 @@ st.write("Hello from Stlite!")
 2. **`<streamlit-app>` custom element** - Declarative HTML API
 
 **Key Options** (for `mount()`):
+
 ```typescript
 {
   entrypoint?: string;          // Main Python file (default: embedded script)
@@ -640,16 +671,27 @@ st.write("Hello from Stlite!")
 **Build Output**: `build/stlite.js`, `build/stlite.css`
 
 **CDN Distribution**:
+
 ```html
 <!-- Versioned (recommended) -->
-<script type="module" src="https://cdn.jsdelivr.net/npm/@stlite/browser@0.93.1/build/stlite.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.93.1/build/stlite.css" />
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@stlite/browser@0.93.1/build/stlite.js"
+></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.93.1/build/stlite.css"
+/>
 
 <!-- Latest release -->
-<script type="module" src="https://cdn.jsdelivr.net/npm/@stlite/browser/build/stlite.js"></script>
+<script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@stlite/browser/build/stlite.js"
+></script>
 ```
 
 **Development**:
+
 ```bash
 cd packages/browser
 yarn start  # Dev server at http://localhost:3000
@@ -662,6 +704,7 @@ yarn test
 ```
 
 **E2E Testing** (Playwright):
+
 - Location: `packages/browser/e2e-tests/`
 - Test files: `tests/*.test.ts`
 - HTML fixtures: `pages/*.html`
@@ -675,16 +718,19 @@ yarn test
 **Location**: `packages/desktop/`
 
 **Key Features**:
+
 - Convert Streamlit apps to standalone executables (.exe, .app, .AppImage)
 - Node.js worker mode for real file system access (NODEFS)
 - IDBFS and NODEFS mount points
 - Offline Pyodide and wheel bundling
 
 **CLI Tool**: `dump-stlite-desktop-artifacts`
+
 - Extracts Python wheels and Pyodide artifacts for desktop packaging
 - Used during app build process
 
 **Build Process**:
+
 ```bash
 cd packages/desktop
 
@@ -702,11 +748,13 @@ yarn dist
 ```
 
 **Electron Configuration**:
+
 - Electron version: 34.3.0
 - Packager: electron-builder
 - Target platforms: Windows, macOS, Linux
 
 **Key Files**:
+
 - `electron/main.ts` - Electron main process
 - `electron/preload.ts` - Preload script (context bridge)
 - `bin/dump.ts` - Artifact dumper CLI
@@ -730,11 +778,13 @@ yarn dist
 **Purpose**: Stlite Sharing editor app (https://edit.share.stlite.net/)
 
 **Key Features**:
+
 - Monaco editor integration
 - Sample apps management (from Streamlit docs)
 - URL-based app encoding/decoding (via Protocol Buffers)
 
 **Build Process**:
+
 ```bash
 cd packages/sharing-editor
 yarn build:sampleapps  # Generate sample app manifests
@@ -742,6 +792,7 @@ yarn build
 ```
 
 **Sample Apps**:
+
 - Copied from `streamlit/docs` repository
 - Script: `bin/copy-samples.sh`
 - Patches: `bin/sample-diffs/` (for Stlite compatibility)
@@ -753,23 +804,26 @@ yarn build
 **Purpose**: Shared code for sharing packages (viewer + editor)
 
 **Key Technologies**:
+
 - Protocol Buffers for data serialization
 - Compression utilities (for URL encoding)
 
 **Build**:
+
 ```bash
 yarn build  # Runs protoc + TypeScript compilation
 ```
 
 ---
 
-#### `@stlite/devutils` (v0.90.0) - Private
+#### `@stlite/tooling` (v0.90.0) - Private
 
 **Purpose**: Build system utilities
 
 **Key Function**: `get-streamlit-wheel-file-name`
+
 - Generates Streamlit wheel filenames for Makefile
-- CLI: `yarn workspace @stlite/devutils get-streamlit-wheel-file-name [py|cp]`
+- CLI: `yarn workspace @stlite/tooling get-streamlit-wheel-file-name [py|cp]`
 
 ---
 
@@ -780,11 +834,13 @@ yarn build  # Runs protoc + TypeScript compilation
 **Framework**: Vitest 4.0.15 (Vite-native test runner)
 
 **Test File Conventions**:
+
 - `*.test.ts` / `*.test.tsx` - Unit tests
 - `*.spec.ts` / `*.spec.tsx` - Specification tests
 - Co-located with source files (e.g., `src/kernel.test.ts`)
 
 **Running Tests**:
+
 ```bash
 # Per-package
 cd packages/<package>
@@ -797,25 +853,28 @@ make kernel-test  # Builds dependencies first
 ```
 
 **Vitest Configuration** (common pattern):
+
 ```typescript
 // vitest.config.ts
 export default defineConfig({
   test: {
-    environment: "jsdom",  // Browser-like environment
+    environment: "jsdom", // Browser-like environment
     setupFiles: ["./src/setupTests.ts"],
     globals: true,
-    maxConcurrency: 3      // In CI to prevent memory issues
-  }
+    maxConcurrency: 3, // In CI to prevent memory issues
+  },
 });
 ```
 
 **Kernel-Specific Test Setup**:
+
 - Environment: `jsdom` (not happy-dom due to iframe issues)
 - Setup files: `setupTests.ts`, `@vitest/web-worker`
 - Aliases for wheel files (mocked in tests)
 - Worker testing: Uses `@vitest/web-worker` for Web Worker mocks
 
 **Test Structure Example**:
+
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -844,6 +903,7 @@ describe('ComponentName', () => {
 **Location**: `packages/browser/e2e-tests/`
 
 **Setup**:
+
 ```bash
 cd packages/browser/e2e-tests
 yarn install
@@ -851,6 +911,7 @@ yarn install:browsers  # Install Playwright browsers
 ```
 
 **Running Tests**:
+
 ```bash
 yarn test         # Headless mode
 yarn test:headed  # With browser UI
@@ -858,11 +919,13 @@ yarn test:ui      # Playwright UI mode
 ```
 
 **Test Structure**:
+
 - `pages/` - HTML fixtures for testing
 - `tests/` - Playwright test files
 - `playwright.config.ts` - Configuration
 
 **Example Test Files**:
+
 - `custom-element.test.ts` - Tests `<streamlit-app>` tag API
 - `env.test.ts` - Environment variable handling
 - `mount.test.ts` - Tests `mount()` function API
@@ -870,11 +933,13 @@ yarn test:ui      # Playwright UI mode
 ### Python Testing
 
 **stlite-lib Tests**:
+
 - Framework: `pytest` + `pytest-asyncio`
 - Location: `packages/kernel/py/stlite-lib/stlite_lib_tests/`
 - Run via: `uv run pytest` (from stlite-lib directory)
 
 **Running Python Tests**:
+
 ```bash
 cd packages/kernel/py/stlite-lib
 uv run pytest
@@ -891,6 +956,7 @@ uv run pytest -k test_name  # Run specific test
 **Configuration**: `.prettierrc` at root
 
 **Settings** (defaults):
+
 - Indentation: 2 spaces
 - Semicolons: Yes
 - Trailing commas: Yes (ES5)
@@ -899,6 +965,7 @@ uv run pytest -k test_name  # Run specific test
 - Special: README.md files disable embedded language formatting
 
 **Usage**:
+
 ```bash
 # Per-package
 cd packages/<package>
@@ -914,6 +981,7 @@ yarn fix:prettier          # Auto-fix formatting
 **Modern Flat Config**: `eslint.config.mjs` (ESLint 9+)
 
 **Standard Configuration**:
+
 ```javascript
 // eslint.config.mjs
 import eslint from "@eslint/js";
@@ -937,15 +1005,16 @@ export default tseslint.config(
           varsIgnorePattern: "^_",
           caughtErrorsIgnorePattern: "^_",
           destructuredArrayIgnorePattern: "^_",
-          ignoreRestSiblings: true
-        }
-      ]
-    }
-  }
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
 );
 ```
 
 **Usage**:
+
 ```bash
 cd packages/<package>
 yarn check:eslint   # Run linter
@@ -955,6 +1024,7 @@ yarn fix:eslint     # Auto-fix issues
 ### Python Code Quality
 
 **Ruff** (linter + formatter):
+
 ```toml
 # pyproject.toml
 [tool.ruff.lint]
@@ -962,6 +1032,7 @@ extend-select = ["I"]  # Import sorting
 ```
 
 **Pyright** (type checker):
+
 ```toml
 [tool.pyright]
 include = ["stlite_lib"]
@@ -969,6 +1040,7 @@ extraPaths = ["../../../../streamlit/lib"]
 ```
 
 **Usage**:
+
 ```bash
 cd packages/kernel/py/stlite-lib
 uv run ruff check .
@@ -979,6 +1051,7 @@ uv run pyright
 ### File Naming Conventions
 
 **TypeScript/JavaScript**:
+
 - Components: PascalCase (e.g., `StliteApp.tsx`)
 - Utilities: kebab-case (e.g., `worker-runtime.ts`)
 - Types: PascalCase with `.d.ts` extension
@@ -986,11 +1059,13 @@ uv run pyright
 - Config: `*.config.{ts,mjs}` (e.g., `vite.config.ts`)
 
 **Python**:
+
 - Modules: snake_case (e.g., `async_utils.py`)
 - Classes: PascalCase (e.g., `Server`)
 - Tests: `*_test.py` in `*_tests/` directory
 
 **Special Files**:
+
 - README: `README.md` (per package)
 - Changelog: `CHANGELOG.md` (per package)
 - TypeScript config: `tsconfig.json`, `tsconfig.src.json`, `tsconfig.test.json`
@@ -998,6 +1073,7 @@ uv run pyright
 ### Import Conventions
 
 **TypeScript**:
+
 ```typescript
 // 1. External dependencies
 import React from "react";
@@ -1013,10 +1089,12 @@ import type { LocalType } from "./types";
 ```
 
 **Module Resolution**:
+
 - TypeScript: `bundler` mode
 - Aliases via `tsconfig.json` `paths` or Vite `resolve.alias`
 
 **Python**:
+
 ```python
 # 1. Standard library
 import asyncio
@@ -1036,6 +1114,7 @@ from stlite_lib.server import Server
 **Configuration**: `cspell.json` at root
 
 **Usage**:
+
 ```bash
 # From root
 yarn cspell
@@ -1049,11 +1128,13 @@ yarn cspell
 ### Commit Conventions
 
 **Conventional Commits** (for Changesets):
+
 - Format: `type(scope): summary`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - Example: `fix(browser): handle iframe sizing correctly`
 
 **Changesets** (for versioning):
+
 ```bash
 # Create a changeset
 yarn changeset
@@ -1065,6 +1146,7 @@ yarn new-version --force-publish  # Force publish without changes
 ```
 
 **Git Hooks** (Husky):
+
 - Pre-commit: Runs `lint-staged` (Prettier on *.md, *.json)
 
 ---
@@ -1074,6 +1156,7 @@ yarn new-version --force-publish  # Force publish without changes
 ### Adding a New Dependency
 
 **JavaScript/TypeScript**:
+
 ```bash
 cd packages/<package>
 yarn add <package>           # Production dependency
@@ -1085,6 +1168,7 @@ make <package>
 ```
 
 **Python** (to stlite-lib):
+
 ```bash
 cd packages/kernel/py/stlite-lib
 uv add <package>             # Updates pyproject.toml + uv.lock
@@ -1097,6 +1181,7 @@ make stlite-lib-wheel
 ### Updating Streamlit Version
 
 **Process** (from `DEVELOPMENT.md`):
+
 ```bash
 cd streamlit
 
@@ -1123,6 +1208,7 @@ make kernel-test
 ### Updating Sample Apps (Sharing Editor)
 
 **Process**:
+
 ```bash
 # 1. Clone/pull streamlit/docs repository
 git clone https://github.com/streamlit/docs.git /tmp/streamlit-docs
@@ -1144,6 +1230,7 @@ make sharing-editor
 ### Running Specific Tests
 
 **Unit Tests**:
+
 ```bash
 # Single package
 yarn workspace @stlite/kernel test
@@ -1158,6 +1245,7 @@ yarn test kernel.test.ts
 ```
 
 **E2E Tests**:
+
 ```bash
 cd packages/browser/e2e-tests
 yarn test                    # All tests
@@ -1167,6 +1255,7 @@ yarn test:ui                 # Playwright UI mode
 ```
 
 **Python Tests**:
+
 ```bash
 cd packages/kernel/py/stlite-lib
 uv run pytest
@@ -1176,17 +1265,19 @@ uv run pytest -v -k test_server  # Specific test
 ### Debugging Tips
 
 **TypeScript/JavaScript**:
+
 ```typescript
 // In source code
-console.log('[DEBUG]', variable);
+console.log("[DEBUG]", variable);
 
 // In tests
-import { vi } from 'vitest';
-const spy = vi.spyOn(module, 'method');
+import { vi } from "vitest";
+const spy = vi.spyOn(module, "method");
 console.log(spy.mock.calls);
 ```
 
 **Python (in browser)**:
+
 ```python
 # In Streamlit app
 import streamlit as st
@@ -1197,6 +1288,7 @@ print(f"[DEBUG] {variable}")  # Appears in browser console
 ```
 
 **Worker Debugging**:
+
 - Open browser DevTools
 - Go to "Sources" tab
 - Find worker under "Threads" or "Workers"
@@ -1205,6 +1297,7 @@ print(f"[DEBUG] {variable}")  # Appears in browser console
 ### Building for Production
 
 **Full Build**:
+
 ```bash
 make clean
 make all
@@ -1216,12 +1309,14 @@ make all
 ```
 
 **Individual Package Build**:
+
 ```bash
 cd packages/<package>
 yarn build
 ```
 
 **Bundle Analysis**:
+
 ```bash
 cd packages/<package>
 yarn build
@@ -1242,11 +1337,13 @@ yarn build
 - **Why**: Binary compatibility - Pyodide can only load wheels built for its Python version
 
 **Error if mismatched**:
+
 ```
 Python version mismatch: Pyodide 0.30.7 includes Python 3.13.2, but 3.11.4 is installed
 ```
 
 **Fix**:
+
 ```bash
 # Use pyenv or update .python-version
 pyenv install 3.13.2
@@ -1265,10 +1362,12 @@ uv venv --python 3.13.2
 3. **Not available**: Packages with C/Rust extensions not built for Wasm
 
 **Check package availability**:
+
 - Pyodide packages: https://pyodide.org/en/stable/usage/packages-in-pyodide.html
 - Pure Python wheels: Search on PyPI for `py3-none-any.whl`
 
 **Common issues**:
+
 - `micropip.install("torch")` ❌ - Not available for Pyodide
 - `micropip.install("pillow")` ✅ - Included in Pyodide
 - `micropip.install("requests")` ✅ - Pure Python (with pyodide-http patches)
@@ -1276,11 +1375,13 @@ uv venv --python 3.13.2
 ### Streamlit Web Module Replacement
 
 **DO NOT import `streamlit.web` in stlite-lib**:
+
 - Tornado cannot run on Pyodide
 - Use `stlite_lib.server.Server` instead
 - `streamlit.runtime` is safe to use
 
 **File Structure**:
+
 ```python
 # ❌ Wrong - Tornado dependency
 from streamlit.web.server.server import Server
@@ -1309,6 +1410,7 @@ st.write("After 1 second")
 **Why**: Single-threaded JavaScript event loop cannot block
 
 **Top-level await is SUPPORTED** (unlike standard Streamlit):
+
 ```python
 # This works in Stlite!
 import asyncio
@@ -1344,36 +1446,40 @@ st.write_stream(stream)
 ### File System Constraints
 
 **Default file system is EPHEMERAL (MEMFS)**:
+
 - Files saved to `/` or `/home` are lost on page reload
 - Use `idbfsMountpoints` option for persistence:
 
 ```typescript
 mount({
-  idbfsMountpoints: ["/mnt"],  // Persistent storage
+  idbfsMountpoints: ["/mnt"], // Persistent storage
   files: {
     "app.py": `
 import streamlit as st
 with open("/mnt/data.txt", "a") as f:  # Persists across reloads
     f.write("Hello\\n")
-    `
-  }
+    `,
+  },
 });
 ```
 
 ### Worker Constraints
 
 **SharedWorker limitations**:
+
 - Not supported: Chrome Android, Safari (older versions)
 - Fallback: Dedicated Worker per app (automatic)
 - Shared environment: Python imports, installed packages, file system
 - Separate home dirs: `/home/pyodide/<app-id>`
 
 **When to use SharedWorker**:
+
 - Multiple apps on same page (reduces memory)
 - Shared data between apps
 - Consistent package installations
 
 **When NOT to use**:
+
 - Strong isolation required
 - Browser compatibility concerns
 
@@ -1382,16 +1488,19 @@ with open("/mnt/data.txt", "a") as f:  # Persists across reloads
 **Not all HTTP libraries work**:
 
 ✅ **Working**:
+
 - `requests` (with pyodide-http patches)
 - `urllib` (with pyodide-http patches)
 - `urllib3` (2.2.0+)
 - `pyodide.http.pyfetch()` (native Pyodide)
 
 ❌ **Not working**:
+
 - `httpx` (async client - partial support)
 - `aiohttp` (requires asyncio with full socket support)
 
 **Example**:
+
 ```python
 # ✅ Correct
 import requests
@@ -1407,6 +1516,7 @@ data = await response.json()
 
 1. **`st.spinner()` doesn't work with blocking methods**:
    - Workaround: Add 0.1s sleep before blocking call
+
    ```python
    with st.spinner("Loading..."):
        await asyncio.sleep(0.1)  # Wait for spinner to show
@@ -1430,6 +1540,7 @@ data = await response.json()
 ### Build System Gotchas
 
 **Sentinel files must be touched**:
+
 ```makefile
 # ✅ Correct - Touch sentinel file
 $(common): ...
@@ -1443,17 +1554,20 @@ $(common): ...
 ```
 
 **Python wheel path must be exact**:
+
 - Wheel filename includes Python version, platform, etc.
-- Use `@stlite/devutils get-streamlit-wheel-file-name` to generate
+- Use `@stlite/tooling get-streamlit-wheel-file-name` to generate
 - Don't hardcode filenames
 
 **Node memory issues**:
+
 - Export `NODE_OPTIONS="--max-old-space-size=6144"` (set in Makefile)
 - Especially important during Vite builds
 
 ### TypeScript Project References
 
 **Build order matters**:
+
 ```bash
 # ✅ Correct - Use Make targets
 make browser  # Builds common → kernel → react → browser
@@ -1463,6 +1577,7 @@ cd packages/browser && yarn build
 ```
 
 **Clean builds**:
+
 ```bash
 # Clean TypeScript build info
 yarn tsc -b --clean
@@ -1480,11 +1595,13 @@ make clean
 #### "Python version mismatch"
 
 **Error**:
+
 ```
 Python version mismatch: Pyodide 0.30.7 includes Python 3.13.2, but 3.11.4 is installed
 ```
 
 **Fix**:
+
 ```bash
 # Install correct Python version
 pyenv install 3.13.2
@@ -1500,6 +1617,7 @@ uv venv --python 3.13.2
 **Cause**: Dependencies not built in correct order
 
 **Fix**:
+
 ```bash
 make clean
 make init
@@ -1511,6 +1629,7 @@ make <target>  # Use Makefile targets, not yarn directly
 **Cause**: Node.js default heap size too small
 
 **Fix**:
+
 ```bash
 export NODE_OPTIONS="--max-old-space-size=6144"
 # Already set in Makefile, but may need manual export in some shells
@@ -1519,6 +1638,7 @@ export NODE_OPTIONS="--max-old-space-size=6144"
 #### "git submodule is not initialized"
 
 **Fix**:
+
 ```bash
 git submodule init
 git submodule update
@@ -1533,9 +1653,10 @@ make git_submodules
 **Cause**: Package not available for Pyodide or needs installation
 
 **Fix**:
+
 ```typescript
 mount({
-  requirements: ["package-name"],  // Install via micropip
+  requirements: ["package-name"], // Install via micropip
   // ...
 });
 ```
@@ -1547,6 +1668,7 @@ mount({
 **Cause**: `time.sleep()` is no-op on Pyodide
 
 **Fix**:
+
 ```python
 import asyncio
 await asyncio.sleep(1)  # Use async sleep
@@ -1557,14 +1679,16 @@ await asyncio.sleep(1)  # Use async sleep
 **Cause**: Browser security restrictions
 
 **Fix**:
+
 - Serve files from same origin
 - Use CORS-enabled server for development
 - Or embed files in `files` option:
+
 ```typescript
 mount({
   files: {
-    "data.csv": await fetch("/data.csv").then(r => r.text())
-  }
+    "data.csv": await fetch("/data.csv").then((r) => r.text()),
+  },
 });
 ```
 
@@ -1573,6 +1697,7 @@ mount({
 **Cause**: Worker script not accessible or incorrect path
 
 **Fix**:
+
 - Check browser console for exact error
 - Verify worker script is built (check `dist/worker.js`)
 - Check Vite config for worker handling
@@ -1582,6 +1707,7 @@ mount({
 **Cause**: Slow network or large package downloads
 
 **Fix**:
+
 - Increase timeout in kernel options
 - Use custom Pyodide URL (self-hosted)
 - Check network tab in DevTools
@@ -1593,14 +1719,15 @@ mount({
 **Cause**: Async operations not properly awaited
 
 **Fix**:
+
 ```typescript
 // ❌ Wrong
-it('should work', () => {
-  kernel.run();  // Async but not awaited
+it("should work", () => {
+  kernel.run(); // Async but not awaited
 });
 
 // ✅ Correct
-it('should work', async () => {
+it("should work", async () => {
   await kernel.run();
 });
 ```
@@ -1610,11 +1737,12 @@ it('should work', async () => {
 **Cause**: jsdom has issues with iframe handling
 
 **Fix**: Use `jsdom` environment (not `happy-dom`) in `vitest.config.ts`:
+
 ```typescript
 export default defineConfig({
   test: {
-    environment: "jsdom",  // Not happy-dom
-  }
+    environment: "jsdom", // Not happy-dom
+  },
 });
 ```
 
@@ -1623,6 +1751,7 @@ export default defineConfig({
 #### "Watch mode not detecting changes"
 
 **Fix**:
+
 ```bash
 # Restart watch mode
 cd packages/kernel
@@ -1632,6 +1761,7 @@ yarn start
 #### "Stale build artifacts"
 
 **Fix**:
+
 ```bash
 make clean
 make init
@@ -1641,6 +1771,7 @@ make <target>
 #### "Changeset version conflicts"
 
 **Fix**:
+
 ```bash
 # Reset changesets
 rm -rf .changeset/*.md
@@ -1694,21 +1825,25 @@ When working on this codebase:
 ### When Making Changes
 
 **Before modifying kernel**:
+
 - Understand worker-main thread communication
 - Check both dedicated and shared worker code paths
 - Test Python wheel loading
 
 **Before modifying Streamlit integration**:
+
 - Check which Streamlit branch is being used
 - Understand stlite-lib's role
 - Test with multipage apps and various Streamlit features
 
 **Before adding dependencies**:
+
 - Check bundle size impact
 - Verify Pyodide compatibility (for Python packages)
 - Consider if dependency is needed at runtime or build time
 
 **Before submitting PR**:
+
 - Run full test suite (`make kernel-test`, E2E tests)
 - Check TypeScript compilation (`yarn tsc --noEmit`)
 - Run linters (`yarn check:eslint`, `yarn check:prettier`)

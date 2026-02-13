@@ -29,7 +29,7 @@ const streamlitWheelFileName =
       throw new Error("This code block is development purpose only.");
     }
     // @ts-expect-error  This code block is development purpose only.
-    const { getStreamlitWheelFileName } = await import("@stlite/devutils");
+    const { getStreamlitWheelFileName } = await import("@stlite/tooling");
     return getStreamlitWheelFileName();
   })());
 const stliteLibWheelFileName =

@@ -305,9 +305,12 @@ import streamlit as st
     appElem.setAttribute("src", "/app.py");
     appElem.innerHTML = `<app-file name="app.py">content</app-file>`;
 
-    expect(() => container.appendChild(appElem)).toThrow(
-      "File with name 'app.py' conflicts with the 'src' attribute",
-    );
+    // Call parseOptions directly because errors thrown in connectedCallback
+    // are reported as uncaught exceptions by jsdom (per the custom elements spec),
+    // so they can't be caught with expect().toThrow() on appendChild.
+    expect(() =>
+      (appElem as unknown as { parseOptions: () => unknown }).parseOptions(),
+    ).toThrow("File with name 'app.py' conflicts with the 'src' attribute");
   });
 
   it("extracts filename from URL with query string", async () => {

@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.93.0
+
+### Minor Changes
+
+- [#1839](https://github.com/whitphx/stlite/pull/1839) [`c575e4c`](https://github.com/whitphx/stlite/commit/c575e4cf476c85b2a679a288618766841ba09727) Thanks [@whitphx](https://github.com/whitphx)! - Add `appMenu` option to hide the application menu bar. Set `stlite.desktop.appMenu` to `false` in your `package.json` to completely remove the Electron application menu.
+
 ## 0.92.1
 
 ### Patch Changes

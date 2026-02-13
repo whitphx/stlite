@@ -1,5 +1,12 @@
 # docs
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`c575e4c`](https://github.com/whitphx/stlite/commit/c575e4cf476c85b2a679a288618766841ba09727)]:
+  - @stlite/desktop@0.93.0
+
 ## 0.0.7
 
 ### Patch Changes

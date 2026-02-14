@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 1.1.0
+
+### Minor Changes
+
+- [#1834](https://github.com/whitphx/stlite/pull/1834) [`0530e00`](https://github.com/whitphx/stlite/commit/0530e00c3a5f515ce36e85fefdfb6bd5f9c73bae) Thanks [@whitphx](https://github.com/whitphx)! - Add `src` attribute support for `<streamlit-app>` custom element to load apps from external URLs
+
 ## 1.0.1
 
 ### Patch Changes

@@ -240,10 +240,10 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 
 .PHONY: streamlit-frontend-lib
 streamlit-frontend-lib: $(streamlit-frontend-lib)
-$(streamlit-frontend-lib): $(node_modules) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils \
+$(streamlit-frontend-lib): $(node_modules) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils streamlit/frontend/component-v2-lib \
   -type f ! -path '*/dist/*' \
   \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
-	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils}' --topological run build
+	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils,@streamlit/component-v2-lib}' --topological run build
 	@mkdir -p $(dir $@)
 	@touch $@
 

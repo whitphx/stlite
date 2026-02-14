@@ -1,5 +1,11 @@
 # @stlite/react
 
+## 1.0.2
+
+### Patch Changes
+
+- [#1865](https://github.com/whitphx/stlite/pull/1865) [`68dd409`](https://github.com/whitphx/stlite/commit/68dd409d16c3bd7bc70739d6e6393e8ebe740ff3) Thanks [@whitphx](https://github.com/whitphx)! - Rename the conditional export for development
+
 ## 1.0.1
 
 ### Patch Changes

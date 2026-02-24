@@ -44,6 +44,25 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
       // and find a better way to configure the zIndex
       // for the modals/dialogs.
       zIndex={theme.emotion.zIndices.popup}
+      overrides={{
+        // BaseUI's LayersManager renders portal content (popovers, modals,
+        // tooltips) into a LayersContainer that is a sibling of the app
+        // content, not a descendant. In standard Streamlit, text styles
+        // (font-family, font-size, etc.) are set on `body` so portals
+        // inherit them. In stlite, these styles are scoped to the
+        // stlite-root div (via appStyles) to avoid polluting the host page,
+        // so the LayersContainer needs them explicitly.
+        // Keep these in sync with the inheritable text styles in appStyles.ts.
+        LayersContainer: {
+          style: {
+            fontFamily: theme.emotion.genericFonts.bodyFont,
+            fontSize: `${theme.emotion.fontSizes.baseFontSize}px`,
+            fontWeight: theme.emotion.fontWeights.normal,
+            lineHeight: theme.emotion.lineHeights.base,
+            color: theme.emotion.colors.bodyText,
+          },
+        },
+      }}
     >
       <CacheProvider value={cache}>
         <EmotionThemeProvider theme={theme.emotion}>

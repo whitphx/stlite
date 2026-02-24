@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
-    exclude: ["e2e-tests/**"],
+    exclude: ["**/node_modules/**", "e2e-tests/**"],
     typecheck: {
       enabled: true,
     },

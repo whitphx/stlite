@@ -1,0 +1,5 @@
+pandas
+numpy
+altair
+pydeck
+streamlit>=1.51.0

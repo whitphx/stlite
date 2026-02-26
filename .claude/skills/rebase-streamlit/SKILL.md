@@ -46,10 +46,3 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
    - Continue with `git rebase --continue`
 9. Repeat until rebase completes
 10. Verify with `git log --oneline` that customization commits are on top of the new tag
-11. Update sharing-editor sample apps by running the copy-samples script:
-    ```shell
-    sh packages/sharing-editor/bin/copy-samples.sh /path/to/streamlit/docs
-    ```
-
-    - This copies sample apps from the upstream Streamlit docs repo and applies stlite-specific patches
-    - If any patch fails, investigate the upstream changes and update the corresponding patch file in `packages/sharing-editor/bin/sample-diffs/`

@@ -33,7 +33,7 @@ jobs:
       pr-number: ${{ steps.build-info.outputs.pr-number }}
     steps:
       - name: Download build info
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: build-info
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Download published packages info
         id: download-changesets-published-packages
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: changesets-published-packages
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -144,7 +144,7 @@ jobs:
 
       - name: Download visualizer-browser artifact
         if: steps.check-artifacts.outputs.has-reports
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: visualizer-browser
           path: ${{ runner.temp }}/visualizer-reports/browser
@@ -154,7 +154,7 @@ jobs:
 
       - name: Download visualizer-sharing artifact
         if: steps.check-artifacts.outputs.has-reports
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: visualizer-sharing
           path: ${{ runner.temp }}/visualizer-reports/sharing
@@ -164,7 +164,7 @@ jobs:
 
       - name: Download visualizer-sharing-editor artifact
         if: steps.check-artifacts.outputs.has-reports
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: visualizer-sharing-editor
           path: ${{ runner.temp }}/visualizer-reports/sharing-editor
@@ -174,7 +174,7 @@ jobs:
 
       - name: Download visualizer-desktop artifact
         if: steps.check-artifacts.outputs.has-reports
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: visualizer-desktop
           path: ${{ runner.temp }}/visualizer-reports/desktop
@@ -400,7 +400,7 @@ jobs:
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -461,7 +461,7 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - name: Download blob reports from GitHub Actions Artifacts
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         path: packages/browser/e2e-tests/all-blob-reports
         pattern: blob-report-*
@@ -520,7 +520,7 @@ jobs:
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -578,7 +578,7 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-react
         path: ${{ runner.temp }}/artifacts/react
@@ -675,7 +675,7 @@ jobs:
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 
     - name: Download artifact into the temp dir
-      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
@@ -733,7 +733,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
@@ -871,7 +871,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-react
         path: ${{ runner.temp }}/artifacts/react
@@ -976,7 +976,7 @@ jobs:
         sparse-checkout: .github
         sparse-checkout-cone-mode: false
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-docs
         path: ${{ runner.temp }}/artifacts/docs
@@ -1060,7 +1060,7 @@ jobs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: stlite-sharing
           path: ${{ runner.temp }}/artifacts/sharing
@@ -1089,7 +1089,7 @@ jobs:
       url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: stlite-sharing-editor
           path: ${{ runner.temp }}/artifacts/sharing-editor
@@ -1182,7 +1182,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/stlite-browser
@@ -1242,7 +1242,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-react
         path: ${{ runner.temp }}/stlite-react
@@ -1302,7 +1302,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         scope: '@stlite'
 
-    - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+    - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/stlite-desktop

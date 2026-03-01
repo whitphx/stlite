@@ -28,44 +28,15 @@ streamlit/         # Git submodule: whitphx's Streamlit fork
 
 **Dependency graph**: common -> kernel -> react -> browser / desktop / sharing
 
-## Quick Start
+## Development Setup & Building
 
-```bash
-make init          # Submodules + venv + node_modules + pyodide xbuildenv
-source .venv/bin/activate
+See `CONTRIBUTING.md` for environment setup, dev workflows per package, and building.
 
-# Dev (browser): run in two terminals
-cd packages/kernel && yarn start    # Terminal 1: kernel watch mode
-cd packages/browser && yarn start   # Terminal 2: dev server at :3000
+**Key points for AI assistants**:
 
-# Dev (desktop)
-cd packages/desktop && yarn start
-
-# Dev (sharing)
-cd packages/sharing && yarn start          # Viewer at :3000
-cd packages/sharing-editor && yarn start   # Editor at :5173
-```
-
-## Build System
-
-**Always use Makefile targets** - they handle dependency ordering and sentinel-based incremental builds (`.make/` directory).
-
-```bash
-make all             # Full build
-make browser         # Builds common -> kernel -> react -> browser
-make desktop         # Builds common -> kernel -> react -> desktop
-make kernel          # Builds kernel + Python wheels
-make kernel-test     # Build deps then run kernel tests
-make clean           # Remove all build artifacts
-
-make stlite-lib-wheel   # Build stlite-lib wheel
-make streamlit-wheel    # Build & compile Streamlit wheel for Pyodide
-make streamlit-proto    # Generate protobuf TS definitions
-```
-
-**Do NOT run `cd packages/X && yarn build` directly** - dependencies may not be built.
-
-**Environment**: `NODE_OPTIONS="--max-old-space-size=6144"` (set in Makefile).
+- **Always use Makefile targets** (`make browser`, `make kernel`, etc.) - they handle dependency ordering via sentinel files in `.make/`.
+- **Do NOT run `cd packages/X && yarn build` directly** - dependencies may not be built.
+- `NODE_OPTIONS="--max-old-space-size=6144"` is set in Makefile to prevent heap errors.
 
 ## Testing
 
@@ -147,6 +118,6 @@ Working: `requests`, `urllib`, `urllib3`, `pyodide.http.pyfetch()`. Not working:
 
 **Add Python dependency**: `cd packages/kernel/py/stlite-lib && uv add <pkg>`, then `make stlite-lib-wheel`.
 
-**Update Streamlit**: See `DEVELOPMENT.md` - involves rebasing the Streamlit submodule branch.
+**Update Streamlit / sample apps / release**: See `CONTRIBUTING.md`.
 
 **Pre-PR checklist**: `make kernel-test`, E2E tests, `yarn tsc --noEmit`, `yarn check:eslint`, `yarn check:prettier`, `yarn changeset`.

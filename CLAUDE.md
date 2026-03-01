@@ -23,7 +23,7 @@ packages/
   sharing-common/  # Shared code for sharing (protobuf)
   tooling/         # Build utilities
 streamlit/         # Git submodule: whitphx's Streamlit fork
-docs/              # Documentation site (Astro Starlight)
+docs/              # Documentation site (Astro Starlight), see below
 .make/             # Sentinel files for incremental builds
 ```
 
@@ -91,6 +91,32 @@ yarn changeset
 **Streamlit integration**: Stlite uses `streamlit.runtime` but replaces `streamlit.web` (Tornado) with `stlite-lib` (custom server at `packages/kernel/py/stlite-lib/stlite_lib/`). Key files: `server/Server.py`, `codemod.py` (AST transforms).
 
 **File systems**: MEMFS (default, ephemeral), IDBFS (persistent via IndexedDB), NODEFS (desktop only).
+
+## Documentation, Demos & E2E Tests
+
+### Documentation Site (`docs/`)
+
+Astro Starlight site with pages for `@stlite/browser`, `@stlite/react`, and `@stlite/desktop`. Uses a **single source of truth** approach: demo files and package versions are imported directly from the workspace packages, not duplicated.
+
+### Demos as Shared Fixtures
+
+The `demos/` directories in `packages/browser/` and `packages/react/` serve **dual purpose**:
+
+1. **E2E test fixtures** — Built into test-ready pages and served during Playwright tests.
+2. **Documentation examples** — Imported as raw content into `docs/` MDX pages with CDN URLs substituted via `{{STLITE_JS_URL}}`/`{{STLITE_CSS_URL}}` placeholders.
+
+Updating a demo file automatically updates both the docs and the E2E tests. The E2E tests effectively validate the code shown in the docs.
+
+| Package   | Demos                               | E2E Tests                     | Build script                       |
+| --------- | ----------------------------------- | ----------------------------- | ---------------------------------- |
+| `browser` | `packages/browser/demos/` (7 demos) | `packages/browser/e2e-tests/` | `e2e-tests/scripts/build-demos.ts` |
+| `react`   | `packages/react/demos/` (3 demos)   | `packages/react/e2e-tests/`   | `vite.demo.config.ts`              |
+
+### E2E Test Setup
+
+- **Browser tests**: Two HTTP servers — port 8080 for test pages (`pages-dist/`), port 8081 for built stlite library (`../build/`). Tests both HTTP and `file://` protocols. Fully parallel.
+- **React tests**: Single HTTP server serving built demos on port 5173 (or Vite dev server with `USE_DEV_SERVER=1`). Runs sequentially (single worker) to avoid Pyodide memory contention.
+- Both suites use extended timeouts (30-180s) to account for Pyodide loading time.
 
 ## Critical Constraints
 

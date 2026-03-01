@@ -3,11 +3,11 @@
 ### Python requirement
 
 - Install [`uv`](https://docs.astral.sh/uv/).
-- Use the Python version same as the one which the [currently used Pyodide](./packages/kernel/src/worker.ts) runs.
+- Use the same Python version as the [currently used Pyodide runtime](./packages/kernel/src/worker.ts).
 
 ### Initialize the development environment
 
-```
+```shell
 make init
 ```
 
@@ -39,7 +39,7 @@ cd packages/browser
 yarn start
 ```
 
-#### stlite sharing (`@stlite/sharing` and `@stlite/sharing-editor`)
+#### Stlite Sharing (`@stlite/sharing` and `@stlite/sharing-editor`)
 
 Launch the app sharing service.
 
@@ -132,12 +132,12 @@ yarn new-version --force-publish
 
 ### Windows Development
 
-Use WSL, you'll need to install the following to initialize your Dev environment. Afterwards follow the normal build steps
+Use WSL. You'll need to install the following to initialize your development environment. Afterwards, follow the normal build steps.
 
 ```shell
 curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo apt-get update
 sudo apt-get install build-essential
 sudo apt-get install nodejs
-sudo apt  install protobuf-compiler
+sudo apt-get install protobuf-compiler
 ```

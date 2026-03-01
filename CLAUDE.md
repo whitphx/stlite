@@ -55,7 +55,7 @@ cd packages/kernel/py/stlite-lib && uv run pytest
 ```
 
 - Vitest uses `jsdom` environment (not happy-dom, due to iframe issues)
-- Kernel tests require wheels built first (`make stlite-lib-wheel streamlit-wheel`)
+- Prefer `make kernel-test` for kernel tests (it builds required wheels). Run `make stlite-lib-wheel streamlit-wheel` manually only if you call `cd packages/kernel && yarn test` directly.
 
 ## Code Quality
 
@@ -71,7 +71,7 @@ uv run ruff check . && uv run ruff format . && uv run pyright
 ```
 
 - ESLint 9 flat config (`eslint.config.mjs`), Prettier (2 spaces, semicolons)
-- Unused vars: `_` prefix allowed (`argsIgnorePattern: "^_"`)
+- Kernel ESLint: unused args with `_` prefix allowed (`argsIgnorePattern: "^_"`); other packages may use different ESLint configs
 - Git hooks (Husky): pre-commit runs lint-staged on `*.{md,json}`
 - Commits: conventional format `type(scope): summary`
 - Versioning: `yarn changeset` for user-facing changes
@@ -104,7 +104,7 @@ uv run ruff check . && uv run ruff format . && uv run pyright
 
 ### HTTP Libraries
 
-Working: `requests`, `urllib`, `urllib3`, `pyodide.http.pyfetch()`. Not working: `httpx`, `aiohttp`.
+Known to work in this repo: `requests`, `urllib`, `urllib3`, `pyodide.http.pyfetch()`. Many other networking libraries (e.g., `httpx`, `aiohttp`) may not be compatible with Pyodide—verify against Pyodide docs and this repo before using them.
 
 ### Build Gotchas
 

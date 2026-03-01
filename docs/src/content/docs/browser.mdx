@@ -15,6 +15,7 @@ import mountHtml from '../../../../packages/browser/demos/basic-mount/index.html
 import multipageHtml from '../../../../packages/browser/demos/multipage/index.html?raw';
 import requirementsHtml from '../../../../packages/browser/demos/requirements/index.html?raw';
 import sharedWorkerHtml from '../../../../packages/browser/demos/shared-worker/index.html?raw';
+import multiAppHtml from '../../../../packages/browser/demos/multi-app/index.html?raw';
 
 {/* Helper to replace placeholders with CDN URLs */}
 export const cdnBase = `https://cdn.jsdelivr.net/npm/@stlite/browser@${pkg.version}/build`;
@@ -71,6 +72,12 @@ You can create multipage apps by mounting multiple files, including an entrypoin
 Use the `requirements` option to install Python packages.
 
 <Code code={toCdn(requirementsHtml)} lang="html" title="requirements.html" />
+
+### Multiple Apps on a Single Page
+
+You can mount multiple independent Stlite apps on the same page by calling `mount()` multiple times with different container elements. Each app runs in its own Web Worker with isolated session state.
+
+<Code code={toCdn(multiAppHtml)} lang="html" title="multi-app.html" />
 
 ### SharedWorker Mode
 

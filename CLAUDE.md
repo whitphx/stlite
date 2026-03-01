@@ -100,10 +100,11 @@ Astro Starlight site with pages for `@stlite/browser`, `@stlite/react`, and `@st
 
 ### Demos as Shared Fixtures
 
-The `demos/` directories in `packages/browser/` and `packages/react/` serve **dual purpose**:
+The `demos/` directories in `packages/browser/` and `packages/react/` serve **triple purpose**:
 
-1. **E2E test fixtures** — Built into test-ready pages and served during Playwright tests. The E2E tests are in `packages/*/e2e-tests/`.
-2. **Documentation examples** — Imported as raw content into `docs/` MDX pages with CDN URLs substituted via `{{STLITE_JS_URL}}`/`{{STLITE_CSS_URL}}` placeholders. The documentation sources are in `docs/src/content/`.
+1. **Local dev entry points** — `packages/*/index.html` is the Vite dev server entrypoint (served by `yarn start`). Demo apps should be linked from it so developers can navigate to them during local development.
+2. **E2E test fixtures** — Built into test-ready pages and served during Playwright tests. The E2E tests are in `packages/*/e2e-tests/`.
+3. **Documentation examples** — Imported as raw content into `docs/` MDX pages with CDN URLs substituted via `{{STLITE_JS_URL}}`/`{{STLITE_CSS_URL}}` placeholders. The documentation sources are in `docs/src/content/`.
 
 ### E2E Test Setup
 

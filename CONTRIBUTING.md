@@ -39,7 +39,7 @@ cd packages/browser
 yarn start
 ```
 
-#### stlite sharing (`@stlite/sharing` and `@stlite/sharing-editor`)
+#### Stlite Sharing (`@stlite/sharing` and `@stlite/sharing-editor`)
 
 Launch the app sharing service.
 

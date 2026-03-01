@@ -2,10 +2,10 @@
 
 **Stlite** is a serverless Streamlit running in browsers via Pyodide (Python-to-WebAssembly). No backend server needed.
 
-- **Stack**: React 18.2 + TypeScript 5.9 + Vite 7.1 + Pyodide 0.28.2 (Python 3.13.2)
-- **Monorepo**: Yarn 4.5.3 workspaces, Makefile-orchestrated builds
-- **Testing**: Vitest 4.0 + Playwright
-- **Streamlit fork**: Git submodule at `streamlit/` (branch: `stlite-<version>`)
+- **Stack**: React + TypeScript + Vite + Pyodide(Python)
+- **Monorepo**: Yarn workspaces, Makefile-orchestrated builds
+- **Testing**: Vitest + Playwright
+- **Streamlit fork**: Git submodule at `streamlit/` (forked customized branch named `stlite-<version>`)
 
 ## Repository Structure
 
@@ -17,9 +17,9 @@ packages/
     py/streamlit/  # Compiled Streamlit wheel for Pyodide
   react/           # React bindings (StliteApp, StliteAppWithToast)
   browser/         # Browser-mountable API (mount(), <streamlit-app>)
-  desktop/         # Electron desktop app (NODEFS support)
-  sharing/         # Sharing viewer app
-  sharing-editor/  # Sharing editor app (Monaco editor)
+  desktop/         # Electron desktop app
+  sharing/         # App sharing service
+  sharing-editor/  # Editor app for the sharing service (Monaco editor)
   sharing-common/  # Shared code for sharing (protobuf)
   tooling/         # Build utilities
 streamlit/         # Git submodule: whitphx's Streamlit fork

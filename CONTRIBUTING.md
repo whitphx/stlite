@@ -3,7 +3,7 @@
 ### Python requirement
 
 - Install [`uv`](https://docs.astral.sh/uv/).
-- Use the Python version same as the one which the [currently used Pyodide](./packages/kernel/src/worker.ts) runs.
+- Use the same Python version as the [currently used Pyodide runtime](./packages/kernel/src/worker.ts).
 
 ### Initialize the development environment
 

@@ -75,7 +75,7 @@ Use the `requirements` option to install Python packages.
 
 ### Multiple Apps on a Single Page
 
-You can mount multiple independent Stlite apps on the same page by calling `mount()` multiple times with different container elements. Each app runs in its own Web Worker with isolated session state.
+You can mount multiple independent Stlite apps on the same page by calling `mount()` multiple times with different container elements. By default, each app runs in its own Web Worker with isolated session state.
 
 When embedding multiple apps, set `disableDocumentStyles: true` to prevent each app from injecting global document styles that could conflict with each other or with your page layout.
 

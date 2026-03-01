@@ -139,5 +139,5 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo apt-get update
 sudo apt-get install build-essential
 sudo apt-get install nodejs
-sudo apt  install protobuf-compiler
+sudo apt-get install protobuf-compiler
 ```

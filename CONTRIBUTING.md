@@ -132,7 +132,7 @@ yarn new-version --force-publish
 
 ### Windows Development
 
-Use WSL, you'll need to install the following to initialize your Dev environment. Afterwards follow the normal build steps
+Use WSL. You'll need to install the following to initialize your development environment. Afterwards, follow the normal build steps.
 
 ```shell
 curl -LsSf https://astral.sh/uv/install.sh | sh

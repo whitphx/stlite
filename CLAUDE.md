@@ -23,6 +23,7 @@ packages/
   sharing-common/  # Shared code for sharing (protobuf)
   tooling/         # Build utilities
 streamlit/         # Git submodule: whitphx's Streamlit fork
+docs/              # Documentation site (Astro Starlight)
 .make/             # Sentinel files for incremental builds
 ```
 
@@ -62,8 +63,8 @@ cd packages/kernel/py/stlite-lib && uv run pytest
 ```bash
 # TypeScript
 cd packages/<pkg>
-yarn check:eslint / yarn fix:eslint
-yarn check:prettier / yarn fix:prettier
+yarn check:eslint # or yarn fix:eslint
+yarn check:prettier # or yarn fix:prettier
 
 # Python (stlite-lib)
 cd packages/kernel/py/stlite-lib
@@ -74,7 +75,14 @@ uv run ruff check . && uv run ruff format . && uv run pyright
 - Kernel ESLint: unused args with `_` prefix allowed (`argsIgnorePattern: "^_"`); other packages may use different ESLint configs
 - Git hooks (Husky): pre-commit runs lint-staged on `*.{md,json}`
 - Commits: conventional format `type(scope): summary`
-- Versioning: `yarn changeset` for user-facing changes
+
+## Changeset Management
+
+Each PR that introduces user-facing changes (new features, bug fixes, breaking changes) MUST include a Changeset file created via `yarn changeset`. This ensures proper versioning and changelog generation.
+
+```bash
+yarn changeset
+```
 
 ## Architecture
 
@@ -88,7 +96,7 @@ uv run ruff check . && uv run ruff format . && uv run pyright
 
 ### Python Version
 
-**MUST match Pyodide**: Python 3.13.2 (see `.python-version`). Makefile enforces this. Fix: `pyenv local 3.13.2` or `uv venv --python 3.13.2`.
+**MUST match Pyodide**: Python version specified in `.python-version` and enforced by the Makefile must match the version used in the Pyodide runtime (e.g. Python 3.12 for Pyodide 0.28.0). This ensures compatibility of built wheels and prevents runtime errors.
 
 ### Pyodide Compatibility
 

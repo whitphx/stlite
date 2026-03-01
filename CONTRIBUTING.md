@@ -7,7 +7,7 @@
 
 ### Initialize the development environment
 
-```
+```shell
 make init
 ```
 

@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Multi App SharedWorker</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        display: flex;
+        gap: 16px;
+        width: 100%;
+        height: 100%;
+      }
+      .app {
+        position: relative;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="app1" class="app"></div>
+      <div id="app2" class="app"></div>
+    </div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
+import streamlit as st
+
+st.write("Hello, stlite!")
+st.write("Shared Worker App 1")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
+`,
+          },
+          sharedWorker: true,
+          disableDocumentStyles: true,
+        },
+        document.getElementById("app1"),
+      );
+      mount(
+        {
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
+import streamlit as st
+
+st.write("Hello, stlite!")
+st.write("Shared Worker App 2")
+
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
+
+if st.button("Increment counter"):
+    st.session_state.counter += 1
+
+st.write(f"Counter: {st.session_state.counter}")
+`,
+          },
+          sharedWorker: true,
+          disableDocumentStyles: true,
+        },
+        document.getElementById("app2"),
+      );
+    </script>
+  </body>
+</html>

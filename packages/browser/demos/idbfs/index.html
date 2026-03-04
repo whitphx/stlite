@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - IDBFS Persistent Storage</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          entrypoint: "streamlit_app.py",
+          files: {
+            "streamlit_app.py": `
+import streamlit as st
+import datetime
+
+st.title("IDBFS Persistent Storage")
+st.write("Files written to \\\`/mnt\\\` persist across page reloads using IndexedDB.")
+
+st.button("Rerun")
+
+if st.button("Clear /mnt/log.txt"):
+    with open("/mnt/log.txt", "w") as f:
+        f.write("")
+
+now = datetime.datetime.now()
+with open("/mnt/log.txt", "a") as f:
+    f.write(f"Visited at {now}\\n")
+
+with open("/mnt/log.txt", "r") as f:
+    content = f.read()
+
+st.write("Contents of \\\`/mnt/log.txt\\\`:")
+st.code(content)
+`,
+          },
+          idbfsMountpoints: ["/mnt"],
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

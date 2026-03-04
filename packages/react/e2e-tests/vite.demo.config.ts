@@ -41,6 +41,7 @@ export default mergeConfig(baseConfig, {
           reactPackageDir,
           "demos/multi-app-shared-worker/index.html",
         ),
+        idbfs: path.resolve(reactPackageDir, "demos/idbfs/index.html"),
       },
     },
   },

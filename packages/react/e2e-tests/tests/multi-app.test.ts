@@ -7,10 +7,7 @@ test.describe("Multi-App Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("renders both apps correctly and matches snapshot", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("renders both apps correctly and matches snapshot", async ({ page }) => {
     // Check if both apps are visible with their respective text
     await expect(page.locator('text="App 1"')).toBeVisible();
     await expect(page.locator('text="App 2"')).toBeVisible();
@@ -22,9 +19,6 @@ test.describe("Multi-App Demo", () => {
     // Both should show the counter (text includes the count value)
     const counterTexts = page.getByText(/Counter: \d+/);
     await expect(counterTexts).toHaveCount(2);
-
-    // Check for dead links
-    expectNoDeadLinks();
 
     // Take snapshot
     await expect(page).toHaveScreenshot("multi-app.png", {

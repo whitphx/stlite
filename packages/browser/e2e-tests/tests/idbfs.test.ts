@@ -35,28 +35,37 @@ test.describe("IDBFS Persistent Storage Test", () => {
 
   test("appends new entry on rerun", async ({ page }) => {
     // Wait for initial render with at least one "Visited at" entry
-    await expect(page.getByText(/Visited at/)).toBeVisible();
+    const codeBlock = page.locator("code");
+    await expect(codeBlock).toContainText("Visited at");
+
+    // Capture the content before rerun
+    const textBefore = await codeBlock.textContent();
 
     // Click the Rerun button to trigger another write
     await page.getByRole("button", { name: "Rerun" }).click();
 
-    // After rerun, the log should still contain "Visited at" entries
-    await expect(page.getByText(/Visited at/).first()).toBeVisible();
+    // After rerun, the code block content should have changed (new entry appended)
+    await expect(codeBlock).not.toHaveText(textBefore!);
 
-    // Get the code block content and verify it contains entries
-    const codeBlock = page.locator("code");
-    await expect(codeBlock).toContainText("Visited at");
+    // Verify there are now at least two "Visited at" lines
+    const textAfter = await codeBlock.textContent();
+    const lineCount = (textAfter!.match(/Visited at/g) || []).length;
+    expect(lineCount).toBeGreaterThanOrEqual(2);
   });
 
   test("clear button resets the log", async ({ page }) => {
     // Wait for initial render
-    await expect(page.getByText(/Visited at/)).toBeVisible();
+    const codeBlock = page.locator("code");
+    await expect(codeBlock).toContainText("Visited at");
 
     // Click the Clear button
     await page.getByRole("button", { name: "Clear /mnt/log.txt" }).click();
 
-    // After clearing and re-running, there should still be a "Visited at"
-    // entry (the one written after clearing)
-    await expect(page.getByText(/Visited at/)).toBeVisible();
+    // After clearing and re-running, the code block should contain
+    // exactly one "Visited at" entry (the one written after clearing)
+    await expect(codeBlock).toContainText("Visited at");
+    const textAfter = await codeBlock.textContent();
+    const lineCount = (textAfter!.match(/Visited at/g) || []).length;
+    expect(lineCount).toBe(1);
   });
 });

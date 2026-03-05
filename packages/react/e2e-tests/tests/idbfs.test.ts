@@ -33,6 +33,18 @@ test.describe("IDBFS Demo", () => {
     });
   });
 
+  test("visit counter increments on page reload", async ({ page }) => {
+    // First visit: counter should be 1
+    await expect(page.getByText("Visit count: 1")).toBeVisible();
+
+    // Reload the page to trigger a second visit
+    await page.reload();
+    await waitForStliteReady(page);
+
+    // Second visit: counter should be 2 (persisted via IDBFS)
+    await expect(page.getByText("Visit count: 2")).toBeVisible();
+  });
+
   test("reset button resets the counter", async ({ page }) => {
     // Wait for initial render
     await expect(page.getByText("Visit count: 1")).toBeVisible();

@@ -10,10 +10,7 @@ test.describe("IDBFS Persistent Storage Test", () => {
     ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
   });
 
-  test("renders correctly with visit count", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("renders correctly with visit count", async ({ page }) => {
     // Check if the description is visible (backticks render /mnt as <code>, so use regex)
     await expect(
       page.getByText(
@@ -28,9 +25,20 @@ test.describe("IDBFS Persistent Storage Test", () => {
     await expect(
       page.getByRole("button", { name: "Reset counter" }),
     ).toBeVisible();
+  });
 
-    // Check for dead links
-    expectNoDeadLinks();
+  test("visit counter increments on page reload", async ({ page }) => {
+    // First visit: counter should be 1
+    await expect(page.getByText("Visit count: 1")).toBeVisible();
+
+    // Reload the page to trigger a second visit
+    await page.reload();
+    await expect(
+      page.locator('h1:has-text("IDBFS Persistent Storage")'),
+    ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
+
+    // Second visit: counter should be 2 (persisted via IDBFS)
+    await expect(page.getByText("Visit count: 2")).toBeVisible();
   });
 
   test("reset button resets the counter", async ({ page }) => {

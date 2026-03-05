@@ -10,10 +10,7 @@ test.describe("Basic Stlite Browser Test", () => {
     ).toBeVisible({ timeout: FIRST_VIEW_TIMEOUT });
   });
 
-  test("should load and render the basic app correctly", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("should load and render the basic app correctly", async ({ page }) => {
     // Check if the text input is visible
     const textInput = page.locator('input[type="text"]');
     await expect(textInput).toBeVisible();
@@ -27,9 +24,6 @@ test.describe("Basic Stlite Browser Test", () => {
 
     // Check if the greeting is updated
     await expect(page.locator('text="Hello, Playwright"')).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 
   test("controller.runPython()", async ({ page }) => {

@@ -20,10 +20,8 @@ function urlOnlyHasPathAndQuery(url: string): boolean {
   }
 }
 
-type ExpectNoDeadLinksFn = () => void;
-
 export const test = base.extend<{
-  expectNoDeadLinks: ExpectNoDeadLinksFn;
+  expectNoDeadLinks: void;
 }>({
   page: async ({ page, baseURL }, use) => {
     // Override page.goto to handle file: protocol correctly
@@ -46,23 +44,25 @@ export const test = base.extend<{
 
     page.goto = originalGoto;
   },
-  expectNoDeadLinks: async ({ page }, use) => {
-    // Set up dead link detection
-    const failedRequests: string[] = [];
-    page.on("response", (response) => {
-      if (response.status() >= 400) {
-        failedRequests.push(`${response.status()} - ${response.url()}`);
-      }
-    });
-    const expectNoDeadLinks = () => {
+  expectNoDeadLinks: [
+    async ({ page }, use) => {
+      // Set up dead link detection
+      const failedRequests: string[] = [];
+      page.on("response", (response) => {
+        if (response.status() >= 400) {
+          failedRequests.push(`${response.status()} - ${response.url()}`);
+        }
+      });
+
+      await use();
+
       expect(
         failedRequests,
         `Found dead links: ${failedRequests.join(", ")}`,
       ).toHaveLength(0);
-    };
-
-    await use(expectNoDeadLinks);
-  },
+    },
+    { auto: true },
+  ],
 });
 
 export { expect } from "@playwright/test";

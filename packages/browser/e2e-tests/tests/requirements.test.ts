@@ -13,10 +13,7 @@ test.describe("Requirements Installation Test", () => {
     });
   });
 
-  test("should install and use packages", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("should install and use packages", async ({ page }) => {
     // Check if the description is visible
     await expect(
       page.locator('text="This demo shows how to install Python packages."'),
@@ -31,8 +28,5 @@ test.describe("Requirements Installation Test", () => {
     await expect(page.locator("text=/^Email:/")).toBeVisible();
     await expect(page.locator("text=/^Address:/")).toBeVisible();
     await expect(page.locator("text=/^Company:/")).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });

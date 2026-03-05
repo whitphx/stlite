@@ -18,10 +18,7 @@ test.describe("SharedWorker Mode Test", () => {
     });
   });
 
-  test("should load and render app in SharedWorker mode", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("should load and render app in SharedWorker mode", async ({ page }) => {
     // Check if the description is visible
     await expect(
       page.locator('text="This app runs in SharedWorker mode."'),
@@ -43,8 +40,5 @@ test.describe("SharedWorker Mode Test", () => {
     // Click again
     await button.click();
     await expect(page.locator('text="Button clicked 2 times"')).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });

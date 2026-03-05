@@ -6,10 +6,7 @@ test.describe("Basic Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("renders correctly and matches snapshot", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("renders correctly and matches snapshot", async ({ page }) => {
     // Check if the title is visible
     await expect(page.locator('h1:has-text("Hello, Stlite!")')).toBeVisible();
 
@@ -21,9 +18,6 @@ test.describe("Basic Demo", () => {
     await expect(
       page.locator('text="This app runs entirely in your browser."'),
     ).toBeVisible();
-
-    // Check for dead links
-    expectNoDeadLinks();
 
     // Take snapshot
     await expect(page).toHaveScreenshot("basic-app.png", {

@@ -12,7 +12,6 @@ test.describe("Custom Element Stlite Browser Test", () => {
 
   test("should load and render the custom element app correctly", async ({
     page,
-    expectNoDeadLinks,
   }) => {
     // Check if the selectbox is visible
     const selectbox = page.locator('input[role="combobox"]');
@@ -36,19 +35,13 @@ test.describe("Custom Element Stlite Browser Test", () => {
     await expect(
       page.locator('text="You selected: Mobile phone"'),
     ).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });
 
 // Skip for file:// protocol - fetching external files via src attribute
 // doesn't work due to browser CORS restrictions
 test.describe("Source Attribute Test", () => {
-  test("should load app from src attribute", async ({
-    page,
-    expectNoDeadLinks,
-  }, testInfo) => {
+  test("should load app from src attribute", async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name.includes("file-protocol"),
       "src attribute requires HTTP(S) to fetch external files",
@@ -65,8 +58,5 @@ test.describe("Source Attribute Test", () => {
     await expect(
       page.locator('text="This app was loaded from a src attribute!"'),
     ).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });

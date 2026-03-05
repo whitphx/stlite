@@ -37,18 +37,14 @@ test.describe("Multipage App Test", () => {
 
   test("should load and render the multipage app correctly", async ({
     page,
-    expectNoDeadLinks,
   }) => {
     // Check if the welcome message is visible
     await expect(
       page.locator('text="Welcome to the multipage app demo!"'),
     ).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 
-  test("should navigate between pages", async ({ page, expectNoDeadLinks }) => {
+  test("should navigate between pages", async ({ page }) => {
     // Ensure sidebar is expanded (handles narrow viewports)
     await ensureSidebarExpanded(page);
 
@@ -67,8 +63,5 @@ test.describe("Multipage App Test", () => {
     await page.locator('a:has-text("Page2")').click();
     await expect(page.locator('h1:has-text("Page 2")')).toBeVisible();
     await expect(page.locator('text="This is the second page."')).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });

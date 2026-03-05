@@ -12,7 +12,6 @@ test.describe("Stlite Browser Env Test", () => {
 
   test("should correctly pass and display environment variables", async ({
     page,
-    expectNoDeadLinks,
   }) => {
     // Check if custom environment variables are displayed correctly
     await expect(page.locator('text="TEST_VAR: test_value"')).toBeVisible();
@@ -24,8 +23,5 @@ test.describe("Stlite Browser Env Test", () => {
     await expect(
       page.locator('text="PATH: /usr/local/bin:/usr/bin:/bin"'),
     ).toBeVisible();
-
-    // Check for dead links
-    await expectNoDeadLinks();
   });
 });

@@ -19,7 +19,7 @@ import streamlit as st
 import datetime
 
 st.title("IDBFS Persistent Storage")
-st.write("Files written to \\\`/mnt\\\` persist across page reloads using IndexedDB.")
+st.write("Files written to \`/mnt\` persist across page reloads using IndexedDB.")
 
 st.button("Rerun")
 
@@ -34,7 +34,7 @@ with open("/mnt/log.txt", "a") as f:
 with open("/mnt/log.txt", "r") as f:
     content = f.read()
 
-st.write("Contents of \\\`/mnt/log.txt\\\`:")
+st.write("Contents of \`/mnt/log.txt\`:")
 st.code(content)
 `,
           },

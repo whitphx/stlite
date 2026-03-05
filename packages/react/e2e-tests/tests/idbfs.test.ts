@@ -23,9 +23,7 @@ test.describe("IDBFS Demo", () => {
     ).toBeVisible();
 
     // Check if the log output is displayed
-    await expect(
-      page.locator('text="Contents of /mnt/log.txt :"'),
-    ).toBeVisible();
+    await expect(page.getByText(/Contents of.*\/mnt\/log\.txt/)).toBeVisible();
 
     // The code block should contain a "Visited at" entry
     await expect(page.getByText(/Visited at/)).toBeVisible();

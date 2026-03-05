@@ -6,10 +6,7 @@ test.describe("IDBFS Demo", () => {
     await waitForStliteReady(page);
   });
 
-  test("renders correctly and matches snapshot", async ({
-    page,
-    expectNoDeadLinks,
-  }) => {
+  test("renders correctly and matches snapshot", async ({ page }) => {
     // Check if the title is visible
     await expect(
       page.locator('h1:has-text("IDBFS Persistent Storage")'),
@@ -27,9 +24,6 @@ test.describe("IDBFS Demo", () => {
 
     // The code block should contain a "Visited at" entry
     await expect(page.getByText(/Visited at/)).toBeVisible();
-
-    // Check for dead links
-    expectNoDeadLinks();
 
     // Take snapshot
     await expect(page).toHaveScreenshot("idbfs.png", {

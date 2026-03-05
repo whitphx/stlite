@@ -14,10 +14,10 @@ test.describe("IDBFS Persistent Storage Test", () => {
     page,
     expectNoDeadLinks,
   }) => {
-    // Check if the description is visible
+    // Check if the description is visible (backticks render /mnt as <code>, so use regex)
     await expect(
-      page.locator(
-        'text="Data written to /mnt persists across page reloads using IndexedDB."',
+      page.getByText(
+        /Data written to.*\/mnt.*persists across page reloads using IndexedDB/,
       ),
     ).toBeVisible();
 

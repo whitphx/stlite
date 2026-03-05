@@ -110,6 +110,27 @@ The `demos/` directories in `packages/browser/` and `packages/react/` serve **tr
 
 Each E2E suite has a `playwright.config.ts` that defines HTTP servers, browser projects, and timeouts. Both suites use extended timeouts to account for Pyodide loading time. See each config for details.
 
+### Playwright Snapshot Testing (`@stlite/react`)
+
+The `@stlite/react` E2E suite uses Playwright's `toHaveScreenshot()` for visual regression testing. Snapshot baselines must be generated on Linux to match CI.
+
+```bash
+cd packages/react/e2e-tests
+
+# 1. Build demo pages (must include any new demos added to vite.demo.config.ts)
+yarn build:demo
+
+# 2. Generate/update snapshots in a Docker container (Linux-consistent rendering)
+yarn test:docker:update-snapshots
+
+# 3. Commit the generated/updated .png files from snapshots/
+```
+
+- **Scripts**: `scripts/update-snapshots-linux.sh` calls `scripts/run-in-docker.sh --update-snapshots`, which runs Playwright inside `mcr.microsoft.com/playwright` Docker image.
+- **Snapshot location**: `packages/react/e2e-tests/snapshots/`
+- **Demo build output**: `packages/react/e2e-tests/demo-dist/` (built from `vite.demo.config.ts`)
+- **When adding a new demo with screenshots**: Add it to `vite.demo.config.ts` rollup inputs, run `yarn build:demo`, then run `yarn test:docker:update-snapshots` to generate the baseline image.
+
 ## Critical Constraints
 
 ### Python Version

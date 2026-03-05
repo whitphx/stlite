@@ -7,26 +7,27 @@ const kernel = createKernel({
     "app.py": {
       data: `
 import streamlit as st
-import datetime
 
 st.title("IDBFS Persistent Storage")
-st.write("Files written to \`/mnt\` persist across page reloads using IndexedDB.")
+st.write("Data written to \`/mnt\` persists across page reloads using IndexedDB.")
 
-st.button("Rerun")
+try:
+    with open("/mnt/counter.txt", "r") as f:
+        count = int(f.read())
+except (FileNotFoundError, ValueError):
+    count = 0
 
-if st.button("Clear /mnt/log.txt"):
-    with open("/mnt/log.txt", "w") as f:
-        f.write("")
+count += 1
 
-now = datetime.datetime.now()
-with open("/mnt/log.txt", "a") as f:
-    f.write(f"Visited at {now}\\n")
+with open("/mnt/counter.txt", "w") as f:
+    f.write(str(count))
 
-with open("/mnt/log.txt", "r") as f:
-    content = f.read()
+st.write(f"Visit count: {count}")
 
-st.write("Contents of \`/mnt/log.txt\`:")
-st.code(content)
+if st.button("Reset counter"):
+    with open("/mnt/counter.txt", "w") as f:
+        f.write("0")
+    st.rerun()
 `,
     },
   },

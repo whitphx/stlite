@@ -26,7 +26,7 @@ describe("useKernel", () => {
     vi.clearAllMocks();
   });
 
-  it("returns null before the effect fires, then the kernel after mount", async () => {
+  it("creates the kernel on mount with the provided options", async () => {
     const { result } = renderHook(() => useKernel(dummyOptions));
 
     // After the effect fires the kernel should be set

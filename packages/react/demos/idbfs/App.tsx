@@ -1,11 +1,12 @@
-import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { StliteAppWithToast, useKernel } from "@stlite/react";
 import { wheelUrls } from "@stlite/react/vite-utils";
 
-const kernel = createKernel({
-  entrypoint: "app.py",
-  files: {
-    "app.py": {
-      data: `
+export function App() {
+  const kernel = useKernel({
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        data: `
 import streamlit as st
 
 st.title("IDBFS Persistent Storage")
@@ -29,15 +30,14 @@ if st.button("Reset counter"):
         f.write("0")
     st.rerun()
 `,
+      },
     },
-  },
-  requirements: [],
-  prebuiltPackageNames: [],
-  archives: [],
-  wheelUrls,
-  idbfsMountpoints: ["/mnt"],
-});
+    requirements: [],
+    prebuiltPackageNames: [],
+    archives: [],
+    wheelUrls,
+    idbfsMountpoints: ["/mnt"],
+  });
 
-export function App() {
-  return <StliteAppWithToast kernel={kernel} />;
+  return kernel ? <StliteAppWithToast kernel={kernel} /> : null;
 }

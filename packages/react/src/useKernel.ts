@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { StliteKernelOptions } from "@stlite/kernel";
 import { createKernel } from "./kernel";
 import type { StliteKernel } from "@stlite/kernel";
@@ -14,14 +14,14 @@ import type { StliteKernel } from "@stlite/kernel";
  */
 export function useKernel(options: StliteKernelOptions): StliteKernel | null {
   const [kernel, setKernel] = useState<StliteKernel | null>(null);
-  const optionsRef = useRef(options);
 
   useEffect(() => {
-    const kernel = createKernel(optionsRef.current);
+    const kernel = createKernel(options);
     setKernel(kernel);
     return () => {
       kernel.dispose();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options is intentionally read only on mount.
   }, []);
 
   return kernel;

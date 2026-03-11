@@ -395,7 +395,10 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - name: Build demos
-      run: yarn build:demo
+      run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
+        yarn build:demo
       working-directory: packages/browser/e2e-tests
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"
@@ -515,7 +518,10 @@ jobs:
       working-directory: packages/browser/e2e-tests
 
     - name: Build demos
-      run: yarn build:demo
+      run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
+        yarn build:demo
       working-directory: packages/browser/e2e-tests
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"
@@ -611,7 +617,10 @@ jobs:
       working-directory: packages/react/e2e-tests
 
     - name: Build demos
-      run: yarn build:demo
+      run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
+        yarn build:demo
       working-directory: packages/react/e2e-tests
       env:
         NODE_OPTIONS: "--max-old-space-size=6144"

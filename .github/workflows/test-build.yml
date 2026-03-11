@@ -453,6 +453,8 @@ jobs:
       run: echo "PUBLIC_URL=." >> $GITHUB_ENV
     - name: Build @stlite/browser
       run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
         . .venv/bin/activate
         make browser
 
@@ -544,6 +546,8 @@ jobs:
 
     - name: Build @stlite/react
       run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
         . .venv/bin/activate
         make react
 
@@ -601,6 +605,8 @@ jobs:
       run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
     - name: Build @stlite/sharing
       run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
         . .venv/bin/activate
         make sharing
 
@@ -651,7 +657,11 @@ jobs:
     - name: Set SHARING_APP_URL (main branch)
       if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
       run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
-    - run: make sharing-editor
+    - name: Build sharing-editor
+      run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
+        make sharing-editor
 
     - name: Upload bundle visualizer report (@stlite/sharing-editor)
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -699,6 +709,8 @@ jobs:
 
     - name: Build @stlite/desktop
       run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
         . .venv/bin/activate
         make desktop
 
@@ -756,7 +768,10 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
 
     - name: Build docs
-      run: yarn build
+      run: |
+        echo "Current ulimit: $(ulimit -n)"
+        ulimit -n 65536
+        yarn build
       working-directory: docs
 
     - name: Upload the built directory as an artifact

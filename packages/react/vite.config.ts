@@ -47,7 +47,6 @@ export default defineConfig(({ mode }) => ({
         "@stlite/kernel",
         "@streamlit/connection",
         "@streamlit/protobuf",
-        "pyodide",
       ],
     }),
     viteTsconfigPaths(),
@@ -109,7 +108,13 @@ export default defineConfig(({ mode }) => ({
       formats: ["es"],
     },
     rollupOptions: {
-      external: ["react", "react-dom", "stlite_lib.whl", "streamlit.whl"],
+      external: [
+        "react",
+        "react-dom",
+        "pyodide",
+        "stlite_lib.whl",
+        "streamlit.whl",
+      ],
     },
   },
 }));

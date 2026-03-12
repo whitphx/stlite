@@ -179,7 +179,7 @@ def _fix_pandas_categorical_pickle():
     except ImportError:
         return
 
-    _original_categorical_setstate = Categorical.__setstate__
+    _original_categorical_setstate = Categorical.__setstate__  # type: ignore[reportAttributeAccessIssue]
 
     def _patched_categorical_setstate(self, state):  # type: ignore[no-untyped-def]
         if isinstance(state, tuple) and len(state) == 2:

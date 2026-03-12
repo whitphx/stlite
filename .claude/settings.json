@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(yarn install)",
+      "Bash(yarn workspace:*)",
+      "Bash(yarn build)",
+      "Bash(yarn test)",
+      "Bash(yarn fix:*)",
+      "Bash(yarn check:*)"
+    ]
+  }
+}

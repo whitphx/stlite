@@ -156,22 +156,17 @@ def _fix_requests():
 def _fix_pandas_categorical_pickle():
     """Fix pandas Categorical pickle roundtrip on Pyodide.
 
-    Workaround for a Pyodide packaging issue where the pandas wheel is compiled
-    with Cython 3.2.x, whose changed auto-pickle code generation
-    (cython/cython#7220, #7222, #7444) drops __getstate__ from NDArrayBacked.
-    Without __getstate__, pickle falls back to __reduce_cython__ which produces
-    a 2-element tuple state, but the manually-defined NDArrayBacked.__setstate__
+    Workaround for a bug in the pandas 2.3.3 wheel shipped with Pyodide 0.29.3.
+    That wheel was built with Cython 3.2.x, whose changed auto-pickle code
+    generation drops __getstate__ from the NDArrayBacked cdef class. Without
+    __getstate__, pickle falls back to __reduce_cython__ which produces a
+    2-element tuple state, but the manually-defined NDArrayBacked.__setstate__
     only handles dicts and 3-element tuples, raising NotImplementedError.
 
-    This affects Pyodide 0.29.3 (pandas 2.3.3 built with Cython >=3.2.0) but
-    NOT Pyodide 0.28.2 (pandas 2.3.1 built with Cython 3.1.x) or any official
-    CPython wheel from PyPI. The official wheels retain __getstate__ and are
-    unaffected.
-
-    The patch converts 2-element tuple states into the dict format that
-    NDArrayBacked.__setstate__ expects. This can be removed once Pyodide ships
-    a pandas wheel built with a fixed Cython or once pandas adds explicit
-    __reduce__/__getstate__ to NDArrayBacked.
+    The upstream pyodide-recipes repository has already updated to pandas 3
+    (https://github.com/pyodide/pyodide-recipes/pull/523), so this bug is
+    expected to be resolved in the next Pyodide release.
+    TODO: Remove this patch once we upgrade to a Pyodide version with pandas 3.
     """
     try:
         import numpy as np

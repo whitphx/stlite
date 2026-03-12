@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { cleanup, renderHook } from "@testing-library/react";
 import type { StliteKernel } from "@stlite/kernel";
 import { useKernel } from "./useKernel";
+import { createKernel } from "./kernel";
 
 const mockDispose = vi.fn();
 const mockKernel = { dispose: mockDispose } as unknown as StliteKernel;
@@ -9,8 +10,6 @@ const mockKernel = { dispose: mockDispose } as unknown as StliteKernel;
 vi.mock("./kernel", () => ({
   createKernel: vi.fn(() => mockKernel),
 }));
-
-const { createKernel } = await import("./kernel");
 
 const dummyOptions = {
   entrypoint: "app.py",

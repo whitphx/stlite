@@ -153,6 +153,50 @@ def _fix_requests():
         pass
 
 
+def _fix_pandas_categorical_pickle():
+    """Fix pandas Categorical pickle roundtrip on Pyodide.
+
+    Workaround for a Pyodide packaging issue where the pandas wheel is compiled
+    with Cython 3.2.x, whose changed auto-pickle code generation
+    (cython/cython#7220, #7222, #7444) drops __getstate__ from NDArrayBacked.
+    Without __getstate__, pickle falls back to __reduce_cython__ which produces
+    a 2-element tuple state, but the manually-defined NDArrayBacked.__setstate__
+    only handles dicts and 3-element tuples, raising NotImplementedError.
+
+    This affects Pyodide 0.29.3 (pandas 2.3.3 built with Cython >=3.2.0) but
+    NOT Pyodide 0.28.2 (pandas 2.3.1 built with Cython 3.1.x) or any official
+    CPython wheel from PyPI. The official wheels retain __getstate__ and are
+    unaffected.
+
+    The patch converts 2-element tuple states into the dict format that
+    NDArrayBacked.__setstate__ expects. This can be removed once Pyodide ships
+    a pandas wheel built with a fixed Cython or once pandas adds explicit
+    __reduce__/__getstate__ to NDArrayBacked.
+    """
+    try:
+        import numpy as np
+        from pandas import Categorical, CategoricalDtype
+    except ImportError:
+        return
+
+    _original_categorical_setstate = Categorical.__setstate__
+
+    def _patched_categorical_setstate(self, state):  # type: ignore[no-untyped-def]
+        if isinstance(state, tuple) and len(state) == 2:
+            a, b = state
+            if isinstance(a, CategoricalDtype):
+                state = {"_dtype": a, "_ndarray": b}
+            elif isinstance(b, CategoricalDtype):
+                state = {"_dtype": b, "_ndarray": a}
+            elif isinstance(a, np.ndarray):
+                state = {"_ndarray": a, "_dtype": b}
+            else:
+                state = {"_ndarray": b, "_dtype": a}
+        _original_categorical_setstate(self, state)
+
+    Categorical.__setstate__ = _patched_categorical_setstate  # type: ignore[assignment]
+
+
 def prepare(
     main_script_path: str,
     args: List[str],
@@ -165,5 +209,6 @@ def prepare(
     _fix_sys_path(main_script_path)
     _fix_altair()
     _fix_requests()
+    _fix_pandas_categorical_pickle()
     _fix_sys_argv(main_script_path, args)
     _fix_pydeck_mapbox_api_warning()

@@ -655,7 +655,15 @@ export function startWorkerEnv(
             _headers: PyProxy,
             _body: PyProxy,
           ) => {
-            const headers = new Map<string, string>(_headers.toJs()); // Pyodide converts dict to LiteralMap, not Map, which can't be cloned and sent to the main thread. So we convert it to Map here. Ref: https://github.com/pyodide/pyodide/pull/4576
+            const headersJs = _headers.toJs();
+            // Pyodide may convert Python dicts to Map, LiteralMap, or plain Object
+            // depending on the version. LiteralMap can't be cloned for postMessage,
+            // and plain Objects are not iterable for the Map constructor.
+            // Use Object.entries() to handle all cases uniformly.
+            const headers =
+              headersJs instanceof Map
+                ? new Map<string, string>(headersJs)
+                : new Map<string, string>(Object.entries(headersJs));
             const body = _body.toJs();
             console.debug({ statusCode, headers, body });
 

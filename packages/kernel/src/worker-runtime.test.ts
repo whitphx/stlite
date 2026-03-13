@@ -15,7 +15,11 @@ import {
 import { getAppHomeDir, resolveAppPath } from "./file";
 import { getCodeCompletions } from "./code_completion";
 import { getWheelUrls, pyodideUrl } from "./test-utils";
-import type { WorkerInitialData } from "./types";
+import type {
+  WorkerInitialData,
+  ReplyMessageHttpResponse,
+  OutMessage,
+} from "./types";
 import type { PostMessageFn } from "./worker-runtime";
 
 interface CallStartWorkerEnvOptions {
@@ -391,6 +395,159 @@ suite(
         },
       );
     }
+  },
+);
+
+suite(
+  "Worker HTTP request serving binary files",
+  {
+    timeout: 60 * 1000,
+  },
+  async () => {
+    beforeEach(() => {
+      vitest.resetModules();
+    });
+
+    afterEach(() => {
+      vitest.restoreAllMocks();
+    });
+
+    test("should serve a binary media file via HTTP without error", async () => {
+      const pyodideLoader: typeof import("./pyodide-loader") =
+        await vitest.importActual("./pyodide-loader");
+      const initPyodide = pyodideLoader.initPyodide;
+
+      let pyodide: PyodideInterface;
+      const initPyodideMock = vitest
+        .fn()
+        .mockImplementation(async (...args: Parameters<typeof initPyodide>) => {
+          pyodide = await initPyodide(...args);
+          return pyodide;
+        });
+      vitest.doMock("./pyodide-loader", () => ({
+        initPyodide: initPyodideMock,
+      }));
+
+      const { startWorkerEnv } = await import("./worker-runtime");
+
+      // Capture all outgoing messages from the worker.
+      const outMessages: OutMessage[] = [];
+      let onMessage: ReturnType<typeof startWorkerEnv>;
+
+      await new Promise<void>((resolve, reject) => {
+        const postMessage: PostMessageFn = (message) => {
+          outMessages.push(message);
+          if (message.type === "event:loadFinished") {
+            resolve();
+          } else if (message.type === "event:loadError") {
+            reject(message.data.error);
+          }
+        };
+
+        onMessage = startWorkerEnv(pyodideUrl, postMessage, undefined);
+
+        // Create a minimal 1x1 red PNG (68 bytes).
+        const pngBase64 =
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==";
+        const pngBytes = Uint8Array.from(atob(pngBase64), (c) =>
+          c.charCodeAt(0),
+        );
+
+        onMessage(
+          new MessageEvent("message", {
+            data: {
+              type: "initData",
+              data: {
+                files: {
+                  "app.py": {
+                    data: `
+import streamlit as st
+
+st.image("test.png")
+`,
+                  },
+                  "test.png": {
+                    data: pngBytes,
+                  },
+                },
+                entrypoint: "app.py",
+                wheels: getWheelUrls(),
+                archives: [],
+                requirements: [],
+                moduleAutoLoad: false,
+                prebuiltPackageNames: [],
+                languageServer: false,
+              },
+            },
+          }),
+        );
+      });
+
+      // Run the Streamlit app to register the media file in MemoryMediaFileStorage.
+      const mediaUrl = await pyodide!.runPythonAsync(`
+import warnings
+from streamlit.testing.v1 import AppTest
+from streamlit.runtime import get_instance
+
+at = AppTest.from_file("app.py")
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    await at.run()
+
+assert not at.exception, f"Exception occurred: {at.exception}"
+
+# Get the media file URL from the media file storage.
+runtime = get_instance()
+storage = runtime.media_file_mgr._storage
+file_ids = list(storage._files_by_id.keys())
+assert len(file_ids) > 0, "No media files found"
+f"/media/{file_ids[0]}"
+`);
+
+      const mediaPath: string = mediaUrl.toString();
+
+      // Send an HTTP request through the worker message interface
+      // and wait for the response via MessageChannel.
+      const httpResponse = await new Promise<
+        ReplyMessageHttpResponse["data"]["response"]
+      >((resolve, reject) => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event: MessageEvent) => {
+          const msg = event.data;
+          if (msg.type === "http:response") {
+            resolve(msg.data.response);
+          } else if (msg.error) {
+            reject(msg.error);
+          } else {
+            reject(new Error(`Unexpected message type: ${msg.type}`));
+          }
+        };
+
+        onMessage(
+          new MessageEvent("message", {
+            data: {
+              type: "http:request",
+              data: {
+                request: {
+                  method: "GET",
+                  path: mediaPath,
+                  headers: {},
+                  body: "",
+                },
+              },
+            },
+            ports: [channel.port2],
+          }),
+        );
+      });
+
+      expect(httpResponse.statusCode).toBe(200);
+      // Use constructor name check instead of `instanceof` because the
+      // Uint8Array may come from a different realm (jsdom) in the test env.
+      expect(httpResponse.body.constructor.name).toBe("Uint8Array");
+      expect(httpResponse.body.length).toBeGreaterThan(0);
+    });
   },
 );
 

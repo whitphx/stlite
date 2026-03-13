@@ -13,7 +13,7 @@ test.describe("Multi-App Test", () => {
     });
   });
 
-  test("renders both apps correctly", async ({ page, expectNoDeadLinks }) => {
+  test("renders both apps correctly", async ({ page }) => {
     // Both should show "Hello, stlite!"
     const helloTexts = page.locator('text="Hello, stlite!"');
     await expect(helloTexts).toHaveCount(2);
@@ -21,9 +21,6 @@ test.describe("Multi-App Test", () => {
     // Both should show the counter
     const counterTexts = page.getByText(/Counter: \d+/);
     await expect(counterTexts).toHaveCount(2);
-
-    // Check for dead links
-    expectNoDeadLinks();
   });
 
   test("counters work independently in each app", async ({ page }) => {

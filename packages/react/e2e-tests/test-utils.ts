@@ -1,30 +1,30 @@
 // Disable react-hooks/rules-of-hooks: Playwright's fixture `use()` function
 // triggers a false positive (ESLint thinks it's React's `use` hook).
-/* eslint-disable react-hooks/rules-of-hooks */
+
 import { test as base, expect, Page } from "@playwright/test";
 
-type ExpectNoDeadLinksFn = () => void;
-
 export const test = base.extend<{
-  expectNoDeadLinks: ExpectNoDeadLinksFn;
+  expectNoDeadLinks: void;
 }>({
-  expectNoDeadLinks: async ({ page }, use) => {
-    // Set up dead link detection
-    const failedRequests: string[] = [];
-    page.on("response", (response) => {
-      if (response.status() >= 400) {
-        failedRequests.push(`${response.status()} - ${response.url()}`);
-      }
-    });
-    const expectNoDeadLinks = () => {
+  expectNoDeadLinks: [
+    async ({ page }, use) => {
+      // Set up dead link detection
+      const failedRequests: string[] = [];
+      page.on("response", (response) => {
+        if (response.status() >= 400) {
+          failedRequests.push(`${response.status()} - ${response.url()}`);
+        }
+      });
+
+      await use();
+
       expect(
         failedRequests,
         `Found dead links: ${failedRequests.join(", ")}`,
       ).toHaveLength(0);
-    };
-
-    await use(expectNoDeadLinks);
-  },
+    },
+    { auto: true },
+  ],
 });
 
 /**

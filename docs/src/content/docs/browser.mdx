@@ -17,6 +17,7 @@ import requirementsHtml from '../../../../packages/browser/demos/requirements/in
 import sharedWorkerHtml from '../../../../packages/browser/demos/shared-worker/index.html?raw';
 import multiAppHtml from '../../../../packages/browser/demos/multi-app/index.html?raw';
 import multiAppSharedWorkerHtml from '../../../../packages/browser/demos/multi-app-shared-worker/index.html?raw';
+import idbfsHtml from '../../../../packages/browser/demos/idbfs/index.html?raw';
 
 {/* Helper to replace placeholders with CDN URLs */}
 export const cdnBase = `https://cdn.jsdelivr.net/npm/@stlite/browser@${pkg.version}/build`;
@@ -85,6 +86,12 @@ When embedding multiple apps, set `disableDocumentStyles: true` to prevent each 
 You can also combine multiple apps with `sharedWorker: true` so they share a single Python worker, reducing memory usage while keeping session state independent.
 
 <Code code={toCdn(multiAppSharedWorkerHtml)} lang="html" title="multi-app-shared-worker.html" />
+
+### Persistent Storage with IDBFS
+
+By default, the virtual file system is in-memory and lost on page reload. Use the `idbfsMountpoints` option to mount directories backed by IndexedDB, so files persist across page reloads.
+
+<Code code={toCdn(idbfsHtml)} lang="html" title="idbfs.html" />
 
 ### SharedWorker Mode
 

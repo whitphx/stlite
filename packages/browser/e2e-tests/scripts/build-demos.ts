@@ -14,9 +14,15 @@ const __dirname = path.dirname(__filename);
 const DEMOS_DIR = path.resolve(__dirname, "../../demos");
 const OUTPUT_DIR = path.resolve(__dirname, "../pages-dist");
 
+const BUILD_DIR = path.resolve(
+  __dirname,
+  process.env.BUILD_DIR || "../../build",
+);
+const LIB_SYMLINK = path.join(OUTPUT_DIR, "lib");
+
 const REPLACEMENTS: Record<string, string> = {
-  "{{STLITE_JS_URL}}": "http://localhost:8081/stlite.js",
-  "{{STLITE_CSS_URL}}": "http://localhost:8081/stlite.css",
+  "{{STLITE_JS_URL}}": "/lib/stlite.js",
+  "{{STLITE_CSS_URL}}": "/lib/stlite.css",
 };
 
 function processFile(content: string): string {
@@ -68,6 +74,10 @@ function main(): void {
 
   // Copy and process demos
   copyDir(DEMOS_DIR, OUTPUT_DIR);
+
+  // Create symlink to the built library so everything is served from one origin
+  fs.symlinkSync(BUILD_DIR, LIB_SYMLINK, "dir");
+  console.log(`Symlinked: lib -> ${BUILD_DIR}`);
 
   console.log("");
   console.log("Done!");

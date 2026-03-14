@@ -22,18 +22,11 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   timeout,
   reporter: process.env.CI ? "blob" : "html",
-  webServer: [
-    {
-      command: "http-server ./pages-dist -p 8080 --cors",
-      url: "http://localhost:8080",
-      ignoreHTTPSErrors: true,
-    },
-    {
-      command: `http-server '${process.env.BUILD_DIR || "../build"}' -p 8081 --cors`,
-      url: "http://localhost:8081",
-      ignoreHTTPSErrors: true,
-    },
-  ],
+  webServer: {
+    command: "http-server ./pages-dist -p 8080 --cors",
+    url: "http://localhost:8080",
+    ignoreHTTPSErrors: true,
+  },
   use: {
     baseURL: "http://localhost:8080",
     trace: "on-first-retry",

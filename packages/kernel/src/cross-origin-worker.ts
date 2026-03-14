@@ -66,12 +66,8 @@ export class CrossOriginWorkerMaker {
     { shared, ...workerOptions }: { shared: boolean } & WorkerOptions,
   ) {
     const sameOrigin = isSameOrigin(url);
-    if (sameOrigin || url.protocol === "data:") {
-      if (sameOrigin) {
-        console.debug(`Loading a worker script from the same origin: ${url}`);
-      } else {
-        console.debug(`Loading a worker script from a data URL.`);
-      }
+    if (sameOrigin) {
+      console.debug(`Loading a worker script from the same origin: ${url}`);
 
       // This is the normal way to load a worker script, which is the best straightforward if possible.
       this.worker = createWorker(url, shared, workerOptions);
@@ -81,7 +77,12 @@ export class CrossOriginWorkerMaker {
       // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
       // so we can't catch the error synchronously.
 
-      console.debug(`Loading a worker script from a different origin: ${url}`);
+      // We also wrap data: URLs in a blob URL because workers created directly
+      // from data: URLs have an opaque origin, which blocks access to IndexedDB
+      // (needed for IDBFS). The blob URL inherits the page's origin instead.
+      console.debug(
+        `Loading a worker script via blob URL wrapper: ${url.protocol === "data:" ? "data: URL" : url}`,
+      );
       const workerBlobUrl = getWorkerBlobUrl(
         url,
         workerOptions.type === "module",

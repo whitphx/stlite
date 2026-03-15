@@ -153,6 +153,45 @@ def _fix_requests():
         pass
 
 
+def _fix_pandas_categorical_pickle():
+    """Fix pandas Categorical pickle roundtrip on Pyodide.
+
+    Workaround for a bug in the pandas 2.3.3 wheel shipped with Pyodide 0.29.3.
+    That wheel was built with Cython 3.2.x, whose changed auto-pickle code
+    generation drops __getstate__ from the NDArrayBacked cdef class. Without
+    __getstate__, pickle falls back to __reduce_cython__ which produces a
+    2-element tuple state, but the manually-defined NDArrayBacked.__setstate__
+    only handles dicts and 3-element tuples, raising NotImplementedError.
+
+    The upstream pyodide-recipes repository has already updated to pandas 3
+    (https://github.com/pyodide/pyodide-recipes/pull/523), so this bug is
+    expected to be resolved in the next Pyodide release.
+    TODO: Remove this patch once we upgrade to a Pyodide version with pandas 3.
+    """
+    try:
+        import numpy as np
+        from pandas import Categorical, CategoricalDtype
+    except ImportError:
+        return
+
+    _original_categorical_setstate = Categorical.__setstate__  # type: ignore[reportAttributeAccessIssue]
+
+    def _patched_categorical_setstate(self, state):  # type: ignore[no-untyped-def]
+        if isinstance(state, tuple) and len(state) == 2:
+            a, b = state
+            if isinstance(a, CategoricalDtype):
+                state = {"_dtype": a, "_ndarray": b}
+            elif isinstance(b, CategoricalDtype):
+                state = {"_dtype": b, "_ndarray": a}
+            elif isinstance(a, np.ndarray):
+                state = {"_ndarray": a, "_dtype": b}
+            else:
+                state = {"_ndarray": b, "_dtype": a}
+        _original_categorical_setstate(self, state)
+
+    Categorical.__setstate__ = _patched_categorical_setstate  # type: ignore[assignment]
+
+
 def prepare(
     main_script_path: str,
     args: List[str],
@@ -165,5 +204,6 @@ def prepare(
     _fix_sys_path(main_script_path)
     _fix_altair()
     _fix_requests()
+    _fix_pandas_categorical_pickle()
     _fix_sys_argv(main_script_path, args)
     _fix_pydeck_mapbox_api_warning()

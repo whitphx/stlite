@@ -32,13 +32,18 @@ function getWorkerBlobUrl(url: URL, isModule = false): string {
 }
 
 function isOpaqueOrigin(): boolean {
-  return window.location.origin === "null";
+  // file:// pages have opaque origins, but browsers report them inconsistently:
+  // Chrome returns "file://", Firefox returns "null".
+  // Check both the protocol and the origin string to cover all browsers.
+  return (
+    window.location.protocol === "file:" || window.location.origin === "null"
+  );
 }
 
 function isSameOrigin(url: URL): boolean {
-  // Opaque origins (e.g. file://, data:) always serialize to "null",
-  // so the string comparison "null" === "null" would incorrectly return true.
-  // Two opaque origins are never actually same-origin.
+  // Opaque origins (e.g. file://) are never truly same-origin,
+  // even if the string comparison happens to match
+  // (e.g. "null" === "null" in Firefox, or "file://" === "file://" in Chrome).
   if (isOpaqueOrigin()) {
     return false;
   }

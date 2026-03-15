@@ -41,6 +41,7 @@ fi
 # - @playwright/test: for the config file import and test runner
 # - http-server: used by playwright.config.ts to serve the demo
 docker run --rm \
+  ${CI:+-e CI} \
   -v "$E2E_DIR/demo-dist:/app/demo-dist:ro" \
   -v "$E2E_DIR/tests:/app/tests:ro" \
   -v "$E2E_DIR/test-utils.ts:/app/test-utils.ts:ro" \

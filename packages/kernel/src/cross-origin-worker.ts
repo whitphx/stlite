@@ -31,7 +31,17 @@ function getWorkerBlobUrl(url: URL, isModule = false): string {
   return workerBlobUrl;
 }
 
+function isOpaqueOrigin(): boolean {
+  return window.location.origin === "null";
+}
+
 function isSameOrigin(url: URL): boolean {
+  // Opaque origins (e.g. file://, data:) always serialize to "null",
+  // so the string comparison "null" === "null" would incorrectly return true.
+  // Two opaque origins are never actually same-origin.
+  if (isOpaqueOrigin()) {
+    return false;
+  }
   return url.origin === window.location.origin;
 }
 
@@ -41,7 +51,14 @@ function createWorker(
   workerOptions: WorkerOptions,
 ): Worker | SharedWorker {
   if (shared) {
-    if (typeof window.SharedWorker !== "undefined") {
+    if (isOpaqueOrigin()) {
+      // SharedWorker silently fails on opaque origins (e.g. file:// protocol):
+      // the constructor succeeds but the worker never starts.
+      console.warn(
+        "SharedWorker is not supported on opaque origins (e.g. file:// protocol). Falling back to a regular Worker.",
+      );
+      return new Worker(url, workerOptions);
+    } else if (typeof window.SharedWorker !== "undefined") {
       console.debug(
         "Using SharedWorker. Visit chrome://inspect/#workers (Chrome) or about:debugging#/runtime/this-firefox (Firefox) to see the console output of the worker.",
       );
@@ -49,7 +66,7 @@ function createWorker(
     } else {
       // e.g. Chrome for Android
       console.warn(
-        "SharedWorker is not supported in this browser. Use the regular Worker instead.",
+        "SharedWorker is not supported in this browser. Falling back to a regular Worker.",
       );
       return new Worker(url, workerOptions);
     }

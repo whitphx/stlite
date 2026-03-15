@@ -12,8 +12,9 @@ const workerBlobUrlCache = new Map<string, string>();
 
 function getWorkerBlobUrl(url: URL, isModule = false): string {
   const urlStr = url.toString();
+  const cacheKey = `${isModule ? "module" : "classic"}:${urlStr}`;
 
-  const cached = workerBlobUrlCache.get(urlStr);
+  const cached = workerBlobUrlCache.get(cacheKey);
   if (cached) {
     console.debug(`Using a cached worker blob URL for ${urlStr}`);
     return cached;
@@ -27,11 +28,26 @@ function getWorkerBlobUrl(url: URL, isModule = false): string {
     type: isModule ? "text/javascript;type=module" : "text/javascript",
   });
   const workerBlobUrl = URL.createObjectURL(workerBlob);
-  workerBlobUrlCache.set(urlStr, workerBlobUrl);
+  workerBlobUrlCache.set(cacheKey, workerBlobUrl);
   return workerBlobUrl;
 }
 
+function isOpaqueOrigin(): boolean {
+  // file:// pages have opaque origins, but browsers report them inconsistently:
+  // Chrome returns "file://", Firefox returns "null".
+  // Check both the protocol and the origin string to cover all browsers.
+  return (
+    window.location.protocol === "file:" || window.location.origin === "null"
+  );
+}
+
 function isSameOrigin(url: URL): boolean {
+  // Opaque origins (e.g. file://) are never truly same-origin,
+  // even if the string comparison happens to match
+  // (e.g. "null" === "null" in Firefox, or "file://" === "file://" in Chrome).
+  if (isOpaqueOrigin()) {
+    return false;
+  }
   return url.origin === window.location.origin;
 }
 
@@ -41,7 +57,14 @@ function createWorker(
   workerOptions: WorkerOptions,
 ): Worker | SharedWorker {
   if (shared) {
-    if (typeof window.SharedWorker !== "undefined") {
+    if (isOpaqueOrigin()) {
+      // SharedWorker silently fails on opaque origins (e.g. file:// protocol):
+      // the constructor succeeds but the worker never starts.
+      console.warn(
+        "SharedWorker is not supported on opaque origins (e.g. file:// protocol). Falling back to a regular Worker.",
+      );
+      return new Worker(url, workerOptions);
+    } else if (typeof window.SharedWorker !== "undefined") {
       console.debug(
         "Using SharedWorker. Visit chrome://inspect/#workers (Chrome) or about:debugging#/runtime/this-firefox (Firefox) to see the console output of the worker.",
       );
@@ -49,7 +72,7 @@ function createWorker(
     } else {
       // e.g. Chrome for Android
       console.warn(
-        "SharedWorker is not supported in this browser. Use the regular Worker instead.",
+        "SharedWorker is not supported in this browser. Falling back to a regular Worker.",
       );
       return new Worker(url, workerOptions);
     }
@@ -66,12 +89,8 @@ export class CrossOriginWorkerMaker {
     { shared, ...workerOptions }: { shared: boolean } & WorkerOptions,
   ) {
     const sameOrigin = isSameOrigin(url);
-    if (sameOrigin || url.protocol === "data:") {
-      if (sameOrigin) {
-        console.debug(`Loading a worker script from the same origin: ${url}`);
-      } else {
-        console.debug(`Loading a worker script from a data URL.`);
-      }
+    if (sameOrigin) {
+      console.debug(`Loading a worker script from the same origin: ${url}`);
 
       // This is the normal way to load a worker script, which is the best straightforward if possible.
       this.worker = createWorker(url, shared, workerOptions);
@@ -81,7 +100,12 @@ export class CrossOriginWorkerMaker {
       // In the cross-origin case, FireFox throws a SecurityError asynchronously after the worker is created,
       // so we can't catch the error synchronously.
 
-      console.debug(`Loading a worker script from a different origin: ${url}`);
+      // We also wrap data: URLs in a blob URL because workers created directly
+      // from data: URLs have an opaque origin, which blocks access to IndexedDB
+      // (needed for IDBFS). The blob URL inherits the page's origin instead.
+      console.debug(
+        `Loading a worker script via blob URL wrapper: ${url.protocol === "data:" ? "data: URL" : url}`,
+      );
       const workerBlobUrl = getWorkerBlobUrl(
         url,
         workerOptions.type === "module",

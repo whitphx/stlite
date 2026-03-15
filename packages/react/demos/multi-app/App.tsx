@@ -1,11 +1,12 @@
-import { StliteAppWithToast, createKernel } from "@stlite/react";
+import { StliteAppWithToast, useKernel } from "@stlite/react";
 import { wheelUrls } from "@stlite/react/vite-utils";
 
-const kernel1 = createKernel({
-  entrypoint: "app.py",
-  files: {
-    "app.py": {
-      data: `
+export function App() {
+  const kernel1 = useKernel({
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        data: `
 import streamlit as st
 
 st.write("Hello, stlite!")
@@ -19,18 +20,18 @@ if st.button("Increment counter"):
 
 st.write(f"Counter: {st.session_state.counter}")
 `,
+      },
     },
-  },
-  requirements: [],
-  prebuiltPackageNames: [],
-  archives: [],
-  wheelUrls,
-});
-const kernel2 = createKernel({
-  entrypoint: "app.py",
-  files: {
-    "app.py": {
-      data: `
+    requirements: [],
+    prebuiltPackageNames: [],
+    archives: [],
+    wheelUrls,
+  });
+  const kernel2 = useKernel({
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        data: `
 import streamlit as st
 
 st.write("Hello, stlite!")
@@ -44,15 +45,16 @@ if st.button("Increment counter"):
 
 st.write(f"Counter: {st.session_state.counter}")
 `,
+      },
     },
-  },
-  requirements: [],
-  prebuiltPackageNames: [],
-  archives: [],
-  wheelUrls,
-});
+    requirements: [],
+    prebuiltPackageNames: [],
+    archives: [],
+    wheelUrls,
+  });
 
-export function App() {
+  if (!kernel1 || !kernel2) return null;
+
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", gap: 16 }}>
       <div style={{ position: "relative", flex: 1 }}>

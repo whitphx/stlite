@@ -1,5 +1,16 @@
 # @stlite/sharing
 
+## 0.94.0
+
+### Minor Changes
+
+- [#1893](https://github.com/whitphx/stlite/pull/1893) [`6991477`](https://github.com/whitphx/stlite/commit/6991477416911a49044fbbe266ac338fecfd5b40) Thanks [@whitphx](https://github.com/whitphx)! - Update Pyodide to 0.29.3
+
+### Patch Changes
+
+- Updated dependencies [[`a3aa0fb`](https://github.com/whitphx/stlite/commit/a3aa0fb70ec631aba6e7f73dec74b10236518da5), [`6991477`](https://github.com/whitphx/stlite/commit/6991477416911a49044fbbe266ac338fecfd5b40)]:
+  - @stlite/react@1.2.0
+
 ## 0.93.0
 
 ### Minor Changes

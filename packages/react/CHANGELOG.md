@@ -1,5 +1,13 @@
 # @stlite/react
 
+## 1.2.0
+
+### Minor Changes
+
+- [#1898](https://github.com/whitphx/stlite/pull/1898) [`a3aa0fb`](https://github.com/whitphx/stlite/commit/a3aa0fb70ec631aba6e7f73dec74b10236518da5) Thanks [@whitphx](https://github.com/whitphx)! - Add `useKernel` hook that creates a kernel tied to the React component lifecycle. The kernel is created after the first render (on mount) in an effect and automatically disposed on unmount, preventing resource leaks. Use this instead of calling `createKernel()` directly for most React use cases.
+
+- [#1893](https://github.com/whitphx/stlite/pull/1893) [`6991477`](https://github.com/whitphx/stlite/commit/6991477416911a49044fbbe266ac338fecfd5b40) Thanks [@whitphx](https://github.com/whitphx)! - Update Pyodide to 0.29.3
+
 ## 1.1.0
 
 ### Minor Changes

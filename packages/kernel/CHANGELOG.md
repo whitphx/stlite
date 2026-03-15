@@ -1,5 +1,15 @@
 # @stlite/kernel
 
+## 0.98.0
+
+### Minor Changes
+
+- [#1893](https://github.com/whitphx/stlite/pull/1893) [`6991477`](https://github.com/whitphx/stlite/commit/6991477416911a49044fbbe266ac338fecfd5b40) Thanks [@whitphx](https://github.com/whitphx)! - Update Pyodide to 0.29.3
+
+### Patch Changes
+
+- [#1910](https://github.com/whitphx/stlite/pull/1910) [`9f99bf6`](https://github.com/whitphx/stlite/commit/9f99bf612d2e6add0dd26c6fcc53bbf399420d03) Thanks [@whitphx](https://github.com/whitphx)! - Fix worker creation on opaque origins (e.g. file:// protocol, data: URLs): wrap data: URL workers in blob URLs to fix IndexedDB access (IDBFS), correctly detect opaque origins in same-origin checks, and fall back from SharedWorker to regular Worker on opaque origins where SharedWorker silently fails
+
 ## 0.97.2
 
 ### Patch Changes

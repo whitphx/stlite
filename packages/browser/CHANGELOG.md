@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 1.3.0
+
+### Minor Changes
+
+- [#1893](https://github.com/whitphx/stlite/pull/1893) [`6991477`](https://github.com/whitphx/stlite/commit/6991477416911a49044fbbe266ac338fecfd5b40) Thanks [@whitphx](https://github.com/whitphx)! - Update Pyodide to 0.29.3
+
 ## 1.2.0
 
 ### Minor Changes

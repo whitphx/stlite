@@ -12,8 +12,9 @@ const workerBlobUrlCache = new Map<string, string>();
 
 function getWorkerBlobUrl(url: URL, isModule = false): string {
   const urlStr = url.toString();
+  const cacheKey = `${isModule ? "module" : "classic"}:${urlStr}`;
 
-  const cached = workerBlobUrlCache.get(urlStr);
+  const cached = workerBlobUrlCache.get(cacheKey);
   if (cached) {
     console.debug(`Using a cached worker blob URL for ${urlStr}`);
     return cached;
@@ -27,7 +28,7 @@ function getWorkerBlobUrl(url: URL, isModule = false): string {
     type: isModule ? "text/javascript;type=module" : "text/javascript",
   });
   const workerBlobUrl = URL.createObjectURL(workerBlob);
-  workerBlobUrlCache.set(urlStr, workerBlobUrl);
+  workerBlobUrlCache.set(cacheKey, workerBlobUrl);
   return workerBlobUrl;
 }
 

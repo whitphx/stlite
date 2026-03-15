@@ -1,7 +1,13 @@
 import { test, expect, FIRST_VIEW_TIMEOUT } from "../test-utils";
 
+// Skip for file:// protocol - IndexedDB is not available on opaque origins
 test.describe("IDBFS Persistent Storage Test", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name.includes("file-protocol"),
+      "IDBFS requires IndexedDB which is not available on file:// origins",
+    );
+
     await page.goto("/idbfs/index.html");
 
     // First view: the title should be visible when the app is loaded

@@ -18,7 +18,7 @@
     "cspell": "cspell lint --no-progress --cache --config ./cspell.json ."
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.29.8",
     "cspell": "^9.6.4",
     "husky": "^9.1.7",

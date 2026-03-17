@@ -33,9 +33,9 @@ Use these sources in priority order:
 ### 2. Check for existing changesets on this branch
 
 ```shell
-# Check both committed and untracked changeset files
-git diff main --name-only -- '.changeset/*.md'
-ls .changeset/*.md 2>/dev/null | grep -v README.md
+# Check branch-introduced/modified and untracked changeset files
+git diff --name-only main..HEAD -- '.changeset/*.md'
+git ls-files --others --exclude-standard -- '.changeset/*.md'
 ```
 
 If a changeset already exists for this branch (either committed or untracked), read it and decide whether to **update** it (if the scope of changes has grown) or leave it alone. Don't create duplicates.

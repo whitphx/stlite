@@ -54,36 +54,87 @@ done
 
 Use the git diff output to identify which `packages/*/` directories have changes, then look up the package name from the corresponding `package.json`.
 
-Changes to the `streamlit/` submodule primarily affect `@stlite/kernel` (which builds the Streamlit wheel).
+Changes to the `streamlit/` submodule affect different `@stlite/*` packages depending on what changed:
+
+- `streamlit/lib/` (Python code) → `@stlite/kernel` (builds the Streamlit wheel)
+- `streamlit/frontend/` (TypeScript/React code) → `@stlite/kernel` and `@stlite/react` (which consume `@streamlit/connection` and `@streamlit/app` respectively)
+
+Note: `@streamlit/*` packages (under `streamlit/frontend/`) are not released — they are source packages consumed by `@stlite/*` packages. Only `@stlite/*` packages should appear in changesets.
 
 #### DevDependency consumers must be listed explicitly
 
 Changesets does not automatically bump packages that consume a changed package via `devDependencies` (see https://github.com/changesets/changesets/pull/1159). Because of this, when a package is changed, its **devDependency consumers** must also be listed in the changeset explicitly.
 
-To find the devDependency consumer graph, run this command from the repo root:
+To find the devDependency consumer graph, run this command from the repo root. It scans both `packages/` and `streamlit/frontend/` workspaces, and traces indirect paths where `@stlite/*` packages are connected through `@streamlit/*` intermediaries:
 
 ```bash
 node <<'EOF'
 const fs = require('fs');
 const path = require('path');
-const pkgDirs = fs.readdirSync('packages').filter(d => fs.existsSync(path.join('packages', d, 'package.json')));
-const graph = {};
-for (const dir of pkgDirs) {
-  const pkg = JSON.parse(fs.readFileSync(path.join('packages', dir, 'package.json'), 'utf8'));
-  const devDeps = Object.keys(pkg.devDependencies || {}).filter(d => d.startsWith('@stlite/'));
-  for (const dep of devDeps) {
-    (graph[dep] ??= []).push(pkg.name);
+
+// Collect all workspace packages
+const workspaces = [];
+for (const base of ['packages', 'streamlit/frontend']) {
+  if (!fs.existsSync(base)) continue;
+  for (const dir of fs.readdirSync(base)) {
+    const pkgPath = path.join(base, dir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      workspaces.push(JSON.parse(fs.readFileSync(pkgPath, 'utf8')));
+    }
   }
 }
-for (const [dep, consumers] of Object.entries(graph).sort()) {
-  console.log(dep + ' is consumed as devDependency by: ' + consumers.join(', '));
+
+// Build devDependency edges: dep -> [consumers]
+const devDepGraph = {};
+for (const pkg of workspaces) {
+  for (const dep of Object.keys(pkg.devDependencies || {})) {
+    if (dep.startsWith('@stlite/') || dep.startsWith('@streamlit/')) {
+      (devDepGraph[dep] ??= []).push(pkg.name);
+    }
+  }
+}
+
+// Build regular dependency edges too (for traversal through @streamlit/*)
+const depGraph = {};
+for (const pkg of workspaces) {
+  for (const dep of Object.keys(pkg.dependencies || {})) {
+    if (dep.startsWith('@stlite/') || dep.startsWith('@streamlit/')) {
+      (depGraph[dep] ??= []).push(pkg.name);
+    }
+  }
+}
+
+// For each @stlite/* package, find all @stlite/* packages that transitively
+// devDepend on it (possibly through @streamlit/* intermediaries)
+const stlitePackages = workspaces.filter(p => p.name.startsWith('@stlite/')).map(p => p.name);
+for (const pkg of stlitePackages) {
+  const consumers = new Set();
+  const queue = [pkg];
+  const visited = new Set();
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (visited.has(current)) continue;
+    visited.add(current);
+    // Find packages that devDepend on current
+    for (const consumer of (devDepGraph[current] || [])) {
+      if (consumer.startsWith('@stlite/')) consumers.add(consumer);
+      queue.push(consumer);
+    }
+    // Also follow regular dep edges from @streamlit/* packages
+    // (e.g., @streamlit/app depends on @stlite/kernel, so if kernel changes,
+    // anything that devDepends on @streamlit/app is also affected)
+    for (const consumer of (depGraph[current] || [])) {
+      if (consumer.startsWith('@streamlit/')) queue.push(consumer);
+    }
+  }
+  if (consumers.size > 0) {
+    console.log(pkg + ' -> devDep consumers: ' + [...consumers].sort().join(', '));
+  }
 }
 EOF
 ```
 
-Use this output to determine which additional packages must be listed. Follow the graph transitively — if package A is changed and B dev-depends on A, also check if any package dev-depends on B, and so on.
-
-For example, if `@stlite/kernel` has a `minor` change, you should also list its devDependency consumers (e.g., `@stlite/react`, `@stlite/desktop`) and their transitive devDependency consumers (e.g., `@stlite/browser` which dev-depends on `@stlite/react`) — all with the same bump type.
+Use this output to determine which additional `@stlite/*` packages must be listed in the changeset. All devDependency consumers (including those connected indirectly through `@streamlit/*` packages) should get the same bump type as the source package.
 
 You do NOT need to list packages connected only via regular `dependencies` — changesets handles those automatically.
 

@@ -33,10 +33,12 @@ Use these sources in priority order:
 ### 2. Check for existing changesets on this branch
 
 ```shell
+# Check both committed and untracked changeset files
 git diff main --name-only -- '.changeset/*.md'
+ls .changeset/*.md 2>/dev/null | grep -v README.md
 ```
 
-If a changeset already exists for this branch, read it and decide whether to **update** it (if the scope of changes has grown) or leave it alone. Don't create duplicates.
+If a changeset already exists for this branch (either committed or untracked), read it and decide whether to **update** it (if the scope of changes has grown) or leave it alone. Don't create duplicates.
 
 ### 3. Determine affected packages
 
@@ -104,6 +106,16 @@ When in doubt, prefer `minor` for new capabilities and `patch` for fixes.
 - Keep the description concise — focus on what changed from the user's perspective, not implementation details.
 - All devDependency consumers of affected packages should get the same bump type as the source package.
 
-### 6. Confirm with the user
+### 6. Validate the changeset
 
-Show the user the changeset content before writing it, or write it and show the result. If any judgment calls were ambiguous (e.g., patch vs minor), explain your reasoning.
+After writing the file, run:
+
+```shell
+yarn changeset status --since main
+```
+
+This confirms that the changeset is well-formed and lists the expected version bumps. If the output looks wrong, fix the file before proceeding.
+
+### 7. Confirm with the user
+
+Show the user the changeset content and the validation output. If any judgment calls were ambiguous (e.g., patch vs minor), explain your reasoning.

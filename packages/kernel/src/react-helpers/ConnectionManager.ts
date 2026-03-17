@@ -183,7 +183,7 @@ export class ConnectionManager
     }
 
     if (errMsg) {
-      this.props.onConnectionError(errMsg);
+      this.props.onConnectionError({ message: errMsg });
     }
   };
 

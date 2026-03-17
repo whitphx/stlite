@@ -1,5 +1,13 @@
 # docs
 
+## 0.0.12
+
+### Patch Changes
+
+- Updated dependencies [[`cdeb54a`](https://github.com/whitphx/stlite/commit/cdeb54a521b80fe39cbf0538dfd4f12c4a7e9859)]:
+  - @stlite/browser@1.4.0
+  - @stlite/desktop@0.96.0
+
 ## 0.0.11
 
 ### Patch Changes

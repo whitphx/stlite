@@ -63,9 +63,9 @@ Changesets does not automatically bump packages that consume a changed package v
 The devDependency consumer graph (only listing devDependency edges, since regular dependency edges are handled automatically by changesets):
 
 - `@stlite/kernel` is consumed as devDependency by: `@stlite/react`, `@stlite/desktop`
-- `@stlite/react` is consumed as devDependency by: `@stlite/browser`
+- `@stlite/react` is consumed as devDependency by: `@stlite/browser`, `@stlite/desktop`
 - `@stlite/common` is consumed as devDependency by: `@stlite/react`, `@stlite/browser`, `@stlite/desktop`
-- `@stlite/tooling` is consumed as devDependency by: `@stlite/kernel`, `@stlite/desktop`
+- `@stlite/tooling` is consumed as devDependency by: `@stlite/kernel`, `@stlite/react`, `@stlite/desktop`
 
 So for example, if `@stlite/kernel` has a `minor` change, you should also list `@stlite/react`, `@stlite/desktop`, and transitively `@stlite/browser` (which dev-depends on `@stlite/react`) — all with the same bump type.
 

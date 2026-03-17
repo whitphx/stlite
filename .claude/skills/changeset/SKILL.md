@@ -32,9 +32,11 @@ Use these sources in priority order:
 
 ### 2. Check for existing changesets on this branch
 
-```shell
-# Check branch-introduced/modified and untracked changeset files
+```bash
+# Check committed, staged, modified, and untracked changeset files
 git diff --name-only main..HEAD -- '.changeset/*.md'
+git diff --name-only --cached -- '.changeset/*.md'
+git diff --name-only -- '.changeset/*.md'
 git ls-files --others --exclude-standard -- '.changeset/*.md'
 ```
 
@@ -64,8 +66,8 @@ Changesets does not automatically bump packages that consume a changed package v
 
 To find the devDependency consumer graph, run this command from the repo root:
 
-```shell
-node -e "
+```bash
+node <<'EOF'
 const fs = require('fs');
 const path = require('path');
 const pkgDirs = fs.readdirSync('packages').filter(d => fs.existsSync(path.join('packages', d, 'package.json')));
@@ -80,7 +82,7 @@ for (const dir of pkgDirs) {
 for (const [dep, consumers] of Object.entries(graph).sort()) {
   console.log(dep + ' is consumed as devDependency by: ' + consumers.join(', '));
 }
-"
+EOF
 ```
 
 Use this output to determine which additional packages must be listed. Follow the graph transitively — if package A is changed and B dev-depends on A, also check if any package dev-depends on B, and so on.

@@ -34,7 +34,7 @@ Use these sources in priority order:
 
 ```bash
 # Check committed, staged, modified, and untracked changeset files
-git diff --name-only main..HEAD -- '.changeset/*.md'
+git diff --name-only main...HEAD -- '.changeset/*.md'
 git diff --name-only --cached -- '.changeset/*.md'
 git diff --name-only -- '.changeset/*.md'
 git ls-files --others --exclude-standard -- '.changeset/*.md'

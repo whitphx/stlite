@@ -60,14 +60,30 @@ Changes to the `streamlit/` submodule primarily affect `@stlite/kernel` (which b
 
 Changesets does not automatically bump packages that consume a changed package via `devDependencies` (see https://github.com/changesets/changesets/pull/1159). Because of this, when a package is changed, its **devDependency consumers** must also be listed in the changeset explicitly.
 
-The devDependency consumer graph (only listing devDependency edges, since regular dependency edges are handled automatically by changesets):
+To find the devDependency consumer graph, run this command from the repo root:
 
-- `@stlite/kernel` is consumed as devDependency by: `@stlite/react`, `@stlite/desktop`
-- `@stlite/react` is consumed as devDependency by: `@stlite/browser`, `@stlite/desktop`
-- `@stlite/common` is consumed as devDependency by: `@stlite/react`, `@stlite/browser`, `@stlite/desktop`
-- `@stlite/tooling` is consumed as devDependency by: `@stlite/kernel`, `@stlite/react`, `@stlite/desktop`
+```shell
+node -e "
+const fs = require('fs');
+const path = require('path');
+const pkgDirs = fs.readdirSync('packages').filter(d => fs.existsSync(path.join('packages', d, 'package.json')));
+const graph = {};
+for (const dir of pkgDirs) {
+  const pkg = JSON.parse(fs.readFileSync(path.join('packages', dir, 'package.json'), 'utf8'));
+  const devDeps = Object.keys(pkg.devDependencies || {}).filter(d => d.startsWith('@stlite/'));
+  for (const dep of devDeps) {
+    (graph[dep] ??= []).push(pkg.name);
+  }
+}
+for (const [dep, consumers] of Object.entries(graph).sort()) {
+  console.log(dep + ' is consumed as devDependency by: ' + consumers.join(', '));
+}
+"
+```
 
-So for example, if `@stlite/kernel` has a `minor` change, you should also list `@stlite/react`, `@stlite/desktop`, and transitively `@stlite/browser` (which dev-depends on `@stlite/react`) — all with the same bump type.
+Use this output to determine which additional packages must be listed. Follow the graph transitively — if package A is changed and B dev-depends on A, also check if any package dev-depends on B, and so on.
+
+For example, if `@stlite/kernel` has a `minor` change, you should also list its devDependency consumers (e.g., `@stlite/react`, `@stlite/desktop`) and their transitive devDependency consumers (e.g., `@stlite/browser` which dev-depends on `@stlite/react`) — all with the same bump type.
 
 You do NOT need to list packages connected only via regular `dependencies` — changesets handles those automatically.
 

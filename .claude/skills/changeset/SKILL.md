@@ -27,7 +27,7 @@ Short description of the change
 Use these sources in priority order:
 
 1. **Conversation history** — Review what was done in this session. This is the richest source because it captures intent, not just diffs.
-2. **Git diff against the base branch** — Run `git diff main --stat` and `git log main..HEAD --oneline` to see all changes on the current branch.
+2. **Git diff against the base branch** — Run `git diff --stat main...HEAD` and `git log main..HEAD --oneline` to see all changes introduced on the current branch.
 3. **Ask the user** — If the above sources don't give enough information to determine affected packages or bump type, ask.
 
 ### 2. Check for existing changesets on this branch
@@ -40,7 +40,7 @@ git diff --name-only -- '.changeset/*.md'
 git ls-files --others --exclude-standard -- '.changeset/*.md'
 ```
 
-If a changeset already exists for this branch (either committed or untracked), read it and decide whether to **update** it (if the scope of changes has grown) or leave it alone. Don't create duplicates.
+If a changeset already exists for this branch (committed, staged, modified, or untracked), read it and decide whether to **update** it (if the scope of changes has grown) or leave it alone. Don't create duplicates.
 
 ### 3. Determine affected packages
 

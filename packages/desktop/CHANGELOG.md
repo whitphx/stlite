@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.97.0
+
+### Minor Changes
+
+- [#1920](https://github.com/whitphx/stlite/pull/1920) [`83e374d`](https://github.com/whitphx/stlite/commit/83e374d5ebe626da858c59e1b63b4634ce963253) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.53.1
+
 ## 0.96.0
 
 ### Minor Changes

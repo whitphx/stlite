@@ -1,5 +1,16 @@
 # @stlite/sharing
 
+## 0.95.0
+
+### Minor Changes
+
+- [`cdeb54a`](https://github.com/whitphx/stlite/commit/cdeb54a521b80fe39cbf0538dfd4f12c4a7e9859) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.52.2 (https://github.com/whitphx/stlite/pull/1919)
+
+### Patch Changes
+
+- Updated dependencies [[`cdeb54a`](https://github.com/whitphx/stlite/commit/cdeb54a521b80fe39cbf0538dfd4f12c4a7e9859)]:
+  - @stlite/react@1.3.0
+
 ## 0.94.0
 
 ### Minor Changes

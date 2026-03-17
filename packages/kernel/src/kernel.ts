@@ -101,7 +101,7 @@ export interface StliteKernelOptions {
    * by sending the `SET_PAGE_LINK_BASE_URL` message to the app in a WebView panel to override the URL scheme of the links.
    * Note that Streamlit's iframe messaging referred to here is different from the iframe messaging mechanism implemented for the iframe embedded on stlite sharing.
    */
-  hostConfigResponse?: IHostConfigProperties;
+  hostConfigProperties?: IHostConfigProperties;
 
   /**
    * The `pathname` that will be used as both
@@ -209,7 +209,7 @@ export class StliteKernel extends EventTarget {
   private _workerInitData: WorkerInitialData;
 
   public readonly basePath: string; // TODO: Move this prop to outside this class. This is not a member of the kernel business logic, but just a globally referred value.
-  public readonly hostConfigResponse: IHostConfigProperties; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
+  public readonly hostConfigProperties: IHostConfigProperties; // Will be passed to ConnectionManager to call `onHostConfigResp` from it.
 
   addEventListener<K extends keyof StliteKernelEventMap>(
     type: K,
@@ -245,7 +245,7 @@ export class StliteKernel extends EventTarget {
     this.basePath = normalizeBasePath(
       options.basePath ?? window.location.pathname,
     );
-    this.hostConfigResponse = options.hostConfigResponse ?? {};
+    this.hostConfigProperties = options.hostConfigProperties ?? {};
 
     if (options.worker) {
       this._worker = options.worker;

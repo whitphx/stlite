@@ -46,7 +46,7 @@ export type SimplifiedStliteKernelOptions = Partial<{
   >;
   archives: StliteKernelOptions["archives"];
   installs: StliteKernelOptions["installs"];
-  hostConfig: StliteKernelOptions["hostConfigResponse"];
+  hostConfig: StliteKernelOptions["hostConfigProperties"];
   pyodideUrl: StliteKernelOptions["pyodideUrl"];
   wheelUrls: StliteKernelOptions["wheelUrls"];
   streamlitConfig: StliteKernelOptions["streamlitConfig"];
@@ -167,7 +167,7 @@ export function parseMountOptions(options: MountOptions): {
       archives,
       requirements: options.requirements || [],
       prebuiltPackageNames: options.prebuiltPackageNames || [],
-      hostConfigResponse: options.hostConfig,
+      hostConfigProperties: options.hostConfig,
       pyodideUrl: options.pyodideUrl,
       streamlitConfig: options.streamlitConfig,
       wheelUrls: options.wheelUrls,

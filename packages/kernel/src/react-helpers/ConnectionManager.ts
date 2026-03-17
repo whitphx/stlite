@@ -149,7 +149,7 @@ export class ConnectionManager
 
       await this.props.kernel.loaded;
       console.debug("The kernel has been loaded. Start connecting.");
-      this.props.onHostConfigResp(this.props.kernel.hostConfigResponse);
+      this.props.onHostConfigResp(this.props.kernel.hostConfigProperties);
 
       await this.props.kernel.connectWebSocket("/" + WEBSOCKET_STREAM_PATH);
       this.setConnectionState(ConnectionState.CONNECTED);

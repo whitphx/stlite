@@ -44,19 +44,15 @@ If a changeset already exists for this branch (committed, staged, modified, or u
 
 ### 3. Determine affected packages
 
-The packages in this monorepo are:
+Each subdirectory under `packages/` is a package. To list all packages and their names:
 
-| Package                  | Path                      |
-| ------------------------ | ------------------------- |
-| `@stlite/common`         | `packages/common`         |
-| `@stlite/kernel`         | `packages/kernel`         |
-| `@stlite/react`          | `packages/react`          |
-| `@stlite/browser`        | `packages/browser`        |
-| `@stlite/desktop`        | `packages/desktop`        |
-| `@stlite/sharing`        | `packages/sharing`        |
-| `@stlite/sharing-common` | `packages/sharing-common` |
-| `@stlite/sharing-editor` | `packages/sharing-editor` |
-| `@stlite/tooling`        | `packages/tooling`        |
+```bash
+for dir in packages/*/; do
+  node -e "console.log(require('./$dir/package.json').name + ' -> ' + '$dir')"
+done
+```
+
+Use the git diff output to identify which `packages/*/` directories have changes, then look up the package name from the corresponding `package.json`.
 
 Changes to the `streamlit/` submodule primarily affect `@stlite/kernel` (which builds the Streamlit wheel).
 

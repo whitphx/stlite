@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.99.0
+
+### Minor Changes
+
+- [#1913](https://github.com/whitphx/stlite/pull/1913) [`cff9b33`](https://github.com/whitphx/stlite/commit/cff9b33d9a4cba5aeb0a4b663b64897c5f28b50a) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.52.2
+
 ## 0.98.0
 
 ### Minor Changes

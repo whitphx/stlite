@@ -15,6 +15,10 @@ inputs:
     description: 'Whether to install protoc'
     required: false
     default: 'true'
+  takumi-guard-bot-id:
+    description: 'Takumi Guard Bot ID assigned to the namespace'
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -82,11 +86,21 @@ runs:
       shell: bash
       if: ${{ inputs.protoc == 'true' }}
 
+    - name: Set up Takumi Guard for PyPI
+      uses: flatt-security/setup-takumi-guard-pypi@7d825811bb293b9e0230477165442580a0074280 # v1.0.0
+      with:
+        bot-id: ${{ inputs.takumi-guard-bot-id }}
+      if: ${{ inputs.python-version-file }}
     - name: Set up Python packages
       run: make venv
       shell: bash
       if: ${{ inputs.python-version-file }}
 
+    - name: Set up Takumi Guard for NPM
+      uses: flatt-security/setup-takumi-guard-npm@8f53b50568e4466f2d92504f349c05b9ffcb8b59 # v1
+      with:
+        bot-id: ${{ inputs.takumi-guard-bot-id }}
+      if: ${{ inputs.node-version-file }}
     - name: Set up Node packages
       run: make node_modules
       shell: bash

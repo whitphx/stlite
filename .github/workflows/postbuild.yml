@@ -671,6 +671,7 @@ jobs:
         node-version-file: ${{ env.node-version-file }}
         install-node-modules: false
         protoc: false
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - run: cp -r packages/desktop/samples/basic ${{ runner.temp }}/sample_app
 

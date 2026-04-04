@@ -78,6 +78,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           protoc: false
+          takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
       - name: Generate a token
         id: generate-token
@@ -177,6 +178,7 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         protoc: false
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -204,6 +206,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -228,6 +231,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Install dependencies
       shell: bash
@@ -280,6 +284,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -306,6 +311,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -333,6 +339,7 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         protoc: false
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -358,6 +365,7 @@ jobs:
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - run: make sharing-common
       working-directory: .
@@ -386,6 +394,7 @@ jobs:
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       run: |
@@ -419,6 +428,7 @@ jobs:
       with:
         node-version-file: ${{ env.node-version-file }}
         protoc: false
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Lint
       if: ${{ matrix.os == 'ubuntu-latest' }}  # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.
@@ -447,6 +457,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
     - name: Set PUBLIC_URL
@@ -541,6 +552,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Build @stlite/react
       run: |
@@ -592,6 +604,8 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
+
     ## Build and upload @stlite/sharing
     - name: Set EDITOR_APP_ORIGIN (preview)
       if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
@@ -644,6 +658,7 @@ jobs:
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Set build option envvar for the preview build
       if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
@@ -696,6 +711,7 @@ jobs:
       with:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Build @stlite/desktop
       run: |
@@ -754,6 +770,7 @@ jobs:
     - uses: ./.github/actions/init-all
       with:
         node-version-file: ${{ env.node-version-file }}
+        takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
     - name: Build docs
       run: yarn build

@@ -31,7 +31,7 @@ runs:
 
     ## Set up Node environment
     - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
-      if: runner.os == 'Windows' && ${{ inputs.node-version-file }}
+      if: ${{ runner.os == 'Windows' && inputs.node-version-file }}
       run: npm uninstall -g yarn
       shell: bash
 

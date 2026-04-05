@@ -48,15 +48,10 @@ runs:
       if: ${{ inputs.node-version-file }}
 
     # `actions/setup-node`'s cache option doesn't work well with corepack.
-    - name: Get Yarn cache directory path
-      id: yarn-cache-path
-      run: echo "path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-      shell: bash
-      if: ${{ inputs.node-version-file }}
-    - name: Cache Yarn global dependencies
+    - name: Restore Yarn cache
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
-        path: ${{ steps.yarn-cache-path.outputs.path }}
+        path: .yarn/cache
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-yarn-
@@ -105,3 +100,7 @@ runs:
       run: make node_modules
       shell: bash
       if: ${{ inputs.node-version-file && inputs.install-node-modules == 'true' }}
+      env:
+        YARN_ENABLE_GLOBAL_CACHE: "false"
+        YARN_ENABLE_MIRROR: "false"
+        YARN_CACHE_FOLDER: .yarn/cache

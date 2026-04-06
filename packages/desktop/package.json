@@ -74,7 +74,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "concurrently": "^9.1.2",
     "cross-env": "^10.1.0",
-    "electron": "34.3.0",
+    "electron": "39.8.5",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.27.1",
     "eslint": "^9.39.1",
@@ -95,7 +95,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.5",
+    "vite": "^8.0.5",
     "vitest": "^4.0.15",
     "wait-on": "^8.0.1",
     "winston": "^3.13.0"

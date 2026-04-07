@@ -6691,7 +6691,7 @@ __metadata:
     "@types/path-browserify": "npm:^1.0.0"
     "@types/react": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
-    "@vitest/web-worker": "npm:^4.0.15"
+    "@vitest/web-worker": "npm:^4.1.2"
     eslint: "npm:^9.39.1"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.4"
@@ -9831,14 +9831,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/web-worker@npm:^4.0.15":
-  version: 4.0.15
-  resolution: "@vitest/web-worker@npm:4.0.15"
+"@vitest/web-worker@npm:^4.1.2":
+  version: 4.1.3
+  resolution: "@vitest/web-worker@npm:4.1.3"
   dependencies:
     obug: "npm:^2.1.1"
   peerDependencies:
-    vitest: 4.0.15
-  checksum: 10c0/fdf1c31eda4f77cf7ae554f7e29d9dd2438b7c370b55b5c0366ef5076e5ce60eda06784db8ee12882b9284e094cc72cb6b644801ec8c530d33a5758517c08f54
+    vitest: 4.1.3
+  checksum: 10c0/c05ac8678afc1c338da4fdc1e639e4886aeef2a2250189b94322dfda8e2bd99687d685d187b86e5382addc16844d63ace3ad55a493698f2d314275d5ea27bbc9
   languageName: node
   linkType: hard
 

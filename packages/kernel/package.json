@@ -64,7 +64,7 @@
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.2.0",
     "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/web-worker": "^4.0.15",
+    "@vitest/web-worker": "^4.1.2",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",

@@ -237,7 +237,7 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 	pushd streamlit && \
 	rm -rfv lib/build lib/dist && \
 	: > lib/README.md && \
-	cd lib ; SNOWPARK_CONDA_BUILD=true uv build --wheel && \
+	cd lib ; uv build --wheel && \
 	popd && \
 	rm -f streamlit/lib/README.md && \
 	find $$TEMP_DIR -name '*.pyi' -exec mv {} ./streamlit/lib/streamlit/proto/ \; && \

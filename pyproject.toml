@@ -3,8 +3,9 @@ name = "stlite-dev"
 version = "0.0.0"
 description = "Development environment for stlite"
 # The exact Python version is pinned in .python-version (must match Pyodide's
-# Python). This broad constraint just silences uv's "no requires-python" warning.
-requires-python = ">=3.10"
+# Python). This constraint must be broad enough to silence uv's warning but
+# narrow enough that all dev dependencies (e.g. pyodide-build) resolve.
+requires-python = ">=3.12"
 dependencies = []
 
 [dependency-groups]

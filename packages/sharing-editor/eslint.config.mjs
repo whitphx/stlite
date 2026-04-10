@@ -9,6 +9,10 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 
 export default defineConfig(
   {
+    // Upstream sample files copied from streamlit/docs are not our code.
+    ignores: ["public/samples/**"],
+  },
+  {
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,

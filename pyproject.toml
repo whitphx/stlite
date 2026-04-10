@@ -1,0 +1,16 @@
+[project]
+name = "stlite-dev"
+version = "0.0.0"
+description = "Development environment for stlite"
+# The exact Python version is pinned in .python-version (must match Pyodide's
+# Python). This broad constraint just silences uv's "no requires-python" warning.
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  # `pyodide xbuildenv install` which is automatically run by
+  # `pyodide py-compile` uses `pip` to install packages.
+  "pip",
+  "pyodide-build==0.30.7",
+]

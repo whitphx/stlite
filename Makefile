@@ -72,9 +72,9 @@ VENV_PATH := ./.venv
 
 .PHONY: venv
 venv: $(venv)
-$(venv): .python-version requirements.dev.txt streamlit/pyproject.toml streamlit/lib/pyproject.toml
+$(venv): .python-version pyproject.toml streamlit/pyproject.toml streamlit/lib/pyproject.toml
 	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
-	uv pip install -r requirements.dev.txt --group streamlit/pyproject.toml:dev
+	uv pip install --group pyproject.toml:dev --group streamlit/pyproject.toml:dev
 	-uv run pyodide xbuildenv uninstall
 	uv run pyodide xbuildenv install
 	@mkdir -p $(dir $@)

@@ -173,6 +173,15 @@ export class ConnectionManager
     // We don't need to consider disconnection in stlite because it's not a remote connection.
   }
 
+  public onHeartbeatSent(_ackTimeoutMilliseconds: number): void {
+    // Stlite: no-op.
+    // Heartbeat ack timeouts and reconnection don't apply to stlite's in-browser worker connection.
+  }
+
+  public onHeartbeatAckReceived(): void {
+    // Stlite: no-op. See onHeartbeatSent.
+  }
+
   private setConnectionState = (
     connectionState: ConnectionState,
     errMsg?: string,

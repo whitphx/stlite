@@ -1,5 +1,5 @@
 ---
-name: streamlit-rebase
+name: rebase-streamlit
 description: Rebase our custom fork of the Streamlit repository onto new upstream Streamlit release
 disable-model-invocation: true
 argument-hint: [new-version]
@@ -31,7 +31,7 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
    ```
 6. Create the new stlite customization branch from the current one:
    ```shell
-   git checkout -b $NEW_STLITE_BRANCH $CURRENT_STLITE_BRANCH
+   git switch -c $NEW_STLITE_BRANCH $CURRENT_STLITE_BRANCH
    ```
 7. Rebase onto the new upstream tag:
    ```shell

@@ -1,5 +1,13 @@
 # @stlite/react
 
+## 1.5.0
+
+### Minor Changes
+
+- [`52568e5`](https://github.com/whitphx/stlite/commit/52568e5a9f761c1de595e715dfd225c439901356) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.54.0
+
+- [#1967](https://github.com/whitphx/stlite/pull/1967) [`9d0d501`](https://github.com/whitphx/stlite/commit/9d0d5015aeb6b4f387e3c503264f1493a4950786) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.55.0
+
 ## 1.4.0
 
 ### Minor Changes

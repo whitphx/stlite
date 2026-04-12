@@ -46,3 +46,8 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
    - Continue with `git rebase --continue`
 9. Repeat until rebase completes
 10. Verify with `git log --oneline` that customization commits are on top of the new tag
+11. After the rebase, update shared dependency versions in `packages/*/package.json` to match `streamlit/frontend/*/package.json`.
+    For each dependency that appears in both a `packages/*/package.json` and a `streamlit/frontend/*/package.json`,
+    if the version in `streamlit/frontend/*/package.json` is newer, update the version in `packages/*/package.json` to match.
+    Note: `@vitejs/plugin-react` in `packages/*` and `@vitejs/plugin-react-swc` in `streamlit/frontend/*` are different packages — do not align them.
+    After updating, run `yarn install` to regenerate the lockfile.

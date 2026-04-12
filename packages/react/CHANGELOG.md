@@ -1,5 +1,11 @@
 # @stlite/react
 
+## 1.5.1
+
+### Patch Changes
+
+- [#1973](https://github.com/whitphx/stlite/pull/1973) [`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7) Thanks [@whitphx](https://github.com/whitphx)! - Trigger a new release because the previous release failed due to a bug addressed by [#1972](https://github.com/whitphx/stlite/issues/1972). The release contains "52568e5 Thanks @whitphx! - Update Streamlit to 1.54.0" and "[#1967](https://github.com/whitphx/stlite/issues/1967) 9d0d501 Thanks @whitphx! - Update Streamlit to 1.55.0"
+
 ## 1.5.0
 
 ### Minor Changes

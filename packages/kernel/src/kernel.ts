@@ -252,9 +252,13 @@ export class StliteKernel extends EventTarget {
     } else {
       // HACK: Use `CrossOriginWorkerMaker` imported as `Worker` here.
       // Read the comment in `cross-origin-worker.ts` for the detail.
+      // NOTE: `type: "module"` must be a string literal for Vite 8's
+      // static analysis (vite:worker-import-meta-url plugin).
+      // The actual runtime worker type is overridden by `workerType` below,
+      // which `CrossOriginWorkerMaker` uses instead when provided.
       const workerMaker = new Worker(new URL("./worker.js", import.meta.url), {
-        /* @vite-ignore */ // To avoid the Vite error: "[vite:worker-import-meta-url] Vite is unable to parse the worker options as the value is not static.To ignore this error, please use /* @vite-ignore */ in the worker options."
-        type: options.workerType,
+        type: "module",
+        workerType: options.workerType,
         shared: options.sharedWorker ?? false,
       });
       this._worker = workerMaker.worker;

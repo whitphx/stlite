@@ -86,8 +86,18 @@ export class CrossOriginWorkerMaker {
 
   constructor(
     url: URL,
-    { shared, ...workerOptions }: { shared: boolean } & WorkerOptions,
+    {
+      shared,
+      workerType,
+      ...workerOptions
+    }: { shared: boolean; workerType?: WorkerOptions["type"] } & WorkerOptions,
   ) {
+    // `workerType` overrides `type` when provided, allowing the caller to
+    // pass a static literal `type` for Vite's static analysis while
+    // specifying the actual runtime worker type via `workerType`.
+    if (workerType !== undefined) {
+      workerOptions.type = workerType;
+    }
     const sameOrigin = isSameOrigin(url);
     if (sameOrigin) {
       console.debug(`Loading a worker script from the same origin: ${url}`);

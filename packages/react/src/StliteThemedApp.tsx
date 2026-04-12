@@ -1,8 +1,8 @@
 // Based on streamlit/frontend/app/src/ThemedApp.tsx
 
-import FontFaceDeclaration from "@streamlit/app/src/components/FontFaceDeclaration";
+import FontFaceDeclaration from "@streamlit/app/src/components/FontFaceDeclaration/FontFaceDeclaration";
 
-import FontSources from "@streamlit/app/src/components/FontSources";
+import FontSources from "@streamlit/app/src/components/FontSources/FontSources";
 import { PortalProvider, WindowDimensionsProvider } from "@streamlit/lib";
 
 import AppWithScreencast from "@streamlit/app/src/App";

@@ -16,16 +16,16 @@
     "@eslint/js": "^9.39.1",
     "@vitejs/plugin-react": "^5.1.1",
     "cross-env": "^10.1.0",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^5.12.0",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.5"
+    "vite": "^8.0.1"
   },
   "scripts": {
     "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",

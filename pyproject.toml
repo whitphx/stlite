@@ -5,7 +5,7 @@ description = "Development environment for stlite"
 # The exact Python version is pinned in .python-version (must match Pyodide's
 # Python). This constraint must be broad enough to silence uv's warning but
 # narrow enough that all dev dependencies (e.g. pyodide-build) resolve.
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
@@ -14,4 +14,11 @@ dev = [
   # `pyodide py-compile` uses `pip` to install packages.
   "pip",
   "pyodide-build==0.30.7",
+  "stlite-lib",
 ]
+
+[tool.uv.workspace]
+members = ["packages/kernel/py/stlite-lib"]
+
+[tool.uv.sources]
+stlite-lib = { workspace = true }

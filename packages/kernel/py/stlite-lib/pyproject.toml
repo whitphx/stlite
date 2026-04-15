@@ -11,8 +11,8 @@ dependencies = [
     "pyodide-http>=0.2.1",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "matplotlib>=3.9.2",
     "pandas-stubs>=2.2.3.241009",
     "pyodide-py==0.29.3",

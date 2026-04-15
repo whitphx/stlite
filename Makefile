@@ -72,9 +72,9 @@ VENV_PATH := ./.venv
 
 .PHONY: venv
 venv: $(venv)
-$(venv): .python-version pyproject.toml streamlit/pyproject.toml streamlit/lib/pyproject.toml
-	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
-	uv pip install --group pyproject.toml:dev --group streamlit/pyproject.toml:dev
+$(venv): .python-version pyproject.toml packages/kernel/py/stlite-lib/pyproject.toml streamlit/pyproject.toml streamlit/lib/pyproject.toml
+	uv sync --inexact
+	uv pip install --group streamlit/pyproject.toml:dev
 	-uv run pyodide xbuildenv uninstall
 	uv run pyodide xbuildenv install
 	@mkdir -p $(dir $@)
@@ -202,9 +202,9 @@ kernel-test: $(shell \
 stlite-lib-wheel: $(stlite-lib-wheel)
 $(stlite-lib-wheel): $(venv) $(shell \
 	find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py"; \
-	find packages/kernel/py/stlite-lib -maxdepth 1 -type f \( -name "pyproject.toml" -o -name "uv.lock" \); \
+	find packages/kernel/py/stlite-lib -maxdepth 1 -type f -name "pyproject.toml"; \
 )
-	uv --directory packages/kernel/py/stlite-lib build
+	uv build --package stlite-lib --out-dir packages/kernel/py/stlite-lib/dist
 	@touch $@
 
 .PHONY: streamlit-proto

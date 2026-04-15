@@ -4,9 +4,10 @@ name: Dependabot changeset
 # `changeset-check` job in test-build.yml.
 #
 # Uses `pull_request_target` because `pull_request` workflows triggered by
-# Dependabot receive a read-only GITHUB_TOKEN and cannot push back to the PR
-# branch. We do NOT check out or execute PR code — we only read Dependabot's
-# metadata and write a new file — so `pull_request_target` is safe here.
+# Dependabot receive a read-only GITHUB_TOKEN and cannot push to the PR branch.
+# To stay safe in this privileged context, we never check out or execute PR
+# code — we only read Dependabot's metadata and write the changeset file via
+# the GitHub Contents API.
 
 on:
   pull_request_target:
@@ -26,44 +27,39 @@ jobs:
         id: metadata
         uses: dependabot/fetch-metadata@d7267f607e9d3fb96fc2fbe83e0af444713e90b7 # v2.3.0
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: true
-
-      - name: Check out PR head
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          git fetch origin "$HEAD_REF"
-          git checkout "$HEAD_REF"
-
-      - name: Create changeset if missing
+      - name: Create changeset via Contents API
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         env:
           DEPS: ${{ steps.metadata.outputs.dependency-names }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        with:
+          script: |
+            const { DEPS, UPDATE_TYPE, PR_NUMBER, HEAD_REF } = process.env;
+            const path = `.changeset/dependabot-pr-${PR_NUMBER}.md`;
+            // Empty frontmatter = no package version bump. A maintainer can
+            // replace this file manually if a runtime-dep bump warrants a release.
+            const content = `---\n---\n\nBump ${DEPS} (${UPDATE_TYPE}) via Dependabot.\n`;
 
-          file=".changeset/dependabot-pr-${PR_NUMBER}.md"
-          if [ -f "$file" ]; then
-            echo "Changeset already exists at $file — nothing to do."
-            exit 0
-          fi
+            try {
+              await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path,
+                ref: HEAD_REF,
+              });
+              core.info(`Changeset already exists at ${path} — nothing to do.`);
+              return;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+            }
 
-          # Empty frontmatter = no package version bump. Dependabot updates are
-          # mostly devDependencies; if a runtime-dep bump needs a real version
-          # bump, a maintainer can replace this file manually.
-          {
-            echo "---"
-            echo "---"
-            echo ""
-            echo "Bump ${DEPS} (${UPDATE_TYPE}) via Dependabot."
-          } > "$file"
-
-          git config user.name "dependabot[bot]"
-          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
-          git add "$file"
-          git commit -m "Add changeset for Dependabot PR #${PR_NUMBER}"
-          git push
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path,
+              branch: HEAD_REF,
+              message: `Add changeset for Dependabot PR #${PR_NUMBER}`,
+              content: Buffer.from(content).toString('base64'),
+            });

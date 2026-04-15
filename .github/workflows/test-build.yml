@@ -124,18 +124,19 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Decide whether to skip
-        id: skip
-        # Bypass when:
-        #   - the PR carries the `skip-changeset` label (manual escape hatch), or
-        #   - the PR is the release PR opened by `changesets/action`, which
-        #     consumes (deletes) fragments rather than adding them. Its branch
-        #     name is `changeset-release/<base>` by default.
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') || startsWith(github.event.pull_request.head.ref, 'changeset-release/') }}
-        run: echo "skipped=true" >> "$GITHUB_OUTPUT"
+      # Bypass conditions:
+      #   - the PR carries the `skip-changeset` label (manual escape hatch), or
+      #   - the PR is the release PR opened by `changesets/action`, which
+      #     consumes (deletes) fragments rather than adding them. Its branch
+      #     name is `changeset-release/<base>` by default.
+      - name: Decide whether to run the check
+        id: decide
+        env:
+          SKIP: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') || startsWith(github.event.pull_request.head.ref, 'changeset-release/') }}
+        run: echo "run=$([[ \"$SKIP\" == \"true\" ]] && echo false || echo true)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: ${{ steps.skip.outputs.skipped != 'true' }}
+        if: ${{ steps.decide.outputs.run == 'true' }}
         with:
           # Submodules are needed because `yarn install` resolves workspaces
           # that live inside the `streamlit/` submodule.
@@ -145,13 +146,13 @@ jobs:
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
-        if: ${{ steps.skip.outputs.skipped != 'true' }}
+        if: ${{ steps.decide.outputs.run == 'true' }}
         with:
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 
       - name: Check for changeset
-        if: ${{ steps.skip.outputs.skipped != 'true' }}
+        if: ${{ steps.decide.outputs.run == 'true' }}
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: yarn changeset status --since="origin/${BASE_REF}"

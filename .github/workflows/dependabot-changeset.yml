@@ -1,0 +1,65 @@
+name: Dependabot changeset
+
+# Auto-create a changeset fragment for Dependabot PRs so they satisfy the
+# `changeset-check` job in test-build.yml.
+#
+# Uses `pull_request_target` because `pull_request` workflows triggered by
+# Dependabot receive a read-only GITHUB_TOKEN and cannot push to the PR branch.
+# To stay safe in this privileged context, we never check out or execute PR
+# code — we only read Dependabot's metadata and write the changeset file via
+# the GitHub Contents API.
+
+on:
+  pull_request_target:
+    branches: [ "main" ]
+
+permissions: {}
+
+jobs:
+  add-changeset:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@d7267f607e9d3fb96fc2fbe83e0af444713e90b7 # v2.3.0
+
+      - name: Create changeset via Contents API
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          DEPS: ${{ steps.metadata.outputs.dependency-names }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        with:
+          script: |
+            const { DEPS, UPDATE_TYPE, PR_NUMBER, HEAD_REF } = process.env;
+            const path = `.changeset/dependabot-pr-${PR_NUMBER}.md`;
+            // Empty frontmatter = no package version bump. A maintainer can
+            // replace this file manually if a runtime-dep bump warrants a release.
+            const content = `---\n---\n\nBump ${DEPS} (${UPDATE_TYPE}) via Dependabot.\n`;
+
+            try {
+              await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path,
+                ref: HEAD_REF,
+              });
+              core.info(`Changeset already exists at ${path} — nothing to do.`);
+              return;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+            }
+
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path,
+              branch: HEAD_REF,
+              message: `Add changeset for Dependabot PR #${PR_NUMBER}`,
+              content: Buffer.from(content).toString('base64'),
+            });

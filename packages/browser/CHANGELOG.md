@@ -1,5 +1,11 @@
 # @stlite/browser
 
+## 1.7.0
+
+### Minor Changes
+
+- [#1971](https://github.com/whitphx/stlite/pull/1971) [`1f91a44`](https://github.com/whitphx/stlite/commit/1f91a44d6a89c3f38743ce7f34b9027d05cfab65) Thanks [@whitphx](https://github.com/whitphx)! - Rebase Streamlit fork onto 1.56.0.
+
 ## 1.6.1
 
 ### Patch Changes

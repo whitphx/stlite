@@ -1,6 +1,6 @@
 {
   "name": "@stlite/browser",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "type": "module",
   "description": "Browser Stlite",
   "keywords": [
@@ -47,7 +47,7 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^5.1.1",
     "codedent": "^0.1.2",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
@@ -56,11 +56,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rollup-plugin-visualizer": "^5.12.0",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
     "vite": "^7.1.5",
-    "vite-plugin-dts": "^4.5.3",
-    "vitest": "^4.0.15",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.1.0",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

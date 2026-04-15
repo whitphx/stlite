@@ -124,9 +124,14 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Skip if `skip-changeset` label is set
+      - name: Decide whether to skip
         id: skip
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}
+        # Bypass when:
+        #   - the PR carries the `skip-changeset` label (manual escape hatch), or
+        #   - the PR is the release PR opened by `changesets/action`, which
+        #     consumes (deletes) fragments rather than adding them. Its branch
+        #     name is `changeset-release/<base>` by default.
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') || github.event.pull_request.head.ref == 'changeset-release/main' }}
         run: echo "skipped=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

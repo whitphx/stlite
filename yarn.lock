@@ -7389,7 +7389,6 @@ __metadata:
     vite: "npm:^7.1.5"
     vite-plugin-dts: "npm:^4.5.4"
     vitest: "npm:^4.1.0"
-    web-vitals: "npm:^4.2.4"
   languageName: unknown
   linkType: soft
 
@@ -7527,7 +7526,6 @@ __metadata:
     vite-plugin-wasm: "npm:^3.5.0"
     vite-tsconfig-paths: "npm:^5.1.4"
     vitest: "npm:^4.1.0"
-    web-vitals: "npm:^4.2.4"
   peerDependencies:
     react: ^18.2.0
     react-dom: ^18.2.0

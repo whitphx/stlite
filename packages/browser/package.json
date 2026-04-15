@@ -60,8 +60,7 @@
     "typescript-eslint": "^8.46.2",
     "vite": "^7.1.5",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^4.1.0",
-    "web-vitals": "^4.2.4"
+    "vitest": "^4.1.0"
   },
   "scripts": {
     "start": "vite",

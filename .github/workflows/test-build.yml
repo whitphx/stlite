@@ -155,7 +155,16 @@ jobs:
         if: ${{ steps.decide.outputs.run == 'true' }}
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
-        run: yarn changeset status --since="origin/${BASE_REF}"
+        # `changeset status --since` exits 0 even when no changeset is present,
+        # so use `--output` to capture the plan as JSON and fail when the set
+        # of new changesets is empty.
+        run: |
+          yarn changeset status --since="origin/${BASE_REF}" --output=changeset-status.json
+          count=$(jq '.changesets | length' changeset-status.json)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No changeset fragment found. Run \`yarn changeset\` to add one, or apply the \`skip-changeset\` label to bypass."
+            exit 1
+          fi
 
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest

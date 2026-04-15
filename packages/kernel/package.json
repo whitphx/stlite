@@ -74,6 +74,7 @@
     "pyodide": "0.29.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
+    "vite": "^7.1.5",
     "vitest": "^4.1.0"
   },
   "dependencies": {

@@ -115,22 +115,35 @@ jobs:
 
   changeset-check:
     # Ensure PRs include a changeset fragment so releases get a changelog entry.
+    # Bypass by adding the `skip-changeset` label to the PR.
     # See https://github.com/changesets/changesets/blob/main/docs/common-questions.md#how-do-changesets-work-with-ci
+    #
+    # Note: the `if:` only gates on the event kind — we always *run* the job on
+    # PRs (even when the escape-hatch label is set) so a required status check
+    # in branch protection resolves to success instead of staying pending.
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Skip if `skip-changeset` label is set
+        id: skip
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}
+        run: echo "skipped=true" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ steps.skip.outputs.skipped != 'true' }}
         with:
           # `fetch-depth: 0` is required so `changeset status --since` can diff against the base branch.
           fetch-depth: 0
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
+        if: ${{ steps.skip.outputs.skipped != 'true' }}
         with:
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 
       - name: Check for changeset
+        if: ${{ steps.skip.outputs.skipped != 'true' }}
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: yarn changeset status --since="origin/${BASE_REF}"

@@ -84,7 +84,7 @@
     "vite-plugin-wasm": "^3.5.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.0",
-    "web-vitals": "^4.2.4"
+    "web-vitals": "^5.2.0"
   },
   "peerDependencies": {
     "react": "^18.2.0",

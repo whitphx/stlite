@@ -97,6 +97,11 @@ export default defineConfig(({ mode }) => ({
     // so we don't add a standard "development" conditional export here.
     conditions: mode === "development" ? ["self-development"] : undefined,
   },
+  // Use ES format for web workers to support code splitting.
+  // Vite's default `iife` format can't handle the worker's dynamic imports.
+  worker: {
+    format: "es",
+  },
   build: {
     outDir: "build",
     sourcemap: !BUILD_AS_FAST_AS_POSSIBLE,

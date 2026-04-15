@@ -25,7 +25,7 @@
     "rollup-plugin-visualizer": "^5.12.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vite": "^8.0.1"
+    "vite": "^7.1.5"
   },
   "scripts": {
     "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",

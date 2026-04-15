@@ -1,0 +1,69 @@
+name: Dependabot changeset
+
+# Auto-create a changeset fragment for Dependabot PRs so they satisfy the
+# `changeset-check` job in test-build.yml.
+#
+# Uses `pull_request_target` because `pull_request` workflows triggered by
+# Dependabot receive a read-only GITHUB_TOKEN and cannot push back to the PR
+# branch. We do NOT check out or execute PR code — we only read Dependabot's
+# metadata and write a new file — so `pull_request_target` is safe here.
+
+on:
+  pull_request_target:
+    branches: [ "main" ]
+
+permissions: {}
+
+jobs:
+  add-changeset:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@d7267f607e9d3fb96fc2fbe83e0af444713e90b7 # v2.3.0
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Check out PR head
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$HEAD_REF"
+          git checkout "$HEAD_REF"
+
+      - name: Create changeset if missing
+        env:
+          DEPS: ${{ steps.metadata.outputs.dependency-names }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          file=".changeset/dependabot-pr-${PR_NUMBER}.md"
+          if [ -f "$file" ]; then
+            echo "Changeset already exists at $file — nothing to do."
+            exit 0
+          fi
+
+          # Empty frontmatter = no package version bump. Dependabot updates are
+          # mostly devDependencies; if a runtime-dep bump needs a real version
+          # bump, a maintainer can replace this file manually.
+          {
+            echo "---"
+            echo "---"
+            echo ""
+            echo "Bump ${DEPS} (${UPDATE_TYPE}) via Dependabot."
+          } > "$file"
+
+          git config user.name "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          git add "$file"
+          git commit -m "Add changeset for Dependabot PR #${PR_NUMBER}"
+          git push

@@ -203,11 +203,11 @@ kernel-test: $(shell \
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
-$(stlite-lib-wheel): $(venv) $(shell \
+$(stlite-lib-wheel): $(venv) uv.lock $(shell \
 	find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py"; \
-	find packages/kernel/py/stlite-lib -maxdepth 1 -type f \( -name "pyproject.toml" -o -name "uv.lock" \); \
+	find packages/kernel/py/stlite-lib -maxdepth 1 -type f -name "pyproject.toml"; \
 )
-	uv --directory packages/kernel/py/stlite-lib build
+	uv build --package stlite-lib --out-dir packages/kernel/py/stlite-lib/dist
 	@touch $@
 
 .PHONY: streamlit-proto

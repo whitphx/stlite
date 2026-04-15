@@ -1,0 +1,74 @@
+name: Changeset check
+
+# Ensure PRs include a changeset fragment so releases get a changelog entry.
+# See https://github.com/changesets/changesets/blob/main/docs/common-questions.md#how-do-changesets-work-with-ci
+#
+# Split out from `test-build.yml` so label changes only re-run this cheap job
+# — the `labeled` / `unlabeled` event types below make the `skip-changeset`
+# escape hatch effective even when the label is added after the first run.
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions: {}
+
+env:
+  python-version-file: ".python-version"
+  node-version-file: ".nvmrc"
+
+jobs:
+  changeset-check:
+    runs-on: ubuntu-latest
+    steps:
+      # Bypass conditions:
+      #   - the PR carries the `skip-changeset` label (manual escape hatch), or
+      #   - the PR is the release PR opened by `changesets/action`, which
+      #     consumes (deletes) fragments rather than adding them. Its branch
+      #     name is `changeset-release/<base>` by default.
+      - name: Decide whether to run the check
+        id: decide
+        env:
+          HAS_SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [[ "$HAS_SKIP_LABEL" == "true" || "$HEAD_REF" == changeset-release/* ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ steps.decide.outputs.run == 'true' }}
+        with:
+          # Submodules are needed because `yarn install` resolves workspaces
+          # that live inside the `streamlit/` submodule.
+          submodules: true
+          # `fetch-depth: 0` is required so `changeset status --since` can diff against the base branch.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        if: ${{ steps.decide.outputs.run == 'true' }}
+        with:
+          # `python-version-file` is set so `uv` gets installed — the
+          # `packages/tooling` workspace shells out to `uv` during yarn install.
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      - name: Check for changeset
+        if: ${{ steps.decide.outputs.run == 'true' }}
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        # `changeset status --since` exits 0 even when no changeset is present,
+        # so use `--output` to capture the plan as JSON and fail when the set
+        # of new changesets is empty.
+        run: |
+          yarn changeset status --since="origin/${BASE_REF}" --output=changeset-status.json
+          count=$(jq '.changesets | length' changeset-status.json)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No changeset fragment found. Run \`yarn changeset\` to add one, or apply the \`skip-changeset\` label to bypass."
+            exit 1
+          fi

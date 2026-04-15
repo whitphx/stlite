@@ -137,6 +137,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: ${{ steps.skip.outputs.skipped != 'true' }}
         with:
+          # Submodules are needed because `yarn install` resolves workspaces
+          # that live inside the `streamlit/` submodule.
+          submodules: true
           # `fetch-depth: 0` is required so `changeset status --since` can diff against the base branch.
           fetch-depth: 0
           persist-credentials: false
@@ -144,6 +147,9 @@ jobs:
       - uses: ./.github/actions/init-all
         if: ${{ steps.skip.outputs.skipped != 'true' }}
         with:
+          # `python-version-file` is set so `uv` gets installed — the
+          # `packages/tooling` workspace shells out to `uv` during yarn install.
+          python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 

@@ -131,7 +131,7 @@ jobs:
         #   - the PR is the release PR opened by `changesets/action`, which
         #     consumes (deletes) fragments rather than adding them. Its branch
         #     name is `changeset-release/<base>` by default.
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') || github.event.pull_request.head.ref == 'changeset-release/main' }}
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') || startsWith(github.event.pull_request.head.ref, 'changeset-release/') }}
         run: echo "skipped=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

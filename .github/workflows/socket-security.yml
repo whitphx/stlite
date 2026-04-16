@@ -1,0 +1,84 @@
+name: Supply Chain Security (Socket Firewall)
+
+# Runs `yarn install` and `uv sync` through Socket Firewall (Free) so that
+# known-malicious packages are blocked before they hit the build.
+# The firewall is installed from the official SocketDev/action and wraps the
+# package manager as `sfw <command>`. Supply-chain protection requires the
+# action itself to be pinned to an immutable SHA.
+# Docs: https://github.com/SocketDev/action, https://docs.socket.dev/docs/socket-firewall-free
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**/package.json'
+      - 'yarn.lock'
+      - '**/pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/socket-security.yml'
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**/package.json'
+      - 'yarn.lock'
+      - '**/pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/socket-security.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+permissions: {}
+
+jobs:
+  socket-yarn:
+    name: yarn install (Socket Firewall)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install Socket Firewall
+        uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          mode: firewall-free
+
+      - name: yarn install (firewall-gated)
+        run: sfw yarn install --immutable
+
+  socket-uv:
+    name: uv sync (Socket Firewall)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
+        with:
+          enable-cache: false
+          python-version-file: .python-version
+
+      - name: Install Socket Firewall
+        uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          mode: firewall-free
+
+      - name: uv sync (firewall-gated)
+        run: sfw uv sync --frozen --all-packages --all-groups

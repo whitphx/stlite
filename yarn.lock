@@ -7595,7 +7595,7 @@ __metadata:
     usehooks-ts: "npm:^3.1.0"
     vite: "npm:^7.1.5"
     vitest: "npm:^4.1.0"
-    web-vitals: "npm:^4.2.4"
+    web-vitals: "npm:^5.2.0"
   languageName: unknown
   linkType: soft
 
@@ -7622,7 +7622,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.46.2"
     vite: "npm:^7.1.5"
-    web-vitals: "npm:^4.2.4"
+    web-vitals: "npm:^5.2.0"
   languageName: unknown
   linkType: soft
 
@@ -30441,10 +30441,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:^4.2.4":
-  version: 4.2.4
-  resolution: "web-vitals@npm:4.2.4"
-  checksum: 10c0/383c9281d5b556bcd190fde3c823aeb005bb8cf82e62c75b47beb411014a4ed13fa5c5e0489ed0f1b8d501cd66b0bebcb8624c1a75750bd5df13e2a3b1b2d194
+"web-vitals@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "web-vitals@npm:5.2.0"
+  checksum: 10c0/b8d4d02025afb5e1668fb9725c337616c266d9891979b1e58f81b610ee3bf53727b97babb16322fdac2b9d43ce6daa1787f42b959695796474a2061e79e219d7
   languageName: node
   linkType: hard
 

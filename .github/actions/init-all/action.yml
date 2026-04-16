@@ -82,6 +82,31 @@ runs:
       shell: bash
       if: ${{ inputs.protoc == 'true' }}
 
+    # Install Aikido Safe-Chain to transparently gate `yarn install` / `uv sync`
+    # against malicious npm/PyPI packages. The `setup-ci` command installs
+    # executable shims under ~/.safe-chain/shims that route through a local
+    # proxy checking Aikido Intel. Pinned to an immutable version + SHA256
+    # because this is a supply-chain security control.
+    # Docs: https://github.com/AikidoSec/safe-chain
+    - name: Install Aikido Safe-Chain
+      if: runner.os == 'Linux'
+      env:
+        SAFE_CHAIN_VERSION: "1.4.9"
+        SAFE_CHAIN_SHA256: "4d853d1c3d117c3f1eb1c48eaf6cb98f9a936f3694ffa0c941a92b398b9ac55c"
+      run: |
+        set -euo pipefail
+        install_dir="${HOME}/.safe-chain/bin"
+        binary="${install_dir}/safe-chain"
+        mkdir -p "${install_dir}"
+        curl -fsSL --proto "=https" --tlsv1.2 -o "${binary}" \
+          "https://github.com/AikidoSec/safe-chain/releases/download/${SAFE_CHAIN_VERSION}/safe-chain-linuxstatic-x64"
+        echo "${SAFE_CHAIN_SHA256}  ${binary}" | sha256sum -c -
+        chmod +x "${binary}"
+        "${binary}" setup-ci
+        echo "${HOME}/.safe-chain/shims" >> "${GITHUB_PATH}"
+        echo "${install_dir}" >> "${GITHUB_PATH}"
+      shell: bash
+
     - name: Set up Python packages
       run: make venv
       shell: bash

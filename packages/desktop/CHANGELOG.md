@@ -1,5 +1,11 @@
 # @stlite/desktop
 
+## 0.99.1
+
+### Patch Changes
+
+- [#1989](https://github.com/whitphx/stlite/pull/1989) [`8746191`](https://github.com/whitphx/stlite/commit/8746191fea4668e43b48c6e61c2d494b7df4fa63) Thanks [@whitphx](https://github.com/whitphx)! - Configure a 1-week `exclude-newer` cooldown for uv resolution to reduce exposure to PyPI supply-chain attacks when resolving the Python dependencies used to build the kernel's Pyodide wheels.
+
 ## 0.99.0
 
 ### Minor Changes

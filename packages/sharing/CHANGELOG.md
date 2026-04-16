@@ -1,5 +1,11 @@
 # @stlite/sharing
 
+## 0.96.1
+
+### Patch Changes
+
+- [#1991](https://github.com/whitphx/stlite/pull/1991) [`f24c351`](https://github.com/whitphx/stlite/commit/f24c351146002a036e32ca4e56e395a6ee472fb9) Thanks [@whitphx](https://github.com/whitphx)! - Update web-vitals to 5.2.0 and replace the removed `onFID` metric with `onINP`.
+
 ## 0.96.0
 
 ### Minor Changes

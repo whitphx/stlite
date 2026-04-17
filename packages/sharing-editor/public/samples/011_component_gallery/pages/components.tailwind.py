@@ -1,6 +1,6 @@
 import streamlit as st
 
-with open("python/api-examples-source/tailwind_example.js", "r") as f:
+with open("pages/tailwind_example.js", "r") as f:
     TAILWIND_SCRIPT = f.read()
 
 HTML = """
@@ -21,13 +21,10 @@ my_component = st.components.v2.component(
     "my_tailwind_button",
     html=HTML,
     js=JS,
+    isolate_styles=False
 )
-result_1 = my_component(
-    isolate_styles=False, on_clicked_change=lambda: None, key="one"
-)
+result_1 = my_component(on_clicked_change=lambda: None, key="one")
 result_1
 
-result_2 = my_component(
-    isolate_styles=False, on_clicked_change=lambda: None, key="two"
-)
+result_2 = my_component(on_clicked_change=lambda: None, key="two")
 result_2

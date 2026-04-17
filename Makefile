@@ -70,24 +70,27 @@ init: git_submodules $(venv) $(node_modules)
 
 VENV_PATH := ./.venv
 
+CI ?= false
+
+ifeq ($(CI), true)
+	YARN_INSTALL_FLAGS := --immutable
+	UV_SYNC_FLAGS := --frozen
+else
+	YARN_INSTALL_FLAGS :=
+	UV_SYNC_FLAGS :=
+endif
+
 .PHONY: venv
 venv: $(venv)
-$(venv): .python-version requirements.dev.txt streamlit/lib/dev-requirements.txt
+$(venv): .python-version pyproject.toml uv.lock packages/kernel/py/stlite-lib/pyproject.toml streamlit/pyproject.toml streamlit/lib/pyproject.toml
 	[ -d $(VENV_PATH) ] || uv venv $(VENV_PATH)
-	uv pip install -r requirements.dev.txt -r streamlit/lib/dev-requirements.txt
+	uv sync $(UV_SYNC_FLAGS) --all-packages --all-groups
+	uv pip install --group streamlit/pyproject.toml:dev
 	-uv run pyodide xbuildenv uninstall
 	uv run pyodide xbuildenv install
 	@mkdir -p $(dir $@)
 	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"
-
-CI ?= false
-
-ifeq ($(CI), true)
-	YARN_INSTALL_FLAGS := --immutable
-else
-	YARN_INSTALL_FLAGS :=
-endif
 
 .PHONY: node_modules
 node_modules: $(node_modules)
@@ -200,11 +203,11 @@ kernel-test: $(shell \
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)
-$(stlite-lib-wheel): $(venv) $(shell \
+$(stlite-lib-wheel): $(venv) uv.lock $(shell \
 	find packages/kernel/py/stlite-lib/stlite_lib -type f -name "*.py"; \
-	find packages/kernel/py/stlite-lib -maxdepth 1 -type f \( -name "pyproject.toml" -o -name "uv.lock" \); \
+	find packages/kernel/py/stlite-lib -maxdepth 1 -type f -name "pyproject.toml"; \
 )
-	uv --directory packages/kernel/py/stlite-lib build
+	uv build --package stlite-lib --out-dir packages/kernel/py/stlite-lib/dist
 	@touch $@
 
 .PHONY: streamlit-proto
@@ -215,7 +218,7 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 
 .PHONY: streamlit-wheel
 streamlit-wheel: $(streamlit_wheel)
-$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/setup.py streamlit/lib/MANIFEST.in
+$(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/pyproject.toml streamlit/lib/MANIFEST.in
 	PYODIDE_BUILD_VERSION=`uv run python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
 	PYTHON_VERSION=`uv run python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
 	PYODIDE_PYTHON_VERSION=`uv run pyodide config get python_version` && \
@@ -224,13 +227,22 @@ $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/stream
 		exit 1; \
 	fi
 
+	# Note: streamlit/lib/pyproject.toml declares `readme = "README.md"`, so
+	# `uv build` fails unless lib/README.md exists. Upstream's build process
+	# copies the repo-root README.md into lib/ before building, but stlite
+	# uses the Streamlit wheel only as an installation reference (the README
+	# is never displayed to users), so we write an empty lib/README.md here
+	# to keep the wheel as small as possible and avoid shipping the upstream
+	# README's contents.
 	. $(VENV_PATH)/bin/activate && \
 	TEMP_DIR=$$(mktemp -d) && \
 	find ./streamlit/lib/streamlit/proto/ -name '*.pyi' -exec mv {} $$TEMP_DIR/ \; && \
 	pushd streamlit && \
 	rm -rfv lib/build lib/dist && \
-	cd lib ; SNOWPARK_CONDA_BUILD=true uv run python setup.py bdist_wheel && \
+	: > lib/README.md && \
+	cd lib ; uv build --wheel && \
 	popd && \
+	rm -f streamlit/lib/README.md && \
 	find $$TEMP_DIR -name '*.pyi' -exec mv {} ./streamlit/lib/streamlit/proto/ \; && \
 	rmdir $$TEMP_DIR
 

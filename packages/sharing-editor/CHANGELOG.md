@@ -1,5 +1,21 @@
 # @stlite/sharing-editor
 
+## 0.90.5
+
+### Patch Changes
+
+- [#1991](https://github.com/whitphx/stlite/pull/1991) [`f24c351`](https://github.com/whitphx/stlite/commit/f24c351146002a036e32ca4e56e395a6ee472fb9) Thanks [@whitphx](https://github.com/whitphx)! - Update web-vitals to 5.2.0 and replace the removed `onFID` metric with `onINP`.
+
+## 0.90.4
+
+### Patch Changes
+
+- [#1973](https://github.com/whitphx/stlite/pull/1973) [`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7) Thanks [@whitphx](https://github.com/whitphx)! - Trigger a new release because the previous release failed due to a bug addressed by [#1972](https://github.com/whitphx/stlite/issues/1972). The release contains "52568e5 Thanks @whitphx! - Update Streamlit to 1.54.0" and "[#1967](https://github.com/whitphx/stlite/issues/1967) 9d0d501 Thanks @whitphx! - Update Streamlit to 1.55.0"
+
+- Updated dependencies [[`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7)]:
+  - @stlite/sharing-common@0.90.2
+  - @stlite/common@0.90.2
+
 ## 0.90.3
 
 ### Patch Changes

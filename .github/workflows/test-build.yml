@@ -80,6 +80,7 @@ jobs:
           protoc: false
           takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
 
+      # Generate a token using a GitHub App that the author owns, whitphx-changesets-bot.
       - name: Generate a token
         id: generate-token
         uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
@@ -247,13 +248,6 @@ jobs:
         python-version-file: ${{ env.python-version-file }}
         node-version-file: ${{ env.node-version-file }}
         takumi-guard-bot-id: ${{ vars.TAKUMI_GUARD_BOT_ID }}
-
-    - name: Install dependencies
-      shell: bash
-      run: |
-        . .venv/bin/activate
-        cd packages/kernel/py/stlite-lib
-        uv sync
 
     - name: Set up Streamlit and build proto
       run: |

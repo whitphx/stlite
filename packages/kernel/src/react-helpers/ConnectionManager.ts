@@ -173,6 +173,21 @@ export class ConnectionManager
     // We don't need to consider disconnection in stlite because it's not a remote connection.
   }
 
+  public onHeartbeatSent(_ackTimeoutMilliseconds: number): void {
+    // Stlite: no-op.
+    // Upstream arms a timeout here that calls `reconnect()` if no heartbeat
+    // ack is received in time, to recover from stale remote WebSocket
+    // connections. Stlite's transport is postMessage to a Web Worker, which
+    // has no network failure mode, and this ConnectionManager has no
+    // reconnect logic (see `disconnect()` above, also a no-op). The heartbeat
+    // round-trip itself still works: `streamlit.runtime.AppSession` handles
+    // `appHeartbeat` BackMsg and enqueues a `heartbeat_ack` ForwardMsg.
+  }
+
+  public onHeartbeatAckReceived(): void {
+    // Stlite: no-op. See onHeartbeatSent.
+  }
+
   private setConnectionState = (
     connectionState: ConnectionState,
     errMsg?: string,

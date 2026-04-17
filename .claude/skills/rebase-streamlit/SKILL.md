@@ -46,3 +46,28 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
    - Continue with `git rebase --continue`
 9. Repeat until rebase completes
 10. Verify with `git log --oneline` that customization commits are on top of the new tag
+11. Self double-check the rebase with two diff comparisons. Both should match except for trivially explainable differences (e.g., files the stlite customization deletes, conflict-resolution overhead in files you manually merged):
+
+    a. The diff between `$CURRENT_STLITE_BRANCH` and `$NEW_STLITE_BRANCH` should match the diff between `$CURRENT_BASE_STREAMLIT_VERSION_TAG` and `$NEW_BASE_STREAMLIT_VERSION_TAG` (upstream delta preserved):
+
+    ```shell
+    git diff $CURRENT_STLITE_BRANCH..$NEW_STLITE_BRANCH --stat > /tmp/stlite-delta.txt
+    git diff $CURRENT_BASE_STREAMLIT_VERSION_TAG..$NEW_BASE_STREAMLIT_VERSION_TAG --stat > /tmp/upstream-delta.txt
+    diff /tmp/stlite-delta.txt /tmp/upstream-delta.txt
+    ```
+
+    b. The diff between `$NEW_BASE_STREAMLIT_VERSION_TAG` and `$NEW_STLITE_BRANCH` should match the diff between `$CURRENT_BASE_STREAMLIT_VERSION_TAG` and `$CURRENT_STLITE_BRANCH` (customization delta preserved). In particular, the set of customized files should be identical:
+
+    ```shell
+    git diff $NEW_BASE_STREAMLIT_VERSION_TAG..$NEW_STLITE_BRANCH --name-only | sort > /tmp/files-new.txt
+    git diff $CURRENT_BASE_STREAMLIT_VERSION_TAG..$CURRENT_STLITE_BRANCH --name-only | sort > /tmp/files-old.txt
+    diff /tmp/files-old.txt /tmp/files-new.txt  # should be empty
+    ```
+
+    Summarize any differences (what file, how many lines, and why it's expected) and show the summary to the user so they can confirm the rebase is clean.
+
+12. After the rebase, update shared dependency versions in `packages/*/package.json` to match `streamlit/frontend/*/package.json`.
+    For each dependency that appears in both a `packages/*/package.json` and a `streamlit/frontend/*/package.json`,
+    if the version in `streamlit/frontend/*/package.json` is newer, update the version in `packages/*/package.json` to match.
+    Note: `@vitejs/plugin-react` in `packages/*` and `@vitejs/plugin-react-swc` in `streamlit/frontend/*` are different packages — do not align them.
+    After updating, run `yarn install` to regenerate the lockfile.

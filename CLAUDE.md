@@ -84,6 +84,8 @@ Each PR that introduces user-facing changes (new features, bug fixes, breaking c
 yarn changeset
 ```
 
+**For AI assistants**: After implementing any meaningful user-facing change (new feature, bug fix, dependency update like a Streamlit rebase, breaking change), ask the user whether a changeset fragment should be added so it isn't forgotten before the PR is opened.
+
 ## Architecture
 
 **Worker-based**: Python runs in Web Workers (Dedicated or SharedWorker) via Pyodide. Main thread handles React UI, communicates via `postMessage`.

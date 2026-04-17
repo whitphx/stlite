@@ -1,8 +1,7 @@
 import streamlit as st
 
-# Set default value
-if "a" not in st.session_state:
-    st.session_state.a = 5
+# Set the default value for the widget
+st.session_state.setdefault("a", 5)
 
 cols = st.columns(2)
 minimum = cols[0].number_input("Min", 1, 5, key="min")

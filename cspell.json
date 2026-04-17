@@ -37,6 +37,8 @@
     "packages/browser/e2e-tests/playwright-report/**",
     "packages/sharing-editor/public/samples/011_component_gallery/pages/text.code-ascii.py",
     "packages/sharing-editor/public/samples/011_component_gallery/pages/charts.graphviz_chart.py",
+    "packages/sharing-editor/public/samples/011_component_gallery/pages/layout.tabs-conditional-outside.py",
+    "packages/sharing-editor/public/samples/011_component_gallery/pages/tailwind_example.js",
     "packages/sharing-editor/public/samples/020_custom_components/pages/stmol.py",
     "packages/sharing-editor/public/samples/030_streamlit_e2e_tests/pages/st_tooltips.py",
     "streamlit/**",

@@ -161,7 +161,7 @@ await at.run(timeout=20)
 assert len(at.main) == 4
 assert at.main[0].type == "button", "at.main[0].type == 'button'"
 assert at.main[1].type == "markdown", "at.main[1].type == 'markdown'"
-assert at.main[2].type == "arrow_data_frame", "at.main[2].type == 'arrow_data_frame'"
+assert at.main[2].type == "dataframe", "at.main[2].type == 'dataframe'"
 assert at.main[3].type == "markdown", "at.main[3].type == 'markdown'"
 
 _LOREM_IPSUM = """

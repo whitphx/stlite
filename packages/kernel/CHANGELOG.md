@@ -1,5 +1,40 @@
 # @stlite/kernel
 
+## 0.102.1
+
+### Patch Changes
+
+- [#1989](https://github.com/whitphx/stlite/pull/1989) [`8746191`](https://github.com/whitphx/stlite/commit/8746191fea4668e43b48c6e61c2d494b7df4fa63) Thanks [@whitphx](https://github.com/whitphx)! - Configure a 1-week `exclude-newer` cooldown for uv resolution to reduce exposure to PyPI supply-chain attacks when resolving the Python dependencies used to build the kernel's Pyodide wheels.
+
+## 0.102.0
+
+### Minor Changes
+
+- [#1971](https://github.com/whitphx/stlite/pull/1971) [`1f91a44`](https://github.com/whitphx/stlite/commit/1f91a44d6a89c3f38743ce7f34b9027d05cfab65) Thanks [@whitphx](https://github.com/whitphx)! - Rebase Streamlit fork onto 1.56.0.
+
+## 0.101.1
+
+### Patch Changes
+
+- [#1973](https://github.com/whitphx/stlite/pull/1973) [`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7) Thanks [@whitphx](https://github.com/whitphx)! - Trigger a new release because the previous release failed due to a bug addressed by [#1972](https://github.com/whitphx/stlite/issues/1972). The release contains "52568e5 Thanks @whitphx! - Update Streamlit to 1.54.0" and "[#1967](https://github.com/whitphx/stlite/issues/1967) 9d0d501 Thanks @whitphx! - Update Streamlit to 1.55.0"
+
+- Updated dependencies [[`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7)]:
+  - @stlite/common@0.90.2
+
+## 0.101.0
+
+### Minor Changes
+
+- [`52568e5`](https://github.com/whitphx/stlite/commit/52568e5a9f761c1de595e715dfd225c439901356) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.54.0
+
+- [#1967](https://github.com/whitphx/stlite/pull/1967) [`9d0d501`](https://github.com/whitphx/stlite/commit/9d0d5015aeb6b4f387e3c503264f1493a4950786) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.55.0
+
+## 0.100.0
+
+### Minor Changes
+
+- [#1920](https://github.com/whitphx/stlite/pull/1920) [`83e374d`](https://github.com/whitphx/stlite/commit/83e374d5ebe626da858c59e1b63b4634ce963253) Thanks [@whitphx](https://github.com/whitphx)! - Update Streamlit to 1.53.1
+
 ## 0.99.0
 
 ### Minor Changes

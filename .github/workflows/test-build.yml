@@ -113,6 +113,20 @@ jobs:
           name: changesets-published-packages
           path: changesets-published-packages
 
+  init:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        submodules: true
+        persist-credentials: false
+    - name: Run init-all action to prime the cache
+      uses: ./.github/actions/init-all
+      with:
+        python-version-file: ${{ env.python-version-file }}
+        node-version-file: ${{ env.node-version-file }}
+        protoc: false
+
   changes:  # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
@@ -159,7 +173,7 @@ jobs:
             - 'packages/desktop/**/*'
 
   test-build-common:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.common == 'true' }}
 
     runs-on: ubuntu-latest
@@ -187,7 +201,7 @@ jobs:
     - run: yarn build
 
   test-kernel:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.kernel == 'true' }}
 
     runs-on: ubuntu-latest
@@ -215,7 +229,7 @@ jobs:
       working-directory: .
 
   test-stlite-lib:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.stlite-lib == 'true' }}
 
     runs-on: ubuntu-latest
@@ -256,7 +270,7 @@ jobs:
         uv run pytest -v
 
   test-browser:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.browser == 'true' }}
 
     runs-on: ubuntu-latest
@@ -282,7 +296,7 @@ jobs:
     - run: yarn test
 
   test-react:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.react == 'true' }}
 
     runs-on: ubuntu-latest
@@ -308,7 +322,7 @@ jobs:
     - run: yarn test
 
   test-sharing:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.sharing == 'true' }}
 
     runs-on: ubuntu-latest
@@ -335,7 +349,7 @@ jobs:
     # - run: yarn test
 
   test-sharing-editor:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.sharing-editor == 'true' }}
 
     runs-on: ubuntu-latest
@@ -363,7 +377,7 @@ jobs:
     - run: yarn test
 
   test-sharing-common:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.sharing-common == 'true' }}
 
     runs-on: ubuntu-latest
@@ -389,7 +403,7 @@ jobs:
     - run: yarn test
 
   test-desktop:
-    needs: changes
+    needs: [init, changes]
     if: ${{ needs.changes.outputs.desktop == 'true' }}
 
     strategy:

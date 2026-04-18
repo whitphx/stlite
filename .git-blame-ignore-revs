@@ -1,0 +1,6 @@
+# Commits listed here are ignored by `git blame` and by GitHub's blame view.
+# Configure locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: apply oxfmt formatting across the repo
+231d0d23619d7f37c62701e2889cd31c0bf19dee

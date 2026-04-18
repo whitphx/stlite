@@ -1,3 +1,4 @@
 {
-  "*.{md,json}": "prettier --write"
+  "*.{js,cjs,mjs,jsx,ts,tsx,css,md,mdx,json,yaml,yml,toml,html}": "oxfmt",
+  "*.{js,cjs,mjs,jsx,ts,tsx}": "oxlint --fix"
 }

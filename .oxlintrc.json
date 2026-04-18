@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "react-hooks"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "typescript/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "**/build/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+    "**/*.min.*",
+    "**/.make/**",
+    "packages/sharing-editor/public/samples/**",
+    "packages/kernel/py/**",
+    "packages/sharing-common/src/proto/**",
+    "streamlit/**"
+  ]
+}

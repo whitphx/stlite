@@ -181,8 +181,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn test
     - run: yarn build
 
@@ -208,8 +208,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
 
     - run: make kernel-test
       working-directory: .
@@ -277,8 +277,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn test
 
   test-react:
@@ -303,8 +303,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn test
 
   test-sharing:
@@ -330,8 +330,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     # - run: yarn test
 
   test-sharing-editor:
@@ -358,8 +358,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn test
 
   test-sharing-common:
@@ -383,8 +383,8 @@ jobs:
 
     - name: Lint
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn build:proto
     - run: yarn test
 
@@ -417,8 +417,8 @@ jobs:
     - name: Lint
       if: ${{ matrix.os == 'ubuntu-latest' }}  # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.
       run: |
-        yarn check:eslint
-        yarn check:prettier
+        yarn check:lint
+        yarn check:format
     - run: yarn test
 
   build-browser:

@@ -23,6 +23,8 @@
     "cspell": "^9.6.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "typescript": "^5.9.2"
   },
   "resolutions": {

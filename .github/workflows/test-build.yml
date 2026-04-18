@@ -415,7 +415,6 @@ jobs:
           protoc: false
 
       - name: Lint
-        if: ${{ matrix.os == 'ubuntu-latest' }} # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.
         run: |
           yarn check:lint
           yarn check:format

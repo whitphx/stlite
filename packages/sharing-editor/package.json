@@ -3,6 +3,19 @@
   "version": "0.90.5",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
+  "scripts": {
+    "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",
+    "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
+    "start": "run-p start:web start:sampleapps",
+    "build:web": "tsc -b && vite build",
+    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.mts",
+    "build": "yarn build:sampleapps && yarn build:web",
+    "test": "vitest",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@stlite/common": "workspace:^",
@@ -23,25 +36,6 @@
     "usehooks-ts": "^3.1.0",
     "web-vitals": "^5.2.0"
   },
-  "scripts": {
-    "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",
-    "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
-    "start": "run-p start:web start:sampleapps",
-    "build:web": "tsc -b && vite build",
-    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.mts",
-    "build": "yarn build:sampleapps && yarn build:web",
-    "test": "vitest",
-    "fix:lint": "oxlint --fix src",
-    "fix:format": "oxfmt .",
-    "check:lint": "oxlint src",
-    "check:format": "oxfmt --check ."
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
     "@types/nprogress": "^0.2.3",
@@ -58,5 +52,11 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.5",
     "vitest": "^4.1.0"
-  }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

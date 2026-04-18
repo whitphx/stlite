@@ -1,8 +1,8 @@
 {
   "name": "@stlite/tooling",
   "version": "0.90.0",
-  "type": "module",
   "private": true,
+  "type": "module",
   "exports": {
     ".": "./src/index.js"
   },

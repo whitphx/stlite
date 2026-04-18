@@ -1,9 +1,13 @@
 {
   "name": "@stlite/kernel",
+  "version": "0.102.1",
   "private": true,
   "description": "",
-  "version": "0.102.1",
   "license": "Apache-2.0",
+  "files": [
+    "dist/",
+    "py/**/*.whl"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -42,10 +46,6 @@
       }
     }
   },
-  "files": [
-    "dist/",
-    "py/**/*.whl"
-  ],
   "scripts": {
     "start": "tsc -b -w",
     "build": "tsc -b",
@@ -54,6 +54,14 @@
     "fix:format": "oxfmt .",
     "check:lint": "oxlint src",
     "check:format": "oxfmt --check ."
+  },
+  "dependencies": {
+    "@jupyterlab/coreutils": "^6.5.0",
+    "@stlite/common": "workspace:^",
+    "@streamlit/connection": "workspace:^",
+    "@tinyhttp/content-disposition": "^2.2.2",
+    "path-browserify": "^1.0.1",
+    "react": "^18.2.0"
   },
   "devDependencies": {
     "@stlite/tooling": "workspace:^",
@@ -70,13 +78,5 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.5",
     "vitest": "^4.1.0"
-  },
-  "dependencies": {
-    "@jupyterlab/coreutils": "^6.5.0",
-    "@stlite/common": "workspace:^",
-    "@streamlit/connection": "workspace:^",
-    "@tinyhttp/content-disposition": "^2.2.2",
-    "path-browserify": "^1.0.1",
-    "react": "^18.2.0"
   }
 }

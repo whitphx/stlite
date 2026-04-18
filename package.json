@@ -1,6 +1,6 @@
 {
-  "private": true,
   "name": "stlite",
+  "private": true,
   "workspaces": [
     "packages/*",
     "streamlit/frontend",
@@ -8,9 +8,6 @@
     "packages/desktop/samples/*",
     "docs"
   ],
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "prepare": "husky",
     "changeset": "changeset",
@@ -29,6 +26,9 @@
   },
   "resolutions": {
     "@types/react": "18.3.4"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "packageManager": "yarn@4.5.3"
 }

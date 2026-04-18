@@ -54,9 +54,7 @@ interface MessageQueue {
 /**
  * Manages our connection to the Server.
  */
-export class ConnectionManager
-  implements OriginalConnectionManagerPublicInterface
-{
+export class ConnectionManager implements OriginalConnectionManagerPublicInterface {
   private readonly props: Props;
 
   private connectionState: ConnectionState = ConnectionState.INITIAL;

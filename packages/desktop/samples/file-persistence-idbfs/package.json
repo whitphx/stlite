@@ -1,7 +1,7 @@
 {
   "name": "stlite-desktop-sample-file-persistence-idbfs",
-  "private": true,
   "version": "0.90.0",
+  "private": true,
   "license": "Apache-2.0",
   "main": "./build/electron/main.js",
   "scripts": {
@@ -10,6 +10,12 @@
     "app:dir": "electron-builder --dir",
     "app:dist": "electron-builder"
   },
+  "devDependencies": {
+    "@stlite/desktop": "workspace:^",
+    "cross-env": "^10.1.0",
+    "electron": "34.3.0",
+    "electron-builder": "^26.3.0"
+  },
   "build": {
     "files": [
       "build/**/*"
@@ -17,12 +23,6 @@
     "directories": {
       "buildResources": "assets"
     }
-  },
-  "devDependencies": {
-    "@stlite/desktop": "workspace:^",
-    "cross-env": "^10.1.0",
-    "electron": "34.3.0",
-    "electron-builder": "^26.3.0"
   },
   "stlite": {
     "desktop": {

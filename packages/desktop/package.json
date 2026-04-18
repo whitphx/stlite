@@ -1,28 +1,25 @@
 {
   "name": "@stlite/desktop",
   "version": "0.99.1",
-  "type": "module",
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
     "directory": "packages/desktop"
   },
-  "bugs": {
-    "url": "https://github.com/whitphx/stlite/issues"
+  "bin": {
+    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
   },
-  "engines": {
-    "node": ">=18"
-  },
-  "main": "./build/electron/main.js",
   "files": [
     "build",
     "bin/*.js",
     "wheels"
   ],
-  "bin": {
-    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
-  },
+  "type": "module",
+  "main": "./build/electron/main.js",
   "scripts": {
     "start:web": "vite",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
@@ -47,15 +44,6 @@
     "check:lint": "oxlint src electron bin-src",
     "check:format": "oxfmt --check ."
   },
-  "browserslist": {
-    "production": [
-      "last 1 electron version"
-    ],
-    "development": [
-      "last 1 electron version"
-    ]
-  },
-  "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
     "fs-extra": "^11.2.0",
     "pyodide": "0.29.3",
@@ -94,6 +82,18 @@
     "wait-on": "^8.0.1",
     "winston": "^3.13.0"
   },
+  "browserslist": {
+    "production": [
+      "last 1 electron version"
+    ],
+    "development": [
+      "last 1 electron version"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "///": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
   "build": {
     "appId": "your.id",

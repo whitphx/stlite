@@ -1,6 +1,8 @@
 {
   "name": "@stlite/sharing-common",
   "version": "0.90.2",
+  "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "exports": {
     ".": {
@@ -10,8 +12,6 @@
       }
     }
   },
-  "license": "Apache-2.0",
-  "private": true,
   "scripts": {
     "start": "run-p start:proto start:ts",
     "build": "run-s build:proto build:ts",

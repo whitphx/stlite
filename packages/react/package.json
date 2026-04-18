@@ -1,14 +1,13 @@
 {
   "name": "@stlite/react",
   "version": "1.6.1",
-  "type": "module",
   "description": "Stlite React library",
   "keywords": [
+    "pyodide",
     "stlite",
     "streamlit",
-    "pyodide",
-    "webassembly",
-    "wasm"
+    "wasm",
+    "webassembly"
   ],
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
@@ -18,10 +17,16 @@
     "name": "Yuichiro Tachibana (Tsuchiya)",
     "url": "https://www.whitphx.info/"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/react"
+  },
   "files": [
     "build/**/*",
     "vite-plugin/dist/**/*"
   ],
+  "type": "module",
   "exports": {
     ".": {
       "self-development": "./src/index.ts",
@@ -45,10 +50,20 @@
       }
     }
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/whitphx/stlite.git",
-    "directory": "packages/react"
+  "scripts": {
+    "start": "vite",
+    "build": "run-p 'build:*'",
+    "build:lib": "tsc --noEmit && vite build",
+    "build:vite-plugin": "cd vite-plugin && tsdown",
+    "test": "vitest",
+    "test:e2e": "yarn --cwd e2e-tests test",
+    "test:e2e:headed": "yarn --cwd e2e-tests test:headed",
+    "test:e2e:ui": "yarn --cwd e2e-tests test:ui",
+    "test:e2e:update-snapshots": "yarn --cwd e2e-tests test:update-snapshots",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
@@ -82,21 +97,6 @@
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  },
-  "scripts": {
-    "start": "vite",
-    "build": "run-p 'build:*'",
-    "build:lib": "tsc --noEmit && vite build",
-    "build:vite-plugin": "cd vite-plugin && tsdown",
-    "test": "vitest",
-    "test:e2e": "yarn --cwd e2e-tests test",
-    "test:e2e:headed": "yarn --cwd e2e-tests test:headed",
-    "test:e2e:ui": "yarn --cwd e2e-tests test:ui",
-    "test:e2e:update-snapshots": "yarn --cwd e2e-tests test:update-snapshots",
-    "fix:lint": "oxlint --fix src",
-    "fix:format": "oxfmt .",
-    "check:lint": "oxlint src",
-    "check:format": "oxfmt --check ."
   },
   "browserslist": [
     ">0.2%",

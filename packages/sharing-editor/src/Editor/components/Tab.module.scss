@@ -24,7 +24,7 @@
     &::before {
       content: "";
       position: absolute;
-      top: -var.$border-width;
+      top: calc(var.$border-width * -1);
       left: 0;
       width: 100%;
       height: var.$tab-highlight-height;

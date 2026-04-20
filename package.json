@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
-    "@changesets/cli": "^2.29.8",
+    "@changesets/cli": "^2.30.0",
     "cspell": "^9.6.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",

@@ -1,0 +1,4 @@
+# Normalize line endings to LF for all text files across platforms.
+# Without this, Windows checkouts convert LF -> CRLF, which fails
+# `oxfmt --check` (default endOfLine: lf) in CI.
+* text=auto eol=lf

@@ -65,7 +65,7 @@
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.27.1",
     "glob": "^13.0.6",
-    "node-html-parser": "^7.0.1",
+    "node-html-parser": "^7.1.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "react": "^18.2.0",

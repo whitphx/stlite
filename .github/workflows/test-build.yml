@@ -415,6 +415,12 @@ jobs:
           protoc: false
 
       - name: Lint
+        # Skip on non-Linux because `git checkout` on Windows converts LF -> CRLF
+        # (autocrlf default) and oxfmt 0.45.0 rejects `endOfLine: "auto"` (only
+        # `lf`/`crlf`/`cr` are accepted), so `yarn check:format` fails on every
+        # file. Lint/format correctness is platform-independent, so running on
+        # ubuntu-latest is sufficient. Revisit if oxfmt adds `"auto"` support.
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           yarn check:lint
           yarn check:format

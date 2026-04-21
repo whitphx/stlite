@@ -45,10 +45,14 @@ The filename is extracted from the URL path (e.g., `./app.py` becomes `app.py` i
 
 You can also combine the `src` attribute with child elements to add additional files and requirements:
 
+{/* prettier-ignore */}
 ```html
 <streamlit-app src="./main.py">
   <app-file name="utils.py" url="./utils.py"></app-file>
-  <app-requirements> numpy pandas </app-requirements>
+  <app-requirements>
+    numpy
+    pandas
+  </app-requirements>
 </streamlit-app>
 ```
 
@@ -167,8 +171,12 @@ The `<streamlit-app>` custom element provides a declarative way to embed Streaml
 
 1. **Inline code**: Place Python code directly inside `<streamlit-app>`:
 
+   {/* prettier-ignore */}
    ```html
-   <streamlit-app> import streamlit as st st.write("Hello") </streamlit-app>
+   <streamlit-app>
+     import streamlit as st
+     st.write("Hello")
+   </streamlit-app>
    ```
 
 2. **External file via `src`**: Load from a URL:
@@ -178,10 +186,13 @@ The `<streamlit-app>` custom element provides a declarative way to embed Streaml
    ```
 
 3. **Child elements**: Use `<app-file>` with `entrypoint` attribute:
+
+   {/* prettier-ignore */}
    ```html
    <streamlit-app>
      <app-file name="app.py" entrypoint>
-       import streamlit as st st.write("Hello")
+       import streamlit as st
+       st.write("Hello")
      </app-file>
    </streamlit-app>
    ```

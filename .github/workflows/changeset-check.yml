@@ -9,7 +9,7 @@ name: Changeset check
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions: {}

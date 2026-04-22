@@ -3,6 +3,14 @@
   "version": "0.96.1",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",
+    "build": "tsc --noEmit && vite build",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
+  },
   "dependencies": {
     "@stlite/react": "workspace:^",
     "@stlite/sharing-common": "workspace:^",
@@ -13,27 +21,13 @@
     "web-vitals": "^5.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
     "@vitejs/plugin-react": "^5.1.1",
     "cross-env": "^10.1.0",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "prettier": "^3.6.2",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "rollup-plugin-visualizer": "^5.12.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
     "vite": "^7.1.5"
-  },
-  "scripts": {
-    "start": "cross-env EDITOR_APP_ORIGIN=${EDITOR_APP_ORIGIN:-http://localhost:5173} vite",
-    "build": "tsc --noEmit && vite build",
-    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
-    "check:prettier": "prettier --check ."
   },
   "browserslist": [
     ">0.2%",

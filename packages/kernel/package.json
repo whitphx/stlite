@@ -1,9 +1,13 @@
 {
   "name": "@stlite/kernel",
+  "version": "0.102.1",
   "private": true,
   "description": "",
-  "version": "0.102.1",
   "license": "Apache-2.0",
+  "files": [
+    "dist/",
+    "py/**/*.whl"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -42,40 +46,14 @@
       }
     }
   },
-  "files": [
-    "dist/",
-    "py/**/*.whl"
-  ],
   "scripts": {
     "start": "tsc -b -w",
     "build": "tsc -b",
     "test": "vitest",
-    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
-    "check:prettier": "prettier --check ."
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@stlite/tooling": "workspace:^",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^24.1.0",
-    "@types/path-browserify": "^1.0.0",
-    "@types/react": "^18.2.0",
-    "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/web-worker": "^4.1.0",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "prettier": "^3.6.2",
-    "pyodide": "0.29.3",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.5",
-    "vitest": "^4.1.0"
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
   },
   "dependencies": {
     "@jupyterlab/coreutils": "^6.5.0",
@@ -84,5 +62,21 @@
     "@tinyhttp/content-disposition": "^2.2.2",
     "path-browserify": "^1.0.1",
     "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@stlite/tooling": "workspace:^",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^24.1.0",
+    "@types/path-browserify": "^1.0.0",
+    "@types/react": "^18.2.0",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/web-worker": "^4.1.0",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
+    "pyodide": "0.29.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.0"
   }
 }

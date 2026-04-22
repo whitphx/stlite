@@ -1,6 +1,8 @@
 {
   "name": "@stlite/sharing-common",
   "version": "0.90.2",
+  "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "exports": {
     ".": {
@@ -10,8 +12,6 @@
       }
     }
   },
-  "license": "Apache-2.0",
-  "private": true,
   "scripts": {
     "start": "run-p start:proto start:ts",
     "build": "run-s build:proto build:ts",
@@ -21,27 +21,21 @@
     "test": "vitest",
     "build:proto": "protoc --ts_proto_out=. ./src/proto/*.proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=oneof=unions",
     "start:proto": "chokidar \"**/*.proto\" -c \"yarn run build:proto\"",
-    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
-    "check:prettier": "prettier --check ."
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
   },
   "dependencies": {
     "protobufjs": "^7.2.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
     "chokidar-cli": "^3.0.0",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
     "npm-run-all2": "^8.0.4",
-    "prettier": "^3.6.2",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "ts-proto": "^2.6.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
     "vitest": "^4.1.0"
   }
 }

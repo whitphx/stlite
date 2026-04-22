@@ -1,227 +1,227 @@
 :root {
-    /* Stlite Brand Color: #f44b4b -> Milder: #f06262 -> Vivid but soft: #ff6b6b */
-    --sl-color-accent-low: #3f1515;
-    --sl-color-accent: #ff6b6b;
-    --sl-color-accent-high: #ffe3e3;
+  /* Stlite Brand Color: #f44b4b -> Milder: #f06262 -> Vivid but soft: #ff6b6b */
+  --sl-color-accent-low: #3f1515;
+  --sl-color-accent: #ff6b6b;
+  --sl-color-accent-high: #ffe3e3;
 }
 
-[data-theme='dark'] {
-    /* Use vivid red as the main accent color in dark mode */
-    --sl-color-accent: #ff6b6b;
-    --sl-color-accent-high: #ffe3e3;
-    --sl-color-accent-low: #3f1515;
+[data-theme="dark"] {
+  /* Use vivid red as the main accent color in dark mode */
+  --sl-color-accent: #ff6b6b;
+  --sl-color-accent-high: #ffe3e3;
+  --sl-color-accent-low: #3f1515;
 }
 
-[data-theme='light'] {
-    --sl-color-accent-low: #fff0f0;
-    --sl-color-accent: #ff4b4b;
-    --sl-color-accent-high: #c22e2e;
+[data-theme="light"] {
+  --sl-color-accent-low: #fff0f0;
+  --sl-color-accent: #ff4b4b;
+  --sl-color-accent-high: #c22e2e;
 }
 
 /* Force vivid primary button in dark mode */
-[data-theme='dark'] .sl-link-button.primary {
-    background-color: #ff6b6b !important;
-    color: var(--sl-color-black) !important;
-    border-color: #ff6b6b !important;
+[data-theme="dark"] .sl-link-button.primary {
+  background-color: #ff6b6b !important;
+  color: var(--sl-color-black) !important;
+  border-color: #ff6b6b !important;
 }
 
-[data-theme='dark'] .sl-link-button.primary:hover {
-    background-color: #ff8585 !important;
-    /* Slightly lighter on hover */
-    color: var(--sl-color-black) !important;
+[data-theme="dark"] .sl-link-button.primary:hover {
+  background-color: #ff8585 !important;
+  /* Slightly lighter on hover */
+  color: var(--sl-color-black) !important;
 }
 
 /* Hide site title text (logo replaces it) */
 .site-title {
-    font-size: 0 !important;
+  font-size: 0 !important;
 }
 
 /* Sponsor Layout Styles */
 .sponsors-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  margin: 2rem 0;
 }
 
 .sponsor-tier {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
 }
 
 .sponsor-logo {
-    display: block;
-    object-fit: contain;
-    /* Ensure visibility on dark mode - add white bg and padding */
-    background-color: #ffffff;
-    padding: 10px;
-    border-radius: 8px;
-    transition: transform 0.2s;
+  display: block;
+  object-fit: contain;
+  /* Ensure visibility on dark mode - add white bg and padding */
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  transition: transform 0.2s;
 }
 
 .sponsor-logo:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
 .h-100 {
-    height: 100px;
-    width: auto;
+  height: 100px;
+  width: auto;
 }
 
 .h-72 {
-    height: 72px;
-    width: auto;
+  height: 72px;
+  width: auto;
 }
 
 .h-50 {
-    height: 50px;
-    width: auto;
+  height: 50px;
+  width: auto;
 }
 
 /* Specific fix for Snowflake logo which is wide */
 img[alt="Snowflake"].h-100 {
-    /* Maintain aspect ratio but constrain height */
-    height: 100px;
+  /* Maintain aspect ratio but constrain height */
+  height: 100px;
 }
 
 /* Support links layout */
 .support-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-    margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
 }
 
 .sponsors-footer {
-    text-align: center;
-    margin-top: 2rem;
-    font-size: 0.9rem;
-    opacity: 0.8;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 /* Custom Homepage Hero Layout */
 .hero-custom-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
 }
 
 .hero-content {
-    display: flex;
-    flex-direction: column-reverse;
-    align-items: center;
-    text-align: center;
-    padding: 0 1rem 4rem;
-    /* Less padding on top for mobile */
-    width: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  text-align: center;
+  padding: 0 1rem 4rem;
+  /* Less padding on top for mobile */
+  width: 100%;
 }
 
 .hero-playground-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
 }
 
 .hero-copy {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Responsive hero layout: stacked on mobile, side-by-side (row) on desktop */
 @media (min-width: 960px) {
-    .hero-content {
-        flex-direction: row;
-        justify-content: space-between;
-        text-align: left;
-        /* Wider max-width for side-by-side */
-        max-width: 1100px;
-        padding: 4rem 1rem;
-    }
+  .hero-content {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    /* Wider max-width for side-by-side */
+    max-width: 1100px;
+    padding: 4rem 1rem;
+  }
 
-    .hero-copy {
-        flex: 1;
-        padding-right: 4rem;
-        align-items: flex-start;
-        display: flex;
-        flex-direction: column;
-    }
+  .hero-copy {
+    flex: 1;
+    padding-right: 4rem;
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+  }
 
-    .hero-actions {
-        justify-content: flex-start;
-    }
+  .hero-actions {
+    justify-content: flex-start;
+  }
 
-    .hero-logo-container {
-        width: 40%;
-        max-width: 500px;
-        margin-bottom: 0;
-        justify-content: flex-end;
-    }
+  .hero-logo-container {
+    width: 40%;
+    max-width: 500px;
+    margin-bottom: 0;
+    justify-content: flex-end;
+  }
 
-    .hero-logo {
-        width: 100%;
-        margin: 0;
-    }
+  .hero-logo {
+    width: 100%;
+    margin: 0;
+  }
 }
 
 .hero-logo-container {
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: center;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 .hero-logo {
-    height: auto;
-    width: 320px;
-    max-width: 100%;
-    display: block;
-    margin: 0 auto;
-    /* Center the block image */
+  height: auto;
+  width: 320px;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+  /* Center the block image */
 }
 
 .hero-tagline h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 2rem;
-    color: var(--sl-color-white);
-    /* Ensure text alignment follows parent */
-    text-wrap: balance;
-    /* Improve semantic word breaking */
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 2rem;
+  color: var(--sl-color-white);
+  /* Ensure text alignment follows parent */
+  text-wrap: balance;
+  /* Improve semantic word breaking */
 }
 
 .hero-subtitle {
-    font-size: 1.5rem;
-    font-weight: 400;
-    line-height: 1.4;
-    margin-bottom: 2rem;
-    color: var(--sl-color-gray-2);
-    text-wrap: balance;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.4;
+  margin-bottom: 2rem;
+  color: var(--sl-color-gray-2);
+  text-wrap: balance;
 }
 
 .hero-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    /* Center on mobile default */
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  /* Center on mobile default */
 }
 
 /* Neutralize GitHub icon color */
 .social-icons a[href*="github.com"] {
-    color: var(--sl-color-gray-1) !important;
+  color: var(--sl-color-gray-1) !important;
 }
 
 .social-icons a[href*="github.com"]:hover {
-    color: var(--sl-color-white) !important;
+  color: var(--sl-color-white) !important;
 }

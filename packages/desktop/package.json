@@ -1,28 +1,25 @@
 {
   "name": "@stlite/desktop",
   "version": "0.99.1",
-  "type": "module",
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/whitphx/stlite.git",
     "directory": "packages/desktop"
   },
-  "bugs": {
-    "url": "https://github.com/whitphx/stlite/issues"
+  "bin": {
+    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
   },
-  "engines": {
-    "node": ">=18"
-  },
-  "main": "./build/electron/main.js",
   "files": [
     "build",
     "bin/*.js",
     "wheels"
   ],
-  "bin": {
-    "dump-stlite-desktop-artifacts": "./bin/dump_artifacts.js"
-  },
+  "type": "module",
+  "main": "./build/electron/main.js",
   "scripts": {
     "start:web": "vite",
     "//": "We could not make tree shaking on build/pypi work somehow... so delete the dir manually here as workaround X(",
@@ -42,20 +39,11 @@
     "dump:dev": "cross-env NODE_ENV=development tsx ./bin-src/dump_artifacts/index.ts",
     "dump": "dump-stlite-desktop-artifacts",
     "serve": "cross-env NODE_ENV=production electron .",
-    "fix:eslint": "eslint --fix '{src,electron,bin}/**/*.{ts,tsx}'",
-    "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint '{src,electron,bin}/**/*.{ts,tsx}'",
-    "check:prettier": "prettier --check ."
+    "fix:lint": "oxlint --fix src electron bin-src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src electron bin-src",
+    "check:format": "oxfmt --check ."
   },
-  "browserslist": {
-    "production": [
-      "last 1 electron version"
-    ],
-    "development": [
-      "last 1 electron version"
-    ]
-  },
-  "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "dependencies": {
     "fs-extra": "^11.2.0",
     "pyodide": "0.29.3",
@@ -63,7 +51,6 @@
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
-    "@eslint/js": "^9.39.1",
     "@stlite/common": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@stlite/react": "workspace:^",
@@ -77,14 +64,10 @@
     "electron": "34.3.0",
     "electron-reload": "^2.0.0-alpha.1",
     "esbuild": "^0.27.1",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
     "glob": "^13.0.6",
-    "node-html-parser": "^7.0.1",
-    "prettier": "^3.6.2",
+    "node-html-parser": "^7.1.0",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rimraf": "^6.1.2",
@@ -94,12 +77,23 @@
     "ts-node": "^10.9.1",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
     "vite": "^7.1.5",
     "vitest": "^4.1.0",
     "wait-on": "^8.0.1",
     "winston": "^3.13.0"
   },
+  "browserslist": {
+    "production": [
+      "last 1 electron version"
+    ],
+    "development": [
+      "last 1 electron version"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "//": "The packages not bundled with bin/dump_artifacts.js must be specified here as the runtime dependencies. See `scripts/build_bin.js` for the details.",
   "///": "build.productName is necessary because electron-builder uses the package name for its purpose but the scoped name including '@' makes a problem: https://github.com/electron-userland/electron-builder/issues/3230",
   "build": {
     "appId": "your.id",

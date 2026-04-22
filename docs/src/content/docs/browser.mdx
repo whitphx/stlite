@@ -3,8 +3,8 @@ title: "@stlite/browser"
 description: Mount a Streamlit app on a static web page.
 ---
 
-import { Code } from '@astrojs/starlight/components';
-import pkg from '@stlite/browser/package.json';
+import { Code } from "@astrojs/starlight/components";
+import pkg from "@stlite/browser/package.json";
 
 `@stlite/browser` allows you to mount a Streamlit app on a static web page using a `<script>` tag.
 
@@ -22,8 +22,8 @@ import idbfsHtml from '../../../../packages/browser/demos/idbfs/index.html?raw';
 {/* Helper to replace placeholders with CDN URLs */}
 export const cdnBase = `https://cdn.jsdelivr.net/npm/@stlite/browser@${pkg.version}/build`;
 export const toCdn = (html) => html
-  .replace(/\{\{STLITE_JS_URL\}\}/g, `${cdnBase}/stlite.js`)
-  .replace(/\{\{STLITE_CSS_URL\}\}/g, `${cdnBase}/stlite.css`);
+.replace(/\{\{STLITE_JS_URL\}\}/g, `${cdnBase}/stlite.js`)
+.replace(/\{\{STLITE_CSS_URL\}\}/g, `${cdnBase}/stlite.css`);
 
 ## Installation & Usage
 
@@ -45,6 +45,7 @@ The filename is extracted from the URL path (e.g., `./app.py` becomes `app.py` i
 
 You can also combine the `src` attribute with child elements to add additional files and requirements:
 
+{/* prettier-ignore */}
 ```html
 <streamlit-app src="./main.py">
   <app-file name="utils.py" url="./utils.py"></app-file>
@@ -85,7 +86,11 @@ When embedding multiple apps, set `disableDocumentStyles: true` to prevent each 
 
 You can also combine multiple apps with `sharedWorker: true` so they share a single Python worker, reducing memory usage while keeping session state independent.
 
-<Code code={toCdn(multiAppSharedWorkerHtml)} lang="html" title="multi-app-shared-worker.html" />
+<Code
+  code={toCdn(multiAppSharedWorkerHtml)}
+  lang="html"
+  title="multi-app-shared-worker.html"
+/>
 
 ### Persistent Storage with IDBFS
 
@@ -132,16 +137,16 @@ A `StliteController` object with the following methods:
 
 Configuration object for `mount()`.
 
-| Property | Type | Description |
-| :--- | :--- | :--- |
-| `entrypoint` | `string` | The file path of the main script (e.g., `"streamlit_app.py"`). Required if `files` is an object. |
-| `files` | `Record<string, FileContent>` | An object mapping file paths to their content. Content can be a string, `Uint8Array`, or an object `{ url: string }`. |
-| `requirements` | `string[]` | A list of Python packages to install at startup. |
-| `streamlitConfig` | `Record<string, any>` | Streamlit configuration options (e.g., `{ "client.toolbarMode": "viewer" }`). |
-| `archives` | `ArchiveObject[]` | List of archive files (e.g., zip) to download and unpack. |
-| `pyodideUrl` | `string` | Custom URL for the Pyodide interpreter. |
-| `sharedWorker` | `boolean` | Whether to use a SharedWorker. |
-| `idbfsMountpoints` | `string[]` | List of paths to mount with IDBFS (IndexedDB-based persistent file system). |
+| Property           | Type                          | Description                                                                                                           |
+| :----------------- | :---------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `entrypoint`       | `string`                      | The file path of the main script (e.g., `"streamlit_app.py"`). Required if `files` is an object.                      |
+| `files`            | `Record<string, FileContent>` | An object mapping file paths to their content. Content can be a string, `Uint8Array`, or an object `{ url: string }`. |
+| `requirements`     | `string[]`                    | A list of Python packages to install at startup.                                                                      |
+| `streamlitConfig`  | `Record<string, any>`         | Streamlit configuration options (e.g., `{ "client.toolbarMode": "viewer" }`).                                         |
+| `archives`         | `ArchiveObject[]`             | List of archive files (e.g., zip) to download and unpack.                                                             |
+| `pyodideUrl`       | `string`                      | Custom URL for the Pyodide interpreter.                                                                               |
+| `sharedWorker`     | `boolean`                     | Whether to use a SharedWorker.                                                                                        |
+| `idbfsMountpoints` | `string[]`                    | List of paths to mount with IDBFS (IndexedDB-based persistent file system).                                           |
 
 ### `<streamlit-app>` Custom Element
 
@@ -149,22 +154,24 @@ The `<streamlit-app>` custom element provides a declarative way to embed Streaml
 
 #### Attributes
 
-| Attribute | Description |
-| :--- | :--- |
-| `src` | URL to load the main Python file from. The filename is extracted from the URL path. |
-| `shared-worker` | Enable SharedWorker mode for reduced memory usage. |
+| Attribute       | Description                                                                         |
+| :-------------- | :---------------------------------------------------------------------------------- |
+| `src`           | URL to load the main Python file from. The filename is extracted from the URL path. |
+| `shared-worker` | Enable SharedWorker mode for reduced memory usage.                                  |
 
 #### Child Elements
 
-| Element | Description |
-| :--- | :--- |
+| Element                                          | Description                                                                                                              |
+| :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
 | `<app-file name="..." [url="..."] [entrypoint]>` | Define a file. Use `url` to load from URL, or place content inside the tag. Add `entrypoint` to mark as the main script. |
-| `<app-requirements>` | List Python packages to install (one per line, like requirements.txt). |
-| `<app-archive url="..." format="...">` | Load and unpack an archive file (zip, tar.gz). |
+| `<app-requirements>`                             | List Python packages to install (one per line, like requirements.txt).                                                   |
+| `<app-archive url="..." format="...">`           | Load and unpack an archive file (zip, tar.gz).                                                                           |
 
 #### Usage Modes
 
 1. **Inline code**: Place Python code directly inside `<streamlit-app>`:
+
+   {/* prettier-ignore */}
    ```html
    <streamlit-app>
      import streamlit as st
@@ -173,11 +180,14 @@ The `<streamlit-app>` custom element provides a declarative way to embed Streaml
    ```
 
 2. **External file via `src`**: Load from a URL:
+
    ```html
    <streamlit-app src="./app.py"></streamlit-app>
    ```
 
 3. **Child elements**: Use `<app-file>` with `entrypoint` attribute:
+
+   {/* prettier-ignore */}
    ```html
    <streamlit-app>
      <app-file name="app.py" entrypoint>

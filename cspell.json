@@ -95,6 +95,10 @@
     "lsprotocol",
     "distplot",
     // Node/npm
+    "oxlint",
+    "oxlintrc",
+    "oxfmt",
+    "oxfmtrc",
     "baseui",
     "basewebTheme",
     "codedent",

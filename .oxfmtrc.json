@@ -1,0 +1,27 @@
+{
+  "printWidth": 80,
+  "ignorePatterns": [
+    "build",
+    "dist",
+    "coverage",
+    "node_modules",
+    "*.min.*",
+    ".make",
+    ".yarn",
+    "packages/sharing-editor/public/samples",
+    "packages/kernel/py",
+    "packages/sharing-common/src/proto",
+    "streamlit",
+    "CHANGELOG.md",
+    "*.html",
+    "tsconfig.json"
+  ],
+  "overrides": [
+    {
+      "files": ["README.md"],
+      "options": {
+        "embeddedLanguageFormatting": "off"
+      }
+    }
+  ]
+}

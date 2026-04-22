@@ -18,7 +18,7 @@
     display: none;
   }
 
-  &[aria-selected=true] {
-    color: var(--c-primary-focus)
+  &[aria-selected="true"] {
+    color: var(--c-primary-focus);
   }
 }

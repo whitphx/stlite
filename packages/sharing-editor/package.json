@@ -3,6 +3,19 @@
   "version": "0.90.5",
   "private": true,
   "homepage": "https://edit.share.stlite.net/",
+  "scripts": {
+    "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",
+    "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
+    "start": "run-p start:web start:sampleapps",
+    "build:web": "tsc -b && vite build",
+    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.mts",
+    "build": "yarn build:sampleapps && yarn build:web",
+    "test": "vitest",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@stlite/common": "workspace:^",
@@ -23,46 +36,27 @@
     "usehooks-ts": "^3.1.0",
     "web-vitals": "^5.2.0"
   },
-  "scripts": {
-    "start:web": "cross-env SHARING_APP_URL=http://localhost:3000/ vite",
-    "start:sampleapps": "chokidar 'public/samples/**/*' -c \"yarn build:sampleapps\" --initial",
-    "start": "run-p start:web start:sampleapps",
-    "build:web": "tsc -b && vite build",
-    "build:sampleapps": "tsx bin/gen-sample-app-manifests-json.mts",
-    "build": "yarn build:sampleapps && yarn build:web",
-    "test": "vitest",
-    "fix:eslint": "eslint --fix 'src/**/*.{ts,tsx}'",
-    "fix:prettier": "prettier --write .",
-    "check:eslint": "eslint 'src/**/*.{ts,tsx}'",
-    "check:prettier": "prettier --check ."
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/nprogress": "^0.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "chokidar-cli": "^3.0.0",
+    "cross-env": "^10.1.0",
+    "jsdom": "^20.0.3",
+    "npm-run-all2": "^8.0.4",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "sass": "^1.90.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.0"
   },
   "browserslist": [
     ">0.2%",
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/jsdom": "^21.1.7",
-    "@types/nprogress": "^0.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "chokidar-cli": "^3.0.0",
-    "cross-env": "^10.1.0",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "jsdom": "^20.0.3",
-    "npm-run-all2": "^8.0.4",
-    "prettier": "^3.6.2",
-    "rollup-plugin-visualizer": "^5.12.0",
-    "sass": "^1.90.0",
-    "tsx": "^4.19.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.5",
-    "vitest": "^4.1.0"
-  }
+  ]
 }

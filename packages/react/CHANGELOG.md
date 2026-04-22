@@ -1,5 +1,11 @@
 # @stlite/react
 
+## 1.6.2
+
+### Patch Changes
+
+- [#1999](https://github.com/whitphx/stlite/pull/1999) [`07500cc`](https://github.com/whitphx/stlite/commit/07500cc5e8d054ad0fc9055d7680583e14539f7f) Thanks [@whitphx](https://github.com/whitphx)! - Replace ESLint and Prettier with Oxc (oxlint + oxfmt) for linting and formatting. Dev tooling only — no runtime or API change.
+
 ## 1.6.1
 
 ### Patch Changes
@@ -73,10 +79,12 @@
 - [#1837](https://github.com/whitphx/stlite/pull/1837) [`813b89e`](https://github.com/whitphx/stlite/commit/813b89e12eaf11e6522aedd75b57ba7bfb2a8bb4) Thanks [@whitphx](https://github.com/whitphx)! - Rename `mountDocumentStyles` to `disableDocumentStyles` with inverted meaning.
 
   **Breaking Change:** The `mountDocumentStyles` prop/option has been renamed to `disableDocumentStyles` with inverted logic:
+
   - Old: `mountDocumentStyles: true` (default) meant document styles were mounted
   - New: `disableDocumentStyles: false` (default) means document styles are mounted
 
   **Migration:**
+
   - `mountDocumentStyles={true}` → remove the prop (default behavior)
   - `mountDocumentStyles={false}` → `disableDocumentStyles={true}`
 

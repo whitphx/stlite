@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-common",
-  "version": "0.90.2",
+  "version": "0.90.3",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",

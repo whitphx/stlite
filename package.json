@@ -1,6 +1,6 @@
 {
-  "private": true,
   "name": "stlite",
+  "private": true,
   "workspaces": [
     "packages/*",
     "streamlit/frontend",
@@ -8,9 +8,6 @@
     "packages/desktop/samples/*",
     "docs"
   ],
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "prepare": "husky",
     "changeset": "changeset",
@@ -19,14 +16,19 @@
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
-    "@changesets/cli": "^2.29.8",
+    "@changesets/cli": "^2.30.0",
     "cspell": "^9.6.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "typescript": "^5.9.2"
   },
   "resolutions": {
     "@types/react": "18.3.4"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "packageManager": "yarn@4.5.3"
 }

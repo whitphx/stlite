@@ -63,17 +63,17 @@ cd packages/kernel/py/stlite-lib && uv run pytest
 ```bash
 # TypeScript
 cd packages/<pkg>
-yarn check:eslint # or yarn fix:eslint
-yarn check:prettier # or yarn fix:prettier
+yarn check:lint # or yarn fix:lint   (oxlint)
+yarn check:format # or yarn fix:format (oxfmt)
 
 # Python (stlite-lib)
 cd packages/kernel/py/stlite-lib
 uv run ruff check . && uv run ruff format . && uv run pyright
 ```
 
-- ESLint 9 flat config (`eslint.config.mjs`), Prettier (2 spaces, semicolons)
-- Kernel ESLint: unused args with `_` prefix allowed (`argsIgnorePattern: "^_"`); other packages may use different ESLint configs
-- Git hooks (Husky): pre-commit runs lint-staged on `*.{md,json}`
+- Lint: oxlint (`.oxlintrc.json` at repo root), Format: oxfmt (`.oxfmtrc.json`, 2 spaces, semicolons, printWidth 80)
+- Unused vars/args with `_` prefix are allowed repo-wide (`argsIgnorePattern: "^_"` etc.)
+- Git hooks (Husky): pre-commit runs lint-staged (oxfmt on all formatter-supported files, oxlint --fix on JS/TS)
 - Commits: conventional format `type(scope): summary`
 
 ## Changeset Management
@@ -169,4 +169,4 @@ Known to work in this repo: `requests`, `urllib`, `urllib3`, `pyodide.http.pyfet
 
 **Update Streamlit / sample apps / release**: See `CONTRIBUTING.md`.
 
-**Pre-PR checklist**: `make kernel-test`, E2E tests, `yarn tsc --noEmit`, `yarn check:eslint`, `yarn check:prettier`, `yarn changeset`.
+**Pre-PR checklist**: `make kernel-test`, E2E tests, `yarn tsc --noEmit`, `yarn check:lint`, `yarn check:format`, `yarn changeset`.

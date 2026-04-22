@@ -9,6 +9,12 @@
     "app:dist": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
+  "devDependencies": {
+    "@stlite/desktop": "^{{VERSION}}",
+    "cross-env": "^7.0.3",
+    "electron": "34.3.0",
+    "electron-builder": "^25.1.8"
+  },
   "build": {
     "files": [
       "build/**/*"
@@ -16,12 +22,6 @@
     "directories": {
       "buildResources": "assets"
     }
-  },
-  "devDependencies": {
-    "@stlite/desktop": "^{{VERSION}}",
-    "cross-env": "^7.0.3",
-    "electron": "34.3.0",
-    "electron-builder": "^25.1.8"
   },
   "stlite": {
     "desktop": {

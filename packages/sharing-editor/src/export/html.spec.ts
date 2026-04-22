@@ -402,6 +402,7 @@ describe("escapeTextForJsTemplateLiteral", () => {
   ].forEach((text) => {
     it(`escapes ${text} correctly`, () => {
       const escaped = escapeTextForJsTemplateLiteral(text);
+      // oxlint-disable-next-line no-eval
       const parsed = eval("`" + escaped + "`");
       expect(parsed).toEqual(text);
     });

@@ -16,7 +16,7 @@
 
 ## Coding Style & Naming Conventions
 
-- Follow Prettier formatting (2 spaces, trailing commas, semicolons by default) as enforced by the project's configuration, and workspace ESLint configs.
+- Follow the project's formatting (2 spaces, trailing commas, semicolons) and lint rules as enforced by oxfmt / oxlint (configured via `.oxfmtrc.json` and `.oxlintrc.json`).
 - Python inside `packages/kernel/py` should be styled in Ruff and isort manner and never commit generated wheels.
 
 ## Testing Guidelines

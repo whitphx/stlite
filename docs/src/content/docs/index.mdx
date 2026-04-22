@@ -3,25 +3,44 @@ title: Stlite
 description: Serverless Streamlit Running Entirely in Your Browser
 template: splash
 ---
-import { LinkButton, Card, CardGrid } from '@astrojs/starlight/components';
-import stliteLogo from '../../assets/icon.svg';
-import { Image } from 'astro:assets';
+
+import { LinkButton, Card, CardGrid } from "@astrojs/starlight/components";
+import stliteLogo from "../../assets/icon.svg";
+import { Image } from "astro:assets";
 
 <div class="hero-custom-layout">
   <div class="hero-content">
     <div class="hero-copy">
       <div class="hero-tagline">
         <h1>Stlite: In&#8209;browser Streamlit</h1>
-        <p class="hero-subtitle">Serverless Streamlit Running Entirely in Your Browser</p>
+        <p class="hero-subtitle">
+          Serverless Streamlit Running Entirely in Your Browser
+        </p>
       </div>
       <div class="hero-actions">
-        <LinkButton href="https://edit.share.stlite.net/" variant="primary" icon="rocket" target="_blank">Try it Online</LinkButton>
-        <LinkButton href="/browser" variant="secondary">Get Started</LinkButton>
-        <LinkButton href="https://github.com/whitphx/stlite" variant="minimal" icon="external" target="_blank">View on GitHub</LinkButton>
+        <LinkButton
+          href="https://edit.share.stlite.net/"
+          variant="primary"
+          icon="rocket"
+          target="_blank"
+        >
+          Try it Online
+        </LinkButton>
+        <LinkButton href="/browser" variant="secondary">
+          Get Started
+        </LinkButton>
+        <LinkButton
+          href="https://github.com/whitphx/stlite"
+          variant="minimal"
+          icon="external"
+          target="_blank"
+        >
+          View on GitHub
+        </LinkButton>
       </div>
     </div>
     <div class="hero-logo-container">
-       <Image src={stliteLogo} alt="Stlite Logo" class="hero-logo" />
+      <Image src={stliteLogo} alt="Stlite Logo" class="hero-logo" />
     </div>
   </div>
   {/* <div class="hero-playground-container">
@@ -37,15 +56,15 @@ import { Image } from 'astro:assets';
 `}</style>
 
 <CardGrid stagger>
-	<Card title="@stlite/browser" icon="rocket">
-		Use Stlite on your web page. [Read more](/browser)
-	</Card>
-	<Card title="@stlite/react" icon="puzzle">
-		Integrate Stlite into your React app. [Read more](/react)
-	</Card>
-    <Card title="@stlite/desktop" icon="laptop">
-        Create a desktop app. [Read more](/desktop)
-    </Card>
+  <Card title="@stlite/browser" icon="rocket">
+    Use Stlite on your web page. [Read more](/browser)
+  </Card>
+  <Card title="@stlite/react" icon="puzzle">
+    Integrate Stlite into your React app. [Read more](/react)
+  </Card>
+  <Card title="@stlite/desktop" icon="laptop">
+    Create a desktop app. [Read more](/desktop)
+  </Card>
 </CardGrid>
 
 ## Sponsors
@@ -60,11 +79,19 @@ import { Image } from 'astro:assets';
     </a>
   </div>
 
-  <div class="sponsor-tier tier-2">
-    <a href="https://www.testmuai.com/?utm_medium=sponsor&utm_source=stlite" target="_blank" rel="noopener noreferrer">
-      <img src="https://assets.testmuai.com/resources/images/logos/black-logo.png" alt="TestMu AI" class="sponsor-logo h-72" />
-    </a>
-  </div>
+<div class="sponsor-tier tier-2">
+  <a
+    href="https://www.testmuai.com/?utm_medium=sponsor&utm_source=stlite"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <img
+      src="https://assets.testmuai.com/resources/images/logos/black-logo.png"
+      alt="TestMu AI"
+      class="sponsor-logo h-72"
+    />
+  </a>
+</div>
 
   <div class="sponsor-tier tier-3">
     <a href="https://hal9.com/" target="_blank" rel="noopener noreferrer">
@@ -77,10 +104,12 @@ import { Image } from 'astro:assets';
 </div>
 
 <div class="sponsors-footer">
-  <p>They are sponsoring me on <a href="https://github.com/sponsors/whitphx">GitHub Sponsors</a>! <a href="#support-the-project">Support the project</a>.</p>
+  <p>
+    They are sponsoring me on{" "}
+    <a href="https://github.com/sponsors/whitphx">GitHub Sponsors</a>!{" "}
+    <a href="#support-the-project">Support the project</a>.
+  </p>
 </div>
-
-
 
 ## Resources
 
@@ -116,8 +145,6 @@ Image processing with OpenCV works on the client side.
 [![Serverless Streamlit + OpenCV Python Web App Tutorial](https://img.youtube.com/vi/7Qja9ZAWcfw/0.jpg)](https://youtu.be/7Qja9ZAWcfw)
 
 </details>
-
-
 
 ## Support the project
 

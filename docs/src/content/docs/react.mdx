@@ -5,13 +5,13 @@ description: React bindings for running Streamlit entirely in the browser.
 
 `@stlite/react` provides React bindings for running Streamlit entirely in the browser with Stlite. It connects the Pyodide-backed kernel to the Streamlit UI.
 
-import { Code } from '@astrojs/starlight/components';
+import { Code } from "@astrojs/starlight/components";
 
-import viteConfigTs from '../../../../packages/react/demos/vite.config.ts?raw';
-import basicApp from '../../../../packages/react/demos/basic/App.tsx?raw';
-import multiApp from '../../../../packages/react/demos/multi-app/App.tsx?raw';
-import sharedWorkerApp from '../../../../packages/react/demos/multi-app-shared-worker/App.tsx?raw';
-import idbfsApp from '../../../../packages/react/demos/idbfs/App.tsx?raw';
+import viteConfigTs from "../../../../packages/react/demos/vite.config.ts?raw";
+import basicApp from "../../../../packages/react/demos/basic/App.tsx?raw";
+import multiApp from "../../../../packages/react/demos/multi-app/App.tsx?raw";
+import sharedWorkerApp from "../../../../packages/react/demos/multi-app-shared-worker/App.tsx?raw";
+import idbfsApp from "../../../../packages/react/demos/idbfs/App.tsx?raw";
 
 ## Installation
 
@@ -36,9 +36,11 @@ Create a kernel, pass the bundled wheel URLs, and render the app.
 
 :::note
 Don't forget to import the CSS file in your app entry point:
+
 ```tsx
 import "@stlite/react/stlite.css";
 ```
+
 :::
 
 ## Examples
@@ -60,11 +62,12 @@ When running multiple apps, you can enable **SharedWorker mode** to reduce memor
 <Code code={sharedWorkerApp} lang="tsx" title="SharedWorkerApp.tsx" />
 
 :::note
+
 - SharedWorker mode shares the Python environment and installed packages across all apps
 - Each app still has its own home directory (`/home/pyodide/<app-id>`)
 - SharedWorker is not supported in all browsers (e.g., Chrome on Android)
 - If SharedWorker is not supported, the app will automatically fall back to a dedicated worker
-:::
+  :::
 
 ### Persistent Storage with IDBFS
 
@@ -77,6 +80,7 @@ By default, the virtual file system is in-memory and lost on page reload. Use th
 ### `<StliteAppWithToast />`
 
 A wrapper around `<StliteApp />` that includes toast notifications for:
+
 - Loading progress
 - Errors
 - Module auto-loading

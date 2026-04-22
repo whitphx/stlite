@@ -5,10 +5,14 @@ description: Convert your Streamlit application into a desktop app.
 
 `@stlite/desktop` allows you to convert your [Streamlit](https://streamlit.io/) application into a desktop app with [Stlite](https://github.com/whitphx/stlite) runtime, a [Pyodide](https://pyodide.org/)-based Wasm-port of Streamlit.
 
-import { Code } from '@astrojs/starlight/components';
-import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outlined.svg';
+import { Code } from "@astrojs/starlight/components";
+import stliteDesktopBanner from "../../assets/desktop/stlite-desktop-banner-outlined.svg";
 
-<img src={stliteDesktopBanner.src} alt="Stlite Desktop Banner" style="background: white;" />
+<img
+  src={stliteDesktopBanner.src}
+  alt="Stlite Desktop Banner"
+  style="background: white;"
+/>
 
 ## Quick Start
 
@@ -16,14 +20,18 @@ import stliteDesktopBanner from '../../assets/desktop/stlite-desktop-banner-outl
 
 Create a `package.json` file for your new project:
 
-import packageJson from '../../examples/desktop/package.json?raw';
-import pkg from '@stlite/desktop/package.json';
+import packageJson from "../../examples/desktop/package.json?raw";
+import pkg from "@stlite/desktop/package.json";
 
-export const packageJsonWithVersion = packageJson.replace('{{VERSION}}', pkg.version);
+export const packageJsonWithVersion = packageJson.replace(
+  "{{VERSION}}",
+  pkg.version,
+);
 
 <Code code={packageJsonWithVersion} lang="json" title="package.json" />
 
 Run installation:
+
 ```bash
 npm install
 # or
@@ -34,26 +42,30 @@ yarn install
 
 Create `app.py`:
 
-import appPy from '../../examples/desktop/app.py?raw';
+import appPy from "../../examples/desktop/app.py?raw";
 
 <Code code={appPy} lang="python" title="app.py" />
 
 ### 3. Build & Run
 
 **Dump artifacts (prepare build):**
+
 ```bash
 npm run dump
 ```
 
 **Preview:**
+
 ```bash
 npm run serve
 ```
 
 **Distribute:**
+
 ```bash
 npm run app:dist
 ```
+
 This generates the application files (`.app`, `.exe`, etc.) in the `dist` directory.
 
 ## Configuration
@@ -154,6 +166,7 @@ print(result)  # Prints the current username
 ```
 
 This opens up powerful possibilities for desktop applications, such as:
+
 - Running system commands and scripts
 - Accessing Node.js native modules
 - Integrating with other system tools and services

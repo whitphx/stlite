@@ -2,9 +2,9 @@ name: Test and Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 concurrency:
   # https://stackoverflow.com/a/72408109
@@ -113,13 +113,13 @@ jobs:
           name: changesets-published-packages
           path: changesets-published-packages
 
-  changes:  # See https://github.com/dorny/paths-filter#examples
+  changes: # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
       common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      stlite-lib: 'true'  # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
+      stlite-lib: "true" # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
       react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
@@ -127,36 +127,36 @@ jobs:
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        persist-credentials: false
-    - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
-      id: filter
-      with:
-        filters: |
-          gha:
-            - '.github/workflows/**/*'
-            - '.github/actions/**/*'
-          common:
-            - 'packages/common/**/*'
-          kernel:
-            - 'packages/kernel/**/*'
-            # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
-          # stlite-lib:  # We run this job anytime. See above.
-          #   - 'packages/kernel/py/stlite-lib/**/*'
-          #   - 'streamlit/**/*'
-          react:
-            - 'packages/react/**/*'
-          browser:
-            - 'packages/browser/**/*'
-          sharing:
-            - 'packages/sharing/**/*'
-          sharing-editor:
-            - 'packages/sharing-editor/**/*'
-          sharing-common:
-            - 'packages/sharing-common/**/*'
-          desktop:
-            - 'packages/desktop/**/*'
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: |
+            gha:
+              - '.github/workflows/**/*'
+              - '.github/actions/**/*'
+            common:
+              - 'packages/common/**/*'
+            kernel:
+              - 'packages/kernel/**/*'
+              # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
+            # stlite-lib:  # We run this job anytime. See above.
+            #   - 'packages/kernel/py/stlite-lib/**/*'
+            #   - 'streamlit/**/*'
+            react:
+              - 'packages/react/**/*'
+            browser:
+              - 'packages/browser/**/*'
+            sharing:
+              - 'packages/sharing/**/*'
+            sharing-editor:
+              - 'packages/sharing-editor/**/*'
+            sharing-common:
+              - 'packages/sharing-common/**/*'
+            desktop:
+              - 'packages/desktop/**/*'
 
   test-build-common:
     needs: changes
@@ -169,22 +169,22 @@ jobs:
         working-directory: packages/common
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
 
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
-        protoc: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn test
-    - run: yarn build
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn test
+      - run: yarn build
 
   test-kernel:
     needs: changes
@@ -197,22 +197,22 @@ jobs:
         working-directory: packages/kernel
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
 
-    - run: make kernel-test
-      working-directory: .
+      - run: make kernel-test
+        working-directory: .
 
   test-stlite-lib:
     needs: changes
@@ -221,39 +221,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Set up Streamlit and build proto
-      run: |
-        . .venv/bin/activate
-        make streamlit-proto
+      - name: Set up Streamlit and build proto
+        run: |
+          . .venv/bin/activate
+          make streamlit-proto
 
-    - name: Run Ruff
-      run: |
-        . .venv/bin/activate
-        cd packages/kernel/py/stlite-lib
-        uv run ruff check --output-format=github .
-        uv run ruff format . --check
+      - name: Run Ruff
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run ruff check --output-format=github .
+          uv run ruff format . --check
 
-    - name: Run pyright
-      run: |
-        . .venv/bin/activate
-        cd packages/kernel/py/stlite-lib
-        uv run pyright
+      - name: Run pyright
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run pyright
 
-    - name: Run pytest
-      shell: bash
-      run: |
-        . .venv/bin/activate
-        cd packages/kernel/py/stlite-lib
-        uv run pytest -v
+      - name: Run pytest
+        shell: bash
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run pytest -v
 
   test-browser:
     needs: changes
@@ -266,20 +266,20 @@ jobs:
         working-directory: packages/browser
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn test
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn test
 
   test-react:
     needs: changes
@@ -292,20 +292,20 @@ jobs:
         working-directory: packages/react
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn test
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn test
 
   test-sharing:
     needs: changes
@@ -318,20 +318,20 @@ jobs:
         working-directory: packages/sharing
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
 
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
-        protoc: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
     # - run: yarn test
 
   test-sharing-editor:
@@ -345,22 +345,22 @@ jobs:
         working-directory: packages/sharing-editor
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
 
-    - run: make sharing-common
-      working-directory: .
+      - run: make sharing-common
+        working-directory: .
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn test
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn test
 
   test-sharing-common:
     needs: changes
@@ -373,20 +373,20 @@ jobs:
         working-directory: packages/sharing-common
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Lint
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn build:proto
-    - run: yarn test
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn build:proto
+      - run: yarn test
 
   test-desktop:
     needs: changes
@@ -395,7 +395,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]  # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
+        os: [ubuntu-latest, windows-latest] # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
 
     runs-on: ${{ matrix.os }}
 
@@ -404,26 +404,38 @@ jobs:
         working-directory: packages/desktop
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
 
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
-        protoc: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
 
-    - name: Lint
-      if: ${{ matrix.os == 'ubuntu-latest' }}  # The glob pattern passed to ESLint is hardcoded as POSIX, so it does not work on Windows.
-      run: |
-        yarn check:eslint
-        yarn check:prettier
-    - run: yarn test
+      - name: Lint
+        # Skip on non-Linux because `git checkout` on Windows converts LF -> CRLF
+        # (autocrlf default) and oxfmt 0.45.0 rejects `endOfLine: "auto"` (only
+        # `lf`/`crlf`/`cr` are accepted), so `yarn check:format` fails on every
+        # file. Lint/format correctness is platform-independent, so running on
+        # ubuntu-latest is sufficient. Revisit if oxfmt adds `"auto"` support.
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          yarn check:lint
+          yarn check:format
+      - run: yarn test
 
   build-browser:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-kernel, test-stlite-lib, test-build-common, test-browser]
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs:
+      [
+        set-build-info,
+        test-kernel,
+        test-stlite-lib,
+        test-build-common,
+        test-browser,
+      ]
 
     runs-on: ubuntu-latest
 
@@ -433,91 +445,98 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
-    - name: Set PUBLIC_URL
-      run: echo "PUBLIC_URL=." >> $GITHUB_ENV
-    - name: Build @stlite/browser
-      run: |
-        . .venv/bin/activate
-        make browser
+      # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
+      - name: Set PUBLIC_URL
+        run: echo "PUBLIC_URL=." >> $GITHUB_ENV
+      - name: Build @stlite/browser
+        run: |
+          . .venv/bin/activate
+          make browser
 
-    - name: Upload bundle visualizer report (@stlite/browser)
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/browser/stats/browser.html
-        name: visualizer-browser
-        if-no-files-found: error
+      - name: Upload bundle visualizer report (@stlite/browser)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/browser/stats/browser.html
+          name: visualizer-browser
+          if-no-files-found: error
 
-    - name: Package
-      working-directory: packages/browser
-      run: yarn pack
+      - name: Package
+        working-directory: packages/browser
+        run: yarn pack
 
-    - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/browser/package.tgz
-        name: stlite-browser
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/browser/package.tgz
+          name: stlite-browser
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-      with:
-        subject-path: packages/browser/package.tgz
-      # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
-      # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
-      # while the verification is done when publishing the artifact.
-      continue-on-error: true
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/browser/package.tgz
+        # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
+        # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
+        # while the verification is done when publishing the artifact.
+        continue-on-error: true
 
-    - name: "Inform the package stats of @stlite/browser"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: browser
-        name: "@stlite/browser"
-        input-path: packages/browser/package.tgz
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats of @stlite/browser"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: browser
+          name: "@stlite/browser"
+          input-path: packages/browser/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
-    # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
-    - name: Get the built wheel file path
-      id: get-wheel-file-path
-      run: |
-        pushd packages/kernel/py/stlite-lib/dist
-        echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
-        popd
-        pushd packages/kernel/py/streamlit/lib/dist
-        echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
-        popd
-    - name: "Inform the package stats of stlite-lib wheel"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: stlite-lib-wheel
-        name: "stlite-lib wheel (built as a part of @stlite/browser)"
-        input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
-    - name: "Inform the package stats of streamlit wheel"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: streamlit-wheel
-        name: "streamlit wheel (built as a part of @stlite/browser)"
-        input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
+      - name: Get the built wheel file path
+        id: get-wheel-file-path
+        run: |
+          pushd packages/kernel/py/stlite-lib/dist
+          echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
+          popd
+          pushd packages/kernel/py/streamlit/lib/dist
+          echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
+          popd
+      - name: "Inform the package stats of stlite-lib wheel"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: stlite-lib-wheel
+          name: "stlite-lib wheel (built as a part of @stlite/browser)"
+          input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats of streamlit wheel"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: streamlit-wheel
+          name: "streamlit wheel (built as a part of @stlite/browser)"
+          input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-react:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed.
-    needs: [set-build-info, test-kernel, test-stlite-lib, test-build-common, test-react]
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed.
+    needs:
+      [
+        set-build-info,
+        test-kernel,
+        test-stlite-lib,
+        test-build-common,
+        test-react,
+      ]
 
     runs-on: ubuntu-latest
 
@@ -527,49 +546,56 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Build @stlite/react
-      run: |
-        . .venv/bin/activate
-        make react
+      - name: Build @stlite/react
+        run: |
+          . .venv/bin/activate
+          make react
 
-    - name: Package
-      working-directory: packages/react
-      run: yarn pack
+      - name: Package
+        working-directory: packages/react
+        run: yarn pack
 
-    - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/react/package.tgz
-        name: stlite-react
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/react/package.tgz
+          name: stlite-react
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-      with:
-        subject-path: packages/react/package.tgz
-      continue-on-error: true
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/react/package.tgz
+        continue-on-error: true
 
-    - name: "Inform the package stats of @stlite/react"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: react
-        name: "@stlite/react"
-        input-path: packages/react/package.tgz
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats of @stlite/react"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: react
+          name: "@stlite/react"
+          input-path: packages/react/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-sharing:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-kernel, test-stlite-lib, test-sharing-common, test-sharing]
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs:
+      [
+        set-build-info,
+        test-kernel,
+        test-stlite-lib,
+        test-sharing-common,
+        test-sharing,
+      ]
 
     runs-on: ubuntu-latest
 
@@ -577,53 +603,59 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
 
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
-    ## Build and upload @stlite/sharing
-    - name: Set EDITOR_APP_ORIGIN (preview)
-      if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
-      run: echo "EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9-]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
-    - name: Set EDITOR_APP_ORIGIN (main branch)
-      if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
-      run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
-    - name: Build @stlite/sharing
-      run: |
-        . .venv/bin/activate
-        make sharing
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+      ## Build and upload @stlite/sharing
+      - name: Set EDITOR_APP_ORIGIN (preview)
+        if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
+        run: echo "EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9-]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
+      - name: Set EDITOR_APP_ORIGIN (main branch)
+        if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
+        run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
+      - name: Build @stlite/sharing
+        run: |
+          . .venv/bin/activate
+          make sharing
 
-    - name: Upload bundle visualizer report (@stlite/sharing)
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/sharing/stats/sharing.html
-        name: visualizer-sharing
-        if-no-files-found: error
+      - name: Upload bundle visualizer report (@stlite/sharing)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/sharing/stats/sharing.html
+          name: visualizer-sharing
+          if-no-files-found: error
 
-    - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/sharing/build
-        name: stlite-sharing
+      - name: Upload the built directory as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/sharing/build
+          name: stlite-sharing
 
-    - name: "Inform the package stats"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: sharing
-        name: "stlite sharing"
-        input-path: packages/sharing/build
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: sharing
+          name: "stlite sharing"
+          input-path: packages/sharing/build
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-sharing-editor:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-build-common, test-sharing-editor, test-sharing-common]
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs:
+      [
+        set-build-info,
+        test-build-common,
+        test-sharing-editor,
+        test-sharing-common,
+      ]
 
     runs-on: ubuntu-latest
 
@@ -631,48 +663,55 @@ jobs:
       pull-requests: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: recursive
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Set build option envvar for the preview build
-      if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
-      run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
-    - name: Set SHARING_APP_URL (main branch)
-      if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
-      run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
-    - run: make sharing-editor
+      - name: Set build option envvar for the preview build
+        if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
+        run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
+      - name: Set SHARING_APP_URL (main branch)
+        if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
+        run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
+      - run: make sharing-editor
 
-    - name: Upload bundle visualizer report (@stlite/sharing-editor)
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/sharing-editor/stats/sharing-editor.html
-        name: visualizer-sharing-editor
-        if-no-files-found: error
+      - name: Upload bundle visualizer report (@stlite/sharing-editor)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/sharing-editor/stats/sharing-editor.html
+          name: visualizer-sharing-editor
+          if-no-files-found: error
 
-    - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/sharing-editor/dist
-        name: stlite-sharing-editor
+      - name: Upload the built directory as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/sharing-editor/dist
+          name: stlite-sharing-editor
 
-    - name: "Inform the package stats"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: sharing-editor
-        name: "stlite sharing editor"
-        input-path: packages/sharing-editor/dist
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: sharing-editor
+          name: "stlite sharing editor"
+          input-path: packages/sharing-editor/dist
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-desktop:
-    if: ${{ ! failure() }}  # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs: [set-build-info, test-build-common, test-kernel, test-stlite-lib, test-desktop]
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
+    needs:
+      [
+        set-build-info,
+        test-build-common,
+        test-kernel,
+        test-stlite-lib,
+        test-desktop,
+      ]
 
     runs-on: ubuntu-latest
 
@@ -682,55 +721,55 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        python-version-file: ${{ env.python-version-file }}
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Build @stlite/desktop
-      run: |
-        . .venv/bin/activate
-        make desktop
+      - name: Build @stlite/desktop
+        run: |
+          . .venv/bin/activate
+          make desktop
 
-    - name: Upload bundle visualizer report (@stlite/desktop)
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/desktop/stats/desktop.html
-        name: visualizer-desktop
-        if-no-files-found: error
+      - name: Upload bundle visualizer report (@stlite/desktop)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/desktop/stats/desktop.html
+          name: visualizer-desktop
+          if-no-files-found: error
 
-    - name: Package
-      working-directory: packages/desktop
-      run: yarn pack
+      - name: Package
+        working-directory: packages/desktop
+        run: yarn pack
 
-    - name: Upload the built tar ball as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: packages/desktop/package.tgz
-        name: stlite-desktop
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: packages/desktop/package.tgz
+          name: stlite-desktop
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-      with:
-        subject-path: packages/desktop/package.tgz
-      # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
-      # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
-      # while the verification is done when publishing the artifact.
-      continue-on-error: true
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/desktop/package.tgz
+        # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
+        # We can ignore such failures because the following jobs such as E2E-testing in the post-build workflow don't necessarily need the attestation,
+        # while the verification is done when publishing the artifact.
+        continue-on-error: true
 
-    - name: "Inform the package stats of @stlite/desktop"
-      uses: ./.github/actions/set-package-stats
-      continue-on-error: true
-      with:
-        key: desktop
-        name: "@stlite/desktop"
-        input-path: packages/desktop/package.tgz
-        pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-        sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+      - name: "Inform the package stats of @stlite/desktop"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: desktop
+          name: "@stlite/desktop"
+          input-path: packages/desktop/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-docs:
     runs-on: ubuntu-latest
@@ -741,26 +780,26 @@ jobs:
       attestations: write
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      with:
-        submodules: true
-        persist-credentials: false
-    - uses: ./.github/actions/init-all
-      with:
-        node-version-file: ${{ env.node-version-file }}
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
 
-    - name: Build docs
-      run: yarn build
-      working-directory: docs
+      - name: Build docs
+        run: yarn build
+        working-directory: docs
 
-    - name: Upload the built directory as an artifact
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-      with:
-        path: docs/dist
-        name: stlite-docs
+      - name: Upload the built directory as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          path: docs/dist
+          name: stlite-docs
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
-      with:
-        subject-path: docs/dist
-      continue-on-error: true
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: docs/dist
+        continue-on-error: true

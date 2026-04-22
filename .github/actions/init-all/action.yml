@@ -1,20 +1,20 @@
-name: 'Initialization Action'
-description: 'Common initialization steps for CI jobs'
+name: "Initialization Action"
+description: "Common initialization steps for CI jobs"
 inputs:
   python-version-file:
-    description: 'Python version file to setup'
+    description: "Python version file to setup"
     required: false
   node-version-file:
-    description: 'Node version file to setup'
+    description: "Node version file to setup"
     required: false
   install-node-modules:
     description: 'Whether to install Node.js modules using "make node_modules"'
     required: false
-    default: 'true'
+    default: "true"
   protoc:
-    description: 'Whether to install protoc'
+    description: "Whether to install protoc"
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
   using: "composite"

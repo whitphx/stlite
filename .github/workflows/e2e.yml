@@ -1,17 +1,20 @@
 name: E2E Tests
-run-name: E2E Tests for ${{ github.event.workflow_run.display_title || github.event.workflow_run.run_number }}
 
 on:
-  # This workflow is triggered by the `workflow_run` event following the `Test and Build` workflow.
-  # It runs in the default-branch context (required for cross-workflow artifact downloads),
-  # but each E2E job explicitly checks out the PR's head SHA so tests execute with the PR's code.
-  # This file must NEVER reference deployment/publish secrets — `postbuild.yml` is the only
-  # workflow permitted to hold those. Keeping E2E and secret-bearing jobs in separate files is
-  # the security boundary that allows the E2E workflow to run PR code safely.
-  workflow_run:
-    workflows: ["Test and Build"]
-    types:
-      - completed
+  # This workflow runs in the PR's own context (native `pull_request` trigger),
+  # so it executes PR code with a read-only `GITHUB_TOKEN` and no repository secrets.
+  # It polls for the corresponding `Test and Build` run on the same commit and
+  # downloads its artifacts to test against the PR's built packages.
+  # This file must NEVER reference deployment/publish secrets — `postbuild.yml` is
+  # the only workflow permitted to hold those.
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
 
 env:
   node-version-file: ".nvmrc"
@@ -19,41 +22,55 @@ env:
 permissions: {}
 
 jobs:
-  get-build-info:
-    if: github.event.workflow_run.conclusion == 'success'
+  wait-for-build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: read
     outputs:
-      branch: ${{ steps.build-info.outputs.branch }}
-      trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
-      head-sha: ${{ steps.build-info.outputs.head-sha }}
-      pr-number: ${{ steps.build-info.outputs.pr-number }}
+      run-id: ${{ steps.poll.outputs.run-id }}
     steps:
-      - name: Download build info
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: build-info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-      - name: Read build info
-        id: build-info
+      - name: Poll Test and Build workflow for the same commit
+        id: poll
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          echo "branch=$(cat branch)"
-          echo "branch=$(cat branch)" >> $GITHUB_OUTPUT
-          echo "trigger-sha=$(cat trigger-sha)"
-          echo "trigger-sha=$(cat trigger-sha)" >> $GITHUB_OUTPUT
-          echo "head-sha=$(cat head-sha)"
-          echo "head-sha=$(cat head-sha)" >> $GITHUB_OUTPUT
-          echo "pr-number=$(cat pr-number)"
-          echo "pr-number=$(cat pr-number)" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          deadline=$((SECONDS + 3600))  # 60 min
+          while [ $SECONDS -lt $deadline ]; do
+            row=$(gh run list --repo "$REPO" \
+                    --workflow=test-build.yml \
+                    --commit="$COMMIT_SHA" \
+                    --limit 1 \
+                    --json databaseId,status,conclusion \
+                    --jq '.[0] // empty')
+            if [ -n "$row" ]; then
+              status=$(jq -r '.status' <<<"$row")
+              conclusion=$(jq -r '.conclusion' <<<"$row")
+              run_id=$(jq -r '.databaseId' <<<"$row")
+              echo "status=$status conclusion=$conclusion run_id=$run_id"
+              if [ "$status" = "completed" ]; then
+                if [ "$conclusion" = "success" ]; then
+                  echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+                  exit 0
+                fi
+                echo "Test and Build for $COMMIT_SHA concluded with '$conclusion'" >&2
+                exit 1
+              fi
+            else
+              echo "No Test and Build run found for $COMMIT_SHA yet"
+            fi
+            sleep 30
+          done
+          echo "Timed out waiting for Test and Build on $COMMIT_SHA" >&2
+          exit 1
 
   e2e-browser:
-    needs: get-build-info
+    needs: wait-for-build
 
     permissions:
       contents: read
-      statuses: write
 
     runs-on: ubuntu-latest
 
@@ -67,7 +84,6 @@ jobs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
-        ref: ${{ needs.get-build-info.outputs.head-sha }}
 
     - name: Enable Corepack
       run: corepack enable
@@ -91,7 +107,7 @@ jobs:
       with:
         name: stlite-browser
         path: ${{ runner.temp }}/artifacts/browser
-        run-id: ${{ github.event.workflow_run.id }}
+        run-id: ${{ needs.wait-for-build.outputs.run-id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: tar xzvf package.tgz
@@ -102,23 +118,6 @@ jobs:
       working-directory: packages/browser/e2e-tests
       env:
         BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
-
-    - name: Update commit status
-      if: always()
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          STATE="success"
-        else
-          STATE="failure"
-        fi
-        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
-          -X POST \
-          -f state=${STATE} \
-          -f context=${{ github.job }} \
-          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
 
     - name: Upload blob report to GitHub Actions Artifacts
       if: ${{ !cancelled() }}
@@ -131,7 +130,7 @@ jobs:
   merge-e2e-browser-reports:
     # Merge Playwright reports, even if some shards have failed
     if: ${{ !cancelled() }}
-    needs: [get-build-info, e2e-browser]
+    needs: [e2e-browser]
 
     permissions:
       contents: read
@@ -141,7 +140,6 @@ jobs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
-        ref: ${{ needs.get-build-info.outputs.head-sha }}
     - name: Enable Corepack
       run: corepack enable
     - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -170,11 +168,10 @@ jobs:
         retention-days: 14
 
   e2e-react:
-    needs: get-build-info
+    needs: wait-for-build
 
     permissions:
       contents: read
-      statuses: write
 
     runs-on: ubuntu-latest
 
@@ -182,7 +179,6 @@ jobs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
-        ref: ${{ needs.get-build-info.outputs.head-sha }}
 
     - name: Enable Corepack
       run: corepack enable
@@ -194,7 +190,7 @@ jobs:
       with:
         name: stlite-react
         path: ${{ runner.temp }}/artifacts/react
-        run-id: ${{ github.event.workflow_run.id }}
+        run-id: ${{ needs.wait-for-build.outputs.run-id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Verify artifact contents
@@ -208,7 +204,7 @@ jobs:
       with:
         filepath: ${{ runner.temp }}/artifacts/react/package.tgz
         expected-workflow-file: .github/workflows/test-build.yml
-        expected-ref: ${{ needs.get-build-info.outputs.pr-number && format('refs/pull/{0}/merge', needs.get-build-info.outputs.pr-number) || format('refs/heads/{0}', needs.get-build-info.outputs.branch) }}
+        expected-ref: ${{ github.ref }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Extract package and set up for demo build
@@ -233,23 +229,6 @@ jobs:
       run: ./scripts/run-in-docker.sh
       working-directory: packages/react/e2e-tests
 
-    - name: Update commit status
-      if: always()
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          STATE="success"
-        else
-          STATE="failure"
-        fi
-        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
-          -X POST \
-          -f state=${STATE} \
-          -f context=${{ github.job }} \
-          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}
-
     - name: Upload HTML report
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -261,7 +240,7 @@ jobs:
         retention-days: 14
 
   e2e-desktop:
-    needs: get-build-info
+    needs: wait-for-build
 
     strategy:
       matrix:
@@ -269,7 +248,6 @@ jobs:
 
     permissions:
       contents: read
-      statuses: write
 
     runs-on: ${{ matrix.os }}
 
@@ -277,7 +255,6 @@ jobs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
-        ref: ${{ needs.get-build-info.outputs.head-sha }}
 
     - uses: ./.github/actions/init-all
       with:
@@ -292,7 +269,7 @@ jobs:
       with:
         name: stlite-desktop
         path: ${{ runner.temp }}/sample_app
-        run-id: ${{ github.event.workflow_run.id }}
+        run-id: ${{ needs.wait-for-build.outputs.run-id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install the tarball
@@ -308,21 +285,3 @@ jobs:
     - name: Check if electron-builder works
       run: npm run app:dir
       working-directory: ${{ runner.temp }}/sample_app
-
-    - name: Update commit status
-      if: always()
-      shell: bash
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          STATE="success"
-        else
-          STATE="failure"
-        fi
-        gh api repos/${{ github.repository }}/statuses/${HEAD_SHA} \
-          -X POST \
-          -f state=${STATE} \
-          -f context='${{ github.job }} (${{ matrix.os }})' \
-          -f target_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        HEAD_SHA: ${{ needs.get-build-info.outputs.head-sha }}

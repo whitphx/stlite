@@ -906,6 +906,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bufbuild/protobuf@npm:^2.10.2":
+  version: 2.11.0
+  resolution: "@bufbuild/protobuf@npm:2.11.0"
+  checksum: 10c0/d54fffd414660b823999cc321d26bd6c5f18a6e75343fc7d2588bda5be540ec542b557ac1f03d6d4b6e9d3e5596b2016e58cda173cd1858c043f0e846ece453f
+  languageName: node
+  linkType: hard
+
 "@capsizecss/unpack@npm:^3.0.1":
   version: 3.0.1
   resolution: "@capsizecss/unpack@npm:3.0.1"
@@ -7771,7 +7778,7 @@ __metadata:
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     protobufjs: "npm:^7.2.4"
-    ts-proto: "npm:^2.6.1"
+    ts-proto: "npm:^2.11.6"
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.1.0"
   languageName: unknown
@@ -28536,26 +28543,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-proto-descriptors@npm:2.0.0":
-  version: 2.0.0
-  resolution: "ts-proto-descriptors@npm:2.0.0"
+"ts-proto-descriptors@npm:2.1.0":
+  version: 2.1.0
+  resolution: "ts-proto-descriptors@npm:2.1.0"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.0.0"
-  checksum: 10c0/a4f47a6db7de6b328a5b22bb0bed2a0dac929c28002567613db7980e0a8392b9148530e432a602a8c6b2cfda9909be9568a2e5c545f5624bb5d5eba52031c059
+  checksum: 10c0/5695def6c31b7f3f8561876361a2db9f1ad859613fdcf1c7ffd093c3477fea4552ccccef9c99cd63ca2a215a7187e20e0de1fc942e2996d6671c25c6b190bf31
   languageName: node
   linkType: hard
 
-"ts-proto@npm:^2.6.1":
-  version: 2.8.3
-  resolution: "ts-proto@npm:2.8.3"
+"ts-proto@npm:^2.11.6":
+  version: 2.11.6
+  resolution: "ts-proto@npm:2.11.6"
   dependencies:
-    "@bufbuild/protobuf": "npm:^2.0.0"
+    "@bufbuild/protobuf": "npm:^2.10.2"
     case-anything: "npm:^2.1.13"
     ts-poet: "npm:^6.12.0"
-    ts-proto-descriptors: "npm:2.0.0"
+    ts-proto-descriptors: "npm:2.1.0"
   bin:
     protoc-gen-ts_proto: protoc-gen-ts_proto
-  checksum: 10c0/7a2bef9f128a4a43f7220f01c1fe82b830baaf2f31bdf8cad0249731e2821b352f9a5aaec123d22ba0a29a8e118456d22af30138108b8a3065808ada8d5efa32
+  checksum: 10c0/113f5749b6866e321a0d56585bac14feebda5b17a077d7b156a76ea265b445ad1c799befdd5c5152f53ebfc7d8216336034f1596a5bf4d859da79f9c7cac2a4e
   languageName: node
   linkType: hard
 

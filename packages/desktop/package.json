@@ -45,7 +45,7 @@
     "check:format": "oxfmt --check ."
   },
   "dependencies": {
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.4",
     "pyodide": "0.29.3",
     "yargs": "^18.0.0"
   },

@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.102.3
+
+### Patch Changes
+
+- [#2017](https://github.com/whitphx/stlite/pull/2017) [`9d2fd3a`](https://github.com/whitphx/stlite/commit/9d2fd3aaff50cec587c849e03680dd24b8824926) Thanks [@whitphx](https://github.com/whitphx)! - Fix `st.dataframe([])` and other empty DataFrames crashing the page render with a Parquet error ("Repetition level must be defined for a primitive type"). Empty DataFrames now render as empty tables, matching Streamlit's behavior.
+
 ## 0.102.2
 
 ### Patch Changes

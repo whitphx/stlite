@@ -6,6 +6,12 @@ import { u8aToBase64 } from "./buffer";
 // so that bundler reformatting and runtime-side optimizations don't drift the
 // emitted HTML. The Python CLI mirrors this constant verbatim — the golden
 // HTML fixture in test-fixtures/ guards against either side drifting.
+//
+// SECURITY: this string is injected verbatim into a `<script>` tag in every
+// HTML the `html` command produces. Any change here ends up in user-generated
+// pages without further review. Treat edits as security-sensitive: keep the
+// function pure (no eval, no DOM access, no fetch), accept only base64 input,
+// return only Uint8Array output.
 export const BASE64_DECODER_JS_SOURCE = `function base64ToU8A(base64) {
   const s = atob(base64);
   const len = s.length;

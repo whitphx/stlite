@@ -19,7 +19,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "esbuild src/cli.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/cli.js --banner:js='#!/usr/bin/env node'",
+    "build": "esbuild src/cli.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/cli.js --banner:js='#!/usr/bin/env node\nimport { createRequire as __cliCreateRequire } from \"node:module\"; const require = __cliCreateRequire(import.meta.url);' --external:pyodide --external:fs-extra --external:@stlite/app-packager --external:@stlite/browser",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "fix:lint": "oxlint --fix src",
@@ -28,6 +28,9 @@
     "check:format": "oxfmt --check ."
   },
   "dependencies": {
+    "@stlite/app-packager": "workspace:^",
+    "@stlite/browser": "workspace:^",
+    "@stlite/common": "workspace:^",
     "@stlite/sharing-common": "workspace:^",
     "yargs": "^18.0.0"
   },

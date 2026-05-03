@@ -1,5 +1,6 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
+import { createRequire } from "node:module";
 import fsExtra from "fs-extra";
 import {
   loadPyodide,
@@ -16,6 +17,43 @@ export { PrebuiltPackagesDataReader } from "./pyodide-packages.js";
 
 export const DEFAULT_PYODIDE_SOURCE = `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`;
 
+/**
+ * The Pyodide runtime files copied into a packaged artifact's `pyodide/` dir
+ * so the resulting web app boots offline. These are the same files that
+ * Pyodide's `pyodide-core` release tarball ships under `pyodide/`.
+ */
+const PYODIDE_RUNTIME_FILES = [
+  "pyodide.asm.js",
+  "pyodide.asm.wasm",
+  "pyodide.mjs",
+  "python_stdlib.zip",
+  "pyodide-lock.json",
+] as const;
+
+const localRequire = createRequire(import.meta.url);
+
+/**
+ * Copies Pyodide's runtime files (`pyodide.mjs`, `pyodide.asm.{js,wasm}`,
+ * `python_stdlib.zip`, `pyodide-lock.json`) from the installed `pyodide` npm
+ * package into `<destPyodideDir>`. The packaged HTML loads them via
+ * `pyodideUrl: "./pyodide/pyodide.mjs"` so the artifact runs without
+ * fetching from a CDN.
+ */
+export async function copyPyodideRuntime(
+  destPyodideDir: string,
+): Promise<void> {
+  const pyodidePkgDir = path.dirname(
+    localRequire.resolve("pyodide/package.json"),
+  );
+  await fsPromises.mkdir(destPyodideDir, { recursive: true });
+  for (const fileName of PYODIDE_RUNTIME_FILES) {
+    await fsPromises.copyFile(
+      path.join(pyodidePkgDir, fileName),
+      path.join(destPyodideDir, fileName),
+    );
+  }
+}
+
 export interface PackageAppOptions {
   /** The destination directory the artifacts get written into. Caller is responsible for creating it and copying any host-specific shell (SPA, manifest, etc.) before/after this call. */
   destDir: string;
@@ -29,6 +67,15 @@ export interface PackageAppOptions {
   dependencies: string[];
   /** Local wheel files (e.g. stlite_lib, streamlit) installed in addition to `dependencies`. */
   localWheelPaths: string[];
+  /**
+   * When true, the local wheels are installed only for prebuilt-package
+   * discovery (so their transitive prebuilt deps get vendored into pyodide/
+   * and listed in prebuilt-packages.txt) but their files are NOT included
+   * in the site-packages snapshot. Defaults to false. Use this when the
+   * runtime will install these wheels itself (e.g. @stlite/browser's
+   * default wheelUrls install stlite_lib + streamlit at boot).
+   */
+  excludeLocalWheelsFromSnapshot?: boolean;
   /** CDN URL or local path to Pyodide files (pyodide-lock.json, prebuilt wheels). */
   pyodideSource?: string;
   /** Optional logger; defaults to console. */
@@ -81,7 +128,9 @@ export async function packageApp(opts: PackageAppOptions): Promise<void> {
 
   await createSitePackagesSnapshot({
     requirements: opts.dependencies,
-    localWheelPaths: opts.localWheelPaths,
+    localWheelPaths: opts.excludeLocalWheelsFromSnapshot
+      ? []
+      : opts.localWheelPaths,
     usedPrebuiltPackages,
     pyodideSource,
     pyodideRuntimeDir,

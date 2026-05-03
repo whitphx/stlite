@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { AppData, File } from "@stlite/sharing-common";
+import { collectProjectFiles } from "./project-files.js";
 
 const TEXT_EXTS = new Set([
   ".py",
@@ -12,9 +13,6 @@ const TEXT_EXTS = new Set([
   ".yaml",
   ".toml",
 ]);
-
-const IGNORED_DIRS = new Set([".git", "__pycache__", ".venv", "node_modules"]);
-const isIgnoredFile = (name: string) => name.endsWith(".pyc");
 
 export interface BuildAppDataOptions {
   projectDir: string;
@@ -54,12 +52,10 @@ export function buildAppData(opts: BuildAppDataOptions): AppData {
 }
 
 function collectFiles(rootDir: string): { [path: string]: File } {
-  const relPaths: string[] = [];
-  walk(rootDir, [], relPaths);
   // Sort lexicographically so the proto map is built in deterministic order;
   // both ts-proto and betterproto serialize map entries in iteration order, so
   // matching the order across runtimes is what gives us byte-identical output.
-  relPaths.sort();
+  const relPaths = collectProjectFiles(rootDir).sort();
 
   const result: { [path: string]: File } = {};
   for (const rel of relPaths) {
@@ -79,19 +75,6 @@ function collectFiles(rootDir: string): { [path: string]: File } {
     }
   }
   return result;
-}
-
-function walk(rootDir: string, relParts: string[], out: string[]): void {
-  const dirAbs = path.join(rootDir, ...relParts);
-  for (const entry of fs.readdirSync(dirAbs, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      if (IGNORED_DIRS.has(entry.name)) continue;
-      walk(rootDir, [...relParts, entry.name], out);
-    } else if (entry.isFile()) {
-      if (isIgnoredFile(entry.name)) continue;
-      out.push([...relParts, entry.name].join("/"));
-    }
-  }
 }
 
 function readRequirements(reqPath: string): string[] {

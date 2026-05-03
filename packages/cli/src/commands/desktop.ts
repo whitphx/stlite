@@ -1,14 +1,18 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { createRequire } from "node:module";
 import type { CommandModule } from "yargs";
+import { packageApp } from "@stlite/app-packager";
 import {
-  packageApp,
-  readRequirementsTxt,
-  DEFAULT_PYODIDE_SOURCE,
-  normalizePyodideSource,
-} from "@stlite/app-packager";
-import { validateRequirements } from "@stlite/common";
-import { collectProjectFiles } from "../web-shell.js";
+  collectWheelPaths,
+  copyTreeFiltered,
+  packageCommandBuilder,
+  resolvePackageBuildDir,
+  runPackageCommand,
+  type PackageCommandArgs,
+} from "../package-command.js";
+
+const require = createRequire(import.meta.url);
 
 // Lazy-loaded inside the handler so `stlite --help` works even when
 // @stlite/desktop hasn't been built yet (the manifest module is emitted
@@ -19,13 +23,8 @@ type DumpManifest = (options: {
   fallbacks?: Partial<{ entrypoint: string }>;
 }) => Promise<void>;
 
-interface DesktopArgs {
-  path: string;
-  out: string;
-  entrypoint: string;
-  requirements?: string;
+interface DesktopArgs extends PackageCommandArgs {
   manifest?: string;
-  pyodideSource: string;
 }
 
 export const desktopCommand: CommandModule<unknown, DesktopArgs> = {
@@ -33,133 +32,49 @@ export const desktopCommand: CommandModule<unknown, DesktopArgs> = {
   describe:
     "Convert a local Streamlit project into a Stlite Desktop project (multi-file dir + stlite-manifest.json)",
   builder: (yargs) =>
-    yargs
-      .positional("path", {
-        type: "string",
-        describe: "Path to the Streamlit project directory",
-        demandOption: true,
-      })
-      .option("out", {
-        type: "string",
-        alias: "o",
-        describe: "Output directory",
-        default: "./build",
-      })
-      .option("entrypoint", {
-        type: "string",
-        describe: "Entrypoint script path, relative to <path>",
-        default: "app.py",
-      })
-      .option("requirements", {
-        type: "string",
-        describe:
-          "Path to a requirements.txt file (defaults to <path>/requirements.txt if present)",
-      })
-      .option("manifest", {
-        type: "string",
-        describe:
-          "Path to a JSON file overriding the stlite-manifest.json contents (entrypoint, embed, nodeJsWorker, mountpoints, etc.)",
-      })
-      .option("pyodideSource", {
-        type: "string",
-        describe:
-          "Base URL or path of the Pyodide files (pyodide-lock.json, prebuilt wheels)",
-        default: DEFAULT_PYODIDE_SOURCE,
-        coerce: normalizePyodideSource,
-      }),
-  handler: async (argv) => {
-    try {
-      const projectDir = path.resolve(argv.path);
-      if (!fs.statSync(projectDir).isDirectory()) {
-        throw new Error(`Not a directory: ${projectDir}`);
-      }
-      if (!fs.existsSync(path.join(projectDir, argv.entrypoint))) {
-        throw new Error(
-          `Entrypoint not found: ${argv.entrypoint} (looked in ${projectDir})`,
-        );
-      }
-
-      const destDir = path.resolve(argv.out);
-      const filesRel = collectProjectFiles(projectDir);
-
-      const requirementsTxtPath = resolveRequirementsTxt(
-        projectDir,
-        argv.requirements,
+    packageCommandBuilder(yargs).option("manifest", {
+      type: "string",
+      describe:
+        "Path to a JSON file overriding the stlite-manifest.json contents (entrypoint, embed, nodeJsWorker, mountpoints, etc.)",
+    }),
+  handler: (argv) =>
+    runPackageCommand(argv, "desktop", async (ctx) => {
+      const desktopBuildDir = resolvePackageBuildDir(
+        "@stlite/desktop",
+        "desktop",
       );
-      const dependencies = requirementsTxtPath
-        ? validateRequirements(await readRequirementsTxt(requirementsTxtPath))
-        : [];
+      copyTreeFiltered(desktopBuildDir, ctx.destDir);
 
-      // Reset destDir so a re-run starts clean.
-      fs.rmSync(destDir, { recursive: true, force: true });
-      fs.mkdirSync(destDir, { recursive: true });
+      const desktopWheelPaths = collectWheelPaths(
+        path.join(
+          path.dirname(require.resolve("@stlite/desktop/package.json")),
+          "wheels",
+        ),
+      );
 
-      // Copy @stlite/desktop's CRA SPA + wheels into destDir.
-      const { desktopBuildDir, desktopWheelPaths } = resolveDesktopAssets();
-      copyDesktopShell(desktopBuildDir, destDir);
-
-      // Vendor prebuilt-package wheels + snapshot site-packages + copy app files.
       // Desktop's runtime loads streamlit/stlite_lib from the snapshot (it does
       // NOT install them via wheelUrls), so include them in the snapshot.
       await packageApp({
-        destDir,
-        sourceDir: projectDir,
-        files: filesRel,
-        entrypoint: argv.entrypoint,
-        dependencies,
+        destDir: ctx.destDir,
+        sourceDir: ctx.projectDir,
+        files: ctx.filesRel,
+        entrypoint: ctx.entrypoint,
+        dependencies: ctx.dependencies,
         localWheelPaths: desktopWheelPaths,
-        pyodideSource: argv.pyodideSource,
+        pyodideSource: ctx.pyodideSource,
       });
 
-      // Desktop-specific manifest.
       const manifestOverrides = argv.manifest
         ? JSON.parse(fs.readFileSync(path.resolve(argv.manifest), "utf8"))
         : undefined;
       const dumpManifest = await loadDumpManifest();
       await dumpManifest({
         packageJsonStliteDesktopField: manifestOverrides,
-        manifestFilePath: path.resolve(destDir, "./stlite-manifest.json"),
-        fallbacks: { entrypoint: argv.entrypoint },
+        manifestFilePath: path.resolve(ctx.destDir, "./stlite-manifest.json"),
+        fallbacks: { entrypoint: ctx.entrypoint },
       });
-
-      console.log(`stlite desktop: packaged → ${destDir}`);
-    } catch (err) {
-      console.error(`stlite desktop: ${(err as Error).message}`);
-      process.exit(1);
-    }
-  },
+    }),
 };
-
-interface DesktopAssets {
-  desktopBuildDir: string;
-  desktopWheelPaths: string[];
-}
-
-function resolveDesktopAssets(): DesktopAssets {
-  const desktopPkgPath = require.resolve("@stlite/desktop/package.json");
-  const desktopRoot = path.dirname(desktopPkgPath);
-  const desktopBuildDir = path.join(desktopRoot, "build");
-  const wheelsDir = path.join(desktopRoot, "wheels");
-  const desktopWheelPaths = fs
-    .readdirSync(wheelsDir)
-    .filter((name) => name.endsWith(".whl"))
-    .map((name) => path.join(wheelsDir, name));
-  return { desktopBuildDir, desktopWheelPaths };
-}
-
-function copyDesktopShell(desktopBuildDir: string, destDir: string): void {
-  for (const entry of fs.readdirSync(desktopBuildDir, {
-    withFileTypes: true,
-  })) {
-    const src = path.join(desktopBuildDir, entry.name);
-    const dst = path.join(destDir, entry.name);
-    if (entry.isDirectory()) {
-      fs.cpSync(src, dst, { recursive: true });
-    } else {
-      fs.copyFileSync(src, dst);
-    }
-  }
-}
 
 async function loadDumpManifest(): Promise<DumpManifest> {
   // manifest.js is emitted as ESM by desktop's build_electron.js so it
@@ -177,13 +92,4 @@ async function loadDumpManifest(): Promise<DumpManifest> {
     dumpManifest: DumpManifest;
   };
   return mod.dumpManifest;
-}
-
-function resolveRequirementsTxt(
-  projectDir: string,
-  explicit: string | undefined,
-): string | null {
-  if (explicit) return path.resolve(explicit);
-  const defaultPath = path.join(projectDir, "requirements.txt");
-  return fs.existsSync(defaultPath) ? defaultPath : null;
 }

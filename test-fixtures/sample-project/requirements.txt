@@ -1,0 +1,2 @@
+# pinned for the parity fixture
+matplotlib

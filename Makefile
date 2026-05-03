@@ -51,6 +51,7 @@ sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
+cli-py-proto := $(BUILD_STATE_DIR)/cli-py-proto/.built
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
 streamlit_wheel := packages/kernel/py/streamlit/lib/dist/$(STREAMLIT_COMPILED_WHEEL_FILE_NAME)
 streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
@@ -200,6 +201,17 @@ kernel-test: $(shell \
 ) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
+
+.PHONY: cli-py-proto
+cli-py-proto: $(cli-py-proto)
+$(cli-py-proto): packages/sharing-common/src/proto/models.proto packages/cli/py/pyproject.toml $(venv)
+	mkdir -p packages/cli/py/stlite_cli/_proto
+	uv run --project packages/cli/py protoc \
+		-I packages/sharing-common/src/proto \
+		--python_betterproto_out=packages/cli/py/stlite_cli/_proto \
+		packages/sharing-common/src/proto/models.proto
+	@mkdir -p $(dir $@)
+	@touch $@
 
 .PHONY: stlite-lib-wheel
 stlite-lib-wheel: $(stlite-lib-wheel)

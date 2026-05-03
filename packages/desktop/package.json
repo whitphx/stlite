@@ -45,6 +45,7 @@
     "check:format": "oxfmt --check ."
   },
   "dependencies": {
+    "@stlite/app-packager": "workspace:^",
     "fs-extra": "^11.3.4",
     "pyodide": "0.29.3",
     "yargs": "^18.0.0"

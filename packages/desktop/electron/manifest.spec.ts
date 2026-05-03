@@ -1,38 +1,51 @@
 import { describe, it, expect } from "vitest";
-import { resolveNodefsMountpoints } from "./manifest";
+import { coerceDesktopAppManifest } from "./manifest";
 
-describe("resolveNodefsMountpoints", () => {
-  it("should resolve nodefs mountpoint paths with the special placeholders", () => {
-    const app = {
-      getPath: (placeholder: string) => {
-        if (placeholder === "xxx") {
-          throw new Error("Unknown placeholder");
-        }
-        return `/path/to/${placeholder}`;
-      },
-    } as Electron.App;
-
-    const nodefsMountpoints = {
-      home: "{{home}}",
-      homeSubdir: "{{home}}/subdir",
-      appData: "{{appData}}",
-      appDataSubdir: "{{appData}}/subdir",
-      unknown: "{{xxx}}",
-      unknownSubdir: "{{xxx}}/subdir",
-    };
-
-    const resolvedNodefsMountpoints = resolveNodefsMountpoints(
-      app,
-      nodefsMountpoints,
-    );
-
-    expect(resolvedNodefsMountpoints).toEqual({
-      home: "/path/to/home",
-      homeSubdir: "/path/to/home/subdir",
-      appData: "/path/to/appData",
-      appDataSubdir: "/path/to/appData/subdir",
-      unknown: "{{xxx}}",
-      unknownSubdir: "{{xxx}}/subdir",
+describe("coerceDesktopAppManifest", () => {
+  it("should require the entrypoint field and coerce the remaining fields", () => {
+    expect(
+      coerceDesktopAppManifest({
+        entrypoint: "foo.py",
+      }),
+    ).toEqual({
+      entrypoint: "foo.py",
+      embed: false,
+      nodeJsWorker: false,
+      appMenu: true,
     });
+  });
+
+  it("should allow appMenu to be set to false", () => {
+    expect(
+      coerceDesktopAppManifest({
+        entrypoint: "foo.py",
+        appMenu: false,
+      }),
+    ).toEqual({
+      entrypoint: "foo.py",
+      embed: false,
+      nodeJsWorker: false,
+      appMenu: false,
+    });
+  });
+
+  it("should throw an error when `idbfsMountpoints` is set with `nodeJsWorker` is true", () => {
+    expect(() =>
+      coerceDesktopAppManifest({
+        entrypoint: "foo.py",
+        nodeJsWorker: true,
+        idbfsMountpoints: ["foo"],
+      }),
+    ).toThrowError();
+  });
+
+  it("should throw an error when `nodefsMountpoints` is set with `nodeJsWorker` is false", () => {
+    expect(() =>
+      coerceDesktopAppManifest({
+        entrypoint: "foo.py",
+        nodeJsWorker: false,
+        nodefsMountpoints: { foo: "bar" },
+      }),
+    ).toThrowError();
   });
 });

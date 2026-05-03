@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
-import { PrebuiltPackagesDataReader } from "./pyodide_packages.js";
+import { PrebuiltPackagesDataReader } from "./pyodide-packages.js";
 
 describe("PrebuiltPackagesDataReader", () => {
   it("should be able to read the package info from the remote URL", async () => {

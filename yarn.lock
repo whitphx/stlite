@@ -7814,6 +7814,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stlite/app-packager@workspace:^, @stlite/app-packager@workspace:packages/app-packager":
+  version: 0.0.0-use.local
+  resolution: "@stlite/app-packager@workspace:packages/app-packager"
+  dependencies:
+    "@stlite/common": "workspace:^"
+    "@types/fs-extra": "npm:^11.0.4"
+    "@types/node": "npm:^22.10.0"
+    fs-extra: "npm:^11.3.4"
+    glob: "npm:^11.0.0"
+    oxfmt: "npm:^0.45.0"
+    oxlint: "npm:^1.60.0"
+    pyodide: "npm:0.29.3"
+    typescript: "npm:^5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@stlite/browser@workspace:*, @stlite/browser@workspace:packages/browser":
   version: 0.0.0-use.local
   resolution: "@stlite/browser@workspace:packages/browser"
@@ -7871,6 +7887,7 @@ __metadata:
   resolution: "@stlite/desktop@workspace:packages/desktop"
   dependencies:
     "@emotion/babel-plugin": "npm:^11.13.5"
+    "@stlite/app-packager": "workspace:^"
     "@stlite/common": "workspace:^"
     "@stlite/kernel": "workspace:^"
     "@stlite/react": "workspace:^"
@@ -9430,6 +9447,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/fs-extra@npm:^11.0.4":
+  version: 11.0.4
+  resolution: "@types/fs-extra@npm:11.0.4"
+  dependencies:
+    "@types/jsonfile": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 10c0/9e34f9b24ea464f3c0b18c3f8a82aefc36dc524cc720fc2b886e5465abc66486ff4e439ea3fb2c0acebf91f6d3f74e514f9983b1f02d4243706bdbb7511796ad
+  languageName: node
+  linkType: hard
+
 "@types/geojson-vt@npm:3.2.5":
   version: 3.2.5
   resolution: "@types/geojson-vt@npm:3.2.5"
@@ -9537,6 +9564,15 @@ __metadata:
   version: 0.0.29
   resolution: "@types/json5@npm:0.0.29"
   checksum: 10c0/6bf5337bc447b706bb5b4431d37686aa2ea6d07cfd6f79cc31de80170d6ff9b1c7384a9c0ccbc45b3f512bae9e9f75c2e12109806a15331dc94e8a8db6dbb4ac
+  languageName: node
+  linkType: hard
+
+"@types/jsonfile@npm:*":
+  version: 6.1.4
+  resolution: "@types/jsonfile@npm:6.1.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/b12d068b021e4078f6ac4441353965769be87acf15326173e2aea9f3bf8ead41bd0ad29421df5bbeb0123ec3fc02eb0a734481d52903704a1454a1845896b9eb
   languageName: node
   linkType: hard
 
@@ -18083,6 +18119,22 @@ __metadata:
   bin:
     glob: dist/esm/bin.mjs
   checksum: 10c0/19a9759ea77b8e3ca0a43c2f07ecddc2ad46216b786bb8f993c445aee80d345925a21e5280c7b7c6c59e860a0154b84e4b2b60321fea92cd3c56b4a7489f160e
+  languageName: node
+  linkType: hard
+
+"glob@npm:^11.0.0":
+  version: 11.1.0
+  resolution: "glob@npm:11.1.0"
+  dependencies:
+    foreground-child: "npm:^3.3.1"
+    jackspeak: "npm:^4.1.1"
+    minimatch: "npm:^10.1.1"
+    minipass: "npm:^7.1.2"
+    package-json-from-dist: "npm:^1.0.0"
+    path-scurry: "npm:^2.0.0"
+  bin:
+    glob: dist/esm/bin.mjs
+  checksum: 10c0/1ceae07f23e316a6fa74581d9a74be6e8c2e590d2f7205034dd5c0435c53f5f7b712c2be00c3b65bf0a49294a1c6f4b98cd84c7637e29453b5aa13b79f1763a2
   languageName: node
   linkType: hard
 

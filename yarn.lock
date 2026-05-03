@@ -7860,6 +7860,7 @@ __metadata:
     "@stlite/app-packager": "workspace:^"
     "@stlite/browser": "workspace:^"
     "@stlite/common": "workspace:^"
+    "@stlite/desktop": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
     "@types/node": "npm:^22.10.0"
     "@types/yargs": "npm:^17.0.32"

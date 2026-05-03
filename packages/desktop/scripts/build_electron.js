@@ -13,16 +13,10 @@ const __dirname = path.dirname(__filename);
 const watch = process.argv.includes("--watch");
 const production = process.env.NODE_ENV === "production";
 
-(watch ? context : build)({
-  entryPoints: [
-    path.resolve(__dirname, "../electron/main.ts"),
-    path.resolve(__dirname, "../electron/preload.ts"),
-    path.resolve(__dirname, "../electron/worker.ts"),
-  ],
+const commonOptions = {
   bundle: true,
   minify: production,
   platform: "node",
-  format: "cjs",
   tsconfig: path.resolve(__dirname, "../electron/tsconfig.json"),
   outdir: path.resolve(__dirname, "../build/electron"),
   external: ["electron", "electron-reload"],
@@ -34,4 +28,31 @@ const production = process.env.NODE_ENV === "production";
       : null),
   },
   logLevel: "info",
-}).then((buildResultOrContext) => watch && buildResultOrContext.watch());
+};
+
+// Electron's main/preload/worker run inside Electron's own runtime, which
+// expects CJS output regardless of the package's "type": "module".
+const electronBuildOptions = {
+  ...commonOptions,
+  entryPoints: [
+    path.resolve(__dirname, "../electron/main.ts"),
+    path.resolve(__dirname, "../electron/preload.ts"),
+    path.resolve(__dirname, "../electron/worker.ts"),
+  ],
+  format: "cjs",
+};
+
+// manifest.ts is a build-time helper that @stlite/cli imports from Node, so
+// it must be ESM to match @stlite/desktop's package.json `"type": "module"`.
+const manifestBuildOptions = {
+  ...commonOptions,
+  entryPoints: [path.resolve(__dirname, "../electron/manifest.ts")],
+  format: "esm",
+};
+
+(watch ? context : build)(electronBuildOptions).then(
+  (buildResultOrContext) => watch && buildResultOrContext.watch(),
+);
+(watch ? context : build)(manifestBuildOptions).then(
+  (buildResultOrContext) => watch && buildResultOrContext.watch(),
+);

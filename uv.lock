@@ -11,11 +11,12 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-09T13:36:37.568158Z"
+exclude-newer = "2026-04-26T05:15:09.728454Z"
 exclude-newer-span = "P1W"
 
 [manifest]
 members = [
+    "stlite-cli",
     "stlite-dev",
     "stlite-lib",
 ]
@@ -1353,6 +1354,31 @@ source = { registry = "https://pypi.flatt.tech/simple/" }
 sdist = { url = "https://pypi.flatt.tech/files/packages/1f/ea/49c993d6dfdd7338c9b1000a0f36817ed7ec84577ae2e52f890d1a4ff909/smmap-5.0.3.tar.gz", hash = "sha256:4d9debb8b99007ae47165abc08670bd74cb74b5227dda7f643eccc4e9eb5642c", size = 22506, upload-time = "2026-03-09T03:43:26.1Z" }
 wheels = [
     { url = "https://pypi.flatt.tech/files/packages/c1/d4/59e74daffcb57a07668852eeeb6035af9f32cbfd7a1d2511f17d2fe6a738/smmap-5.0.3-py3-none-any.whl", hash = "sha256:c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f", size = 24390, upload-time = "2026-03-09T03:43:24.361Z" },
+]
+
+[[package]]
+name = "stlite-cli"
+version = "0.0.0"
+source = { editable = "packages/cli/py" }
+dependencies = [
+    { name = "click" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "click", specifier = ">=8.1" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.384" },
+    { name = "pytest", specifier = ">=8.3.3" },
+    { name = "ruff", specifier = ">=0.6.9" },
 ]
 
 [[package]]

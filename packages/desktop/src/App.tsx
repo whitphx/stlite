@@ -49,7 +49,15 @@ function App() {
           files,
           archives: [
             {
-              buffer: sitePackagesSnapshotFileBin,
+              // The IPC bridge gives us a Node `Buffer`, which is structurally
+              // a `Uint8Array` but TS 5.9's stricter ArrayBufferLike typing
+              // rejects the implicit downcast (Buffer's underlying buffer can
+              // be a SharedArrayBuffer in theory). Convert to a plain Uint8Array.
+              buffer: new Uint8Array(
+                sitePackagesSnapshotFileBin.buffer,
+                sitePackagesSnapshotFileBin.byteOffset,
+                sitePackagesSnapshotFileBin.byteLength,
+              ),
               format: "gztar",
               options: {
                 extractDir: "/",

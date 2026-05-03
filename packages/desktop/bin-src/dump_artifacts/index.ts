@@ -16,7 +16,13 @@ import {
 import { validateRequirements } from "@stlite/common";
 import { dumpManifest } from "../../electron/manifest";
 import { readConfig } from "./config";
-import { logger } from "./logger";
+import { logger, deprecationWarning } from "./logger";
+
+deprecationWarning(
+  "`dump-stlite-desktop-artifacts` is deprecated. Use `stlite desktop` from " +
+    "@stlite/cli (`npx @stlite/cli desktop <path>` or `pip install stlite-cli`) instead. " +
+    "This bin will be removed in a future release.",
+);
 
 const pathFromScriptToBuild =
   process.env.PATH_FROM_SCRIPT_TO_BUILD ?? "../../build";

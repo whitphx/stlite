@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@1.7.2/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@1.7.2/build/stlite.js"
+mount(
+  {
+    requirements: ["matplotlib"],
+    entrypoint: "app.py",
+    files: {
+"app.py": `import streamlit as st
+
+st.write("Hello from the CLI fixture!")
+`,
+"data/blob.bin": base64ToU8A("AAECAwQFBgcICQoLDA0ODw=="),
+"requirements.txt": `# pinned for the parity fixture
+matplotlib
+`,
+
+},
+  },
+  document.getElementById("root")
+)
+
+function base64ToU8A(base64) {
+  const s = atob(base64);
+  const len = s.length;
+  const buf = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    buf[i] = s.charCodeAt(i);
+  }
+  return buf;
+}
+    </script>
+  </body>
+</html>

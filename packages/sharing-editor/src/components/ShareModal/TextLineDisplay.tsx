@@ -5,17 +5,21 @@ import styles from "./TextLineDisplay.module.scss";
 interface TextLineDisplayProps {
   text: string;
 }
+// Browser-safe alternative to `NodeJS.Timeout` for `setTimeout`'s return
+// value (which is a `number` in browsers, an opaque object in Node).
+type TimerHandle = ReturnType<typeof setTimeout>;
+
 function TextLineDisplay(props: TextLineDisplayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
-  const copiedFlagTimerRef = useRef<NodeJS.Timeout | undefined>();
+  const copiedFlagTimerRef = useRef<TimerHandle | undefined>();
   const copyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(props.text).then(() => {
       if (copiedFlagTimerRef.current) {
         clearTimeout(copiedFlagTimerRef.current);
       }
       setCopied(true);
-      (copiedFlagTimerRef as React.MutableRefObject<NodeJS.Timeout>).current =
+      (copiedFlagTimerRef as React.MutableRefObject<TimerHandle>).current =
         setTimeout(() => setCopied(false), 3000);
     });
     inputRef.current?.select(); // Not necessary, but for UX.

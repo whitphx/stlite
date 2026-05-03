@@ -42,6 +42,7 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get
 
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
+app-packager := $(BUILD_STATE_DIR)/app-packager/.built
 common := $(BUILD_STATE_DIR)/common/.built
 react := $(BUILD_STATE_DIR)/react/.built
 browser := $(BUILD_STATE_DIR)/browser/.built
@@ -173,13 +174,23 @@ $(sharing-editor): $(shell \
 	@mkdir -p $(dir $@)
 	@touch $@
 
+.PHONY: app-packager
+app-packager: $(app-packager)
+$(app-packager): $(shell \
+	find packages/app-packager/src -type f -name "*.ts"; \
+	find packages/app-packager -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
+) $(node_modules) $(common)
+	cd packages/app-packager && yarn build
+	@mkdir -p $(dir $@)
+	@touch $@
+
 .PHONY: desktop
 desktop: $(desktop)
 $(desktop): $(shell \
 	find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/desktop/electron -type f -name "*.ts"; \
 	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(common) $(react)
+) $(node_modules) $(common) $(react) $(app-packager)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@

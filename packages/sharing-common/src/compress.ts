@@ -6,11 +6,14 @@ import { u8aToBase64, base64ToU8A } from "./buffer";
 // * https://en.wikipedia.org/wiki/Base64
 // * https://datatracker.ietf.org/doc/html/rfc4648#section-5
 function b64ToB64url(base64: string): string {
-  return base64.replace("+", "-").replace("/", "_").replace("=", ",");
+  return base64.replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", ",");
 }
 
 function b64urlToB64(hashSafe: string): string {
-  return hashSafe.replace("-", "+").replace("_", "/").replace(",", "=");
+  return hashSafe
+    .replaceAll("-", "+")
+    .replaceAll("_", "/")
+    .replaceAll(",", "=");
 }
 
 export function encodeAppData(appData: AppData): string {

@@ -4,3 +4,4 @@ export * from "./buffer";
 export * from "./url";
 export * from "./consts";
 export * from "./messages";
+export * from "./export-html";

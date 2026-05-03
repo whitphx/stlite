@@ -68,3 +68,23 @@ test("encode and decode (an edge case of https://github.com/whitphx/stlite/issue
 
   expect(decoded).toEqual(appData);
 });
+
+test("encoded URL hash is true base64url (no leftover '+', '/', '=')", () => {
+  // Stuff enough binary entropy that the resulting base64 contains many
+  // `+`, `/`, and trailing `=` chars. A pre-fix b64ToB64url used `.replace`,
+  // which only swapped the first occurrence of each — this guards the fix.
+  const data = new Uint8Array(256);
+  for (let i = 0; i < data.length; i++) data[i] = i;
+
+  const appData: AppData = {
+    entrypoint: "",
+    requirements: [],
+    files: {
+      "blob.bin": { content: { $case: "data", data } },
+    },
+  };
+  const encoded = encodeAppData(appData);
+
+  expect(encoded).not.toMatch(/[+/=]/);
+  expect(decodeAppData(encoded)).toEqual(appData);
+});

@@ -1,4 +1,20 @@
-import { AppData, u8aToBase64, base64ToU8A } from "@stlite/sharing-common";
+import { AppData } from "./proto/models";
+import { u8aToBase64 } from "./buffer";
+
+// Source-of-truth string the exported HTML embeds when the project includes
+// binary files. Kept independent of the runtime `base64ToU8A` in `buffer.ts`
+// so that bundler reformatting and runtime-side optimizations don't drift the
+// emitted HTML. The Python CLI mirrors this constant verbatim — the golden
+// HTML fixture in test-fixtures/ guards against either side drifting.
+export const BASE64_DECODER_JS_SOURCE = `function base64ToU8A(base64) {
+  const s = atob(base64);
+  const len = s.length;
+  const buf = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    buf[i] = s.charCodeAt(i);
+  }
+  return buf;
+}`;
 
 function makeRequirementsLiteral(
   requirements: AppData["requirements"],
@@ -32,7 +48,7 @@ function makeFilesLiteral(files: AppData["files"]): {
         "`" + escapeTextForJsTemplateLiteral(fileContent.text) + "`,\n";
     } else if (fileContent?.$case === "data") {
       const b64 = u8aToBase64(fileContent.data);
-      content += `${base64ToU8A.name}("${b64}"),\n`;
+      content += `base64ToU8A("${b64}"),\n`;
       isBase64DecoderRequired = true;
     }
   });
@@ -40,13 +56,24 @@ function makeFilesLiteral(files: AppData["files"]): {
   return { filesLiteral: content, isBase64DecoderRequired };
 }
 
-const DEBUG_COMMENT = `Generated from Stlite Sharing (https://edit.share.stlite.net/), and the source version is ${GITHUB_SHA}`;
+export interface ExportAsHtmlOptions {
+  /** Version of `@stlite/browser` the exported page loads from JSDelivr. */
+  runtimeVersion: string;
+  /** Optional HTML comment placed at the bottom of the document. */
+  debugComment?: string;
+}
 
-export function exportAsHtml(appData: AppData): string {
+export function exportAsHtml(
+  appData: AppData,
+  options: ExportAsHtmlOptions,
+): string {
   const { filesLiteral, isBase64DecoderRequired } = makeFilesLiteral(
     appData.files,
   );
-  const output = `<!DOCTYPE html>
+  const debugComment = options.debugComment
+    ? `\n  <!-- ${options.debugComment} -->`
+    : "";
+  return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -58,13 +85,13 @@ export function exportAsHtml(appData: AppData): string {
     <title>Stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@${options.runtimeVersion}/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
     <script type="module">
-import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@${SELF_HOSTING_RUNTIME_VERSION}/build/stlite.js"
+import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@${options.runtimeVersion}/build/stlite.js"
 mount(
   {
     requirements: ${makeRequirementsLiteral(appData.requirements)},
@@ -73,10 +100,8 @@ mount(
   },
   document.getElementById("root")
 )
-${isBase64DecoderRequired ? "\n" + base64ToU8A.toString() : ""}
+${isBase64DecoderRequired ? "\n" + BASE64_DECODER_JS_SOURCE : ""}
     </script>
-  </body>
-  <!-- ${DEBUG_COMMENT} -->
+  </body>${debugComment}
 </html>`;
-  return output;
 }

@@ -20,10 +20,27 @@ export function collectProjectFiles(projectDir: string): string[] {
 function walk(rootDir: string, relParts: string[], out: string[]): void {
   const dirAbs = path.join(rootDir, ...relParts);
   for (const entry of fs.readdirSync(dirAbs, { withFileTypes: true })) {
+    // For symlinks, follow to determine whether the target is a file or dir.
+    // (Dirent.isFile() and isDirectory() return false for the link itself.)
+    let kind: "dir" | "file" | "skip" = "skip";
     if (entry.isDirectory()) {
+      kind = "dir";
+    } else if (entry.isFile()) {
+      kind = "file";
+    } else if (entry.isSymbolicLink()) {
+      try {
+        const target = fs.statSync(path.join(dirAbs, entry.name));
+        if (target.isDirectory()) kind = "dir";
+        else if (target.isFile()) kind = "file";
+      } catch {
+        // Broken symlink — skip silently.
+      }
+    }
+
+    if (kind === "dir") {
       if (IGNORED_DIRS.has(entry.name)) continue;
       walk(rootDir, [...relParts, entry.name], out);
-    } else if (entry.isFile()) {
+    } else if (kind === "file") {
       if (isIgnoredFile(entry.name)) continue;
       out.push([...relParts, entry.name].join("/"));
     }

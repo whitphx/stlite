@@ -1,5 +1,6 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import fsExtra from "fs-extra";
 import {
@@ -230,7 +231,11 @@ async function prepareLocalWheel(
 ): Promise<string> {
   logger.debug(`Preparing the local wheel: ${localPath}`);
   const data = await fsPromises.readFile(localPath);
-  const emfsPath = "/tmp/" + path.basename(localPath);
+  // Prefix with a path-derived hash so wheels with the same basename (e.g.
+  // two `streamlit-1.x.y-cp313-none-any.whl` from different vendors) don't
+  // overwrite each other in EMFS.
+  const hash = createHash("sha1").update(localPath).digest("hex").slice(0, 8);
+  const emfsPath = `/tmp/${hash}-${path.basename(localPath)}`;
   pyodide.FS.writeFile(emfsPath, data);
   const requirement = `emfs:${emfsPath}`;
   logger.debug(`The local wheel ${localPath} is prepared as ${requirement}`);
@@ -341,8 +346,22 @@ async function copyAppDirectory(options: CopyAppDirectoryOptions) {
       }
       await Promise.all(
         fileRelPaths.map(async (relPath) => {
-          const srcPath = path.resolve(options.cwd, relPath);
-          const destPath = path.resolve(options.destAppDir, relPath);
+          // Reject paths that would escape destAppDir via `..` segments or
+          // an absolute glob result — defends the destination tree against
+          // crafted input directories.
+          const normalized = path.normalize(relPath);
+          if (
+            path.isAbsolute(normalized) ||
+            normalized === ".." ||
+            normalized.startsWith(".." + path.sep)
+          ) {
+            options.logger.warn(
+              `Skipping ${relPath} from "${options.cwd}" — path escapes destination.`,
+            );
+            return;
+          }
+          const srcPath = path.resolve(options.cwd, normalized);
+          const destPath = path.resolve(options.destAppDir, normalized);
           options.logger.debug(`Copy ${srcPath} to ${destPath}`);
           await fsExtra.copy(srcPath, destPath, { errorOnExist: true });
         }),

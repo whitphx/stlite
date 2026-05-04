@@ -25,11 +25,14 @@ export const BASE64_DECODER_JS_SOURCE = `function base64ToU8A(base64) {
 function makeRequirementsLiteral(
   requirements: AppData["requirements"],
 ): string {
-  return "[" + requirements.map((r) => '"' + r + '"').join(", ") + "]";
+  // JSON.stringify escapes `"` and `\` so requirements containing those don't
+  // break the generated JS — JSON's string syntax is a strict subset of JS's
+  // double-quoted string syntax.
+  return "[" + requirements.map((r) => JSON.stringify(r)).join(", ") + "]";
 }
 
 function makeEntrypointLiteral(entrypoint: AppData["entrypoint"]): string {
-  return '"' + entrypoint + '"';
+  return JSON.stringify(entrypoint);
 }
 
 export function escapeTextForJsTemplateLiteral(text: string): string {
@@ -47,12 +50,16 @@ function makeFilesLiteral(files: AppData["files"]): {
   let content = "";
   content += "{\n";
   Object.keys(files).forEach((fileName) => {
-    content += `"${fileName}": `;
+    content += `${JSON.stringify(fileName)}: `;
     const fileContent = files[fileName].content;
     if (fileContent?.$case === "text") {
       content +=
         "`" + escapeTextForJsTemplateLiteral(fileContent.text) + "`,\n";
     } else if (fileContent?.$case === "data") {
+      // base64 alphabet is `[A-Za-z0-9+/=]` (or `[A-Za-z0-9-_,]` for our
+      // base64url variant) — no chars that need escaping in a double-quoted
+      // JS string literal, so a plain wrap is safe and matches the original
+      // emitted shape.
       const b64 = u8aToBase64(fileContent.data);
       content += `base64ToU8A("${b64}"),\n`;
       isBase64DecoderRequired = true;

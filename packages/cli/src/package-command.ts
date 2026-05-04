@@ -88,7 +88,13 @@ export async function runPackageCommand(
 ): Promise<void> {
   try {
     const projectDir = path.resolve(argv.path);
-    if (!fs.statSync(projectDir).isDirectory()) {
+    let projectStat;
+    try {
+      projectStat = fs.statSync(projectDir);
+    } catch {
+      throw new Error(`Not a directory: ${projectDir}`);
+    }
+    if (!projectStat.isDirectory()) {
       throw new Error(`Not a directory: ${projectDir}`);
     }
     if (!fs.existsSync(path.join(projectDir, argv.entrypoint))) {
@@ -98,6 +104,19 @@ export async function runPackageCommand(
     }
 
     const destDir = path.resolve(argv.out);
+    // The output gets `rm -rf`'d on each run. Refuse paths that would
+    // delete the source — `--out .`, `--out ..`, or any ancestor of the
+    // project directory.
+    if (
+      destDir === projectDir ||
+      projectDir === destDir + path.sep ||
+      projectDir.startsWith(destDir + path.sep)
+    ) {
+      throw new Error(
+        `Refusing to use ${destDir} as --out: it is the project directory or an ancestor of it. Pick a separate output directory.`,
+      );
+    }
+
     const filesRel = collectProjectFiles(projectDir);
 
     const requirementsTxtPath = resolveRequirementsTxt(

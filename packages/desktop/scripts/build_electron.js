@@ -50,9 +50,16 @@ const manifestBuildOptions = {
   format: "esm",
 };
 
-(watch ? context : build)(electronBuildOptions).then(
-  (buildResultOrContext) => watch && buildResultOrContext.watch(),
-);
-(watch ? context : build)(manifestBuildOptions).then(
-  (buildResultOrContext) => watch && buildResultOrContext.watch(),
-);
+Promise.all([
+  (watch ? context : build)(electronBuildOptions),
+  (watch ? context : build)(manifestBuildOptions),
+])
+  .then((buildResultOrContexts) => {
+    if (watch) {
+      buildResultOrContexts.forEach((rc) => rc.watch());
+    }
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

@@ -23,7 +23,12 @@ esbuild
     format: "esm",
     external: [
       "yargs", // Installed at runtime as a dependency of electron-builder; no need to bundle.
-      "@stlite/app-packager", // Lives in its own npm package; transitively brings in pyodide, fs-extra, glob.
+      "fs-extra", // Declared in @stlite/desktop's runtime dependencies.
+      "pyodide", // Has WASM/binary assets esbuild can't bundle; declared in @stlite/desktop's runtime dependencies.
+      // NOTE: @stlite/app-packager (and its transitive @stlite/common) are
+      // private workspace packages that aren't published to npm — bundle them
+      // inline so @stlite/desktop's published tarball stays self-contained.
+      // glob is bundled too (transitively pulled in by @stlite/app-packager).
     ],
     define: {
       "process.env.PATH_FROM_SCRIPT_TO_BUILD": JSON.stringify("../build"),

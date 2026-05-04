@@ -18,7 +18,10 @@ export interface WriteWebIndexHtmlOptions {
  */
 export function writeWebIndexHtml(options: WriteWebIndexHtmlOptions): void {
   const filesObjLines = options.files
-    .map((rel) => `      "${rel}": { url: "./app_files/${rel}" },`)
+    .map(
+      (rel) =>
+        `      ${JSON.stringify(rel)}: { url: ${JSON.stringify(`./app_files/${rel}`)} },`,
+    )
     .join("\n");
 
   const html = `<!DOCTYPE html>

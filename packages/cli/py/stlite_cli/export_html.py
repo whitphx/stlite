@@ -1,4 +1,5 @@
 import base64
+import json
 from typing import Optional
 
 import betterproto
@@ -27,24 +28,29 @@ def escape_text_for_js_template_literal(text: str) -> str:
 
 
 def _make_requirements_literal(requirements: list[str]) -> str:
-    return "[" + ", ".join(f'"{r}"' for r in requirements) + "]"
+    # json.dumps escapes `"` and `\` so requirements containing those don't
+    # break the generated JS — JSON's string syntax is a strict subset of JS's
+    # double-quoted string syntax.
+    return "[" + ", ".join(json.dumps(r) for r in requirements) + "]"
 
 
 def _make_entrypoint_literal(entrypoint: str) -> str:
-    return f'"{entrypoint}"'
+    return json.dumps(entrypoint)
 
 
 def _make_files_literal(files: dict) -> tuple[str, bool]:
     is_base64_decoder_required = False
     parts = ["{\n"]
     for name, file in files.items():
-        parts.append(f'"{name}": ')
+        parts.append(f"{json.dumps(name)}: ")
         which, _ = betterproto.which_one_of(file, "content")
         if which == "text":
             parts.append(
                 "`" + escape_text_for_js_template_literal(file.text) + "`,\n"
             )
         else:
+            # base64 alphabet has no chars that need escaping in a
+            # double-quoted JS string literal.
             b64 = base64.b64encode(file.data).decode("ascii")
             parts.append(f'base64ToU8A("{b64}"),\n')
             is_base64_decoder_required = True

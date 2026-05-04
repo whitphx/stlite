@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 import type { CommandModule } from "yargs";
 import { packageApp } from "@stlite/app-packager";
 import {
@@ -88,7 +89,10 @@ async function loadDumpManifest(): Promise<DumpManifest> {
     "electron",
     "manifest.js",
   );
-  const mod = (await import(manifestModulePath)) as {
+  // Node's ESM dynamic import requires a `file://` URL, not a bare path —
+  // bare paths break on Windows where `C:\...\manifest.js` isn't a valid
+  // module specifier.
+  const mod = (await import(pathToFileURL(manifestModulePath).href)) as {
     dumpManifest: DumpManifest;
   };
   return mod.dumpManifest;

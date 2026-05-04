@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@babel/parser": "^7.20.5",
-    "@types/jsdom": "^21.1.7",
+    "@types/jsdom": "^28.0.1",
     "chokidar-cli": "^3.0.0",
     "jsdom": "^25.0.1",
     "npm-run-all2": "^8.0.4",

@@ -1,7 +1,6 @@
 {
   "name": "@stlite/cli",
   "version": "0.0.0",
-  "private": true,
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"
   },

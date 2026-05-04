@@ -60,8 +60,10 @@ export async function dumpManifest(
   options: DumpManifestOptions,
 ): Promise<void> {
   const manifestData = coerceDesktopAppManifest({
-    ...(options.packageJsonStliteDesktopField as object | undefined),
+    // Fallbacks first so explicit values from `packageJsonStliteDesktopField`
+    // win over them.
     ...options.fallbacks,
+    ...(options.packageJsonStliteDesktopField as object | undefined),
   });
   await fsPromises.writeFile(
     options.manifestFilePath,

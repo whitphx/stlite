@@ -22,7 +22,13 @@ export interface BuildAppDataOptions {
 }
 
 export function buildAppData(opts: BuildAppDataOptions): AppData {
-  if (!fs.statSync(opts.projectDir).isDirectory()) {
+  let projectStat;
+  try {
+    projectStat = fs.statSync(opts.projectDir);
+  } catch {
+    throw new Error(`Not a directory: ${opts.projectDir}`);
+  }
+  if (!projectStat.isDirectory()) {
     throw new Error(`Not a directory: ${opts.projectDir}`);
   }
   const entrypointAbs = path.join(opts.projectDir, opts.entrypoint);

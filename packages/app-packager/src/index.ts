@@ -231,11 +231,15 @@ async function prepareLocalWheel(
 ): Promise<string> {
   logger.debug(`Preparing the local wheel: ${localPath}`);
   const data = await fsPromises.readFile(localPath);
-  // Prefix with a path-derived hash so wheels with the same basename (e.g.
-  // two `streamlit-1.x.y-cp313-none-any.whl` from different vendors) don't
-  // overwrite each other in EMFS.
+  // Stage in a path-derived sub-directory so wheels with the same basename
+  // (e.g. two `streamlit-1.x.y-cp313-none-any.whl` from different vendors)
+  // don't overwrite each other. The basename itself must stay unchanged
+  // because micropip parses it as a PEP 427 wheel filename to derive the
+  // package name + version.
   const hash = createHash("sha1").update(localPath).digest("hex").slice(0, 8);
-  const emfsPath = `/tmp/${hash}-${path.basename(localPath)}`;
+  const emfsDir = `/tmp/wheels-${hash}`;
+  pyodide.FS.mkdirTree(emfsDir);
+  const emfsPath = `${emfsDir}/${path.basename(localPath)}`;
   pyodide.FS.writeFile(emfsPath, data);
   const requirement = `emfs:${emfsPath}`;
   logger.debug(`The local wheel ${localPath} is prepared as ${requirement}`);

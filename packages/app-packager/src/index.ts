@@ -261,6 +261,15 @@ async function createSitePackagesSnapshot(
   const { logger } = options;
   logger.info("Create the site-packages snapshot file...");
 
+  // TODO: this is the second `loadPyodide()` call in `packageApp` — the first
+  // happens in `saveUsedPrebuiltPackages` to discover which prebuilt packages
+  // get pulled in. Two interpreter starts cost several seconds. They are
+  // intentionally separate today because the snapshot pass needs to install
+  // *with* prebuilts mocked out (so their files don't end up in the tarball),
+  // while the discovery pass needs them un-mocked. Folding them into one
+  // would require either rewinding micropip state or threading a "mock these
+  // after the fact" flag through micropip — neither is cheap. Revisit if
+  // start-up time becomes the dominant CLI runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pyodide: PyodideInterface & { FS: any } = await loadPyodide({
     packageBaseUrl: options.pyodideSource,

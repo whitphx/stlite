@@ -48,4 +48,9 @@ describe("coerceDesktopAppManifest", () => {
       }),
     ).toThrowError();
   });
+
+  it("should throw when `entrypoint` is missing", () => {
+    expect(() => coerceDesktopAppManifest({})).toThrowError();
+    expect(() => coerceDesktopAppManifest(undefined)).toThrowError();
+  });
 });

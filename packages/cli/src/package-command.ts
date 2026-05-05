@@ -105,13 +105,9 @@ export async function runPackageCommand(
 
     const destDir = path.resolve(argv.out);
     // The output gets `rm -rf`'d on each run. Refuse paths that would
-    // delete the source — `--out .`, `--out ..`, or any ancestor of the
-    // project directory.
-    if (
-      destDir === projectDir ||
-      projectDir === destDir + path.sep ||
-      projectDir.startsWith(destDir + path.sep)
-    ) {
+    // delete the source — `--out .` (== projectDir) or any ancestor of it
+    // (e.g. `--out ..`).
+    if (destDir === projectDir || projectDir.startsWith(destDir + path.sep)) {
       throw new Error(
         `Refusing to use ${destDir} as --out: it is the project directory or an ancestor of it. Pick a separate output directory.`,
       );

@@ -22,32 +22,32 @@ BASE64_DECODER_JS_SOURCE = """function base64ToU8A(base64) {
 
 
 def escape_text_for_js_template_literal(text: str) -> str:
-    return (
-        text.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
-    )
+    return text.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
 
 
 def _make_requirements_literal(requirements: list[str]) -> str:
     # json.dumps escapes `"` and `\` so requirements containing those don't
     # break the generated JS — JSON's string syntax is a strict subset of JS's
-    # double-quoted string syntax.
-    return "[" + ", ".join(json.dumps(r) for r in requirements) + "]"
+    # double-quoted string syntax. ensure_ascii=False matches JS's
+    # JSON.stringify, which keeps non-ASCII characters as literals rather than
+    # `\uXXXX` escapes — required for byte-identical output across runtimes.
+    return (
+        "[" + ", ".join(json.dumps(r, ensure_ascii=False) for r in requirements) + "]"
+    )
 
 
 def _make_entrypoint_literal(entrypoint: str) -> str:
-    return json.dumps(entrypoint)
+    return json.dumps(entrypoint, ensure_ascii=False)
 
 
 def _make_files_literal(files: dict) -> tuple[str, bool]:
     is_base64_decoder_required = False
     parts = ["{\n"]
     for name, file in files.items():
-        parts.append(f"{json.dumps(name)}: ")
+        parts.append(f"{json.dumps(name, ensure_ascii=False)}: ")
         which, _ = betterproto.which_one_of(file, "content")
         if which == "text":
-            parts.append(
-                "`" + escape_text_for_js_template_literal(file.text) + "`,\n"
-            )
+            parts.append("`" + escape_text_for_js_template_literal(file.text) + "`,\n")
         else:
             # base64 alphabet has no chars that need escaping in a
             # double-quoted JS string literal.
@@ -65,9 +65,7 @@ def export_as_html(
     debug_comment: Optional[str] = None,
 ) -> str:
     files_literal, is_decoder_required = _make_files_literal(app_data.files)
-    decoder_section = (
-        "\n" + BASE64_DECODER_JS_SOURCE if is_decoder_required else ""
-    )
+    decoder_section = "\n" + BASE64_DECODER_JS_SOURCE if is_decoder_required else ""
     debug_html = f"\n  <!-- {debug_comment} -->" if debug_comment else ""
 
     return f"""<!DOCTYPE html>

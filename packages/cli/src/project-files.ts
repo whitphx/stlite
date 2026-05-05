@@ -13,11 +13,16 @@ const isIgnoredFile = (name: string) => name.endsWith(".pyc");
  */
 export function collectProjectFiles(projectDir: string): string[] {
   const out: string[] = [];
-  walk(projectDir, [], out);
+  walk(projectDir, [], out, new Set([fs.realpathSync(projectDir)]));
   return out;
 }
 
-function walk(rootDir: string, relParts: string[], out: string[]): void {
+function walk(
+  rootDir: string,
+  relParts: string[],
+  out: string[],
+  visitedDirs: Set<string>,
+): void {
   const dirAbs = path.join(rootDir, ...relParts);
   for (const entry of fs.readdirSync(dirAbs, { withFileTypes: true })) {
     // For symlinks, follow to determine whether the target is a file or dir.
@@ -39,7 +44,19 @@ function walk(rootDir: string, relParts: string[], out: string[]): void {
 
     if (kind === "dir") {
       if (IGNORED_DIRS.has(entry.name)) continue;
-      walk(rootDir, [...relParts, entry.name], out);
+      // Symlink loop guard: a symlink pointing back into an ancestor would
+      // recurse forever. realpath collapses the link; if we've already
+      // visited that target, skip.
+      const childAbs = path.join(dirAbs, entry.name);
+      let childReal: string;
+      try {
+        childReal = fs.realpathSync(childAbs);
+      } catch {
+        continue;
+      }
+      if (visitedDirs.has(childReal)) continue;
+      visitedDirs.add(childReal);
+      walk(rootDir, [...relParts, entry.name], out, visitedDirs);
     } else if (kind === "file") {
       if (isIgnoredFile(entry.name)) continue;
       out.push([...relParts, entry.name].join("/"));

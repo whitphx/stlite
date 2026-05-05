@@ -61,6 +61,10 @@ function collectFiles(rootDir: string): { [path: string]: File } {
   // Sort lexicographically so the proto map is built in deterministic order;
   // both ts-proto and betterproto serialize map entries in iteration order, so
   // matching the order across runtimes is what gives us byte-identical output.
+  // Note: Array.prototype.sort() compares UTF-16 code units, while Python's
+  // sorted() compares Unicode code points. The two agree for the BMP but can
+  // disagree for astral-plane characters (e.g. emoji) in filenames — a real
+  // but rare edge case. Mirror any change here in the Python collect_files().
   const relPaths = collectProjectFiles(rootDir).sort();
 
   const result: { [path: string]: File } = {};

@@ -126,6 +126,7 @@ jobs:
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -157,6 +158,10 @@ jobs:
               - 'packages/sharing-common/**/*'
             desktop:
               - 'packages/desktop/**/*'
+            cli:
+              - 'packages/cli/**/*'
+              - 'packages/app-packager/**/*'
+              - 'test-fixtures/**/*'
 
   test-build-common:
     needs: changes
@@ -425,6 +430,57 @@ jobs:
           yarn check:lint
           yarn check:format
       - run: yarn test
+
+  test-cli:
+    needs: changes
+    if: ${{ needs.changes.outputs.cli == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+
+      - name: Lint (TS)
+        run: |
+          yarn workspace @stlite/cli check:lint
+          yarn workspace @stlite/cli check:format
+
+      - name: Lint (Python)
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py ruff check packages/cli/py
+          uv run --project packages/cli/py ruff format --check packages/cli/py
+
+      - name: Pyright (Python)
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py pyright packages/cli/py
+
+      # The cross-runtime parity spec exec's the JS bin and the Python bin,
+      # diffs both against golden fixtures. Build the cli first (it's an
+      # esbuild bundle, not tsc emit) and the betterproto stubs.
+      - name: Build cli + Python proto
+        run: |
+          . .venv/bin/activate
+          make cli cli-py-proto
+
+      - name: Pytest (Python)
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py pytest packages/cli/py/tests
+
+      - name: Vitest (TS, includes cross-runtime parity)
+        # vitest auto-detects CI=true and runs once instead of watching, so
+        # no explicit `--run` flag needed.
+        run: yarn workspace @stlite/cli test
 
   build-browser:
     if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -768,6 +824,58 @@ jobs:
           key: desktop
           name: "@stlite/desktop"
           input-path: packages/desktop/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+
+  build-cli:
+    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed.
+    needs: [set-build-info, test-build-common, test-cli]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+
+      - name: Build @stlite/cli
+        run: |
+          . .venv/bin/activate
+          make cli
+
+      - name: Package
+        working-directory: packages/cli
+        run: yarn pack
+
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: packages/cli/package.tgz
+          name: stlite-cli
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/cli/package.tgz
+        continue-on-error: true
+
+      - name: "Inform the package stats of @stlite/cli"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: cli
+          name: "@stlite/cli"
+          input-path: packages/cli/package.tgz
           pr-number: ${{ needs.set-build-info.outputs.pr-number }}
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 

@@ -43,6 +43,7 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 app-packager := $(BUILD_STATE_DIR)/app-packager/.built
+cli := $(BUILD_STATE_DIR)/cli/.built
 common := $(BUILD_STATE_DIR)/common/.built
 react := $(BUILD_STATE_DIR)/react/.built
 browser := $(BUILD_STATE_DIR)/browser/.built
@@ -181,6 +182,20 @@ $(app-packager): $(shell \
 	find packages/app-packager -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
 ) $(node_modules) $(common)
 	cd packages/app-packager && yarn build
+	@mkdir -p $(dir $@)
+	@touch $@
+
+# `cli` (= `@stlite/cli`) is an esbuild ESM bundle that inlines its private
+# workspace deps (common, sharing-common, app-packager) and externalizes
+# only the public/heavy ones (pyodide, fs-extra, @stlite/browser, @stlite/desktop).
+# So this target depends on the bundled deps' dist outputs, not the externals.
+.PHONY: cli
+cli: $(cli)
+$(cli): $(shell \
+	find packages/cli/src -type f -name "*.ts"; \
+	find packages/cli -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
+) $(node_modules) $(common) $(sharing-common) $(app-packager)
+	cd packages/cli && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
 

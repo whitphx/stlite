@@ -466,11 +466,12 @@ jobs:
 
       # The cross-runtime parity spec exec's the JS bin and the Python bin,
       # diffs both against golden fixtures. Build the cli first (it's an
-      # esbuild bundle, not tsc emit) and the betterproto stubs.
-      - name: Build cli + Python proto
+      # esbuild bundle, not tsc emit), the betterproto stubs, and the
+      # auto-pinned `_runtime_version.py` mirror that the Python bin imports.
+      - name: Build cli + Python proto + Python runtime-version
         run: |
           . .venv/bin/activate
-          make cli cli-py-proto
+          make cli cli-py-proto cli-py-runtime-version
 
       - name: Pytest (Python)
         run: |

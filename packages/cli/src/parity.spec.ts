@@ -35,6 +35,14 @@ function runPyCli(args: string[]): string {
  * - `make cli-py-proto` (so the Python betterproto stubs exist)
  * - `uv sync` (so the Python venv has stlite-cli installed)
  */
+// Pin both runtimes to a fixed `--runtime-version` so the golden HTML
+// stays stable when `@stlite/browser`'s workspace version bumps. The
+// default version on each side is now derived at build-time from
+// `packages/browser/package.json` (esbuild `define:` for JS, generated
+// `_runtime_version.py` for Python), so a browser bump would otherwise
+// silently invalidate this fixture.
+const FIXTURE_RUNTIME_VERSION = "1.7.2";
+
 describe("CLI cross-runtime parity", () => {
   beforeAll(() => {
     if (!fs.existsSync(JS_BIN)) {
@@ -46,6 +54,15 @@ describe("CLI cross-runtime parity", () => {
     if (!fs.existsSync(protoFile)) {
       throw new Error(
         `Python proto stubs not found at ${protoFile} — run \`make cli-py-proto\` first.`,
+      );
+    }
+    const runtimeVersionFile = path.join(
+      PY_PROJECT,
+      "stlite_cli/_runtime_version.py",
+    );
+    if (!fs.existsSync(runtimeVersionFile)) {
+      throw new Error(
+        `Python runtime-version module not found at ${runtimeVersionFile} — run \`make cli-py-runtime-version\` first.`,
       );
     }
   });
@@ -68,8 +85,14 @@ describe("CLI cross-runtime parity", () => {
       path.join(REPO_ROOT, "test-fixtures/sample-project.expected-html.html"),
       "utf8",
     );
-    const jsHtml = runJsCli(["html", FIXTURE]);
-    const pyHtml = runPyCli(["html", FIXTURE]);
+    const args = [
+      "html",
+      FIXTURE,
+      "--runtime-version",
+      FIXTURE_RUNTIME_VERSION,
+    ];
+    const jsHtml = runJsCli(args);
+    const pyHtml = runPyCli(args);
     expect(jsHtml).toEqual(golden);
     expect(pyHtml).toEqual(golden);
   });

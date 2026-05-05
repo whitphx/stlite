@@ -4,9 +4,14 @@ import type { CommandModule } from "yargs";
 import { exportAsHtml } from "@stlite/sharing-common";
 import { buildAppData } from "../app-data.js";
 
-// Default version of @stlite/browser the exported page loads from JSDelivr.
-// Bumped per release; override with --runtime-version when targeting a specific build.
-const DEFAULT_RUNTIME_VERSION = "1.7.2";
+// `__STLITE_BROWSER_VERSION__` is replaced at bundle time by
+// `scripts/build.js` with the version of `@stlite/browser` from the
+// workspace at the moment the cli was built. Pinning to the bundled
+// browser version keeps the default in lockstep with the cli release —
+// no drift from a manually-bumped constant. Override per-invocation with
+// `--runtime-version`.
+declare const __STLITE_BROWSER_VERSION__: string;
+const DEFAULT_RUNTIME_VERSION = __STLITE_BROWSER_VERSION__;
 
 interface HtmlArgs {
   path: string;

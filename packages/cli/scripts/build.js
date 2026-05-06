@@ -29,12 +29,7 @@ await build({
   format: "esm",
   outfile: path.resolve(cliDir, "dist/cli.js"),
   banner: {
-    js:
-      "#!/usr/bin/env node\n" +
-      // ESM bundles can't `require()` directly; restore it for any externals
-      // (pyodide, fs-extra, @stlite/desktop's manifest module) that use CJS.
-      'import { createRequire as __cliCreateRequire } from "node:module"; ' +
-      "const require = __cliCreateRequire(import.meta.url);",
+    js: "#!/usr/bin/env node",
   },
   define: {
     __STLITE_BROWSER_VERSION__: JSON.stringify(browserPkg.version),

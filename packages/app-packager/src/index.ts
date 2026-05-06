@@ -1,7 +1,7 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import fsExtra from "fs-extra";
 import {
   loadPyodide,
@@ -31,8 +31,6 @@ const PYODIDE_RUNTIME_FILES = [
   "pyodide-lock.json",
 ] as const;
 
-const localRequire = createRequire(import.meta.url);
-
 /**
  * Copies Pyodide's runtime files (`pyodide.mjs`, `pyodide.asm.{js,wasm}`,
  * `python_stdlib.zip`, `pyodide-lock.json`) from the installed `pyodide` npm
@@ -44,7 +42,7 @@ export async function copyPyodideRuntime(
   destPyodideDir: string,
 ): Promise<void> {
   const pyodidePkgDir = path.dirname(
-    localRequire.resolve("pyodide/package.json"),
+    fileURLToPath(import.meta.resolve("pyodide/package.json")),
   );
   await fsPromises.mkdir(destPyodideDir, { recursive: true });
   for (const fileName of PYODIDE_RUNTIME_FILES) {

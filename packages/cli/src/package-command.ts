@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import type { Argv } from "yargs";
 import {
   readRequirementsTxt,
@@ -9,8 +9,6 @@ import {
 } from "@stlite/app-packager";
 import { validateRequirements } from "@stlite/common";
 import { collectProjectFiles } from "./project-files.js";
-
-const require = createRequire(import.meta.url);
 
 /**
  * Args common to `stlite web` and `stlite desktop` — both walk a Streamlit
@@ -160,7 +158,9 @@ export function resolvePackageBuildDir(
   packageName: string,
   makeTarget: string,
 ): string {
-  const pkgPath = require.resolve(`${packageName}/package.json`);
+  const pkgPath = fileURLToPath(
+    import.meta.resolve(`${packageName}/package.json`),
+  );
   const buildDir = path.join(path.dirname(pkgPath), "build");
   if (!fs.existsSync(buildDir)) {
     throw new Error(

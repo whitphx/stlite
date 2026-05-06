@@ -1,7 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createRequire } from "node:module";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import type { CommandModule } from "yargs";
 import {
   packageApp,
@@ -15,8 +14,6 @@ import {
   copyTreeFiltered,
   resolvePackageBuildDir,
 } from "../package-command.js";
-
-const require = createRequire(import.meta.url);
 
 // Lazy-loaded inside the handler so `stlite --help` works even when
 // @stlite/desktop hasn't been built yet (the manifest module is emitted
@@ -113,7 +110,9 @@ export const desktopCommand: CommandModule<unknown, DesktopArgs> = {
 
       const desktopWheelPaths = collectWheelPaths(
         path.join(
-          path.dirname(require.resolve("@stlite/desktop/package.json")),
+          path.dirname(
+            fileURLToPath(import.meta.resolve("@stlite/desktop/package.json")),
+          ),
           "wheels",
         ),
       );
@@ -228,7 +227,9 @@ async function loadDumpManifest(): Promise<DumpManifest> {
   // matches @stlite/desktop's `"type": "module"`. The other electron files
   // (main/preload/worker) are CJS but get loaded by Electron's own runtime,
   // which doesn't go through Node's resolver.
-  const desktopPkgPath = require.resolve("@stlite/desktop/package.json");
+  const desktopPkgPath = fileURLToPath(
+    import.meta.resolve("@stlite/desktop/package.json"),
+  );
   const manifestModulePath = path.join(
     path.dirname(desktopPkgPath),
     "build",

@@ -448,9 +448,9 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
 
       # Generate `_proto/models.py` and `_runtime_version.py` first — pyright
-      # follows imports through them, and the parity spec exec's both bins
+      # follows imports through them, and the parity test exec's both bins
       # which import them at runtime. The JS bundle (`make cli`) is also
-      # needed for the parity spec, so build it here in one shot.
+      # needed for the parity test, so build it here in one shot.
       - name: Build cli + Python proto + Python runtime-version
         run: |
           . .venv/bin/activate

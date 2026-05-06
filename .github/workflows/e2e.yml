@@ -316,24 +316,6 @@ jobs:
           install-node-modules: false
           protoc: false
 
-      # The basic sample's directory mixes user code (app.py, pages/, data/,
-      # .streamlit/, requirements.txt) with npm scaffolding (package.json,
-      # CHANGELOG.md, .gitignore). The legacy bin reads `stlite.desktop.files`
-      # globs from package.json and only copies the matching files; the new
-      # CLI walks the project dir and would bundle the scaffolding too.
-      # Stage only the python files into a clean subdir so `stlite desktop`
-      # packs the right shape.
-      - name: Stage python-only project for stlite desktop
-        shell: bash
-        run: |
-          mkdir -p "${RUNNER_TEMP}/python_project"
-          cp -r packages/desktop/samples/basic/app.py \
-                packages/desktop/samples/basic/pages \
-                packages/desktop/samples/basic/data \
-                packages/desktop/samples/basic/.streamlit \
-                packages/desktop/samples/basic/requirements.txt \
-                "${RUNNER_TEMP}/python_project/"
-
       - name: Stage electron-builder workspace
         shell: bash
         run: cp -r packages/desktop/samples/basic "${RUNNER_TEMP}/sample_app"
@@ -380,11 +362,11 @@ jobs:
           npm install --save-dev "file:${DESKTOP_TGZ}" "file:${CLI_TGZ}" "file:${BROWSER_TGZ}"
         working-directory: ${{ runner.temp }}/sample_app
 
+      # Same project-dir as the legacy bin uses (the sample contains
+      # `package.json#stlite.desktop.{files,entrypoint,requirementsTxtFiles}`,
+      # which the new CLI now respects).
       - name: Package via stlite desktop
-        shell: bash
-        env:
-          PROJECT_DIR: ${{ runner.temp }}/python_project
-        run: npx stlite desktop "${PROJECT_DIR}" --out ./build
+        run: npx stlite desktop ./ --out ./build
         working-directory: ${{ runner.temp }}/sample_app
 
       - name: Check if electron-builder works

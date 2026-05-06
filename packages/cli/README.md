@@ -62,19 +62,21 @@ python3 -m http.server -d ./out  # serves the app at http://localhost:8000/
 
 Package the project into a Stlite Desktop directory (multi-file artifact +
 `stlite-manifest.json`) that's consumed by `electron-builder` to produce a
-standalone Electron app. Replaces the deprecated
-`dump-stlite-desktop-artifacts` bin from `@stlite/desktop`. Pass
-`--manifest <jsonpath>` to override manifest fields (`embed`, `nodeJsWorker`,
-mountpoints, etc.).
+standalone Electron app. Drop-in replacement for the deprecated
+`dump-stlite-desktop-artifacts` bin from `@stlite/desktop` — reads the same
+`stlite.desktop` field from the project's `package.json` (`files`,
+`entrypoint`, `dependencies`, `requirementsTxtFiles`, plus the manifest
+fields `embed`/`nodeJsWorker`/`idbfsMountpoints`/`nodefsMountpoints`/`appMenu`).
 
 ## Common options
 
-All four commands accept:
+`share`/`html` accept:
 
 - `<path>` — the project directory (positional, required)
 - `--entrypoint <name>` — entrypoint script, default `app.py`
 - `--requirements <path>` — explicit requirements.txt; defaults to
   `<path>/requirements.txt` if present.
 
-`web` and `desktop` additionally accept `-o, --out <dir>` and
-`--pyodideSource <url>`.
+`web` and `desktop` accept `-o, --out <dir>` and `--pyodideSource <url>`.
+`web` also accepts `--entrypoint` and `--requirements`; `desktop` reads
+those from `package.json#stlite.desktop` instead.

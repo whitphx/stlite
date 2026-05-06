@@ -3,7 +3,7 @@ name = "stlite-cli"
 version = "0.0.0"
 description = "Command-line tools for Stlite"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [
   { name = "Yuichiro Tachibana (Tsuchiya)", email = "t.yic.yt@gmail.com" },
@@ -38,3 +38,7 @@ known-first-party = ["stlite_cli"]
 
 [tool.pyright]
 include = ["stlite_cli"]
+# Type-check against the declared minimum so we catch accidentally adding
+# 3.11+ syntax (e.g. `tomllib`, `Self`, `X | Y` unions become more
+# strictly checked here) before users on 3.10 hit it at runtime.
+pythonVersion = "3.10"

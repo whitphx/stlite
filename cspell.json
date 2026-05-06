@@ -43,7 +43,7 @@
     "packages/sharing-editor/public/samples/030_streamlit_e2e_tests/pages/st_tooltips.py",
     "streamlit/**",
     "**/*.svg",
-    "test-fixtures/sample-project.expected-html.html"
+    "packages/cli/test-fixtures/sample-project.expected-html.html"
   ],
   "words": [
     // Stlite

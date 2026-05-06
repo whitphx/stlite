@@ -15,7 +15,7 @@
     "CHANGELOG.md",
     "*.html",
     "tsconfig.json",
-    "test-fixtures"
+    "packages/cli/test-fixtures"
   ],
   "overrides": [
     {

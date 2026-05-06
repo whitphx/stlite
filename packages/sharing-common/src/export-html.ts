@@ -5,7 +5,8 @@ import { u8aToBase64 } from "./buffer";
 // binary files. Kept independent of the runtime `base64ToU8A` in `buffer.ts`
 // so that bundler reformatting and runtime-side optimizations don't drift the
 // emitted HTML. The Python CLI mirrors this constant verbatim — the golden
-// HTML fixture in test-fixtures/ guards against either side drifting.
+// HTML fixture in `packages/cli/test-fixtures/` guards against either side
+// drifting.
 //
 // SECURITY: this string is injected verbatim into a `<script>` tag in every
 // HTML the `html` command produces. Any change here ends up in user-generated

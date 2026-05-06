@@ -9,7 +9,7 @@ from stlite_cli._proto.models import AppData
 # Mirrors `BASE64_DECODER_JS_SOURCE` exported from
 # packages/sharing-common/src/export-html.ts. That TS file is the canonical
 # source — keep this byte-identical to it. Drift between the two is caught
-# by the golden HTML fixture under test-fixtures/.
+# by the golden HTML fixture under packages/cli/test-fixtures/.
 BASE64_DECODER_JS_SOURCE = """function base64ToU8A(base64) {
   const s = atob(base64);
   const len = s.length;

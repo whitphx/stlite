@@ -5,10 +5,10 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, "../../..");
-const FIXTURE = path.join(REPO_ROOT, "test-fixtures/sample-project");
-const JS_BIN = path.join(REPO_ROOT, "packages/cli/dist/cli.js");
-const PY_PROJECT = path.join(REPO_ROOT, "packages/cli/py");
+const CLI_PKG_ROOT = path.resolve(__dirname, "..");
+const FIXTURE = path.join(CLI_PKG_ROOT, "test-fixtures/sample-project");
+const JS_BIN = path.join(CLI_PKG_ROOT, "dist/cli.js");
+const PY_PROJECT = path.join(CLI_PKG_ROOT, "py");
 
 function runJsCli(args: string[]): string {
   return execFileSync("node", [JS_BIN, ...args], { encoding: "utf8" });
@@ -70,7 +70,10 @@ describe("CLI cross-runtime parity", () => {
   it("share: JS == Python == golden URL", () => {
     const golden = fs
       .readFileSync(
-        path.join(REPO_ROOT, "test-fixtures/sample-project.expected-url.txt"),
+        path.join(
+          CLI_PKG_ROOT,
+          "test-fixtures/sample-project.expected-url.txt",
+        ),
         "utf8",
       )
       .trim();
@@ -82,7 +85,10 @@ describe("CLI cross-runtime parity", () => {
 
   it("html: JS == Python == golden HTML", () => {
     const golden = fs.readFileSync(
-      path.join(REPO_ROOT, "test-fixtures/sample-project.expected-html.html"),
+      path.join(
+        CLI_PKG_ROOT,
+        "test-fixtures/sample-project.expected-html.html",
+      ),
       "utf8",
     );
     const args = [

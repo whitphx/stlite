@@ -161,7 +161,6 @@ jobs:
             cli:
               - 'packages/cli/**/*'
               - 'packages/app-packager/**/*'
-              - 'test-fixtures/**/*'
 
   test-build-common:
     needs: changes

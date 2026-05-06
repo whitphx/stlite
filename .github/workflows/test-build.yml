@@ -448,6 +448,15 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
+      # Generate `_proto/models.py` and `_runtime_version.py` first — pyright
+      # follows imports through them, and the parity spec exec's both bins
+      # which import them at runtime. The JS bundle (`make cli`) is also
+      # needed for the parity spec, so build it here in one shot.
+      - name: Build cli + Python proto + Python runtime-version
+        run: |
+          . .venv/bin/activate
+          make cli cli-py-proto cli-py-runtime-version
+
       - name: Lint (TS)
         run: |
           yarn workspace @stlite/cli check:lint
@@ -463,15 +472,6 @@ jobs:
         run: |
           . .venv/bin/activate
           uv run --project packages/cli/py pyright packages/cli/py
-
-      # The cross-runtime parity spec exec's the JS bin and the Python bin,
-      # diffs both against golden fixtures. Build the cli first (it's an
-      # esbuild bundle, not tsc emit), the betterproto stubs, and the
-      # auto-pinned `_runtime_version.py` mirror that the Python bin imports.
-      - name: Build cli + Python proto + Python runtime-version
-        run: |
-          . .venv/bin/activate
-          make cli cli-py-proto cli-py-runtime-version
 
       - name: Pytest (Python)
         run: |

@@ -28,7 +28,8 @@ export class PrebuiltPackagesDataReader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async readJson(filepath: string): Promise<any> {
     if (this.isRemote) {
-      // Remote URL is always '/'-separated.
+      // Remote URL is always '/'-separated, so use path.posix instead of
+      // plain `path.join` (which emits `\` on Windows).
       const url = path.posix.join(this.sourceUrl, filepath);
       this.logger.debug(`Fetching ${url}`);
       const res = await fetch(url);

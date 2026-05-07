@@ -158,10 +158,6 @@ jobs:
               - 'packages/sharing-common/**/*'
             desktop:
               - 'packages/desktop/**/*'
-              # app-packager is bundled into desktop's `bin/dump_artifacts.js`
-              # at build time (see packages/desktop/scripts/build_bin.js), so
-              # a change to app-packager source only surfaces in test-desktop
-              # / build-desktop, not in app-packager's own minimal unit tests.
               - 'packages/app-packager/**/*'
             cli:
               - 'packages/cli/**/*'

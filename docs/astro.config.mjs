@@ -27,6 +27,7 @@ export default defineConfig({
         { label: "@stlite/browser", slug: "browser" },
         { label: "@stlite/react", slug: "react" },
         { label: "@stlite/desktop", slug: "desktop" },
+        { label: "@stlite/cli", slug: "cli" },
       ],
       head: [
         {

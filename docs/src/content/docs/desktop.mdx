@@ -22,11 +22,11 @@ Create a `package.json` file for your new project:
 
 import packageJson from "../../examples/desktop/package.json?raw";
 import pkg from "@stlite/desktop/package.json";
+import cliPkg from "@stlite/cli/package.json";
 
-export const packageJsonWithVersion = packageJson.replace(
-  "{{VERSION}}",
-  pkg.version,
-);
+export const packageJsonWithVersion = packageJson
+  .replace("{{VERSION}}", pkg.version)
+  .replace("{{CLI_VERSION}}", cliPkg.version);
 
 <Code code={packageJsonWithVersion} lang="json" title="package.json" />
 
@@ -53,6 +53,8 @@ import appPy from "../../examples/desktop/app.py?raw";
 ```bash
 npm run dump
 ```
+
+This invokes [`stlite desktop`](/cli/#stlite-desktop-path) from [`@stlite/cli`](/cli/), which reads the [`stlite.desktop`](#configuration) section of `package.json`, vendors the Pyodide runtime, and writes the desktop artifact tree into `./build`.
 
 **Preview:**
 

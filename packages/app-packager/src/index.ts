@@ -137,6 +137,14 @@ export async function packageApp(opts: PackageAppOptions): Promise<void> {
     logger,
   });
 
+  // The prebuilt-packages wheels are vendored under `pyodide/` (Pyodide's
+  // package cache); their names go in `prebuilt-packages.txt` so the runtime
+  // can `pyodide.loadPackage()` them at boot from the vendored files. The
+  // pure-Python deps from PyPI are shipped separately in
+  // `site-packages-snapshot.tar.gz`. Prebuilt packages must be installed at
+  // runtime by `pyodide.loadPackage()` or `micropip.install()` rather than
+  // unpacked from the snapshot — see
+  // https://github.com/whitphx/stlite/issues/564 for the original failure.
   await writePrebuiltPackagesTxt(
     path.resolve(opts.destDir, "./prebuilt-packages.txt"),
     usedPrebuiltPackages,
@@ -166,9 +174,12 @@ interface SaveUsedPrebuiltPackagesOptions {
 /**
  * Loads Pyodide-in-Node with `packageCacheDir` pointed at `pyodideRuntimeDir`,
  * installs the given requirements (so any prebuilt packages they pull in get
- * vendored to disk), and returns the names of the prebuilt packages that were
- * resolved from Pyodide's "default channel". The runtime reads the resulting
- * prebuilt-packages.txt and re-installs them from the vendored files.
+ * vendored to disk via Pyodide's Node-side caching mechanism — used here as
+ * the wheel file downloader), and returns the names of the prebuilt packages
+ * that were resolved from Pyodide's "default channel". The runtime reads the
+ * resulting prebuilt-packages.txt and re-installs them from the vendored
+ * files. This build-time-vendoring + runtime-reinstall strategy avoids
+ * problems such as https://github.com/whitphx/stlite/issues/558.
  */
 async function saveUsedPrebuiltPackages(
   options: SaveUsedPrebuiltPackagesOptions,
@@ -269,10 +280,11 @@ async function createSitePackagesSnapshot(
   // after the fact" flag through micropip — neither is cheap. Revisit if
   // start-up time becomes the dominant CLI runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pyodide: PyodideInterface & { FS: any } = await loadPyodide({
-    packageBaseUrl: options.pyodideSource,
-    packageCacheDir: options.pyodideRuntimeDir,
-  });
+  const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
+    await loadPyodide({
+      packageBaseUrl: options.pyodideSource,
+      packageCacheDir: options.pyodideRuntimeDir,
+    });
 
   await ensureLoadPackage(pyodide, "micropip");
   const micropip = pyodide.pyimport("micropip");

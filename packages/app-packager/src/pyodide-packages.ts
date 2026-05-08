@@ -16,6 +16,7 @@ export class PrebuiltPackagesDataReader {
   private _data: Record<string, PackageInfo> | null = null;
 
   constructor(sourceUrl: string, logger: Logger = consoleLogger) {
+    // These path logics are based on https://github.com/pyodide/pyodide/blob/0.25.1/src/js/compat.ts#L122
     if (sourceUrl.startsWith("file://")) {
       // handle file:// with filesystem operations rather than with fetch.
       sourceUrl = sourceUrl.slice("file://".length);
@@ -28,9 +29,7 @@ export class PrebuiltPackagesDataReader {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async readJson(filepath: string): Promise<any> {
     if (this.isRemote) {
-      // Remote URL is always '/'-separated, so use path.posix instead of
-      // plain `path.join` (which emits `\` on Windows).
-      const url = path.posix.join(this.sourceUrl, filepath);
+      const url = path.posix.join(this.sourceUrl, filepath); // Remote URL is always '/'-separated so we use path.posix.
       this.logger.debug(`Fetching ${url}`);
       const res = await fetch(url);
       if (!res.ok) {

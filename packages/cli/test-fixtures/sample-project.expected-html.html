@@ -19,7 +19,7 @@
 import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@1.7.2/build/stlite.js"
 mount(
   {
-    requirements: ["matplotlib"],
+    requirements: ["numpy", "matplotlib"],
     entrypoint: "app.py",
     files: {
 "app.py": `import streamlit as st
@@ -32,6 +32,7 @@ CRLF line two
 final
 `,
 "requirements.txt": `# pinned for the parity fixture
+numpy
 matplotlib  # inline-comment line — the parser must drop everything from ' #' onward
 `,
 "データ.txt": `日本語テキスト — non-ASCII content with emoji 🚀

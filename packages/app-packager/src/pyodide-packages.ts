@@ -16,8 +16,8 @@ export class PrebuiltPackagesDataReader {
   private _data: Record<string, PackageInfo> | null = null;
 
   constructor(sourceUrl: string, logger: Logger = consoleLogger) {
-    // Path logic mirrors https://github.com/pyodide/pyodide/blob/0.25.1/src/js/compat.ts#L122
     if (sourceUrl.startsWith("file://")) {
+      // handle file:// with filesystem operations rather than with fetch.
       sourceUrl = sourceUrl.slice("file://".length);
     }
     this.sourceUrl = sourceUrl;

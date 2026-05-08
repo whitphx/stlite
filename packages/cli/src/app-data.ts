@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { parseRequirementsTxt } from "@stlite/common";
 import type { AppData, File } from "@stlite/sharing-common";
 import { collectProjectFiles } from "./project-files.js";
 
@@ -47,7 +48,7 @@ export function buildAppData(opts: BuildAppDataOptions): AppData {
       return fs.existsSync(defaultPath) ? defaultPath : null;
     })();
   const requirements = requirementsPath
-    ? readRequirements(requirementsPath)
+    ? parseRequirementsTxt(fs.readFileSync(requirementsPath, "utf8"))
     : [];
 
   return {
@@ -85,12 +86,4 @@ function collectFiles(rootDir: string): { [path: string]: File } {
     }
   }
   return result;
-}
-
-function readRequirements(reqPath: string): string[] {
-  return fs
-    .readFileSync(reqPath, "utf8")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith("#"));
 }

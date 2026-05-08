@@ -1,2 +1,2 @@
 # pinned for the parity fixture
-matplotlib
+matplotlib  # inline-comment line — the parser must drop everything from ' #' onward

@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from typing import Iterator, Optional
 
@@ -77,9 +78,18 @@ def walk(root: Path, visited_dirs: set[str]) -> Iterator[Path]:
             yield entry
 
 
+_PIP_INLINE_COMMENT_RE = re.compile(r"\s#.*$")
+
+
 def read_requirements(path: Path) -> list[str]:
-    return [
-        line.strip()
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    ]
+    # Mirrors @stlite/common's parseRequirementsTxt — drops full-line `#`
+    # comments AND inline ` #...` comments per pip's requirements-file-format
+    # (https://pip.pypa.io/en/stable/reference/requirements-file-format/#comments).
+    out: list[str] = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        if raw.startswith("#"):
+            continue
+        stripped = _PIP_INLINE_COMMENT_RE.sub("", raw).strip()
+        if stripped:
+            out.append(stripped)
+    return out

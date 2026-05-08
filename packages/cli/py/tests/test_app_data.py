@@ -11,6 +11,26 @@ def _write(path: Path, content: bytes) -> None:
     path.write_bytes(content)
 
 
+def test_build_app_data_strips_pip_comments_from_requirements(tmp_path: Path):
+    """Per https://pip.pypa.io/en/stable/reference/requirements-file-format/#comments
+    full-line `#` and inline ` #` are both comments. The parser must drop both."""
+    _write(tmp_path / "app.py", b"")
+    _write(
+        tmp_path / "requirements.txt",
+        b"# full-line comment\n"
+        b"\n"  # blank line
+        b"streamlit\n"
+        b"matplotlib  # inline comment\n"
+        b"  numpy   \n"  # leading/trailing whitespace
+        b"# another comment\n",
+    )
+
+    data = build_app_data(
+        project_dir=tmp_path, entrypoint="app.py", requirements_path=None
+    )
+    assert data.requirements == ["streamlit", "matplotlib", "numpy"]
+
+
 def test_build_app_data_collects_text_and_binary(tmp_path: Path):
     _write(tmp_path / "app.py", b"import streamlit as st\n")
     _write(tmp_path / "data" / "blob.bin", b"\x00\x01\x02")

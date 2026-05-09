@@ -1,5 +1,14 @@
 # docs
 
+## 0.0.19
+
+### Patch Changes
+
+- Updated dependencies [[`0e9ee30`](https://github.com/whitphx/stlite/commit/0e9ee30bc6214830eec88d8f61ffa01f235c604c), [`bbc1c86`](https://github.com/whitphx/stlite/commit/bbc1c863f632449e131affc5a9ab16e703b82315)]:
+  - @stlite/cli@0.1.0
+  - @stlite/desktop@0.100.0
+  - @stlite/browser@1.7.3
+
 ## 0.0.18
 
 ### Patch Changes

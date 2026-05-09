@@ -1,5 +1,13 @@
 # @stlite/sharing
 
+## 0.96.3
+
+### Patch Changes
+
+- Updated dependencies [[`0e9ee30`](https://github.com/whitphx/stlite/commit/0e9ee30bc6214830eec88d8f61ffa01f235c604c), [`bbc1c86`](https://github.com/whitphx/stlite/commit/bbc1c863f632449e131affc5a9ab16e703b82315)]:
+  - @stlite/sharing-common@0.91.0
+  - @stlite/react@1.6.3
+
 ## 0.96.2
 
 ### Patch Changes

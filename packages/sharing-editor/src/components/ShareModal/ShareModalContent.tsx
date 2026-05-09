@@ -1,10 +1,15 @@
 import { useMemo } from "react";
-import { AppData, embedAppDataToUrl } from "@stlite/sharing-common";
+import {
+  AppData,
+  embedAppDataToUrl,
+  exportAsHtml,
+} from "@stlite/sharing-common";
 import UrlDisplay from "./UrlDisplay";
 import CodePreview from "./CodePreview";
-import { exportAsHtml } from "../../export/html";
 import ExternalLink from "../ExternalLink";
 import styles from "./ShareModalContent.module.scss";
+
+const DEBUG_COMMENT = `Generated from Stlite Sharing (https://edit.share.stlite.net/), and the source version is ${GITHUB_SHA}`;
 
 interface ShareModalContentProps {
   appData: AppData;
@@ -17,7 +22,13 @@ function ShareModalContent(props: ShareModalContentProps) {
   );
 
   const html = useMemo(
-    () => (props.appData ? exportAsHtml(props.appData) : null),
+    () =>
+      props.appData
+        ? exportAsHtml(props.appData, {
+            runtimeVersion: SELF_HOSTING_RUNTIME_VERSION,
+            debugComment: DEBUG_COMMENT,
+          })
+        : null,
     [props.appData],
   );
 

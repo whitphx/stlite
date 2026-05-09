@@ -1,0 +1,50 @@
+{
+  "name": "@stlite/app-packager",
+  "version": "0.0.0",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/app-packager"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "start": "tsc -b -w",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
+  },
+  "dependencies": {
+    "@stlite/common": "workspace:^",
+    "fs-extra": "^11.3.4",
+    "glob": "^11.0.0",
+    "pyodide": "0.29.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.10.0",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

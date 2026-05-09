@@ -16,11 +16,11 @@ export function u8aToBase64(buf: Uint8Array, applyMax?: number): string {
     str += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
 
-  return window.btoa(str);
+  return btoa(str);
 }
 
 export function base64ToU8A(base64: string): Uint8Array {
-  const s = window.atob(base64);
+  const s = atob(base64);
 
   const len = s.length;
   const buf = new Uint8Array(len);

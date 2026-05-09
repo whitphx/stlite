@@ -57,6 +57,7 @@ cd packages/kernel/py/stlite-lib && uv run pytest
 
 - Vitest uses `jsdom` environment (not happy-dom, due to iframe issues)
 - Prefer `make kernel-test` for kernel tests (it builds required wheels). Run `make stlite-lib-wheel streamlit-wheel` manually only if you call `cd packages/kernel && yarn test` directly.
+- Test file naming: `*.spec.ts` for pure unit tests; `*.test.ts` for heavier integration tests that exec subprocesses, load Pyodide, or otherwise reach beyond a single module (e.g. `kernel.test.ts`, `worker-runtime.test.ts`, `parity.test.ts`). Vitest picks up both.
 
 ## Code Quality
 

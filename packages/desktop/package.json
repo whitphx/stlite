@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
+    "@stlite/app-packager": "workspace:^",
     "@stlite/common": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@stlite/react": "workspace:^",

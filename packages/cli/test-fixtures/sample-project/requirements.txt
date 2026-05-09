@@ -1,0 +1,3 @@
+# pinned for the parity fixture
+numpy
+matplotlib  # inline-comment line — the parser must drop everything from ' #' onward

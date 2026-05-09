@@ -1,6 +1,6 @@
 import path from "node:path";
 import fsPromises from "node:fs/promises";
-import { logger } from "./logger";
+import { consoleLogger, type Logger } from "./logger.js";
 
 interface PackageInfo {
   name: string;
@@ -8,12 +8,14 @@ interface PackageInfo {
   file_name: string;
   depends: string[];
 }
+
 export class PrebuiltPackagesDataReader {
   private sourceUrl: string;
   private isRemote: boolean;
+  private logger: Logger;
   private _data: Record<string, PackageInfo> | null = null;
 
-  constructor(sourceUrl: string) {
+  constructor(sourceUrl: string, logger: Logger = consoleLogger) {
     // These path logics are based on https://github.com/pyodide/pyodide/blob/0.25.1/src/js/compat.ts#L122
     if (sourceUrl.startsWith("file://")) {
       // handle file:// with filesystem operations rather than with fetch.
@@ -21,12 +23,16 @@ export class PrebuiltPackagesDataReader {
     }
     this.sourceUrl = sourceUrl;
     this.isRemote = sourceUrl.includes("://");
+    this.logger = logger;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async readJson(filepath: string): Promise<any> {
     if (this.isRemote) {
-      const url = path.posix.join(this.sourceUrl, filepath); // Remote URL is always '/'-separated so we use path.posix.
-      logger.debug(`Fetching ${url}`);
+      // Remote URL is always '/'-separated, so use path.posix instead of
+      // plain `path.join` (which emits `\` on Windows).
+      const url = path.posix.join(this.sourceUrl, filepath);
+      this.logger.debug(`Fetching ${url}`);
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error(
@@ -36,7 +42,7 @@ export class PrebuiltPackagesDataReader {
       return await res.json();
     } else {
       const url = path.join(this.sourceUrl, filepath);
-      logger.debug(`Reading ${url}`);
+      this.logger.debug(`Reading ${url}`);
       const buf = await fsPromises.readFile(url);
       return JSON.parse(buf.toString());
     }
@@ -49,7 +55,7 @@ export class PrebuiltPackagesDataReader {
       return this._data;
     }
 
-    logger.info(`Load pyodide-lock.json`);
+    this.logger.info(`Load pyodide-lock.json`);
     const lockJson = await this.readJson("pyodide-lock.json");
 
     this._data = lockJson.packages;

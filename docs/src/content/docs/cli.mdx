@@ -1,0 +1,91 @@
+---
+title: "@stlite/cli"
+description: Command-line tools for converting a local Streamlit project into a Stlite app.
+---
+
+`@stlite/cli` (Node, on npm) and `stlite-cli` (Python, on PyPI) expose the same `stlite` bin with four conversion commands. The Node bin covers all four; the Python bin covers `share` and `html` (which produce byte-identical output to the Node bin) and is intended for users who don't have a Node toolchain.
+
+| Command                 | Output                                                                               | Node | Python |
+| ----------------------- | ------------------------------------------------------------------------------------ | ---- | ------ |
+| `stlite share <path>`   | URL hash for `share.stlite.net`                                                      | ✅   | ✅     |
+| `stlite html <path>`    | Single self-contained HTML file loading [`@stlite/browser`](/browser/) from JSDelivr | ✅   | ✅     |
+| `stlite web <path>`     | Multi-file Stlite web app directory (offline-capable, runs on any HTTP server)       | ✅   | —      |
+| `stlite desktop <path>` | Multi-file dir + `stlite-manifest.json` for [`@stlite/desktop`](/desktop/)           | ✅   | —      |
+
+`web` and `desktop` are Node-only because they rely on Pyodide-in-Node to vendor Python dependencies — Pyodide doesn't ship a Python-runnable form of the same packaging logic.
+
+## Install
+
+```bash
+# Run on demand without install
+npx @stlite/cli <command> <path>
+
+# Or, install globally
+npm install -g @stlite/cli
+stlite <command> <path>
+```
+
+```bash
+# Python
+pip install stlite-cli
+# or with uv
+uvx stlite-cli <command> <path>
+```
+
+## Commands
+
+### `stlite share <path>`
+
+Encode a project into a hash-fragment URL that loads on `https://share.stlite.net/`. The whole project (text + binary files + `requirements.txt`) gets serialized as a protobuf, base64url-encoded, and embedded in the URL hash — no upload step.
+
+```bash
+stlite share ./my-project
+# https://share.stlite.net/#!CgZhcHAucHkS...
+```
+
+`--editable` switches the base URL to `https://edit.share.stlite.net/` (the sharing editor).
+
+### `stlite html <path>`
+
+Generate a single self-contained `.html` file that loads `@stlite/browser` from JSDelivr and embeds the project's files inline (text via JS template literals, binary via base64). Default output is stdout; pass `-o file.html` to write to disk.
+
+```bash
+stlite html ./my-project -o app.html
+```
+
+`--runtime-version <ver>` pins the `@stlite/browser` version the exported page loads from JSDelivr. The default is auto-pinned at cli-build time to the `@stlite/browser` version bundled with this `@stlite/cli` release.
+
+### `stlite web <path>`
+
+Package the project into a multi-file directory that runs offline on any HTTP server. The output bundles `@stlite/browser`'s SPA, the Pyodide runtime, and a pre-vendored site-packages snapshot, so users don't fetch anything from a CDN at boot. Output goes to `./build` by default; override with `-o`.
+
+```bash
+stlite web ./my-project -o ./out
+python3 -m http.server -d ./out  # serves the app at http://localhost:8000/
+```
+
+### `stlite desktop <path>`
+
+Package the project into a [Stlite Desktop](/desktop/) directory (multi-file artifact + `stlite-manifest.json`) that's consumed by `electron-builder` to produce a standalone Electron app. The project directory must contain a `package.json` with a [`stlite.desktop`](/desktop/#configuration) field — the same configuration shape as the legacy `dump-stlite-desktop-artifacts` bin.
+
+`stlite desktop` is the recommended replacement for `dump-stlite-desktop-artifacts`, which still ships in `@stlite/desktop` for one release with a deprecation warning at startup.
+
+## Common options
+
+`share` and `html`:
+
+- `<path>` — the project directory (positional, required)
+- `--entrypoint <name>` — entrypoint script, default `app.py`
+- `--requirements <path>` — explicit `requirements.txt`; defaults to `<path>/requirements.txt` if present.
+
+`web`:
+
+- `--entrypoint`, `--requirements` (same as above)
+- `-o, --out <dir>` (default `./build`)
+- `--pyodideSource <url>` — base URL or path of the Pyodide files; defaults to JSDelivr.
+
+`desktop`:
+
+- `-o, --out <dir>` (default `./build`)
+- `--pyodideSource <url>`
+- All other configuration (entrypoint, files glob, dependencies, `requirementsTxtFiles`, manifest fields like `embed`/`nodeJsWorker`/`idbfsMountpoints`/`nodefsMountpoints`/`appMenu`) is read from `package.json#stlite.desktop`.

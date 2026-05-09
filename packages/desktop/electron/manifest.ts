@@ -25,6 +25,54 @@ export async function readManifest(): Promise<DesktopAppManifest> {
 }
 
 /**
+ * Validates a candidate manifest-data object against `DesktopAppManifestStruct`,
+ * applying schema defaults and rejecting incompatible field combinations.
+ */
+export function coerceDesktopAppManifest(obj: unknown): DesktopAppManifest {
+  const manifestData = s.mask(obj ?? {}, DesktopAppManifestStruct);
+
+  if (manifestData.nodeJsWorker) {
+    if (manifestData.idbfsMountpoints != null) {
+      throw new Error(
+        "The `idbfsMountpoints` field is not allowed when `nodeJsWorker` is true.",
+      );
+    }
+  } else {
+    if (manifestData.nodefsMountpoints != null) {
+      throw new Error(
+        "The `nodefsMountpoints` field is not allowed when `nodeJsWorker` is false.",
+      );
+    }
+  }
+
+  return manifestData;
+}
+
+export interface DumpManifestOptions {
+  /** Source object — typically `package.json#stlite.desktop`, or constructed by the CLI. */
+  packageJsonStliteDesktopField: unknown;
+  manifestFilePath: string;
+  /** Backward-compat fallback values applied before validation. */
+  fallbacks?: Partial<{ entrypoint: string }>;
+}
+
+export async function dumpManifest(
+  options: DumpManifestOptions,
+): Promise<void> {
+  const manifestData = coerceDesktopAppManifest({
+    // Fallbacks first so explicit values from `packageJsonStliteDesktopField`
+    // win over them.
+    ...options.fallbacks,
+    ...(options.packageJsonStliteDesktopField as object | undefined),
+  });
+  await fsPromises.writeFile(
+    options.manifestFilePath,
+    JSON.stringify(manifestData, null, 2),
+    { encoding: "utf-8" },
+  );
+}
+
+/**
  * Resolve placeholders in a path string using Electron's app.getPath API.
  * Example: resolvePathWithApp(app, "{{home}}/my-app") => "/home/user/my-app"
  */

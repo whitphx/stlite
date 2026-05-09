@@ -17,7 +17,7 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["packages/kernel/py/stlite-lib"]
+members = ["packages/kernel/py/stlite-lib", "packages/cli/py"]
 
 [tool.uv]
 # Require a uv version that supports relative `exclude-newer` durations

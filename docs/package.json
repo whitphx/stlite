@@ -14,6 +14,7 @@
   "dependencies": {
     "@astrojs/starlight": "^0.37.1",
     "@stlite/browser": "workspace:*",
+    "@stlite/cli": "workspace:*",
     "@stlite/desktop": "workspace:*",
     "astro": "^5.16.6",
     "sharp": "^0.34.2"

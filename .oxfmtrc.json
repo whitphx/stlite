@@ -14,7 +14,8 @@
     "streamlit",
     "CHANGELOG.md",
     "*.html",
-    "tsconfig.json"
+    "tsconfig.json",
+    "packages/cli/test-fixtures"
   ],
   "overrides": [
     {

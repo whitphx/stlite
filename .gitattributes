@@ -1,0 +1,8 @@
+# `notes_crlf.md` is a parity-test fixture whose whole purpose is to carry
+# literal CRLF line endings into both the JS and Python CLIs (see
+# packages/cli/test-fixtures/sample-project/, packages/cli/src/parity.spec.ts).
+# Without this entry, git on Windows (default `core.autocrlf=true`) silently
+# normalizes CRLF to LF on commit, and the test silently stops exercising
+# the very code path it was added to guard. `binary` disables both
+# line-ending translation and text-mode diff/merge for that one file.
+packages/cli/test-fixtures/sample-project/notes_crlf.md binary

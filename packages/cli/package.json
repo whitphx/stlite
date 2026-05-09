@@ -1,0 +1,51 @@
+{
+  "name": "@stlite/cli",
+  "version": "0.0.0",
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/cli"
+  },
+  "bin": {
+    "stlite": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "fix:lint": "oxlint --fix src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint src",
+    "check:format": "oxfmt --check ."
+  },
+  "dependencies": {
+    "@stlite/browser": "workspace:^",
+    "@stlite/desktop": "workspace:^",
+    "fs-extra": "^11.3.4",
+    "pyodide": "0.29.3",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@stlite/app-packager": "workspace:^",
+    "@stlite/common": "workspace:^",
+    "@stlite/sharing-common": "workspace:^",
+    "@types/node": "^22.10.0",
+    "@types/yargs": "^17.0.32",
+    "esbuild": "^0.27.1",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

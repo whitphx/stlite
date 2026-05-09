@@ -157,7 +157,11 @@ runs:
             const sizeDiffKiB = sizeKiB - baseSizeKiB;
             const shouldWarn = Math.abs(sizeDiffKiB) >= ${{ inputs.size-diff-warning-threshold-kib }};
             const sizeDiffFormatter = new Intl.NumberFormat("en-US", { signDisplay: "always" });
-            const sizeDiffStr = baseSizeKiB ? `(${baseSizeKiB} kiB ${shouldWarn ? '⚠️ ' : ''}**${sizeDiffFormatter.format(sizeDiffKiB)} kiB**)` : "";
+            // `baseSizeKiB ? ...` is falsy for 0, so a bundle that grew
+            // from 0 → N kiB renders with no diff annotation — masking
+            // the very growth users care about. Switch to a null-check
+            // so only the "no baseline at all" case suppresses it.
+            const sizeDiffStr = baseSizeKiB != null ? `(${baseSizeKiB} kiB ${shouldWarn ? '⚠️ ' : ''}**${sizeDiffFormatter.format(sizeDiffKiB)} kiB**)` : "";
 
             const fileSizesCmp = await compareStrings(baseContent?.filelist?.sizes ?? "", content.filelist.sizes)
 

@@ -136,7 +136,10 @@ runs:
                 fs.unlinkSync('temp1.txt');
                 fs.unlinkSync('temp2.txt');
 
-                resolve({ isDiff: code === 0, diff: output });
+                // GNU diff exits 0 when files are identical, 1 when they
+                // differ; the previous `code === 0` made `isDiff` true on
+                // identical input, the opposite of what the name implies.
+                resolve({ isDiff: code !== 0, diff: output });
               });
             });
           }

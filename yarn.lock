@@ -906,6 +906,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bufbuild/protobuf@npm:^2.10.2":
+  version: 2.11.0
+  resolution: "@bufbuild/protobuf@npm:2.11.0"
+  checksum: 10c0/d54fffd414660b823999cc321d26bd6c5f18a6e75343fc7d2588bda5be540ec542b557ac1f03d6d4b6e9d3e5596b2016e58cda173cd1858c043f0e846ece453f
+  languageName: node
+  linkType: hard
+
 "@capsizecss/unpack@npm:^3.0.1":
   version: 3.0.1
   resolution: "@capsizecss/unpack@npm:3.0.1"
@@ -7673,7 +7680,7 @@ __metadata:
     electron: "npm:34.3.0"
     electron-reload: "npm:^2.0.0-alpha.1"
     esbuild: "npm:^0.27.1"
-    fs-extra: "npm:^11.2.0"
+    fs-extra: "npm:^11.3.4"
     glob: "npm:^13.0.6"
     node-html-parser: "npm:^7.1.0"
     oxfmt: "npm:^0.45.0"
@@ -7686,7 +7693,7 @@ __metadata:
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
     ts-node: "npm:^10.9.1"
-    tsx: "npm:^4.19.2"
+    tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.5"
     vitest: "npm:^4.1.0"
@@ -7771,7 +7778,7 @@ __metadata:
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     protobufjs: "npm:^7.2.4"
-    ts-proto: "npm:^2.6.1"
+    ts-proto: "npm:^2.11.6"
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.1.0"
   languageName: unknown
@@ -7808,7 +7815,7 @@ __metadata:
     rollup-plugin-visualizer: "npm:^5.12.0"
     sass: "npm:^1.90.0"
     superstruct: "npm:^2.0.2"
-    tsx: "npm:^4.19.2"
+    tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
     usehooks-ts: "npm:^3.1.0"
     vite: "npm:^7.1.5"
@@ -15796,7 +15803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.25.0, esbuild@npm:~0.25.0":
+"esbuild@npm:^0.25.0":
   version: 0.25.12
   resolution: "esbuild@npm:0.25.12"
   dependencies:
@@ -15885,7 +15892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.27.0":
+"esbuild@npm:^0.27.0, esbuild@npm:~0.27.0":
   version: 0.27.7
   resolution: "esbuild@npm:0.27.7"
   dependencies:
@@ -17377,7 +17384,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.1.1, fs-extra@npm:^11.2.0, fs-extra@npm:~11.3.0":
+"fs-extra@npm:^11.1.1, fs-extra@npm:~11.3.0":
   version: 11.3.2
   resolution: "fs-extra@npm:11.3.2"
   dependencies:
@@ -17385,6 +17392,17 @@ __metadata:
     jsonfile: "npm:^6.0.1"
     universalify: "npm:^2.0.0"
   checksum: 10c0/f5d629e1bb646d5dedb4d8b24c5aad3deb8cc1d5438979d6f237146cd10e113b49a949ae1b54212c2fbc98e2d0995f38009a9a1d0520f0287943335e65fe919b
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^11.3.4":
+  version: 11.3.4
+  resolution: "fs-extra@npm:11.3.4"
+  dependencies:
+    graceful-fs: "npm:^4.2.0"
+    jsonfile: "npm:^6.0.1"
+    universalify: "npm:^2.0.0"
+  checksum: 10c0/e08276f767a62496ae97d711aaa692c6a478177f24a85979b6a2881c9db9c68b8c2ad5da0bcf92c0b2a474cea6e935ec245656441527958fd8372cb647087df0
   languageName: node
   linkType: hard
 
@@ -28536,26 +28554,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-proto-descriptors@npm:2.0.0":
-  version: 2.0.0
-  resolution: "ts-proto-descriptors@npm:2.0.0"
+"ts-proto-descriptors@npm:2.1.0":
+  version: 2.1.0
+  resolution: "ts-proto-descriptors@npm:2.1.0"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.0.0"
-  checksum: 10c0/a4f47a6db7de6b328a5b22bb0bed2a0dac929c28002567613db7980e0a8392b9148530e432a602a8c6b2cfda9909be9568a2e5c545f5624bb5d5eba52031c059
+  checksum: 10c0/5695def6c31b7f3f8561876361a2db9f1ad859613fdcf1c7ffd093c3477fea4552ccccef9c99cd63ca2a215a7187e20e0de1fc942e2996d6671c25c6b190bf31
   languageName: node
   linkType: hard
 
-"ts-proto@npm:^2.6.1":
-  version: 2.8.3
-  resolution: "ts-proto@npm:2.8.3"
+"ts-proto@npm:^2.11.6":
+  version: 2.11.6
+  resolution: "ts-proto@npm:2.11.6"
   dependencies:
-    "@bufbuild/protobuf": "npm:^2.0.0"
+    "@bufbuild/protobuf": "npm:^2.10.2"
     case-anything: "npm:^2.1.13"
     ts-poet: "npm:^6.12.0"
-    ts-proto-descriptors: "npm:2.0.0"
+    ts-proto-descriptors: "npm:2.1.0"
   bin:
     protoc-gen-ts_proto: protoc-gen-ts_proto
-  checksum: 10c0/7a2bef9f128a4a43f7220f01c1fe82b830baaf2f31bdf8cad0249731e2821b352f9a5aaec123d22ba0a29a8e118456d22af30138108b8a3065808ada8d5efa32
+  checksum: 10c0/113f5749b6866e321a0d56585bac14feebda5b17a077d7b156a76ea265b445ad1c799befdd5c5152f53ebfc7d8216336034f1596a5bf4d859da79f9c7cac2a4e
   languageName: node
   linkType: hard
 
@@ -28677,11 +28695,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.2":
-  version: 4.20.6
-  resolution: "tsx@npm:4.20.6"
+"tsx@npm:^4.21.0":
+  version: 4.21.0
+  resolution: "tsx@npm:4.21.0"
   dependencies:
-    esbuild: "npm:~0.25.0"
+    esbuild: "npm:~0.27.0"
     fsevents: "npm:~2.3.3"
     get-tsconfig: "npm:^4.7.5"
   dependenciesMeta:
@@ -28689,7 +28707,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10c0/07757a9bf62c271e0a00869b2008c5f2d6e648766536e4faf27d9d8027b7cde1ac8e4871f4bb570c99388bcee0018e6869dad98c07df809b8052f9c549cd216f
+  checksum: 10c0/f5072923cd8459a1f9a26df87823a2ab5754641739d69df2a20b415f61814322b751fa6be85db7c6ec73cf68ba8fac2fd1cfc76bdb0aa86ded984d84d5d2126b
   languageName: node
   linkType: hard
 

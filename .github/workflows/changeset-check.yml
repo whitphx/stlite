@@ -26,14 +26,19 @@ jobs:
       #   - the PR carries the `skip-changeset` label (manual escape hatch), or
       #   - the PR is the release PR opened by `changesets/action`, which
       #     consumes (deletes) fragments rather than adding them. Its branch
-      #     name is `changeset-release/<base>` by default.
+      #     name is `changeset-release/<base>` by default, or
+      #   - the PR is authored by Dependabot. We can't auto-add a changeset
+      #     to its branch (any non-Dependabot commit breaks Dependabot's
+      #     rebase), so skip the check and let a maintainer add one manually
+      #     if a runtime-dep bump warrants a release entry.
       - name: Decide whether to run the check
         id: decide
         env:
           HAS_SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-changeset') }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
-          if [[ "$HAS_SKIP_LABEL" == "true" || "$HEAD_REF" == changeset-release/* ]]; then
+          if [[ "$HAS_SKIP_LABEL" == "true" || "$HEAD_REF" == changeset-release/* || "$PR_AUTHOR" == "dependabot[bot]" ]]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"

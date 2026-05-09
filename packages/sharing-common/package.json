@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing-common",
-  "version": "0.90.2",
+  "version": "0.90.3",
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
@@ -34,7 +34,7 @@
     "npm-run-all2": "^8.0.4",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "ts-proto": "^2.6.1",
+    "ts-proto": "^2.11.6",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   }

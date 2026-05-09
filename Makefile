@@ -40,6 +40,15 @@ $(if $(shell command -v yarn),,@echo "WARNING: yarn is not installed. Please ins
 STREAMLIT_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get-streamlit-wheel-file-name py)
 STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get-streamlit-wheel-file-name cp)
 
+# Pin xbuildenv to the Pyodide runtime version. Without an explicit version,
+# `pyodide xbuildenv install` floats to the latest patch pyodide-build's
+# compat range allows, and a fresh upstream Pyodide release can ship a
+# pyodide-lock schema that the frozen uv.lock can no longer parse.
+# Bump alongside the runtime Pyodide version: packages/kernel/package.json,
+# packages/desktop/package.json, packages/kernel/src/worker.ts (CDN URL),
+# packages/kernel/py/stlite-lib/pyproject.toml (pyodide-py).
+PYODIDE_VERSION := 0.29.3
+
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built
 common := $(BUILD_STATE_DIR)/common/.built
@@ -87,7 +96,7 @@ $(venv): .python-version pyproject.toml uv.lock packages/kernel/py/stlite-lib/py
 	uv sync $(UV_SYNC_FLAGS) --all-packages --all-groups
 	uv pip install --group streamlit/pyproject.toml:dev
 	-uv run pyodide xbuildenv uninstall
-	uv run pyodide xbuildenv install
+	uv run pyodide xbuildenv install $(PYODIDE_VERSION)
 	@mkdir -p $(dir $@)
 	@touch $@
 	@echo "\nPython virtualenv has been set up. Run the command below to activate.\n\n. $(VENV_PATH)/bin/activate"

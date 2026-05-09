@@ -1,6 +1,6 @@
 {
   "name": "@stlite/app-packager",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "bugs": {
     "url": "https://github.com/whitphx/stlite/issues"

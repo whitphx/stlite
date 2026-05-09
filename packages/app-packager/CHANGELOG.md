@@ -1,6 +1,6 @@
-# @stlite/sharing-common
+# @stlite/app-packager
 
-## 0.91.0
+## 0.1.0
 
 ### Minor Changes
 
@@ -16,21 +16,3 @@
   - New `@stlite/app-packager` library extracts the dump-artifacts pipeline (Pyodide vendoring, site-packages snapshot) so both `stlite web`/`desktop` and `@stlite/desktop`'s existing bin can share it.
   - `@stlite/sharing-common` now owns `exportAsHtml` (moved from `@stlite/sharing-editor`) with a parameterized `(appData, { runtimeVersion, debugComment? })` signature, plus a stable `BASE64_DECODER_JS_SOURCE` constant for the embedded HTML decoder. Bug fix: `compress.ts` now uses `.replaceAll` so the URL hash is true base64url; `buffer.ts` uses globals so the package loads in Node.
   - `@stlite/desktop`'s `dump-stlite-desktop-artifacts` bin is **deprecated** (emits a `DeprecationWarning` at startup) in favor of `stlite desktop`. The bin keeps working for one release. Also exposes `dumpManifest` and the manifest schema via `build/electron/manifest.js` (ESM) so `@stlite/cli` can reuse them.
-
-## 0.90.3
-
-### Patch Changes
-
-- [#1999](https://github.com/whitphx/stlite/pull/1999) [`07500cc`](https://github.com/whitphx/stlite/commit/07500cc5e8d054ad0fc9055d7680583e14539f7f) Thanks [@whitphx](https://github.com/whitphx)! - Replace ESLint and Prettier with Oxc (oxlint + oxfmt) for linting and formatting. Dev tooling only — no runtime or API change.
-
-## 0.90.2
-
-### Patch Changes
-
-- [#1973](https://github.com/whitphx/stlite/pull/1973) [`c69cf7b`](https://github.com/whitphx/stlite/commit/c69cf7bea70c56ca53ce7b199f27ab5ec2aeb2d7) Thanks [@whitphx](https://github.com/whitphx)! - Trigger a new release because the previous release failed due to a bug addressed by [#1972](https://github.com/whitphx/stlite/issues/1972). The release contains "52568e5 Thanks @whitphx! - Update Streamlit to 1.54.0" and "[#1967](https://github.com/whitphx/stlite/issues/1967) 9d0d501 Thanks @whitphx! - Update Streamlit to 1.55.0"
-
-## 0.90.1
-
-### Patch Changes
-
-- [#1751](https://github.com/whitphx/stlite/pull/1751) [`92812c8`](https://github.com/whitphx/stlite/commit/92812c899c46d4e1b253939262a4d31dc75f3805) Thanks [@whitphx](https://github.com/whitphx)! - Internal exports for development

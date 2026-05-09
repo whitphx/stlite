@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.102.4
+
+### Patch Changes
+
+- [#2026](https://github.com/whitphx/stlite/pull/2026) [`bbc1c86`](https://github.com/whitphx/stlite/commit/bbc1c863f632449e131affc5a9ab16e703b82315) Thanks [@whitphx](https://github.com/whitphx)! - Fix `make venv` failing during `pyodide xbuildenv install` after upstream Pyodide 0.29.4 shipped a `pyodide-lock.json` under a newer schema. Bump `pyodide-lock` 0.1.2 → 0.1.3 (which makes the dropped `info.version` field optional) and pin the xbuildenv install to the runtime Pyodide version so future upstream patch releases can no longer break the frozen build env.
+
 ## 0.102.3
 
 ### Patch Changes

@@ -16,9 +16,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import MutableMapping
+    from collections.abc import Awaitable, Callable, MutableMapping
 
-    from streamlit.web.server.starlette.starlette_app import App
+    from streamlit.starlette import App
 
     AsgiMessage = MutableMapping[str, Any]
 
@@ -28,9 +28,13 @@ def create_app(script_path: str) -> App:
 
     The returned object is callable as ``await app(scope, receive, send)``.
     """
-    # Imported lazily so a stlite worker that never reaches the ASGI path
-    # (e.g. an early boot failure) doesn't pay the import cost.
-    from streamlit.web.server.starlette.starlette_app import App
+    # Use upstream's public re-export (``streamlit.starlette.App``,
+    # documented in starlette_app.App's docstring) rather than the
+    # internal ``streamlit.web.server.starlette.starlette_app`` path.
+    # Imported inside the function purely to keep the dependency close
+    # to its use; importing ``streamlit`` itself already loads App via
+    # ``streamlit/__init__.py``, so there's no extra cost.
+    from streamlit.starlette import App
 
     return App(script_path)
 
@@ -142,6 +146,7 @@ async def call_asgi(
     scope: Any,
     receive: Any,
     send: Any,
+    home_dir: str | None = None,
 ) -> None:
     """Call an ASGI app with scope/receive/send originating from JS.
 
@@ -149,23 +154,34 @@ async def call_asgi(
     can use the standard ASGI accessors. ``send`` is passed through —
     the JS-side ``send`` handler already accepts JsProxy events.
 
-    Each call also binds ``streamlit.runtime.runtime_contextvar`` to the
-    App's runtime instance. The Streamlit script runner and several
-    runtime helpers fetch it via ``Runtime.get_instance()``; without
-    this binding the script execution task spawned during request
-    handling raises ``Exception: Runtime instance not created yet``.
-    Setting it here (not in run_lifespan_startup) is intentional: each
-    JS→Python ASGI call lands in a fresh Pyodide asyncio task whose
-    context doesn't inherit the value bound in the lifespan task, so
-    we need to re-bind on every entry. The PEP 567 contextvar set then
-    propagates to any task the request handler spawns (e.g. the script
-    runner coroutine).
+    Each call also binds two contextvars:
+
+    * ``streamlit.runtime.runtime_contextvar`` to the App's runtime
+      instance. The Streamlit script runner and several runtime helpers
+      fetch it via ``Runtime.get_instance()``; without this binding the
+      script execution task spawned during request handling raises
+      ``Exception: Runtime instance not created yet``.
+    * ``stlite_lib.server.task_context.home_dir_contextvar`` (when
+      ``home_dir`` is provided) so the SharedWorker multi-app CWD
+      machinery (DirectorySyncCoroutineProxy) restores the correct
+      per-app working directory before every script-runner tick.
+
+    Setting these here (not in run_lifespan_startup) is intentional:
+    each JS→Python ASGI call lands in a fresh Pyodide asyncio task
+    whose context doesn't inherit the lifespan task's bindings, so we
+    re-bind on every entry. The PEP 567 contextvar sets then propagate
+    to any task the request handler spawns (e.g. the script runner
+    coroutine).
     """
     from streamlit.runtime import runtime_contextvar
+
+    from stlite_lib.server.task_context import home_dir_contextvar
 
     runtime = getattr(app, "_runtime", None)
     if runtime is not None:
         runtime_contextvar.set(runtime)
+    if home_dir is not None:
+        home_dir_contextvar.set(home_dir)
 
     py_scope = _to_py(scope)
 
@@ -176,9 +192,56 @@ async def call_asgi(
     await app(py_scope, py_receive, send)
 
 
+def make_call_asgi(
+    app: App, home_dir: str | None = None
+) -> Callable[[Any, Any, Any], Awaitable[None]]:
+    """Bind an ``App`` (and optional per-app ``home_dir``) into an ASGI callable.
+
+    Returns an ``async def (scope, receive, send) -> None`` that the JS
+    side can pass to ``dispatchHttp`` / ``AsgiWebSocketSession`` directly
+    without re-supplying the app reference on every call.
+    """
+
+    async def bound(scope: Any, receive: Any, send: Any) -> None:
+        await call_asgi(app, scope, receive, send, home_dir=home_dir)
+
+    return bound
+
+
+def bind_runtime_to_current_context(app: App) -> None:
+    """Set ``runtime_contextvar`` to ``app._runtime`` in the calling context.
+
+    Most ASGI traffic goes through :func:`call_asgi`, which binds the
+    contextvar per-call inside its own asyncio task. But some non-ASGI
+    paths reach for ``Runtime.get_instance()`` outside any call_asgi
+    invocation — most notably ``streamlit.testing.v1.AppTest``'s script
+    runner, which is used by stlite's kernel tests. Those run in tasks
+    that inherit the *shared module context* current at task-creation
+    time, so we need a synchronous JS-callable hook that sets the
+    contextvar there.
+
+    Call this from sync Python (e.g., JS → Python sync call after
+    :func:`run_lifespan_startup`); it must NOT be invoked from within
+    an asyncio task, because PEP 567 isolates contextvar mutations to
+    the task they happen in.
+
+    In multi-app SharedWorker mode the last bind wins for non-ASGI
+    paths — same behavior as the legacy ``stlite_lib.server.Server``
+    flow, which set the contextvar in every ``Server.__init__``.
+    """
+    from streamlit.runtime import runtime_contextvar
+
+    runtime = getattr(app, "_runtime", None)
+    if runtime is None:
+        raise RuntimeError("App._runtime is not set; call run_lifespan_startup first.")
+    runtime_contextvar.set(runtime)
+
+
 __all__ = [
+    "bind_runtime_to_current_context",
     "call_asgi",
     "create_app",
+    "make_call_asgi",
     "run_lifespan_shutdown",
     "run_lifespan_startup",
 ]

@@ -87,11 +87,11 @@
     "sass": "^1.90.0",
     "tsdown": "^0.16.6",
     "typescript": "^5.9.3",
-    "vite": "^8.0.7",
+    "vite": "^7.1.5",
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-static-copy": "^3.1.4",
     "vite-plugin-wasm": "^3.5.0",
-    "vite-tsconfig-paths": "^6.1.0",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.3"
   },
   "peerDependencies": {
@@ -103,5 +103,34 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
+  ],
+  "//": [
+    "Dep pin: `vite` is deliberately held at ^7.1.5 (not ^8.x as upstream Streamlit uses).",
+    "Vite 8 swaps Rollup + @rollup/plugin-commonjs for Rolldown, which preserves",
+    "inner `require(\"react\")` calls in bundled CJS deps (React's jsx-dev-runtime,",
+    "baseui transitive deps via popper.js, react-webcam, @glideapps/glide-data-grid,",
+    "...) instead of interop'ing them to ESM imports of the externalized `react`.",
+    "The bundle then throws \"Calling `require` for 'react' in an environment that",
+    "doesn't expose the `require` function\" at runtime in the browser.",
+    "See https://rolldown.rs/in-depth/bundling-cjs#require-external-modules.",
+    "",
+    "Why only this package (and not @stlite/browser / desktop / sharing /",
+    "sharing-editor, which also build browser-bound bundles with vite): every",
+    "vite-8/rolldown bundle in the workspace contains the same require-fallback",
+    "helper as dead code, but only @stlite/react's bundle has an unguarded",
+    "caller — React's CJS jsx-dev-runtime evaluates `require(\"react\")` at",
+    "module load, before any try/catch. In the other packages the fallback is",
+    "only invoked from protobufjs's defensive `inquire()` (always wrapped in",
+    "try { ... } catch { return null }), so the error is swallowed and never",
+    "surfaces in the console. Per the \"follow upstream as long as it works\"",
+    "policy in .claude/skills/rebase-streamlit/SKILL.md, those packages stay",
+    "on vite ^8.0.7. If a future dep bump introduces another unguarded CJS",
+    "`require` site there, revert that package the same way and add an entry",
+    "to this comment.",
+    "",
+    "Follow-up: try bumping to vite ^8 again once Rolldown ships a CJS→ESM interop",
+    "pass equivalent to @rollup/plugin-commonjs (or once the upstream React/baseui",
+    "tree stops shipping CJS-only modules). `vite-tsconfig-paths` is held at ^5.x",
+    "for the same reason — its 6.x line peers on vite 8."
   ]
 }

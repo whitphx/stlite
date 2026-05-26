@@ -42,7 +42,7 @@
     "@types/node": "^22.10.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22"

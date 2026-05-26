@@ -75,8 +75,8 @@
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "pyodide": "0.29.3",
-    "typescript": "^5.9.3",
-    "vite": "^7.1.5",
-    "vitest": "^4.1.0"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.7",
+    "vitest": "^4.1.3"
   }
 }

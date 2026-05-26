@@ -192,6 +192,13 @@ async function loadPyodideAndPackages(
       // which avoids the problem of https://github.com/whitphx/stlite/issues/675
       // (installing the custom wheels must be earlier than or equal to installing the user-reqs).
       if (wheels) {
+        // Streamlit 1.57.0's regenerated proto code (protoc 7.x) raises
+        // VersionError when loaded against protobuf-runtime 6.x. Pyodide
+        // 0.29.3 still bundles the 6.31.1 wheel, so we pin a 7.x range
+        // explicitly. Listing it before the streamlit wheel lets micropip
+        // resolve to PyPI rather than fall back to Pyodide's bundled copy.
+        // See https://protobuf.dev/support/cross-version-runtime-guarantee
+        systemPackagesToInstall.push("protobuf>=7.34.1,<8");
         systemPackagesToInstall.push(wheels.streamlit);
         systemPackagesToInstall.push(wheels.stliteLib);
       }

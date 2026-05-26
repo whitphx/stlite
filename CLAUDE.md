@@ -6,6 +6,7 @@
 - **Monorepo**: Yarn workspaces, Makefile-orchestrated builds
 - **Testing**: Vitest + Playwright
 - **Streamlit fork**: Git submodule at `streamlit/` (forked customized branch named `stlite-<version>`)
+  - **Branch naming and force-push policy**: While an `stlite-<version>` branch hasn't been released yet, force-pushing it on `whitphx/streamlit` is acceptable — we treat it as a working branch. Once the version is released, the branch is frozen; the next round of fixes goes onto a new branch named `stlite-<version>-2` (and so on) rather than rewriting history on the released branch.
 
 ## Repository Structure
 

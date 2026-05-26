@@ -71,3 +71,51 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     if the version in `streamlit/frontend/*/package.json` is newer, update the version in `packages/*/package.json` to match.
     Note: `@vitejs/plugin-react` in `packages/*` and `@vitejs/plugin-react-swc` in `streamlit/frontend/*` are different packages — do not align them.
     After updating, run `yarn install` to regenerate the lockfile.
+
+    **Alignment policy: follow upstream as long as it works.** The dep alignment
+    is best-effort, not strict. Most of stlite's packages have their own build
+    pipelines and don't share a module graph with upstream, so build-tool bumps
+    in particular are landing into different blast radii than upstream's CI saw.
+    Past rebases hit three regressions because of blanket alignment:
+    - **TypeScript 5→6**: stricter narrowing surfaces type errors in upstream
+      frontend code that upstream's CI doesn't catch (their build is vite-only,
+      no tsc gate). Symptom: `make kernel` exits non-zero from
+      `packages/react`'s `tsc --noEmit && vite build`.
+    - **Yarn 4.5.3→4.13.0**: streamlit's `.yarnrc.yml` introduces newer
+      settings (e.g. `npmMinimalAgeGate`) that older Yarn rejects. Symptom:
+      `make kernel` fails before any TS compiles, on workspace install.
+    - **Vite 7→8**: Rolldown handles CJS deps differently from Rollup +
+      `@rollup/plugin-commonjs`, breaking `@stlite/react`'s bundle in the
+      browser even though `make browser` exits clean. Symptom: page-load
+      `Calling \`require\` for "react" in an environment that doesn't expose
+      the \`require\` function`. Only surfaces in a real browser, not in CI.
+
+    Rule of thumb: build-tool deps (`vite`, `vitest`, `typescript`, the
+    various `vite-plugin-*`, and the `packageManager` Yarn pin) should match
+    upstream only if the build chain stays green and a manual `yarn start`
+    in `packages/browser` (loaded in a real browser) shows no console errors.
+    Otherwise, leave them at their current versions in `packages/*` and
+    leave a top-level `"//"` comment in the affected `package.json` noting
+    the pin and the follow-up condition for retrying the bump
+    (see `packages/react/package.json` for an example).
+
+    Runtime/type-shared deps still align unconditionally — anything imported
+    across the package boundary (e.g. `protobufjs` because we consume
+    `@streamlit/protobuf`, `@types/react`, `@emotion/*`).
+
+13. Verify the rebase produces a working browser bundle, not just clean
+    builds. CI's `make browser` only compiles — it doesn't execute. After
+    the dep alignment in step 12 (especially after any vite, plugin-react,
+    or @emotion bump), run:
+
+    ```shell
+    yarn workspace @stlite/browser start
+    ```
+
+    Then load `http://localhost:3001/demos/basic-mount/` in a real browser
+    (or via Playwright MCP) and confirm:
+    - Zero console errors after the demo finishes loading
+    - The Streamlit script actually renders (e.g. `st.write("Hello")` shows)
+
+    If errors surface, narrow the dep bump that caused it and either pin
+    that one dep back or update the alignment skip-list above.

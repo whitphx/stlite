@@ -86,7 +86,7 @@
     "react-toastify": "^11.0.2",
     "sass": "^1.90.0",
     "tsdown": "^0.16.6",
-    "typescript": "^6.0.3",
+    "typescript": "^5.9.3",
     "vite": "^8.0.7",
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-static-copy": "^3.1.4",

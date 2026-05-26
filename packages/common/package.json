@@ -29,7 +29,7 @@
   "devDependencies": {
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "typescript": "^6.0.3",
+    "typescript": "^5.9.3",
     "vitest": "^4.1.3"
   }
 }

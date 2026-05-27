@@ -1,7 +1,7 @@
 /// <reference lib="WebWorker" />
 
 import type { PackageData, PyodideInterface } from "pyodide";
-import type { PyProxy, PyBuffer } from "pyodide/ffi";
+import type { PyProxy } from "pyodide/ffi";
 import {
   resolveAppPath,
   getAppHomeDir,
@@ -23,6 +23,13 @@ import type {
   ModuleAutoLoadMessage,
 } from "./types";
 import { getCodeCompletions } from "./code_completion";
+import {
+  AsgiWebSocketSession,
+  buildWebSocketScope,
+  dispatchHttp,
+  type AsgiApp,
+  type AsgiEvent,
+} from "./asgi-bridge";
 
 export type PostMessageFn = (
   message: OutMessage,
@@ -421,11 +428,20 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
   };
 }
 
-async function bootstrapServer(
+interface AsgiAppHandle {
+  /** ASGI callable bound to the App + per-app home_dir, suitable for
+   * dispatchHttp / AsgiWebSocketSession. */
+  asgiApp: AsgiApp;
+  /** Opaque state returned by run_lifespan_startup; must be passed to
+   * run_lifespan_shutdown when tearing down. */
+  lifespanState: PyProxy;
+}
+
+async function bootstrapApp(
   pyodide: PyodideInterface,
   appId: string | undefined,
   entrypoint: string,
-) {
+): Promise<AsgiAppHandle> {
   const canonicalEntrypoint = resolveAppPath(appId, entrypoint);
 
   // The code below is based on streamlit.web.cli.main_run().
@@ -434,16 +450,38 @@ async function bootstrapServer(
   prepare(canonicalEntrypoint, []);
   console.debug("Prepared the Streamlit environment");
 
-  console.debug("Booting up the Streamlit server");
-  const Server = pyodide.pyimport("stlite_lib.server.Server");
-  const httpServer = Server(
-    canonicalEntrypoint,
+  console.debug("Booting up the Streamlit ASGI app");
+  const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
+  const rawApp = asgiModule.create_app(canonicalEntrypoint);
+  const lifespanState = (await asgiModule.run_lifespan_startup(
+    rawApp,
+  )) as PyProxy;
+  // Bind runtime_contextvar in the shared JS-call context so non-ASGI
+  // paths (notably streamlit.testing.v1.AppTest, which the kernel test
+  // suite uses) can reach the runtime via Runtime.get_instance(). ASGI
+  // traffic doesn't depend on this — call_asgi rebinds per request.
+  // Must run synchronously from JS (not awaited) so the set lands in
+  // the shared module context, not a task-local one.
+  asgiModule.bind_runtime_to_current_context(rawApp);
+  // make_call_asgi binds the App + home_dir into a single ASGI callable so
+  // the JS side doesn't have to re-supply them on every dispatch (one
+  // callable per app, reused across requests).
+  const asgiApp = asgiModule.make_call_asgi(
+    rawApp,
     appId ? getAppHomeDir(appId) : undefined,
-  );
-  await httpServer.start();
-  console.debug("Booted up the Streamlit server");
+  ) as unknown as AsgiApp;
+  console.debug("Booted up the Streamlit ASGI app");
 
-  return httpServer;
+  return { asgiApp, lifespanState };
+}
+
+async function shutdownApp(
+  pyodide: PyodideInterface,
+  handle: AsgiAppHandle,
+): Promise<void> {
+  const { run_lifespan_shutdown } = pyodide.pyimport("stlite_lib.asgi_app");
+  await run_lifespan_shutdown(handle.lifespanState);
+  handle.lifespanState.destroy();
 }
 
 export function startWorkerEnv(
@@ -499,7 +537,8 @@ export function startWorkerEnv(
 
   let pyodideReadyPromise: ReturnType<typeof loadPyodideAndPackages> | null =
     null;
-  let serverReadyPromise: ReturnType<typeof bootstrapServer> | null = null;
+  let appReadyPromise: Promise<AsgiAppHandle> | null = null;
+  let wsSession: AsgiWebSocketSession | null = null;
 
   /**
    * Process a message sent to the worker.
@@ -529,12 +568,8 @@ export function startWorkerEnv(
       pyodideReadyPromise
         .then(({ pyodide }) => {
           onProgress("Booting up the Streamlit server.");
-          serverReadyPromise = bootstrapServer(
-            pyodide,
-            appId,
-            initData.entrypoint,
-          );
-          return serverReadyPromise;
+          appReadyPromise = bootstrapApp(pyodide, appId, initData.entrypoint);
+          return appReadyPromise;
         })
         .then(() => {
           postMessage({
@@ -556,8 +591,8 @@ export function startWorkerEnv(
     if (!pyodideReadyPromise) {
       throw new Error("Pyodide initialization has not been started yet.");
     }
-    if (!serverReadyPromise) {
-      throw new Error("Streamlit server has not been started yet.");
+    if (!appReadyPromise) {
+      throw new Error("Streamlit ASGI app has not been started yet.");
     }
     const v = await pyodideReadyPromise;
     const pyodide = v.pyodide;
@@ -565,11 +600,37 @@ export function startWorkerEnv(
     const jedi = v.jedi;
     const { moduleAutoLoad } = v.initData;
 
-    const httpServer = await serverReadyPromise;
+    let appHandle = await appReadyPromise;
 
     const messagePort = event.ports[0];
     function reply(message: ReplyMessage): void {
       messagePort.postMessage(message);
+    }
+
+    function forwardWebsocketEventToClient(event: AsgiEvent): void {
+      if (event.type !== "websocket.send") {
+        // websocket.close events are observed when the server tears down;
+        // we don't currently surface them to the client.
+        return;
+      }
+      const bytes = event.bytes as Uint8Array | undefined;
+      if (bytes) {
+        // Transfer the underlying ArrayBuffer to the main thread to avoid a
+        // structured-clone copy (mirrors the legacy on_message path that
+        // did messageProxy.toJs() and then transferred `.buffer`).
+        // bytes always owns a regular ArrayBuffer (not SharedArrayBuffer)
+        // since it came from Pyodide's memoryview → Uint8Array bridge.
+        const ab = bytes.buffer.slice(
+          bytes.byteOffset,
+          bytes.byteOffset + bytes.byteLength,
+        ) as ArrayBuffer;
+        postMessage({ type: "websocket:message", data: { payload: ab } }, [ab]);
+        return;
+      }
+      const text = event.text as string | undefined;
+      if (typeof text === "string") {
+        postMessage({ type: "websocket:message", data: { payload: text } });
+      }
     }
 
     try {
@@ -579,12 +640,16 @@ export function startWorkerEnv(
 
           const { entrypoint } = msg.data;
 
-          httpServer.stop();
+          if (wsSession) {
+            await wsSession.close();
+            wsSession = null;
+          }
+          await shutdownApp(pyodide, appHandle);
 
-          console.debug("Booting up the Streamlit server");
-          serverReadyPromise = bootstrapServer(pyodide, appId, entrypoint);
-          await serverReadyPromise;
-          console.debug("Booted up the Streamlit server");
+          console.debug("Booting up the Streamlit ASGI app");
+          appReadyPromise = bootstrapApp(pyodide, appId, entrypoint);
+          appHandle = await appReadyPromise;
+          console.debug("Booted up the Streamlit ASGI app");
 
           reply({
             type: "reply",
@@ -596,48 +661,29 @@ export function startWorkerEnv(
 
           const { path } = msg.data;
 
-          httpServer.start_websocket(
-            path,
-            (message: PyBuffer | string, binary: boolean) => {
-              // XXX: Now there is no session mechanism
+          if (wsSession) {
+            // The current kernel only manages one WebSocket per app at a
+            // time. Tear down the previous one before opening a new one.
+            await wsSession.close();
+            wsSession = null;
+          }
 
-              if (binary) {
-                const messageProxy = message as PyBuffer;
-                try {
-                  // We use toJs() rather than getBuffer(). https://pyodide.org/en/stable/usage/type-conversions.html#using-python-buffer-objects-from-javascript
-                  // getBuffer() returns a reference to the Wasm heap memory without copying it,
-                  // but it would be copied to the JS heap when it's transferred to the main thread via `postMessage()` anyway,
-                  // so we choose toJs() for simplicity.
-                  // With toJs(), the buffer is copied to the JS heap,
-                  // and the JS buffer will be transferred to the main thread via `postMessage()` with `[ab]` as the second argument.
-                  const u8 = messageProxy.toJs();
-                  const ab = u8.buffer.slice(
-                    u8.byteOffset,
-                    u8.byteOffset + u8.byteLength,
-                  );
-                  postMessage(
-                    {
-                      type: "websocket:message",
-                      data: {
-                        payload: ab,
-                      },
-                    },
-                    [ab],
-                  );
-                } finally {
-                  messageProxy.destroy();
-                }
-              } else {
-                const messageStr = message as string;
-                postMessage({
-                  type: "websocket:message",
-                  data: {
-                    payload: messageStr,
-                  },
-                });
-              }
+          // The frontend doesn't pass headers on this message; synthesize a
+          // minimal set so Starlette's WS handler accepts the connection.
+          // Origin matches Host → _is_origin_allowed returns true.
+          const scope = buildWebSocketScope({
+            path,
+            headers: {
+              host: "stlite.local",
+              origin: "http://stlite.local",
             },
+          });
+          wsSession = new AsgiWebSocketSession(
+            appHandle.asgiApp,
+            scope,
+            forwardWebsocketEventToClient,
           );
+          await wsSession.start();
 
           reply({
             type: "reply",
@@ -649,7 +695,9 @@ export function startWorkerEnv(
 
           const { payload } = msg.data;
 
-          httpServer.receive_websocket_from_js(payload);
+          if (wsSession) {
+            wsSession.postClientMessage(payload);
+          }
           break;
         }
         case "http:request": {
@@ -657,42 +705,39 @@ export function startWorkerEnv(
 
           const { request } = msg.data;
 
-          const onResponse = (
-            statusCode: number,
-            _headers: PyProxy,
-            _body: PyProxy,
-          ) => {
-            const headersJs = _headers.toJs();
-            // Pyodide may convert Python dicts to Map, LiteralMap, or plain Object
-            // depending on the version. LiteralMap can't be cloned for postMessage,
-            // and plain Objects are not iterable for the Map constructor.
-            // Use Object.entries() to handle all cases uniformly.
-            const headers =
-              headersJs instanceof Map
-                ? new Map<string, string>(headersJs)
-                : new Map<string, string>(Object.entries(headersJs));
-            const body = _body.toJs();
-            console.debug({ statusCode, headers, body });
-
-            reply({
-              type: "http:response",
-              data: {
-                response: {
-                  statusCode,
-                  headers,
-                  body,
+          dispatchHttp(appHandle.asgiApp, {
+            ...request,
+            path: decodeURIComponent(request.path),
+          })
+            .then((response) => {
+              reply({
+                type: "http:response",
+                data: {
+                  response: {
+                    statusCode: response.statusCode,
+                    headers: new Map(response.headers.entries()),
+                    body: response.body,
+                  },
                 },
-              },
+              });
+            })
+            .catch((error) => {
+              console.error("http:request dispatch failed", error);
+              reply({
+                type: "http:response",
+                data: {
+                  response: {
+                    statusCode: 500,
+                    headers: new Map([
+                      ["content-type", "text/plain; charset=utf-8"],
+                    ]),
+                    body: new TextEncoder().encode(
+                      `Internal server error: ${String(error)}`,
+                    ),
+                  },
+                },
+              });
             });
-          };
-
-          httpServer.receive_http_from_js(
-            request.method,
-            decodeURIComponent(request.path),
-            request.headers,
-            request.body,
-            onResponse,
-          );
           break;
         }
         case "file:write": {

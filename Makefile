@@ -234,7 +234,7 @@ $(kernel): $(shell \
 kernel-test: $(shell \
 	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vitest.config.ts" \); \
-) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit-frontend-lib)
 	cd packages/kernel; \
 	yarn test
 

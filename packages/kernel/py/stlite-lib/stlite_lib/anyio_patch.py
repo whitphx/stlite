@@ -13,7 +13,7 @@ Component assets through Streamlit's Starlette routes).
 Since the Pyodide worker has no second thread to schedule onto, running
 the call inline on the event loop thread is semantically equivalent here:
 the loop is the only thread that exists. We replace
-``AsyncIOBackend.run_sync_in_worker_thread`` — the single chokepoint that
+``AsyncIOBackend.run_sync_in_worker_thread`` — the single funnel that
 both ``anyio.to_thread.run_sync`` and anyio's file/path async wrappers
 route through on the asyncio backend (the only one Pyodide can run) —
 with a function that just invokes ``func(*args)`` and awaits the result.

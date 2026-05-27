@@ -171,4 +171,6 @@ Known to work in this repo: `requests`, `urllib`, `urllib3`, `pyodide.http.pyfet
 
 **Update Streamlit / sample apps / release**: See `CONTRIBUTING.md`.
 
-**Pre-PR checklist**: `make kernel-test`, E2E tests, `yarn tsc --noEmit`, `yarn check:lint`, `yarn check:format`, `yarn changeset`.
+**Pre-PR checklist**: `make kernel-test`, E2E tests, `yarn tsc --noEmit`, `yarn check:lint`, `yarn check:format`, `corepack yarn cspell`, `yarn changeset`.
+
+When `cspell` flags a real term (a new technical word, an upstream API name, a helper symbol — not a typo), add it to the appropriate section of `cspell.json`'s `words` array rather than ignoring it locally. cspell matches case-insensitively, so add the lowercase form once (`asgi` covers `ASGI` / `Asgi` / `asgi's`).

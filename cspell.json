@@ -65,6 +65,7 @@
     "scriptrunner",
     "stcore",
     "healthz",
+    "asgi",
     "snowpark",
     "stmol",
     "embedcode",
@@ -78,6 +79,7 @@
     "selectslider",
     // Python
     "coro",
+    "bytesify",
     "excinfo",
     "asname",
     "kwonlyargs",

@@ -8,8 +8,8 @@ data_df = pd.DataFrame(
             "Get started with Community Cloud",
         ],
         "video": [
-            "https://s3-us-west-2.amazonaws.com/assets.streamlit.io/videos/hero-video.mp4",
-            "https://s3-us-west-2.amazonaws.com/assets.streamlit.io/videos/streamlit_sharing_silent.mp4",
+            "https://static.streamlit.io/videos/hero-video.mp4",
+            "https://static.streamlit.io/videos/streamlit_sharing_silent.mp4",
         ],
     }
 )

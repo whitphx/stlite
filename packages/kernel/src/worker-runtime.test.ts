@@ -627,13 +627,13 @@ st.
 
       expect(codeCompletions.map((item) => item.name).slice(0, 8)).toEqual([
         "altair_chart",
+        "App",
         "area_chart",
         "audio",
         "audio_input",
         "auth_util",
         "badge",
         "balloons",
-        "bar_chart",
       ]);
     });
 

@@ -27,7 +27,7 @@
     "check:format": "oxfmt --check ."
   },
   "dependencies": {
-    "protobufjs": "^7.2.4"
+    "protobufjs": "^8.0.1"
   },
   "devDependencies": {
     "@babel/parser": "^7.20.5",
@@ -39,6 +39,6 @@
     "oxlint": "^1.60.0",
     "ts-proto": "^2.11.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.3"
   }
 }

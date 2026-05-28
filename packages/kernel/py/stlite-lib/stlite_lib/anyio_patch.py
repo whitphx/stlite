@@ -23,13 +23,17 @@ The same workaround is used in Gradio-Lite for the same reason.
 This module installs the patch at import time and is imported from
 ``stlite_lib/__init__.py``, so the replacement is in place before any
 ASGI app is constructed and before any anyio offload would be attempted.
+
+The patch is gated on ``sys.platform == "emscripten"`` so that importing
+``stlite_lib`` on host CPython (e.g. from the stlite_lib pytest suite,
+or any future host-side tool) does not silently turn anyio's offloads
+into event-loop-blocking inline calls.
 """
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING, Any
-
-from anyio._backends._asyncio import AsyncIOBackend
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -46,4 +50,7 @@ async def _run_sync_inline(
     return func(*args)
 
 
-AsyncIOBackend.run_sync_in_worker_thread = staticmethod(_run_sync_inline)  # type: ignore[assignment]
+if sys.platform == "emscripten":
+    from anyio._backends._asyncio import AsyncIOBackend
+
+    AsyncIOBackend.run_sync_in_worker_thread = staticmethod(_run_sync_inline)  # type: ignore[assignment]

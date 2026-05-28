@@ -394,6 +394,9 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
 
       - name: Set up the e2e-tests environment
+        # See e2e-browser in .github/workflows/e2e.yml: cap to avoid a
+        # hung yarn install eating the full 6h job timeout.
+        timeout-minutes: 15
         run: yarn install
         working-directory: packages/browser/e2e-tests
 

@@ -136,6 +136,11 @@ jobs:
         working-directory: packages/browser/e2e-tests
         env:
           BUILD_DIR: ${{ runner.temp }}/artifacts/browser/package/build
+          # Inside the Playwright container we run as root, but GH Actions
+          # overrides $HOME to /github/home (owned by pwuser). Firefox
+          # refuses to launch in that state; restore HOME=/root.
+          # Playwright's own error message points at this exact fix.
+          HOME: /root
 
       - name: Upload blob report to GitHub Actions Artifacts
         if: ${{ !cancelled() }}

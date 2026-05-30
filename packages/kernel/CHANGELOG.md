@@ -1,5 +1,15 @@
 # @stlite/kernel
 
+## 0.103.0
+
+### Minor Changes
+
+- [#2046](https://github.com/whitphx/stlite/pull/2046) [`992dda0`](https://github.com/whitphx/stlite/commit/992dda0c6a8db5625ea62e90216824c35b25b032) Thanks [@whitphx](https://github.com/whitphx)! - Rebase Streamlit fork onto 1.57.0.
+
+  Internally, the kernel switches from the hand-rolled `stlite_lib.server.Server` HTTP/WS dispatcher to calling upstream Streamlit's Starlette ASGI app directly via a new ASGI bridge (`stlite_lib.asgi_app` on the Python side, `packages/kernel/src/asgi-bridge.ts` on the JS side). User-visible API surface is unchanged.
+
+  To make upstream's Starlette routes work in Pyodide's single-threaded WASM environment, `stlite_lib.anyio_patch` replaces `anyio`'s `run_sync_in_worker_thread` with an inline implementation at package import. This keeps Custom Components, app-static file serving, and other anyio-backed I/O working without spawning worker threads.
+
 ## 0.102.4
 
 ### Patch Changes

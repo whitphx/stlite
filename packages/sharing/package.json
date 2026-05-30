@@ -1,6 +1,6 @@
 {
   "name": "@stlite/sharing",
-  "version": "0.96.3",
+  "version": "0.97.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -76,6 +76,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # `yarn install:browsers` (i.e. `playwright install --with-deps`)
+    # repeatedly hung post-download on plain ubuntu-latest runners: the
+    # Chromium zip finished in <1s, then ~15min of silence until the step
+    # timeout fired. Running the job inside Playwright's official Docker
+    # image — which ships browsers pre-installed at /ms-playwright with
+    # all system deps already there — sidesteps that install step
+    # entirely. (Same approach as e2e-react below.)
+    #
+    # Image tag must match `@playwright/test` in
+    # packages/browser/e2e-tests/package.json — bump alongside any
+    # Playwright upgrade.
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0
+      options: --ipc=host # Recommended by Playwright for Chromium shared memory.
+
     strategy:
       fail-fast: false
       matrix:
@@ -93,27 +108,11 @@ jobs:
         with:
           node-version-file: ${{ env.node-version-file }}
 
-      # `playwright install` repeatedly hung post-download on GitHub
-      # Actions runners (Chromium zip finishes in <1s, then ~15min of
-      # silence until timeout). Restoring the browser cache makes
-      # `playwright install` a no-op on warm runs and sidesteps the hang
-      # entirely. The key is bound to the resolved `@playwright/test`
-      # version in the lockfile so a Playwright bump invalidates it.
-      - name: Cache Playwright browsers
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('packages/browser/e2e-tests/yarn.lock') }}
-
       - name: Set up the e2e-tests environment
-        # `yarn install` (registry) and `yarn install:browsers` (Playwright CDN)
-        # have intermittently hung in GitHub Actions runners and burned the
-        # whole 6h job timeout. Cap the step so a hang fails fast and the
-        # shard can be rerun.
+        # Cap as a safety net; browsers come from the container image,
+        # so this is just `yarn install`.
         timeout-minutes: 15
-        run: |
-          yarn install
-          yarn install:browsers
+        run: yarn install
         working-directory: packages/browser/e2e-tests
 
       - name: Build demos

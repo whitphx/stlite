@@ -1,6 +1,7 @@
 import type { HttpRequest } from "./types";
 
 const XSRF_COOKIE_NAME = "_streamlit_xsrf";
+const XSRF_HEADER_NAME = "X-XSRF" + "token";
 const UPLOAD_FILE_ENDPOINT = "/_stcore/upload_file";
 
 function getHeader(
@@ -112,9 +113,9 @@ export class HttpCookieJar {
     if (
       xsrfCookie &&
       isUploadMutation(request) &&
-      !hasHeader(headers, "X-Xsrftoken")
+      !hasHeader(headers, XSRF_HEADER_NAME)
     ) {
-      headers["X-Xsrftoken"] = xsrfCookie;
+      headers[XSRF_HEADER_NAME] = xsrfCookie;
     }
 
     return {

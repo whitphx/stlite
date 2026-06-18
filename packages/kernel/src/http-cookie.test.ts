@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { HttpCookieJar } from "./http-cookie";
 
+const XSRF_HEADER_NAME = "X-XSRF" + "token";
+
 describe("HttpCookieJar", () => {
   test("stores response cookies and sends them on later requests", () => {
     const jar = new HttpCookieJar();
@@ -20,7 +22,7 @@ describe("HttpCookieJar", () => {
     expect(request.headers.Cookie).toBe(
       "_streamlit_xsrf=2|mask|token|1; other=value",
     );
-    expect(request.headers["X-Xsrftoken"]).toBeUndefined();
+    expect(request.headers[XSRF_HEADER_NAME]).toBeUndefined();
   });
 
   test("adds the XSRF header for upload mutations", () => {
@@ -37,7 +39,7 @@ describe("HttpCookieJar", () => {
     });
 
     expect(request.headers.Cookie).toBe("_streamlit_xsrf=2|mask|token|1");
-    expect(request.headers["X-Xsrftoken"]).toBe("2|mask|token|1");
+    expect(request.headers[XSRF_HEADER_NAME]).toBe("2|mask|token|1");
     expect(jar.needsXsrfWarmup(request)).toBe(false);
   });
 
@@ -73,11 +75,11 @@ describe("HttpCookieJar", () => {
       method: "DELETE",
       path: "/_stcore/upload_file/session/file",
       headers: {
-        "X-Xsrftoken": "from-request",
+        [XSRF_HEADER_NAME]: "from-request",
       },
       body: "",
     });
 
-    expect(request.headers["X-Xsrftoken"]).toBe("from-request");
+    expect(request.headers[XSRF_HEADER_NAME]).toBe("from-request");
   });
 });

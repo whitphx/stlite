@@ -19,6 +19,7 @@ import type {
   WorkerInitialData,
   OutMessage,
   InMessage,
+  InMessageHttpRequest,
   ReplyMessage,
   ModuleAutoLoadMessage,
 } from "./types";
@@ -30,6 +31,7 @@ import {
   type AsgiApp,
   type AsgiEvent,
 } from "./asgi-bridge";
+import { HttpCookieJar } from "./http-cookie";
 
 export type PostMessageFn = (
   message: OutMessage,
@@ -539,6 +541,49 @@ export function startWorkerEnv(
     null;
   let appReadyPromise: Promise<AsgiAppHandle> | null = null;
   let wsSession: AsgiWebSocketSession | null = null;
+  const httpCookieJar = new HttpCookieJar();
+
+  async function warmUpXsrfCookie(
+    asgiApp: AsgiApp,
+    requestPath: string,
+  ): Promise<void> {
+    console.debug("stlite XSRF warmup before upload", { requestPath });
+    const response = await dispatchHttp(
+      asgiApp,
+      httpCookieJar.applyToRequest({
+        method: "GET",
+        path: "/_stcore/health",
+        headers: { host: "stlite.local" },
+        body: "",
+      }),
+    );
+    const storedCookieNames = httpCookieJar.storeFromResponse(response.headers);
+    console.debug("stlite XSRF warmup response", {
+      requestPath,
+      statusCode: response.statusCode,
+      storedCookieNames,
+      cookieNames: httpCookieJar.getCookieNames(),
+    });
+  }
+
+  async function dispatchHttpWithCookies(
+    asgiApp: AsgiApp,
+    request: InMessageHttpRequest["data"]["request"],
+  ) {
+    const decodedRequest = {
+      ...request,
+      path: decodeURIComponent(request.path),
+    };
+
+    if (httpCookieJar.needsXsrfWarmup(decodedRequest)) {
+      await warmUpXsrfCookie(asgiApp, decodedRequest.path);
+    }
+
+    const requestWithCookies = httpCookieJar.applyToRequest(decodedRequest);
+    const response = await dispatchHttp(asgiApp, requestWithCookies);
+    httpCookieJar.storeFromResponse(response.headers);
+    return response;
+  }
 
   /**
    * Process a message sent to the worker.
@@ -645,6 +690,7 @@ export function startWorkerEnv(
             wsSession = null;
           }
           await shutdownApp(pyodide, appHandle);
+          httpCookieJar.clear();
 
           console.debug("Booting up the Streamlit ASGI app");
           appReadyPromise = bootstrapApp(pyodide, appId, entrypoint);
@@ -660,6 +706,7 @@ export function startWorkerEnv(
           console.debug("websocket:connect", msg.data);
 
           const { path } = msg.data;
+          const cookieHeader = httpCookieJar.getCookieHeader();
 
           if (wsSession) {
             // The current kernel only manages one WebSocket per app at a
@@ -676,6 +723,7 @@ export function startWorkerEnv(
             headers: {
               host: "stlite.local",
               origin: "http://stlite.local",
+              ...(cookieHeader ? { cookie: cookieHeader } : {}),
             },
           });
           wsSession = new AsgiWebSocketSession(
@@ -704,11 +752,7 @@ export function startWorkerEnv(
           console.debug("http:request", msg.data);
 
           const { request } = msg.data;
-
-          dispatchHttp(appHandle.asgiApp, {
-            ...request,
-            path: decodeURIComponent(request.path),
-          })
+          dispatchHttpWithCookies(appHandle.asgiApp, request)
             .then((response) => {
               reply({
                 type: "http:response",

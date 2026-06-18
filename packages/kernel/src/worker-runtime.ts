@@ -557,12 +557,10 @@ export function startWorkerEnv(
         body: "",
       }),
     );
-    const storedCookieNames = httpCookieJar.storeFromResponse(response.headers);
+    httpCookieJar.storeFromResponse(response.headers);
     console.debug("stlite XSRF warmup response", {
       requestPath,
       statusCode: response.statusCode,
-      storedCookieNames,
-      cookieNames: httpCookieJar.getCookieNames(),
     });
   }
 

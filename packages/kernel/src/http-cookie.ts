@@ -67,8 +67,7 @@ export class HttpCookieJar {
     this.cookies.clear();
   }
 
-  storeFromResponse(headers: Headers): string[] {
-    const storedCookieNames: string[] = [];
+  storeFromResponse(headers: Headers): void {
     for (const header of getSetCookieHeaders(headers)) {
       const cookie = parseSetCookie(header);
       if (!cookie) {
@@ -80,13 +79,7 @@ export class HttpCookieJar {
         continue;
       }
       this.cookies.set(name, value);
-      storedCookieNames.push(name);
     }
-    return storedCookieNames;
-  }
-
-  getCookieNames(): string[] {
-    return Array.from(this.cookies.keys());
   }
 
   getCookieHeader(): string {

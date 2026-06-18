@@ -82,4 +82,45 @@ describe("HttpCookieJar", () => {
 
     expect(request.headers[XSRF_HEADER_NAME]).toBe("from-request");
   });
+
+  test("normalizes an existing cookie header when merging stored cookies", () => {
+    const jar = new HttpCookieJar();
+    const headers = new Headers();
+    headers.append("set-cookie", "_streamlit_xsrf=from-cookie; Path=/");
+    jar.storeFromResponse(headers);
+
+    const request = jar.applyToRequest({
+      method: "GET",
+      path: "/_stcore/health",
+      headers: {
+        cookie: "from-request=true",
+      },
+      body: "",
+    });
+
+    expect(request.headers.cookie).toBeUndefined();
+    expect(request.headers.Cookie).toBe(
+      "from-request=true; _streamlit_xsrf=from-cookie",
+    );
+  });
+
+  test("recovers warmup detection when the XSRF cookie is cleared", () => {
+    const jar = new HttpCookieJar();
+    const headers = new Headers();
+    headers.append("set-cookie", "_streamlit_xsrf=from-cookie; Path=/");
+    jar.storeFromResponse(headers);
+
+    const clearingHeaders = new Headers();
+    clearingHeaders.append("set-cookie", "_streamlit_xsrf=; Path=/");
+    jar.storeFromResponse(clearingHeaders);
+
+    expect(
+      jar.needsXsrfWarmup({
+        method: "PUT",
+        path: "/_stcore/upload_file/session/file",
+        headers: {},
+        body: "",
+      }),
+    ).toBe(true);
+  });
 });

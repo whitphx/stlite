@@ -75,6 +75,10 @@ export class HttpCookieJar {
         continue;
       }
       const [name, value] = cookie;
+      if (name === XSRF_COOKIE_NAME && value === "") {
+        this.cookies.delete(name);
+        continue;
+      }
       this.cookies.set(name, value);
       storedCookieNames.push(name);
     }
@@ -92,7 +96,7 @@ export class HttpCookieJar {
   }
 
   needsXsrfWarmup(request: HttpRequest): boolean {
-    return isUploadMutation(request) && !this.cookies.has(XSRF_COOKIE_NAME);
+    return isUploadMutation(request) && !this.cookies.get(XSRF_COOKIE_NAME);
   }
 
   applyToRequest(request: HttpRequest): HttpRequest {
@@ -105,6 +109,11 @@ export class HttpCookieJar {
     const headers = { ...request.headers };
     if (cookieHeader) {
       const existingCookieHeader = getHeader(headers, "cookie");
+      for (const name of Object.keys(headers)) {
+        if (name.toLowerCase() === "cookie") {
+          delete headers[name];
+        }
+      }
       headers.Cookie = existingCookieHeader
         ? `${existingCookieHeader}; ${cookieHeader}`
         : cookieHeader;

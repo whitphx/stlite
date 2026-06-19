@@ -1,5 +1,11 @@
 # @stlite/kernel
 
+## 0.103.1
+
+### Patch Changes
+
+- [#2069](https://github.com/whitphx/stlite/pull/2069) [`af1f67e`](https://github.com/whitphx/stlite/commit/af1f67eab404bf11737df5f411e978c0b4dae790) Thanks [@whitphx](https://github.com/whitphx)! - Fix file uploads in stlite's browser worker transport by preserving Streamlit's XSRF cookie and sending it on upload requests.
+
 ## 0.103.0
 
 ### Minor Changes

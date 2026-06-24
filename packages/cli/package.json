@@ -39,7 +39,7 @@
     "@stlite/sharing-common": "workspace:^",
     "@types/node": "^22.10.0",
     "@types/yargs": "^17.0.32",
-    "esbuild": "^0.27.1",
+    "esbuild": "^0.28.0",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "typescript": "^5.9.3",

@@ -82,6 +82,54 @@ runs:
       shell: bash
       if: ${{ inputs.protoc == 'true' }}
 
+    # Install Aikido Safe-Chain to transparently gate `yarn install` / `uv sync`
+    # against malicious npm/PyPI packages. The `setup-ci` command installs
+    # executable shims under ~/.safe-chain/shims that route through a local
+    # proxy checking Aikido Intel. Pinned to an immutable version + SHA256
+    # because this is a supply-chain security control.
+    # Docs: https://github.com/AikidoSec/safe-chain
+    - name: Install Aikido Safe-Chain (Linux)
+      if: runner.os == 'Linux'
+      env:
+        SAFE_CHAIN_VERSION: "1.4.9"
+        SAFE_CHAIN_SHA256: "4d853d1c3d117c3f1eb1c48eaf6cb98f9a936f3694ffa0c941a92b398b9ac55c"
+      run: |
+        set -euo pipefail
+        install_dir="${HOME}/.safe-chain/bin"
+        binary="${install_dir}/safe-chain"
+        mkdir -p "${install_dir}"
+        curl -fsSL --proto "=https" --tlsv1.2 -o "${binary}" \
+          "https://github.com/AikidoSec/safe-chain/releases/download/${SAFE_CHAIN_VERSION}/safe-chain-linuxstatic-x64"
+        echo "${SAFE_CHAIN_SHA256}  ${binary}" | sha256sum -c -
+        chmod +x "${binary}"
+        "${binary}" setup-ci
+        echo "${HOME}/.safe-chain/shims" >> "${GITHUB_PATH}"
+        echo "${install_dir}" >> "${GITHUB_PATH}"
+      shell: bash
+
+    - name: Install Aikido Safe-Chain (Windows)
+      if: runner.os == 'Windows'
+      env:
+        SAFE_CHAIN_VERSION: "1.4.9"
+        SAFE_CHAIN_SHA256: "15553aba2593fea715ba9c0848176699e96ecafbb331c9e064a04e244e29fb32"
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $installDir = Join-Path $env:USERPROFILE '.safe-chain\bin'
+        $shimsDir  = Join-Path $env:USERPROFILE '.safe-chain\shims'
+        $binary    = Join-Path $installDir 'safe-chain.exe'
+        New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+        Invoke-WebRequest -UseBasicParsing `
+          -Uri "https://github.com/AikidoSec/safe-chain/releases/download/$env:SAFE_CHAIN_VERSION/safe-chain-win-x64.exe" `
+          -OutFile $binary
+        $actualHash = (Get-FileHash -Algorithm SHA256 -Path $binary).Hash.ToLower()
+        if ($actualHash -ne $env:SAFE_CHAIN_SHA256) {
+          throw "SHA256 mismatch for safe-chain.exe: expected $($env:SAFE_CHAIN_SHA256), got $actualHash"
+        }
+        & $binary setup-ci
+        Add-Content -Path $env:GITHUB_PATH -Value $shimsDir
+        Add-Content -Path $env:GITHUB_PATH -Value $installDir
+      shell: pwsh
+
     - name: Set up Python packages
       run: make venv
       shell: bash

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import { useOptionalStliteKernel } from "@stlite/kernel/contexts";
 
 // Ref: https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/connection/src/DefaultStreamlitEndpoints.ts#L47
 const MEDIA_ENDPOINT = "/media";
@@ -56,11 +56,12 @@ export function resolveLogo<T extends { image: string; iconImage: string }>(
 export function useStliteResolvedLogo<
   T extends { image: string; iconImage: string },
 >(logo: T | null): T | null {
-  const kernel = useStliteKernel();
+  const kernel = useOptionalStliteKernel();
 
   const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
-    if (logo == null) {
+    if (logo == null || kernel == null) {
+      setResolvedLogo(null);
       return;
     }
 
@@ -84,7 +85,7 @@ export function useStliteResolvedLogo<
     };
   }, [kernel, logo]);
 
-  return resolvedLogo;
+  return kernel == null ? logo : resolvedLogo;
 }
 
 /**
@@ -93,15 +94,17 @@ export function useStliteResolvedLogo<
  * by downloading the data from the stlite kernel.
  */
 export function useStliteMediaObjectUrl(rawUrl: string): string {
-  const kernel = useStliteKernel();
+  const kernel = useOptionalStliteKernel();
 
   const [url, setUrl] = useState(rawUrl);
   useEffect(() => {
     if (kernel == null) {
+      setUrl(rawUrl);
       return;
     }
 
     if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
+      setUrl(rawUrl);
       return;
     }
 
@@ -134,27 +137,31 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
 export function useStliteMediaObjects<T extends { url?: string | null }>(
   inputMediaObjects: T[],
 ) {
-  const [mediaObjects, setMediaObjects] = useState<T[]>(
-    inputMediaObjects.filter((obj) => {
-      if (obj.url == null) {
-        return true;
-      }
-      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
-        return true;
-      }
+  const kernel = useOptionalStliteKernel();
 
-      // Exclude image objects whose URLs are not resolved yet.
-      // Some components may send HTTP requests to the URLs (such as https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/lib/src/components/elements/Video/Video.tsx#L97),
-      // which leads to errors, so URLs should be excluded that point to the resources on the Streamlit server that are unreachable.
-      return false;
-    }),
-  );
+  const [mediaObjects, setMediaObjects] = useState<T[]>(inputMediaObjects);
 
-  const kernel = useStliteKernel();
   useEffect(() => {
     if (kernel == null) {
+      setMediaObjects(inputMediaObjects);
       return;
     }
+
+    setMediaObjects(
+      inputMediaObjects.filter((obj) => {
+        if (obj.url == null) {
+          return true;
+        }
+        if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
+          return true;
+        }
+
+        // Exclude image objects whose URLs are not resolved yet.
+        // Some components may send HTTP requests to the URLs (such as https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/lib/src/components/elements/Video/Video.tsx#L97),
+        // which leads to errors, so URLs should be excluded that point to the resources on the Streamlit server that are unreachable.
+        return false;
+      }),
+    );
 
     let released = false;
 

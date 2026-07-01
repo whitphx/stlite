@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { StliteKernel } from "../kernel";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import { useOptionalStliteKernel } from "@stlite/kernel/contexts";
 import { parse } from "@tinyhttp/content-disposition";
 
 export function getFileNameFromContentDispositionHeader(
@@ -57,10 +57,13 @@ export function downloadFileFromStlite(
 }
 
 export function useDownloadFileFromStlite() {
-  const stliteKernel = useStliteKernel();
+  const stliteKernel = useOptionalStliteKernel();
 
   return useCallback(
     (url: string) => {
+      if (stliteKernel == null) {
+        return false;
+      }
       return downloadFileFromStlite(stliteKernel, url);
     },
     [stliteKernel],

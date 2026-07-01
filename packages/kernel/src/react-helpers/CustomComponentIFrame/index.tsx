@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import { useOptionalStliteKernel } from "@stlite/kernel/contexts";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
@@ -15,7 +15,7 @@ const InnerIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >(({ src: path, IframeComponent, ...props }, ref) => {
-  const kernel = useStliteKernel();
+  const kernel = useOptionalStliteKernel();
 
   const [srcdoc, setSrcdoc] = useState<string>();
 
@@ -70,6 +70,9 @@ const InnerIFrame = React.forwardRef<
         console.warn("document not found in iframe");
         return;
       }
+      if (kernel == null) {
+        return;
+      }
 
       manipulateIFrameDocument(kernel, document, getParentPath(path));
     },
@@ -91,10 +94,13 @@ const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >((props, ref) => {
-  const kernel = useStliteKernel();
+  const kernel = useOptionalStliteKernel();
   const path = useMemo(
-    () => extractCustomComponentPath(kernel.basePath, props.src),
-    [kernel.basePath, props.src],
+    () =>
+      kernel == null
+        ? null
+        : extractCustomComponentPath(kernel.basePath, props.src),
+    [kernel, props.src],
   );
 
   if (path == null) {

@@ -35,3 +35,7 @@ export function useStliteKernel(): StliteKernel {
 
   return value.kernel;
 }
+
+export function useOptionalStliteKernel(): StliteKernel | undefined {
+  return useContext(StliteKernelContext)?.kernel;
+}

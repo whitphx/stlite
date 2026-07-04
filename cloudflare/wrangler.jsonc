@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stlite-cloudflare",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-06-30",
+  "compatibility_flags": ["python_workers"],
+  "observability": {
+    "enabled": true
+  }
+}

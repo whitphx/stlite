@@ -1,0 +1,119 @@
+from __future__ import annotations
+
+import pytest
+
+from stlite_cloudflare.websocket import (
+    AsgiWebSocketSession,
+    WebSocketScopeParts,
+    _select_websocket_subprotocol,
+    build_websocket_scope,
+    build_websocket_scope_from_request,
+    is_websocket_upgrade,
+)
+
+
+class FakeSocket:
+    def __init__(self):
+        self.accepted = False
+        self.sent = []
+        self.closed = None
+
+    def accept(self):
+        self.accepted = True
+
+    def send(self, payload):
+        self.sent.append(payload)
+
+    def close(self, code=1000, reason=""):
+        self.closed = (code, reason)
+
+
+class FakeRequest:
+    def __init__(self, url, headers):
+        self.url = url
+        self.headers = headers
+
+
+async def echo_websocket_app(scope, receive, send):
+    assert scope["type"] == "websocket"
+    assert (await receive())["type"] == "websocket.connect"
+    await send({"type": "websocket.accept"})
+
+    event = await receive()
+    await send({"type": "websocket.send", "text": event["text"].upper()})
+
+    event = await receive()
+    assert event["type"] == "websocket.disconnect"
+    await send({"type": "websocket.close", "code": event["code"]})
+
+
+def test_build_websocket_scope():
+    scope = build_websocket_scope(
+        WebSocketScopeParts(
+            path="/_stcore/stream",
+            query_string=b"session=1",
+            headers=[(b"host", b"example.com")],
+            subprotocols=["streamlit"],
+        )
+    )
+
+    assert scope["type"] == "websocket"
+    assert scope["path"] == "/_stcore/stream"
+    assert scope["query_string"] == b"session=1"
+    assert scope["headers"] == [(b"host", b"example.com")]
+    assert scope["subprotocols"] == ["streamlit"]
+
+
+def test_build_websocket_scope_from_request():
+    request = FakeRequest(
+        "https://example.com/_stcore/stream?session=1",
+        {
+            "Host": "example.com",
+            "Upgrade": "websocket",
+            "Sec-WebSocket-Protocol": "chat, streamlit",
+        },
+    )
+
+    scope = build_websocket_scope_from_request(request)
+
+    assert scope["type"] == "websocket"
+    assert scope["scheme"] == "wss"
+    assert scope["path"] == "/_stcore/stream"
+    assert scope["query_string"] == b"session=1"
+    assert scope["server"] == ("example.com", 443)
+    assert scope["subprotocols"] == ["chat", "streamlit"]
+    assert is_websocket_upgrade(request) is True
+
+
+def test_selects_streamlit_websocket_subprotocol():
+    request = FakeRequest(
+        "https://example.com/_stcore/stream",
+        {"Sec-WebSocket-Protocol": "chat, streamlit"},
+    )
+
+    assert _select_websocket_subprotocol(request) == "streamlit"
+
+
+def test_omits_websocket_subprotocol_when_streamlit_is_not_requested():
+    request = FakeRequest(
+        "https://example.com/_stcore/stream",
+        {"Sec-WebSocket-Protocol": "chat"},
+    )
+
+    assert _select_websocket_subprotocol(request) is None
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_translates_messages():
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(echo_websocket_app, socket, scope)
+
+    task = session.start()
+    session.receive_text("hello")
+    session.disconnect(1001)
+    await task
+
+    assert socket.accepted is True
+    assert socket.sent == ["HELLO"]
+    assert socket.closed == (1001, "")

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CLOUDFLARE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$CLOUDFLARE_DIR/.." && pwd)"
+VENDOR_DIR="$CLOUDFLARE_DIR/python_modules"
+
+if ! command -v yarn >/dev/null 2>&1; then
+  YARN_SHIM_DIR="$(mktemp -d)"
+  cat >"$YARN_SHIM_DIR/yarn" <<'SH'
+#!/usr/bin/env bash
+exec corepack yarn "$@"
+SH
+  chmod +x "$YARN_SHIM_DIR/yarn"
+  export PATH="$YARN_SHIM_DIR:$PATH"
+fi
+
+if [ ! -f "$ROOT_DIR/streamlit/lib/streamlit/static/index.html" ]; then
+  make -C "$ROOT_DIR/streamlit" frontend-fast
+fi
+
+make -C "$ROOT_DIR" stlite-lib-wheel streamlit-wheel
+
+pushd "$CLOUDFLARE_DIR" >/dev/null
+uv run --project . pywrangler sync --force
+popd >/dev/null
+
+find "$VENDOR_DIR" -maxdepth 1 \( \
+  -name 'stlite_lib' -o \
+  -name 'stlite_lib-*.dist-info' -o \
+  -name 'streamlit' -o \
+  -name 'streamlit-*.dist-info' \
+\) -exec rm -rf {} +
+
+ROOT_DIR="$ROOT_DIR" CLOUDFLARE_DIR="$CLOUDFLARE_DIR" python3 - <<'PY'
+import os
+from pathlib import Path
+from zipfile import ZipFile
+
+root_dir = Path(os.environ["ROOT_DIR"])
+cloudflare_dir = Path(os.environ["CLOUDFLARE_DIR"])
+vendor_dir = cloudflare_dir / "python_modules"
+
+wheels = [
+    root_dir
+    / "packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl",
+    # Python Workers does not import the sourceless py-compiled wheel as a
+    # regular package, so the Cloudflare target overlays Streamlit's source wheel.
+    next(
+        (root_dir / "streamlit/lib/dist").glob("streamlit-*-py3-none-any.whl")
+    ),
+]
+
+for wheel in wheels:
+    with ZipFile(wheel) as zf:
+        zf.extractall(vendor_dir)
+PY
+
+mkdir -p "$VENDOR_DIR/_stlite_cloudflare_app"
+find "$VENDOR_DIR/_stlite_cloudflare_app" -type f -name '*.py' -delete
+find "$CLOUDFLARE_DIR/app" -maxdepth 1 -type f -name '*.py' -exec cp {} \
+  "$VENDOR_DIR/_stlite_cloudflare_app/" \;
+touch "$VENDOR_DIR/_stlite_cloudflare_app/__init__.py"

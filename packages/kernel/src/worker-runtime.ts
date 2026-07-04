@@ -253,47 +253,22 @@ async function loadPyodideAndPackages(
     dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, sources);
   }
 
-  // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
+  const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
+
+  // The following step is necessary to avoid errors like `NameError: name '_imp' is not defined`
   // at importing installed packages.
-  await pyodide.runPythonAsync(`
-import importlib
-importlib.invalidate_caches()
-`);
+  runtimeInit.invalidate_import_caches();
 
   onProgress("Loading streamlit package.");
   console.debug("Loading the Streamlit package");
   // Importing the `streamlit` module takes most of the time,
   // so we first run this step independently for clearer logs and easy exec-time profiling.
   // For https://github.com/whitphx/stlite/issues/427
-  await pyodide.runPythonAsync(`
-import streamlit.runtime
-  `);
+  runtimeInit.preload_streamlit_runtime();
   console.debug("Loaded the Streamlit package");
 
   onProgress("Setting up the loggers.");
   console.debug("Setting the loggers");
-  // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
-  // See https://github.com/streamlit/streamlit/issues/4742
-  await pyodide.runPythonAsync(`
-import logging
-import streamlit.logger
-
-streamlit.logger.get_logger = logging.getLogger
-streamlit.logger.setup_formatter = None
-streamlit.logger.update_formatter = lambda *a, **k: None
-streamlit.logger.set_log_level = lambda *a, **k: None
-
-for name in streamlit.logger._loggers.keys():
-    if name == "root":
-        name = "streamlit"
-    logger = logging.getLogger(name)
-    logger.propagate = True
-    logger.handlers.clear()
-    logger.setLevel(logging.NOTSET)
-
-streamlit.logger._loggers = {}
-`);
-  // Then configure the logger.
   const logCallback = (levelno: number, msg: string) => {
     if (levelno >= 40) {
       console.error(msg);
@@ -305,53 +280,21 @@ streamlit.logger._loggers = {}
       console.debug(msg);
     }
   };
-  const setupLoggers = pyodide.runPython(`
-def __setup_loggers__(streamlit_level, streamlit_message_format, callback):
-    class JsHandler(logging.Handler):
-        def emit(self, record):
-            msg = self.format(record)
-            callback(record.levelno, msg)
-
-
-    root_message_format = "%(levelname)s:%(name)s:%(message)s"
-
-    root_logger = logging.getLogger()
-    root_logger.handlers.clear()
-    root_formatter = logging.Formatter(root_message_format)
-    root_handler = JsHandler()
-    root_handler.setFormatter(root_formatter)
-    root_logger.addHandler(root_handler)
-    root_logger.setLevel(logging.DEBUG)
-
-    streamlit_logger = logging.getLogger("streamlit")
-    streamlit_logger.propagate = False
-    streamlit_logger.handlers.clear()
-    streamlit_formatter = logging.Formatter(streamlit_message_format)
-    streamlit_handler = JsHandler()
-    streamlit_handler.setFormatter(streamlit_formatter)
-    streamlit_logger.addHandler(streamlit_handler)
-    streamlit_logger.setLevel(streamlit_level.upper())
-
-__setup_loggers__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
   const streamlitLogLevel = (
     streamlitConfig?.["logger.level"] ?? "INFO"
   ).toString();
   const streamlitLogMessageFormat =
     streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
-  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat, logCallback);
+  runtimeInit.setup_streamlit_logging(
+    streamlitLogLevel,
+    streamlitLogMessageFormat,
+    logCallback,
+  );
   console.debug("Set the loggers");
 
   onProgress("Mocking some Streamlit functions for the browser environment.");
   console.debug("Mocking some Streamlit functions");
-  // Disable caching. See https://github.com/whitphx/stlite/issues/495
-  await pyodide.runPythonAsync(`
-import streamlit
-
-def is_cacheable_msg(msg):
-  return False
-
-streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
-`);
+  runtimeInit.disable_runtime_message_cache();
   console.debug("Mocked some Streamlit functions");
 
   if (useIdbfs) {
@@ -397,15 +340,11 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 
   // The code below is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
-  const { load_config_options } = pyodide.pyimport("stlite_lib.bootstrap");
-  const streamlitFlagOptions = {
-    // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
-    "browser.gatherUsageStats": false,
-    ...streamlitConfig,
-    "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
-  };
   const sharedWorkerMode = appId != null;
-  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
+  runtimeInit.configure_streamlit(
+    pyodide.toPy(streamlitConfig ?? {}),
+    sharedWorkerMode,
+  );
   console.debug("Set up the Streamlit configuration");
 
   // Load Jedi if the language server is enabled.

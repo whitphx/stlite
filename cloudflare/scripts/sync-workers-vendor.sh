@@ -15,8 +15,16 @@ SH
   export PATH="$YARN_SHIM_DIR:$PATH"
 fi
 
-if [ ! -f "$ROOT_DIR/streamlit/lib/streamlit/static/index.html" ]; then
-  make -C "$ROOT_DIR/streamlit" frontend-fast
+FRONTEND_MARKER="$CLOUDFLARE_DIR/.stlite-cloudflare-remote-frontend"
+if [ ! -f "$FRONTEND_MARKER" ]; then
+  rm -rf "$ROOT_DIR/streamlit/lib/streamlit/static"
+  pushd "$ROOT_DIR/streamlit/frontend" >/dev/null
+  yarn workspaces foreach --recursive --topological --parallel --from @streamlit/app --exclude @streamlit/app --exclude @streamlit/lib run build
+  yarn node "$CLOUDFLARE_DIR/frontend/build.mjs"
+  popd >/dev/null
+  rsync -av --delete --delete-excluded --exclude=reports \
+    "$ROOT_DIR/streamlit/frontend/app/build/" "$ROOT_DIR/streamlit/lib/streamlit/static/"
+  touch "$FRONTEND_MARKER"
 fi
 
 make -C "$ROOT_DIR" stlite-lib-wheel streamlit-wheel

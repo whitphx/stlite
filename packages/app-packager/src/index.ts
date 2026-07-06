@@ -89,6 +89,10 @@ export interface VendorPrebuiltPackagesOptions {
   logger?: Logger;
 }
 
+export interface VendorPackageSnapshotOptions extends VendorPrebuiltPackagesOptions {
+  snapshotPath: string;
+}
+
 export async function vendorPrebuiltPackages(
   opts: VendorPrebuiltPackagesOptions,
 ): Promise<string[]> {
@@ -105,6 +109,34 @@ export async function vendorPrebuiltPackages(
     localWheelPaths: opts.localWheelPaths,
     logger,
   });
+}
+
+export async function vendorPackageSnapshot(
+  opts: VendorPackageSnapshotOptions,
+): Promise<string[]> {
+  const logger = opts.logger ?? consoleLogger;
+  const pyodideSource = normalizePyodideSource(
+    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+  );
+  const usedPrebuiltPackages = await vendorPrebuiltPackages({
+    destPyodideDir: opts.destPyodideDir,
+    dependencies: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    pyodideSource,
+    logger,
+  });
+
+  await createSitePackagesSnapshot({
+    requirements: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    usedPrebuiltPackages,
+    pyodideSource,
+    pyodideRuntimeDir: opts.destPyodideDir,
+    saveTo: opts.snapshotPath,
+    logger,
+  });
+
+  return usedPrebuiltPackages;
 }
 
 /**

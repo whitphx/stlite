@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -7,35 +8,50 @@ import {
   consoleLogger,
   DEFAULT_PYODIDE_SOURCE,
   PrebuiltPackagesDataReader,
-  vendorPrebuiltPackages,
+  vendorPackageSnapshot,
 } from "../../packages/app-packager/dist/index.js";
 
 const execFileAsync = promisify(execFile);
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const cloudflareDir = path.resolve(scriptDir, "..");
+const rootDir = path.resolve(cloudflareDir, "..");
 const vendorDir = path.resolve(cloudflareDir, "python_modules");
 const pyodidePackageDir = path.resolve(
   cloudflareDir,
   ".pyodide-prebuilt-packages",
 );
+const snapshotPath = path.resolve(
+  pyodidePackageDir,
+  "site-packages-snapshot.tar.gz",
+);
 
-const dependencies = ["fastparquet"];
-const packagesToExtract = ["cramjam", "fastparquet", "fsspec"];
+const cloudflareStreamlitDependencies = ["pydeck>=0.8.0b4,<1"];
+const buildOnlyPackages = new Set(["micropip"]);
+const alwaysOverlayPrebuiltPackages = new Set(["cramjam", "fastparquet"]);
 const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
   DEFAULT_PYODIDE_SOURCE,
   consoleLogger,
 );
 
-await vendorPrebuiltPackages({
+const dependencies = [
+  ...(await readStreamlitDependencies()),
+  ...cloudflareStreamlitDependencies,
+];
+const usedPrebuiltPackages = await vendorPackageSnapshot({
   destPyodideDir: pyodidePackageDir,
   dependencies,
   localWheelPaths: [],
   pyodideSource: DEFAULT_PYODIDE_SOURCE,
+  snapshotPath,
   logger: consoleLogger,
 });
 
-await removeExistingPackages();
+await overlayMissingSnapshotPackages(snapshotPath);
+
+const packagesToExtract =
+  await getPrebuiltPackagesToExtract(usedPrebuiltPackages);
+await removeExistingPackages(packagesToExtract);
 
 for (const packageName of packagesToExtract) {
   const packageInfo =
@@ -50,15 +66,99 @@ for (const packageName of packagesToExtract) {
   await execFileAsync("python3", ["-m", "zipfile", "-e", wheelPath, vendorDir]);
 }
 
-async function removeExistingPackages() {
+async function readStreamlitDependencies() {
+  const streamlitPyprojectPath = path.resolve(
+    rootDir,
+    "streamlit/lib/pyproject.toml",
+  );
+  const { stdout } = await execFileAsync("python3", [
+    "-c",
+    [
+      "import json, sys, tomllib",
+      "from pathlib import Path",
+      "data = tomllib.loads(Path(sys.argv[1]).read_text())",
+      "print(json.dumps(data['project']['dependencies']))",
+    ].join("\n"),
+    streamlitPyprojectPath,
+  ]);
+  return JSON.parse(stdout);
+}
+
+async function overlayMissingSnapshotPackages(packageSnapshotPath) {
+  const snapshotDir = await fs.mkdtemp(
+    path.join(os.tmpdir(), "stlite-cloudflare-site-packages-"),
+  );
+  try {
+    await execFileAsync("tar", [
+      "-xzf",
+      packageSnapshotPath,
+      "-C",
+      snapshotDir,
+    ]);
+    const sitePackagesDir = await findSitePackagesDir(snapshotDir);
+    const { stdout } = await execFileAsync("python3", [
+      "-c",
+      getCopyMissingPackagesScript(),
+      sitePackagesDir,
+      vendorDir,
+      JSON.stringify([...buildOnlyPackages]),
+    ]);
+    const copiedPackages = JSON.parse(stdout);
+    if (copiedPackages.length > 0) {
+      consoleLogger.info(
+        `Overlay pure-Python packages from Pyodide snapshot: ${JSON.stringify(copiedPackages)}`,
+      );
+    }
+  } finally {
+    await fs.rm(snapshotDir, { recursive: true, force: true });
+  }
+}
+
+async function findSitePackagesDir(root) {
+  const entries = await fs.readdir(root, { withFileTypes: true });
+  for (const entry of entries) {
+    const entryPath = path.resolve(root, entry.name);
+    if (entry.isDirectory() && entry.name === "site-packages") {
+      return entryPath;
+    }
+    if (entry.isDirectory()) {
+      try {
+        return await findSitePackagesDir(entryPath);
+      } catch (error) {
+        if (!(error instanceof SitePackagesNotFoundError)) {
+          throw error;
+        }
+      }
+    }
+  }
+  throw new SitePackagesNotFoundError(root);
+}
+
+class SitePackagesNotFoundError extends Error {}
+
+async function getPrebuiltPackagesToExtract(usedPrebuiltPackages) {
+  const topLevelEntries = await fs.readdir(vendorDir);
+  return usedPrebuiltPackages.filter(
+    (packageName) =>
+      !buildOnlyPackages.has(packageName) &&
+      (alwaysOverlayPrebuiltPackages.has(packageName) ||
+        !hasPackageArtifact(topLevelEntries, packageName)),
+  );
+}
+
+async function removeExistingPackages(packageNames) {
   const topLevelEntries = await fs.readdir(vendorDir);
   await Promise.all(
     topLevelEntries
       .filter((entryName) =>
-        packagesToExtract.some(
+        packageNames.some(
           (packageName) =>
             entryName === packageName ||
-            entryName.startsWith(`${packageName}-`),
+            normalizePackageName(entryName) ===
+              normalizePackageName(packageName) ||
+            normalizePackageName(entryName).startsWith(
+              `${normalizePackageName(packageName)}-`,
+            ),
         ),
       )
       .map((entryName) =>
@@ -68,4 +168,92 @@ async function removeExistingPackages() {
         }),
       ),
   );
+}
+
+function hasPackageArtifact(topLevelEntries, packageName) {
+  const normalizedPackageName = normalizePackageName(packageName);
+  return topLevelEntries.some((entryName) => {
+    const normalizedEntryName = normalizePackageName(
+      entryName.replace(/\.dist-info$/, "").replace(/\.egg-info$/, ""),
+    );
+    return (
+      normalizedEntryName === normalizedPackageName ||
+      normalizedEntryName.startsWith(`${normalizedPackageName}-`)
+    );
+  });
+}
+
+function normalizePackageName(packageName) {
+  return packageName.toLowerCase().replace(/[-_.]+/g, "-");
+}
+
+function getCopyMissingPackagesScript() {
+  return String.raw`
+import csv
+import json
+import re
+import shutil
+import sys
+from email.parser import Parser
+from pathlib import Path
+
+site_packages = Path(sys.argv[1]).resolve()
+vendor_dir = Path(sys.argv[2]).resolve()
+
+def normalize_name(name):
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+skip_packages = {normalize_name(name) for name in json.loads(sys.argv[3])}
+
+def has_package_artifact(package_name):
+    normalized_package_name = normalize_name(package_name)
+    for entry in vendor_dir.iterdir():
+        entry_name = entry.name.removesuffix(".dist-info").removesuffix(".egg-info")
+        normalized_entry_name = normalize_name(entry_name)
+        if (
+            normalized_entry_name == normalized_package_name
+            or normalized_entry_name.startswith(normalized_package_name + "-")
+        ):
+            return True
+    return False
+
+copied_packages = []
+for dist_info_dir in site_packages.glob("*.dist-info"):
+    metadata_path = dist_info_dir / "METADATA"
+    if not metadata_path.exists():
+        continue
+
+    metadata = Parser().parsestr(metadata_path.read_text())
+    package_name = metadata.get("Name")
+    if package_name is None:
+        continue
+
+    if normalize_name(package_name) in skip_packages or has_package_artifact(package_name):
+        continue
+
+    record_path = dist_info_dir / "RECORD"
+    if not record_path.exists():
+        continue
+
+    with record_path.open(newline="") as record_file:
+        for row in csv.reader(record_file):
+            if not row:
+                continue
+
+            source_path = (site_packages / row[0]).resolve()
+            try:
+                relative_path = source_path.relative_to(site_packages)
+            except ValueError:
+                continue
+            if not source_path.is_file():
+                continue
+
+            destination_path = vendor_dir / relative_path
+            destination_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, destination_path)
+
+    copied_packages.append(package_name)
+
+print(json.dumps(copied_packages))
+`;
 }

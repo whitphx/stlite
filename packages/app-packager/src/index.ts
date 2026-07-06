@@ -81,6 +81,32 @@ export interface PackageAppOptions {
   logger?: Logger;
 }
 
+export interface VendorPrebuiltPackagesOptions {
+  destPyodideDir: string;
+  dependencies: string[];
+  localWheelPaths: string[];
+  pyodideSource?: string;
+  logger?: Logger;
+}
+
+export async function vendorPrebuiltPackages(
+  opts: VendorPrebuiltPackagesOptions,
+): Promise<string[]> {
+  const logger = opts.logger ?? consoleLogger;
+  const pyodideSource = normalizePyodideSource(
+    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+  );
+
+  await fsPromises.mkdir(opts.destPyodideDir, { recursive: true });
+  return saveUsedPrebuiltPackages({
+    pyodideSource,
+    pyodideRuntimeDir: opts.destPyodideDir,
+    requirements: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    logger,
+  });
+}
+
 /**
  * Vendors a Streamlit project's Python dependencies into a destDir using
  * Pyodide-in-Node, copies the user's app files, and writes the
@@ -106,11 +132,11 @@ export async function packageApp(opts: PackageAppOptions): Promise<void> {
 
   await fsPromises.mkdir(opts.destDir, { recursive: true });
 
-  const usedPrebuiltPackages = await saveUsedPrebuiltPackages({
-    pyodideSource,
-    pyodideRuntimeDir,
-    requirements: opts.dependencies,
+  const usedPrebuiltPackages = await vendorPrebuiltPackages({
+    destPyodideDir: pyodideRuntimeDir,
+    dependencies: opts.dependencies,
     localWheelPaths: opts.localWheelPaths,
+    pyodideSource,
     logger,
   });
   logger.info(

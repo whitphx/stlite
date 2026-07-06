@@ -123,6 +123,14 @@ wheels = [
 ]
 
 [[packages]]
+name = "pyodide-http"
+version = "0.2.2"
+wheels = [
+  { url = "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide_http-0.2.2-py3-none-any.whl", hashes = { sha256 = "24469bdfe12fbf1bb41e3b4266908d5e4dff081e831425c73702a1289aa8fd2a" } },
+  { url = "https://files.pythonhosted.org/packages/43/aa/471c9cb07acd2de48acf70aef07139f08f2f7ea6f85883f19a7296243ffb/pyodide_http-0.2.2-py3-none-any.whl", hashes = { sha256 = "cf006ea593c1643b5badeb4d42ed24a6eebd830276171fa1f82de0777b3fb608" } },
+]
+
+[[packages]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 wheels = [

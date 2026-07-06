@@ -2,3 +2,4 @@
 /.wrangler
 /python_modules
 /.stlite-cloudflare-remote-frontend
+/.pyodide-prebuilt-packages

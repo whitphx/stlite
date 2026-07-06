@@ -621,22 +621,22 @@ dependencies = [
     { name = "pandas" },
     { name = "pillow" },
     { name = "protobuf" },
+    { name = "pyodide-http" },
     { name = "python-multipart" },
     { name = "starlette" },
     { name = "tenacity" },
     { name = "toml" },
     { name = "typing-extensions" },
+    { name = "workers-runtime-sdk" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
-    { name = "starlette" },
     { name = "stlite-lib" },
     { name = "streamlit" },
     { name = "workers-py" },
-    { name = "workers-runtime-sdk" },
 ]
 
 [package.metadata]
@@ -651,22 +651,22 @@ requires-dist = [
     { name = "pandas", specifier = ">=1.4.0,<4" },
     { name = "pillow", specifier = ">=7.1.0,<13" },
     { name = "protobuf", specifier = ">=7.34.1,<8" },
+    { name = "pyodide-http", specifier = ">=0.2.1" },
     { name = "python-multipart", specifier = ">=0.0.10" },
     { name = "starlette", specifier = ">=0.40.0" },
     { name = "tenacity", specifier = ">=8.1.0,<10" },
     { name = "toml", specifier = ">=0.10.1" },
     { name = "typing-extensions", specifier = ">=4.10.0,<5" },
+    { name = "workers-runtime-sdk" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "starlette", specifier = ">=0.37" },
     { name = "stlite-lib", directory = "../packages/kernel/py/stlite-lib" },
     { name = "streamlit", directory = "../streamlit/lib" },
     { name = "workers-py" },
-    { name = "workers-runtime-sdk" },
 ]
 
 [[package]]

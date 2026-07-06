@@ -29,9 +29,15 @@ fi
 
 make -C "$ROOT_DIR" stlite-lib-wheel streamlit-wheel
 
+pushd "$ROOT_DIR" >/dev/null
+corepack yarn workspace @stlite/app-packager build
+popd >/dev/null
+
 pushd "$CLOUDFLARE_DIR" >/dev/null
 uv run --project . pywrangler sync --force
 popd >/dev/null
+
+node "$CLOUDFLARE_DIR/scripts/vendor-pyodide-prebuilt-packages.mjs"
 
 find "$VENDOR_DIR" -maxdepth 1 \( \
   -name 'stlite_lib' -o \

@@ -5,6 +5,10 @@ description = "Run the stlite Streamlit runtime on Cloudflare Python Workers."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+  # pywrangler resolves only this flat third-party list for the Pyodide
+  # lockfile; the local stlite-lib and Streamlit wheels are overlaid later.
+  # fastparquet's Pyodide wheels are overlaid by sync-workers-vendor.sh because
+  # pywrangler cannot resolve that native dependency chain from its indexes yet.
   "altair>=4.0,<7,!=5.4.0,!=5.4.1",
   "anyio>=4.0.0",
   "blinker>=1.5.0,<2",
@@ -15,22 +19,22 @@ dependencies = [
   "pandas>=1.4.0,<4",
   "pillow>=7.1.0,<13",
   "protobuf>=7.34.1,<8",
+  "pyodide-http>=0.2.1",
   "python-multipart>=0.0.10",
   "starlette>=0.40.0",
   "tenacity>=8.1.0,<10",
   "toml>=0.10.1",
   "typing-extensions>=4.10.0,<5",
+  "workers-runtime-sdk",
 ]
 
 [dependency-groups]
 dev = [
   "pytest>=8.3",
   "pytest-asyncio>=0.24",
-  "starlette>=0.37",
   "stlite-lib",
   "streamlit",
   "workers-py",
-  "workers-runtime-sdk",
 ]
 
 [tool.uv.sources]

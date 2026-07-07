@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2026)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
 from typing import Any
 
 import numpy as np
@@ -57,7 +58,12 @@ def animation_demo() -> None:
             n_matrix[m_matrix] = i
 
         # Update the image placeholder by calling the image() function on it.
-        image.image(1.0 - (n_matrix / n_matrix.max()), width="stretch")
+        image.image(1.0 - (n_matrix / n_matrix.max()), width='content')
+
+        # NOTE: We need to sleep for a bit in a loop on Stlite, i.e. web browser environments.
+        # This is because we're using a single-threaded event loop, and
+        # we need to give it a chance to process other events.
+        time.sleep(1/30)
 
     # We clear elements by calling empty on them.
     progress_bar.empty()

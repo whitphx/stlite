@@ -71,7 +71,5 @@ for wheel in wheels:
 PY
 
 mkdir -p "$VENDOR_DIR/_stlite_cloudflare_app"
-find "$VENDOR_DIR/_stlite_cloudflare_app" -type f -name '*.py' -delete
-find "$CLOUDFLARE_DIR/app" -maxdepth 1 -type f -name '*.py' -exec cp {} \
-  "$VENDOR_DIR/_stlite_cloudflare_app/" \;
+rsync -a --delete "$CLOUDFLARE_DIR/app/" "$VENDOR_DIR/_stlite_cloudflare_app/"
 touch "$VENDOR_DIR/_stlite_cloudflare_app/__init__.py"

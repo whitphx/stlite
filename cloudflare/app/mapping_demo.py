@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2026)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,29 +12,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
+from io import StringIO
 from urllib.error import URLError
 
 import pandas as pd
 import pydeck as pdk
+from workers import fetch
 
 import streamlit as st
 from streamlit.hello.utils import show_code
 
 
-def mapping_demo() -> None:
-    @st.cache_data
-    def from_data_file(filename: str) -> pd.DataFrame:
+async def mapping_demo() -> None:
+    loaded_data: dict[str, pd.DataFrame] = {}
+
+    async def from_data_file(filename: str) -> pd.DataFrame:
+        if filename in loaded_data:
+            return loaded_data[filename]
+
         url = (
             "https://raw.githubusercontent.com/streamlit/"
             f"example-data/master/hello/v1/{filename}"
         )
-        return pd.read_json(url)
+        response = await fetch(url)
+        if response.status >= 400:
+            raise URLError(f"HTTP {response.status} while fetching {filename}")
+
+        data = pd.read_json(StringIO(await response.text()))
+        loaded_data[filename] = data
+        return data
 
     try:
         all_layers = {
             "Bike rentals": pdk.Layer(
                 "HexagonLayer",
-                data=from_data_file("bike_rental_stats.json"),
+                data=await from_data_file("bike_rental_stats.json"),
                 get_position=["lon", "lat"],
                 radius=200,
                 elevation_scale=4,
@@ -43,7 +56,7 @@ def mapping_demo() -> None:
             ),
             "Bart stop exits": pdk.Layer(
                 "ScatterplotLayer",
-                data=from_data_file("bart_stop_stats.json"),
+                data=await from_data_file("bart_stop_stats.json"),
                 get_position=["lon", "lat"],
                 get_color=[200, 30, 0, 160],
                 get_radius="[exits]",
@@ -51,7 +64,7 @@ def mapping_demo() -> None:
             ),
             "Bart stop names": pdk.Layer(
                 "TextLayer",
-                data=from_data_file("bart_stop_stats.json"),
+                data=await from_data_file("bart_stop_stats.json"),
                 get_position=["lon", "lat"],
                 get_text="name",
                 get_color=[0, 0, 0, 200],
@@ -60,7 +73,7 @@ def mapping_demo() -> None:
             ),
             "Outbound flow": pdk.Layer(
                 "ArcLayer",
-                data=from_data_file("bart_path_stats.json"),
+                data=await from_data_file("bart_path_stats.json"),
                 get_source_position=["lon", "lat"],
                 get_target_position=["lon2", "lat2"],
                 get_source_color=[200, 30, 0, 160],
@@ -100,6 +113,13 @@ def mapping_demo() -> None:
             Connection error: {e.reason}
         """
         )
+    except OSError as e:
+        st.error(
+            f"""
+            **This demo requires internet access.**
+            Connection error: {e}
+        """
+        )
 
 
 st.set_page_config(page_title="Mapping demo", page_icon=":material/public:")
@@ -109,5 +129,5 @@ st.write(
     This demo shows how to use `st.pydeck_chart` to display geospatial data.
     """
 )
-mapping_demo()
+asyncio.run(mapping_demo())
 show_code(mapping_demo)

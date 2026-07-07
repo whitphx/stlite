@@ -45,7 +45,7 @@ def test_build_http_scope_normalizes_request_metadata():
     request = FakeRequest(
         method="post",
         url="https://example.com/dashboard?x=1",
-        headers={"Content-Type": "text/plain"},
+        headers={"Content-Type": "text/plain", "Accept-Encoding": "gzip, br"},
     )
 
     scope = build_http_scope(request)

@@ -93,10 +93,17 @@ async def _maybe_await(value: Any) -> Any:
 
 
 def _encode_request_headers(headers: Any) -> list[tuple[bytes, bytes]]:
-    return [
-        (_to_bytes(name).lower(), _to_bytes(value))
-        for name, value in _iter_header_pairs(headers)
-    ]
+    encoded_headers = []
+    for name, value in _iter_header_pairs(headers):
+        encoded_name = _to_bytes(name).lower()
+        # Cloudflare's HTTP layer owns response compression. If Streamlit's ASGI
+        # gzip middleware also compresses, Wrangler can serve double-gzipped app
+        # HTML/media bodies that browsers decode only once.
+        if encoded_name == b"accept-encoding":
+            continue
+        encoded_headers.append((encoded_name, _to_bytes(value)))
+
+    return encoded_headers
 
 
 def _decode_response_headers(

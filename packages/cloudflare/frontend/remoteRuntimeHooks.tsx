@@ -1,5 +1,7 @@
 import React from "react";
 
+export { ConnectionManager } from "@streamlit/connection";
+
 export function useStliteResolvedLogo<
   T extends { image: string; iconImage: string },
 >(logo: T | null): T | null {

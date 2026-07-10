@@ -41,11 +41,12 @@ def mock_pyarrow() -> None:
     sys.modules["pyarrow"] = module
 
     try:
-        import micropip
+        micropip = importlib.import_module("micropip")
     except ImportError:
         return
 
-    micropip.add_mock_package(
+    add_mock_package = getattr(micropip, "add_mock_package")
+    add_mock_package(
         "pyarrow",
         "0.0.1",
         modules={
@@ -139,7 +140,7 @@ def disable_runtime_message_cache() -> None:
     def is_cacheable_msg(msg: Any) -> bool:
         return False
 
-    streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
+    setattr(streamlit.runtime.runtime, "is_cacheable_msg", is_cacheable_msg)
 
 
 def configure_streamlit(

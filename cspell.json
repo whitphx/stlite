@@ -55,6 +55,7 @@
     // Pyodide
     "pyodide",
     "micropip",
+    "pywrangler",
     "unvendored",
     "xbuildenv",
     "syncfs",

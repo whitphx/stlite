@@ -1,4 +1,5 @@
 /.venv
+/uv.lock
 /.wrangler
 /python_modules
 /.stlite-cloudflare-remote-frontend

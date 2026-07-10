@@ -41,8 +41,11 @@ dev = [
 stlite-lib = { path = "../packages/kernel/py/stlite-lib" }
 streamlit = { path = "../streamlit/lib" }
 
+[tool.uv]
+package = false
+
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["../packages/cloudflare/src", "src"]
 testpaths = ["tests"]
 
 [build-system]

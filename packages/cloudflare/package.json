@@ -1,0 +1,26 @@
+{
+  "name": "@stlite/cloudflare",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Deploy stlite-backed Streamlit apps to Cloudflare Python Workers.",
+  "bin": {
+    "stlite-cloudflare": "./bin/stlite-cloudflare.mjs"
+  },
+  "files": [
+    "bin",
+    "frontend",
+    "scripts",
+    "src/**/*.py",
+    "templates",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "test": "cd ../../cloudflare && uv run --project . pytest",
+    "pack:dry-run": "npm pack --dry-run"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1",
+    "wrangler": "^4.105.0"
+  }
+}

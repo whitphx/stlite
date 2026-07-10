@@ -1,0 +1,4 @@
+app = "app/streamlit_app.py"
+requirements = []
+include = ["app/**"]
+exclude = ["**/__pycache__/**", "**/.DS_Store"]

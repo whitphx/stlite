@@ -3,3 +3,7 @@
 /python_modules
 /.stlite-cloudflare-remote-frontend
 /.pyodide-prebuilt-packages
+
+__pycache__/
+*.py[cod]
+/.venv-workers

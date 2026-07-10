@@ -9,16 +9,23 @@ import {
   DEFAULT_PYODIDE_SOURCE,
   PrebuiltPackagesDataReader,
   vendorPackageSnapshot,
-} from "../../packages/app-packager/dist/index.js";
+} from "../../app-packager/dist/index.js";
 
 const execFileAsync = promisify(execFile);
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const cloudflareDir = path.resolve(scriptDir, "..");
-const rootDir = path.resolve(cloudflareDir, "..");
-const vendorDir = path.resolve(cloudflareDir, "python_modules");
+const packageDir = process.env.STLITE_CLOUDFLARE_PACKAGE_DIR
+  ? path.resolve(process.env.STLITE_CLOUDFLARE_PACKAGE_DIR)
+  : path.resolve(scriptDir, "..");
+const projectDir = process.env.STLITE_CLOUDFLARE_PROJECT_DIR
+  ? path.resolve(process.env.STLITE_CLOUDFLARE_PROJECT_DIR)
+  : packageDir;
+const rootDir = process.env.STLITE_CLOUDFLARE_ROOT_DIR
+  ? path.resolve(process.env.STLITE_CLOUDFLARE_ROOT_DIR)
+  : path.resolve(packageDir, "../..");
+const vendorDir = path.resolve(projectDir, "python_modules");
 const pyodidePackageDir = path.resolve(
-  cloudflareDir,
+  projectDir,
   ".pyodide-prebuilt-packages",
 );
 const snapshotPath = path.resolve(

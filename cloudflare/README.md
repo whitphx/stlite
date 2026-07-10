@@ -1,18 +1,14 @@
-# stlite Cloudflare Worker
+# stlite Cloudflare Worker harness
 
-This project runs the stlite-patched Streamlit runtime on Cloudflare Python
-Workers. It is a first-party Stlite host target and consumes the local
-`stlite-lib` and Streamlit wheel artifacts built from this repository.
+This directory is the first-party integration harness for `@stlite/cloudflare`.
+It contains the sample Streamlit app, Cloudflare Workers config, Python lockfile,
+and browser smoke tests used while developing the deploy target.
 
 ```bash
 cd cloudflare
 npm run dev
 ```
 
-The sync step builds the local runtime wheels, asks Wrangler to prepare the
-Python Worker dependency tree, overlays the Stlite runtime wheels, and packages
-the sample Streamlit app from `app/`.
-
-`pyproject.toml` stays host-resolvable for local tests. `pylock.toml` is tracked
-separately for the Worker bundle because the Pyodide binary wheels need direct
-wheel pins when pywrangler resolves dependencies for Cloudflare's Python runtime.
+The publishable npm package lives in `../packages/cloudflare`. The harness runs
+that package's CLI by relative path so local development uses the current source
+without requiring a package install step.

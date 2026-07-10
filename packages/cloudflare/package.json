@@ -15,7 +15,7 @@
   ],
   "type": "module",
   "scripts": {
-    "test": "cd samples/hello && uv run --project . pytest",
+    "test": "uv run --project . pytest",
     "pack:dry-run": "npm pack --dry-run"
   },
   "devDependencies": {

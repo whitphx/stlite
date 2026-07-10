@@ -29,13 +29,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-  "pytest>=8.3",
-  "pytest-asyncio>=0.24",
-  "stlite-lib",
-  "streamlit",
-  "workers-py",
-]
+dev = ["stlite-lib", "streamlit", "workers-py"]
 
 [tool.uv.sources]
 stlite-lib = { path = "../../../kernel/py/stlite-lib" }
@@ -44,9 +38,6 @@ streamlit = { path = "../../../../streamlit/lib" }
 [tool.uv]
 package = false
 
-[tool.pytest.ini_options]
-pythonpath = ["../../py", "src"]
-testpaths = ["tests"]
 
 [build-system]
 requires = ["hatchling"]

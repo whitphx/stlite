@@ -45,7 +45,7 @@ streamlit = { path = "../../../../streamlit/lib" }
 package = false
 
 [tool.pytest.ini_options]
-pythonpath = ["../../src", "src"]
+pythonpath = ["../../py", "src"]
 testpaths = ["tests"]
 
 [build-system]

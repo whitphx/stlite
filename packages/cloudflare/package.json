@@ -9,7 +9,7 @@
     "bin",
     "frontend",
     "scripts",
-    "src/**/*.py",
+    "py/**/*.py",
     "templates",
     "README.md"
   ],

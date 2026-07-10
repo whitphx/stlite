@@ -84,7 +84,7 @@ for wheel in wheels:
         zf.extractall(vendor_dir)
 
 shutil.copytree(
-    package_dir / "src/stlite_cloudflare",
+    package_dir / "py/stlite_cloudflare",
     vendor_dir / "stlite_cloudflare",
     dirs_exist_ok=True,
 )

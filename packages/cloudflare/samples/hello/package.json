@@ -1,0 +1,19 @@
+{
+  "name": "stlite-cloudflare-sample-hello",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "stlite-cloudflare build",
+    "deploy": "stlite-cloudflare deploy",
+    "dev": "stlite-cloudflare dev",
+    "start": "yarn dev",
+    "test": "uv run --project . pytest",
+    "smoke:browser": "node scripts/browser-smoke.mjs"
+  },
+  "devDependencies": {
+    "@stlite/cloudflare": "workspace:^",
+    "playwright": "^1.61.1",
+    "wrangler": "^4.105.0"
+  }
+}

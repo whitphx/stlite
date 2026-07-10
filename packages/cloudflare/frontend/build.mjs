@@ -2,8 +2,8 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const cloudflareFrontendDir = path.dirname(fileURLToPath(import.meta.url));
-const cloudflareDir = path.dirname(cloudflareFrontendDir);
-const rootDir = path.dirname(cloudflareDir);
+const packageDir = path.dirname(cloudflareFrontendDir);
+const rootDir = path.resolve(packageDir, "../..");
 const streamlitFrontendDir = path.join(rootDir, "streamlit/frontend");
 const streamlitAppDir = path.join(streamlitFrontendDir, "app");
 

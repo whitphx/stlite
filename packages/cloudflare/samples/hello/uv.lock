@@ -664,15 +664,15 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "stlite-lib", directory = "../packages/kernel/py/stlite-lib" },
-    { name = "streamlit", directory = "../streamlit/lib" },
+    { name = "stlite-lib", directory = "../../../kernel/py/stlite-lib" },
+    { name = "streamlit", directory = "../../../../streamlit/lib" },
     { name = "workers-py" },
 ]
 
 [[package]]
 name = "stlite-lib"
 version = "0.1.0"
-source = { directory = "../packages/kernel/py/stlite-lib" }
+source = { directory = "../../../kernel/py/stlite-lib" }
 dependencies = [
     { name = "pyodide-http" },
 ]
@@ -696,7 +696,7 @@ dev = [
 [[package]]
 name = "streamlit"
 version = "1.57.0"
-source = { directory = "../streamlit/lib" }
+source = { directory = "../../../../streamlit/lib" }
 dependencies = [
     { name = "altair" },
     { name = "anyio" },

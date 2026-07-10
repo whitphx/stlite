@@ -38,7 +38,7 @@ async def get_streamlit_asgi_app() -> AsgiApp:
         import _stlite_cloudflare_app as app_pkg
     except ModuleNotFoundError as exc:
         raise RuntimeError(
-            "Streamlit app is not packaged. Run cloudflare/scripts/sync-workers-vendor.sh."
+            "Streamlit app is not packaged. Run `stlite-cloudflare build`."
         ) from exc
 
     home_dir = Path(app_pkg.__file__).resolve().parent

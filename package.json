@@ -6,6 +6,7 @@
     "streamlit/frontend",
     "streamlit/frontend/*",
     "packages/desktop/samples/*",
+    "packages/cloudflare/samples/*",
     "docs"
   ],
   "scripts": {

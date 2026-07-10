@@ -17,11 +17,10 @@ npm run dev
 ```
 
 Until the package publishes versioned runtime artifacts, this development build
-must run from the Stlite monorepo harness:
+must run from the Stlite monorepo sample:
 
 ```bash
-cd ../../cloudflare
-npm run dev
+yarn workspace stlite-cloudflare-sample-hello dev
 ```
 
 ## CLI

@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 from stlite_cloudflare.adapter import _encode_request_headers, _to_bytes
 
@@ -17,9 +17,17 @@ AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
 @dataclass(frozen=True)
 class WebSocketScopeParts:
     path: str
+    raw_path: bytes | None = None
     query_string: bytes = b""
     headers: list[tuple[bytes, bytes]] | None = None
     subprotocols: list[str] | None = None
+
+
+@dataclass(frozen=True)
+class WebSocketHandshake:
+    accepted: bool
+    code: int = 1000
+    reason: str = ""
 
 
 class AsgiWebSocketSession:
@@ -29,13 +37,22 @@ class AsgiWebSocketSession:
         self._scope = scope
         self._incoming: asyncio.Queue[AsgiMessage] = asyncio.Queue()
         self._task: asyncio.Task[None] | None = None
+        self._accepted = False
+        self._handshake: asyncio.Future[WebSocketHandshake] | None = None
 
     def start(self) -> asyncio.Task[None]:
         if self._task is not None:
             raise RuntimeError("WebSocket ASGI session already started")
+        self._handshake = asyncio.get_running_loop().create_future()
         self._task = asyncio.create_task(self._app(self._scope, self.receive, self.send))
         self._incoming.put_nowait({"type": "websocket.connect"})
+        self._task.add_done_callback(self._reject_unfinished_handshake)
         return self._task
+
+    async def wait_for_handshake(self) -> WebSocketHandshake:
+        if self._handshake is None:
+            raise RuntimeError("WebSocket ASGI session has not started")
+        return await self._handshake
 
     async def receive(self) -> AsgiMessage:
         return await self._incoming.get()
@@ -43,9 +60,11 @@ class AsgiWebSocketSession:
     async def send(self, message: AsgiMessage) -> None:
         message_type = message["type"]
         if message_type == "websocket.accept":
+            self._accepted = True
             accept = getattr(self._socket, "accept", None)
             if callable(accept):
                 accept()
+            self._resolve_handshake(WebSocketHandshake(accepted=True))
             return
         if message_type == "websocket.send":
             payload = message.get("bytes")
@@ -56,6 +75,15 @@ class AsgiWebSocketSession:
             self._socket.send(payload)
             return
         if message_type == "websocket.close":
+            if not self._accepted:
+                self._resolve_handshake(
+                    WebSocketHandshake(
+                        accepted=False,
+                        code=message.get("code", 1000),
+                        reason=message.get("reason", ""),
+                    )
+                )
+                return
             close = getattr(self._socket, "close", None)
             if callable(close):
                 close(message.get("code", 1000), message.get("reason", ""))
@@ -71,6 +99,22 @@ class AsgiWebSocketSession:
     def disconnect(self, code: int = 1000) -> None:
         self._incoming.put_nowait({"type": "websocket.disconnect", "code": code})
 
+    def _resolve_handshake(self, result: WebSocketHandshake) -> None:
+        if self._handshake is not None and not self._handshake.done():
+            self._handshake.set_result(result)
+
+    def _reject_unfinished_handshake(self, task: asyncio.Task[None]) -> None:
+        if self._handshake is None or self._handshake.done():
+            return
+        if task.cancelled():
+            self._handshake.set_result(WebSocketHandshake(accepted=False, code=1011))
+            return
+        error = task.exception()
+        if error is not None:
+            self._handshake.set_exception(error)
+        else:
+            self._handshake.set_result(WebSocketHandshake(accepted=False, code=1011))
+
 
 def build_websocket_scope(parts: WebSocketScopeParts) -> dict[str, Any]:
     return {
@@ -79,7 +123,9 @@ def build_websocket_scope(parts: WebSocketScopeParts) -> dict[str, Any]:
         "http_version": "1.1",
         "scheme": "wss",
         "path": parts.path,
-        "raw_path": parts.path.encode(),
+        "raw_path": (
+            parts.raw_path if parts.raw_path is not None else parts.path.encode()
+        ),
         "query_string": parts.query_string,
         "headers": parts.headers or [],
         "client": None,
@@ -98,7 +144,8 @@ def build_websocket_scope_from_request(request: Any) -> dict[str, Any]:
     scheme = "wss" if (url.scheme or "https") == "https" else "ws"
     return build_websocket_scope(
         WebSocketScopeParts(
-            path=url.path or "/",
+            path=unquote(url.path or "/"),
+            raw_path=(url.path or "/").encode(),
             query_string=url.query.encode(),
             headers=headers,
             subprotocols=_subprotocols_from_headers(request),
@@ -125,13 +172,19 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
         app, server, build_websocket_scope_from_request(request)
     )
     proxies: list[Any] = []
+    event_listeners: list[tuple[str, Any]] = []
 
-    def destroy_proxies() -> None:
+    def destroy_proxy(proxy: Any) -> None:
+        destroy = getattr(proxy, "destroy", None)
+        if callable(destroy):
+            destroy()
+
+    def cleanup_proxies() -> None:
+        while event_listeners:
+            event_type, proxy = event_listeners.pop()
+            server.removeEventListener(event_type, proxy)
         while proxies:
-            proxy = proxies.pop()
-            destroy = getattr(proxy, "destroy", None)
-            if callable(destroy):
-                destroy()
+            destroy_proxy(proxies.pop())
 
     def on_message(event: Any) -> None:
         data = event.data
@@ -171,14 +224,22 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
     ]:
         proxy = create_proxy(callback)
         proxies.append(proxy)
+        event_listeners.append((event_type, proxy))
         server.addEventListener(event_type, proxy)
 
     task = session.start()
     task_proxy = create_proxy(task)
-    proxies.append(task_proxy)
-    task.add_done_callback(lambda _task: destroy_proxies())
+
+    def on_task_done(_task: asyncio.Task[None]) -> None:
+        cleanup_proxies()
+        destroy_proxy(task_proxy)
+
+    task.add_done_callback(on_task_done)
     wait_until(task_proxy)
-    await asyncio.sleep(0)
+    handshake = await session.wait_for_handshake()
+    if not handshake.accepted:
+        cleanup_proxies()
+        return Response(None, status=403)
     subprotocol = _select_websocket_subprotocol(request)
     headers = (
         {"sec-websocket-protocol": subprotocol} if subprotocol is not None else None

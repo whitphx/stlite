@@ -4,7 +4,7 @@ import inspect
 from collections.abc import Awaitable, Callable, Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import unquote, urlsplit
 
 AsgiMessage = dict[str, Any]
 AsgiReceive = Callable[[], Awaitable[AsgiMessage]]
@@ -64,7 +64,7 @@ def build_http_scope(request: Any) -> dict[str, Any]:
         "http_version": "1.1",
         "method": method,
         "scheme": url.scheme or "https",
-        "path": url.path or "/",
+        "path": unquote(url.path or "/"),
         "raw_path": (url.path or "/").encode(),
         "query_string": url.query.encode(),
         "headers": headers,

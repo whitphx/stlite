@@ -18,8 +18,17 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
   return inputMediaObjects;
 }
 
-export function useDownloadFileFromStlite(): (_url: string) => false {
-  return () => false;
+export function useDownloadFileFromStlite(): (url: string) => true {
+  return (url: string) => {
+    const anchor = document.createElement("a");
+    anchor.href = new URL(url, window.location.href).toString();
+    anchor.download = "";
+    anchor.style.display = "none";
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  };
 }
 
 type AdditionalProps = { [key: string]: unknown };

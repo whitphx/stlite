@@ -135,7 +135,9 @@ async function copyTemplate(sourceDir, targetDir, replacements) {
   await Promise.all(
     entries.map(async (entry) => {
       const sourcePath = path.join(sourceDir, entry.name);
-      const targetPath = path.join(targetDir, entry.name);
+      const targetName =
+        entry.name === "_gitignore" ? ".gitignore" : entry.name;
+      const targetPath = path.join(targetDir, targetName);
       if (entry.isDirectory()) {
         await fs.mkdir(targetPath, { recursive: true });
         await copyTemplate(sourcePath, targetPath, replacements);
@@ -157,7 +159,7 @@ async function copyTemplate(sourceDir, targetDir, replacements) {
 }
 
 function isTextTemplate(fileName) {
-  return [".gitignore", ".json", ".jsonc", ".md", ".py", ".toml", ".txt"].some(
+  return ["_gitignore", ".json", ".jsonc", ".md", ".py", ".toml", ".txt"].some(
     (suffix) => fileName.endsWith(suffix),
   );
 }

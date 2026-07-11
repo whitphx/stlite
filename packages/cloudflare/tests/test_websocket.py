@@ -47,6 +47,12 @@ async def echo_websocket_app(scope, receive, send):
     await send({"type": "websocket.close", "code": event["code"]})
 
 
+async def reject_websocket_app(scope, receive, send):
+    assert scope["type"] == "websocket"
+    assert (await receive())["type"] == "websocket.connect"
+    await send({"type": "websocket.close", "code": 1008, "reason": "nope"})
+
+
 def test_build_websocket_scope():
     scope = build_websocket_scope(
         WebSocketScopeParts(
@@ -85,6 +91,18 @@ def test_build_websocket_scope_from_request():
     assert is_websocket_upgrade(request) is True
 
 
+def test_build_websocket_scope_from_request_decodes_path_and_preserves_raw_path():
+    request = FakeRequest(
+        "https://example.com/app/static/my%20image.png?session=1",
+        {"Upgrade": "websocket"},
+    )
+
+    scope = build_websocket_scope_from_request(request)
+
+    assert scope["path"] == "/app/static/my image.png"
+    assert scope["raw_path"] == b"/app/static/my%20image.png"
+
+
 def test_selects_streamlit_websocket_subprotocol():
     request = FakeRequest(
         "https://example.com/_stcore/stream",
@@ -117,3 +135,20 @@ async def test_asgi_websocket_session_translates_messages():
     assert socket.accepted is True
     assert socket.sent == ["HELLO"]
     assert socket.closed == (1001, "")
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_rejects_before_accept_without_closing_socket():
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(reject_websocket_app, socket, scope)
+
+    task = session.start()
+    handshake = await session.wait_for_handshake()
+    await task
+
+    assert handshake.accepted is False
+    assert handshake.code == 1008
+    assert handshake.reason == "nope"
+    assert socket.accepted is False
+    assert socket.closed is None

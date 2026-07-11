@@ -60,6 +60,19 @@ def test_build_http_scope_normalizes_request_metadata():
     assert scope["headers"] == [(b"content-type", b"text/plain")]
 
 
+def test_build_http_scope_decodes_path_and_preserves_raw_path():
+    request = FakeRequest(
+        method="GET",
+        url="https://example.com/app/static/my%20image.png?x=1",
+        headers={},
+    )
+
+    scope = build_http_scope(request)
+
+    assert scope["path"] == "/app/static/my image.png"
+    assert scope["raw_path"] == b"/app/static/my%20image.png"
+
+
 @pytest.mark.asyncio
 async def test_run_http_asgi_returns_buffered_response():
     request = FakeRequest(

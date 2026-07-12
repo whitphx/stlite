@@ -105,9 +105,11 @@ async function cleanProject() {
 }
 
 function toProjectName(name) {
+  // The name lands in wrangler.jsonc's "name", which Cloudflare restricts to
+  // lowercase alphanumerics and dashes ("." and "_" are rejected at deploy).
   const normalized = name
     .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return normalized || "stlite-cloudflare-app";
 }

@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
-from stlite_cloudflare.adapter import _encode_request_headers, _to_bytes
+from stlite_cloudflare.adapter import (
+    _encode_request_headers,
+    _iter_header_pairs,
+    _to_bytes,
+)
 
 AsgiMessage = dict[str, Any]
 AsgiReceive = Callable[[], Awaitable[AsgiMessage]]
@@ -38,6 +42,8 @@ class AsgiWebSocketSession:
         self._incoming: asyncio.Queue[AsgiMessage] = asyncio.Queue()
         self._task: asyncio.Task[None] | None = None
         self._accepted = False
+        self._app_closed = False
+        self._client_disconnected = False
         self._handshake: asyncio.Future[WebSocketHandshake] | None = None
 
     def start(self) -> asyncio.Task[None]:
@@ -47,6 +53,7 @@ class AsgiWebSocketSession:
         self._task = asyncio.create_task(self._app(self._scope, self.receive, self.send))
         self._incoming.put_nowait({"type": "websocket.connect"})
         self._task.add_done_callback(self._reject_unfinished_handshake)
+        self._task.add_done_callback(self._close_abandoned_socket)
         return self._task
 
     async def wait_for_handshake(self) -> WebSocketHandshake:
@@ -84,6 +91,7 @@ class AsgiWebSocketSession:
                     )
                 )
                 return
+            self._app_closed = True
             close = getattr(self._socket, "close", None)
             if callable(close):
                 close(message.get("code", 1000), message.get("reason", ""))
@@ -97,6 +105,7 @@ class AsgiWebSocketSession:
         self._incoming.put_nowait({"type": "websocket.receive", "bytes": data})
 
     def disconnect(self, code: int = 1000) -> None:
+        self._client_disconnected = True
         self._incoming.put_nowait({"type": "websocket.disconnect", "code": code})
 
     def _resolve_handshake(self, result: WebSocketHandshake) -> None:
@@ -114,6 +123,18 @@ class AsgiWebSocketSession:
             self._handshake.set_exception(error)
         else:
             self._handshake.set_result(WebSocketHandshake(accepted=False, code=1011))
+
+    def _close_abandoned_socket(self, task: asyncio.Task[None]) -> None:
+        # The ASGI spec requires the server to close the transport when the
+        # app task ends after accept without sending "websocket.close" (1011
+        # on error); otherwise the browser keeps a half-open connection and
+        # the Streamlit frontend hangs instead of reconnecting.
+        if not self._accepted or self._app_closed or self._client_disconnected:
+            return
+        failed = not task.cancelled() and task.exception() is not None
+        close = getattr(self._socket, "close", None)
+        if callable(close):
+            close(1011 if failed else 1000, "")
 
 
 def build_websocket_scope(parts: WebSocketScopeParts) -> dict[str, Any]:
@@ -168,9 +189,8 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
     endpoints = js.Object.values(pair)
     client = endpoints.at(0)
     server = endpoints.at(1)
-    session = AsgiWebSocketSession(
-        app, server, build_websocket_scope_from_request(request)
-    )
+    scope = build_websocket_scope_from_request(request)
+    session = AsgiWebSocketSession(app, server, scope)
     proxies: list[Any] = []
     event_listeners: list[tuple[str, Any]] = []
 
@@ -240,7 +260,7 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
     if not handshake.accepted:
         cleanup_proxies()
         return Response(None, status=403)
-    subprotocol = _select_websocket_subprotocol(request)
+    subprotocol = _select_websocket_subprotocol(scope["subprotocols"])
     headers = (
         {"sec-websocket-protocol": subprotocol} if subprotocol is not None else None
     )
@@ -249,9 +269,9 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
 
 def _header_value(request: Any, name: str) -> str:
     wanted = name.lower()
-    for key, value in _encode_request_headers(getattr(request, "headers", {})):
-        if key.decode("latin-1").lower() == wanted:
-            return value.decode("latin-1")
+    for key, value in _iter_header_pairs(getattr(request, "headers", {})):
+        if str(key).lower() == wanted:
+            return str(value)
     return ""
 
 
@@ -262,15 +282,15 @@ def _subprotocols_from_headers(request: Any) -> list[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 
 
-def _select_websocket_subprotocol(request: Any) -> str | None:
-    protocols = _subprotocols_from_headers(request)
-    if "streamlit" in protocols:
+def _select_websocket_subprotocol(subprotocols: list[str]) -> str | None:
+    if "streamlit" in subprotocols:
         return "streamlit"
     return None
 
 
 def _to_js_uint8_array(data: bytes | bytearray | memoryview) -> Any:
-    import js
+    # to_js copies a buffer-protocol object into a Uint8Array in one memcpy;
+    # this runs for every outbound binary frame (all ForwardMsg protobufs).
     from pyodide.ffi import to_js
 
-    return js.Uint8Array.new(to_js(list(bytes(data))))
+    return to_js(bytes(data))

@@ -55,6 +55,25 @@ test("buildWebSocketScope decodes scope.path and preserves raw_path", () => {
   );
 });
 
+test("dispatchHttp passes malformed percent sequences through instead of throwing", async () => {
+  const captured: { scope?: AsgiEvent } = {};
+  const app: AsgiApp = async (scope, receive, send) => {
+    captured.scope = scope;
+    await receive();
+    await send({ type: "http.response.start", status: 204, headers: [] });
+    await send({ type: "http.response.body", body: new Uint8Array() });
+  };
+
+  await dispatchHttp(app, {
+    method: "GET",
+    path: "/app/static/100%.png",
+    headers: {},
+    body: "",
+  });
+
+  expect(captured.scope?.path).toBe("/app/static/100%.png");
+});
+
 suite("ASGI bridge spike", { timeout: 120 * 1000 }, () => {
   let pyodide: PyodideInterface;
   let asgiApp: AsgiApp;

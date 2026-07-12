@@ -8,13 +8,15 @@ dependency tree needed by Cloudflare.
 ## Create an app
 
 ```bash
-mkdir my-app
+npx @stlite/cloudflare init my-app
 cd my-app
-npm init -y
-npm install -D @stlite/cloudflare wrangler
-npx stlite-cloudflare init .
+npm install
 npm run dev
 ```
+
+`init` requires an empty (or not yet existing) directory; the generated
+`package.json` already declares `@stlite/cloudflare` and `wrangler` as
+dev dependencies.
 
 Until the package publishes versioned runtime artifacts, this development build
 must run from the Stlite monorepo sample:
@@ -44,15 +46,14 @@ stlite-pinned Streamlit runtime, and copy the Worker bridge into
 ```text
 app/streamlit_app.py
 src/entry.py
-stlite-cloudflare.toml
 wrangler.jsonc
 pyproject.toml
 package.json
 ```
 
-`wrangler.jsonc` remains the Cloudflare deployment source of truth. The
-`stlite-cloudflare.toml` file records the Streamlit app entrypoint and package
-inclusion policy; the current build uses the default `app/` layout.
+`wrangler.jsonc` remains the Cloudflare deployment source of truth. The build
+packages the `app/` directory and serves `app/streamlit_app.py` as the
+Streamlit entrypoint.
 
 ## Release artifact TODO
 

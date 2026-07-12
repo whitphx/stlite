@@ -507,16 +507,14 @@ export function startWorkerEnv(
     asgiApp: AsgiApp,
     request: InMessageHttpRequest["data"]["request"],
   ) {
-    const decodedRequest = {
-      ...request,
-      path: decodeURIComponent(request.path),
-    };
-
-    if (httpCookieJar.needsXsrfWarmup(decodedRequest)) {
-      await warmUpXsrfCookie(asgiApp, decodedRequest.path);
+    // `request.path` keeps its wire encoding; buildHttpScope percent-decodes
+    // it exactly once, so decoding here as well would corrupt paths whose
+    // decoded form contains "%".
+    if (httpCookieJar.needsXsrfWarmup(request)) {
+      await warmUpXsrfCookie(asgiApp, request.path);
     }
 
-    const requestWithCookies = httpCookieJar.applyToRequest(decodedRequest);
+    const requestWithCookies = httpCookieJar.applyToRequest(request);
     const response = await dispatchHttp(asgiApp, requestWithCookies);
     httpCookieJar.storeFromResponse(response.headers);
     return response;

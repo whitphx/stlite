@@ -86,6 +86,9 @@ def setup_streamlit_logging(
     streamlit_message_format: str = "%(asctime)s %(message)s",
     callback: Any | None = None,
 ) -> None:
+    # Fix Streamlit's logger instantiating strategy, which violates the
+    # standard logging API and is problematic for us.
+    # See https://github.com/streamlit/streamlit/issues/4742
     import streamlit.logger
 
     streamlit.logger.get_logger = logging.getLogger
@@ -135,6 +138,7 @@ def _build_log_handler(callback: Any | None) -> logging.Handler:
 
 
 def disable_runtime_message_cache() -> None:
+    # See https://github.com/whitphx/stlite/issues/495
     import streamlit.runtime.runtime
 
     def is_cacheable_msg(msg: Any) -> bool:
@@ -152,6 +156,8 @@ def configure_streamlit(
     streamlit_flag_options = {
         "browser.gatherUsageStats": False,
         **(streamlit_config or {}),
+        # Fast reruns do not work well with the async script runner of stlite.
+        # See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
         "runner.fastReruns": False,
     }
     load_config_options(streamlit_flag_options, multi_runtime)

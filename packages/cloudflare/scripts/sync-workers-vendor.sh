@@ -27,16 +27,20 @@ SH
   export PATH="$YARN_SHIM_DIR:$PATH"
 fi
 
-FRONTEND_MARKER="$PROJECT_DIR/.stlite-cloudflare-remote-frontend"
-if [ ! -f "$FRONTEND_MARKER" ]; then
-  rm -rf "$ROOT_DIR/streamlit/lib/streamlit/static"
+# The Cloudflare-variant frontend is kept per-project instead of being synced
+# into the shared streamlit submodule: `make streamlit-wheel` does not track
+# static assets, so a submodule-side copy could be silently missing from an
+# already-built wheel, and it would leak into wheels built for the other
+# stlite packages. Delete this directory to force a frontend rebuild.
+FRONTEND_BUILD_DIR="$PROJECT_DIR/.stlite-cloudflare-remote-frontend"
+if [ ! -d "$FRONTEND_BUILD_DIR" ]; then
   pushd "$ROOT_DIR/streamlit/frontend" >/dev/null
   yarn workspaces foreach --recursive --topological --parallel --from @streamlit/app --exclude @streamlit/app --exclude @streamlit/lib run build
   yarn node "$PACKAGE_DIR/frontend/build.mjs"
   popd >/dev/null
-  rsync -av --delete --delete-excluded --exclude=reports \
-    "$ROOT_DIR/streamlit/frontend/app/build/" "$ROOT_DIR/streamlit/lib/streamlit/static/"
-  touch "$FRONTEND_MARKER"
+  rm -rf "$FRONTEND_BUILD_DIR"
+  rsync -a --delete --delete-excluded --exclude=reports \
+    "$ROOT_DIR/streamlit/frontend/app/build/" "$FRONTEND_BUILD_DIR/"
 fi
 
 make -C "$ROOT_DIR" stlite-lib-wheel streamlit-wheel
@@ -89,6 +93,10 @@ shutil.copytree(
     dirs_exist_ok=True,
 )
 PY
+
+# The Worker serves the frontend from the vendored streamlit package's static
+# dir; overlay the Cloudflare build over whatever the wheel shipped.
+rsync -a --delete "$FRONTEND_BUILD_DIR/" "$VENDOR_DIR/streamlit/static/"
 
 mkdir -p "$VENDOR_DIR/_stlite_cloudflare_app"
 rsync -a --delete "$APP_DIR/" "$VENDOR_DIR/_stlite_cloudflare_app/"

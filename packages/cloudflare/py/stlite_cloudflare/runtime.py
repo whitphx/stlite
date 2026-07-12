@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from pathlib import Path
@@ -9,16 +10,22 @@ AsgiReceive = Callable[[], Awaitable[dict[str, Any]]]
 AsgiSend = Callable[[dict[str, Any]], Awaitable[None]]
 AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
 
-_app: Any | None = None
-_lifespan_state: dict[str, Any] | None = None
-_asgi: AsgiApp | None = None
+_init_task: asyncio.Task[AsgiApp] | None = None
 
 
 async def get_streamlit_asgi_app() -> AsgiApp:
-    global _app, _lifespan_state, _asgi
-    if _asgi is not None:
-        return _asgi
+    # Concurrent cold-start requests (index HTML, health check, WebSocket
+    # upgrade) must await one shared initialization: the init path suspends at
+    # the lifespan startup, and a bare "already initialized?" check would let
+    # each request create its own Streamlit Runtime, with the last one
+    # silently shadowing the others.
+    global _init_task
+    if _init_task is None:
+        _init_task = asyncio.ensure_future(_create_streamlit_asgi_app())
+    return await _init_task
 
+
+async def _create_streamlit_asgi_app() -> AsgiApp:
     try:
         from stlite_lib.asgi_app import (
             bind_runtime_to_current_context,
@@ -53,8 +60,7 @@ async def get_streamlit_asgi_app() -> AsgiApp:
     logging.getLogger("stlite_lib").setLevel(logging.INFO)
     prepare(str(script_path), [])
 
-    _app = create_app(str(script_path))
-    _lifespan_state = await run_lifespan_startup(_app)
-    bind_runtime_to_current_context(_app)
-    _asgi = make_call_asgi(_app, home_dir=str(home_dir))
-    return _asgi
+    app = create_app(str(script_path))
+    await run_lifespan_startup(app)
+    bind_runtime_to_current_context(app)
+    return make_call_asgi(app, home_dir=str(home_dir))

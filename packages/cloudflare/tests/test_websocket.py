@@ -108,8 +108,9 @@ def test_selects_streamlit_websocket_subprotocol():
         "https://example.com/_stcore/stream",
         {"Sec-WebSocket-Protocol": "chat, streamlit"},
     )
+    scope = build_websocket_scope_from_request(request)
 
-    assert _select_websocket_subprotocol(request) == "streamlit"
+    assert _select_websocket_subprotocol(scope["subprotocols"]) == "streamlit"
 
 
 def test_omits_websocket_subprotocol_when_streamlit_is_not_requested():
@@ -117,8 +118,9 @@ def test_omits_websocket_subprotocol_when_streamlit_is_not_requested():
         "https://example.com/_stcore/stream",
         {"Sec-WebSocket-Protocol": "chat"},
     )
+    scope = build_websocket_scope_from_request(request)
 
-    assert _select_websocket_subprotocol(request) is None
+    assert _select_websocket_subprotocol(scope["subprotocols"]) is None
 
 
 @pytest.mark.asyncio
@@ -135,6 +137,57 @@ async def test_asgi_websocket_session_translates_messages():
     assert socket.accepted is True
     assert socket.sent == ["HELLO"]
     assert socket.closed == (1001, "")
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_closes_socket_when_app_crashes_after_accept():
+    async def crashing_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send({"type": "websocket.accept"})
+        raise RuntimeError("boom")
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(crashing_app, socket, scope)
+
+    task = session.start()
+    with pytest.raises(RuntimeError, match="boom"):
+        await task
+
+    assert socket.closed == (1011, "")
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_closes_socket_when_app_returns_without_close():
+    async def returning_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send({"type": "websocket.accept"})
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(returning_app, socket, scope)
+
+    await session.start()
+
+    assert socket.closed == (1000, "")
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_skips_close_after_client_disconnect():
+    async def disconnect_aware_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send({"type": "websocket.accept"})
+        assert (await receive())["type"] == "websocket.disconnect"
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(disconnect_aware_app, socket, scope)
+
+    task = session.start()
+    session.disconnect(1001)
+    await task
+
+    assert socket.closed is None
 
 
 @pytest.mark.asyncio

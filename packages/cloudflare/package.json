@@ -2,6 +2,27 @@
   "name": "@stlite/cloudflare",
   "version": "0.1.0",
   "description": "Deploy stlite-backed Streamlit apps to Cloudflare Python Workers.",
+  "keywords": [
+    "cloudflare",
+    "pyodide",
+    "stlite",
+    "streamlit",
+    "wasm",
+    "webassembly"
+  ],
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Yuichiro Tachibana (Tsuchiya)",
+    "url": "https://www.whitphx.info/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/cloudflare"
+  },
   "bin": {
     "stlite-cloudflare": "./bin/stlite-cloudflare.mjs"
   },

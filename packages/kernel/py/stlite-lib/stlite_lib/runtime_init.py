@@ -33,6 +33,8 @@ class _UnsupportedPyArrowTable:
 
 
 def mock_pyarrow() -> None:
+    # Duplicated in packages/kernel/src/mock.ts for the browser worker, which
+    # mocks pyarrow before this package is installed. Keep the stubs in sync.
     module = ModuleType("pyarrow")
     setattr(module, "__version__", "0.0.1")
     setattr(module, "Table", _UnsupportedPyArrowTable)

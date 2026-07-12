@@ -1,5 +1,8 @@
 import type { PyodideInterface } from "pyodide";
 
+// Duplicates stlite_lib.runtime_init.mock_pyarrow: this browser-side copy has
+// to run before the stlite-lib wheel is installed, so it cannot import the
+// Python implementation. Keep the two stubs in sync.
 export function mockPyArrow(pyodide: PyodideInterface) {
   pyodide.runPython(`
 import micropip

@@ -36,10 +36,16 @@
   ],
   "type": "module",
   "scripts": {
+    "fix:lint": "oxlint --fix bin frontend scripts",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint bin frontend scripts",
+    "check:format": "oxfmt --check .",
     "test": "uv run --project . pytest",
     "pack:dry-run": "npm pack --dry-run"
   },
   "devDependencies": {
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "playwright": "^1.61.1",
     "wrangler": "^4.105.0"
   }

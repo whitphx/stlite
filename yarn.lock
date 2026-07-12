@@ -7917,6 +7917,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stlite/cloudflare@workspace:packages/cloudflare"
   dependencies:
+    oxfmt: "npm:^0.45.0"
+    oxlint: "npm:^1.60.0"
     playwright: "npm:^1.61.1"
     wrangler: "npm:^4.105.0"
   bin:

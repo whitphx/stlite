@@ -127,6 +127,7 @@ jobs:
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -161,6 +162,9 @@ jobs:
               - 'packages/app-packager/**/*'
             cli:
               - 'packages/cli/**/*'
+              - 'packages/app-packager/**/*'
+            cloudflare:
+              - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
 
   test-build-common:
@@ -482,6 +486,37 @@ jobs:
         # vitest auto-detects CI=true and runs once instead of watching, so
         # no explicit `--run` flag needed.
         run: yarn workspace @stlite/cli test
+
+  test-cloudflare:
+    needs: changes
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages/cloudflare
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+
+      # The pytest suite covers the Worker runtime modules and spawns the CLI
+      # via node, so it needs both uv and the Node toolchain set up above.
+      - run: yarn test
 
   build-browser:
     if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -877,6 +912,84 @@ jobs:
           key: cli
           name: "@stlite/cli"
           input-path: packages/cli/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+
+  build-cloudflare:
+    # Unlike the always-built packages above, this build compiles the
+    # Cloudflare-variant Streamlit frontend and vendors the full Pyodide
+    # dependency tree, so it only runs when the cloudflare package (or a
+    # dependency) changed; RUN_ALL_TESTS makes that always true on main,
+    # which is what the postbuild publish/deploy jobs rely on.
+    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
+    needs:
+      [set-build-info, changes, test-kernel, test-stlite-lib, test-cloudflare]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+
+      # Exercises the whole pipeline that generated user projects run:
+      # stlite-lib/streamlit wheels, the Cloudflare frontend build,
+      # `pywrangler sync`, and the python_modules overlay.
+      - name: Build the hello sample
+        run: |
+          . .venv/bin/activate
+          corepack yarn workspace stlite-cloudflare-sample-hello build
+
+      - name: Validate the Worker bundle
+        working-directory: packages/cloudflare/samples/hello
+        run: npx wrangler deploy --dry-run
+
+      - name: Package
+        working-directory: packages/cloudflare
+        run: yarn pack
+
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: packages/cloudflare/package.tgz
+          name: stlite-cloudflare
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/cloudflare/package.tgz
+        continue-on-error: true
+
+      # The deployable sample is only consumed by the postbuild deploy job,
+      # which runs for main-branch builds, so skip the heavy upload on PRs.
+      - name: Upload the built hello sample as an artifact
+        if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: |
+            packages/cloudflare/samples/hello/wrangler.jsonc
+            packages/cloudflare/samples/hello/src
+            packages/cloudflare/samples/hello/app
+            packages/cloudflare/samples/hello/python_modules
+          name: stlite-cloudflare-sample-hello
+
+      - name: "Inform the package stats of @stlite/cloudflare"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: cloudflare
+          name: "@stlite/cloudflare"
+          input-path: packages/cloudflare/package.tgz
           pr-number: ${{ needs.set-build-info.outputs.pr-number }}
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 

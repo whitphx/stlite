@@ -20,9 +20,19 @@ async def get_streamlit_asgi_app() -> AsgiApp:
     # each request create its own Streamlit Runtime, with the last one
     # silently shadowing the others.
     global _init_task
-    if _init_task is None:
-        _init_task = asyncio.ensure_future(_create_streamlit_asgi_app())
-    return await _init_task
+    task = _init_task
+    if task is None:
+        task = asyncio.ensure_future(_create_streamlit_asgi_app())
+        _init_task = task
+    try:
+        return await task
+    except BaseException:
+        # Drop the failed task so the next request retries; a Worker isolate
+        # can serve traffic for a long time, and caching the failure would
+        # turn one transient cold-start error into permanent 500s.
+        if _init_task is task:
+            _init_task = None
+        raise
 
 
 async def _create_streamlit_asgi_app() -> AsgiApp:

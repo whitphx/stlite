@@ -14,7 +14,22 @@ window.__streamlit = {
 """
 
 
-def with_cloudflare_frontend_config(response: AsgiHttpResponse) -> AsgiHttpResponse:
+# Streamlit serves the SPA index for any path outside these namespaces; files
+# under them (custom component pages, user static files) can also be text/html
+# with module scripts and must be served byte-for-byte.
+_NON_INDEX_PATH_PREFIXES = (
+    "/_stcore/",
+    "/app/static/",
+    "/component/",
+    "/media/",
+)
+
+
+def with_cloudflare_frontend_config(
+    response: AsgiHttpResponse, path: str
+) -> AsgiHttpResponse:
+    if path.startswith(_NON_INDEX_PATH_PREFIXES):
+        return response
     if not _is_html_response(response) or _MODULE_SCRIPT_MARKER not in response.body:
         return response
 

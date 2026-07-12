@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
 from stlite_cloudflare.adapter import (
-    _encode_request_headers,
-    _iter_header_pairs,
-    _to_bytes,
+    encode_request_headers,
+    iter_header_pairs,
+    to_bytes,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 AsgiMessage = dict[str, Any]
 AsgiReceive = Callable[[], Awaitable[AsgiMessage]]
@@ -161,7 +164,7 @@ def is_websocket_upgrade(request: Any) -> bool:
 
 def build_websocket_scope_from_request(request: Any) -> dict[str, Any]:
     url = urlsplit(str(getattr(request, "url")))
-    headers = _encode_request_headers(getattr(request, "headers", {}))
+    headers = encode_request_headers(getattr(request, "headers", {}))
     scheme = "wss" if (url.scheme or "https") == "https" else "ws"
     return build_websocket_scope(
         WebSocketScopeParts(
@@ -215,7 +218,7 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
 
             def on_blob_buffer(buffer: Any) -> None:
                 try:
-                    session.receive_bytes(_to_bytes(buffer))
+                    session.receive_bytes(to_bytes(buffer))
                 finally:
                     proxy = proxy_holder.get("proxy")
                     if proxy in proxies:
@@ -229,7 +232,7 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
             proxies.append(proxy)
             data.arrayBuffer().then(proxy)
         else:
-            session.receive_bytes(_to_bytes(data))
+            session.receive_bytes(to_bytes(data))
 
     def on_close(event: Any) -> None:
         session.disconnect(int(getattr(event, "code", 1000) or 1000))
@@ -256,7 +259,15 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
 
     task.add_done_callback(on_task_done)
     wait_until(task_proxy)
-    handshake = await session.wait_for_handshake()
+    try:
+        handshake = await session.wait_for_handshake()
+    except Exception:
+        # The app crashed before accepting or rejecting the connection; the
+        # traceback belongs in the Worker logs, and the client gets a clean
+        # HTTP error instead of an unhandled exception page.
+        _LOGGER.exception("WebSocket ASGI app failed during the handshake")
+        cleanup_proxies()
+        return Response(None, status=500)
     if not handshake.accepted:
         cleanup_proxies()
         return Response(None, status=403)
@@ -269,7 +280,7 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
 
 def _header_value(request: Any, name: str) -> str:
     wanted = name.lower()
-    for key, value in _iter_header_pairs(getattr(request, "headers", {})):
+    for key, value in iter_header_pairs(getattr(request, "headers", {})):
         if str(key).lower() == wanted:
             return str(value)
     return ""

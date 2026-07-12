@@ -42,7 +42,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> AsgiHttpResponse:
             headers = _decode_response_headers(message.get("headers", []))
             return
         if message_type == "http.response.body":
-            chunks.append(_to_bytes(message.get("body", b"")))
+            chunks.append(to_bytes(message.get("body", b"")))
             return
         raise RuntimeError(f"Unsupported ASGI HTTP message: {message_type}")
 
@@ -52,7 +52,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> AsgiHttpResponse:
 
 def build_http_scope(request: Any) -> dict[str, Any]:
     url = urlsplit(str(getattr(request, "url")))
-    headers = _encode_request_headers(getattr(request, "headers", {}))
+    headers = encode_request_headers(getattr(request, "headers", {}))
     method = str(getattr(request, "method", "GET")).upper()
     server_port = url.port
     if server_port is None:
@@ -76,14 +76,14 @@ def build_http_scope(request: Any) -> dict[str, Any]:
 async def _read_request_body(request: Any) -> bytes:
     body_method = getattr(request, "arrayBuffer", None)
     if callable(body_method):
-        return _to_bytes(await _maybe_await(body_method()))
+        return to_bytes(await _maybe_await(body_method()))
 
     body_method = getattr(request, "body", None)
     if callable(body_method):
-        return _to_bytes(await _maybe_await(body_method()))
+        return to_bytes(await _maybe_await(body_method()))
 
     body = getattr(request, "_body", b"")
-    return _to_bytes(await _maybe_await(body))
+    return to_bytes(await _maybe_await(body))
 
 
 async def _maybe_await(value: Any) -> Any:
@@ -92,16 +92,16 @@ async def _maybe_await(value: Any) -> Any:
     return value
 
 
-def _encode_request_headers(headers: Any) -> list[tuple[bytes, bytes]]:
+def encode_request_headers(headers: Any) -> list[tuple[bytes, bytes]]:
     encoded_headers = []
-    for name, value in _iter_header_pairs(headers):
-        encoded_name = _to_bytes(name).lower()
+    for name, value in iter_header_pairs(headers):
+        encoded_name = to_bytes(name).lower()
         # Cloudflare's HTTP layer owns response compression. If Streamlit's ASGI
         # gzip middleware also compresses, Wrangler can serve double-gzipped app
         # HTML/media bodies that browsers decode only once.
         if encoded_name == b"accept-encoding":
             continue
-        encoded_headers.append((encoded_name, _to_bytes(value)))
+        encoded_headers.append((encoded_name, to_bytes(value)))
 
     return encoded_headers
 
@@ -110,12 +110,12 @@ def _decode_response_headers(
     headers: Iterable[tuple[bytes, bytes]],
 ) -> list[tuple[str, str]]:
     return [
-        (_to_bytes(name).decode("latin-1"), _to_bytes(value).decode("latin-1"))
+        (to_bytes(name).decode("latin-1"), to_bytes(value).decode("latin-1"))
         for name, value in headers
     ]
 
 
-def _iter_header_pairs(headers: Any) -> Iterable[tuple[Any, Any]]:
+def iter_header_pairs(headers: Any) -> Iterable[tuple[Any, Any]]:
     entries = getattr(headers, "entries", None)
     if callable(entries):
         yield from entries()
@@ -133,7 +133,7 @@ def _iter_header_pairs(headers: Any) -> Iterable[tuple[Any, Any]]:
     yield from headers
 
 
-def _to_bytes(value: Any) -> bytes:
+def to_bytes(value: Any) -> bytes:
     js_bytes = _try_js_bytes(value)
     if js_bytes is not None:
         return js_bytes

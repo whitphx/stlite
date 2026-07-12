@@ -7,6 +7,11 @@ ROOT_DIR="${STLITE_CLOUDFLARE_ROOT_DIR:-$(cd "$PACKAGE_DIR/../.." && pwd)}"
 VENDOR_DIR="$PROJECT_DIR/python_modules"
 APP_DIR="${STLITE_CLOUDFLARE_APP_DIR:-$PROJECT_DIR/app}"
 
+# The Streamlit frontend build below runs outside make, so give node the same
+# heap headroom the root Makefile exports for its own targets.
+: "${NODE_OPTIONS:=--max-old-space-size=6144}"
+export NODE_OPTIONS
+
 if [ ! -d "$ROOT_DIR/streamlit" ] || [ ! -d "$ROOT_DIR/packages/kernel/py/stlite-lib" ]; then
   cat >&2 <<'MSG'
 stlite-cloudflare cannot find the Stlite source-tree runtime artifacts.

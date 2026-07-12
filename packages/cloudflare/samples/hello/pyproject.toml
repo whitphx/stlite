@@ -1,7 +1,7 @@
 [project]
-name = "stlite-cloudflare"
+name = "stlite-cloudflare-sample-hello"
 version = "0.1.0"
-description = "Run the stlite Streamlit runtime on Cloudflare Python Workers."
+description = "Streamlit Hello sample for the stlite Cloudflare Workers deploy target."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
@@ -37,8 +37,3 @@ streamlit = { path = "../../../../streamlit/lib" }
 
 [tool.uv]
 package = false
-
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"

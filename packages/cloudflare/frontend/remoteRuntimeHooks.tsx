@@ -1,5 +1,8 @@
 import React from "react";
 
+// vite.config.mjs aliases `@stlite/kernel/react` to this module in the
+// Cloudflare frontend build, so it must export every name the Streamlit
+// frontend imports from that entry; a missing name fails the frontend build.
 export { ConnectionManager } from "@streamlit/connection";
 
 export function useStliteResolvedLogo<

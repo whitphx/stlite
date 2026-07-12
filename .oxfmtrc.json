@@ -15,7 +15,8 @@
     "CHANGELOG.md",
     "*.html",
     "tsconfig.json",
-    "packages/cli/test-fixtures"
+    "packages/cli/test-fixtures",
+    "packages/cloudflare/templates"
   ],
   "overrides": [
     {

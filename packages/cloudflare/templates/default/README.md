@@ -1,4 +1,4 @@
-# **PROJECT_NAME**
+# __PROJECT_NAME__
 
 This is a Streamlit app packaged for Cloudflare Python Workers with `@stlite/cloudflare`.
 

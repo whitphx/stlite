@@ -158,14 +158,8 @@ async function removeExistingPackages(packageNames) {
   await Promise.all(
     topLevelEntries
       .filter((entryName) =>
-        packageNames.some(
-          (packageName) =>
-            entryName === packageName ||
-            normalizePackageName(entryName) ===
-              normalizePackageName(packageName) ||
-            normalizePackageName(entryName).startsWith(
-              `${normalizePackageName(packageName)}-`,
-            ),
+        packageNames.some((packageName) =>
+          entryMatchesPackage(entryName, packageName),
         ),
       )
       .map((entryName) =>
@@ -178,16 +172,25 @@ async function removeExistingPackages(packageNames) {
 }
 
 function hasPackageArtifact(topLevelEntries, packageName) {
+  return topLevelEntries.some((entryName) =>
+    entryMatchesPackage(entryName, packageName),
+  );
+}
+
+function entryMatchesPackage(entryName, packageName) {
   const normalizedPackageName = normalizePackageName(packageName);
-  return topLevelEntries.some((entryName) => {
-    const normalizedEntryName = normalizePackageName(
-      entryName.replace(/\.dist-info$/, "").replace(/\.egg-info$/, ""),
-    );
-    return (
-      normalizedEntryName === normalizedPackageName ||
-      normalizedEntryName.startsWith(`${normalizedPackageName}-`)
-    );
-  });
+  const normalizedEntryName = normalizePackageName(
+    entryName.replace(/\.(dist-info|egg-info)$/, "").replace(/\.py$/, ""),
+  );
+  if (normalizedEntryName === normalizedPackageName) {
+    return true;
+  }
+  // "<name>-<version>" artifacts such as dist-info dirs; requiring a digit
+  // right after the dash keeps e.g. "pytest" from matching "pytest-asyncio".
+  return (
+    normalizedEntryName.startsWith(`${normalizedPackageName}-`) &&
+    /^\d/.test(normalizedEntryName.slice(normalizedPackageName.length + 1))
+  );
 }
 
 function normalizePackageName(packageName) {
@@ -212,17 +215,26 @@ def normalize_name(name):
 
 skip_packages = {normalize_name(name) for name in json.loads(sys.argv[3])}
 
-def has_package_artifact(package_name):
+def entry_matches_package(entry_name, package_name):
     normalized_package_name = normalize_name(package_name)
-    for entry in vendor_dir.iterdir():
-        entry_name = entry.name.removesuffix(".dist-info").removesuffix(".egg-info")
-        normalized_entry_name = normalize_name(entry_name)
-        if (
-            normalized_entry_name == normalized_package_name
-            or normalized_entry_name.startswith(normalized_package_name + "-")
-        ):
-            return True
-    return False
+    stripped_name = (
+        entry_name.removesuffix(".dist-info")
+        .removesuffix(".egg-info")
+        .removesuffix(".py")
+    )
+    normalized_entry_name = normalize_name(stripped_name)
+    if normalized_entry_name == normalized_package_name:
+        return True
+    # "<name>-<version>" artifacts such as dist-info dirs; requiring a digit
+    # right after the dash keeps e.g. "pytest" from matching "pytest-asyncio".
+    version_part = normalized_entry_name.removeprefix(normalized_package_name + "-")
+    return version_part != normalized_entry_name and version_part[:1].isdigit()
+
+def has_package_artifact(package_name):
+    return any(
+        entry_matches_package(entry.name, package_name)
+        for entry in vendor_dir.iterdir()
+    )
 
 copied_packages = []
 for dist_info_dir in site_packages.glob("*.dist-info"):

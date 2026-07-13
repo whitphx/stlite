@@ -2,10 +2,21 @@
 name = "stlite-cloudflare-tests"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = ["pytest>=8.3", "pytest-asyncio>=0.24", "starlette>=0.40.0"]
+dependencies = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.6.9",
+  "starlette>=0.40.0",
+]
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+src = ["py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
 
 [tool.pytest.ini_options]
 pythonpath = ["py"]

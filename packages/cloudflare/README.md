@@ -1,63 +1,53 @@
 # @stlite/cloudflare
 
-`@stlite/cloudflare` packages the stlite-patched Streamlit runtime for
-Cloudflare Python Workers. It provides a Worker runtime bridge, a project
-scaffold, and build commands that vendor the Pyodide-compatible Python
-dependency tree needed by Cloudflare.
+`@stlite/cloudflare` packages a local Streamlit project into a directory that
+deploys to Cloudflare Python Workers, running the stlite-patched Streamlit
+runtime. It vendors the Pyodide-compatible Python dependency tree, overlays the
+stlite runtime and a Cloudflare-variant Streamlit frontend, and emits a
+self-contained Worker directory. Deploying that directory is Wrangler's job.
 
-## Create an app
-
-```bash
-npx @stlite/cloudflare init my-app
-cd my-app
-npm install
-npm run dev
-```
-
-`init` requires an empty (or not yet existing) directory; the generated
-`package.json` already declares `@stlite/cloudflare` and `wrangler` as
-dev dependencies.
-
-Until the package publishes versioned runtime artifacts, this development build
-must run from the Stlite monorepo sample:
+## Usage
 
 ```bash
-yarn workspace stlite-cloudflare-sample-hello dev
+stlite-cloudflare build <path> -o <out>
+cd <out>
+npx wrangler deploy        # or: npx wrangler dev
 ```
 
-## CLI
+`<path>` is a plain Streamlit project directory. The command produces a
+deployable Worker directory at `<out>` (default `./dist`) containing
+`wrangler.jsonc`, `src/entry.py`, and the vendored `python_modules/`.
 
-```bash
-stlite-cloudflare init [dir]
-stlite-cloudflare build
-stlite-cloudflare dev -- --port 8787
-stlite-cloudflare deploy
-stlite-cloudflare clean
-```
+### Options
 
-`init` creates a standard Cloudflare Workers project whose `src/entry.py` imports
-`stlite_cloudflare.entry.Default`. `build`, `dev`, and `deploy` package the app
-under `app/` into `_stlite_cloudflare_app`, run `pywrangler sync`, overlay the
-stlite-pinned Streamlit runtime, and copy the Worker bridge into
-`python_modules`.
+- `-o, --out <dir>` — output directory (default `./dist`)
+- `--entrypoint <name>` — entry script relative to `<path>` (default
+  `streamlit_app.py`)
+- `--requirements <file>` — a `requirements.txt` (default `<path>/requirements.txt`
+  if present)
+- `--name <name>` — Worker name for a generated `wrangler.jsonc` (default: derived
+  from `<path>`)
 
-## Generated project
+If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
+you keep control of routes, vars, and bindings; otherwise a minimal one is
+generated. Either way you own `main` and `compatibility_flags`.
 
-```text
-app/streamlit_app.py
-src/entry.py
-wrangler.jsonc
-pyproject.toml
-package.json
-```
+## Dependencies
 
-`wrangler.jsonc` remains the Cloudflare deployment source of truth. The build
-packages the `app/` directory and serves `app/streamlit_app.py` as the
-Streamlit entrypoint.
+Streamlit and its runtime dependency tree are vendored automatically by the
+build, so they do not belong in your project. List only your app's own extra
+dependencies in a `requirements.txt` next to your app (each must have a
+Pyodide-compatible wheel), and rebuild.
+
+## Limitations
+
+HTTP responses are fully buffered in the Worker before being returned, so
+streaming responses are not supported and large media payloads count against
+the Worker isolate's memory limit.
 
 ## Release artifact TODO
 
 The current source-tree build still compiles `stlite-lib`, the stlite-pinned
 Streamlit wheel, and the Cloudflare-compatible frontend from the monorepo. A
 publishable release should replace that with bundled or downloaded versioned
-runtime artifacts so generated user projects do not need the Stlite repository.
+runtime artifacts so the build does not need the Stlite repository.

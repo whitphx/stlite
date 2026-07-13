@@ -31,7 +31,6 @@
     "frontend",
     "scripts",
     "py/**/*.py",
-    "templates",
     "README.md"
   ],
   "type": "module",

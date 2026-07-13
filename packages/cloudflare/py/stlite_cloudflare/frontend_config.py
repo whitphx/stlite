@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from stlite_cloudflare.adapter import AsgiHttpResponse
 
-
 _MODULE_SCRIPT_MARKER = b'<script type="module" '
 _CLOUDFLARE_FRONTEND_CONFIG = b"""<script>
 window.__streamlit = {

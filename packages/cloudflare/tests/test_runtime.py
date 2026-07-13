@@ -27,9 +27,7 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
 
     monkeypatch.setattr(runtime, "_create_streamlit_asgi_app", fake_create)
 
-    tasks = [
-        asyncio.ensure_future(runtime.get_streamlit_asgi_app()) for _ in range(3)
-    ]
+    tasks = [asyncio.ensure_future(runtime.get_streamlit_asgi_app()) for _ in range(3)]
     await asyncio.sleep(0)
     release.set()
 

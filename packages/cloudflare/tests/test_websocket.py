@@ -5,7 +5,6 @@ import pytest
 from stlite_cloudflare.websocket import (
     AsgiWebSocketSession,
     WebSocketScopeParts,
-    _select_websocket_subprotocol,
     build_websocket_scope,
     build_websocket_scope_from_request,
     is_websocket_upgrade,
@@ -103,24 +102,44 @@ def test_build_websocket_scope_from_request_decodes_path_and_preserves_raw_path(
     assert scope["raw_path"] == b"/app/static/my%20image.png"
 
 
-def test_selects_streamlit_websocket_subprotocol():
-    request = FakeRequest(
-        "https://example.com/_stcore/stream",
-        {"Sec-WebSocket-Protocol": "chat, streamlit"},
+@pytest.mark.asyncio
+async def test_handshake_carries_the_subprotocol_chosen_by_the_app():
+    async def subprotocol_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send(
+            {"type": "websocket.accept", "subprotocol": scope["subprotocols"][0]}
+        )
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(
+        WebSocketScopeParts(path="/_stcore/stream", subprotocols=["chat", "streamlit"])
     )
-    scope = build_websocket_scope_from_request(request)
+    session = AsgiWebSocketSession(subprotocol_app, socket, scope)
 
-    assert _select_websocket_subprotocol(scope["subprotocols"]) == "streamlit"
+    task = session.start()
+    handshake = await session.wait_for_handshake()
+    await task
+
+    assert handshake.accepted is True
+    assert handshake.subprotocol == "chat"
 
 
-def test_omits_websocket_subprotocol_when_streamlit_is_not_requested():
-    request = FakeRequest(
-        "https://example.com/_stcore/stream",
-        {"Sec-WebSocket-Protocol": "chat"},
+@pytest.mark.asyncio
+async def test_handshake_subprotocol_is_none_when_the_app_does_not_choose_one():
+    socket = FakeSocket()
+    scope = build_websocket_scope(
+        WebSocketScopeParts(path="/_stcore/stream", subprotocols=["streamlit"])
     )
-    scope = build_websocket_scope_from_request(request)
+    session = AsgiWebSocketSession(echo_websocket_app, socket, scope)
 
-    assert _select_websocket_subprotocol(scope["subprotocols"]) is None
+    task = session.start()
+    handshake = await session.wait_for_handshake()
+    session.receive_text("hello")
+    session.disconnect(1000)
+    await task
+
+    assert handshake.accepted is True
+    assert handshake.subprotocol is None
 
 
 @pytest.mark.asyncio

@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -43,3 +44,19 @@ await build(
     root: streamlitAppDir,
   }),
 );
+
+// stlite_cloudflare.frontend_config injects the backend config in front of
+// this marker at serve time and silently no-ops when it is absent, so a Vite
+// upgrade that changes the emitted script-tag shape must fail here instead.
+const moduleScriptMarker = '<script type="module" ';
+const indexHtml = await fs.readFile(
+  path.join(streamlitAppDir, "build/index.html"),
+  "utf8",
+);
+if (!indexHtml.includes(moduleScriptMarker)) {
+  throw new Error(
+    `The built index.html no longer contains ${JSON.stringify(moduleScriptMarker)}; ` +
+      "update _MODULE_SCRIPT_MARKER in py/stlite_cloudflare/frontend_config.py " +
+      "to match the new output.",
+  );
+}

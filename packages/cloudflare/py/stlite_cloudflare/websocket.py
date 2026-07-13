@@ -35,6 +35,7 @@ class WebSocketHandshake:
     accepted: bool
     code: int = 1000
     reason: str = ""
+    subprotocol: str | None = None
 
 
 class AsgiWebSocketSession:
@@ -53,7 +54,9 @@ class AsgiWebSocketSession:
         if self._task is not None:
             raise RuntimeError("WebSocket ASGI session already started")
         self._handshake = asyncio.get_running_loop().create_future()
-        self._task = asyncio.create_task(self._app(self._scope, self.receive, self.send))
+        self._task = asyncio.create_task(
+            self._app(self._scope, self.receive, self.send)
+        )
         self._incoming.put_nowait({"type": "websocket.connect"})
         self._task.add_done_callback(self._reject_unfinished_handshake)
         self._task.add_done_callback(self._close_abandoned_socket)
@@ -74,7 +77,11 @@ class AsgiWebSocketSession:
             accept = getattr(self._socket, "accept", None)
             if callable(accept):
                 accept()
-            self._resolve_handshake(WebSocketHandshake(accepted=True))
+            self._resolve_handshake(
+                WebSocketHandshake(
+                    accepted=True, subprotocol=message.get("subprotocol")
+                )
+            )
             return
         if message_type == "websocket.send":
             payload = message.get("bytes")
@@ -151,6 +158,7 @@ def build_websocket_scope(parts: WebSocketScopeParts) -> dict[str, Any]:
             parts.raw_path if parts.raw_path is not None else parts.path.encode()
         ),
         "query_string": parts.query_string,
+        "root_path": "",
         "headers": parts.headers or [],
         "client": None,
         "server": None,
@@ -271,9 +279,10 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
     if not handshake.accepted:
         cleanup_proxies()
         return Response(None, status=403)
-    subprotocol = _select_websocket_subprotocol(scope["subprotocols"])
     headers = (
-        {"sec-websocket-protocol": subprotocol} if subprotocol is not None else None
+        {"sec-websocket-protocol": handshake.subprotocol}
+        if handshake.subprotocol is not None
+        else None
     )
     return Response(None, status=101, headers=headers, web_socket=client)
 
@@ -291,12 +300,6 @@ def _subprotocols_from_headers(request: Any) -> list[str]:
     if not value:
         return []
     return [part.strip() for part in value.split(",") if part.strip()]
-
-
-def _select_websocket_subprotocol(subprotocols: list[str]) -> str | None:
-    if "streamlit" in subprotocols:
-        return "streamlit"
-    return None
 
 
 def _to_js_uint8_array(data: bytes | bytearray | memoryview) -> Any:

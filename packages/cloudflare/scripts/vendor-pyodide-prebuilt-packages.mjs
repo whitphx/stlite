@@ -23,17 +23,31 @@ const projectDir = process.env.STLITE_CLOUDFLARE_PROJECT_DIR
 const rootDir = process.env.STLITE_CLOUDFLARE_ROOT_DIR
   ? path.resolve(process.env.STLITE_CLOUDFLARE_ROOT_DIR)
   : path.resolve(packageDir, "../..");
+// The downloaded Pyodide wheels are an expensive, reusable cache, so they live
+// in CACHE_DIR (outside the wiped-every-build projectDir) when the converter
+// provides one.
+const cacheDir = process.env.STLITE_CLOUDFLARE_CACHE_DIR
+  ? path.resolve(process.env.STLITE_CLOUDFLARE_CACHE_DIR)
+  : projectDir;
 const vendorDir = path.resolve(projectDir, "python_modules");
-const pyodidePackageDir = path.resolve(
-  projectDir,
-  ".pyodide-prebuilt-packages",
-);
+const pyodidePackageDir = path.resolve(cacheDir, ".pyodide-prebuilt-packages");
 const snapshotPath = path.resolve(
   pyodidePackageDir,
   "site-packages-snapshot.tar.gz",
 );
 
-const cloudflareStreamlitDependencies = ["pydeck>=0.8.0b4,<1"];
+// The stlite Worker runtime needs these on top of the Streamlit fork's declared
+// dependencies, so they are vendored into every project's python_modules rather
+// than being listed in the user's pyproject.toml: pyodide-http patches
+// requests/urllib for Pyodide (stlite_lib.bootstrap), toml backs Streamlit's
+// config/credentials loading (a soft `import toml`, not in its dependencies),
+// and pydeck powers st.pydeck_chart. workers-runtime-sdk is not listed here
+// because pywrangler always appends it during `pywrangler sync`.
+const stliteRuntimeExtraDependencies = [
+  "pyodide-http>=0.2.1",
+  "toml>=0.10.1",
+  "pydeck>=0.8.0b4,<1",
+];
 const buildOnlyPackages = new Set(["micropip"]);
 const alwaysOverlayPrebuiltPackages = new Set(["cramjam", "fastparquet"]);
 const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
@@ -43,7 +57,7 @@ const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
 
 const dependencies = [
   ...(await readStreamlitDependencies()),
-  ...cloudflareStreamlitDependencies,
+  ...stliteRuntimeExtraDependencies,
 ];
 const usedPrebuiltPackages = await vendorPackageSnapshot({
   destPyodideDir: pyodidePackageDir,

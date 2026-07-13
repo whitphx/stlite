@@ -67,6 +67,7 @@ def build_http_scope(request: Any) -> dict[str, Any]:
         "path": unquote(url.path or "/"),
         "raw_path": (url.path or "/").encode(),
         "query_string": url.query.encode(),
+        "root_path": "",
         "headers": headers,
         "client": None,
         "server": (url.hostname or "", server_port),
@@ -152,6 +153,9 @@ def to_bytes(value: Any) -> bytes:
         return value.tobytes()
     if isinstance(value, str):
         return value.encode()
+    if isinstance(value, int):
+        # bytes(int) means "n NUL bytes", never the right reading here.
+        return str(value).encode()
 
     try:
         return bytes(value)

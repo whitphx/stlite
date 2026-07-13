@@ -59,7 +59,11 @@ async def _create_streamlit_asgi_app() -> AsgiApp:
         ) from exc
 
     home_dir = Path(app_pkg.__file__).resolve().parent
-    script_path = home_dir / "streamlit_app.py"
+    try:
+        from _stlite_cloudflare_app._stlite_entrypoint import ENTRYPOINT
+    except ModuleNotFoundError:
+        ENTRYPOINT = "streamlit_app.py"
+    script_path = home_dir / ENTRYPOINT
 
     initialize_streamlit_runtime(
         {

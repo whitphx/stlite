@@ -17,20 +17,8 @@ const [command = "help", ...args] = process.argv.slice(2);
 
 try {
   switch (command) {
-    case "init":
-      await initProject(args);
-      break;
     case "build":
       await buildProject(args);
-      break;
-    case "dev":
-      await runWranglerCommand("dev", args);
-      break;
-    case "deploy":
-      await runWranglerCommand("deploy", args);
-      break;
-    case "clean":
-      await cleanProject();
       break;
     case "help":
     case "--help":
@@ -45,66 +33,191 @@ try {
   process.exitCode = 1;
 }
 
-async function initProject(args) {
-  const targetArg = args.find((arg) => !arg.startsWith("-")) ?? ".";
-  const targetDir = path.resolve(process.cwd(), targetArg);
-  const templateDir = path.join(packageRoot, "templates", "default");
+async function buildProject(args) {
+  const opts = parseBuildArgs(args);
 
-  await ensureEmptyOrMissing(targetDir);
-  await fs.mkdir(targetDir, { recursive: true });
-  await copyTemplate(templateDir, targetDir, {
-    __PACKAGE_VERSION__: packageJson.version,
-    __PROJECT_NAME__: toProjectName(path.basename(targetDir)),
+  const srcDir = path.resolve(process.cwd(), opts.path);
+  const srcStat = await fs.stat(srcDir).catch(() => null);
+  if (srcStat == null || !srcStat.isDirectory()) {
+    throw new Error(`Not a directory: ${srcDir}`);
+  }
+  if (!(await exists(path.join(srcDir, opts.entrypoint)))) {
+    throw new Error(
+      `Entrypoint not found: ${opts.entrypoint} (looked in ${srcDir})`,
+    );
+  }
+
+  const outDir = path.resolve(process.cwd(), opts.out);
+  // The output gets `rm -rf`'d on each run. Refuse paths that would delete the
+  // source — `-o .` (== srcDir) or any ancestor of it.
+  if (outDir === srcDir || srcDir.startsWith(outDir + path.sep)) {
+    throw new Error(
+      `Refusing to use ${outDir} as --out: it is the project directory or an ancestor of it. Pick a separate output directory.`,
+    );
+  }
+
+  const workerName = toWorkerName(opts.name ?? path.basename(srcDir));
+
+  await fs.rm(outDir, { recursive: true, force: true });
+  await fs.mkdir(outDir, { recursive: true });
+  await scaffoldOutput({
+    srcDir,
+    outDir,
+    workerName,
+    requirements: opts.requirements,
   });
 
-  console.log(`Created stlite Cloudflare project at ${targetDir}`);
-  console.log("Next steps:");
-  console.log(`  cd ${targetDir}`);
-  console.log("  npm install");
-  console.log("  npm run dev");
-}
+  // Caches (the multi-minute frontend build, the vendored Pyodide wheels) must
+  // outlive the wiped-every-run output dir, so they live in a sibling dir.
+  const cacheDir = path.join(
+    path.dirname(outDir),
+    `.${path.basename(outDir)}.stlite-cloudflare-cache`,
+  );
 
-async function buildProject(args) {
-  const scriptArgs = splitForwardedArgs(args);
   await run(
     "bash",
-    [
-      path.join(packageRoot, "scripts", "sync-workers-vendor.sh"),
-      ...scriptArgs,
-    ],
+    [path.join(packageRoot, "scripts", "sync-workers-vendor.sh")],
     {
       env: {
         ...process.env,
-        STLITE_CLOUDFLARE_PROJECT_DIR: process.cwd(),
+        STLITE_CLOUDFLARE_PROJECT_DIR: outDir,
         STLITE_CLOUDFLARE_PACKAGE_DIR: packageRoot,
+        STLITE_CLOUDFLARE_APP_DIR: srcDir,
+        STLITE_CLOUDFLARE_CACHE_DIR: cacheDir,
+        STLITE_CLOUDFLARE_ENTRYPOINT: opts.entrypoint,
       },
     },
   );
+
+  const outRel = path.relative(process.cwd(), outDir) || ".";
+  console.log(`stlite-cloudflare: packaged → ${outDir}`);
+  console.log(`Deploy with: cd ${outRel} && npx wrangler deploy`);
 }
 
-async function runWranglerCommand(wranglerCommand, args) {
-  const forwardedArgs = splitForwardedArgs(args);
-  await buildProject([]);
-  await run("npx", ["wrangler", wranglerCommand, ...forwardedArgs]);
+function parseBuildArgs(args) {
+  const opts = {
+    path: undefined,
+    out: "./dist",
+    entrypoint: "streamlit_app.py",
+    requirements: undefined,
+    name: undefined,
+  };
+  const positionals = [];
+  const takesValue = {
+    "-o": "out",
+    "--out": "out",
+    "--entrypoint": "entrypoint",
+    "--requirements": "requirements",
+    "--name": "name",
+  };
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg in takesValue) {
+      const value = args[++i];
+      if (value === undefined) {
+        throw new Error(`Missing value for ${arg}`);
+      }
+      opts[takesValue[arg]] = value;
+    } else if (arg.startsWith("-")) {
+      throw new Error(`Unknown option: ${arg}`);
+    } else {
+      positionals.push(arg);
+    }
+  }
+  if (positionals.length === 0) {
+    throw new Error("Missing <path> to the Streamlit project directory");
+  }
+  if (positionals.length > 1) {
+    throw new Error(
+      `Unexpected extra arguments: ${positionals.slice(1).join(" ")}`,
+    );
+  }
+  opts.path = positionals[0];
+  return opts;
 }
 
-async function cleanProject() {
-  await Promise.all(
-    [
-      "python_modules",
-      ".venv-workers",
-      ".pyodide-prebuilt-packages",
-      ".stlite-cloudflare-remote-frontend",
-    ].map((entry) =>
-      fs.rm(path.resolve(process.cwd(), entry), {
-        recursive: true,
-        force: true,
-      }),
-    ),
+async function scaffoldOutput({ srcDir, outDir, workerName, requirements }) {
+  await fs.mkdir(path.join(outDir, "src"), { recursive: true });
+  await fs.writeFile(
+    path.join(outDir, "src", "entry.py"),
+    'from stlite_cloudflare.entry import Default\n\n__all__ = ["Default"]\n',
+  );
+
+  // An existing wrangler.jsonc in the project is the user's own Worker config
+  // (routes, vars, bindings); pass it through untouched. Otherwise generate a
+  // minimal one. Either way the user owns `main`/`compatibility_flags`.
+  const srcWrangler = path.join(srcDir, "wrangler.jsonc");
+  const wrangler = (await exists(srcWrangler))
+    ? await fs.readFile(srcWrangler, "utf8")
+    : defaultWranglerJsonc(workerName);
+  await fs.writeFile(path.join(outDir, "wrangler.jsonc"), wrangler);
+
+  const dependencies = await readRequirements(srcDir, requirements);
+  await fs.writeFile(
+    path.join(outDir, "pyproject.toml"),
+    pyproject(workerName, dependencies),
+  );
+
+  await fs.writeFile(
+    path.join(outDir, ".gitignore"),
+    ["/python_modules", "/.venv-workers", "/pylock.toml", ""].join("\n"),
   );
 }
 
-function toProjectName(name) {
+async function readRequirements(srcDir, explicit) {
+  const requirementsPath = explicit
+    ? path.resolve(process.cwd(), explicit)
+    : path.join(srcDir, "requirements.txt");
+  if (!(await exists(requirementsPath))) {
+    if (explicit) {
+      throw new Error(`Requirements file not found: ${requirementsPath}`);
+    }
+    return [];
+  }
+  const text = await fs.readFile(requirementsPath, "utf8");
+  return text
+    .split("\n")
+    .map((line) => line.replace(/#.*$/, "").trim())
+    .filter((line) => line.length > 0);
+}
+
+function defaultWranglerJsonc(workerName) {
+  return `${JSON.stringify(
+    {
+      $schema: "node_modules/wrangler/config-schema.json",
+      name: workerName,
+      main: "src/entry.py",
+      compatibility_date: "2026-06-30",
+      compatibility_flags: ["python_workers"],
+      observability: { enabled: true },
+    },
+    null,
+    2,
+  )}\n`;
+}
+
+function pyproject(workerName, dependencies) {
+  const deps =
+    dependencies.length === 0
+      ? "[]"
+      : `[\n${dependencies.map((dep) => `  ${JSON.stringify(dep)},`).join("\n")}\n]`;
+  return `[project]
+name = ${JSON.stringify(workerName)}
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+# Streamlit and its runtime dependencies are vendored automatically by the
+# build; only your app's own extra dependencies are resolved from here.
+dependencies = ${deps}
+
+[dependency-groups]
+dev = ["workers-py"]
+
+[tool.uv]
+package = false
+`;
+}
+
+function toWorkerName(name) {
   // The name lands in wrangler.jsonc's "name", which Cloudflare restricts to
   // lowercase alphanumerics and dashes ("." and "_" are rejected at deploy).
   const normalized = name
@@ -114,56 +227,13 @@ function toProjectName(name) {
   return normalized || "stlite-cloudflare-app";
 }
 
-function splitForwardedArgs(args) {
-  const separatorIndex = args.indexOf("--");
-  return separatorIndex === -1 ? args : args.slice(separatorIndex + 1);
-}
-
-async function ensureEmptyOrMissing(targetDir) {
+async function exists(target) {
   try {
-    const entries = await fs.readdir(targetDir);
-    if (entries.length > 0) {
-      throw new Error(`Target directory is not empty: ${targetDir}`);
-    }
-  } catch (error) {
-    if (error?.code !== "ENOENT") {
-      throw error;
-    }
+    await fs.access(target);
+    return true;
+  } catch {
+    return false;
   }
-}
-
-async function copyTemplate(sourceDir, targetDir, replacements) {
-  const entries = await fs.readdir(sourceDir, { withFileTypes: true });
-  await Promise.all(
-    entries.map(async (entry) => {
-      const sourcePath = path.join(sourceDir, entry.name);
-      const targetName =
-        entry.name === "_gitignore" ? ".gitignore" : entry.name;
-      const targetPath = path.join(targetDir, targetName);
-      if (entry.isDirectory()) {
-        await fs.mkdir(targetPath, { recursive: true });
-        await copyTemplate(sourcePath, targetPath, replacements);
-        return;
-      }
-
-      const source = await fs.readFile(sourcePath);
-      if (isTextTemplate(entry.name)) {
-        let text = source.toString("utf8");
-        for (const [placeholder, value] of Object.entries(replacements)) {
-          text = text.replaceAll(placeholder, value);
-        }
-        await fs.writeFile(targetPath, text);
-      } else {
-        await fs.writeFile(targetPath, source);
-      }
-    }),
-  );
-}
-
-function isTextTemplate(fileName) {
-  return ["_gitignore", ".json", ".jsonc", ".md", ".py", ".toml", ".txt"].some(
-    (suffix) => fileName.endsWith(suffix),
-  );
 }
 
 function run(command, args, options = {}) {
@@ -191,11 +261,18 @@ function run(command, args, options = {}) {
 function printHelp() {
   console.log(`stlite-cloudflare ${packageJson.version}
 
+Package a Streamlit project into a deployable Cloudflare Python Workers directory.
+
 Usage:
-  stlite-cloudflare init [dir]
-  stlite-cloudflare build [-- <extra build args>]
-  stlite-cloudflare dev [-- <wrangler args>]
-  stlite-cloudflare deploy [-- <wrangler args>]
-  stlite-cloudflare clean
+  stlite-cloudflare build <path> [options]
+
+Options:
+  -o, --out <dir>            Output directory (default: ./dist)
+  --entrypoint <name>        Entrypoint script, relative to <path> (default: streamlit_app.py)
+  --requirements <file>      requirements.txt (default: <path>/requirements.txt if present)
+  --name <name>              Worker name for a generated wrangler.jsonc (default: derived from <out>)
+
+Deploy the output with Wrangler:
+  cd <out> && npx wrangler deploy
 `);
 }

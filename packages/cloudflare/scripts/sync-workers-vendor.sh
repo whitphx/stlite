@@ -6,6 +6,13 @@ PROJECT_DIR="${STLITE_CLOUDFLARE_PROJECT_DIR:-$PACKAGE_DIR}"
 ROOT_DIR="${STLITE_CLOUDFLARE_ROOT_DIR:-$(cd "$PACKAGE_DIR/../.." && pwd)}"
 VENDOR_DIR="$PROJECT_DIR/python_modules"
 APP_DIR="${STLITE_CLOUDFLARE_APP_DIR:-$PROJECT_DIR/app}"
+# Which script under APP_DIR the Worker runs (written as a marker the runtime
+# reads); defaults to the packaged app convention.
+APP_ENTRYPOINT="${STLITE_CLOUDFLARE_ENTRYPOINT:-streamlit_app.py}"
+# Expensive, reusable outputs (the frontend build, the downloaded Pyodide
+# wheels) live here so they survive PROJECT_DIR being wiped on every build.
+CACHE_DIR="${STLITE_CLOUDFLARE_CACHE_DIR:-$PROJECT_DIR}"
+mkdir -p "$CACHE_DIR"
 
 # The Streamlit frontend build below runs outside make, so give node the same
 # heap headroom the root Makefile exports for its own targets.
@@ -42,7 +49,7 @@ fi
 # The build stamp only tracks the submodule's HEAD commit and this package's
 # frontend sources; uncommitted edits inside the submodule are not detected —
 # delete this directory to force a frontend rebuild in that case.
-FRONTEND_BUILD_DIR="$PROJECT_DIR/.stlite-cloudflare-remote-frontend"
+FRONTEND_BUILD_DIR="$CACHE_DIR/.stlite-cloudflare-remote-frontend"
 FRONTEND_STAMP_FILE="$FRONTEND_BUILD_DIR/.build-stamp"
 FRONTEND_STAMP="$(git -C "$ROOT_DIR/streamlit" rev-parse HEAD 2>/dev/null || echo unknown)-$(
   cat "$PACKAGE_DIR"/frontend/* |
@@ -71,6 +78,7 @@ popd >/dev/null
 
 STLITE_CLOUDFLARE_PROJECT_DIR="$PROJECT_DIR" \
 STLITE_CLOUDFLARE_PACKAGE_DIR="$PACKAGE_DIR" \
+STLITE_CLOUDFLARE_CACHE_DIR="$CACHE_DIR" \
 node "$PACKAGE_DIR/scripts/vendor-pyodide-prebuilt-packages.mjs"
 
 find "$VENDOR_DIR" -maxdepth 1 \( \
@@ -131,3 +139,7 @@ rsync -a --delete --exclude=.build-stamp \
 mkdir -p "$VENDOR_DIR/_stlite_cloudflare_app"
 rsync -a --delete "$APP_DIR/" "$VENDOR_DIR/_stlite_cloudflare_app/"
 touch "$VENDOR_DIR/_stlite_cloudflare_app/__init__.py"
+# Written after the rsync (which would otherwise --delete it) so the runtime
+# knows which script under the packaged app to run.
+printf 'ENTRYPOINT = "%s"\n' "$APP_ENTRYPOINT" \
+  >"$VENDOR_DIR/_stlite_cloudflare_app/_stlite_entrypoint.py"

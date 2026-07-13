@@ -513,6 +513,8 @@ jobs:
         run: |
           yarn check:lint
           yarn check:format
+          uv run --project . ruff check --output-format=github py tests
+          uv run --project . ruff format --check py tests
 
       # The pytest suite covers the Worker runtime modules and spawns the CLI
       # via node, so it needs both uv and the Node toolchain set up above.
@@ -951,7 +953,7 @@ jobs:
           corepack yarn workspace stlite-cloudflare-sample-hello build
 
       - name: Validate the Worker bundle
-        working-directory: packages/cloudflare/samples/hello
+        working-directory: packages/cloudflare/samples/hello/dist
         run: npx wrangler deploy --dry-run
 
       - name: Package
@@ -976,11 +978,8 @@ jobs:
         if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          path: |
-            packages/cloudflare/samples/hello/wrangler.jsonc
-            packages/cloudflare/samples/hello/src
-            packages/cloudflare/samples/hello/app
-            packages/cloudflare/samples/hello/python_modules
+          # The whole deployable Worker dir (wrangler.jsonc, src/, python_modules/).
+          path: packages/cloudflare/samples/hello/dist
           name: stlite-cloudflare-sample-hello
 
       - name: "Inform the package stats of @stlite/cloudflare"

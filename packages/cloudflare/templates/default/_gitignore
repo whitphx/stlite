@@ -1,7 +1,0 @@
-/.venv
-/.wrangler
-/.pyodide-prebuilt-packages
-/.stlite-cloudflare-remote-frontend
-/.venv-workers
-/python_modules
-__pycache__/

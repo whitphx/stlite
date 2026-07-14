@@ -13,6 +13,10 @@ const packageJson = JSON.parse(
   await fs.readFile(path.join(packageRoot, "package.json"), "utf8"),
 );
 
+// Wrangler is the only tool the generated project needs at deploy time; pin the
+// same range the package itself develops against.
+const WRANGLER_VERSION = "^4.105.0";
+
 const [command = "help", ...args] = process.argv.slice(2);
 
 try {
@@ -158,9 +162,32 @@ async function scaffoldOutput({ srcDir, outDir, workerName, requirements }) {
     pyproject(workerName, dependencies),
   );
 
+  // Wrangler resolves the project root from the nearest package.json, so the
+  // output needs its own for `wrangler deploy` to treat <out> as the project
+  // (rather than walking up to a parent package.json and missing this config).
+  await fs.writeFile(
+    path.join(outDir, "package.json"),
+    `${JSON.stringify(
+      {
+        name: workerName,
+        version: "0.1.0",
+        private: true,
+        devDependencies: { wrangler: WRANGLER_VERSION },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
   await fs.writeFile(
     path.join(outDir, ".gitignore"),
-    ["/python_modules", "/.venv-workers", "/pylock.toml", ""].join("\n"),
+    [
+      "/node_modules",
+      "/python_modules",
+      "/.venv-workers",
+      "/pylock.toml",
+      "",
+    ].join("\n"),
   );
 }
 

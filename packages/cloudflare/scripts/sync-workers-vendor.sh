@@ -89,11 +89,9 @@ SH
   STREAMLIT_WHEEL_DIR="$ROOT_DIR/streamlit/lib/dist"
   VENDOR_SCRIPT="$PACKAGE_DIR/scripts/vendor-pyodide-prebuilt-packages.mjs"
 else
-  # The wheels ship inside the @stlite/browser dependency (build/wheels/).
-  BROWSER_WHEELS_DIR="$(cd "$PACKAGE_DIR" && node -e 'const {createRequire}=require("node:module"); const path=require("node:path"); const r=createRequire(process.cwd()+"/"); console.log(path.join(path.dirname(r.resolve("@stlite/browser/package.json")), "build", "wheels"))')"
   FRONTEND_SRC="$PACKAGE_DIR/runtime/frontend"
-  STLITE_LIB_WHEEL_DIR="$BROWSER_WHEELS_DIR"
-  STREAMLIT_WHEEL_DIR="$BROWSER_WHEELS_DIR"
+  STLITE_LIB_WHEEL_DIR="$PACKAGE_DIR/runtime/wheels"
+  STREAMLIT_WHEEL_DIR="$PACKAGE_DIR/runtime/wheels"
   VENDOR_SCRIPT="$PACKAGE_DIR/dist/vendor-pyodide-prebuilt-packages.mjs"
 fi
 

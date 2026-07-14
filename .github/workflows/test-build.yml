@@ -1066,6 +1066,53 @@ jobs:
           pr-number: ${{ needs.set-build-info.outputs.pr-number }}
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
+  verify-cloudflare-standalone:
+    # Prove the packed tarball builds a deployable Worker WITHOUT the monorepo:
+    # install it into a throwaway project outside the repo and build a minimal
+    # app from it. The repo is checked out only for the toolchain version files;
+    # the streamlit submodule is deliberately not fetched.
+    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
+    needs: [set-build-info, changes, build-cloudflare]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: ${{ env.node-version-file }}
+
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v7.1.1
+        with:
+          enable-cache: true
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: stlite-cloudflare
+          path: ${{ runner.temp }}/pkg
+
+      - name: Build a sample from the packed tarball
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eux
+          mkdir -p standalone/app
+          printf 'import streamlit as st\nst.title("standalone build works")\n' \
+            > standalone/app/streamlit_app.py
+          cd standalone
+          npm init -y >/dev/null
+          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
+          npx stlite-cloudflare build ./app -o ./dist --name standalone-test
+          test -d dist/python_modules/streamlit
+          test -f dist/python_modules/stlite_cloudflare/entry.py
+          test -f dist/python_modules/_stlite_cloudflare_app/streamlit_app.py
+
+      - name: Validate the Worker bundle
+        working-directory: ${{ runner.temp }}/standalone/dist
+        run: npx wrangler deploy --dry-run
+
   build-docs:
     runs-on: ubuntu-latest
 

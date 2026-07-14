@@ -1,10 +1,11 @@
 // Produce the prebuilt runtime artifacts a published @stlite/cloudflare ships so
-// it can build without the Stlite monorepo: runtime/frontend (the built
-// Cloudflare-variant Streamlit frontend) and runtime/streamlit-dependencies.json
-// (a snapshot of the Streamlit fork's declared dependencies, which the vendoring
-// step needs). Run from the monorepo at release/pack time. The built frontend is
-// taken from STLITE_CLOUDFLARE_FRONTEND_SRC (produced earlier in the build)
-// rather than rebuilt here, to avoid a second multi-minute frontend build.
+// it can build without the Stlite monorepo:
+//   runtime/frontend                    the built Cloudflare-variant frontend
+//   runtime/wheels/*.whl                the stlite_lib + stlite-pinned Streamlit wheels
+//   runtime/streamlit-dependencies.json a snapshot of the Streamlit fork's deps
+// Run from the monorepo at release/pack time. The frontend is taken from
+// STLITE_CLOUDFLARE_FRONTEND_SRC (produced earlier in the build) and the wheels
+// from `make stlite-lib-wheel streamlit-wheel` output, rather than rebuilt here.
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -36,6 +37,19 @@ await fs.cp(frontendSrc, path.join(runtimeDir, "frontend"), {
 // The build stamp is an internal detail of the monorepo frontend cache.
 await fs.rm(path.join(runtimeDir, "frontend", ".build-stamp"), { force: true });
 
+const wheelsDir = path.join(runtimeDir, "wheels");
+await fs.mkdir(wheelsDir, { recursive: true });
+await copySingleWheel(
+  path.join(rootDir, "packages/kernel/py/stlite-lib/dist"),
+  /^stlite_lib-.*-py3-none-any\.whl$/,
+  wheelsDir,
+);
+await copySingleWheel(
+  path.join(rootDir, "streamlit/lib/dist"),
+  /^streamlit-.*-py3-none-any\.whl$/,
+  wheelsDir,
+);
+
 const { stdout } = await execFileAsync("python3", [
   "-c",
   [
@@ -51,4 +65,24 @@ await fs.writeFile(
   `${stdout.trim()}\n`,
 );
 
-console.log("Produced runtime/ (frontend + streamlit-dependencies.json)");
+console.log(
+  "Produced runtime/ (frontend + wheels + streamlit-dependencies.json)",
+);
+
+async function copySingleWheel(srcDir, pattern, destDir) {
+  const matches = (await fs.readdir(srcDir)).filter((name) =>
+    pattern.test(name),
+  );
+  if (matches.length === 0) {
+    throw new Error(`No wheel matching ${pattern} in ${srcDir}`);
+  }
+  if (matches.length > 1) {
+    throw new Error(
+      `Multiple wheels match ${pattern} in ${srcDir} (${matches.join(", ")}); delete the stale ones and re-run the build.`,
+    );
+  }
+  await fs.copyFile(
+    path.join(srcDir, matches[0]),
+    path.join(destDir, matches[0]),
+  );
+}

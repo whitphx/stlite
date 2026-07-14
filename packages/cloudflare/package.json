@@ -46,7 +46,6 @@
     "pack:dry-run": "npm pack --dry-run"
   },
   "dependencies": {
-    "@stlite/browser": "workspace:^",
     "pyodide": "0.29.3"
   },
   "devDependencies": {

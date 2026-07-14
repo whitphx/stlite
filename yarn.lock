@@ -7918,7 +7918,6 @@ __metadata:
   resolution: "@stlite/cloudflare@workspace:packages/cloudflare"
   dependencies:
     "@stlite/app-packager": "workspace:^"
-    "@stlite/browser": "workspace:^"
     esbuild: "npm:^0.27.1"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"

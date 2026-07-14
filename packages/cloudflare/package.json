@@ -28,6 +28,7 @@
   },
   "files": [
     "bin",
+    "dist",
     "frontend",
     "scripts",
     "py/**/*.py",
@@ -35,6 +36,7 @@
   ],
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "fix:lint": "oxlint --fix bin frontend scripts",
     "fix:format": "oxfmt .",
     "check:lint": "oxlint bin frontend scripts",
@@ -42,7 +44,13 @@
     "test": "uv run --project . pytest",
     "pack:dry-run": "npm pack --dry-run"
   },
+  "dependencies": {
+    "@stlite/browser": "workspace:^",
+    "pyodide": "0.29.3"
+  },
   "devDependencies": {
+    "@stlite/app-packager": "workspace:^",
+    "esbuild": "^0.27.1",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
     "playwright": "^1.61.1",

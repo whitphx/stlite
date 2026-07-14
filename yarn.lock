@@ -7917,9 +7917,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stlite/cloudflare@workspace:packages/cloudflare"
   dependencies:
+    "@stlite/app-packager": "workspace:^"
+    "@stlite/browser": "workspace:^"
+    esbuild: "npm:^0.27.1"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     playwright: "npm:^1.61.1"
+    pyodide: "npm:0.29.3"
     wrangler: "npm:^4.105.0"
   bin:
     stlite-cloudflare: ./bin/stlite-cloudflare.mjs

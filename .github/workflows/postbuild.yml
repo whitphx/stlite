@@ -1148,36 +1148,3 @@ jobs:
           files: ${{ runner.temp }}/stlite-cloudflare/package.tgz
           generate_release_notes: true
           tag_name: "@stlite/cloudflare@${{ needs.get-changesets-publish-targets.outputs.cloudflare }}"
-
-  deploy-cloudflare-sample:
-    # The sample is the public example of the Cloudflare deploy target, so
-    # redeploy it whenever @stlite/cloudflare is released; publish-cloudflare
-    # gating keeps a release that failed to reach npm from updating the
-    # example.
-    needs: [get-build-info, get-changesets-publish-targets, publish-cloudflare]
-    if: ${{ needs.get-changesets-publish-targets.outputs.cloudflare != '' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    name: Deploy the stlite Cloudflare hello sample to Cloudflare Workers
-    steps:
-      # The artifact contains the sample built and validated (wrangler
-      # deploy --dry-run) by the main-branch test-build run: wrangler.jsonc,
-      # src/, app/, and the vendored python_modules/.
-      - name: Download artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-cloudflare-sample-hello
-          path: ${{ runner.temp }}/artifacts/cloudflare-sample-hello
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Deploy
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ${{ runner.temp }}/artifacts/cloudflare-sample-hello
-          command: deploy
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

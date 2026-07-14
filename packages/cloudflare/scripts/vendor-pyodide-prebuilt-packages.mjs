@@ -88,6 +88,21 @@ for (const packageName of packagesToExtract) {
 }
 
 async function readStreamlitDependencies() {
+  // The published package ships a snapshot of the Streamlit fork's declared
+  // dependencies (produced at pack time); the monorepo reads them live from the
+  // submodule's pyproject.toml.
+  const bundledPath = path.resolve(
+    packageDir,
+    "runtime/streamlit-dependencies.json",
+  );
+  try {
+    return JSON.parse(await fs.readFile(bundledPath, "utf8"));
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error;
+    }
+  }
+
   const streamlitPyprojectPath = path.resolve(
     rootDir,
     "streamlit/lib/pyproject.toml",

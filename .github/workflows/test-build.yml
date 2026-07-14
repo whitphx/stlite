@@ -1029,6 +1029,17 @@ jobs:
               });
             }
 
+      # Produce the prebuilt runtime artifacts the published package ships so it
+      # builds without the monorepo: the esbuild-bundled vendoring script (dist/)
+      # and runtime/ (the Cloudflare frontend the sample build just produced,
+      # plus the Streamlit dependency snapshot).
+      - name: Bundle the runtime artifacts
+        run: |
+          . .venv/bin/activate
+          corepack yarn workspace @stlite/cloudflare build
+          STLITE_CLOUDFLARE_FRONTEND_SRC="$PWD/packages/cloudflare/samples/hello/.dist.stlite-cloudflare-cache/.stlite-cloudflare-remote-frontend" \
+            node packages/cloudflare/scripts/build-runtime.mjs
+
       - name: Package
         working-directory: packages/cloudflare
         run: yarn pack

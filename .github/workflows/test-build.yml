@@ -983,8 +983,12 @@ jobs:
 
       # Same-repo PRs (fork PRs have no secrets) get a stable per-PR preview URL
       # that refreshes on every push to the branch, for in-development testing.
+      # Best-effort: `versions upload` requires the Worker to already exist, so
+      # previews only start working after the first production deploy on main
+      # creates it — until then this step fails, which must not fail the build.
       - name: Upload a preview version of the sample
         id: preview
+        continue-on-error: true
         if: ${{ steps.cf.outputs.enabled == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:

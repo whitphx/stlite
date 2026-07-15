@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -99,35 +100,16 @@ async function buildProject(args) {
 }
 
 function parseBuildArgs(args) {
-  const opts = {
-    path: undefined,
-    out: "./dist",
-    entrypoint: "streamlit_app.py",
-    requirements: undefined,
-    name: undefined,
-  };
-  const positionals = [];
-  const takesValue = {
-    "-o": "out",
-    "--out": "out",
-    "--entrypoint": "entrypoint",
-    "--requirements": "requirements",
-    "--name": "name",
-  };
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg in takesValue) {
-      const value = args[++i];
-      if (value === undefined) {
-        throw new Error(`Missing value for ${arg}`);
-      }
-      opts[takesValue[arg]] = value;
-    } else if (arg.startsWith("-")) {
-      throw new Error(`Unknown option: ${arg}`);
-    } else {
-      positionals.push(arg);
-    }
-  }
+  const { values, positionals } = parseArgs({
+    args,
+    allowPositionals: true,
+    options: {
+      out: { type: "string", short: "o", default: "./dist" },
+      entrypoint: { type: "string", default: "streamlit_app.py" },
+      requirements: { type: "string" },
+      name: { type: "string" },
+    },
+  });
   if (positionals.length === 0) {
     throw new Error("Missing <path> to the Streamlit project directory");
   }
@@ -136,8 +118,7 @@ function parseBuildArgs(args) {
       `Unexpected extra arguments: ${positionals.slice(1).join(" ")}`,
     );
   }
-  opts.path = positionals[0];
-  return opts;
+  return { path: positionals[0], ...values };
 }
 
 async function scaffoldOutput({ srcDir, outDir, workerName, requirements }) {

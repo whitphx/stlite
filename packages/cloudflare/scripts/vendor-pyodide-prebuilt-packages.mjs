@@ -47,6 +47,13 @@ const stliteRuntimeExtraDependencies = [
   "pyodide-http>=0.2.1",
   "toml>=0.10.1",
   "pydeck>=0.8.0b4,<1",
+  // The Streamlit fork's regenerated proto code (protoc 7.x) raises a protobuf
+  // VersionError when loaded against the protobuf 6.31.1 that Pyodide bundles.
+  // Pinning a 7.x range makes the closure resolve the pure-Python wheel instead
+  // of Pyodide's bundled 6.x, so the vendored runtime matches the gencode. The
+  // browser worker does the same (packages/kernel/src/worker-runtime.ts).
+  // See https://protobuf.dev/support/cross-version-runtime-guarantee
+  "protobuf>=7.34.1,<8",
 ];
 const buildOnlyPackages = new Set(["micropip"]);
 const alwaysOverlayPrebuiltPackages = new Set(["cramjam", "fastparquet"]);

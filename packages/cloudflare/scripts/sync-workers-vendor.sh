@@ -105,6 +105,19 @@ STLITE_CLOUDFLARE_PACKAGE_DIR="$PACKAGE_DIR" \
 STLITE_CLOUDFLARE_CACHE_DIR="$CACHE_DIR" \
 node "$VENDOR_SCRIPT"
 
+# stlite has no working pyarrow: the runtime always installs a shim
+# (runtime_init.mock_pyarrow), so any real pyarrow pulled in transitively by the
+# user's or Streamlit's dependencies is never imported — it is just ~100 MB of
+# dead weight in the Worker bundle. Drop it after both vendoring passes,
+# mirroring how the browser worker keeps it out via
+# micropip.add_mock_package("pyarrow", ...). "pyarrow_hotfix" and other
+# lookalikes are left untouched.
+find "$VENDOR_DIR" -maxdepth 1 \( \
+  -name 'pyarrow' -o \
+  -name 'pyarrow.libs' -o \
+  -name 'pyarrow-*.dist-info' \
+\) -exec rm -rf {} +
+
 find "$VENDOR_DIR" -maxdepth 1 \( \
   -name 'stlite_cloudflare' -o \
   -name 'stlite_lib' -o \

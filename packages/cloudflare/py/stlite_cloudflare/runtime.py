@@ -11,6 +11,12 @@ AsgiSend = Callable[[dict[str, Any]], Awaitable[None]]
 AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
 
 _init_task: asyncio.Task[AsgiApp] | None = None
+# Holds the ASGI lifespan handshake state, whose ``_lifespan_task`` is the
+# suspended coroutine keeping Streamlit's runtime context open. asyncio only
+# holds a *weak* reference to a task, so without a strong reference here the
+# lifespan task gets garbage-collected mid-flight, the runtime tears down, and
+# session WebSockets receive BackMsgs with no runtime left to answer them.
+_lifespan_state: dict[str, Any] | None = None
 
 
 async def get_streamlit_asgi_app() -> AsgiApp:
@@ -74,7 +80,8 @@ async def _create_streamlit_asgi_app() -> AsgiApp:
     logging.getLogger("stlite_lib").setLevel(logging.INFO)
     prepare(str(script_path), [])
 
+    global _lifespan_state
     app = create_app(str(script_path))
-    await run_lifespan_startup(app)
+    _lifespan_state = await run_lifespan_startup(app)
     bind_runtime_to_current_context(app)
     return make_call_asgi(app, home_dir=str(home_dir))

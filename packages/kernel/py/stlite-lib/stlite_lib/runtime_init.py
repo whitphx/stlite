@@ -20,45 +20,16 @@ import sys
 from types import ModuleType
 from typing import Any
 
-
-class _UnsupportedPyArrowType:
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError("stlite does not support this pyarrow type.")
-
-
-class _UnsupportedPyArrowTable:
-    @classmethod
-    def from_pandas(cls, *args: Any, **kwargs: Any) -> Any:
-        raise NotImplementedError("stlite does not support pyarrow.Table.from_pandas.")
-
-
-def mock_pyarrow() -> None:
-    # Duplicated in packages/kernel/src/mock.ts for the browser worker, which
-    # mocks pyarrow before this package is installed. Keep the stubs in sync.
-    module = ModuleType("pyarrow")
-    setattr(module, "__version__", "0.0.1")
-    setattr(module, "Table", _UnsupportedPyArrowTable)
-    setattr(module, "Array", _UnsupportedPyArrowType)
-    setattr(module, "ChunkedArray", _UnsupportedPyArrowType)
-    sys.modules["pyarrow"] = module
-
-    try:
-        micropip = importlib.import_module("micropip")
-    except ImportError:
-        return
-
-    add_mock_package = getattr(micropip, "add_mock_package")
-    add_mock_package(
-        "pyarrow",
-        "0.0.1",
-        modules={
-            "pyarrow": """
-__version__ = '0.0.1'
+# The single definition of the pyarrow shim. Stlite's Streamlit fork excludes
+# the real pyarrow (not Pyodide-compatible), so `import pyarrow` must resolve to
+# this: attribute access raises a clear "unsupported" error.
+_PYARROW_MOCK_SOURCE = """
+__version__ = "0.0.1"
 
 
 class Table:
     @classmethod
-    def from_pandas(*args, **kwargs):
+    def from_pandas(cls, *args, **kwargs):
         raise NotImplementedError("stlite does not support pyarrow.Table.from_pandas.")
 
 
@@ -71,8 +42,31 @@ class ChunkedArray:
     def __init__(self, *args, **kwargs):
         raise NotImplementedError("stlite does not support this pyarrow type.")
 """
-        },
-    )
+
+
+def mock_pyarrow() -> None:
+    # Browser worker: worker-runtime.ts registers a source-less pyarrow mock with
+    # micropip *before* installing dependencies, so if a user requirement pulls
+    # pyarrow the real wasm wheel is never fetched. Here we fill that mock in as a
+    # proper on-disk package, so `import pyarrow` (and its re-imports/sub-imports)
+    # resolve to the shim.
+    #
+    # Cloudflare Worker: there is no micropip, so install the same shim source
+    # directly via sys.modules.
+    try:
+        import micropip  # type: ignore[import]
+    except ImportError:
+        micropip = None
+
+    if micropip is not None:
+        micropip.add_mock_package(
+            "pyarrow", "0.0.1", modules={"pyarrow": _PYARROW_MOCK_SOURCE}
+        )
+        return
+
+    module = ModuleType("pyarrow")
+    exec(_PYARROW_MOCK_SOURCE, module.__dict__)
+    sys.modules["pyarrow"] = module
 
 
 def invalidate_import_caches() -> None:

@@ -1,6 +1,5 @@
 import type { PyodideInterface } from "pyodide";
 import { afterAll, beforeAll, expect, suite, test } from "vitest";
-import { mockPyArrow } from "./mock";
 import { initPyodide } from "./pyodide-loader";
 import {
   AsgiWebSocketSession,
@@ -84,8 +83,6 @@ suite("ASGI bridge spike", { timeout: 120 * 1000 }, () => {
 
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-
-    mockPyArrow(pyodide);
 
     const wheels = getWheelUrls();
     // Mirror worker-runtime.ts: pin protobuf >= 7.34.1 ahead of the

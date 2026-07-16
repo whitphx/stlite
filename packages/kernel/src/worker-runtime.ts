@@ -10,7 +10,6 @@ import {
 } from "./file";
 import { validateRequirements } from "@stlite/common";
 import { initPyodide } from "./pyodide-loader";
-import { mockPyArrow } from "./mock";
 import {
   dispatchModuleAutoLoading,
   ModuleAutoLoadCallback,
@@ -170,10 +169,11 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  onProgress("Mocking some packages.");
-  console.debug("Mock pyarrow");
-  mockPyArrow(pyodide);
-  console.debug("Mocked pyarrow");
+  // Register pyarrow as a micropip mock BEFORE installing anything, so that if a
+  // user requirement transitively depends on pyarrow, micropip skips fetching
+  // the real (Stlite-unsupported) wasm wheel. The import shim that `pyarrow`
+  // actually resolves to is installed later by runtimeInit.mock_pyarrow().
+  micropip.add_mock_package("pyarrow", "0.0.1");
 
   // NOTE: Installing packages must be AFTER restoring the archives
   // because they may contain packages to be restored into the site-packages directory.
@@ -254,6 +254,11 @@ async function loadPyodideAndPackages(
   }
 
   const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
+
+  onProgress("Mocking some packages.");
+  console.debug("Mock pyarrow");
+  runtimeInit.mock_pyarrow();
+  console.debug("Mocked pyarrow");
 
   // The following step is necessary to avoid errors like `NameError: name '_imp' is not defined`
   // at importing installed packages.

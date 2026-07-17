@@ -520,6 +520,11 @@ jobs:
       # via node, so it needs both uv and the Node toolchain set up above.
       - run: yarn test
 
+      # Cross-platform unit tests for the pure-Node vendoring helpers (archive
+      # extraction, dir mirroring, site-packages copy). The Windows build is
+      # exercised end-to-end by verify-cloudflare-standalone below.
+      - run: yarn test:js
+
   build-browser:
     if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
     needs:
@@ -1070,11 +1075,16 @@ jobs:
     # Prove the packed tarball builds a deployable Worker WITHOUT the monorepo:
     # install it into a throwaway project outside the repo and build a minimal
     # app from it. The repo is checked out only for the toolchain version files;
-    # the streamlit submodule is deliberately not fetched.
+    # the streamlit submodule is deliberately not fetched. Runs on Windows too,
+    # since the build must be cross-platform (no bash/rsync/python3/tar).
     if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
     needs: [set-build-info, changes, build-cloudflare]
 
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -1095,6 +1105,10 @@ jobs:
           path: ${{ runner.temp }}/pkg
 
       - name: Build a sample from the packed tarball
+        # bash (git-bash on Windows runners) keeps this harness identical across
+        # OSes; the build under test is pure Node and needs no shell. The tarball
+        # is referenced relatively to avoid Windows absolute-path escaping.
+        shell: bash
         working-directory: ${{ runner.temp }}
         run: |
           set -eux
@@ -1103,7 +1117,7 @@ jobs:
             > standalone/app/streamlit_app.py
           cd standalone
           npm init -y >/dev/null
-          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
+          npm install "../pkg/package.tgz" wrangler
           npx stlite-cloudflare build ./app -o ./dist --name standalone-test
           test -d dist/python_modules/streamlit
           test -f dist/python_modules/stlite_cloudflare/entry.py

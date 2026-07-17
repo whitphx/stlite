@@ -7919,11 +7919,14 @@ __metadata:
   resolution: "@stlite/cloudflare@workspace:packages/cloudflare"
   dependencies:
     "@stlite/app-packager": "workspace:^"
+    cross-spawn: "npm:^7.0.6"
     esbuild: "npm:^0.27.1"
+    fflate: "npm:^0.8.3"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     playwright: "npm:^1.61.1"
     pyodide: "npm:0.29.3"
+    tar: "npm:^7.5.20"
     wrangler: "npm:^4.105.0"
   bin:
     stlite-cloudflare: ./bin/stlite-cloudflare.mjs
@@ -17385,6 +17388,13 @@ __metadata:
   version: 0.7.4
   resolution: "fflate@npm:0.7.4"
   checksum: 10c0/5e749eb3a6ed61a0f6c55756abf9f4258f06f60505db689e22d18503dd252ca5af656d32668e4b7b20714adf8b313febf695d23863a8352f23e325baee0f672d
+  languageName: node
+  linkType: hard
+
+"fflate@npm:^0.8.3":
+  version: 0.8.3
+  resolution: "fflate@npm:0.8.3"
+  checksum: 10c0/eab181ca37f5348ae76d4b6f840e0026e30220e33153289ac942222d8b9638237d486507dbcc09878d724095bd354993a2ee48bbee99c8f2c6440d4448719aa7
   languageName: node
   linkType: hard
 
@@ -28317,6 +28327,19 @@ __metadata:
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
   checksum: 10c0/a7d8b801139b52f93a7e34830db0de54c5aa45487c7cb551f6f3d44a112c67f1cb8ffdae856b05fd4f17b1749911f1c26f1e3a23bbe0279e17fd96077f13f467
+  languageName: node
+  linkType: hard
+
+"tar@npm:^7.5.20":
+  version: 7.5.20
+  resolution: "tar@npm:7.5.20"
+  dependencies:
+    "@isaacs/fs-minipass": "npm:^4.0.0"
+    chownr: "npm:^3.0.0"
+    minipass: "npm:^7.1.2"
+    minizlib: "npm:^3.1.0"
+    yallist: "npm:^5.0.0"
+  checksum: 10c0/4df4335c6d958b76adf1eaced55889dec3ca1c51f450658a074af80694bb0d9c154a8e93fdf4da617372d1575b121295379993961bbe4cd4b0867c0e5689846a
   languageName: node
   linkType: hard
 

@@ -13,16 +13,14 @@ const packageDir = path.resolve(
 );
 
 await build({
-  entryPoints: [
-    path.join(packageDir, "scripts/vendor-pyodide-prebuilt-packages.mjs"),
-  ],
+  entryPoints: [path.join(packageDir, "src/vendor-prebuilt.mjs")],
   bundle: true,
   platform: "node",
   target: "node22",
   format: "esm",
-  outfile: path.join(packageDir, "dist/vendor-pyodide-prebuilt-packages.mjs"),
-  // pyodide carries wasm and dynamic requires; keep it a runtime dependency
-  // instead of inlining it (matches @stlite/cli's bundle).
-  external: ["pyodide"],
+  outfile: path.join(packageDir, "dist/vendor-prebuilt.js"),
+  // pyodide carries wasm and dynamic requires; keep it (and the archive libs,
+  // which are declared runtime dependencies) external instead of inlining.
+  external: ["pyodide", "tar", "fflate"],
   logLevel: "info",
 });

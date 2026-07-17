@@ -32,6 +32,14 @@ If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged 
 you keep control of routes, vars, and bindings; otherwise a minimal one is
 generated. Either way you own `main` and `compatibility_flags`.
 
+## Requirements
+
+The build runs on Windows, macOS, and Linux. It needs
+[`uv`](https://docs.astral.sh/uv/) on your `PATH` — it drives `pywrangler` to
+resolve your app's dependencies for the Pyodide target — plus Node.js. Everything
+else (archive extraction, file copying) runs in-process, so no `bash`, `python`,
+`rsync`, or `tar` is required.
+
 ## Dependencies
 
 Streamlit and its runtime dependency tree are vendored automatically by the
@@ -44,10 +52,3 @@ Pyodide-compatible wheel), and rebuild.
 HTTP responses are fully buffered in the Worker before being returned, so
 streaming responses are not supported and large media payloads count against
 the Worker isolate's memory limit.
-
-## Release artifact TODO
-
-The current source-tree build still compiles `stlite-lib`, the stlite-pinned
-Streamlit wheel, and the Cloudflare-compatible frontend from the monorepo. A
-publishable release should replace that with bundled or downloaded versioned
-runtime artifacts so the build does not need the Stlite repository.

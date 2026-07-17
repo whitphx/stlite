@@ -33,6 +33,7 @@
     "runtime",
     "scripts",
     "src",
+    "!src/**/*.test.mjs",
     "py/**/*.py",
     "README.md"
   ],
@@ -50,10 +51,14 @@
     "check:lint": "oxlint bin frontend scripts src",
     "check:format": "oxfmt --check .",
     "test": "uv run --project . pytest",
+    "test:js": "node --test \"src/helpers/**/*.test.mjs\"",
     "pack:dry-run": "npm pack --dry-run"
   },
   "dependencies": {
-    "pyodide": "0.29.3"
+    "cross-spawn": "^7.0.6",
+    "fflate": "^0.8.3",
+    "pyodide": "0.29.3",
+    "tar": "^7.5.20"
   },
   "devDependencies": {
     "@stlite/app-packager": "workspace:^",

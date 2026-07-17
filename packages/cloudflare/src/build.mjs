@@ -1,8 +1,8 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { vendor } from "./vendor.mjs";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -70,20 +70,13 @@ export async function build({
     `.${path.basename(outDir)}.stlite-cloudflare-cache`,
   );
 
-  await run(
-    "bash",
-    [path.join(packageRoot, "scripts", "sync-workers-vendor.sh")],
-    {
-      env: {
-        ...process.env,
-        STLITE_CLOUDFLARE_PROJECT_DIR: outDir,
-        STLITE_CLOUDFLARE_PACKAGE_DIR: packageRoot,
-        STLITE_CLOUDFLARE_APP_DIR: srcDir,
-        STLITE_CLOUDFLARE_CACHE_DIR: cacheDir,
-        STLITE_CLOUDFLARE_ENTRYPOINT: entrypoint,
-      },
-    },
-  );
+  await vendor({
+    packageDir: packageRoot,
+    projectDir: outDir,
+    appDir: srcDir,
+    cacheDir,
+    entrypoint,
+  });
 
   const outRel = path.relative(process.cwd(), outDir) || ".";
   console.log(`stlite-cloudflare: packaged → ${outDir}`);
@@ -213,26 +206,4 @@ async function exists(target) {
   } catch {
     return false;
   }
-}
-
-function run(command, args, options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      cwd: process.cwd(),
-      stdio: "inherit",
-      ...options,
-    });
-    child.on("error", reject);
-    child.on("exit", (code, signal) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(
-          new Error(
-            `${command} ${args.join(" ")} failed${signal ? ` with signal ${signal}` : ` with exit code ${code}`}`,
-          ),
-        );
-      }
-    });
-  });
 }

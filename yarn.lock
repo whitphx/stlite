@@ -7895,6 +7895,7 @@ __metadata:
   dependencies:
     "@stlite/app-packager": "workspace:^"
     "@stlite/browser": "workspace:^"
+    "@stlite/cloudflare": "workspace:^"
     "@stlite/common": "workspace:^"
     "@stlite/desktop": "workspace:^"
     "@stlite/sharing-common": "workspace:^"

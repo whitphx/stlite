@@ -32,15 +32,22 @@
     "frontend",
     "runtime",
     "scripts",
+    "src",
     "py/**/*.py",
     "README.md"
   ],
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/build.d.mts",
+      "default": "./src/build.mjs"
+    }
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "fix:lint": "oxlint --fix bin frontend scripts",
+    "fix:lint": "oxlint --fix bin frontend scripts src",
     "fix:format": "oxfmt .",
-    "check:lint": "oxlint bin frontend scripts",
+    "check:lint": "oxlint bin frontend scripts src",
     "check:format": "oxfmt --check .",
     "test": "uv run --project . pytest",
     "pack:dry-run": "npm pack --dry-run"

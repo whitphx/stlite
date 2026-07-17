@@ -4,6 +4,7 @@ import { shareCommand } from "./commands/share.js";
 import { htmlCommand } from "./commands/html.js";
 import { webCommand } from "./commands/web.js";
 import { desktopCommand } from "./commands/desktop.js";
+import { cloudflareCommand } from "./commands/cloudflare.js";
 
 yargs(hideBin(process.argv))
   .scriptName("stlite")
@@ -11,6 +12,7 @@ yargs(hideBin(process.argv))
   .command(htmlCommand)
   .command(webCommand)
   .command(desktopCommand)
+  .command(cloudflareCommand)
   .demandCommand(1)
   .strict()
   .fail((msg, err) => {

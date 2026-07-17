@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@stlite/browser": "workspace:^",
+    "@stlite/cloudflare": "workspace:^",
     "@stlite/desktop": "workspace:^",
     "fs-extra": "^11.3.4",
     "pyodide": "0.29.3",

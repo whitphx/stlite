@@ -34,6 +34,12 @@ await build({
   define: {
     __STLITE_BROWSER_VERSION__: JSON.stringify(browserPkg.version),
   },
-  external: ["pyodide", "fs-extra", "@stlite/browser", "@stlite/desktop"],
+  external: [
+    "pyodide",
+    "fs-extra",
+    "@stlite/browser",
+    "@stlite/desktop",
+    "@stlite/cloudflare",
+  ],
   logLevel: "info",
 });

@@ -290,7 +290,8 @@ async function loadPyodideAndPackages(
   ).toString();
   const streamlitLogMessageFormat =
     streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
-  runtimeInit.setup_streamlit_logging(
+  runtimeInit.disable_streamlit_logger_overrides();
+  runtimeInit.setup_streamlit_logging_with_callback(
     streamlitLogLevel,
     streamlitLogMessageFormat,
     logCallback,

@@ -77,34 +77,32 @@ def preload_streamlit_runtime() -> None:
     import streamlit.runtime  # noqa: F401
 
 
-def setup_streamlit_logging(
+def setup_streamlit_logging_with_callback(
     streamlit_level: str = "INFO",
     streamlit_message_format: str = "%(asctime)s %(message)s",
-    callback: Any | None = None,
+    callback: Any = None,
 ) -> None:
-    _disable_streamlit_logger_overrides()
-
-    root_message_format = "%(levelname)s:%(name)s:%(message)s"
-
+    # Browser worker: forward every record to `callback`, which relays it to the
+    # main thread's console (the worker has no stderr), where the browser applies
+    # its own level filter. Call disable_streamlit_logger_overrides() first to undo
+    # Streamlit's own logger setup so these handlers stick.
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
-    root_formatter = logging.Formatter(root_message_format)
-    root_handler = _build_log_handler(callback)
-    root_handler.setFormatter(root_formatter)
+    root_handler = _CallbackLogHandler(callback)
+    root_handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s:%(message)s"))
     root_logger.addHandler(root_handler)
     root_logger.setLevel(logging.DEBUG)
 
     streamlit_logger = logging.getLogger("streamlit")
     streamlit_logger.propagate = False
     streamlit_logger.handlers.clear()
-    streamlit_formatter = logging.Formatter(streamlit_message_format)
-    streamlit_handler = _build_log_handler(callback)
-    streamlit_handler.setFormatter(streamlit_formatter)
+    streamlit_handler = _CallbackLogHandler(callback)
+    streamlit_handler.setFormatter(logging.Formatter(streamlit_message_format))
     streamlit_logger.addHandler(streamlit_handler)
     streamlit_logger.setLevel(streamlit_level.upper())
 
 
-def _disable_streamlit_logger_overrides() -> None:
+def disable_streamlit_logger_overrides() -> None:
     # Fix Streamlit's logger instantiating strategy, which violates the
     # standard logging API and is problematic for us.
     # See https://github.com/streamlit/streamlit/issues/4742
@@ -126,15 +124,15 @@ def _disable_streamlit_logger_overrides() -> None:
     streamlit.logger._loggers = {}
 
 
-def _build_log_handler(callback: Any | None) -> logging.Handler:
-    if callback is None:
-        return logging.StreamHandler()
+class _CallbackLogHandler(logging.Handler):
+    """Forward each record to a JS callback (browser worker → main thread)."""
 
-    class CallbackHandler(logging.Handler):
-        def emit(self, record: logging.LogRecord) -> None:
-            callback(record.levelno, self.format(record))
+    def __init__(self, callback: Any) -> None:
+        super().__init__()
+        self._callback = callback
 
-    return CallbackHandler()
+    def emit(self, record: logging.LogRecord) -> None:
+        self._callback(record.levelno, self.format(record))
 
 
 def disable_runtime_message_cache() -> None:
@@ -167,18 +165,16 @@ def initialize_streamlit_runtime(
     streamlit_config: dict[str, Any] | None = None,
     *,
     multi_runtime: bool = False,
-    streamlit_log_level: str = "INFO",
-    streamlit_log_message_format: str = "%(asctime)s %(message)s",
-    log_callback: Any | None = None,
 ) -> None:
     mock_pyarrow()
     invalidate_import_caches()
     preload_streamlit_runtime()
-    setup_streamlit_logging(
-        streamlit_log_level,
-        streamlit_log_message_format,
-        log_callback,
-    )
+    # Cloudflare Worker: neutralize Streamlit's logger overrides but install no
+    # handler of our own, so standard logging falls back to Python's default
+    # (WARNING+ to stderr via logging.lastResort), which workerd captures into the
+    # platform's log pipeline. The browser instead pipes records to the main
+    # thread via setup_streamlit_logging_with_callback.
+    disable_streamlit_logger_overrides()
     disable_runtime_message_cache()
     configure_streamlit(streamlit_config, multi_runtime=multi_runtime)
 
@@ -186,9 +182,10 @@ def initialize_streamlit_runtime(
 __all__ = [
     "configure_streamlit",
     "disable_runtime_message_cache",
+    "disable_streamlit_logger_overrides",
     "initialize_streamlit_runtime",
     "invalidate_import_caches",
     "mock_pyarrow",
     "preload_streamlit_runtime",
-    "setup_streamlit_logging",
+    "setup_streamlit_logging_with_callback",
 ]

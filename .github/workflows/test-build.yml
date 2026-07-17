@@ -1075,16 +1075,15 @@ jobs:
     # Prove the packed tarball builds a deployable Worker WITHOUT the monorepo:
     # install it into a throwaway project outside the repo and build a minimal
     # app from it. The repo is checked out only for the toolchain version files;
-    # the streamlit submodule is deliberately not fetched. Runs on Windows too,
-    # since the build must be cross-platform (no bash/rsync/python3/tar).
+    # the streamlit submodule is deliberately not fetched.
+    #
+    # ubuntu-only: Windows can't run the end-to-end build yet (see the pywrangler
+    # note in the test-cloudflare-windows job below). Our own build code is
+    # cross-platform and gets Windows coverage there via the helper tests.
     if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
     needs: [set-build-info, changes, build-cloudflare]
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -1105,10 +1104,6 @@ jobs:
           path: ${{ runner.temp }}/pkg
 
       - name: Build a sample from the packed tarball
-        # bash (git-bash on Windows runners) keeps this harness identical across
-        # OSes; the build under test is pure Node and needs no shell. The tarball
-        # is referenced relatively to avoid Windows absolute-path escaping.
-        shell: bash
         working-directory: ${{ runner.temp }}
         run: |
           set -eux
@@ -1117,7 +1112,7 @@ jobs:
             > standalone/app/streamlit_app.py
           cd standalone
           npm init -y >/dev/null
-          npm install "../pkg/package.tgz" wrangler
+          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
           npx stlite-cloudflare build ./app -o ./dist --name standalone-test
           test -d dist/python_modules/streamlit
           test -f dist/python_modules/stlite_cloudflare/entry.py
@@ -1126,6 +1121,38 @@ jobs:
       - name: Validate the Worker bundle
         working-directory: ${{ runner.temp }}/standalone/dist
         run: npx wrangler deploy --dry-run
+
+  test-cloudflare-windows:
+    # The stlite-cloudflare build is cross-platform Node; this job is its Windows
+    # coverage. It runs only the pure-Node vendoring-helper tests, not the full
+    # build, for the reason called out at the `yarn test:js` line below.
+    needs: changes
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: packages/cloudflare
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      # The end-to-end build can't be verified on Windows yet: its one required
+      # subprocess, `uv run pywrangler sync`, aborts there — pywrangler
+      # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
+      # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
+      # code, so until it's fixed the full build runs on Linux
+      # (verify-cloudflare-standalone) and these pure-Node helper tests give the
+      # Windows signal for our archive/mirror/copy vendoring logic.
+      - run: yarn test:js
 
   build-docs:
     runs-on: ubuntu-latest

@@ -195,7 +195,10 @@ function toWorkerName(name) {
   const normalized = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    // The line above already collapsed every run of non-alphanumerics to a
+    // single dash, so at most one leading/trailing dash remains — trim it with
+    // a single-character pattern (avoids the polynomial backtracking of `-+`).
+    .replace(/^-|-$/g, "");
   return normalized || "stlite-cloudflare-app";
 }
 

@@ -1136,8 +1136,12 @@ jobs:
         working-directory: packages/cloudflare
 
     steps:
+      # Submodules are needed only so the yarn workspace install can resolve all
+      # members (the streamlit frontend workspaces); the helper tests themselves
+      # don't touch the submodule.
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all

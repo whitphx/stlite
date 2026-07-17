@@ -82,25 +82,7 @@ def setup_streamlit_logging(
     streamlit_message_format: str = "%(asctime)s %(message)s",
     callback: Any | None = None,
 ) -> None:
-    # Fix Streamlit's logger instantiating strategy, which violates the
-    # standard logging API and is problematic for us.
-    # See https://github.com/streamlit/streamlit/issues/4742
-    import streamlit.logger
-
-    streamlit.logger.get_logger = logging.getLogger
-    streamlit.logger.setup_formatter = None
-    streamlit.logger.update_formatter = lambda *args, **kwargs: None
-    streamlit.logger.set_log_level = lambda *args, **kwargs: None
-
-    for name in streamlit.logger._loggers.keys():
-        if name == "root":
-            name = "streamlit"
-        logger = logging.getLogger(name)
-        logger.propagate = True
-        logger.handlers.clear()
-        logger.setLevel(logging.NOTSET)
-
-    streamlit.logger._loggers = {}
+    _disable_streamlit_logger_overrides()
 
     root_message_format = "%(levelname)s:%(name)s:%(message)s"
 
@@ -120,6 +102,28 @@ def setup_streamlit_logging(
     streamlit_handler.setFormatter(streamlit_formatter)
     streamlit_logger.addHandler(streamlit_handler)
     streamlit_logger.setLevel(streamlit_level.upper())
+
+
+def _disable_streamlit_logger_overrides() -> None:
+    # Fix Streamlit's logger instantiating strategy, which violates the
+    # standard logging API and is problematic for us.
+    # See https://github.com/streamlit/streamlit/issues/4742
+    import streamlit.logger
+
+    streamlit.logger.get_logger = logging.getLogger
+    streamlit.logger.setup_formatter = None
+    streamlit.logger.update_formatter = lambda *args, **kwargs: None
+    streamlit.logger.set_log_level = lambda *args, **kwargs: None
+
+    for name in streamlit.logger._loggers.keys():
+        if name == "root":
+            name = "streamlit"
+        logger = logging.getLogger(name)
+        logger.propagate = True
+        logger.handlers.clear()
+        logger.setLevel(logging.NOTSET)
+
+    streamlit.logger._loggers = {}
 
 
 def _build_log_handler(callback: Any | None) -> logging.Handler:

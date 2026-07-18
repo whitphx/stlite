@@ -288,7 +288,51 @@ async function installPackages(
   }
 
   options.logger.info(`Install the packages: ${JSON.stringify(requirements)}`);
-  await micropip.install.callKwargs(requirements, { keep_going: true });
+  // micropip resolves pure-Python wheels from PyPI at build time, so a transient
+  // network hiccup surfaces as "Can't find a pure Python 3 wheel for ...". Retry
+  // with backoff so a flaky fetch doesn't fail the whole package build.
+  await withRetry(
+    () => micropip.install.callKwargs(requirements, { keep_going: true }),
+    {
+      attempts: 3,
+      baseDelayMs: 1000,
+      logger: options.logger,
+      describe: "micropip install",
+    },
+  );
+}
+
+/**
+ * Run `fn`, retrying up to `attempts` times with exponential backoff. Absorbs
+ * transient failures (e.g. a flaky PyPI fetch during micropip resolution).
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: {
+    attempts: number;
+    baseDelayMs: number;
+    logger: Logger;
+    describe: string;
+  },
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= options.attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === options.attempts) break;
+      const delayMs = options.baseDelayMs * 2 ** (attempt - 1);
+      options.logger.warn(
+        `${options.describe} failed (attempt ${attempt}/${options.attempts}); ` +
+          `retrying in ${delayMs}ms: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError;
 }
 
 async function prepareLocalWheel(

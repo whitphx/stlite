@@ -68,7 +68,7 @@ Options:
   -o, --out <dir>            Output directory (default: ./dist)
   --entrypoint <name>        Entrypoint script, relative to <path> (default: streamlit_app.py)
   --requirements <file>      requirements.txt (default: <path>/requirements.txt if present)
-  --name <name>              Worker name for a generated wrangler.jsonc (default: derived from <out>)
+  --name <name>              Worker name for a generated wrangler.jsonc (default: derived from <path>)
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

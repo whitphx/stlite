@@ -17,55 +17,20 @@ from __future__ import annotations
 import importlib
 import logging
 import sys
+from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-# The single definition of the pyarrow shim. Stlite's Streamlit fork excludes
-# the real pyarrow (not Pyodide-compatible), so `import pyarrow` must resolve to
-# this: attribute access raises a clear "unsupported" error.
-_PYARROW_MOCK_SOURCE = """
-__version__ = "0.0.1"
-
-
-class Table:
-    @classmethod
-    def from_pandas(cls, *args, **kwargs):
-        raise NotImplementedError("stlite does not support pyarrow.Table.from_pandas.")
-
-
-class Array:
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError("stlite does not support this pyarrow type.")
-
-
-class ChunkedArray:
-    def __init__(self, *args, **kwargs):
-        raise NotImplementedError("stlite does not support this pyarrow type.")
-"""
-
 
 def mock_pyarrow() -> None:
-    # Browser worker: worker-runtime.ts registers a source-less pyarrow mock with
-    # micropip *before* installing dependencies, so if a user requirement pulls
-    # pyarrow the real wasm wheel is never fetched. Here we fill that mock in as a
-    # proper on-disk package, so `import pyarrow` (and its re-imports/sub-imports)
-    # resolve to the shim.
-    #
-    # Cloudflare Worker: there is no micropip, so install the same shim source
-    # directly via sys.modules.
-    try:
-        import micropip  # type: ignore[import]
-    except ImportError:
-        micropip = None
-
-    if micropip is not None:
-        micropip.add_mock_package(
-            "pyarrow", "0.0.1", modules={"pyarrow": _PYARROW_MOCK_SOURCE}
-        )
-        return
-
+    # Install the pyarrow shim as the fake `pyarrow` module so `import pyarrow`
+    # (and its re-imports/sub-imports) resolve to the stub. Used by the
+    # server-side runtime (Cloudflare); the browser worker instead registers the
+    # same shim with micropip before installing packages, from a TS constant that
+    # the kernel build generates from _pyarrow_shim.py (see worker-runtime.ts).
+    source = (Path(__file__).parent / "_pyarrow_shim.py").read_text()
     module = ModuleType("pyarrow")
-    exec(_PYARROW_MOCK_SOURCE, module.__dict__)
+    exec(source, module.__dict__)
     sys.modules["pyarrow"] = module
 
 

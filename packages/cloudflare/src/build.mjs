@@ -49,11 +49,17 @@ export async function build({
   }
 
   const outDir = path.resolve(process.cwd(), out);
-  // The output gets `rm -rf`'d on each run. Refuse paths that would delete the
-  // source — `-o .` (== srcDir) or any ancestor of it.
-  if (outDir === srcDir || srcDir.startsWith(outDir + path.sep)) {
+  // The output gets `rm -rf`'d on each run, and vendor() mirrors the whole
+  // project dir into the bundle. Refuse paths that would delete the source or
+  // get copied into itself: `-o .` (== srcDir), an ancestor of srcDir, or a
+  // directory nested inside srcDir.
+  if (
+    outDir === srcDir ||
+    srcDir.startsWith(outDir + path.sep) ||
+    outDir.startsWith(srcDir + path.sep)
+  ) {
     throw new Error(
-      `Refusing to use ${outDir} as --out: it is the project directory or an ancestor of it. Pick a separate output directory.`,
+      `Refusing to use ${outDir} as --out: it overlaps the project directory ${srcDir}. Pick a separate output directory outside it.`,
     );
   }
 

@@ -29,9 +29,7 @@
   "files": [
     "bin",
     "dist",
-    "frontend",
     "runtime",
-    "scripts",
     "src",
     "!src/**/*.test.mjs",
     "py/**/*.py",

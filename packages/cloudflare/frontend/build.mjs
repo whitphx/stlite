@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -8,10 +9,12 @@ const rootDir = path.resolve(packageDir, "../..");
 const streamlitFrontendDir = path.join(rootDir, "streamlit/frontend");
 const streamlitAppDir = path.join(streamlitFrontendDir, "app");
 
-const viteApiUrl = pathToFileURL(
-  path.join(streamlitFrontendDir, "node_modules/vite/dist/node/index.js"),
-).href;
-const { build, loadConfigFromFile, mergeConfig } = await import(viteApiUrl);
+// Build with the exact Vite the Streamlit app is pinned to, resolved from its
+// own node_modules (this package has no vite dependency).
+const require = createRequire(path.join(streamlitAppDir, "package.json"));
+const { build, loadConfigFromFile, mergeConfig } = await import(
+  pathToFileURL(require.resolve("vite")).href
+);
 
 const configEnv = {
   command: "build",
@@ -29,17 +32,13 @@ if (!streamlitConfig) {
   throw new Error("Failed to load Streamlit frontend Vite config");
 }
 
-const cloudflareConfig = await loadConfigFromFile(
-  configEnv,
-  path.join(cloudflareFrontendDir, "vite.config.mjs"),
-  streamlitAppDir,
+const { default: cloudflareConfig } = await import(
+  pathToFileURL(path.join(cloudflareFrontendDir, "vite.config.mjs")).href
 );
-if (!cloudflareConfig) {
-  throw new Error("Failed to load Cloudflare frontend Vite config");
-}
 
 await build(
-  mergeConfig(mergeConfig(streamlitConfig.config, cloudflareConfig.config), {
+  mergeConfig(streamlitConfig.config, {
+    ...cloudflareConfig,
     configFile: false,
     root: streamlitAppDir,
   }),

@@ -26,8 +26,8 @@ def mock_pyarrow() -> None:
     # Install the pyarrow shim as the fake `pyarrow` module so `import pyarrow`
     # (and its re-imports/sub-imports) resolve to the stub. Used by the
     # server-side runtime (Cloudflare); the browser worker instead registers the
-    # same shim with micropip before installing packages, from a TS constant that
-    # the kernel build generates from _pyarrow_shim.py (see worker-runtime.ts).
+    # same shim with micropip before installing packages, importing
+    # _pyarrow_shim.py directly (see worker-runtime.ts).
     source = (Path(__file__).parent / "_pyarrow_shim.py").read_text()
     module = ModuleType("pyarrow")
     exec(source, module.__dict__)

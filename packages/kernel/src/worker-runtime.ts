@@ -10,7 +10,8 @@ import {
 } from "./file";
 import { validateRequirements } from "@stlite/common";
 import { initPyodide } from "./pyodide-loader";
-import { PYARROW_MOCK_SOURCE } from "./pyarrow-mock-source";
+// The pyarrow shim's single source of truth, inlined at bundle time (Vite `?raw`).
+import PYARROW_MOCK_SOURCE from "../py/stlite-lib/stlite_lib/_pyarrow_shim.py?raw";
 import {
   dispatchModuleAutoLoading,
   ModuleAutoLoadCallback,
@@ -173,8 +174,8 @@ async function loadPyodideAndPackages(
   // Register the pyarrow shim with micropip BEFORE installing anything: this
   // both blocks micropip from fetching the real (Stlite-unsupported) pyarrow
   // wasm wheel if a user requirement pulls it in, and installs the stub so
-  // `import pyarrow` resolves to it. The shim source is generated from
-  // stlite_lib/_pyarrow_shim.py by `make pyarrow-mock-source`.
+  // `import pyarrow` resolves to it (PYARROW_MOCK_SOURCE is _pyarrow_shim.py's
+  // source, imported above).
   micropip.add_mock_package.callKwargs("pyarrow", "0.0.1", {
     modules: pyodide.toPy({ pyarrow: PYARROW_MOCK_SOURCE }),
   });

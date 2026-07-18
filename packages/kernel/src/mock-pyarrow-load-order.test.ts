@@ -1,7 +1,7 @@
 import type { PyodideInterface } from "pyodide";
 import { beforeAll, expect, suite, test } from "vitest";
 import { initPyodide } from "./pyodide-loader";
-import { PYARROW_MOCK_SOURCE } from "./pyarrow-mock-source";
+import PYARROW_MOCK_SOURCE from "../py/stlite-lib/stlite_lib/_pyarrow_shim.py?raw";
 import { getWheelUrls, pyodideUrl } from "./test-utils";
 
 // worker-runtime.ts registers the pyarrow shim (with its source) as a micropip

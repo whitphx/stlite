@@ -20,9 +20,9 @@
 # self-contained (no imports). It is consumed two ways:
 #   - Cloudflare / server runtime: mock_pyarrow() (runtime_init.py) reads this
 #     file's source and installs it via sys.modules.
-#   - Browser worker: kernel codegen (scripts/generate-pyarrow-mock-source.mjs)
-#     emits this file's source as a TS constant that worker-runtime.ts registers
-#     with micropip before installing packages.
+#   - Browser worker: worker-runtime.ts imports this file's source (Vite `?raw`,
+#     inlined at bundle time) and registers it with micropip before installing
+#     packages.
 
 __version__ = "0.0.1"
 

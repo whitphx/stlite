@@ -150,6 +150,11 @@ runs:
             `on [\`${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH}\`](https://github.com/whitphx/stlite/tree/${process.env.PACKAGE_STATS_DIFF_BASE_BRANCH})  ` +
             `(workflow run: [\`${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}\`](https://github.com/${{ github.repository }}/actions/runs/${process.env.PACKAGE_STATS_DIFF_BASE_RUN_ID}))\n\n`;
 
+          // GitHub caps issue-comment bodies at 65536 chars. A new or large
+          // package (e.g. @stlite/cloudflare) produces an all-added file diff
+          // plus a big file tree; keep every size summary but drop the heavy
+          // <details> blocks once the running body would exceed this budget.
+          const COMMENT_LENGTH_LIMIT = 60000;
           for (const artifactContent of sortedContents) {
             const { key, content } = artifactContent;
 
@@ -168,24 +173,12 @@ runs:
 
             const fileSizesCmp = await compareStrings(baseContent?.filelist?.sizes ?? "", content.filelist.sizes)
 
-            comment += `### ${content.name}
-          \`${content.package.filename}\`: ${sizeKiB} kiB ${sizeDiffStr}
-
-          <details>
-          <summary>File Tree</summary>
-
-          \`\`\`\n${content.filelist.tree}\n\`\`\`
-
-          </details>
-
-          <details>
-          <summary>File Sizes</summary>
-
-          \`\`\`diff\n${fileSizesCmp.diff}\n\`\`\`
-
-          </details>
-
-          `;
+            const summary = `### ${content.name}\n\`${content.package.filename}\`: ${sizeKiB} kiB ${sizeDiffStr}`;
+            const details = `<details>\n<summary>File Tree</summary>\n\n\`\`\`\n${content.filelist.tree}\n\`\`\`\n\n</details>\n\n<details>\n<summary>File Sizes</summary>\n\n\`\`\`diff\n${fileSizesCmp.diff}\n\`\`\`\n\n</details>`;
+            const body = comment.length + summary.length + details.length + 4 <= COMMENT_LENGTH_LIMIT
+              ? details
+              : "_File tree and sizes omitted to keep this comment within GitHub's size limit._";
+            comment += `${summary}\n\n${body}\n\n`;
           }
           core.startGroup('Comment preview')
           core.info(comment);

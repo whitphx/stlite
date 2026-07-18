@@ -521,8 +521,44 @@ jobs:
       - run: yarn test
 
       # Cross-platform unit tests for the pure-Node vendoring helpers (archive
-      # extraction, dir mirroring, site-packages copy). The Windows build is
-      # exercised end-to-end by verify-cloudflare-standalone below.
+      # extraction, dir mirroring, site-packages copy). test-cloudflare-windows
+      # runs these same tests on Windows for cross-platform signal.
+      - run: yarn test:js
+
+  test-cloudflare-windows:
+    # The stlite-cloudflare build is cross-platform Node; this job is its Windows
+    # coverage. It runs only the pure-Node vendoring-helper tests, not the full
+    # build, for the reason called out at the `yarn test:js` line below.
+    needs: changes
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: packages/cloudflare
+
+    steps:
+      # Submodules are needed only so the yarn workspace install can resolve all
+      # members (the streamlit frontend workspaces); the helper tests themselves
+      # don't touch the submodule.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      # The end-to-end build can't be verified on Windows yet: its one required
+      # subprocess, `uv run pywrangler sync`, aborts there — pywrangler
+      # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
+      # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
+      # code, so until it's fixed the full build runs on Linux
+      # (verify-cloudflare-standalone) and these pure-Node helper tests give the
+      # Windows signal for our archive/mirror/copy vendoring logic.
       - run: yarn test:js
 
   build-browser:
@@ -949,9 +985,12 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
-      # Exercises the whole pipeline that generated user projects run:
-      # stlite-lib/streamlit wheels, the Cloudflare frontend build,
-      # `pywrangler sync`, and the python_modules overlay.
+      # Build the sample in monorepo mode. Its output here is the Cloudflare
+      # frontend that the runtime bundle below packs into the tarball; it also
+      # exercises the monorepo build path end-to-end (stlite-lib/streamlit
+      # wheels, frontend build, `pywrangler sync`, python_modules overlay). The
+      # *deployable* sample is built separately from the packed tarball in
+      # verify-cloudflare-standalone.
       - name: Build the hello sample
         run: |
           . .venv/bin/activate
@@ -960,79 +999,6 @@ jobs:
       - name: Validate the Worker bundle
         working-directory: packages/cloudflare/samples/hello/dist
         run: npx wrangler deploy --dry-run
-
-      # Gate the deploy/preview on the credentials existing, so the whole thing
-      # is a no-op (not a failure) until the CLOUDFLARE_* secrets are configured.
-      - name: Check for Cloudflare credentials
-        id: cf
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping the sample deploy/preview."
-          fi
-
-      # Every push to the default branch redeploys the live sample so it always
-      # reflects the latest main.
-      - name: Deploy the sample (production)
-        if: ${{ steps.cf.outputs.enabled == 'true' && github.event_name == 'push' && needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: packages/cloudflare/samples/hello/dist
-          command: deploy
-
-      # Same-repo PRs (fork PRs have no secrets) get a stable per-PR preview URL
-      # that refreshes on every push to the branch, for in-development testing.
-      # Best-effort: `versions upload` requires the Worker to already exist, so
-      # previews only start working after the first production deploy on main
-      # creates it — until then this step fails, which must not fail the build.
-      - name: Upload a preview version of the sample
-        id: preview
-        continue-on-error: true
-        if: ${{ steps.cf.outputs.enabled == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false }}
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: packages/cloudflare/samples/hello/dist
-          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
-
-      - name: Comment the preview URL on the PR
-        if: ${{ steps.preview.outputs.deployment-url != '' }}
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v8.0.0
-        env:
-          PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
-        with:
-          script: |
-            const url = process.env.PREVIEW_URL;
-            const marker = "<!-- stlite-cloudflare-preview -->";
-            const body = `${marker}\n🚀 **Cloudflare Workers preview** of the stlite sample: ${url}\n\n_Refreshes on every push to this branch._`;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const existing = comments.find((c) => c.body.includes(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
 
       # Produce the prebuilt runtime artifacts the published package ships so it
       # builds without the monorepo: the esbuild-bundled vendoring script (dist/)
@@ -1072,13 +1038,17 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   verify-cloudflare-standalone:
-    # Prove the packed tarball builds a deployable Worker WITHOUT the monorepo:
-    # install it into a throwaway project outside the repo and build a minimal
-    # app from it. The repo is checked out only for the toolchain version files;
-    # the streamlit submodule is deliberately not fetched.
+    # Build the hello demo from the PACKED TARBALL, outside the monorepo, the way
+    # a published-package user would (`npm i @stlite/cloudflare && stlite-
+    # cloudflare build`). This is both the merge gate — proving the published
+    # package builds the real demo end-to-end — and the producer of the artifact
+    # that postbuild deploys. Building it here, in this PR-triggered no-secrets
+    # context, is deliberate: postbuild only ever deploys the prebuilt artifact,
+    # never runs PR build code with the deploy secrets. The streamlit submodule
+    # isn't fetched; the tarball ships its own prebuilt frontend and wheels.
     #
     # ubuntu-only: Windows can't run the end-to-end build yet (see the pywrangler
-    # note in the test-cloudflare-windows job below). Our own build code is
+    # note in the test-cloudflare-windows job above). Our own build code is
     # cross-platform and gets Windows coverage there via the helper tests.
     if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
     needs: [set-build-info, changes, build-cloudflare]
@@ -1103,17 +1073,17 @@ jobs:
           name: stlite-cloudflare
           path: ${{ runner.temp }}/pkg
 
-      - name: Build a sample from the packed tarball
+      - name: Build the hello sample from the packed tarball
         working-directory: ${{ runner.temp }}
         run: |
           set -eux
-          mkdir -p standalone/app
-          printf 'import streamlit as st\nst.title("standalone build works")\n' \
-            > standalone/app/streamlit_app.py
+          mkdir -p standalone
           cd standalone
           npm init -y >/dev/null
           npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
-          npx stlite-cloudflare build ./app -o ./dist --name standalone-test
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/app" \
+            -o ./dist --name stlite-cloudflare
           test -d dist/python_modules/streamlit
           test -f dist/python_modules/stlite_cloudflare/entry.py
           test -f dist/python_modules/_stlite_cloudflare_app/streamlit_app.py
@@ -1122,41 +1092,14 @@ jobs:
         working-directory: ${{ runner.temp }}/standalone/dist
         run: npx wrangler deploy --dry-run
 
-  test-cloudflare-windows:
-    # The stlite-cloudflare build is cross-platform Node; this job is its Windows
-    # coverage. It runs only the pure-Node vendoring-helper tests, not the full
-    # build, for the reason called out at the `yarn test:js` line below.
-    needs: changes
-    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
-
-    runs-on: windows-latest
-
-    defaults:
-      run:
-        working-directory: packages/cloudflare
-
-    steps:
-      # Submodules are needed only so the yarn workspace install can resolve all
-      # members (the streamlit frontend workspaces); the helper tests themselves
-      # don't touch the submodule.
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # The dist built above is the sample postbuild deploys. Hidden files are
+      # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
+      # dirs pywrangler leaves in the output — wrangler doesn't need them.
+      - name: Upload the built sample as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          submodules: true
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-          protoc: false
-
-      # The end-to-end build can't be verified on Windows yet: its one required
-      # subprocess, `uv run pywrangler sync`, aborts there — pywrangler
-      # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
-      # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
-      # code, so until it's fixed the full build runs on Linux
-      # (verify-cloudflare-standalone) and these pure-Node helper tests give the
-      # Windows signal for our archive/mirror/copy vendoring logic.
-      - run: yarn test:js
+          path: ${{ runner.temp }}/standalone/dist
+          name: stlite-cloudflare-sample
 
   build-docs:
     runs-on: ubuntu-latest

@@ -107,6 +107,102 @@ jobs:
           pr-number: ${{ needs.get-build-info.outputs.pr-number }}
           sticky-id: ${{ needs.get-build-info.outputs.head-sha }}
 
+  deploy-cloudflare-sample:
+    # Deploy the Cloudflare Worker sample that build-cloudflare packaged. This
+    # runs here (not in the build workflow) because it needs the CLOUDFLARE_*
+    # secrets, which only this trusted default-branch context has.
+    needs: get-build-info
+    if: ${{ needs.get-build-info.outputs.branch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # The sample artifact only exists when the cloudflare package was built
+      # (build-cloudflare runs on cloudflare changes / RUN_ALL_TESTS on main).
+      - name: Check for the sample artifact
+        id: check
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const has = data.artifacts.some((a) => a.name === "stlite-cloudflare-sample");
+            core.setOutput("has-sample", has ? "true" : "");
+
+      - name: Download the built sample
+        if: steps.check.outputs.has-sample
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: stlite-cloudflare-sample
+          path: ${{ runner.temp }}/sample
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      # Every push to the default branch redeploys the live sample so it always
+      # reflects the latest main.
+      - name: Deploy the sample (production)
+        if: ${{ steps.check.outputs.has-sample && ! needs.get-build-info.outputs.pr-number && needs.get-build-info.outputs.branch == github.event.repository.default_branch }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ runner.temp }}/sample
+          command: deploy
+
+      # Same-repo PRs get a stable per-PR preview URL that refreshes on every
+      # push. Fork PRs are skipped: their untrusted code must not run with our
+      # secrets. Best-effort: `versions upload` needs the Worker to already
+      # exist, so previews only work after the first production deploy on main
+      # creates it — until then this fails, which must not fail the job.
+      - name: Upload a preview version of the sample
+        id: preview
+        continue-on-error: true
+        if: ${{ steps.check.outputs.has-sample && needs.get-build-info.outputs.pr-number && github.event.workflow_run.head_repository.full_name == github.repository }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ runner.temp }}/sample
+          command: versions upload --preview-alias pr-${{ needs.get-build-info.outputs.pr-number }}
+
+      - name: Comment the preview URL on the PR
+        if: ${{ steps.preview.outputs.deployment-url != '' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.deployment-url }}
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        with:
+          script: |
+            const url = process.env.PREVIEW_URL;
+            const issue_number = Number(process.env.PR_NUMBER);
+            const marker = "<!-- stlite-cloudflare-preview -->";
+            const body = `${marker}\n🚀 **Cloudflare Workers preview** of the stlite sample: ${url}\n\n_Refreshes on every push to this branch._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+            });
+            const existing = comments.find((c) => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                body,
+              });
+            }
+
   deploy-visualizer-reports:
     needs: get-build-info
     if: ${{ needs.get-build-info.outputs.branch }}

@@ -94,6 +94,16 @@ export interface VendorPackageSnapshotOptions extends VendorPrebuiltPackagesOpti
   snapshotPath: string;
 }
 
+/**
+ * Loads Pyodide-in-Node with `packageCacheDir` pointed at `destPyodideDir`,
+ * installs the given dependencies (so any prebuilt packages they pull in get
+ * vendored to disk via Pyodide's Node-side caching mechanism — used here as
+ * the wheel file downloader), and returns the names of the prebuilt packages
+ * that were resolved from Pyodide's "default channel". The runtime reads the
+ * resulting prebuilt-packages.txt and re-installs them from the vendored
+ * files. This build-time-vendoring + runtime-reinstall strategy avoids
+ * problems such as https://github.com/whitphx/stlite/issues/558.
+ */
 export async function vendorPrebuiltPackages(
   opts: VendorPrebuiltPackagesOptions,
 ): Promise<string[]> {
@@ -103,13 +113,25 @@ export async function vendorPrebuiltPackages(
   );
 
   await fsPromises.mkdir(opts.destPyodideDir, { recursive: true });
-  return saveUsedPrebuiltPackages({
-    pyodideSource,
-    pyodideRuntimeDir: opts.destPyodideDir,
+
+  if (opts.dependencies.length === 0 && opts.localWheelPaths.length === 0) {
+    return [];
+  }
+
+  const pyodide = await loadPyodide({
+    packageBaseUrl: pyodideSource,
+    packageCacheDir: opts.destPyodideDir,
+  });
+
+  await installPackages(pyodide, {
     requirements: opts.dependencies,
     localWheelPaths: opts.localWheelPaths,
     logger,
   });
+
+  return Object.entries(pyodide.loadedPackages)
+    .filter(([, channel]) => channel === "default channel")
+    .map(([name]) => name);
 }
 
 export async function vendorPackageSnapshot(
@@ -223,49 +245,6 @@ export async function readRequirementsTxt(
   return parseRequirementsTxt(requirementsTxtData);
 }
 
-interface SaveUsedPrebuiltPackagesOptions {
-  pyodideSource: string;
-  pyodideRuntimeDir: string;
-  requirements: string[];
-  localWheelPaths: string[];
-  logger: Logger;
-}
-/**
- * Loads Pyodide-in-Node with `packageCacheDir` pointed at `pyodideRuntimeDir`,
- * installs the given requirements (so any prebuilt packages they pull in get
- * vendored to disk via Pyodide's Node-side caching mechanism — used here as
- * the wheel file downloader), and returns the names of the prebuilt packages
- * that were resolved from Pyodide's "default channel". The runtime reads the
- * resulting prebuilt-packages.txt and re-installs them from the vendored
- * files. This build-time-vendoring + runtime-reinstall strategy avoids
- * problems such as https://github.com/whitphx/stlite/issues/558.
- */
-async function saveUsedPrebuiltPackages(
-  options: SaveUsedPrebuiltPackagesOptions,
-): Promise<string[]> {
-  if (
-    options.requirements.length === 0 &&
-    options.localWheelPaths.length === 0
-  ) {
-    return [];
-  }
-
-  const pyodide = await loadPyodide({
-    packageBaseUrl: options.pyodideSource,
-    packageCacheDir: options.pyodideRuntimeDir,
-  });
-
-  await installPackages(pyodide, {
-    requirements: options.requirements,
-    localWheelPaths: options.localWheelPaths,
-    logger: options.logger,
-  });
-
-  return Object.entries(pyodide.loadedPackages)
-    .filter(([, channel]) => channel === "default channel")
-    .map(([name]) => name);
-}
-
 interface InstallPackagesOptions {
   requirements: string[];
   localWheelPaths: string[];
@@ -346,7 +325,7 @@ async function createSitePackagesSnapshot(
   logger.info("Create the site-packages snapshot file...");
 
   // TODO: this is the second `loadPyodide()` call in `packageApp` — the first
-  // happens in `saveUsedPrebuiltPackages` to discover which prebuilt packages
+  // happens in `vendorPrebuiltPackages` to discover which prebuilt packages
   // get pulled in. Two interpreter starts cost several seconds. They are
   // intentionally separate today because the snapshot pass needs to install
   // *with* prebuilts mocked out (so their files don't end up in the tarball),

@@ -47,9 +47,9 @@
     }
   },
   "scripts": {
-    "start": "tsc -b -w",
-    "build": "tsc -b",
-    "test": "vitest",
+    "start": "node scripts/generate-pyarrow-mock-source.mjs && tsc -b -w",
+    "build": "node scripts/generate-pyarrow-mock-source.mjs && tsc -b",
+    "test": "node scripts/generate-pyarrow-mock-source.mjs && vitest",
     "fix:lint": "oxlint --fix src",
     "fix:format": "oxfmt .",
     "check:lint": "oxlint src",

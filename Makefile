@@ -62,7 +62,6 @@ sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 cloudflare := $(BUILD_STATE_DIR)/cloudflare/.built
-pyarrow-mock-source := packages/kernel/src/pyarrow-mock-source.ts
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 cli-py-proto := $(BUILD_STATE_DIR)/cli-py-proto/.built
 cli-py-runtime-version := packages/cli/py/stlite_cli/_runtime_version.py
@@ -239,20 +238,12 @@ $(cloudflare): $(shell \
 	@mkdir -p $(dir $@)
 	@touch $@
 
-# The pyarrow shim's single source of truth is stlite_lib/_pyarrow_shim.py;
-# worker-runtime.ts needs it as a TS constant (generated here) to register the
-# shim with micropip before installing packages. See the script for details.
-.PHONY: pyarrow-mock-source
-pyarrow-mock-source: $(pyarrow-mock-source)
-$(pyarrow-mock-source): packages/kernel/py/stlite-lib/stlite_lib/_pyarrow_shim.py packages/kernel/scripts/generate-pyarrow-mock-source.mjs
-	node packages/kernel/scripts/generate-pyarrow-mock-source.mjs
-
 .PHONY: kernel
 kernel: $(kernel)
 $(kernel): $(shell \
 	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" \); \
-) $(pyarrow-mock-source) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
+) $(common) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(streamlit-frontend-lib)
 	cd packages/kernel && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -261,7 +252,7 @@ $(kernel): $(shell \
 kernel-test: $(shell \
 	find packages/kernel/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/kernel -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vitest.config.ts" \); \
-) $(pyarrow-mock-source) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
+) $(common) $(stlite-lib-wheel) $(streamlit_wheel)
 	cd packages/kernel; \
 	yarn test
 

@@ -14,6 +14,18 @@ from stlite_cloudflare.websocket import (
 _LOGGER = logging.getLogger(__name__)
 
 
+# The `workers` SDK ships an `asgi.fetch(app, request, env)` helper, but it does
+# not fit Streamlit, so we bridge ASGI by hand instead:
+#   - It starts a fresh ASGI lifespan on every request (asgi.start_application),
+#     whereas Streamlit's runtime must start once and stay resident (see
+#     runtime.py's shared init + retained `_lifespan_state`); a new runtime per
+#     request loses all session state.
+#   - Its WebSocket bridge is text-only, but Streamlit's transport is binary
+#     protobuf (ForwardMsg), so we need the binary/handshake/close handling in
+#     websocket.py.
+#   - It returns the Worker Response directly, leaving nowhere to strip
+#     `accept-encoding` (avoids double-gzip) or inject the Cloudflare frontend
+#     config into the index HTML (see adapter.py / frontend_config.py).
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         try:

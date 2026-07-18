@@ -36,6 +36,10 @@ const { default: cloudflareConfig } = await import(
   pathToFileURL(path.join(cloudflareFrontendDir, "vite.config.mjs")).href
 );
 
+// The merge stays here rather than inside vite.config.mjs so the whole build
+// runs against the Streamlit-pinned Vite resolved above: a bare `import "vite"`
+// from vite.config.mjs would bind to the monorepo-root install instead, which
+// versions independently of the submodule's.
 await build(
   mergeConfig(streamlitConfig.config, {
     ...cloudflareConfig,

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
 import { exists } from "./helpers/fsx.mjs";
 import { vendor } from "./vendor.mjs";
 
@@ -154,10 +155,7 @@ async function readRequirements(srcDir, explicit) {
     return [];
   }
   const text = await fs.readFile(requirementsPath, "utf8");
-  return text
-    .split("\n")
-    .map((line) => line.replace(/#.*$/, "").trim())
-    .filter((line) => line.length > 0);
+  return validateRequirements(parseRequirementsTxt(text));
 }
 
 function defaultWranglerJsonc(workerName) {

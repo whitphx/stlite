@@ -30,8 +30,7 @@
     "bin",
     "dist",
     "runtime",
-    "src",
-    "!src/**/*.test.mjs",
+    "src/build.d.mts",
     "py/**/*.py",
     "README.md"
   ],
@@ -39,7 +38,7 @@
   "exports": {
     ".": {
       "types": "./src/build.d.mts",
-      "default": "./src/build.mjs"
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
@@ -60,6 +59,7 @@
   },
   "devDependencies": {
     "@stlite/app-packager": "workspace:^",
+    "@stlite/common": "workspace:^",
     "esbuild": "^0.27.1",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",

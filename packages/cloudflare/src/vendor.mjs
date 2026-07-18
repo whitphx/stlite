@@ -3,6 +3,7 @@ import path from "node:path";
 import { extractZip } from "./helpers/archive.mjs";
 import { exists, mirrorDir, removeMatching } from "./helpers/fsx.mjs";
 import { run } from "./helpers/spawn.mjs";
+import { vendorPrebuiltPackages } from "./vendor-prebuilt.mjs";
 
 const isPyarrowArtifact = (name) =>
   name === "pyarrow" ||
@@ -19,9 +20,9 @@ const isRuntimeArtifact = (name) =>
  * Worker directory. Cross-platform; the only external process it spawns is
  * `uv`/`pywrangler`.
  *
- * Requires the prebuilt runtime artifacts (runtime/ + the dist/ vendoring
- * bundle). A published @stlite/cloudflare ships them; in the Stlite monorepo run
- * `make cloudflare` first — the raw source tree can't be built from directly.
+ * Requires the prebuilt runtime artifacts under runtime/ (frontend, wheels, and
+ * the Streamlit dependency snapshot). A published @stlite/cloudflare ships them;
+ * in the Stlite monorepo run `make cloudflare` first.
  *
  * @param {object} opts
  * @param {string} opts.packageDir  The @stlite/cloudflare package root.
@@ -41,14 +42,11 @@ export async function vendor({
   await fs.mkdir(cacheDir, { recursive: true });
 
   const runtimeDir = path.join(packageDir, "runtime");
-  if (
-    !(await exists(path.join(runtimeDir, "frontend"))) ||
-    !(await exists(path.join(packageDir, "dist", "vendor-prebuilt.js")))
-  ) {
+  if (!(await exists(path.join(runtimeDir, "frontend")))) {
     throw new Error(
-      "stlite-cloudflare is missing its prebuilt runtime artifacts (runtime/ " +
-        "and dist/). A published @stlite/cloudflare ships them; in the Stlite " +
-        "monorepo, run `make cloudflare` first.",
+      "stlite-cloudflare is missing its prebuilt runtime artifacts (runtime/). " +
+        "A published @stlite/cloudflare ships them; in the Stlite monorepo, run " +
+        "`make cloudflare` first.",
     );
   }
   const frontendSrc = path.join(runtimeDir, "frontend");
@@ -60,7 +58,6 @@ export async function vendor({
   });
 
   // Vendor the Streamlit fork's prebuilt Pyodide dependency closure on top.
-  const { vendorPrebuiltPackages } = await import("../dist/vendor-prebuilt.js");
   await vendorPrebuiltPackages({ packageDir, projectDir, cacheDir });
 
   // stlite has no working pyarrow (the runtime shims it); drop any that a user

@@ -7927,6 +7927,7 @@ __metadata:
   resolution: "@stlite/cloudflare@workspace:packages/cloudflare"
   dependencies:
     "@stlite/app-packager": "workspace:^"
+    "@stlite/common": "workspace:^"
     cross-spawn: "npm:^7.0.6"
     esbuild: "npm:^0.27.1"
     fflate: "npm:^0.8.3"

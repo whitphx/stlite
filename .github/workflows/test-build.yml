@@ -960,10 +960,10 @@ jobs:
 
   build-cloudflare:
     # Unlike the always-built packages above, this build compiles the
-    # Cloudflare-variant Streamlit frontend and vendors the full Pyodide
-    # dependency tree, so it only runs when the cloudflare package (or a
-    # dependency) changed; RUN_ALL_TESTS makes that always true on main,
-    # which is what the postbuild publish/deploy jobs rely on.
+    # Cloudflare-variant Streamlit frontend and builds the pinned runtime
+    # wheels, so it only runs when the cloudflare package (or a dependency)
+    # changed; RUN_ALL_TESTS makes that always true on main, which is what the
+    # postbuild publish/deploy jobs rely on.
     if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
     needs:
       [set-build-info, changes, test-kernel, test-stlite-lib, test-cloudflare]
@@ -985,18 +985,8 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
-      # Produce everything the published package ships so it builds without the
-      # monorepo: the pinned stlite-lib/Streamlit wheels, the esbuild-bundled
-      # vendoring script (dist/), and runtime/ (the Cloudflare frontend +
-      # Streamlit dependency snapshot). build-runtime.mjs builds the frontend
-      # itself; the deployable sample is built separately, from the packed
-      # tarball, in verify-cloudflare-standalone.
-      - name: Bundle the runtime artifacts
-        run: |
-          . .venv/bin/activate
-          make stlite-lib-wheel streamlit-wheel
-          corepack yarn workspace @stlite/cloudflare build
-          node packages/cloudflare/scripts/build-runtime.mjs
+      - name: Build @stlite/cloudflare
+        run: make cloudflare
 
       - name: Package
         working-directory: packages/cloudflare

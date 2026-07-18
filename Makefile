@@ -61,6 +61,7 @@ sharing-common := $(BUILD_STATE_DIR)/sharing-common/.built
 sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
+cloudflare := $(BUILD_STATE_DIR)/cloudflare/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 cli-py-proto := $(BUILD_STATE_DIR)/cli-py-proto/.built
 cli-py-runtime-version := packages/cli/py/stlite_cli/_runtime_version.py
@@ -217,6 +218,23 @@ $(desktop): $(shell \
 	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
 ) $(node_modules) $(common) $(react) $(app-packager)
 	cd packages/desktop && yarn build
+	@mkdir -p $(dir $@)
+	@touch $@
+
+# `@stlite/cloudflare` ships prebuilt runtime artifacts so `stlite-cloudflare
+# build` runs without the monorepo: the esbuild-bundled vendoring script (dist/)
+# and runtime/ (the Cloudflare frontend, the pinned stlite-lib/Streamlit wheels,
+# and the Streamlit dependency snapshot). build-runtime.mjs builds the frontend
+# and assembles runtime/; the wheels come from the prerequisites below.
+.PHONY: cloudflare
+cloudflare: $(cloudflare)
+$(cloudflare): $(shell \
+	find packages/cloudflare/src packages/cloudflare/scripts packages/cloudflare/frontend -type f ! -name "*.test.mjs"; \
+	find packages/cloudflare/py -type f -name "*.py"; \
+	find packages/cloudflare -maxdepth 1 -type f -name "package.json"; \
+) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+	cd packages/cloudflare && yarn build
+	. $(VENV_PATH)/bin/activate && node packages/cloudflare/scripts/build-runtime.mjs
 	@mkdir -p $(dir $@)
 	@touch $@
 

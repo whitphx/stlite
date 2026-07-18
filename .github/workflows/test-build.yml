@@ -516,8 +516,8 @@ jobs:
           uv run --project . ruff check --output-format=github py tests
           uv run --project . ruff format --check py tests
 
-      # The pytest suite covers the Worker runtime modules and spawns the CLI
-      # via node, so it needs both uv and the Node toolchain set up above.
+      # The pytest suite covers the Worker runtime modules; it needs uv. The
+      # Node toolchain above is for the yarn lint/format/test:js steps.
       - run: yarn test
 
       # Cross-platform unit tests for the pure-Node vendoring helpers (archive
@@ -1041,7 +1041,7 @@ jobs:
         with:
           node-version-file: ${{ env.node-version-file }}
 
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v7.1.1
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
         with:
           enable-cache: true
 

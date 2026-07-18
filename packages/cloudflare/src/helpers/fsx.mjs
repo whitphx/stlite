@@ -12,6 +12,31 @@ export async function exists(target) {
 }
 
 /**
+ * Path of the single wheel in `dir` whose filename matches `pattern`. Zero or
+ * multiple matches throw: the wheel dirs this reads are build outputs where a
+ * leftover stale wheel would otherwise get vendored silently.
+ *
+ * @param {string} dir
+ * @param {RegExp} pattern
+ * @returns {Promise<string>}
+ */
+export async function singleWheel(dir, pattern) {
+  const matches = (await fs.readdir(dir))
+    .filter((name) => pattern.test(name))
+    .sort();
+  if (matches.length === 0) {
+    throw new Error(`No wheel matching ${pattern} in ${dir}`);
+  }
+  if (matches.length > 1) {
+    throw new Error(
+      `Multiple wheels match ${pattern} in ${dir} (${matches.join(", ")}); ` +
+        "delete the stale ones and re-run the build.",
+    );
+  }
+  return path.join(dir, matches[0]);
+}
+
+/**
  * Make destDir an exact copy of srcDir (equivalent to `rsync -a --delete`),
  * optionally skipping top-level entries whose basename is in `exclude`.
  *

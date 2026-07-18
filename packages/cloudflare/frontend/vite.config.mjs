@@ -4,9 +4,10 @@ import { fileURLToPath } from "node:url";
 const frontendDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default {
-  // Source maps are dead weight here: this build is vendored into the Worker
-  // (and, once bundled, into the published package), never served to a browser
-  // devtools session, so emitting them only inflates the artifact.
+  // The upstream config decides sourcemaps from env vars, so pin them off:
+  // .map files would be vendored into every Worker bundle (and the published
+  // package's runtime/), inflating artifacts that must stay under Cloudflare's
+  // Worker size limit.
   build: {
     sourcemap: false,
   },

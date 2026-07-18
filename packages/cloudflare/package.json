@@ -63,7 +63,6 @@
     "esbuild": "^0.27.1",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "playwright": "^1.61.1",
     "wrangler": "^4.105.0"
   }
 }

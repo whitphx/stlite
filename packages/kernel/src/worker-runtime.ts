@@ -258,11 +258,14 @@ async function loadPyodideAndPackages(
     dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, sources);
   }
 
-  const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
+  // Freshly installed packages can fail to import (e.g. `NameError: name
+  // '_imp' is not defined`) until the import caches are invalidated. Use
+  // stdlib importlib, and before the first stlite_lib import: importing
+  // stlite_lib itself already pulls in installed packages (anyio etc.), so a
+  // stlite_lib-hosted guard would come too late for its own import.
+  pyodide.pyimport("importlib").invalidate_caches();
 
-  // The following step is necessary to avoid errors like `NameError: name '_imp' is not defined`
-  // at importing installed packages.
-  runtimeInit.invalidate_import_caches();
+  const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
 
   onProgress("Loading streamlit package.");
   console.debug("Loading the Streamlit package");

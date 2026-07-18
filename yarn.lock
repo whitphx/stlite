@@ -7933,7 +7933,6 @@ __metadata:
     fflate: "npm:^0.8.3"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
-    playwright: "npm:^1.61.1"
     pyodide: "npm:0.29.3"
     tar: "npm:^7.5.20"
     wrangler: "npm:^4.105.0"

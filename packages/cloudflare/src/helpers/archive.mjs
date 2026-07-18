@@ -14,8 +14,8 @@ function assertInside(destDir, target, archive) {
 }
 
 /**
- * Extract a .zip archive (e.g. a Python wheel) into destDir. Replaces the
- * `python3 -m zipfile -e` shell-out so the build needs no system Python.
+ * Extract a .zip archive (e.g. a Python wheel) into destDir. Pure Node so the
+ * build needs no system python3/unzip and behaves the same on Windows.
  *
  * @param {string} zipPath
  * @param {string} destDir
@@ -35,7 +35,8 @@ export async function extractZip(zipPath, destDir) {
 }
 
 /**
- * Extract a .tar.gz archive into destDir. Replaces the `tar -xzf` shell-out.
+ * Extract a .tar.gz archive into destDir. Pure Node so the build needs no
+ * system tar and behaves the same on Windows.
  *
  * @param {string} tarPath
  * @param {string} destDir

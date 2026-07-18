@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.venv/
-.venv-workers/
-.wrangler/
-.pyodide-prebuilt-packages/
-.stlite-cloudflare-remote-frontend
-python_modules/

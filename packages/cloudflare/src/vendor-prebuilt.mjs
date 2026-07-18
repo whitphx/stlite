@@ -8,6 +8,7 @@ import {
   vendorPackageSnapshot,
 } from "@stlite/app-packager";
 import { extractTarGz, extractZip } from "./helpers/archive.mjs";
+import { exists } from "./helpers/fsx.mjs";
 import {
   copyMissingPackages,
   entryMatchesPackage,
@@ -95,9 +96,7 @@ export async function vendorPrebuiltPackages({
     const packageInfo =
       await prebuiltPackagesDataReader.getPackageInfoByName(packageName);
     const wheelPath = path.resolve(pyodidePackageDir, packageInfo.file_name);
-    try {
-      await fs.access(wheelPath);
-    } catch {
+    if (!(await exists(wheelPath))) {
       throw new Error(`Missing Pyodide wheel for ${packageName}: ${wheelPath}`);
     }
     await extractZip(wheelPath, vendorDir);

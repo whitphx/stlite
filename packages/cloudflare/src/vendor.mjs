@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { extractZip } from "./helpers/archive.mjs";
-import { exists, mirrorDir, removeMatching } from "./helpers/fsx.mjs";
+import {
+  exists,
+  mirrorDir,
+  removeMatching,
+  singleWheel,
+} from "./helpers/fsx.mjs";
 import { run } from "./helpers/spawn.mjs";
 import { vendorPrebuiltPackages } from "./vendor-prebuilt.mjs";
 
@@ -98,26 +103,8 @@ export async function vendor({
   );
 }
 
-async function singleWheel(dir, pattern) {
-  const matches = (await fs.readdir(dir))
-    .filter((name) => pattern.test(name))
-    .sort();
-  if (matches.length === 0) {
-    throw new Error(`No wheel matching ${pattern} in ${dir}`);
-  }
-  if (matches.length > 1) {
-    throw new Error(
-      `Multiple wheels match ${pattern} in ${dir} (${matches.join(", ")}); ` +
-        "delete the stale ones and re-run the build.",
-    );
-  }
-  return path.join(dir, matches[0]);
-}
-
 async function ensureFile(filePath) {
-  try {
-    await fs.access(filePath);
-  } catch {
+  if (!(await exists(filePath))) {
     await fs.writeFile(filePath, "");
   }
 }

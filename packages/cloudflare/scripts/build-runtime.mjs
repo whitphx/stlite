@@ -11,6 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { singleWheel } from "../src/helpers/fsx.mjs";
 import { buildMonorepoFrontend } from "./build-frontend.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -72,19 +73,6 @@ console.log(
 );
 
 async function copySingleWheel(srcDir, pattern, destDir) {
-  const matches = (await fs.readdir(srcDir)).filter((name) =>
-    pattern.test(name),
-  );
-  if (matches.length === 0) {
-    throw new Error(`No wheel matching ${pattern} in ${srcDir}`);
-  }
-  if (matches.length > 1) {
-    throw new Error(
-      `Multiple wheels match ${pattern} in ${srcDir} (${matches.join(", ")}); delete the stale ones and re-run the build.`,
-    );
-  }
-  await fs.copyFile(
-    path.join(srcDir, matches[0]),
-    path.join(destDir, matches[0]),
-  );
+  const wheelPath = await singleWheel(srcDir, pattern);
+  await fs.copyFile(wheelPath, path.join(destDir, path.basename(wheelPath)));
 }

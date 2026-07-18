@@ -28,9 +28,9 @@ def preload_streamlit_runtime() -> None:
 
 
 def setup_streamlit_logging_with_callback(
-    streamlit_level: str = "INFO",
-    streamlit_message_format: str = "%(asctime)s %(message)s",
-    callback: Any = None,
+    streamlit_level: str,
+    streamlit_message_format: str,
+    callback: Any,
 ) -> None:
     # Browser worker: forward every record to `callback`, which relays it to the
     # main thread's console (the worker has no stderr), where the browser applies

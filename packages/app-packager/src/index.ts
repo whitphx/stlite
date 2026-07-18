@@ -99,10 +99,11 @@ export interface VendorPackageSnapshotOptions extends VendorPrebuiltPackagesOpti
  * installs the given dependencies (so any prebuilt packages they pull in get
  * vendored to disk via Pyodide's Node-side caching mechanism — used here as
  * the wheel file downloader), and returns the names of the prebuilt packages
- * that were resolved from Pyodide's "default channel". The runtime reads the
- * resulting prebuilt-packages.txt and re-installs them from the vendored
- * files. This build-time-vendoring + runtime-reinstall strategy avoids
- * problems such as https://github.com/whitphx/stlite/issues/558.
+ * that were resolved from Pyodide's "default channel". Callers decide what to
+ * do with the vendored wheels (packageApp records them in prebuilt-packages.txt
+ * for runtime re-install; @stlite/cloudflare extracts them into the Worker
+ * bundle). This build-time vendoring avoids problems such as
+ * https://github.com/whitphx/stlite/issues/558.
  */
 export async function vendorPrebuiltPackages(
   opts: VendorPrebuiltPackagesOptions,
@@ -278,6 +279,9 @@ async function installPackages(
       factor: 2,
       minTimeout: 1000,
       onFailedAttempt: ({ error, attemptNumber, retriesLeft, retryDelay }) => {
+        // p-retry also invokes this on the final attempt, right before
+        // rethrowing; a "retrying in 0ms" line there would be a lie.
+        if (retriesLeft === 0) return;
         options.logger.warn(
           `micropip install failed (attempt ${attemptNumber}, ${retriesLeft} left); ` +
             `retrying in ${retryDelay}ms: ${error.message}`,

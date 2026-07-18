@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Awaitable, Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
-AsgiMessage = dict[str, Any]
-AsgiReceive = Callable[[], Awaitable[AsgiMessage]]
-AsgiSend = Callable[[AsgiMessage], Awaitable[None]]
-AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
+from stlite_cloudflare._asgi import AsgiApp, AsgiMessage
 
 
 @dataclass(frozen=True)

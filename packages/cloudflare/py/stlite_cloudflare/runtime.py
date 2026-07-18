@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
-AsgiReceive = Callable[[], Awaitable[dict[str, Any]]]
-AsgiSend = Callable[[dict[str, Any]], Awaitable[None]]
-AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
+from stlite_cloudflare._asgi import AsgiApp
 
 _init_task: asyncio.Task[AsgiApp] | None = None
 # Holds the ASGI lifespan handshake state, whose ``_lifespan_task`` is the

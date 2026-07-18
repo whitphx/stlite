@@ -1,14 +1,5 @@
-from stlite_cloudflare.adapter import AsgiHttpResponse, run_http_asgi
-from stlite_cloudflare.websocket import (
-    AsgiWebSocketSession,
-    WebSocketScopeParts,
-    build_websocket_scope,
-)
+"""Stlite runtime for Cloudflare Python Workers.
 
-__all__ = [
-    "AsgiHttpResponse",
-    "AsgiWebSocketSession",
-    "WebSocketScopeParts",
-    "build_websocket_scope",
-    "run_http_asgi",
-]
+Consumers import the submodules (``.entry``, ``.adapter``, ``.websocket``,
+``.runtime``, ``.frontend_config``) directly; this package re-exports nothing.
+"""

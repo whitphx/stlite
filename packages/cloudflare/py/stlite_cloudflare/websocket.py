@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
+from stlite_cloudflare._asgi import AsgiApp, AsgiMessage
 from stlite_cloudflare.adapter import (
     encode_request_headers,
     iter_header_pairs,
@@ -14,11 +14,6 @@ from stlite_cloudflare.adapter import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-AsgiMessage = dict[str, Any]
-AsgiReceive = Callable[[], Awaitable[AsgiMessage]]
-AsgiSend = Callable[[AsgiMessage], Awaitable[None]]
-AsgiApp = Callable[[dict[str, Any], AsgiReceive, AsgiSend], Awaitable[None]]
 
 
 @dataclass(frozen=True)

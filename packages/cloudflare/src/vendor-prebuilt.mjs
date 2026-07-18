@@ -1,8 +1,6 @@
-import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { promisify } from "node:util";
 import {
   consoleLogger,
   DEFAULT_PYODIDE_SOURCE,
@@ -16,8 +14,6 @@ import {
   findSitePackagesDir,
   hasPackageArtifact,
 } from "./helpers/site-packages.mjs";
-
-const execFileAsync = promisify(execFile);
 
 // The stlite Worker runtime needs these on top of the Streamlit fork's declared
 // dependencies, so they are vendored into every project's python_modules rather
@@ -50,13 +46,11 @@ const alwaysOverlayPrebuiltPackages = new Set(["cramjam", "fastparquet"]);
  * @param {object} opts
  * @param {string} opts.packageDir  The @stlite/cloudflare package root.
  * @param {string} opts.projectDir  The scaffolded output project (contains python_modules).
- * @param {string} opts.rootDir     The monorepo root (only used when reading deps from the submodule).
  * @param {string} opts.cacheDir    Reusable cache dir for the downloaded Pyodide wheels.
  */
 export async function vendorPrebuiltPackages({
   packageDir,
   projectDir,
-  rootDir,
   cacheDir,
 }) {
   const vendorDir = path.resolve(projectDir, "python_modules");
@@ -77,7 +71,7 @@ export async function vendorPrebuiltPackages({
   );
 
   const dependencies = [
-    ...(await readStreamlitDependencies(packageDir, rootDir)),
+    ...(await readStreamlitDependencies(packageDir)),
     ...stliteRuntimeExtraDependencies,
   ];
   const usedPrebuiltPackages = await vendorPackageSnapshot({
@@ -110,38 +104,14 @@ export async function vendorPrebuiltPackages({
   }
 }
 
-async function readStreamlitDependencies(packageDir, rootDir) {
-  // The published package ships a snapshot of the Streamlit fork's declared
-  // dependencies (produced at pack time); the monorepo reads them live from the
-  // submodule's pyproject.toml (the only build-time system-Python use, and it
-  // never runs on the published/end-user path).
+async function readStreamlitDependencies(packageDir) {
+  // A snapshot of the Streamlit fork's declared dependencies, produced at pack
+  // time by build-runtime.mjs (via `make cloudflare`) and shipped in runtime/.
   const bundledPath = path.resolve(
     packageDir,
     "runtime/streamlit-dependencies.json",
   );
-  try {
-    return JSON.parse(await fs.readFile(bundledPath, "utf8"));
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      throw error;
-    }
-  }
-
-  const streamlitPyprojectPath = path.resolve(
-    rootDir,
-    "streamlit/lib/pyproject.toml",
-  );
-  const { stdout } = await execFileAsync("python3", [
-    "-c",
-    [
-      "import json, sys, tomllib",
-      "from pathlib import Path",
-      "data = tomllib.loads(Path(sys.argv[1]).read_text())",
-      "print(json.dumps(data['project']['dependencies']))",
-    ].join("\n"),
-    streamlitPyprojectPath,
-  ]);
-  return JSON.parse(stdout);
+  return JSON.parse(await fs.readFile(bundledPath, "utf8"));
 }
 
 async function overlayMissingSnapshotPackages(snapshotPath, vendorDir) {

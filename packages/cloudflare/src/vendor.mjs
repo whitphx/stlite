@@ -1,10 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import process from "node:process";
 import { extractZip } from "./helpers/archive.mjs";
 import { mirrorDir, removeMatching } from "./helpers/fsx.mjs";
 import { run } from "./helpers/spawn.mjs";
-import { buildMonorepoFrontend } from "./frontend-build.mjs";
 
 const isPyarrowArtifact = (name) =>
   name === "pyarrow" ||
@@ -18,16 +16,18 @@ const isRuntimeArtifact = (name) =>
 
 /**
  * Vendor the stlite runtime and the user's project into a deployable Cloudflare
- * Worker directory. The Node port of sync-workers-vendor.sh: cross-platform, the
- * only external process on the published (bundled) path is `uv`/`pywrangler`.
- * Monorepo (source-tree) builds additionally spawn `make`/`corepack yarn`/`git`
- * to build the wheels + frontend, which are POSIX/dev tools.
+ * Worker directory. The Node port of sync-workers-vendor.sh: cross-platform, its
+ * only external process is `uv`/`pywrangler`.
+ *
+ * Requires the prebuilt runtime artifacts (runtime/ + the dist/ vendoring
+ * bundle). A published @stlite/cloudflare ships them; in the Stlite monorepo run
+ * `make cloudflare` first — the raw source tree can't be built from directly.
  *
  * @param {object} opts
  * @param {string} opts.packageDir  The @stlite/cloudflare package root.
  * @param {string} opts.projectDir  The scaffolded output project (gets python_modules).
  * @param {string} opts.appDir      The user's Streamlit project directory.
- * @param {string} opts.cacheDir    Reusable cache dir (frontend build, Pyodide wheels).
+ * @param {string} opts.cacheDir    Reusable cache dir (Pyodide wheels).
  * @param {string} [opts.entrypoint] App entry script name (default streamlit_app.py).
  */
 export async function vendor({
@@ -40,63 +40,19 @@ export async function vendor({
   const vendorDir = path.join(projectDir, "python_modules");
   await fs.mkdir(cacheDir, { recursive: true });
 
-  // The frontend build below runs outside make; give child Node processes the
-  // heap headroom the root Makefile exports for its own targets.
-  if (!process.env.NODE_OPTIONS) {
-    process.env.NODE_OPTIONS = "--max-old-space-size=6144";
-  }
-
-  // A published @stlite/cloudflare ships prebuilt runtime artifacts (runtime/ +
-  // the dist/ vendoring bundle) and builds without the monorepo; from the source
-  // tree those are absent and we build them.
-  const bundled =
-    (await exists(path.join(packageDir, "runtime", "frontend"))) &&
-    (await exists(path.join(packageDir, "dist", "vendor-prebuilt.js")));
-
-  let frontendSrc;
-  let stliteLibWheelDir;
-  let streamlitWheelDir;
-  let rootDir;
-
-  if (!bundled) {
-    rootDir = process.env.STLITE_CLOUDFLARE_ROOT_DIR
-      ? path.resolve(process.env.STLITE_CLOUDFLARE_ROOT_DIR)
-      : path.resolve(packageDir, "..", "..");
-    if (
-      !(await exists(path.join(rootDir, "streamlit"))) ||
-      !(await exists(path.join(rootDir, "packages/kernel/py/stlite-lib")))
-    ) {
-      throw new Error(
-        "stlite-cloudflare cannot find the runtime artifacts. A published " +
-          "@stlite/cloudflare ships them (runtime/, dist/); otherwise this build " +
-          "reads them from the Stlite monorepo source tree, which was not found " +
-          "either. On Windows, build from source under WSL — the published " +
-          "package builds natively.",
-      );
-    }
-    frontendSrc = await buildMonorepoFrontend({
-      packageDir,
-      rootDir,
-      cacheDir,
-    });
-    await run("make", ["-C", rootDir, "stlite-lib-wheel", "streamlit-wheel"]);
-    await run(
-      "corepack",
-      ["yarn", "workspace", "@stlite/app-packager", "build"],
-      {
-        cwd: rootDir,
-      },
+  const runtimeDir = path.join(packageDir, "runtime");
+  if (
+    !(await exists(path.join(runtimeDir, "frontend"))) ||
+    !(await exists(path.join(packageDir, "dist", "vendor-prebuilt.js")))
+  ) {
+    throw new Error(
+      "stlite-cloudflare is missing its prebuilt runtime artifacts (runtime/ " +
+        "and dist/). A published @stlite/cloudflare ships them; in the Stlite " +
+        "monorepo, run `make cloudflare` first.",
     );
-    stliteLibWheelDir = path.join(
-      rootDir,
-      "packages/kernel/py/stlite-lib/dist",
-    );
-    streamlitWheelDir = path.join(rootDir, "streamlit/lib/dist");
-  } else {
-    frontendSrc = path.join(packageDir, "runtime", "frontend");
-    stliteLibWheelDir = path.join(packageDir, "runtime", "wheels");
-    streamlitWheelDir = path.join(packageDir, "runtime", "wheels");
   }
+  const frontendSrc = path.join(runtimeDir, "frontend");
+  const wheelsDir = path.join(runtimeDir, "wheels");
 
   // Resolve the user's own dependencies for the Pyodide target and install them.
   await run("uv", ["run", "--project", ".", "pywrangler", "sync", "--force"], {
@@ -104,10 +60,8 @@ export async function vendor({
   });
 
   // Vendor the Streamlit fork's prebuilt Pyodide dependency closure on top.
-  const { vendorPrebuiltPackages } = await import(
-    bundled ? "../dist/vendor-prebuilt.js" : "./vendor-prebuilt.mjs"
-  );
-  await vendorPrebuiltPackages({ packageDir, projectDir, rootDir, cacheDir });
+  const { vendorPrebuiltPackages } = await import("../dist/vendor-prebuilt.js");
+  await vendorPrebuiltPackages({ packageDir, projectDir, cacheDir });
 
   // stlite has no working pyarrow (the runtime shims it); drop any that a user
   // dependency dragged in — ~100 MB of dead weight against the Worker size limit.
@@ -117,11 +71,11 @@ export async function vendor({
   // with our pinned fork wheels, and drop the app copy so it's refreshed below.
   await removeMatching(vendorDir, isRuntimeArtifact);
   await extractZip(
-    await singleWheel(stliteLibWheelDir, /^stlite_lib-.*-py3-none-any\.whl$/),
+    await singleWheel(wheelsDir, /^stlite_lib-.*-py3-none-any\.whl$/),
     vendorDir,
   );
   await extractZip(
-    await singleWheel(streamlitWheelDir, /^streamlit-.*-py3-none-any\.whl$/),
+    await singleWheel(wheelsDir, /^streamlit-.*-py3-none-any\.whl$/),
     vendorDir,
   );
   await fs.cp(

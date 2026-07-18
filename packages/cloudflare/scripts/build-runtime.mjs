@@ -11,7 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { buildMonorepoFrontend } from "../src/frontend-build.mjs";
+import { buildMonorepoFrontend } from "./frontend-build.mjs";
 
 const execFileAsync = promisify(execFile);
 

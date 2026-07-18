@@ -2,16 +2,17 @@ import { execFile } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 import { promisify } from "node:util";
-import { mirrorDir } from "./helpers/fsx.mjs";
-import { run } from "./helpers/spawn.mjs";
+import { mirrorDir } from "../src/helpers/fsx.mjs";
+import { run } from "../src/helpers/spawn.mjs";
 
 const execFileAsync = promisify(execFile);
 
 /**
  * Build the Cloudflare-variant Streamlit frontend from the monorepo source tree
- * and return the directory holding it. Shared by the monorepo vendoring path
- * (vendor.mjs) and the runtime-artifact packer (scripts/build-runtime.mjs).
+ * and return the directory holding it. Run at pack time by build-runtime.mjs to
+ * bake the frontend into the published package's runtime/.
  *
  * The build is cached by a stamp under the output dir, so repeated calls with an
  * unchanged submodule + frontend sources are near-free.
@@ -23,6 +24,13 @@ const execFileAsync = promisify(execFile);
  * @returns {Promise<string>} Path to the built frontend directory.
  */
 export async function buildMonorepoFrontend({ packageDir, rootDir, cacheDir }) {
+  // The frontend build spawns child Node processes (vite) that need more heap
+  // than the default; the root Makefile exports this for its own targets, so
+  // set it here too for callers that run outside make.
+  if (!process.env.NODE_OPTIONS) {
+    process.env.NODE_OPTIONS = "--max-old-space-size=6144";
+  }
+
   // The Cloudflare-variant frontend is kept per-project instead of being synced
   // into the shared streamlit submodule (make streamlit-wheel doesn't track
   // static assets, so a submodule-side copy could go missing from an

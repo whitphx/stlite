@@ -1,19 +1,17 @@
 # Contributing to `@stlite/cloudflare`
 
-## Build modes
+## Building
 
-The vendoring runs in one of two modes, chosen automatically:
+`stlite-cloudflare build` vendors a project against the package's **prebuilt
+runtime artifacts** (`runtime/`, `dist/`). This is the only vendoring path — it
+is cross-platform (Windows/macOS/Linux) and needs only `uv` and Node.js. A
+published package ships those artifacts.
 
-- **Bundled** — a published package ships prebuilt runtime artifacts (`runtime/`,
-  `dist/`) and builds without the monorepo. This is the end-user path; it is
-  cross-platform (Windows/macOS/Linux) and needs only `uv` and Node.js.
-- **Monorepo** — run from the Stlite source tree, the build compiles
-  `stlite-lib`, the stlite-pinned Streamlit wheel, and the Cloudflare-variant
-  Streamlit frontend from the workspace.
-
-The monorepo build additionally spawns `make`, `corepack yarn`, and `git`, so it
-needs `make` and a POSIX shell — on Windows use WSL. Installing the published
-package avoids all of that.
+In a fresh monorepo checkout they don't exist yet; run `make cloudflare` first to
+produce them (it compiles `stlite-lib`, the stlite-pinned Streamlit wheel, and
+the Cloudflare-variant Streamlit frontend, and bundles the vendoring script).
+`make cloudflare` spawns `make`, `corepack yarn`, and `git`, so it needs `make`
+and a POSIX shell — on Windows, build under WSL or use the published package.
 
 ## Release artifacts
 

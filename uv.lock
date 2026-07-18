@@ -12,7 +12,6 @@ members = [
     "stlite-dev",
     "stlite-lib",
 ]
-constraints = [{ name = "pillow", specifier = ">=12.2.0,<13" }]
 
 [[package]]
 name = "altair"

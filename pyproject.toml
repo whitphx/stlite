@@ -23,7 +23,6 @@ members = ["packages/kernel/py/stlite-lib", "packages/cli/py"]
 # Require a uv version that supports relative `exclude-newer` durations
 # (introduced in uv 0.9.17).
 required-version = ">=0.9.17"
-constraint-dependencies = ["pillow>=12.2.0,<13"]
 # Dependency cooldown: ignore package releases published within the last week
 # to reduce exposure to PyPI supply-chain attacks (compromised versions are
 # typically yanked well within this window).

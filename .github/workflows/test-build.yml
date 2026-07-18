@@ -985,31 +985,18 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
-      # Build the sample in monorepo mode. Its output here is the Cloudflare
-      # frontend that the runtime bundle below packs into the tarball; it also
-      # exercises the monorepo build path end-to-end (stlite-lib/streamlit
-      # wheels, frontend build, `pywrangler sync`, python_modules overlay). The
-      # *deployable* sample is built separately from the packed tarball in
-      # verify-cloudflare-standalone.
-      - name: Build the hello sample
-        run: |
-          . .venv/bin/activate
-          corepack yarn workspace stlite-cloudflare-sample-hello build
-
-      - name: Validate the Worker bundle
-        working-directory: packages/cloudflare/samples/hello/dist
-        run: npx wrangler deploy --dry-run
-
-      # Produce the prebuilt runtime artifacts the published package ships so it
-      # builds without the monorepo: the esbuild-bundled vendoring script (dist/)
-      # and runtime/ (the Cloudflare frontend the sample build just produced,
-      # plus the Streamlit dependency snapshot).
+      # Produce everything the published package ships so it builds without the
+      # monorepo: the pinned stlite-lib/Streamlit wheels, the esbuild-bundled
+      # vendoring script (dist/), and runtime/ (the Cloudflare frontend +
+      # Streamlit dependency snapshot). build-runtime.mjs builds the frontend
+      # itself; the deployable sample is built separately, from the packed
+      # tarball, in verify-cloudflare-standalone.
       - name: Bundle the runtime artifacts
         run: |
           . .venv/bin/activate
+          make stlite-lib-wheel streamlit-wheel
           corepack yarn workspace @stlite/cloudflare build
-          STLITE_CLOUDFLARE_FRONTEND_SRC="$PWD/packages/cloudflare/samples/hello/.dist.stlite-cloudflare-cache/.stlite-cloudflare-remote-frontend" \
-            node packages/cloudflare/scripts/build-runtime.mjs
+          node packages/cloudflare/scripts/build-runtime.mjs
 
       - name: Package
         working-directory: packages/cloudflare

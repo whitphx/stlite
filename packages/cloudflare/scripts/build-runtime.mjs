@@ -3,14 +3,15 @@
 //   runtime/frontend                    the built Cloudflare-variant frontend
 //   runtime/wheels/*.whl                the stlite_lib + stlite-pinned Streamlit wheels
 //   runtime/streamlit-dependencies.json a snapshot of the Streamlit fork's deps
-// Run from the monorepo at release/pack time. The frontend is taken from
-// STLITE_CLOUDFLARE_FRONTEND_SRC (produced earlier in the build) and the wheels
-// from `make stlite-lib-wheel streamlit-wheel` output, rather than rebuilt here.
+// Run from the monorepo at release/pack time. The frontend is built here; the
+// wheels are taken from `make stlite-lib-wheel streamlit-wheel` output (run
+// before this) rather than rebuilt.
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { buildMonorepoFrontend } from "../src/frontend-build.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -21,12 +22,13 @@ const packageDir = path.resolve(
 const rootDir = path.resolve(packageDir, "../..");
 const runtimeDir = path.join(packageDir, "runtime");
 
-const frontendSrc = process.env.STLITE_CLOUDFLARE_FRONTEND_SRC;
-if (!frontendSrc) {
-  throw new Error(
-    "STLITE_CLOUDFLARE_FRONTEND_SRC must point at the built Cloudflare frontend directory",
-  );
-}
+const frontendCacheDir = path.join(packageDir, ".frontend-cache");
+await fs.mkdir(frontendCacheDir, { recursive: true });
+const frontendSrc = await buildMonorepoFrontend({
+  packageDir,
+  rootDir,
+  cacheDir: frontendCacheDir,
+});
 
 await fs.rm(runtimeDir, { recursive: true, force: true });
 await fs.mkdir(runtimeDir, { recursive: true });

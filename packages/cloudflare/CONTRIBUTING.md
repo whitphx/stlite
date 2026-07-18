@@ -19,8 +19,9 @@ and a POSIX shell — on Windows, build under WSL or use the published package.
 `streamlit-dependencies.json`) that the bundled mode ships. The intent is that a
 publishable release contains everything needed to build a Worker without the
 Stlite repository or its `streamlit` submodule; `verify-cloudflare-standalone`
-in CI proves that by building from the packed tarball alone (on Linux and
-Windows).
+in CI proves that by building from the packed tarball alone (Linux only — the
+full build can't run on Windows yet, see below; `test-cloudflare-windows`
+instead exercises the pure-Node vendoring helpers there).
 
 ## Tests
 

@@ -34,11 +34,13 @@ generated. Either way you own `main` and `compatibility_flags`.
 
 ## Requirements
 
-The build runs on Windows, macOS, and Linux. It needs
-[`uv`](https://docs.astral.sh/uv/) on your `PATH` — it drives `pywrangler` to
-resolve your app's dependencies for the Pyodide target — plus Node.js. Everything
-else (archive extraction, file copying) runs in-process, so no `bash`, `python`,
-`rsync`, or `tar` is required.
+The build needs [`uv`](https://docs.astral.sh/uv/) on your `PATH` — it drives
+`pywrangler` to resolve your app's dependencies for the Pyodide target — plus
+Node.js. Everything else (archive extraction, file copying) runs in-process, so
+no `bash`, `python`, `rsync`, or `tar` is required.
+
+It runs on macOS and Linux. On Windows, `pywrangler sync` can't complete yet (an
+upstream issue locating its Pyodide interpreter), so build under WSL for now.
 
 ## Dependencies
 

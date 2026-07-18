@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { exists } from "./helpers/fsx.mjs";
 import { vendor } from "./vendor.mjs";
 
 const packageRoot = path.resolve(
@@ -206,13 +207,4 @@ function toWorkerName(name) {
     // a single-character pattern (avoids the polynomial backtracking of `-+`).
     .replace(/^-|-$/g, "");
   return normalized || "stlite-cloudflare-app";
-}
-
-async function exists(target) {
-  try {
-    await fs.access(target);
-    return true;
-  } catch {
-    return false;
-  }
 }

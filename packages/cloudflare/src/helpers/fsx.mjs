@@ -1,6 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+/** Whether `target` exists on disk. */
+export async function exists(target) {
+  try {
+    await fs.access(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Make destDir an exact copy of srcDir (equivalent to `rsync -a --delete`),
  * optionally skipping top-level entries whose basename is in `exclude`.

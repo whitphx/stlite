@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { extractZip } from "./helpers/archive.mjs";
-import { mirrorDir, removeMatching } from "./helpers/fsx.mjs";
+import { exists, mirrorDir, removeMatching } from "./helpers/fsx.mjs";
 import { run } from "./helpers/spawn.mjs";
 
 const isPyarrowArtifact = (name) =>
@@ -16,8 +16,8 @@ const isRuntimeArtifact = (name) =>
 
 /**
  * Vendor the stlite runtime and the user's project into a deployable Cloudflare
- * Worker directory. The Node port of sync-workers-vendor.sh: cross-platform, its
- * only external process is `uv`/`pywrangler`.
+ * Worker directory. Cross-platform; the only external process it spawns is
+ * `uv`/`pywrangler`.
  *
  * Requires the prebuilt runtime artifacts (runtime/ + the dist/ vendoring
  * bundle). A published @stlite/cloudflare ships them; in the Stlite monorepo run
@@ -122,14 +122,5 @@ async function ensureFile(filePath) {
     await fs.access(filePath);
   } catch {
     await fs.writeFile(filePath, "");
-  }
-}
-
-async function exists(target) {
-  try {
-    await fs.access(target);
-    return true;
-  } catch {
-    return false;
   }
 }

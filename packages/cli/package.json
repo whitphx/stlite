@@ -27,8 +27,6 @@
     "check:format": "oxfmt --check ."
   },
   "dependencies": {
-    "@stlite/browser": "workspace:^",
-    "@stlite/desktop": "workspace:^",
     "fs-extra": "^11.3.4",
     "pyodide": "0.29.3",
     "yargs": "^18.0.0"
@@ -46,7 +44,9 @@
     "vitest": "^4.1.3"
   },
   "optionalDependencies": {
-    "@stlite/cloudflare": "workspace:^"
+    "@stlite/browser": "workspace:^",
+    "@stlite/cloudflare": "workspace:^",
+    "@stlite/desktop": "workspace:^"
   },
   "engines": {
     "node": ">=22"

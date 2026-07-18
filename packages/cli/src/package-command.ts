@@ -158,9 +158,16 @@ export function resolvePackageBuildDir(
   packageName: string,
   makeTarget: string,
 ): string {
-  const pkgPath = fileURLToPath(
-    import.meta.resolve(`${packageName}/package.json`),
-  );
+  let pkgPath: string;
+  try {
+    pkgPath = fileURLToPath(import.meta.resolve(`${packageName}/package.json`));
+  } catch {
+    // The target runtime packages are optional dependencies (they ship heavy
+    // per-target artifacts most users don't need); point at the install.
+    throw new Error(
+      `${packageName} is not installed. Install it with \`npm install ${packageName}\` to use this target.`,
+    );
+  }
   const buildDir = path.join(path.dirname(pkgPath), "build");
   if (!fs.existsSync(buildDir)) {
     throw new Error(

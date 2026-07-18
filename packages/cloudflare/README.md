@@ -1,9 +1,9 @@
 # @stlite/cloudflare
 
 `@stlite/cloudflare` packages a local Streamlit project into a directory that
-deploys to Cloudflare Python Workers, running the stlite-patched Streamlit
+deploys to Cloudflare Python Workers, running the Stlite-patched Streamlit
 runtime. It vendors the Pyodide-compatible Python dependency tree, overlays the
-stlite runtime and a Cloudflare-variant Streamlit frontend, and emits a
+Stlite runtime and a Cloudflare-variant Streamlit frontend, and emits a
 self-contained Worker directory. Deploying that directory is Wrangler's job.
 
 ## Usage

@@ -1,8 +1,3 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const frontendDir = path.dirname(fileURLToPath(import.meta.url));
-
 export default {
   // The upstream config decides sourcemaps from env vars, so pin them off:
   // .map files would be vendored into every Worker bundle (and the published
@@ -11,12 +6,8 @@ export default {
   build: {
     sourcemap: false,
   },
-  resolve: {
-    alias: [
-      {
-        find: /^@stlite\/kernel\/react$/,
-        replacement: path.resolve(frontendDir, "remoteRuntimeHooks.tsx"),
-      },
-    ],
-  },
+  // No aliases: the real @stlite/kernel/react is bundled, and its hooks fall
+  // back to upstream server-backed behavior when no kernel is in context
+  // (which is always the case in this build — nothing mounts a
+  // StliteKernelProvider here).
 };

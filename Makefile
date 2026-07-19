@@ -236,7 +236,7 @@ $(cloudflare-frontend): $(shell \
 	  streamlit/frontend/utils streamlit/frontend/component-v2-lib streamlit/frontend/component-lib \
 	  streamlit/frontend/protobuf streamlit/frontend/typescript-config \
 	  \( -name node_modules -o -name dist -o -name build -o -name coverage \) -prune -o -type f -print; \
-) $(node_modules) $(streamlit_proto)
+) $(node_modules) $(streamlit_proto) $(kernel)
 	yarn workspaces foreach --recursive --topological --parallel --from '@streamlit/app' --exclude '@streamlit/app' --exclude '@streamlit/lib' run build
 	node packages/cloudflare/frontend/build.mjs
 	rm -rf packages/cloudflare/.frontend-build

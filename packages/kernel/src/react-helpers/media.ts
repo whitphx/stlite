@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { StliteKernel } from "../kernel";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import { useStliteKernelIfAvailable } from "@stlite/kernel/contexts";
 
 // Ref: https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/connection/src/DefaultStreamlitEndpoints.ts#L47
 const MEDIA_ENDPOINT = "/media";
@@ -56,11 +56,11 @@ export function resolveLogo<T extends { image: string; iconImage: string }>(
 export function useStliteResolvedLogo<
   T extends { image: string; iconImage: string },
 >(logo: T | null): T | null {
-  const kernel = useStliteKernel();
+  const kernel = useStliteKernelIfAvailable();
 
   const [resolvedLogo, setResolvedLogo] = useState<T | null>(null);
   useEffect(() => {
-    if (logo == null) {
+    if (kernel == null || logo == null) {
       return;
     }
 
@@ -84,7 +84,8 @@ export function useStliteResolvedLogo<
     };
   }, [kernel, logo]);
 
-  return resolvedLogo;
+  // Server-backed app (no kernel): the logo URLs are directly fetchable.
+  return kernel == null ? logo : resolvedLogo;
 }
 
 /**
@@ -93,7 +94,7 @@ export function useStliteResolvedLogo<
  * by downloading the data from the stlite kernel.
  */
 export function useStliteMediaObjectUrl(rawUrl: string): string {
-  const kernel = useStliteKernel();
+  const kernel = useStliteKernelIfAvailable();
 
   const [url, setUrl] = useState(rawUrl);
   useEffect(() => {
@@ -123,7 +124,8 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
     };
   }, [kernel, rawUrl]);
 
-  return url;
+  // Server-backed app (no kernel): the media URL is directly fetchable.
+  return kernel == null ? rawUrl : url;
 }
 
 /**
@@ -150,7 +152,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
     }),
   );
 
-  const kernel = useStliteKernel();
+  const kernel = useStliteKernelIfAvailable();
   useEffect(() => {
     if (kernel == null) {
       return;
@@ -195,5 +197,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
     };
   }, [kernel, inputMediaObjects]);
 
-  return mediaObjects;
+  // Server-backed app (no kernel): every media URL is directly fetchable, so
+  // nothing needs resolving (or filtering out while unresolved).
+  return kernel == null ? inputMediaObjects : mediaObjects;
 }

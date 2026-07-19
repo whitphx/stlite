@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import {
+  useStliteKernel,
+  useStliteKernelIfAvailable,
+} from "@stlite/kernel/contexts";
 import { extractCustomComponentPath, getParentPath } from "./url";
 import { manipulateIFrameDocument } from "./iframe-manipulation";
 
@@ -91,12 +94,21 @@ const CustomComponentIFrame = React.forwardRef<
   HTMLIFrameElement,
   CustomComponentIFrameProps
 >((props, ref) => {
-  const kernel = useStliteKernel();
+  const kernel = useStliteKernelIfAvailable();
   const path = useMemo(
-    () => extractCustomComponentPath(kernel.basePath, props.src),
-    [kernel.basePath, props.src],
+    () =>
+      kernel == null
+        ? null
+        : extractCustomComponentPath(kernel.basePath, props.src),
+    [kernel, props.src],
   );
 
+  if (kernel == null) {
+    // Server-backed app (no kernel): the iframe src is directly servable, so
+    // render the wrapped component untouched.
+    const { IframeComponent, ...rest } = props;
+    return <IframeComponent {...rest} ref={ref} />;
+  }
   if (path == null) {
     return <iframe {...props} ref={ref} />;
   }

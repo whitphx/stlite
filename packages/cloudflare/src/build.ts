@@ -185,6 +185,20 @@ function defaultWranglerJsonc(workerName: string): string {
       compatibility_date: "2026-06-30",
       compatibility_flags: ["python_workers"],
       observability: { enabled: true },
+      // The frontend is served from the assets layer (it doesn't count
+      // against the Worker script-size limit); Streamlit page paths like
+      // /my_page serve the SPA index, while the namespaces Streamlit's own
+      // server owns are routed to the Worker before asset matching.
+      assets: {
+        directory: "./assets",
+        not_found_handling: "single-page-application",
+        run_worker_first: [
+          "/_stcore/*",
+          "/media/*",
+          "/component/*",
+          "/app/static/*",
+        ],
+      },
     },
     null,
     2,

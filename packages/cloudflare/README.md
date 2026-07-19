@@ -30,7 +30,10 @@ deployable Worker directory at `<out>` (default `./dist`) containing
 
 If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
 you keep control of routes, vars, and bindings; otherwise a minimal one is
-generated. Either way you own `main` and `compatibility_flags`.
+generated. Either way you own `main` and `compatibility_flags`. A custom config
+must keep the generated `assets` block (frontend served from `./assets` with
+`run_worker_first` for Streamlit's server namespaces) — without it the Worker
+script exceeds Cloudflare's size limit and the app has no frontend.
 
 ## Requirements
 

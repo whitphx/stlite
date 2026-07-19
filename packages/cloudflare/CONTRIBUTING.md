@@ -49,9 +49,11 @@ text WebSocket frames (Streamlit's transport is binary protobuf), and leaves
 nowhere to strip `accept-encoding` or inject the frontend config into the
 index HTML.
 
-The intended evolution is to move those last two concerns — request-header
-shaping and index-HTML rewriting (`frontend_config.py`) — into a pure-Python
-ASGI middleware wrapping the Starlette app. That would leave the bridge
-generic (directly replaceable by the upstream `asgi` module if it gains a
-resident-lifespan mode and binary WebSocket support) and would also allow
-streaming response bodies, which the current bridge buffers.
+The frontend (including the index HTML, with the Streamlit config baked in
+at build time) is served by Cloudflare's static-assets layer, so the bridge's
+one remaining HTTP-shaping concern is the `accept-encoding` strip. The
+intended evolution is to move that into a pure-Python ASGI middleware wrapping
+the Starlette app, leaving the bridge generic (directly replaceable by the
+upstream `asgi` module if it gains a resident-lifespan mode and binary
+WebSocket support) and free to stream response bodies, which it currently
+buffers.

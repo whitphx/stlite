@@ -1,10 +1,8 @@
 import logging
-from urllib.parse import unquote, urlsplit
 
 from workers import Response, WorkerEntrypoint
 
 from stlite_cloudflare.adapter import run_http_asgi
-from stlite_cloudflare.frontend_config import with_cloudflare_frontend_config
 from stlite_cloudflare.runtime import get_streamlit_asgi_app
 from stlite_cloudflare.websocket import (
     is_websocket_upgrade,
@@ -24,8 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 #     protobuf (ForwardMsg), so we need the binary/handshake/close handling in
 #     websocket.py.
 #   - It returns the Worker Response directly, leaving nowhere to strip
-#     `accept-encoding` (avoids double-gzip) or inject the Cloudflare frontend
-#     config into the index HTML (see adapter.py / frontend_config.py).
+#     `accept-encoding` (avoids double-gzip; see adapter.py).
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         try:
@@ -38,10 +35,7 @@ class Default(WorkerEntrypoint):
             if is_websocket_upgrade(request):
                 return await run_cloudflare_websocket_asgi(app, request)
 
-            response = with_cloudflare_frontend_config(
-                await run_http_asgi(app, request),
-                path=unquote(urlsplit(str(request.url)).path or "/"),
-            )
+            response = await run_http_asgi(app, request)
             return Response(
                 response.body,
                 status=response.status,

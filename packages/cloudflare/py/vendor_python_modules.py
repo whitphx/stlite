@@ -181,6 +181,13 @@ def install_runtime(vendor_dir: Path, wheels: list[Path]) -> None:
     )
     for wheel_path in wheels:
         _extract_wheel(wheel_path, vendor_dir)
+    # The frontend is served from Cloudflare's static-assets layer, so any
+    # static dir the streamlit wheel ships is dead weight against the script
+    # limit. Streamlit tolerates its absence (the static mount is skipped when
+    # the dir is missing).
+    static_dir = vendor_dir / "streamlit" / "static"
+    if static_dir.is_dir():
+        shutil.rmtree(static_dir)
     _prune_worker_dead_weight(vendor_dir)
 
 

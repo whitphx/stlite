@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { injectFrontendConfig } from "./helpers/frontend-config.ts";
 import { exists, mirrorDir, singleWheel } from "./helpers/fsx.ts";
 import { runVendorPythonModules } from "./helpers/python.ts";
 import { run } from "./helpers/spawn.ts";
@@ -71,9 +72,17 @@ export async function vendor({
     { recursive: true },
   );
 
-  // The Worker serves the frontend from the vendored streamlit static dir;
-  // overlay the Cloudflare build over whatever the wheel shipped.
-  await mirrorDir(frontendSrc, path.join(vendorDir, "streamlit", "static"));
+  // The frontend is served by Cloudflare's static-assets layer (wrangler.jsonc
+  // `assets`), not the Python Worker: static files don't count against the
+  // Worker's 64 MiB script limit there. The Streamlit config is baked into the
+  // index HTML here since no server-side injection happens anymore.
+  const assetsDir = path.join(projectDir, "assets");
+  await mirrorDir(frontendSrc, assetsDir);
+  const indexPath = path.join(assetsDir, "index.html");
+  await fs.writeFile(
+    indexPath,
+    injectFrontendConfig(await fs.readFile(indexPath, "utf8")),
+  );
 
   // Vendor the app, then write the package marker + entrypoint marker (after the
   // mirror, which would otherwise delete them).

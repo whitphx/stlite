@@ -48,9 +48,9 @@ await build(
   }),
 );
 
-// stlite_cloudflare.frontend_config injects the backend config in front of
-// this marker at serve time and silently no-ops when it is absent, so a Vite
-// upgrade that changes the emitted script-tag shape must fail here instead.
+// The build (src/helpers/frontend-config.ts) injects the backend config in
+// front of this marker when staging the index HTML into the assets dir, so a
+// Vite upgrade that changes the emitted script-tag shape must fail here.
 const moduleScriptMarker = '<script type="module" ';
 const indexHtml = await fs.readFile(
   path.join(streamlitAppDir, "build/index.html"),
@@ -59,7 +59,7 @@ const indexHtml = await fs.readFile(
 if (!indexHtml.includes(moduleScriptMarker)) {
   throw new Error(
     `The built index.html no longer contains ${JSON.stringify(moduleScriptMarker)}; ` +
-      "update _MODULE_SCRIPT_MARKER in py/stlite_cloudflare/frontend_config.py " +
+      "update MODULE_SCRIPT_MARKER in src/helpers/frontend-config.ts " +
       "to match the new output.",
   );
 }

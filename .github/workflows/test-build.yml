@@ -1065,6 +1065,8 @@ jobs:
           test -d dist/python_modules/streamlit
           test -f dist/python_modules/stlite_cloudflare/entry.py
           test -f dist/python_modules/_stlite_cloudflare_app/streamlit_app.py
+          grep -q "window.__streamlit" dist/assets/index.html
+          test ! -e dist/python_modules/streamlit/static
 
       - name: Validate the Worker bundle
         working-directory: ${{ runner.temp }}/standalone/dist

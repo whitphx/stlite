@@ -13,18 +13,17 @@ after(async () => {
   await fs.rm(tmp, { recursive: true, force: true });
 });
 
-test("mirrorDir makes dest an exact copy, dropping stale files and excludes", async () => {
+test("mirrorDir makes dest an exact copy, dropping stale files", async () => {
   const src = path.join(tmp, "src");
   await fs.mkdir(path.join(src, "sub"), { recursive: true });
   await fs.writeFile(path.join(src, "keep.txt"), "k");
-  await fs.writeFile(path.join(src, ".build-stamp"), "s");
   await fs.writeFile(path.join(src, "sub", "nested.txt"), "n");
 
   const dest = path.join(tmp, "dest");
   await fs.mkdir(dest, { recursive: true });
   await fs.writeFile(path.join(dest, "stale.txt"), "old");
 
-  await mirrorDir(src, dest, { exclude: [".build-stamp"] });
+  await mirrorDir(src, dest);
 
   assert.deepEqual((await fs.readdir(dest)).sort(), ["keep.txt", "sub"]);
   assert.equal(

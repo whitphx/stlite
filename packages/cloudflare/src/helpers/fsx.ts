@@ -36,21 +36,12 @@ export async function singleWheel(
 }
 
 /**
- * Make destDir an exact copy of srcDir (equivalent to `rsync -a --delete`),
- * optionally skipping top-level entries whose basename is in `exclude`.
+ * Make destDir an exact copy of srcDir (equivalent to `rsync -a --delete`).
  */
 export async function mirrorDir(
   srcDir: string,
   destDir: string,
-  { exclude = [] }: { exclude?: string[] } = {},
 ): Promise<void> {
-  const excluded = new Set(exclude);
   await fs.rm(destDir, { recursive: true, force: true });
-  await fs.mkdir(destDir, { recursive: true });
-  for (const entry of await fs.readdir(srcDir, { withFileTypes: true })) {
-    if (excluded.has(entry.name)) continue;
-    await fs.cp(path.join(srcDir, entry.name), path.join(destDir, entry.name), {
-      recursive: true,
-    });
-  }
+  await fs.cp(srcDir, destDir, { recursive: true });
 }

@@ -40,12 +40,7 @@ async def get_streamlit_asgi_app() -> AsgiApp:
 
 async def _create_streamlit_asgi_app() -> AsgiApp:
     try:
-        from stlite_lib.asgi_app import (
-            bind_runtime_to_current_context,
-            create_app,
-            make_call_asgi,
-            run_lifespan_startup,
-        )
+        from stlite_lib.asgi_app import start_resident_app
         from stlite_lib.bootstrap import prepare
         from stlite_lib.runtime_init import initialize_streamlit_runtime
     except ModuleNotFoundError as exc:
@@ -77,8 +72,12 @@ async def _create_streamlit_asgi_app() -> AsgiApp:
     logging.getLogger("stlite_lib").setLevel(logging.INFO)
     prepare(str(script_path), [])
 
+    # No bind_runtime_to_current_context here: every workerd request goes
+    # through call_asgi, which rebinds the runtime contextvar per request, and
+    # a bind from this init task would be task-local anyway (PEP 567; see the
+    # function's docstring in stlite_lib.asgi_app).
     global _lifespan_state
-    app = create_app(str(script_path))
-    _lifespan_state = await run_lifespan_startup(app)
-    bind_runtime_to_current_context(app)
-    return make_call_asgi(app, home_dir=str(home_dir))
+    _app, call_asgi_app, _lifespan_state = await start_resident_app(
+        str(script_path), home_dir=str(home_dir)
+    )
+    return call_asgi_app

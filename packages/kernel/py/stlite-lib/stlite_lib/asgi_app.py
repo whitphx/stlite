@@ -208,6 +208,29 @@ def make_call_asgi(
     return bound
 
 
+async def start_resident_app(
+    script_path: str, home_dir: str | None = None
+) -> tuple[App, Callable[[Any, Any, Any], Awaitable[None]], dict[str, Any]]:
+    """Create the app, run one lifespan startup, and return
+    ``(app, asgi_callable, lifespan_state)``.
+
+    This is the canonical resident-app boot sequence shared by every stlite
+    runtime (the browser worker and the Cloudflare Worker). The caller must
+    keep a strong reference to ``lifespan_state`` for as long as the app
+    serves traffic (asyncio only weakly references the suspended lifespan
+    task inside it) and pass it to :func:`run_lifespan_shutdown` on teardown.
+
+    It deliberately does NOT call :func:`bind_runtime_to_current_context`:
+    PEP 567 would isolate the contextvar mutation to this coroutine's task,
+    so callers that need the non-ASGI binding (the browser worker, for
+    AppTest) must invoke it themselves from a synchronous context, passing
+    the returned ``app``.
+    """
+    app = create_app(script_path)
+    lifespan_state = await run_lifespan_startup(app)
+    return app, make_call_asgi(app, home_dir=home_dir), lifespan_state
+
+
 def bind_runtime_to_current_context(app: App) -> None:
     """Set ``runtime_contextvar`` to ``app._runtime`` in the calling context.
 
@@ -239,9 +262,6 @@ def bind_runtime_to_current_context(app: App) -> None:
 
 __all__ = [
     "bind_runtime_to_current_context",
-    "call_asgi",
-    "create_app",
-    "make_call_asgi",
     "run_lifespan_shutdown",
-    "run_lifespan_startup",
+    "start_resident_app",
 ]

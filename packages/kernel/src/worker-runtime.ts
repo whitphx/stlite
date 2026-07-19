@@ -402,24 +402,18 @@ async function bootstrapApp(
 
   console.debug("Booting up the Streamlit ASGI app");
   const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
-  const rawApp = asgiModule.create_app(canonicalEntrypoint);
-  const lifespanState = (await asgiModule.run_lifespan_startup(
-    rawApp,
-  )) as PyProxy;
+  const [rawApp, asgiApp, lifespanState] = (await asgiModule.start_resident_app(
+    canonicalEntrypoint,
+    appId ? getAppHomeDir(appId) : undefined,
+  )) as unknown as [PyProxy, AsgiApp, PyProxy];
   // Bind runtime_contextvar in the shared JS-call context so non-ASGI
   // paths (notably streamlit.testing.v1.AppTest, which the kernel test
   // suite uses) can reach the runtime via Runtime.get_instance(). ASGI
   // traffic doesn't depend on this — call_asgi rebinds per request.
   // Must run synchronously from JS (not awaited) so the set lands in
-  // the shared module context, not a task-local one.
+  // the shared module context, not a task-local one — which is why
+  // start_resident_app leaves it to the caller.
   asgiModule.bind_runtime_to_current_context(rawApp);
-  // make_call_asgi binds the App + home_dir into a single ASGI callable so
-  // the JS side doesn't have to re-supply them on every dispatch (one
-  // callable per app, reused across requests).
-  const asgiApp = asgiModule.make_call_asgi(
-    rawApp,
-    appId ? getAppHomeDir(appId) : undefined,
-  ) as unknown as AsgiApp;
   console.debug("Booted up the Streamlit ASGI app");
 
   return { asgiApp, lifespanState };

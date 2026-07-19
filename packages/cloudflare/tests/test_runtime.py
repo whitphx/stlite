@@ -62,10 +62,13 @@ async def test_failed_initialization_is_retried(monkeypatch):
 
 def _install_fake_stlite_lib(monkeypatch, *, run_lifespan_startup):
     asgi_app = types.ModuleType("stlite_lib.asgi_app")
-    asgi_app.create_app = lambda script_path: object()
-    asgi_app.make_call_asgi = lambda app, home_dir: lambda scope, receive, send: None
-    asgi_app.bind_runtime_to_current_context = lambda app: None
-    asgi_app.run_lifespan_startup = run_lifespan_startup
+
+    async def start_resident_app(script_path, home_dir=None):
+        app = object()
+        lifespan_state = await run_lifespan_startup(app)
+        return app, (lambda scope, receive, send: None), lifespan_state
+
+    asgi_app.start_resident_app = start_resident_app
 
     bootstrap = types.ModuleType("stlite_lib.bootstrap")
     bootstrap.prepare = lambda script_path, args: None

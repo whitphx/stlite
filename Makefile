@@ -62,6 +62,7 @@ sharing-editor := $(BUILD_STATE_DIR)/sharing-editor/.built
 desktop := $(BUILD_STATE_DIR)/desktop/.built
 kernel := $(BUILD_STATE_DIR)/kernel/.built
 cloudflare := $(BUILD_STATE_DIR)/cloudflare/.built
+cloudflare-frontend := $(BUILD_STATE_DIR)/cloudflare-frontend/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
 cli-py-proto := $(BUILD_STATE_DIR)/cli-py-proto/.built
 cli-py-runtime-version := packages/cli/py/stlite_cli/_runtime_version.py
@@ -221,18 +222,42 @@ $(desktop): $(shell \
 	@mkdir -p $(dir $@)
 	@touch $@
 
+# The Cloudflare-variant Streamlit frontend, built from the submodule's app
+# with packages/cloudflare/frontend's Vite overlay and staged into
+# packages/cloudflare/.frontend-build. It is kept per-package instead of being
+# synced into the shared streamlit submodule (make streamlit-wheel doesn't
+# track static assets, so a submodule-side copy could go missing from an
+# already-built wheel and would leak into other packages' wheels).
+.PHONY: cloudflare-frontend
+cloudflare-frontend: $(cloudflare-frontend)
+$(cloudflare-frontend): $(shell \
+	find packages/cloudflare/frontend -type f; \
+	find streamlit/frontend/app streamlit/frontend/lib streamlit/frontend/connection \
+	  streamlit/frontend/utils streamlit/frontend/component-v2-lib streamlit/frontend/component-lib \
+	  streamlit/frontend/protobuf streamlit/frontend/typescript-config \
+	  \( -name node_modules -o -name dist -o -name build -o -name coverage \) -prune -o -type f -print; \
+) $(node_modules) $(streamlit_proto)
+	yarn workspaces foreach --recursive --topological --parallel --from '@streamlit/app' --exclude '@streamlit/app' --exclude '@streamlit/lib' run build
+	node packages/cloudflare/frontend/build.mjs
+	rm -rf packages/cloudflare/.frontend-build
+	mkdir -p packages/cloudflare/.frontend-build
+	cp -R streamlit/frontend/app/build/. packages/cloudflare/.frontend-build/
+	rm -rf packages/cloudflare/.frontend-build/reports
+	@mkdir -p $(dir $@)
+	@touch $@
+
 # `@stlite/cloudflare` ships prebuilt runtime artifacts so `stlite-cloudflare
-# build` runs without the monorepo: the esbuild-bundled vendoring script (dist/)
-# and runtime/ (the Cloudflare frontend, the pinned stlite-lib/Streamlit wheels,
-# and the Streamlit dependency snapshot). build-runtime.mjs builds the frontend
-# and assembles runtime/; the wheels come from the prerequisites below.
+# build` runs without the monorepo: the esbuild-bundled build orchestration
+# (dist/) and runtime/ (the Cloudflare frontend, the pinned stlite-lib/Streamlit
+# wheels, and the Streamlit dependency snapshot). build-runtime.mjs assembles
+# runtime/ from the prerequisites below.
 .PHONY: cloudflare
 cloudflare: $(cloudflare)
 $(cloudflare): $(shell \
-	find packages/cloudflare/src packages/cloudflare/scripts packages/cloudflare/frontend -type f ! -name "*.test.*"; \
+	find packages/cloudflare/src packages/cloudflare/scripts -type f ! -name "*.test.*"; \
 	find packages/cloudflare/py -type f -name "*.py"; \
 	find packages/cloudflare -maxdepth 1 -type f -name "package.json"; \
-) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)
+) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(cloudflare-frontend)
 	cd packages/cloudflare && yarn build
 	. $(VENV_PATH)/bin/activate && node packages/cloudflare/scripts/build-runtime.mjs
 	@mkdir -p $(dir $@)

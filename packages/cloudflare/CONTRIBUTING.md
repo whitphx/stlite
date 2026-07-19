@@ -9,7 +9,7 @@ published package ships those artifacts.
 
 In a fresh monorepo checkout they don't exist yet; run `make cloudflare` first to
 produce them (it compiles `stlite-lib`, the stlite-pinned Streamlit wheel, and
-the Cloudflare-variant Streamlit frontend, and bundles the vendoring script).
+the Cloudflare-variant Streamlit frontend, and bundles the build orchestration).
 `make cloudflare` spawns `make`, `corepack yarn`, and `git`, so it needs `make`
 and a POSIX shell — on Windows, build under WSL or use the published package.
 

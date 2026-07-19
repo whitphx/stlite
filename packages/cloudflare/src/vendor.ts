@@ -73,9 +73,7 @@ export async function vendor({
 
   // The Worker serves the frontend from the vendored streamlit static dir;
   // overlay the Cloudflare build over whatever the wheel shipped.
-  await mirrorDir(frontendSrc, path.join(vendorDir, "streamlit", "static"), {
-    exclude: [".build-stamp"],
-  });
+  await mirrorDir(frontendSrc, path.join(vendorDir, "streamlit", "static"));
 
   // Vendor the app, then write the package marker + entrypoint marker (after the
   // mirror, which would otherwise delete them).

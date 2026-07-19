@@ -1,18 +1,16 @@
-// Produce the prebuilt runtime artifacts a published @stlite/cloudflare ships so
-// it can build without the Stlite monorepo:
+// Assemble the prebuilt runtime artifacts a published @stlite/cloudflare ships
+// so it can build without the Stlite monorepo:
 //   runtime/frontend                    the built Cloudflare-variant frontend
 //   runtime/wheels/*.whl                the stlite_lib + stlite-pinned Streamlit wheels
 //   runtime/streamlit-dependencies.json a snapshot of the Streamlit fork's deps
-// Run from the monorepo at release/pack time. The frontend is built here; the
-// wheels are taken from `make stlite-lib-wheel streamlit-wheel` output (run
-// before this) rather than rebuilt.
+// Pure assembly, run from the monorepo by `make cloudflare`: the inputs (the
+// staged frontend, the wheels) are produced by its Make prerequisites.
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { singleWheel } from "../src/helpers/fsx.ts";
-import { buildMonorepoFrontend } from "./build-frontend.mjs";
+import { exists, singleWheel } from "../src/helpers/fsx.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -23,13 +21,12 @@ const packageDir = path.resolve(
 const rootDir = path.resolve(packageDir, "../..");
 const runtimeDir = path.join(packageDir, "runtime");
 
-const frontendCacheDir = path.join(packageDir, ".frontend-cache");
-await fs.mkdir(frontendCacheDir, { recursive: true });
-const frontendSrc = await buildMonorepoFrontend({
-  packageDir,
-  rootDir,
-  cacheDir: frontendCacheDir,
-});
+const frontendSrc = path.join(packageDir, ".frontend-build");
+if (!(await exists(frontendSrc))) {
+  throw new Error(
+    `Missing the staged Cloudflare frontend at ${frontendSrc}; run \`make cloudflare\` (or \`make cloudflare-frontend\`).`,
+  );
+}
 
 await fs.rm(runtimeDir, { recursive: true, force: true });
 await fs.mkdir(runtimeDir, { recursive: true });
@@ -37,8 +34,6 @@ await fs.mkdir(runtimeDir, { recursive: true });
 await fs.cp(frontendSrc, path.join(runtimeDir, "frontend"), {
   recursive: true,
 });
-// The build stamp is an internal detail of the monorepo frontend cache.
-await fs.rm(path.join(runtimeDir, "frontend", ".build-stamp"), { force: true });
 
 const wheelsDir = path.join(runtimeDir, "wheels");
 await fs.mkdir(wheelsDir, { recursive: true });

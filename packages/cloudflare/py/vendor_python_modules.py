@@ -33,6 +33,27 @@ _PYARROW_ENTRIES = {"pyarrow", "pyarrow.libs"}
 _PYARROW_DIST_INFO = re.compile(r"^pyarrow-.*\.dist-info$")
 _RUNTIME_ENTRIES = {"stlite_cloudflare", "stlite_lib", "streamlit"}
 _RUNTIME_DIST_INFO = re.compile(r"^(stlite_lib|streamlit)-.*\.dist-info$")
+# Wheel `.data` payloads land as top-level `<name>-<ver>.data` dirs when
+# extracted raw; their scripts/ and data/ contents (e.g. pydeck's bundled
+# Jupyter notebook extension, twice ~23 MB) aren't importable in the Worker.
+_WHEEL_DATA_DIR = re.compile(r"^[A-Za-z0-9_.]+-[^-]+\.data$")
+
+
+def _prune_worker_dead_weight(vendor_dir: Path) -> None:
+    """Remove vendored content that cannot serve any purpose in a Worker.
+
+    Workers enforce a hard uncompressed script-size limit (64 MiB), so
+    build-time-only or notebook-only payloads must not ship:
+    - top-level ``*.data`` wheel payload dirs (scripts/, share/jupyter/, ...)
+    - ``nbextension`` package subdirs (Jupyter-widget frontend assets)
+    - ``*.js.map`` source maps inside vendored packages
+    """
+    _remove_entries(vendor_dir, lambda entry: bool(_WHEEL_DATA_DIR.match(entry)))
+    for nbextension in vendor_dir.glob("*/nbextension"):
+        if nbextension.is_dir():
+            shutil.rmtree(nbextension)
+    for source_map in vendor_dir.rglob("*.js.map"):
+        source_map.unlink()
 
 
 def _canonicalize(name: str) -> str:
@@ -160,6 +181,7 @@ def install_runtime(vendor_dir: Path, wheels: list[Path]) -> None:
     )
     for wheel_path in wheels:
         _extract_wheel(wheel_path, vendor_dir)
+    _prune_worker_dead_weight(vendor_dir)
 
 
 def print_wheel_requires(wheel_path: Path) -> None:

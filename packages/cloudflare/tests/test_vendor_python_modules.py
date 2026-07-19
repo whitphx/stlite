@@ -173,6 +173,33 @@ def test_install_runtime_replaces_runtime_and_drops_pyarrow(tmp_path):
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
 
 
+def test_install_runtime_prunes_worker_dead_weight(tmp_path):
+    vendor = tmp_path / "vendor"
+    (vendor / "pydeck" / "nbextension" / "static").mkdir(parents=True)
+    (vendor / "pydeck" / "nbextension" / "static" / "index.js").write_text("J")
+    (vendor / "pydeck" / "bindings").mkdir(parents=True)
+    (vendor / "pydeck" / "bindings" / "deck.py").write_text("D")
+    (vendor / "pydeck-0.9.3.data" / "data" / "share").mkdir(parents=True)
+    (vendor / "altair").mkdir()
+    (vendor / "altair" / "chart.js.map").write_text("M")
+    (vendor / "streamlit").mkdir()
+    (vendor / "streamlit" / "__init__.py").write_text("S0")
+
+    wheel = _make_wheel(
+        tmp_path / "streamlit-1.57.0-py3-none-any.whl",
+        {"streamlit/__init__.py": "S"},
+    )
+
+    install_runtime(vendor, [wheel])
+
+    assert not (vendor / "pydeck-0.9.3.data").exists()
+    assert not (vendor / "pydeck" / "nbextension").exists()
+    assert not (vendor / "altair" / "chart.js.map").exists()
+    # The packages themselves survive; only the dead payloads go.
+    assert (vendor / "pydeck" / "bindings" / "deck.py").read_text() == "D"
+    assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
+
+
 def test_print_wheel_requires_keeps_core_deps_and_markers_but_not_extras(
     tmp_path, capsys
 ):

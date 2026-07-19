@@ -30,39 +30,40 @@
     "bin",
     "dist",
     "runtime",
-    "src/build.d.mts",
     "py/**/*.py",
     "README.md"
   ],
   "type": "module",
   "exports": {
     ".": {
-      "types": "./src/build.d.mts",
+      "types": "./dist/build.d.ts",
       "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build-dist.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "tsc",
     "fix:lint": "oxlint --fix bin frontend scripts src",
     "fix:format": "oxfmt .",
     "check:lint": "oxlint bin frontend scripts src",
     "check:format": "oxfmt --check .",
     "test": "uv run --project . pytest",
-    "test:js": "node --test \"src/helpers/**/*.test.mjs\"",
+    "test:js": "node --test \"src/helpers/**/*.test.ts\"",
     "pack:dry-run": "npm pack --dry-run"
   },
   "dependencies": {
     "cross-spawn": "^7.0.6",
-    "fflate": "^0.8.3",
-    "pyodide": "0.29.3",
-    "tar": "^7.5.20"
+    "pyodide": "0.29.3"
   },
   "devDependencies": {
     "@stlite/app-packager": "workspace:^",
     "@stlite/common": "workspace:^",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^24.0.0",
     "esbuild": "^0.27.1",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
+    "typescript": "^5.9.3",
     "wrangler": "^4.105.0"
   }
 }

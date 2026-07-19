@@ -21,15 +21,18 @@ publishable release contains everything needed to build a Worker without the
 Stlite repository or its `streamlit` submodule; `verify-cloudflare-standalone`
 in CI proves that by building from the packed tarball alone (Linux only — the
 full build can't run on Windows yet, see below; `test-cloudflare-windows`
-instead exercises the pure-Node vendoring helpers there).
+instead exercises the Node fs helpers there).
 
 ## Tests
 
 ```bash
-yarn test      # pytest — the Worker runtime Python modules (needs uv)
-yarn test:js   # node:test — the cross-platform vendoring helpers (src/helpers/)
+yarn test      # pytest — the Worker runtime modules and the Python vendoring helper (needs uv)
+yarn test:js   # node:test — the cross-platform Node fs helpers (src/helpers/)
+yarn typecheck # tsc over src/ (the build also emits dist/*.d.ts from these sources)
 ```
 
-The helper unit tests are pure Node and run on every OS; they guard the
-archive-extraction, directory-mirroring, and site-packages copy logic that
-replaced the old `bash`/`python3`/`tar`/`rsync` shell-outs.
+The dist-info-aware vendoring (RECORD parsing, wheel extraction, package
+matching) lives in `py/vendor_python_modules.py` and runs inside the output
+project's venv, so it leans on `importlib.metadata`/`zipfile`/`tarfile` instead
+of reimplementing them; pytest covers it. The Node-side fs helper tests are
+pure Node and run on every OS.

@@ -3,8 +3,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
-import { exists } from "./helpers/fsx.mjs";
-import { vendor } from "./vendor.mjs";
+import { exists } from "./helpers/fsx.ts";
+import { vendor } from "./vendor.ts";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -15,18 +15,23 @@ const packageRoot = path.resolve(
 // same range the package itself develops against.
 const WRANGLER_VERSION = "^4.105.0";
 
+export interface CloudflareBuildOptions {
+  /** Path to the Streamlit project directory. */
+  path: string;
+  /** Output directory (default `./dist`). */
+  out?: string;
+  /** Entry script relative to `path` (default `streamlit_app.py`). */
+  entrypoint?: string;
+  /** Path to a requirements.txt file (defaults to `<path>/requirements.txt`). */
+  requirements?: string;
+  /** Worker name for a generated wrangler.jsonc. */
+  name?: string;
+}
+
 /**
  * Package a Streamlit project into a deployable Cloudflare Python Workers
  * directory. Shared by the `stlite-cloudflare` bin and `@stlite/cli`'s
  * `stlite cloudflare` command, so both drive one implementation.
- *
- * @param {object} options
- * @param {string} options.path Path to the Streamlit project directory.
- * @param {string} [options.out] Output directory (default `./dist`).
- * @param {string} [options.entrypoint] Entry script relative to `path`.
- * @param {string} [options.requirements] Path to a requirements.txt file.
- * @param {string} [options.name] Worker name for a generated wrangler.jsonc.
- * @returns {Promise<{ outDir: string }>}
  */
 export async function build({
   path: projectPath,
@@ -34,7 +39,7 @@ export async function build({
   entrypoint = "streamlit_app.py",
   requirements,
   name,
-} = {}) {
+}: CloudflareBuildOptions): Promise<{ outDir: string }> {
   if (projectPath == null) {
     throw new Error("Missing <path> to the Streamlit project directory");
   }
@@ -93,7 +98,17 @@ export async function build({
   return { outDir };
 }
 
-async function scaffoldOutput({ srcDir, outDir, workerName, requirements }) {
+async function scaffoldOutput({
+  srcDir,
+  outDir,
+  workerName,
+  requirements,
+}: {
+  srcDir: string;
+  outDir: string;
+  workerName: string;
+  requirements?: string;
+}): Promise<void> {
   await fs.mkdir(path.join(outDir, "src"), { recursive: true });
   await fs.writeFile(
     path.join(outDir, "src", "entry.py"),
@@ -144,7 +159,10 @@ async function scaffoldOutput({ srcDir, outDir, workerName, requirements }) {
   );
 }
 
-async function readRequirements(srcDir, explicit) {
+async function readRequirements(
+  srcDir: string,
+  explicit?: string,
+): Promise<string[]> {
   const requirementsPath = explicit
     ? path.resolve(process.cwd(), explicit)
     : path.join(srcDir, "requirements.txt");
@@ -158,7 +176,7 @@ async function readRequirements(srcDir, explicit) {
   return validateRequirements(parseRequirementsTxt(text));
 }
 
-function defaultWranglerJsonc(workerName) {
+function defaultWranglerJsonc(workerName: string): string {
   return `${JSON.stringify(
     {
       $schema: "node_modules/wrangler/config-schema.json",
@@ -173,7 +191,7 @@ function defaultWranglerJsonc(workerName) {
   )}\n`;
 }
 
-function pyproject(workerName, dependencies) {
+function pyproject(workerName: string, dependencies: string[]): string {
   const deps =
     dependencies.length === 0
       ? "[]"
@@ -194,7 +212,7 @@ package = false
 `;
 }
 
-function toWorkerName(name) {
+function toWorkerName(name: string): string {
   // The name lands in wrangler.jsonc's "name", which Cloudflare restricts to
   // lowercase alphanumerics and dashes ("." and "_" are rejected at deploy).
   const normalized = name

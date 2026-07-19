@@ -4,8 +4,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
-import { mirrorDir } from "../src/helpers/fsx.mjs";
-import { run } from "../src/helpers/spawn.mjs";
+import { mirrorDir } from "../src/helpers/fsx.ts";
+import { run } from "../src/helpers/spawn.ts";
 
 const execFileAsync = promisify(execFile);
 

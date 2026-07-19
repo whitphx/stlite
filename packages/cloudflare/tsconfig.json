@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    // Relative imports name the on-disk .ts files so Node can run src/ (tests,
+    // monorepo scripts) directly via its native type stripping; tsconfig.build
+    // rewrites them to .js in the emitted declarations.
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

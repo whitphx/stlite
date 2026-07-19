@@ -11,7 +11,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { singleWheel } from "../src/helpers/fsx.mjs";
+import { singleWheel } from "../src/helpers/fsx.ts";
 import { buildMonorepoFrontend } from "./build-frontend.mjs";
 
 const execFileAsync = promisify(execFile);

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 /** Whether `target` exists on disk. */
-export async function exists(target) {
+export async function exists(target: string): Promise<boolean> {
   try {
     await fs.access(target);
     return true;
@@ -15,12 +15,11 @@ export async function exists(target) {
  * Path of the single wheel in `dir` whose filename matches `pattern`. Zero or
  * multiple matches throw: the wheel dirs this reads are build outputs where a
  * leftover stale wheel would otherwise get vendored silently.
- *
- * @param {string} dir
- * @param {RegExp} pattern
- * @returns {Promise<string>}
  */
-export async function singleWheel(dir, pattern) {
+export async function singleWheel(
+  dir: string,
+  pattern: RegExp,
+): Promise<string> {
   const matches = (await fs.readdir(dir))
     .filter((name) => pattern.test(name))
     .sort();
@@ -39,12 +38,12 @@ export async function singleWheel(dir, pattern) {
 /**
  * Make destDir an exact copy of srcDir (equivalent to `rsync -a --delete`),
  * optionally skipping top-level entries whose basename is in `exclude`.
- *
- * @param {string} srcDir
- * @param {string} destDir
- * @param {{ exclude?: string[] }} [options]
  */
-export async function mirrorDir(srcDir, destDir, { exclude = [] } = {}) {
+export async function mirrorDir(
+  srcDir: string,
+  destDir: string,
+  { exclude = [] }: { exclude?: string[] } = {},
+): Promise<void> {
   const excluded = new Set(exclude);
   await fs.rm(destDir, { recursive: true, force: true });
   await fs.mkdir(destDir, { recursive: true });
@@ -53,21 +52,5 @@ export async function mirrorDir(srcDir, destDir, { exclude = [] } = {}) {
     await fs.cp(path.join(srcDir, entry.name), path.join(destDir, entry.name), {
       recursive: true,
     });
-  }
-}
-
-/**
- * Remove top-level entries of dir whose name satisfies `predicate` (equivalent
- * to `find dir -maxdepth 1 -name … -exec rm -rf`). No-op for names that don't
- * match; missing dir throws (callers pass a dir the vendoring just populated).
- *
- * @param {string} dir
- * @param {(name: string) => boolean} predicate
- */
-export async function removeMatching(dir, predicate) {
-  for (const name of await fs.readdir(dir)) {
-    if (predicate(name)) {
-      await fs.rm(path.join(dir, name), { recursive: true, force: true });
-    }
   }
 }

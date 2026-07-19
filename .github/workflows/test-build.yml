@@ -516,19 +516,20 @@ jobs:
           uv run --project . ruff check --output-format=github py tests
           uv run --project . ruff format --check py tests
 
-      # The pytest suite covers the Worker runtime modules; it needs uv. The
-      # Node toolchain above is for the yarn lint/format/test:js steps.
+      # The pytest suite covers the Worker runtime modules and the Python
+      # vendoring helper; it needs uv. The Node toolchain above is for the yarn
+      # lint/format/test:js steps.
       - run: yarn test
 
-      # Cross-platform unit tests for the pure-Node vendoring helpers (archive
-      # extraction, dir mirroring, site-packages copy). test-cloudflare-windows
-      # runs these same tests on Windows for cross-platform signal.
+      # Cross-platform unit tests for the Node fs helpers (dir mirroring,
+      # wheel lookup). test-cloudflare-windows runs these same tests on Windows
+      # for cross-platform signal.
       - run: yarn test:js
 
   test-cloudflare-windows:
-    # The stlite-cloudflare build is cross-platform Node; this job is its Windows
-    # coverage. It runs only the pure-Node vendoring-helper tests, not the full
-    # build, for the reason called out at the `yarn test:js` line below.
+    # The stlite-cloudflare build is cross-platform; this job is its Windows
+    # coverage. It runs only the Node fs-helper tests, not the full build, for
+    # the reason called out at the `yarn test:js` line below.
     needs: changes
     if: ${{ needs.changes.outputs.cloudflare == 'true' }}
 
@@ -557,8 +558,8 @@ jobs:
       # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
       # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
       # code, so until it's fixed the full build runs on Linux
-      # (verify-cloudflare-standalone) and these pure-Node helper tests give the
-      # Windows signal for our archive/mirror/copy vendoring logic.
+      # (verify-cloudflare-standalone) and these Node helper tests give the
+      # Windows signal for our fs helpers.
       - run: yarn test:js
 
   build-browser:

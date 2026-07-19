@@ -229,7 +229,7 @@ $(desktop): $(shell \
 .PHONY: cloudflare
 cloudflare: $(cloudflare)
 $(cloudflare): $(shell \
-	find packages/cloudflare/src packages/cloudflare/scripts packages/cloudflare/frontend -type f ! -name "*.test.mjs"; \
+	find packages/cloudflare/src packages/cloudflare/scripts packages/cloudflare/frontend -type f ! -name "*.test.*"; \
 	find packages/cloudflare/py -type f -name "*.py"; \
 	find packages/cloudflare -maxdepth 1 -type f -name "package.json"; \
 ) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto)

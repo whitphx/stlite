@@ -3,9 +3,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { after, before, test } from "node:test";
-import { mirrorDir, removeMatching } from "./fsx.mjs";
+import { mirrorDir, singleWheel } from "./fsx.ts";
 
-let tmp;
+let tmp: string;
 before(async () => {
   tmp = await fs.mkdtemp(path.join(os.tmpdir(), "fsx-test-"));
 });
@@ -33,28 +33,16 @@ test("mirrorDir makes dest an exact copy, dropping stale files and excludes", as
   );
 });
 
-test("removeMatching deletes only entries the predicate accepts", async () => {
-  const dir = path.join(tmp, "rm");
-  for (const name of [
-    "pyarrow",
-    "pyarrow.libs",
-    "pyarrow-17.0.0.dist-info",
-    "pyarrow_hotfix",
-    "pandas",
-  ]) {
-    await fs.mkdir(path.join(dir, name), { recursive: true });
-  }
+test("singleWheel resolves exactly one match and rejects zero or many", async () => {
+  const dir = path.join(tmp, "wheels");
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(path.join(dir, "streamlit-1.0-py3-none-any.whl"), "");
+  await fs.writeFile(path.join(dir, "stlite_lib-1.0-py3-none-any.whl"), "");
 
-  await removeMatching(
-    dir,
-    (name) =>
-      name === "pyarrow" ||
-      name === "pyarrow.libs" ||
-      /^pyarrow-.*\.dist-info$/.test(name),
+  assert.equal(
+    await singleWheel(dir, /^streamlit-.*\.whl$/),
+    path.join(dir, "streamlit-1.0-py3-none-any.whl"),
   );
-
-  assert.deepEqual((await fs.readdir(dir)).sort(), [
-    "pandas",
-    "pyarrow_hotfix",
-  ]);
+  await assert.rejects(() => singleWheel(dir, /^numpy-/), /No wheel matching/);
+  await assert.rejects(() => singleWheel(dir, /whl$/), /Multiple wheels match/);
 });

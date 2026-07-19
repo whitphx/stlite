@@ -15,8 +15,10 @@ and a POSIX shell — on Windows, build under WSL or use the published package.
 
 ## Release artifacts
 
-`scripts/build-runtime.mjs` produces the `runtime/` artifacts (frontend, wheels,
-`streamlit-dependencies.json`) that the bundled mode ships. The intent is that a
+`make cloudflare` assembles the `runtime/` artifacts (the built frontend and
+the stlite-lib/Streamlit wheels) that the bundled mode ships; the Streamlit
+dependency list is read from the shipped wheel's own METADATA at build time
+rather than from a separate snapshot. The intent is that a
 publishable release contains everything needed to build a Worker without the
 Stlite repository or its `streamlit` submodule; `verify-cloudflare-standalone`
 in CI proves that by building from the packed tarball alone (Linux only — the
@@ -36,3 +38,20 @@ matching) lives in `py/vendor_python_modules.py` and runs inside the output
 project's venv, so it leans on `importlib.metadata`/`zipfile`/`tarfile` instead
 of reimplementing them; pytest covers it. The Node-side fs helper tests are
 pure Node and run on every OS.
+
+## Architecture direction: the ASGI bridge
+
+`py/stlite_cloudflare/adapter.py` and `websocket.py` hand-roll the
+ASGI-over-workerd bridge instead of using the `asgi` module that
+workers-runtime-sdk ships, because that module (as of 1.6.2) runs a fresh ASGI
+lifespan per request (Streamlit's runtime must stay resident), only supports
+text WebSocket frames (Streamlit's transport is binary protobuf), and leaves
+nowhere to strip `accept-encoding` or inject the frontend config into the
+index HTML.
+
+The intended evolution is to move those last two concerns — request-header
+shaping and index-HTML rewriting (`frontend_config.py`) — into a pure-Python
+ASGI middleware wrapping the Starlette app. That would leave the bridge
+generic (directly replaceable by the upstream `asgi` module if it gains a
+resident-lifespan mode and binary WebSocket support) and would also allow
+streaming response bodies, which the current bridge buffers.

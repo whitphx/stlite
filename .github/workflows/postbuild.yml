@@ -153,11 +153,15 @@ jobs:
           workingDirectory: ${{ runner.temp }}/sample
           command: deploy
 
-      # Same-repo PRs get a stable per-PR preview URL that refreshes on every
-      # push. Fork PRs are skipped: their untrusted code must not run with our
-      # secrets. Best-effort: `versions upload` needs the Worker to already
-      # exist, so previews only work after the first production deploy on main
-      # creates it — until then this fails, which must not fail the job.
+      # Same-repo PRs get a preview of every push. The `pr-N` alias created
+      # below is stable per PR, but wrangler-action only surfaces the
+      # version-specific URL (`deployment-url`), so the sticky PR comment is
+      # updated with a fresh URL on each push rather than pointing at the
+      # alias. Fork PRs are skipped: their untrusted code must not run with
+      # our secrets. Best-effort: `versions upload` needs the Worker to
+      # already exist, so previews only work after the first production
+      # deploy on main creates it — until then this fails, which must not
+      # fail the job.
       - name: Upload a preview version of the sample
         id: preview
         continue-on-error: true
@@ -180,7 +184,7 @@ jobs:
             const url = process.env.PREVIEW_URL;
             const issue_number = Number(process.env.PR_NUMBER);
             const marker = "<!-- stlite-cloudflare-preview -->";
-            const body = `${marker}\n🚀 **Cloudflare Workers preview** of the stlite sample: ${url}\n\n_Refreshes on every push to this branch._`;
+            const body = `${marker}\n🚀 **Cloudflare Workers preview** of the stlite sample: ${url}\n\n_Updated with a fresh version URL on every push to this branch._`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,

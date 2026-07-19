@@ -12,6 +12,7 @@ outside py/stlite_cloudflare/, which gets vendored into every deployed Worker.
 """
 
 import argparse
+import email.parser
 import re
 import shutil
 import sys
@@ -161,6 +162,30 @@ def install_runtime(vendor_dir: Path, wheels: list[Path]) -> None:
         _extract_wheel(wheel_path, vendor_dir)
 
 
+def print_wheel_requires(wheel_path: Path) -> None:
+    """Print the wheel's core Requires-Dist entries, one per line.
+
+    Entries carrying an ``extra == ...`` marker belong to optional extras and
+    are skipped; environment markers like ``python_version`` are kept verbatim
+    for the downstream resolver to evaluate.
+    """
+    metadata_names = [
+        name
+        for name in zipfile.ZipFile(wheel_path).namelist()
+        if name.endswith(".dist-info/METADATA") and name.count("/") == 1
+    ]
+    if len(metadata_names) != 1:
+        sys.exit(f"Expected exactly one dist-info METADATA in {wheel_path}")
+    with zipfile.ZipFile(wheel_path) as wheel:
+        metadata = email.parser.Parser().parsestr(
+            wheel.read(metadata_names[0]).decode()
+        )
+    for requirement in metadata.get_all("Requires-Dist") or []:
+        if re.search(r"\bextra\s*==", requirement):
+            continue
+        print(requirement)
+
+
 def _parse_wheel_arg(value: str) -> tuple[str, Path]:
     name, sep, wheel_path = value.partition("=")
     if not sep or not name or not wheel_path:
@@ -193,11 +218,19 @@ def main(argv: list[str] | None = None) -> None:
     runtime.add_argument("--vendor-dir", type=Path, required=True)
     runtime.add_argument("wheels", nargs="+", type=Path)
 
+    requires = subparsers.add_parser(
+        "wheel-requires",
+        help="Print a wheel's core Requires-Dist entries, one per line.",
+    )
+    requires.add_argument("--wheel", type=Path, required=True)
+
     args = parser.parse_args(argv)
     if args.command == "vendor-prebuilt":
         vendor_prebuilt(args.vendor_dir, args.snapshot, args.wheel)
-    else:
+    elif args.command == "install-runtime":
         install_runtime(args.vendor_dir, args.wheels)
+    else:
+        print_wheel_requires(args.wheel)
 
 
 if __name__ == "__main__":

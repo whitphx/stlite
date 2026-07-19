@@ -18,14 +18,50 @@ export function run(
       if (code === 0) {
         resolve();
       } else {
-        reject(
-          new Error(
-            `${command} ${args.join(" ")} failed${
-              signal ? ` with signal ${signal}` : ` with exit code ${code}`
-            }`,
-          ),
-        );
+        reject(exitError(command, args, code, signal));
       }
     });
   });
+}
+
+/**
+ * Like {@link run}, but captures stdout (stderr still inherits) and resolves
+ * with it on exit 0.
+ */
+export function output(
+  command: string,
+  args: string[],
+  options: SpawnOptions = {},
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = crossSpawn(command, args, {
+      stdio: ["inherit", "pipe", "inherit"],
+      ...options,
+    });
+    let stdout = "";
+    child.stdout?.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(exitError(command, args, code, signal));
+      }
+    });
+  });
+}
+
+function exitError(
+  command: string,
+  args: string[],
+  code: number | null,
+  signal: NodeJS.Signals | null,
+): Error {
+  return new Error(
+    `${command} ${args.join(" ")} failed${
+      signal ? ` with signal ${signal}` : ` with exit code ${code}`
+    }`,
+  );
 }

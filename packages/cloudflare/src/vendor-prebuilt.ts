@@ -1,4 +1,3 @@
-import fs from "node:fs/promises";
 import path from "node:path";
 import {
   consoleLogger,
@@ -6,7 +5,11 @@ import {
   PrebuiltPackagesDataReader,
   vendorPackageSnapshot,
 } from "@stlite/app-packager";
-import { runVendorPythonModules } from "./helpers/python.ts";
+import { singleWheel } from "./helpers/fsx.ts";
+import {
+  outputVendorPythonModules,
+  runVendorPythonModules,
+} from "./helpers/python.ts";
 
 // The stlite Worker runtime needs these on top of the Streamlit fork's declared
 // dependencies, so they are vendored into every project's python_modules rather
@@ -66,7 +69,7 @@ export async function vendorPrebuiltPackages({
   );
 
   const dependencies = [
-    ...(await readStreamlitDependencies(packageDir)),
+    ...(await readStreamlitDependencies(packageDir, projectDir)),
     ...stliteRuntimeExtraDependencies,
   ];
   const usedPrebuiltPackages = await vendorPackageSnapshot({
@@ -97,12 +100,22 @@ export async function vendorPrebuiltPackages({
 
 async function readStreamlitDependencies(
   packageDir: string,
+  projectDir: string,
 ): Promise<string[]> {
-  // A snapshot of the Streamlit fork's declared dependencies, produced at pack
-  // time by build-runtime.mjs (via `make cloudflare`) and shipped in runtime/.
-  const bundledPath = path.resolve(
-    packageDir,
-    "runtime/streamlit-dependencies.json",
+  // The shipped streamlit wheel's own METADATA is the source of truth for the
+  // fork's dependency list; read its core Requires-Dist entries instead of
+  // maintaining a parallel snapshot artifact that could drift.
+  const wheelPath = await singleWheel(
+    path.join(packageDir, "runtime", "wheels"),
+    /^streamlit-.*-py3-none-any\.whl$/,
   );
-  return JSON.parse(await fs.readFile(bundledPath, "utf8"));
+  const stdout = await outputVendorPythonModules(packageDir, projectDir, [
+    "wheel-requires",
+    "--wheel",
+    wheelPath,
+  ]);
+  return stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 }

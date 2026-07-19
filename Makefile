@@ -248,9 +248,9 @@ $(cloudflare-frontend): $(shell \
 
 # `@stlite/cloudflare` ships prebuilt runtime artifacts so `stlite-cloudflare
 # build` runs without the monorepo: the esbuild-bundled build orchestration
-# (dist/) and runtime/ (the Cloudflare frontend, the pinned stlite-lib/Streamlit
-# wheels, and the Streamlit dependency snapshot). build-runtime.mjs assembles
-# runtime/ from the prerequisites below.
+# (dist/) and runtime/ (the Cloudflare frontend plus the pinned
+# stlite-lib/Streamlit wheels; the wheel copied here is the plain py3 one —
+# workerd runs the .py sources, unlike the browser kernel's py-compiled wheel).
 .PHONY: cloudflare
 cloudflare: $(cloudflare)
 $(cloudflare): $(shell \
@@ -259,7 +259,11 @@ $(cloudflare): $(shell \
 	find packages/cloudflare -maxdepth 1 -type f -name "package.json"; \
 ) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(cloudflare-frontend)
 	cd packages/cloudflare && yarn build
-	. $(VENV_PATH)/bin/activate && node packages/cloudflare/scripts/build-runtime.mjs
+	rm -rf packages/cloudflare/runtime
+	mkdir -p packages/cloudflare/runtime/frontend packages/cloudflare/runtime/wheels
+	cp -R packages/cloudflare/.frontend-build/. packages/cloudflare/runtime/frontend/
+	cp $(stlite-lib-wheel) packages/cloudflare/runtime/wheels/
+	cp streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) packages/cloudflare/runtime/wheels/
 	@mkdir -p $(dir $@)
 	@touch $@
 

@@ -7,6 +7,7 @@ import pytest
 from vendor_python_modules import (
     _entry_matches_package,
     install_runtime,
+    print_wheel_requires,
     vendor_prebuilt,
 )
 
@@ -170,6 +171,31 @@ def test_install_runtime_replaces_runtime_and_drops_pyarrow(tmp_path):
     remaining = sorted(p.name for p in vendor.iterdir())
     assert remaining == ["pandas", "pyarrow_hotfix", "streamlit"]
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
+
+
+def test_print_wheel_requires_keeps_core_deps_and_markers_but_not_extras(
+    tmp_path, capsys
+):
+    wheel = _make_wheel(
+        tmp_path / "streamlit-1.57.0-py3-none-any.whl",
+        {
+            "streamlit-1.57.0.dist-info/METADATA": (
+                "Metadata-Version: 2.1\n"
+                "Name: streamlit\n"
+                "Requires-Dist: altair>=4.0\n"
+                'Requires-Dist: tomli; python_version < "3.11"\n'
+                'Requires-Dist: rich>=11.0.0; extra == "all"\n'
+                "\n"
+            ),
+        },
+    )
+
+    print_wheel_requires(wheel)
+
+    assert capsys.readouterr().out.splitlines() == [
+        "altair>=4.0",
+        'tomli; python_version < "3.11"',
+    ]
 
 
 def test_vendor_prebuilt_fails_on_missing_wheel(tmp_path):

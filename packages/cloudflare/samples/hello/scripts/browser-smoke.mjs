@@ -1,9 +1,14 @@
 import { chromium } from "playwright";
 
 const url = process.env.STLITE_CLOUDFLARE_URL ?? "http://127.0.0.1:8787/";
+// The Worker cold-boots Pyodide on the first request, which can take well over
+// Playwright's 30s default on slow machines (CI); make the budget tunable.
+const timeoutMs = Number(process.env.STLITE_SMOKE_TIMEOUT_MS ?? 30_000);
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
+page.setDefaultTimeout(timeoutMs);
+page.setDefaultNavigationTimeout(timeoutMs);
 
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.stack ?? error.message));

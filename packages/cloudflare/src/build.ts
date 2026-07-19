@@ -205,7 +205,10 @@ requires-python = ">=3.13,<3.14"
 dependencies = ${deps}
 
 [dependency-groups]
-dev = ["workers-py"]
+# pywrangler (workers-py) drives every build of this project; pin a major
+# range so an upstream breaking release can't take down user builds overnight
+# (same reasoning as the wrangler pin in the generated package.json).
+dev = ["workers-py>=1.15.0,<2"]
 
 [tool.uv]
 package = false

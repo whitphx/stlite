@@ -1070,6 +1070,29 @@ jobs:
         working-directory: ${{ runner.temp }}/standalone/dist
         run: npx wrangler deploy --dry-run
 
+      # wrangler dev runs the Worker in local workerd — the same runtime as
+      # production — so this drives the packaged app end-to-end in a real
+      # browser: index HTML, static assets, health endpoints, and the
+      # Streamlit WebSocket session reaching CONNECTED.
+      - name: Smoke-test the Worker in a real browser
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          npm install "playwright@^1.61.1"
+          npx playwright install --with-deps chromium
+          cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/scripts/browser-smoke.mjs" .
+          (cd dist && npx wrangler dev --port 8787 >"$RUNNER_TEMP/wrangler-dev.log" 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf --max-time 5 -o /dev/null http://127.0.0.1:8787/_stcore/health && break
+            sleep 2
+          done
+          STLITE_SMOKE_TIMEOUT_MS=120000 node browser-smoke.mjs || {
+            echo "::group::wrangler dev log"
+            cat "$RUNNER_TEMP/wrangler-dev.log"
+            echo "::endgroup::"
+            exit 1
+          }
+
       # The dist built above is the sample postbuild deploys. Hidden files are
       # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
       # dirs pywrangler leaves in the output — wrangler doesn't need them.

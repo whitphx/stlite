@@ -42,18 +42,27 @@ _WHEEL_DATA_DIR = re.compile(r"^[A-Za-z0-9_.]+-[^-]+\.data$")
 def _prune_worker_dead_weight(vendor_dir: Path) -> None:
     """Remove vendored content that cannot serve any purpose in a Worker.
 
-    Workers enforce a hard uncompressed script-size limit (64 MiB), so
-    build-time-only or notebook-only payloads must not ship:
+    Workers enforce hard size limits, so build-time-only or notebook-only
+    payloads must not ship:
     - top-level ``*.data`` wheel payload dirs (scripts/, share/jupyter/, ...)
     - ``nbextension`` package subdirs (Jupyter-widget frontend assets)
     - ``*.js.map`` source maps inside vendored packages
+    - C/Cython sources and headers, and ``.pyi`` type stubs (nothing compiles
+      or type-checks inside the Worker)
     """
     _remove_entries(vendor_dir, lambda entry: bool(_WHEEL_DATA_DIR.match(entry)))
     for nbextension in vendor_dir.glob("*/nbextension"):
         if nbextension.is_dir():
             shutil.rmtree(nbextension)
-    for source_map in vendor_dir.rglob("*.js.map"):
-        source_map.unlink()
+    for pattern in ("*.js.map", "*.c", "*.pyx", "*.pxd", "*.h", "*.pyi"):
+        for dead_file in vendor_dir.rglob(pattern):
+            dead_file.unlink()
+    # numpy.f2py is numpy's Fortran-binding build tool; importing numpy never
+    # touches it, and it rides in the size-capped script (numpy contains .so
+    # files, so it can't move to the asset tarball).
+    f2py = vendor_dir / "numpy" / "f2py"
+    if f2py.is_dir():
+        shutil.rmtree(f2py)
 
 
 def _canonicalize(name: str) -> str:
@@ -203,19 +212,29 @@ _SCRIPT_KEEP_PATTERN = re.compile(
 _ASSET_FILE_SIZE_LIMIT = 25 * 1024 * 1024
 
 
-def pack_modules(vendor_dir: Path, dest: Path) -> None:
-    """Move the heavy runtime out of the Worker script and into an asset.
+def _contains_native_lib(entry: Path) -> bool:
+    if entry.is_file():
+        return entry.suffix == ".so"
+    return next(entry.rglob("*.so"), None) is not None
 
-    Packs every python_modules entry except the boot-critical keeps into a
-    ``.tar.gz`` at ``dest`` (a static asset the Worker extracts at cold
-    start), then removes the packed entries so the script bundle stays under
-    Cloudflare's script-size limit.
+
+def pack_modules(vendor_dir: Path, dest: Path) -> None:
+    """Move the heavy pure-Python runtime out of the Worker script.
+
+    Packs python_modules entries into a ``.tar.gz`` at ``dest`` (a static
+    asset the Worker extracts at cold start), then removes the packed entries
+    so the script bundle stays under Cloudflare's script-size limit. Two
+    kinds of entries must stay in the script: the boot-critical keeps, and
+    anything containing a native ``.so`` — workerd only dlopens shared
+    libraries from read-only filesystems (the script's python_modules mount),
+    never from the writable /tmp the tarball extracts into.
     """
     packed = sorted(
         entry
         for entry in vendor_dir.iterdir()
         if entry.name not in _SCRIPT_KEEP_ENTRIES
         and not _SCRIPT_KEEP_PATTERN.match(entry.name)
+        and not _contains_native_lib(entry)
     )
     dest.parent.mkdir(parents=True, exist_ok=True)
     with tarfile.open(dest, "w:gz") as tar:

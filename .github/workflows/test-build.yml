@@ -1068,9 +1068,17 @@ jobs:
           tar -tzf dist/assets/_stlite/python-modules.tar.gz | grep -q "^streamlit/"
           tar -tzf dist/assets/_stlite/python-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
 
+      # The script (python_modules incl. the native-extension packages that
+      # can't move to assets) must stay under Cloudflare's 10 MiB-gzip
+      # (10240 KiB) paid cap, and sits close to it; trip just below the hard
+      # cap so a crossing fails in CI instead of at deploy time.
       - name: Validate the Worker bundle
         working-directory: ${{ runner.temp }}/standalone/dist
-        run: npx wrangler deploy --dry-run
+        run: |
+          set -eux
+          npx wrangler deploy --dry-run | tee dry-run.log
+          gzip_kib=$(grep -o 'gzip: [0-9.]*' dry-run.log | grep -o '[0-9.]*')
+          awk -v s="$gzip_kib" 'BEGIN { if (s+0 > 10200) { print "Script gzip " s " KiB exceeds the 10200 KiB budget (hard limit 10240)"; exit 1 } }'
 
       # wrangler dev runs the Worker in local workerd — the same runtime as
       # production — so this drives the packaged app end-to-end in a real

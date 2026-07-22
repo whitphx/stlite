@@ -183,6 +183,11 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     (vendor / "pydeck-0.9.3.data" / "data" / "share").mkdir(parents=True)
     (vendor / "altair").mkdir()
     (vendor / "altair" / "chart.js.map").write_text("M")
+    (vendor / "fastparquet").mkdir()
+    (vendor / "fastparquet" / "cencoding.c").write_text("C")
+    (vendor / "fastparquet" / "api.py").write_text("F")
+    (vendor / "numpy_stub.pyi_holder").mkdir()
+    (vendor / "numpy_stub.pyi_holder" / "core.pyi").write_text("T")
     (vendor / "streamlit").mkdir()
     (vendor / "streamlit" / "__init__.py").write_text("S0")
 
@@ -196,8 +201,11 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     assert not (vendor / "pydeck-0.9.3.data").exists()
     assert not (vendor / "pydeck" / "nbextension").exists()
     assert not (vendor / "altair" / "chart.js.map").exists()
+    assert not (vendor / "fastparquet" / "cencoding.c").exists()
+    assert not (vendor / "numpy_stub.pyi_holder" / "core.pyi").exists()
     # The packages themselves survive; only the dead payloads go.
     assert (vendor / "pydeck" / "bindings" / "deck.py").read_text() == "D"
+    assert (vendor / "fastparquet" / "api.py").read_text() == "F"
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
 
 
@@ -241,6 +249,11 @@ def test_pack_modules_packs_all_but_boot_keeps(tmp_path):
     (vendor / "streamlit" / "__init__.py").write_text("S")
     (vendor / "_stlite_cloudflare_app").mkdir()
     (vendor / "_stlite_cloudflare_app" / "streamlit_app.py").write_text("APP")
+    # Native-extension packages must stay in the script: workerd only dlopens
+    # .so files from read-only filesystems.
+    (vendor / "numpy" / "_core").mkdir(parents=True)
+    (vendor / "numpy" / "_core" / "umath.cpython-313-wasm32.so").write_text("N")
+    (vendor / "libcrypto.so").write_text("L")
 
     dest = tmp_path / "assets" / "_stlite" / "python-modules.tar.gz"
     pack_modules(vendor, dest)
@@ -251,11 +264,14 @@ def test_pack_modules_packs_all_but_boot_keeps(tmp_path):
     assert "_stlite_cloudflare_app/streamlit_app.py" in names
     assert not any(name.startswith("stlite_cloudflare") for name in names)
     assert not any(name.startswith("workers") for name in names)
-    # Packed entries leave the script bundle; boot-critical ones stay.
+    assert not any(name.startswith("numpy") for name in names)
+    # Packed entries leave the script bundle; boot-critical and native ones stay.
     remaining = sorted(p.name for p in vendor.iterdir())
     assert remaining == [
         "_workers_sdk_entropy_import_context.pth",
         "asgi.py",
+        "libcrypto.so",
+        "numpy",
         "stlite_cloudflare",
         "workers",
         "workers_runtime_sdk-1.6.2.dist-info",

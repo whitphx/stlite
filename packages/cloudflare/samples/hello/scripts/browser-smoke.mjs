@@ -27,6 +27,14 @@ try {
   await page.getByText("Mapping demo", { exact: true }).waitFor();
   await page.getByText("Animation demo", { exact: true }).waitFor();
 
+  // Open a page that imports numpy/pandas/altair, so native-extension loading
+  // (workerd dlopens .so only from read-only filesystems) is exercised — a
+  // menu-only check misses it.
+  await page.getByText("DataFrame demo", { exact: true }).click();
+  await page
+    .getByText("This demo shows how to use", { exact: false })
+    .waitFor();
+
   const connectionState = await page
     .locator("[data-test-connection-state]")
     .getAttribute("data-test-connection-state");

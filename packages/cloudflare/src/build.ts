@@ -185,6 +185,10 @@ function defaultWranglerJsonc(workerName: string): string {
       compatibility_date: "2026-06-30",
       compatibility_flags: ["python_workers"],
       observability: { enabled: true },
+      // Cold start (runtime extraction + Pyodide + Streamlit boot) needs far
+      // more CPU than the default budget; this requires the Workers Paid plan
+      // (the free plan's 10 ms CPU cap cannot boot Streamlit at all).
+      limits: { cpu_ms: 300000 },
       // The frontend and the packed Python runtime are served from the assets
       // layer (assets don't count against the Worker script-size limit);
       // Streamlit page paths like /my_page serve the SPA index, while the

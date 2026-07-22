@@ -39,6 +39,10 @@ has no frontend and cannot load its runtime packages at startup.
 
 ## Requirements
 
+Serving traffic requires the [Workers Paid plan](https://developers.cloudflare.com/workers/platform/pricing/):
+the free plan's 10 ms CPU budget cannot boot Streamlit (the generated config
+raises the CPU limit accordingly, which is a paid-plan setting).
+
 The build needs [`uv`](https://docs.astral.sh/uv/) on your `PATH` — it drives
 `pywrangler` to resolve your app's dependencies for the Pyodide target — plus
 Node.js. Everything else (archive extraction, file copying) runs in-process, so

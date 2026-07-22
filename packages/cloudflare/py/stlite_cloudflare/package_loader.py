@@ -10,15 +10,16 @@ before anything imports streamlit.
 """
 
 import importlib
-import io
 import sys
-import tarfile
-import tempfile
 from pathlib import Path
 from typing import Any
 
 PACKAGES_ASSET_PATH = "/_stlite/python-modules.tar.gz"
-_TARGET = Path(tempfile.gettempdir()) / "stlite-python-modules"
+# Keep this module inert at import time (it loads during the Worker's startup
+# phase): a fixed path under Pyodide's in-memory /tmp instead of a
+# tempfile.gettempdir() probe, and the heavier stdlib imports live inside
+# ensure_packages().
+_TARGET = Path("/tmp/stlite-python-modules")
 _installed = False
 
 
@@ -31,6 +32,9 @@ async def ensure_packages(env: Any) -> None:
     global _installed
     if _installed:
         return
+
+    import io
+    import tarfile
 
     assets = getattr(env, "ASSETS", None)
     if assets is None:

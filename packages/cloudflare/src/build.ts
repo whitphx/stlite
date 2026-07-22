@@ -183,7 +183,16 @@ function defaultWranglerJsonc(workerName: string): string {
       name: workerName,
       main: "src/entry.py",
       compatibility_date: "2026-06-30",
-      compatibility_flags: ["python_workers"],
+      // no_handle_cross_request_promise_resolution: the resident Streamlit
+      // runtime resolves promises across request contexts by design (the
+      // single-flight init awaited by concurrent requests, the retained
+      // lifespan task); workerd's default schedules those continuations onto
+      // the creating request's context and drops them once it's gone, which
+      // wedges later requests into hang-detection kills.
+      compatibility_flags: [
+        "python_workers",
+        "no_handle_cross_request_promise_resolution",
+      ],
       observability: { enabled: true },
       // Cold start (runtime extraction + Pyodide + Streamlit boot) needs far
       // more CPU than the default budget; this requires the Workers Paid plan

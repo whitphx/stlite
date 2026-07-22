@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from stlite_cloudflare._asgi import AsgiApp
+from stlite_cloudflare.package_loader import ensure_packages
 
 _init_task: asyncio.Task[AsgiApp] | None = None
 # Holds the ASGI lifespan handshake state, whose ``_lifespan_task`` is the
@@ -16,7 +17,7 @@ _init_task: asyncio.Task[AsgiApp] | None = None
 _lifespan_state: dict[str, Any] | None = None
 
 
-async def get_streamlit_asgi_app() -> AsgiApp:
+async def get_streamlit_asgi_app(env: Any) -> AsgiApp:
     # Concurrent cold-start requests (index HTML, health check, WebSocket
     # upgrade) must await one shared initialization: the init path suspends at
     # the lifespan startup, and a bare "already initialized?" check would let
@@ -25,7 +26,7 @@ async def get_streamlit_asgi_app() -> AsgiApp:
     global _init_task
     task = _init_task
     if task is None:
-        task = asyncio.ensure_future(_create_streamlit_asgi_app())
+        task = asyncio.ensure_future(_create_streamlit_asgi_app(env))
         _init_task = task
     try:
         return await task
@@ -38,7 +39,11 @@ async def get_streamlit_asgi_app() -> AsgiApp:
         raise
 
 
-async def _create_streamlit_asgi_app() -> AsgiApp:
+async def _create_streamlit_asgi_app(env: Any) -> AsgiApp:
+    # The heavy runtime ships as a static asset, not script bytes; it must be
+    # installed onto sys.path before the stlite_lib/streamlit imports below.
+    await ensure_packages(env)
+
     try:
         from stlite_lib.asgi_app import start_resident_app
         from stlite_lib.bootstrap import prepare

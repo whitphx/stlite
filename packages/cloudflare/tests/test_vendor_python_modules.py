@@ -7,6 +7,7 @@ import pytest
 from vendor_python_modules import (
     _entry_matches_package,
     install_runtime,
+    pack_modules,
     print_wheel_requires,
     vendor_prebuilt,
 )
@@ -222,6 +223,42 @@ def test_print_wheel_requires_keeps_core_deps_and_markers_but_not_extras(
     assert capsys.readouterr().out.splitlines() == [
         "altair>=4.0",
         'tomli; python_version < "3.11"',
+    ]
+
+
+def test_pack_modules_packs_all_but_boot_keeps(tmp_path):
+    vendor = tmp_path / "vendor"
+    for keep in [
+        "stlite_cloudflare",
+        "workers",
+        "workers_runtime_sdk-1.6.2.dist-info",
+    ]:
+        (vendor / keep).mkdir(parents=True)
+        (vendor / keep / "marker.py").write_text("K")
+    (vendor / "asgi.py").write_text("A")
+    (vendor / "_workers_sdk_entropy_import_context.pth").write_text("P")
+    (vendor / "streamlit").mkdir()
+    (vendor / "streamlit" / "__init__.py").write_text("S")
+    (vendor / "_stlite_cloudflare_app").mkdir()
+    (vendor / "_stlite_cloudflare_app" / "streamlit_app.py").write_text("APP")
+
+    dest = tmp_path / "assets" / "_stlite" / "python-modules.tar.gz"
+    pack_modules(vendor, dest)
+
+    with tarfile.open(dest) as tar:
+        names = set(tar.getnames())
+    assert "streamlit/__init__.py" in names
+    assert "_stlite_cloudflare_app/streamlit_app.py" in names
+    assert not any(name.startswith("stlite_cloudflare") for name in names)
+    assert not any(name.startswith("workers") for name in names)
+    # Packed entries leave the script bundle; boot-critical ones stay.
+    remaining = sorted(p.name for p in vendor.iterdir())
+    assert remaining == [
+        "_workers_sdk_entropy_import_context.pth",
+        "asgi.py",
+        "stlite_cloudflare",
+        "workers",
+        "workers_runtime_sdk-1.6.2.dist-info",
     ]
 
 

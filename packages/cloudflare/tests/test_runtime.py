@@ -24,7 +24,7 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
     calls = 0
     release = asyncio.Event()
 
-    async def fake_create():
+    async def fake_create(env):
         nonlocal calls
         calls += 1
         await release.wait()
@@ -32,7 +32,9 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
 
     monkeypatch.setattr(runtime, "_create_streamlit_asgi_app", fake_create)
 
-    tasks = [asyncio.ensure_future(runtime.get_streamlit_asgi_app()) for _ in range(3)]
+    tasks = [
+        asyncio.ensure_future(runtime.get_streamlit_asgi_app(None)) for _ in range(3)
+    ]
     await asyncio.sleep(0)
     release.set()
 
@@ -44,7 +46,7 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
 async def test_failed_initialization_is_retried(monkeypatch):
     calls = 0
 
-    async def flaky_create():
+    async def flaky_create(env):
         nonlocal calls
         calls += 1
         if calls == 1:
@@ -54,9 +56,9 @@ async def test_failed_initialization_is_retried(monkeypatch):
     monkeypatch.setattr(runtime, "_create_streamlit_asgi_app", flaky_create)
 
     with pytest.raises(RuntimeError, match="transient cold-start failure"):
-        await runtime.get_streamlit_asgi_app()
+        await runtime.get_streamlit_asgi_app(None)
 
-    assert await runtime.get_streamlit_asgi_app() == "app"
+    assert await runtime.get_streamlit_asgi_app(None) == "app"
     assert calls == 2
 
 
@@ -108,11 +110,16 @@ async def test_initialization_retains_the_lifespan_state(monkeypatch, tmp_path):
         monkeypatch, run_lifespan_startup=fake_run_lifespan_startup
     )
 
+    async def no_packages(env):
+        return None
+
+    monkeypatch.setattr(runtime, "ensure_packages", no_packages)
+
     app_pkg = types.ModuleType("_stlite_cloudflare_app")
     app_pkg.__file__ = str(tmp_path / "__init__.py")
     monkeypatch.setitem(sys.modules, "_stlite_cloudflare_app", app_pkg)
 
-    await runtime._create_streamlit_asgi_app()
+    await runtime._create_streamlit_asgi_app(None)
 
     # A strong reference to the exact state must survive garbage collection.
     gc.collect()

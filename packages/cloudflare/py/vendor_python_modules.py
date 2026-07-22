@@ -191,6 +191,51 @@ def install_runtime(vendor_dir: Path, wheels: list[Path]) -> None:
     _prune_worker_dead_weight(vendor_dir)
 
 
+# Everything the Worker script must be able to import BEFORE the packed
+# runtime is installed at boot: the stlite entrypoint package and the workers
+# SDK artifacts pywrangler vendors (workers/, asgi.py, its dist-info, and the
+# _workers_sdk_* .pth machinery).
+_SCRIPT_KEEP_ENTRIES = {"stlite_cloudflare", "workers", "asgi.py"}
+_SCRIPT_KEEP_PATTERN = re.compile(
+    r"^(workers_runtime_sdk-.*\.dist-info|_workers_sdk_.*)$"
+)
+# Cloudflare rejects individual static-asset files above 25 MiB.
+_ASSET_FILE_SIZE_LIMIT = 25 * 1024 * 1024
+
+
+def pack_modules(vendor_dir: Path, dest: Path) -> None:
+    """Move the heavy runtime out of the Worker script and into an asset.
+
+    Packs every python_modules entry except the boot-critical keeps into a
+    ``.tar.gz`` at ``dest`` (a static asset the Worker extracts at cold
+    start), then removes the packed entries so the script bundle stays under
+    Cloudflare's script-size limit.
+    """
+    packed = sorted(
+        entry
+        for entry in vendor_dir.iterdir()
+        if entry.name not in _SCRIPT_KEEP_ENTRIES
+        and not _SCRIPT_KEEP_PATTERN.match(entry.name)
+    )
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(dest, "w:gz") as tar:
+        for entry in packed:
+            tar.add(entry, arcname=entry.name)
+    for entry in packed:
+        if entry.is_dir() and not entry.is_symlink():
+            shutil.rmtree(entry)
+        else:
+            entry.unlink()
+
+    size = dest.stat().st_size
+    if size > _ASSET_FILE_SIZE_LIMIT:
+        sys.exit(
+            f"{dest} is {size / 1024 / 1024:.1f} MiB compressed, above "
+            "Cloudflare's 25 MiB per-asset limit; the packed runtime needs "
+            "splitting into multiple archives to ship this many dependencies."
+        )
+
+
 def print_wheel_requires(wheel_path: Path) -> None:
     """Print the wheel's core Requires-Dist entries, one per line.
 
@@ -253,11 +298,20 @@ def main(argv: list[str] | None = None) -> None:
     )
     requires.add_argument("--wheel", type=Path, required=True)
 
+    pack = subparsers.add_parser(
+        "pack-modules",
+        help="Pack the heavy runtime into a static-asset tarball.",
+    )
+    pack.add_argument("--vendor-dir", type=Path, required=True)
+    pack.add_argument("--dest", type=Path, required=True)
+
     args = parser.parse_args(argv)
     if args.command == "vendor-prebuilt":
         vendor_prebuilt(args.vendor_dir, args.snapshot, args.wheel)
     elif args.command == "install-runtime":
         install_runtime(args.vendor_dir, args.wheels)
+    elif args.command == "pack-modules":
+        pack_modules(args.vendor_dir, args.dest)
     else:
         print_wheel_requires(args.wheel)
 

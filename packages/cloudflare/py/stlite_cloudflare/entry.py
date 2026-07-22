@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
         try:
-            app = await get_streamlit_asgi_app()
+            app = await get_streamlit_asgi_app(self.env)
         except Exception:
             _LOGGER.exception("stlite-cloudflare startup failed")
             return _error_500("stlite-cloudflare startup failed.")

@@ -50,8 +50,14 @@ nowhere to strip `accept-encoding` or inject the frontend config into the
 index HTML.
 
 The frontend (including the index HTML, with the Streamlit config baked in
-at build time) is served by Cloudflare's static-assets layer, so the bridge's
-one remaining HTTP-shaping concern is the `accept-encoding` strip. The
+at build time) is served by Cloudflare's static-assets layer, and the heavy
+Python runtime ships the same way: Workers cap the script at 3/10 MiB gzip
+(free/paid) while Streamlit's dependency closure alone gzips to ~14 MiB, so
+the script keeps only `stlite_cloudflare` plus the workers SDK, and
+`package_loader.py` fetches `assets/_stlite/python-modules.tar.gz` through
+the ASSETS binding at cold start and extracts it before the first
+`import streamlit`. The bridge's one remaining HTTP-shaping concern is the
+`accept-encoding` strip. The
 intended evolution is to move that into a pure-Python ASGI middleware wrapping
 the Starlette app, leaving the bridge generic (directly replaceable by the
 upstream `asgi` module if it gains a resident-lifespan mode and binary

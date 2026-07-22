@@ -185,18 +185,24 @@ function defaultWranglerJsonc(workerName: string): string {
       compatibility_date: "2026-06-30",
       compatibility_flags: ["python_workers"],
       observability: { enabled: true },
-      // The frontend is served from the assets layer (it doesn't count
-      // against the Worker script-size limit); Streamlit page paths like
-      // /my_page serve the SPA index, while the namespaces Streamlit's own
-      // server owns are routed to the Worker before asset matching.
+      // The frontend and the packed Python runtime are served from the assets
+      // layer (assets don't count against the Worker script-size limit);
+      // Streamlit page paths like /my_page serve the SPA index, while the
+      // namespaces Streamlit's own server owns — plus /_stlite, so the packed
+      // runtime (including the user's app source) is not directly
+      // downloadable — are routed to the Worker before asset matching. The
+      // ASSETS binding is how the Worker fetches the packed runtime at
+      // startup.
       assets: {
         directory: "./assets",
+        binding: "ASSETS",
         not_found_handling: "single-page-application",
         run_worker_first: [
           "/_stcore/*",
           "/media/*",
           "/component/*",
           "/app/static/*",
+          "/_stlite/*",
         ],
       },
     },

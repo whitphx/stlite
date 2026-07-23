@@ -8,6 +8,7 @@ from urllib.parse import unquote, urlsplit
 
 from stlite_cloudflare._asgi import AsgiApp, AsgiMessage
 from stlite_cloudflare.adapter import (
+    _to_js_uint8_array,
     encode_request_headers,
     iter_header_pairs,
     to_bytes,
@@ -295,11 +296,3 @@ def _subprotocols_from_headers(request: Any) -> list[str]:
     if not value:
         return []
     return [part.strip() for part in value.split(",") if part.strip()]
-
-
-def _to_js_uint8_array(data: bytes | bytearray | memoryview) -> Any:
-    # to_js copies a buffer-protocol object into a Uint8Array in one memcpy;
-    # this runs for every outbound binary frame (all ForwardMsg protobufs).
-    from pyodide.ffi import to_js
-
-    return to_js(bytes(data))

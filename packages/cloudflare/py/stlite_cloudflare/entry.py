@@ -35,12 +35,7 @@ class Default(WorkerEntrypoint):
             if is_websocket_upgrade(request):
                 return await run_cloudflare_websocket_asgi(app, request)
 
-            response = await run_http_asgi(app, request)
-            return Response(
-                response.body,
-                status=response.status,
-                headers=response.headers,
-            )
+            return await run_http_asgi(app, request)
         except Exception:
             _LOGGER.exception("stlite-cloudflare request handling failed")
             return _error_500("stlite-cloudflare failed to handle the request.")

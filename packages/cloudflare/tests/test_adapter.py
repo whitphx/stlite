@@ -27,13 +27,22 @@ class FakeRequest:
 class _FakeWriter:
     def __init__(self) -> None:
         self.chunks: list[bytes] = []
-        self.closed = False
+        self.close_calls = 0
+
+    @property
+    def closed(self) -> bool:
+        return self.close_calls > 0
 
     async def write(self, chunk: bytes) -> None:
         self.chunks.append(chunk)
 
     async def close(self) -> None:
-        self.closed = True
+        # A real WritableStreamDefaultWriter rejects a second close; count
+        # attempts so the bridge's double-close guard is testable, and reject
+        # like the real API.
+        self.close_calls += 1
+        if self.close_calls > 1:
+            raise RuntimeError("writer already closed")
 
 
 class _FakeTransformStream:
@@ -201,6 +210,27 @@ async def test_run_http_asgi_null_body_status(fake_js_env):
 
     assert response.status == 204
     assert response.body is None
+
+
+@pytest.mark.asyncio
+async def test_run_http_asgi_tolerates_errors_after_the_stream_closed(
+    fake_js_env,
+):
+    async def crashy_after_close_app(scope, receive, send):
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"x", "more_body": True})
+        await send({"type": "http.response.body", "body": b""})
+        raise RuntimeError("cleanup failed after the body completed")
+
+    request = FakeRequest(method="GET", url="https://example.com/", headers={})
+
+    response = await run_http_asgi(crashy_after_close_app, request)
+    await _drain()
+
+    (stream,) = fake_js_env.streams
+    assert response.body is stream.readable
+    # The stream closed exactly once; the late error is logged, not re-closed.
+    assert stream._writer.close_calls == 1
 
 
 @pytest.mark.asyncio

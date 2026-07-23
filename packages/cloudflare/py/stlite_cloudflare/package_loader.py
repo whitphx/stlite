@@ -12,6 +12,7 @@ Cloudflare's Worker script-size limit. At cold start:
   zipimport can't serve, e.g. namespace packages) is extracted to real files.
 """
 
+import asyncio
 import importlib
 import sys
 from pathlib import Path
@@ -49,10 +50,12 @@ async def ensure_packages(env: Any) -> None:
             "the assets binding so the runtime packages can load at startup."
         )
 
+    zip_data, extracted_data = await asyncio.gather(
+        _fetch_asset(assets, PACKAGES_ZIP_ASSET_PATH),
+        _fetch_asset(assets, EXTRACTED_ARCHIVE_ASSET_PATH),
+    )
     _ZIP_TARGET.parent.mkdir(parents=True, exist_ok=True)
-    _ZIP_TARGET.write_bytes(await _fetch_asset(assets, PACKAGES_ZIP_ASSET_PATH))
-
-    extracted_data = await _fetch_asset(assets, EXTRACTED_ARCHIVE_ASSET_PATH)
+    _ZIP_TARGET.write_bytes(zip_data)
     # The assets layer may serve the .gz body either raw or transparently
     # decoded depending on negotiation; sniff the magic bytes rather than
     # trusting the file extension.

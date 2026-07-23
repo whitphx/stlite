@@ -36,6 +36,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
     status = 500
     headers: list[tuple[str, str]] = []
     writer: Any = None
+    writer_closed = False
     received = False
     result: asyncio.Future[Any] = asyncio.get_running_loop().create_future()
 
@@ -54,7 +55,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
         )
 
     async def send(message: AsgiMessage) -> None:
-        nonlocal status, headers, writer
+        nonlocal status, headers, writer, writer_closed
         message_type = message["type"]
         if message_type == "http.response.start":
             status = int(message["status"])
@@ -67,6 +68,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
                 if chunk:
                     await writer.write(_to_js_uint8_array(chunk))
                 if not more_body:
+                    writer_closed = True
                     await writer.close()
             elif more_body:
                 # First chunk of a multi-chunk body: hand the readable side to
@@ -97,7 +99,9 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
                 # The response already left; the traceback belongs in the
                 # Worker logs.
                 _LOGGER.exception("ASGI app failed after the response started")
-            if writer is not None:
+            # Closing signals EOF (a truncated body) to the client; a second
+            # close on an already-closed writer would itself raise.
+            if writer is not None and not writer_closed:
                 await writer.close()
 
     task = asyncio.create_task(run_app())

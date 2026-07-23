@@ -268,19 +268,18 @@ def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
         and not _SCRIPT_KEEP_PATTERN.match(entry.name)
         and not _contains_native_lib(entry)
     )
+    real_file_entries = [entry for entry in packed if _needs_real_files(entry)]
+    zipped_entries = [entry for entry in packed if not _needs_real_files(entry)]
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     extracted_dest = dest_dir / "extracted-modules.tar.gz"
     with tarfile.open(extracted_dest, "w:gz") as tar:
-        for entry in packed:
-            if _needs_real_files(entry):
-                tar.add(entry, arcname=entry.name)
+        for entry in real_file_entries:
+            tar.add(entry, arcname=entry.name)
 
     zip_dest = dest_dir / "python-modules.zip"
     with zipfile.ZipFile(zip_dest, "w", zipfile.ZIP_DEFLATED) as archive:
-        for entry in packed:
-            if _needs_real_files(entry):
-                continue
+        for entry in zipped_entries:
             if entry.is_file():
                 archive.write(entry, arcname=entry.name)
                 continue

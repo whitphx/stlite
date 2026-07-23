@@ -1,6 +1,6 @@
 import logging
 import sys
-from pathlib import Path
+from importlib import resources
 from types import ModuleType
 from typing import Any
 
@@ -11,7 +11,10 @@ def mock_pyarrow() -> None:
     # server-side runtime (Cloudflare); the browser worker instead registers the
     # same shim with micropip before installing packages, importing
     # _pyarrow_shim.py directly (see worker-runtime.ts).
-    source = (Path(__file__).parent / "_pyarrow_shim.py").read_text()
+    # importlib.resources (not Path(__file__)) so the shim is readable when
+    # stlite_lib is imported from a zip (the Cloudflare Worker loads it via
+    # zipimport).
+    source = (resources.files("stlite_lib") / "_pyarrow_shim.py").read_text()
     module = ModuleType("pyarrow")
     exec(source, module.__dict__)
     sys.modules["pyarrow"] = module

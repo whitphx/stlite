@@ -45,15 +45,17 @@ def _prune_worker_dead_weight(vendor_dir: Path) -> None:
     Workers enforce hard size limits, so build-time-only or notebook-only
     payloads must not ship:
     - top-level ``*.data`` wheel payload dirs (scripts/, share/jupyter/, ...)
-    - ``nbextension`` package subdirs (Jupyter-widget frontend assets)
+    - ``nbextension/static`` payloads (Jupyter-widget frontend assets; the
+      ``nbextension`` module itself must stay — pydeck's ``__init__`` imports
+      ``_jupyter_nbextension_paths`` from it)
     - ``*.js.map`` source maps inside vendored packages
     - C/Cython sources and headers, and ``.pyi`` type stubs (nothing compiles
       or type-checks inside the Worker)
     """
     _remove_entries(vendor_dir, lambda entry: bool(_WHEEL_DATA_DIR.match(entry)))
-    for nbextension in vendor_dir.glob("*/nbextension"):
-        if nbextension.is_dir():
-            shutil.rmtree(nbextension)
+    for nbextension_static in vendor_dir.glob("*/nbextension/static"):
+        if nbextension_static.is_dir():
+            shutil.rmtree(nbextension_static)
     for pattern in ("*.js.map", "*.c", "*.pyx", "*.pxd", "*.h", "*.pyi"):
         for dead_file in vendor_dir.rglob(pattern):
             dead_file.unlink()

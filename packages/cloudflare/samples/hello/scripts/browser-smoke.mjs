@@ -27,12 +27,18 @@ try {
   await page.getByText("Mapping demo", { exact: true }).waitFor();
   await page.getByText("Animation demo", { exact: true }).waitFor();
 
-  // Open a page that imports numpy/pandas/altair, so native-extension loading
-  // (workerd dlopens .so only from read-only filesystems) is exercised — a
-  // menu-only check misses it.
+  // Open pages whose scripts pull in extra dependency chains — a menu-only
+  // check misses import-time breakage (native .so loading, pruned modules).
+  // DataFrame: numpy/pandas/altair. Mapping: pydeck. The waited-for fragments
+  // are per-page (a shared prefix would match the previous page's still-
+  // mounted text) and avoid `code`-rendered spans.
   await page.getByText("DataFrame demo", { exact: true }).click();
   await page
-    .getByText("This demo shows how to use", { exact: false })
+    .getByText("to visualize a Pandas DataFrame", { exact: false })
+    .waitFor();
+  await page.getByText("Mapping demo", { exact: true }).click();
+  await page
+    .getByText("to display geospatial data", { exact: false })
     .waitFor();
 
   const connectionState = await page

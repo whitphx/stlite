@@ -178,6 +178,7 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     vendor = tmp_path / "vendor"
     (vendor / "pydeck" / "nbextension" / "static").mkdir(parents=True)
     (vendor / "pydeck" / "nbextension" / "static" / "index.js").write_text("J")
+    (vendor / "pydeck" / "nbextension" / "__init__.py").write_text("N")
     (vendor / "pydeck" / "bindings").mkdir(parents=True)
     (vendor / "pydeck" / "bindings" / "deck.py").write_text("D")
     (vendor / "pydeck-0.9.3.data" / "data" / "share").mkdir(parents=True)
@@ -199,11 +200,13 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     install_runtime(vendor, [wheel])
 
     assert not (vendor / "pydeck-0.9.3.data").exists()
-    assert not (vendor / "pydeck" / "nbextension").exists()
+    assert not (vendor / "pydeck" / "nbextension" / "static").exists()
     assert not (vendor / "altair" / "chart.js.map").exists()
     assert not (vendor / "fastparquet" / "cencoding.c").exists()
     assert not (vendor / "numpy_stub.pyi_holder" / "core.pyi").exists()
-    # The packages themselves survive; only the dead payloads go.
+    # The packages themselves survive; only the dead payloads go. pydeck's
+    # __init__ imports from .nbextension, so the module must remain.
+    assert (vendor / "pydeck" / "nbextension" / "__init__.py").read_text() == "N"
     assert (vendor / "pydeck" / "bindings" / "deck.py").read_text() == "D"
     assert (vendor / "fastparquet" / "api.py").read_text() == "F"
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"

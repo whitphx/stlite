@@ -95,15 +95,15 @@ export async function vendor({
   );
 
   // Move the heavy runtime (streamlit, stlite_lib, deps, the app) out of the
-  // Worker script and into a static asset the Worker installs at cold start —
+  // Worker script and into static assets the Worker activates at cold start —
   // script bytes are capped at 3/10 MiB gzip, which this closure exceeds by
   // itself; assets are not.
   await runVendorPythonModules(packageDir, projectDir, [
     "pack-modules",
     "--vendor-dir",
     vendorDir,
-    "--dest",
-    path.join(assetsDir, "_stlite", "python-modules.tar.gz"),
+    "--dest-dir",
+    path.join(assetsDir, "_stlite"),
   ]);
 }
 

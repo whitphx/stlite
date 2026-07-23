@@ -220,16 +220,46 @@ def _contains_native_lib(entry: Path) -> bool:
     return next(entry.rglob("*.so"), None) is not None
 
 
-def pack_modules(vendor_dir: Path, dest: Path) -> None:
+_APP_PACKAGE = "_stlite_cloudflare_app"
+# Packages observed to break when imported from a zip: altair opens its own
+# module sources with plain filesystem reads while rendering charts
+# (NotADirectoryError on altair/utils/_importers.py inside the zip path).
+_ZIP_INCOMPATIBLE_PACKAGES = {"altair"}
+
+
+def _needs_real_files(entry: Path) -> bool:
+    if entry.name == _APP_PACKAGE:
+        # Streamlit executes the entry script by path and app code reads its
+        # data files with open(); neither works from inside a zip.
+        return True
+    if entry.name in _ZIP_INCOMPATIBLE_PACKAGES:
+        return True
+    if entry.name.endswith((".dist-info", ".egg-info")):
+        # Metadata dirs are read via importlib.metadata, which handles zips.
+        return False
+    # zipimport does not find PEP 420 namespace packages (top-level dirs
+    # without __init__.py, e.g. protobuf's google/ tree), so those must be
+    # real files too.
+    return entry.is_dir() and not (entry / "__init__.py").exists()
+
+
+def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
     """Move the heavy pure-Python runtime out of the Worker script.
 
-    Packs python_modules entries into a ``.tar.gz`` at ``dest`` (a static
-    asset the Worker extracts at cold start), then removes the packed entries
-    so the script bundle stays under Cloudflare's script-size limit. Two
-    kinds of entries must stay in the script: the boot-critical keeps, and
-    anything containing a native ``.so`` — workerd only dlopens shared
+    Produces two static assets under ``dest_dir`` and removes the packed
+    entries so the script bundle stays under Cloudflare's script-size limit:
+
+    - ``python-modules.zip``: the pure-Python libraries. The Worker puts the
+      zip itself on sys.path (zipimport), so the modules never occupy the
+      in-memory filesystem — they decompress per-import instead.
+    - ``extracted-modules.tar.gz``: what must exist as real files at boot —
+      the user's app package plus anything zipimport can't serve (see
+      _needs_real_files).
+
+    Two kinds of entries must stay in the script: the boot-critical keeps,
+    and anything containing a native ``.so`` — workerd only dlopens shared
     libraries from read-only filesystems (the script's python_modules mount),
-    never from the writable /tmp the tarball extracts into.
+    never from writable paths.
     """
     packed = sorted(
         entry
@@ -238,23 +268,41 @@ def pack_modules(vendor_dir: Path, dest: Path) -> None:
         and not _SCRIPT_KEEP_PATTERN.match(entry.name)
         and not _contains_native_lib(entry)
     )
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(dest, "w:gz") as tar:
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    extracted_dest = dest_dir / "extracted-modules.tar.gz"
+    with tarfile.open(extracted_dest, "w:gz") as tar:
         for entry in packed:
-            tar.add(entry, arcname=entry.name)
+            if _needs_real_files(entry):
+                tar.add(entry, arcname=entry.name)
+
+    zip_dest = dest_dir / "python-modules.zip"
+    with zipfile.ZipFile(zip_dest, "w", zipfile.ZIP_DEFLATED) as archive:
+        for entry in packed:
+            if _needs_real_files(entry):
+                continue
+            if entry.is_file():
+                archive.write(entry, arcname=entry.name)
+                continue
+            for member in sorted(entry.rglob("*")):
+                if member.is_file():
+                    archive.write(member, arcname=member.relative_to(vendor_dir))
+
     for entry in packed:
         if entry.is_dir() and not entry.is_symlink():
             shutil.rmtree(entry)
         else:
             entry.unlink()
 
-    size = dest.stat().st_size
-    if size > _ASSET_FILE_SIZE_LIMIT:
-        sys.exit(
-            f"{dest} is {size / 1024 / 1024:.1f} MiB compressed, above "
-            "Cloudflare's 25 MiB per-asset limit; the packed runtime needs "
-            "splitting into multiple archives to ship this many dependencies."
-        )
+    for dest in (zip_dest, extracted_dest):
+        size = dest.stat().st_size
+        if size > _ASSET_FILE_SIZE_LIMIT:
+            sys.exit(
+                f"{dest} is {size / 1024 / 1024:.1f} MiB compressed, above "
+                "Cloudflare's 25 MiB per-asset limit; the packed runtime "
+                "needs splitting into multiple archives to ship this many "
+                "dependencies."
+            )
 
 
 def print_wheel_requires(wheel_path: Path) -> None:
@@ -321,10 +369,10 @@ def main(argv: list[str] | None = None) -> None:
 
     pack = subparsers.add_parser(
         "pack-modules",
-        help="Pack the heavy runtime into a static-asset tarball.",
+        help="Pack the heavy runtime into static assets (zip + app tarball).",
     )
     pack.add_argument("--vendor-dir", type=Path, required=True)
-    pack.add_argument("--dest", type=Path, required=True)
+    pack.add_argument("--dest-dir", type=Path, required=True)
 
     args = parser.parse_args(argv)
     if args.command == "vendor-prebuilt":
@@ -332,7 +380,7 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == "install-runtime":
         install_runtime(args.vendor_dir, args.wheels)
     elif args.command == "pack-modules":
-        pack_modules(args.vendor_dir, args.dest)
+        pack_modules(args.vendor_dir, args.dest_dir)
     else:
         print_wheel_requires(args.wheel)
 

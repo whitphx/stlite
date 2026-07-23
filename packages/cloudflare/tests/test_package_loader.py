@@ -1,6 +1,7 @@
 import io
 import sys
 import tarfile
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -18,13 +19,14 @@ class _FakeResponse:
 
 
 class _FakeAssets:
-    def __init__(self, status: int, body: bytes) -> None:
-        self._response = _FakeResponse(status, body)
+    def __init__(self, responses: dict[str, _FakeResponse]) -> None:
+        self._responses = responses
         self.fetched: list[str] = []
 
     async def fetch(self, url: str) -> _FakeResponse:
         self.fetched.append(url)
-        return self._response
+        asset_path = url.removeprefix("https://assets.internal")
+        return self._responses.get(asset_path, _FakeResponse(404, b""))
 
 
 class _FakeEnv:
@@ -33,46 +35,69 @@ class _FakeEnv:
             self.ASSETS = assets
 
 
-def _make_archive(compress: bool) -> bytes:
+def _make_zip() -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("packedmod.py", "VALUE = 1\n")
+    return buffer.getvalue()
+
+
+def _make_app_tar(compress: bool) -> bytes:
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w:gz" if compress else "w") as tar:
-        payload = b"VALUE = 1\n"
-        info = tarfile.TarInfo("packedmod.py")
+        payload = b"APP = True\n"
+        info = tarfile.TarInfo("_stlite_cloudflare_app/streamlit_app.py")
         info.size = len(payload)
         tar.addfile(info, io.BytesIO(payload))
     return buffer.getvalue()
 
 
+def _fake_assets(compress_app: bool = True) -> _FakeAssets:
+    return _FakeAssets(
+        {
+            package_loader.PACKAGES_ZIP_ASSET_PATH: _FakeResponse(200, _make_zip()),
+            package_loader.EXTRACTED_ARCHIVE_ASSET_PATH: _FakeResponse(
+                200, _make_app_tar(compress=compress_app)
+            ),
+        }
+    )
+
+
 @pytest.fixture(autouse=True)
 def isolated_loader(monkeypatch, tmp_path):
-    target = tmp_path / "extracted"
-    monkeypatch.setattr(package_loader, "_TARGET", target)
+    monkeypatch.setattr(package_loader, "_ZIP_TARGET", tmp_path / "python-modules.zip")
+    monkeypatch.setattr(package_loader, "_EXTRACT_TARGET", tmp_path / "extracted")
     monkeypatch.setattr(package_loader, "_installed", False)
     original_path = list(sys.path)
-    yield target
+    yield tmp_path
     sys.path[:] = original_path
+    sys.modules.pop("packedmod", None)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("compressed", [True, False])
-async def test_ensure_packages_extracts_and_activates(
-    isolated_loader: Path, compressed: bool
+@pytest.mark.parametrize("compress_app", [True, False])
+async def test_ensure_packages_activates_zip_and_extracts_app(
+    isolated_loader: Path, compress_app: bool
 ):
-    # The assets layer may serve the .gz either raw or transparently decoded;
-    # both must extract.
-    assets = _FakeAssets(200, _make_archive(compress=compressed))
+    assets = _fake_assets(compress_app=compress_app)
 
     await package_loader.ensure_packages(_FakeEnv(assets))
 
-    assert (isolated_loader / "packedmod.py").read_text() == "VALUE = 1\n"
-    assert str(isolated_loader) in sys.path
-    assert assets.fetched == [
-        f"https://assets.internal{package_loader.PACKAGES_ASSET_PATH}"
-    ]
+    # The libraries import straight from the zip via zipimport…
+    import packedmod
 
-    # A second call is a no-op (no second fetch).
+    assert packedmod.VALUE == 1
+    assert "python-modules.zip" in packedmod.__file__
+    # …while the app package lands as real files.
+    app_script = (
+        isolated_loader / "extracted" / "_stlite_cloudflare_app" / "streamlit_app.py"
+    )
+    assert app_script.read_text() == "APP = True\n"
+
+    # A second call is a no-op (no further fetches).
+    fetch_count = len(assets.fetched)
     await package_loader.ensure_packages(_FakeEnv(assets))
-    assert len(assets.fetched) == 1
+    assert len(assets.fetched) == fetch_count
 
 
 @pytest.mark.asyncio
@@ -83,6 +108,6 @@ async def test_ensure_packages_requires_the_assets_binding(isolated_loader):
 
 @pytest.mark.asyncio
 async def test_ensure_packages_surfaces_fetch_failures(isolated_loader):
-    assets = _FakeAssets(404, b"")
+    assets = _FakeAssets({})
     with pytest.raises(RuntimeError, match="HTTP 404"):
         await package_loader.ensure_packages(_FakeEnv(assets))

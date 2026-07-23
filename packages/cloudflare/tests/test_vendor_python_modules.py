@@ -252,22 +252,32 @@ def test_pack_modules_packs_all_but_boot_keeps(tmp_path):
     (vendor / "streamlit" / "__init__.py").write_text("S")
     (vendor / "_stlite_cloudflare_app").mkdir()
     (vendor / "_stlite_cloudflare_app" / "streamlit_app.py").write_text("APP")
+    # A PEP 420 namespace package (no __init__.py): zipimport can't serve it.
+    (vendor / "google" / "protobuf").mkdir(parents=True)
+    (vendor / "google" / "protobuf" / "message.py").write_text("G")
     # Native-extension packages must stay in the script: workerd only dlopens
     # .so files from read-only filesystems.
     (vendor / "numpy" / "_core").mkdir(parents=True)
     (vendor / "numpy" / "_core" / "umath.cpython-313-wasm32.so").write_text("N")
     (vendor / "libcrypto.so").write_text("L")
 
-    dest = tmp_path / "assets" / "_stlite" / "python-modules.tar.gz"
-    pack_modules(vendor, dest)
+    dest_dir = tmp_path / "assets" / "_stlite"
+    pack_modules(vendor, dest_dir)
 
-    with tarfile.open(dest) as tar:
-        names = set(tar.getnames())
-    assert "streamlit/__init__.py" in names
-    assert "_stlite_cloudflare_app/streamlit_app.py" in names
-    assert not any(name.startswith("stlite_cloudflare") for name in names)
-    assert not any(name.startswith("workers") for name in names)
-    assert not any(name.startswith("numpy") for name in names)
+    with zipfile.ZipFile(dest_dir / "python-modules.zip") as archive:
+        zip_names = set(archive.namelist())
+    assert "streamlit/__init__.py" in zip_names
+    assert not any(name.startswith("stlite_cloudflare") for name in zip_names)
+    assert not any(name.startswith("workers") for name in zip_names)
+    assert not any(name.startswith("numpy") for name in zip_names)
+    # The app and namespace packages ship separately, as a tarball extracted
+    # to real files at boot (zipimport can't serve either).
+    assert not any(name.startswith("_stlite_cloudflare_app") for name in zip_names)
+    assert not any(name.startswith("google/") for name in zip_names)
+    with tarfile.open(dest_dir / "extracted-modules.tar.gz") as tar:
+        tar_names = tar.getnames()
+    assert "_stlite_cloudflare_app/streamlit_app.py" in tar_names
+    assert "google/protobuf/message.py" in tar_names
     # Packed entries leave the script bundle; boot-critical and native ones stay.
     remaining = sorted(p.name for p in vendor.iterdir())
     assert remaining == [

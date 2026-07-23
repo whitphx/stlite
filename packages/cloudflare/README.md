@@ -37,6 +37,13 @@ runtime are served from `./assets`, with the `ASSETS` binding and
 `run_worker_first` for Streamlit's server namespaces) — without it the Worker
 has no frontend and cannot load its runtime packages at startup.
 
+## Known limitations
+
+Pages that stream many rapid updates (e.g. progressive frame animations like
+the hello app's Animation demo) can trip workerd's request hang detection and
+fail to complete. Standard page interactions, dataframes, charts, and maps
+work.
+
 ## Requirements
 
 Serving traffic requires the [Workers Paid plan](https://developers.cloudflare.com/workers/platform/pricing/):

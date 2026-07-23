@@ -1065,8 +1065,8 @@ jobs:
           test -f dist/python_modules/stlite_cloudflare/entry.py
           test ! -d dist/python_modules/streamlit
           grep -q "window.__streamlit" dist/assets/index.html
-          tar -tzf dist/assets/_stlite/python-modules.tar.gz | grep -q "^streamlit/"
-          tar -tzf dist/assets/_stlite/python-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
+          python3 -m zipfile -l dist/assets/_stlite/python-modules.zip | grep -q "streamlit/"
+          tar -tzf dist/assets/_stlite/extracted-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
 
       # The script (python_modules incl. the native-extension packages that
       # can't move to assets) must stay under Cloudflare's 10 MiB-gzip

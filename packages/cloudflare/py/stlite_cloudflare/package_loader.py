@@ -1,12 +1,15 @@
 """Boot-time installer for the packaged Python runtime.
 
-The Worker script ships only ``stlite_cloudflare`` and the workers SDK; the
-rest of the runtime (streamlit, stlite_lib, and their dependency closure) is
-packed into a static asset, because static assets don't count against
-Cloudflare's Worker script-size limit (3/10 MiB gzip — far below the ~14 MiB
-this closure gzips to). At cold start the tarball is fetched through the
-assets binding (served same-colo) and extracted into the in-memory filesystem
-before anything imports streamlit.
+The Worker script ships only ``stlite_cloudflare``, the workers SDK, and the
+native-extension packages that must live on a read-only filesystem; the pure
+Python runtime ships as static assets, because assets don't count against
+Cloudflare's Worker script-size limit. At cold start:
+
+- ``python-modules.zip`` (the libraries) goes onto sys.path as-is, imported
+  via zipimport — the modules never occupy the in-memory filesystem and
+  decompress per-import, keeping the isolate's memory footprint down.
+- ``extracted-modules.tar.gz`` (the user's app package plus anything
+  zipimport can't serve, e.g. namespace packages) is extracted to real files.
 """
 
 import importlib
@@ -14,17 +17,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-PACKAGES_ASSET_PATH = "/_stlite/python-modules.tar.gz"
+PACKAGES_ZIP_ASSET_PATH = "/_stlite/python-modules.zip"
+EXTRACTED_ARCHIVE_ASSET_PATH = "/_stlite/extracted-modules.tar.gz"
 # Keep this module inert at import time (it loads during the Worker's startup
-# phase): a fixed path under Pyodide's in-memory /tmp instead of a
+# phase): fixed paths under Pyodide's in-memory /tmp instead of a
 # tempfile.gettempdir() probe, and the heavier stdlib imports live inside
 # ensure_packages().
-_TARGET = Path("/tmp/stlite-python-modules")
+_ZIP_TARGET = Path("/tmp/stlite-python-modules.zip")
+_EXTRACT_TARGET = Path("/tmp/stlite-extracted-modules")
 _installed = False
 
 
 async def ensure_packages(env: Any) -> None:
-    """Fetch and extract the packaged runtime once per isolate.
+    """Fetch and activate the packaged runtime once per isolate.
 
     Callers must serialize concurrent invocations (runtime.py's single-flight
     init task does); this function itself only guards against repeat calls.
@@ -43,23 +48,32 @@ async def ensure_packages(env: Any) -> None:
             "`stlite-cloudflare build` declares it; a custom config must keep "
             "the assets binding so the runtime packages can load at startup."
         )
-    response = await assets.fetch(f"https://assets.internal{PACKAGES_ASSET_PATH}")
+
+    _ZIP_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    _ZIP_TARGET.write_bytes(await _fetch_asset(assets, PACKAGES_ZIP_ASSET_PATH))
+
+    extracted_data = await _fetch_asset(assets, EXTRACTED_ARCHIVE_ASSET_PATH)
+    # The assets layer may serve the .gz body either raw or transparently
+    # decoded depending on negotiation; sniff the magic bytes rather than
+    # trusting the file extension.
+    mode = "r:gz" if extracted_data[:2] == b"\x1f\x8b" else "r:"
+    _EXTRACT_TARGET.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(fileobj=io.BytesIO(extracted_data), mode=mode) as tar:
+        tar.extractall(_EXTRACT_TARGET, filter="data")
+
+    sys.path.insert(0, str(_EXTRACT_TARGET))
+    sys.path.insert(0, str(_ZIP_TARGET))
+    importlib.invalidate_caches()
+    _installed = True
+
+
+async def _fetch_asset(assets: Any, asset_path: str) -> bytes:
+    response = await assets.fetch(f"https://assets.internal{asset_path}")
     if response.status != 200:
         raise RuntimeError(
-            f"Failed to load {PACKAGES_ASSET_PATH} from the assets binding "
+            f"Failed to load {asset_path} from the assets binding "
             f"(HTTP {response.status})."
         )
     # The binding returns the workers SDK's Response, a pyodide FetchResponse
     # subclass whose bytes() yields Python bytes directly.
-    data = await response.bytes()
-
-    # The assets layer may serve the .gz body either raw or transparently
-    # decoded depending on negotiation; sniff the magic bytes rather than
-    # trusting the file extension.
-    mode = "r:gz" if data[:2] == b"\x1f\x8b" else "r:"
-    _TARGET.mkdir(parents=True, exist_ok=True)
-    with tarfile.open(fileobj=io.BytesIO(data), mode=mode) as tar:
-        tar.extractall(_TARGET, filter="data")
-    sys.path.insert(0, str(_TARGET))
-    importlib.invalidate_caches()
-    _installed = True
+    return await response.bytes()

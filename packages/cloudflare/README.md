@@ -39,10 +39,12 @@ has no frontend and cannot load its runtime packages at startup.
 
 ## Known limitations
 
-Pages that stream many rapid updates (e.g. progressive frame animations like
-the hello app's Animation demo) can trip workerd's request hang detection and
-fail to complete. Standard page interactions, dataframes, charts, and maps
-work.
+The runtime is single-threaded: a long synchronous compute burst in your
+script starves the event loop that concurrently serves rendered media to the
+browser, and starved requests get canceled by the platform. Pages that render
+frames in a loop should keep per-frame work modest and sleep between frames
+(see the hello app's Animation demo, which is tuned this way). Standard page
+interactions, dataframes, charts, and maps work as-is.
 
 ## Requirements
 

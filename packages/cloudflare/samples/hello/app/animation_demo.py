@@ -36,14 +36,19 @@ def animation_demo() -> None:
     frame_text = st.sidebar.empty()
     image = st.empty()
 
-    m, n, s = 960, 640, 400
+    # Keep the canvas and frame count modest: each frame is a synchronous
+    # numpy burst, and on the single-threaded Pyodide runtime (especially
+    # Cloudflare Workers' wasm CPU) oversized frames starve the event loop
+    # that must concurrently serve the rendered frames to the browser.
+    num_frames = 24
+    m, n, s = 360, 240, 150
     x = np.linspace(-m / s, m / s, num=m).reshape((1, m))
     y = np.linspace(-n / s, n / s, num=n).reshape((n, 1))
 
-    for frame_num, a in enumerate(np.linspace(0.0, 4 * np.pi, 100)):
+    for frame_num, a in enumerate(np.linspace(0.0, 4 * np.pi, num_frames)):
         # Here were setting value for these two elements.
-        progress_bar.progress(frame_num)
-        frame_text.text(f"Frame {frame_num + 1}/100")
+        progress_bar.progress((frame_num + 1) / num_frames)
+        frame_text.text(f"Frame {frame_num + 1}/{num_frames}")
 
         # Performing some fractal wizardry.
         c = separation * np.exp(1j * a)
@@ -60,10 +65,11 @@ def animation_demo() -> None:
         # Update the image placeholder by calling the image() function on it.
         image.image(1.0 - (n_matrix / n_matrix.max()), width='content')
 
-        # NOTE: We need to sleep for a bit in a loop on Stlite, i.e. web browser environments.
+        # NOTE: We need to sleep for a bit in a loop on Stlite.
         # This is because we're using a single-threaded event loop, and
-        # we need to give it a chance to process other events.
-        time.sleep(1/30)
+        # we need to give it a chance to process other events — notably the
+        # HTTP requests fetching the frames rendered above.
+        time.sleep(0.3)
 
     # We clear elements by calling empty on them.
     progress_bar.empty()

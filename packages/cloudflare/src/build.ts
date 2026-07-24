@@ -26,6 +26,11 @@ export interface CloudflareBuildOptions {
   requirements?: string;
   /** Worker name for a generated wrangler.jsonc. */
   name?: string;
+  /** Keep the whole Python runtime in the Worker script instead of loading
+   * it from static assets at cold start. Requires Cloudflare's planned
+   * 64 MB-uncompressed script limit
+   * (https://github.com/cloudflare/workers-py/issues/156). */
+  bundledRuntime?: boolean;
 }
 
 /**
@@ -39,6 +44,7 @@ export async function build({
   entrypoint = "streamlit_app.py",
   requirements,
   name,
+  bundledRuntime = false,
 }: CloudflareBuildOptions): Promise<{ outDir: string }> {
   if (projectPath == null) {
     throw new Error("Missing <path> to the Streamlit project directory");
@@ -89,6 +95,7 @@ export async function build({
     appDir: srcDir,
     cacheDir,
     entrypoint,
+    bundledRuntime,
   });
 
   const outRel = path.relative(process.cwd(), outDir) || ".";

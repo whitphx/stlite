@@ -13,7 +13,6 @@ Cloudflare's Worker script-size limit. At cold start:
 """
 
 import asyncio
-import importlib
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,8 +38,18 @@ async def ensure_packages(env: Any) -> None:
     if _installed:
         return
 
+    import importlib.util
     import io
     import tarfile
+
+    if importlib.util.find_spec("streamlit") is not None:
+        # A --bundled-runtime build: the whole runtime already ships in the
+        # script's python_modules, so there is nothing to fetch. Bundling
+        # everything needs Cloudflare's planned 64 MB-uncompressed script
+        # limit (https://github.com/cloudflare/workers-py/issues/156); the
+        # asset-loading path below is the default until that ships.
+        _installed = True
+        return
 
     assets = getattr(env, "ASSETS", None)
     if assets is None:

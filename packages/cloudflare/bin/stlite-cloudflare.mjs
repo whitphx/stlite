@@ -43,6 +43,7 @@ function parseBuildArgs(args) {
       entrypoint: { type: "string", default: "streamlit_app.py" },
       requirements: { type: "string" },
       name: { type: "string" },
+      "bundled-runtime": { type: "boolean", default: false },
     },
   });
   if (positionals.length === 0) {
@@ -53,7 +54,8 @@ function parseBuildArgs(args) {
       `Unexpected extra arguments: ${positionals.slice(1).join(" ")}`,
     );
   }
-  return { path: positionals[0], ...values };
+  const { "bundled-runtime": bundledRuntime, ...rest } = values;
+  return { path: positionals[0], ...rest, bundledRuntime };
 }
 
 function printHelp() {
@@ -69,6 +71,9 @@ Options:
   --entrypoint <name>        Entrypoint script, relative to <path> (default: streamlit_app.py)
   --requirements <file>      requirements.txt (default: <path>/requirements.txt if present)
   --name <name>              Worker name for a generated wrangler.jsonc (default: derived from <path>)
+  --bundled-runtime          Keep the Python runtime in the Worker script instead of
+                             loading it from static assets at cold start (requires
+                             Cloudflare's planned 64 MB-uncompressed script limit)
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

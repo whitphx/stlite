@@ -70,7 +70,12 @@ read-only mount), and `package_loader.py` activates the rest from
 directly (zipimport, so the libraries never occupy the in-memory
 filesystem), and `extracted-modules.tar.gz` (the app plus namespace
 packages, which zipimport can't serve) is extracted to real files —
-all before the first `import streamlit`. The bridge's one remaining HTTP-shaping concern is the
+all before the first `import streamlit`. The `--bundled-runtime` build flag
+skips the asset split entirely (the loader detects the bundled layout and
+fetches nothing); once Cloudflare's planned 64 MB-uncompressed script limit
+ships ([workers-py#156](https://github.com/cloudflare/workers-py/issues/156)),
+consider making it the default — the full post-prune bundle measures under
+that limit. The bridge's one remaining HTTP-shaping concern is the
 `accept-encoding` strip. The
 intended evolution is to move that into a pure-Python ASGI middleware wrapping
 the Starlette app, leaving the bridge generic (directly replaceable by the

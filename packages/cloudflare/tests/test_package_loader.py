@@ -101,6 +101,26 @@ async def test_ensure_packages_activates_zip_and_extracts_app(
 
 
 @pytest.mark.asyncio
+async def test_ensure_packages_skips_fetching_for_bundled_runtimes(
+    isolated_loader, monkeypatch
+):
+    # --bundled-runtime builds ship streamlit inside the script; the loader
+    # detects it as importable and never touches the assets binding.
+    import importlib.util
+
+    monkeypatch.setattr(
+        importlib.util,
+        "find_spec",
+        lambda name: object() if name == "streamlit" else None,
+    )
+    assets = _fake_assets()
+
+    await package_loader.ensure_packages(_FakeEnv(assets))
+
+    assert assets.fetched == []
+
+
+@pytest.mark.asyncio
 async def test_ensure_packages_requires_the_assets_binding(isolated_loader):
     with pytest.raises(RuntimeError, match="ASSETS binding is missing"):
         await package_loader.ensure_packages(_FakeEnv(None))

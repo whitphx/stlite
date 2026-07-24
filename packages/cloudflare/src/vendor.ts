@@ -17,6 +17,9 @@ export interface VendorOptions {
   cacheDir: string;
   /** App entry script name (default streamlit_app.py). */
   entrypoint?: string;
+  /** Keep the whole runtime in the Worker script instead of loading it from
+   * static assets at cold start. */
+  bundledRuntime?: boolean;
 }
 
 /**
@@ -34,6 +37,7 @@ export async function vendor({
   appDir,
   cacheDir,
   entrypoint = "streamlit_app.py",
+  bundledRuntime = false,
 }: VendorOptions): Promise<void> {
   const vendorDir = path.join(projectDir, "python_modules");
   await fs.mkdir(cacheDir, { recursive: true });
@@ -97,14 +101,19 @@ export async function vendor({
   // Move the heavy runtime (streamlit, stlite_lib, deps, the app) out of the
   // Worker script and into static assets the Worker activates at cold start —
   // script bytes are capped at 3/10 MiB gzip, which this closure exceeds by
-  // itself; assets are not.
-  await runVendorPythonModules(packageDir, projectDir, [
-    "pack-modules",
-    "--vendor-dir",
-    vendorDir,
-    "--dest-dir",
-    path.join(assetsDir, "_stlite"),
-  ]);
+  // itself; assets are not. With bundledRuntime everything stays in the
+  // script (the boot loader detects this and skips the asset fetch), which
+  // needs Cloudflare's planned 64 MB-uncompressed limit:
+  // https://github.com/cloudflare/workers-py/issues/156
+  if (!bundledRuntime) {
+    await runVendorPythonModules(packageDir, projectDir, [
+      "pack-modules",
+      "--vendor-dir",
+      vendorDir,
+      "--dest-dir",
+      path.join(assetsDir, "_stlite"),
+    ]);
+  }
 }
 
 async function ensureFile(filePath: string): Promise<void> {

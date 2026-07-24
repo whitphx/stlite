@@ -29,6 +29,13 @@ deployable Worker directory at `<out>` (default `./dist`) containing
 - `--name <name>` — Worker name for a generated `wrangler.jsonc` (default: derived
   from `<path>`)
 
+By default the heavy Python runtime ships as static assets that the Worker
+loads at cold start, keeping the script under Cloudflare's current size
+limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships
+([cloudflare/workers-py#156](https://github.com/cloudflare/workers-py/issues/156)),
+`--bundled-runtime` keeps everything in the script instead — no asset fetch
+or extraction at cold start.
+
 If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
 you keep control of routes, vars, and bindings; otherwise a minimal one is
 generated. Either way you own `main` and `compatibility_flags`. A custom config

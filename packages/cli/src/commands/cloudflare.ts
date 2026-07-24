@@ -4,6 +4,9 @@ interface CloudflareArgs {
   path: string;
   out: string;
   entrypoint: string;
+  // yargs camelizes --bundled-runtime at runtime; optional because the
+  // builder's inferred type only carries the kebab-case key.
+  bundledRuntime?: boolean;
   requirements?: string;
   name?: string;
 }
@@ -35,6 +38,12 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Path to a requirements.txt file (defaults to <path>/requirements.txt if present)",
       })
+      .option("bundled-runtime", {
+        type: "boolean",
+        default: false,
+        describe:
+          "Keep the Python runtime in the Worker script instead of loading it from static assets at cold start",
+      })
       .option("name", {
         type: "string",
         describe:
@@ -61,6 +70,7 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         path: argv.path,
         out: argv.out,
         entrypoint: argv.entrypoint,
+        bundledRuntime: argv.bundledRuntime,
         requirements: argv.requirements,
         name: argv.name,
       });

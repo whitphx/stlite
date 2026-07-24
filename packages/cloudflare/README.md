@@ -39,12 +39,11 @@ has no frontend and cannot load its runtime packages at startup.
 
 ## Known limitations
 
-The runtime is single-threaded: a long synchronous compute burst in your
-script starves the event loop that concurrently serves rendered media to the
-browser, and starved requests get canceled by the platform. Pages that render
-frames in a loop should keep per-frame work modest and sleep between frames
-(see the hello app's Animation demo, which is tuned this way). Standard page
-interactions, dataframes, charts, and maps work as-is.
+The runtime is single-threaded: a very long synchronous compute burst in your
+script can starve the event loop that concurrently serves rendered media to
+the browser, and starved requests get canceled by the platform. Frame-loop
+pages like the hello app's Animation demo work as-is; if yours drops frames,
+shrink the per-frame work or sleep longer between frames.
 
 ## Requirements
 

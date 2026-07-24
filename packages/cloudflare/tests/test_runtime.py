@@ -114,6 +114,7 @@ async def test_initialization_retains_the_lifespan_state(monkeypatch, tmp_path):
         return None
 
     monkeypatch.setattr(runtime, "ensure_packages", no_packages)
+    monkeypatch.setattr(runtime, "install_media_cache_mirror", lambda: None)
 
     app_pkg = types.ModuleType("_stlite_cloudflare_app")
     app_pkg.__file__ = str(tmp_path / "__init__.py")

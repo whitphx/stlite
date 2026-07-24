@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import time
 from typing import Any
 
 import numpy as np
+from PIL import Image
 
 import streamlit as st
 from streamlit.hello.utils import show_code
@@ -36,19 +38,21 @@ def animation_demo() -> None:
     frame_text = st.sidebar.empty()
     image = st.empty()
 
-    # Keep the canvas and frame count modest: each frame is a synchronous
-    # numpy burst, and on the single-threaded Pyodide runtime (especially
-    # Cloudflare Workers' wasm CPU) oversized frames starve the event loop
-    # that must concurrently serve the rendered frames to the browser.
+    # Pre-render the sweep into a single looping GIF instead of replacing the
+    # image once per frame: on the single-threaded Pyodide runtime the browser
+    # fetches each replaced frame slower than the script produces the next
+    # one, so per-frame media files get dropped before their fetch arrives.
+    # One file, fetched once on an idle event loop, animates client-side.
     num_frames = 24
     m, n, s = 360, 240, 150
     x = np.linspace(-m / s, m / s, num=m).reshape((1, m))
     y = np.linspace(-n / s, n / s, num=n).reshape((n, 1))
+    frames: list[Image.Image] = []
 
     for frame_num, a in enumerate(np.linspace(0.0, 4 * np.pi, num_frames)):
         # Here were setting value for these two elements.
         progress_bar.progress((frame_num + 1) / num_frames)
-        frame_text.text(f"Frame {frame_num + 1}/{num_frames}")
+        frame_text.text(f"Rendering frame {frame_num + 1}/{num_frames}")
 
         # Performing some fractal wizardry.
         c = separation * np.exp(1j * a)
@@ -62,14 +66,24 @@ def animation_demo() -> None:
             m_matrix[np.abs(z) > 2] = False
             n_matrix[m_matrix] = i
 
-        # Update the image placeholder by calling the image() function on it.
-        image.image(1.0 - (n_matrix / n_matrix.max()), width='content')
+        gray = (255 * (1.0 - n_matrix / n_matrix.max())).astype(np.uint8)
+        frames.append(Image.fromarray(gray, mode="L"))
 
         # NOTE: We need to sleep for a bit in a loop on Stlite.
         # This is because we're using a single-threaded event loop, and
-        # we need to give it a chance to process other events — notably the
-        # HTTP requests fetching the frames rendered above.
-        time.sleep(0.3)
+        # we need to give it a chance to process other events.
+        time.sleep(0.05)
+
+    buffer = io.BytesIO()
+    frames[0].save(
+        buffer,
+        format="GIF",
+        save_all=True,
+        append_images=frames[1:],
+        duration=100,
+        loop=0,
+    )
+    image.image(buffer.getvalue(), width="content")
 
     # We clear elements by calling empty on them.
     progress_bar.empty()

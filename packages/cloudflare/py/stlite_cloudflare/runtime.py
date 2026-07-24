@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from stlite_cloudflare._asgi import AsgiApp
+from stlite_cloudflare.media_cache import install_media_cache_mirror
 from stlite_cloudflare.package_loader import ensure_packages
 
 _init_task: asyncio.Task[AsgiApp] | None = None
@@ -85,4 +86,5 @@ async def _create_streamlit_asgi_app(env: Any) -> AsgiApp:
     _app, call_asgi_app, _lifespan_state = await start_resident_app(
         str(script_path), home_dir=str(home_dir)
     )
+    install_media_cache_mirror()
     return call_asgi_app

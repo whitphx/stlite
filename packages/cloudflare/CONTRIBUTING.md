@@ -39,6 +39,16 @@ project's venv, so it leans on `importlib.metadata`/`zipfile`/`tarfile` instead
 of reimplementing them; pytest covers it. The Node-side fs helper tests are
 pure Node and run on every OS.
 
+## Architecture direction: media across isolates
+
+Cloudflare routes a session's WebSocket and its HTTP media fetches to
+different isolates, while Streamlit keeps media bytes in the session
+isolate's memory; `py/stlite_cloudflare/media_cache.py` bridges this with a
+colo-local Cache API mirror. Its docstring records the limits of that bridge
+and the intended long-term direction (Durable Objects, which would give the
+resident runtime a single addressable home) — read it before extending
+cross-isolate state handling.
+
 ## Architecture direction: the ASGI bridge
 
 `py/stlite_cloudflare/adapter.py` and `websocket.py` hand-roll the

@@ -1,8 +1,10 @@
 import logging
+from urllib.parse import unquote, urlsplit
 
 from workers import Response, WorkerEntrypoint
 
 from stlite_cloudflare.adapter import run_http_asgi
+from stlite_cloudflare.media_cache import serve_cached_media
 from stlite_cloudflare.runtime import get_streamlit_asgi_app
 from stlite_cloudflare.websocket import (
     is_websocket_upgrade,
@@ -35,7 +37,17 @@ class Default(WorkerEntrypoint):
             if is_websocket_upgrade(request):
                 return await run_cloudflare_websocket_asgi(app, request)
 
-            return await run_http_asgi(app, request)
+            response = await run_http_asgi(app, request)
+            if response.status == 404:
+                # Media may have been registered by the session's isolate
+                # while this request landed on another one; the Cache API
+                # mirror bridges the gap (see media_cache.py).
+                path = unquote(urlsplit(str(request.url)).path or "/")
+                if path.startswith("/media/"):
+                    cached = await serve_cached_media(path)
+                    if cached is not None:
+                        return cached
+            return response
         except Exception:
             _LOGGER.exception("stlite-cloudflare request handling failed")
             return _error_500("stlite-cloudflare failed to handle the request.")

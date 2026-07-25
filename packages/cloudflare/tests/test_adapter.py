@@ -216,7 +216,7 @@ async def test_run_http_asgi_null_body_status(fake_js_env):
 async def test_run_http_asgi_tolerates_errors_after_the_stream_closed(
     fake_js_env,
 ):
-    async def crashy_after_close_app(scope, receive, send):
+    async def crashing_after_close_app(scope, receive, send):
         await send({"type": "http.response.start", "status": 200, "headers": []})
         await send({"type": "http.response.body", "body": b"x", "more_body": True})
         await send({"type": "http.response.body", "body": b""})
@@ -224,7 +224,7 @@ async def test_run_http_asgi_tolerates_errors_after_the_stream_closed(
 
     request = FakeRequest(method="GET", url="https://example.com/", headers={})
 
-    response = await run_http_asgi(crashy_after_close_app, request)
+    response = await run_http_asgi(crashing_after_close_app, request)
     await _drain()
 
     (stream,) = fake_js_env.streams

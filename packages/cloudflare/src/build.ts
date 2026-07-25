@@ -31,6 +31,11 @@ export interface CloudflareBuildOptions {
    * 64 MB-uncompressed script limit
    * (https://github.com/cloudflare/workers-py/issues/156). */
   bundledRuntime?: boolean;
+  /** Route all Streamlit traffic through a single Durable Object instance so
+   * every request (WebSocket sessions, media, health) shares one resident
+   * runtime, instead of fanning out across independently-booting Worker
+   * isolates. See stlite_cloudflare/durable.py for the trade-offs. */
+  durableObject?: boolean;
 }
 
 /**
@@ -45,6 +50,7 @@ export async function build({
   requirements,
   name,
   bundledRuntime = false,
+  durableObject = false,
 }: CloudflareBuildOptions): Promise<{ outDir: string }> {
   if (projectPath == null) {
     throw new Error("Missing <path> to the Streamlit project directory");
@@ -80,7 +86,13 @@ export async function build({
 
   await fs.rm(outDir, { recursive: true, force: true });
   await fs.mkdir(outDir, { recursive: true });
-  await scaffoldOutput({ srcDir, outDir, workerName, requirements });
+  await scaffoldOutput({
+    srcDir,
+    outDir,
+    workerName,
+    requirements,
+    durableObject,
+  });
 
   // Caches (the multi-minute frontend build, the vendored Pyodide wheels) must
   // outlive the wiped-every-run output dir, so they live in a sibling dir.
@@ -110,16 +122,20 @@ async function scaffoldOutput({
   outDir,
   workerName,
   requirements,
+  durableObject,
 }: {
   srcDir: string;
   outDir: string;
   workerName: string;
   requirements?: string;
+  durableObject: boolean;
 }): Promise<void> {
   await fs.mkdir(path.join(outDir, "src"), { recursive: true });
   await fs.writeFile(
     path.join(outDir, "src", "entry.py"),
-    'from stlite_cloudflare.entry import Default\n\n__all__ = ["Default"]\n',
+    durableObject
+      ? 'from stlite_cloudflare.durable import Default, StliteServer\n\n__all__ = ["Default", "StliteServer"]\n'
+      : 'from stlite_cloudflare.entry import Default\n\n__all__ = ["Default"]\n',
   );
 
   // An existing wrangler.jsonc in the project is the user's own Worker config
@@ -128,7 +144,7 @@ async function scaffoldOutput({
   const srcWrangler = path.join(srcDir, "wrangler.jsonc");
   const wrangler = (await exists(srcWrangler))
     ? await fs.readFile(srcWrangler, "utf8")
-    : defaultWranglerJsonc(workerName);
+    : defaultWranglerJsonc(workerName, durableObject);
   await fs.writeFile(path.join(outDir, "wrangler.jsonc"), wrangler);
 
   const dependencies = await readRequirements(srcDir, requirements);
@@ -183,7 +199,10 @@ async function readRequirements(
   return validateRequirements(parseRequirementsTxt(text));
 }
 
-function defaultWranglerJsonc(workerName: string): string {
+function defaultWranglerJsonc(
+  workerName: string,
+  durableObject: boolean,
+): string {
   return `${JSON.stringify(
     {
       $schema: "node_modules/wrangler/config-schema.json",
@@ -225,6 +244,17 @@ function defaultWranglerJsonc(workerName: string): string {
           "/_stlite/*",
         ],
       },
+      // Route everything through one Durable Object instance so all requests
+      // share a single resident runtime (see stlite_cloudflare/durable.py).
+      // SQLite-backed classes are the only kind Python Workers support.
+      ...(durableObject
+        ? {
+            durable_objects: {
+              bindings: [{ name: "STLITE_SERVER", class_name: "StliteServer" }],
+            },
+            migrations: [{ tag: "v1", new_sqlite_classes: ["StliteServer"] }],
+          }
+        : {}),
     },
     null,
     2,

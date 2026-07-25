@@ -44,10 +44,11 @@ pure Node and run on every OS.
 Cloudflare routes a session's WebSocket and its HTTP media fetches to
 different isolates, while Streamlit keeps media bytes in the session
 isolate's memory; `py/stlite_cloudflare/media_cache.py` bridges this with a
-colo-local Cache API mirror. Its docstring records the limits of that bridge
-and the intended long-term direction (Durable Objects, which would give the
-resident runtime a single addressable home) — read it before extending
-cross-isolate state handling.
+colo-local Cache API mirror. Its docstring records the limits of that bridge.
+The `--durable-object` build mode (`py/stlite_cloudflare/durable.py`) removes
+the problem at the root by giving the resident runtime a single addressable
+home; the Cache API mirror stays in place so the plain-Worker mode keeps
+working, and is simply inert under the Durable Object.
 
 ## Architecture direction: the ASGI bridge
 

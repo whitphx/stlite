@@ -4,9 +4,10 @@ interface CloudflareArgs {
   path: string;
   out: string;
   entrypoint: string;
-  // yargs camelizes --bundled-runtime at runtime; optional because the
-  // builder's inferred type only carries the kebab-case key.
+  // yargs camelizes the kebab-case flags at runtime; optional because the
+  // builder's inferred type only carries the kebab-case keys.
   bundledRuntime?: boolean;
+  durableObject?: boolean;
   requirements?: string;
   name?: string;
 }
@@ -44,6 +45,12 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Keep the Python runtime in the Worker script instead of loading it from static assets at cold start",
       })
+      .option("durable-object", {
+        type: "boolean",
+        default: false,
+        describe:
+          "Route all traffic through a single Durable Object instance so every session shares one resident runtime",
+      })
       .option("name", {
         type: "string",
         describe:
@@ -71,6 +78,7 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         out: argv.out,
         entrypoint: argv.entrypoint,
         bundledRuntime: argv.bundledRuntime,
+        durableObject: argv.durableObject,
         requirements: argv.requirements,
         name: argv.name,
       });

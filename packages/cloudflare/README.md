@@ -36,6 +36,15 @@ limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships
 `--bundled-runtime` keeps everything in the script instead — no asset fetch
 or extraction at cold start.
 
+`--durable-object` routes all Streamlit traffic through a single
+[Durable Object](https://developers.cloudflare.com/durable-objects/) instance.
+Plain Workers fan requests out across isolates, each booting its own copy of
+the runtime and holding its own session state; the Durable Object variant gives
+every request one shared resident runtime, so sessions survive WebSocket
+reconnects and one cold boot serves all visitors. Idle instances are still
+evicted, so the first request after a quiet period pays the cold boot either
+way.
+
 If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
 you keep control of routes, vars, and bindings; otherwise a minimal one is
 generated. Either way you own `main` and `compatibility_flags`. A custom config

@@ -24,7 +24,7 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
     calls = 0
     release = asyncio.Event()
 
-    async def fake_create(env):
+    async def fake_create(env, *, mirror_media=True):
         nonlocal calls
         calls += 1
         await release.wait()
@@ -46,7 +46,7 @@ async def test_concurrent_requests_share_one_initialization(monkeypatch):
 async def test_failed_initialization_is_retried(monkeypatch):
     calls = 0
 
-    async def flaky_create(env):
+    async def flaky_create(env, *, mirror_media=True):
         nonlocal calls
         calls += 1
         if calls == 1:
@@ -120,7 +120,7 @@ async def test_initialization_retains_the_lifespan_state(monkeypatch, tmp_path):
     app_pkg.__file__ = str(tmp_path / "__init__.py")
     monkeypatch.setitem(sys.modules, "_stlite_cloudflare_app", app_pkg)
 
-    await runtime._create_streamlit_asgi_app(None)
+    await runtime._create_streamlit_asgi_app(None, mirror_media=True)
 
     # A strong reference to the exact state must survive garbage collection.
     gc.collect()

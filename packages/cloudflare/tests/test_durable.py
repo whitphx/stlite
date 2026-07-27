@@ -12,13 +12,26 @@ class _FakeRequest:
         self.js_object = _FakeJsRequest()
 
 
-class _FakeStub:
+class _FakeRawStub:
     def __init__(self):
         self.fetched_with = None
 
     async def fetch(self, request):
         self.fetched_with = request
         return "stub-response"
+
+
+class _FakeStub:
+    """Mimics the SDK's fetcher wrapper: the raw JS stub sits on _binding."""
+
+    def __init__(self):
+        self._binding = _FakeRawStub()
+
+    async def fetch(self, request):
+        raise AssertionError(
+            "the router must bypass the SDK wrapper's fetch (it aborts "
+            "proxied WebSockets); use the raw stub instead"
+        )
 
 
 class _FakeNamespace:
@@ -47,7 +60,7 @@ async def test_router_forwards_the_raw_js_request_to_one_named_instance():
     response = await router.fetch(request)
 
     assert response == "stub-response"
-    assert stub.fetched_with is request.js_object
+    assert stub._binding.fetched_with is request.js_object
     assert namespace.requested_names == [durable._INSTANCE_NAME]
 
 
@@ -64,8 +77,8 @@ async def test_router_reports_a_missing_binding_instead_of_crashing():
 async def test_durable_object_delegates_to_the_shared_handler(monkeypatch):
     seen = {}
 
-    async def fake_handle_request(env, request):
-        seen["args"] = (env, request)
+    async def fake_handle_request(env, request, *, mirror_media=True):
+        seen["args"] = (env, request, mirror_media)
         return "handled"
 
     monkeypatch.setattr(durable, "handle_request", fake_handle_request)
@@ -74,4 +87,5 @@ async def test_durable_object_delegates_to_the_shared_handler(monkeypatch):
     request = _FakeRequest()
 
     assert await server.fetch(request) == "handled"
-    assert seen["args"] == (env, request)
+    # The single-instance deployment has no cross-isolate media gap.
+    assert seen["args"] == (env, request, False)

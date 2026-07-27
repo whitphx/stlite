@@ -28,10 +28,13 @@ _LOGGER = logging.getLogger(__name__)
 #
 # handle_request is shared by this plain-Worker entrypoint and the Durable
 # Object variant (durable.py), which differ only in where the resident runtime
-# lives.
-async def handle_request(env, request):
+# lives. The Durable Object passes mirror_media=False: with a single instance
+# serving every request there is no cross-isolate gap for the Cache API mirror
+# to bridge, and skipping it avoids duplicating every media payload into
+# pending cache writes (memory the 128 MB isolate can't spare).
+async def handle_request(env, request, *, mirror_media: bool = True):
     try:
-        app = await get_streamlit_asgi_app(env)
+        app = await get_streamlit_asgi_app(env, mirror_media=mirror_media)
     except Exception:
         _LOGGER.exception("stlite-cloudflare startup failed")
         return _error_500("stlite-cloudflare startup failed.")

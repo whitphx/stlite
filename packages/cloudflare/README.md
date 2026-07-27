@@ -43,7 +43,10 @@ the runtime and holding its own session state; the Durable Object variant gives
 every request one shared resident runtime, so sessions survive WebSocket
 reconnects and one cold boot serves all visitors. Idle instances are still
 evicted, so the first request after a quiet period pays the cold boot either
-way.
+way. The flip side of the shared instance is a shared memory budget: all
+pages' imports and all sessions' media share one 128 MB isolate, so
+memory-heavy apps that fit on plain Workers can exceed the limit here (the
+instance is reset and recovers, but the session that tripped it is lost).
 
 If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
 you keep control of routes, vars, and bindings; otherwise a minimal one is

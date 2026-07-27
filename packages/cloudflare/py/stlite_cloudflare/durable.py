@@ -12,6 +12,18 @@ This does not make the runtime permanent: Cloudflare evicts idle Durable
 Objects just like idle Workers, and WebSocket Hibernation cannot preserve the
 Python runtime's in-memory state, so the first request after an idle period
 still pays the cold boot.
+
+The concentration also cuts the other way on memory: the single instance
+carries the union of every visited page's imports and every session's media
+inside one 128 MB isolate, where the plain-Worker fan-out spreads that load
+across isolates. Apps that run near the ceiling (e.g. the hello sample's
+Animation demo, whose script run accumulates ~100 frames in Streamlit's
+in-memory media storage) can exceed it here while squeaking by on plain
+Workers; the platform resets the instance ("Durable Object's isolate exceeded
+its memory limit"), which recovers on the next request but aborts the session
+that tripped it. Offloading media bytes out of isolate memory (Cache API or
+R2-backed storage instead of MemoryMediaFileStorage) is the natural next step
+if this bites.
 """
 
 import logging
@@ -30,7 +42,7 @@ _INSTANCE_NAME = "streamlit"
 
 class StliteServer(DurableObject):
     async def fetch(self, request):
-        return await handle_request(self.env, request)
+        return await handle_request(self.env, request, mirror_media=False)
 
 
 class Default(WorkerEntrypoint):
@@ -47,6 +59,12 @@ class Default(WorkerEntrypoint):
                 headers={"content-type": "text/plain; charset=utf-8"},
             )
         stub = namespace.getByName(_INSTANCE_NAME)
-        # Forward the raw JS request so the WebSocket upgrade (the 101 response
-        # carrying `webSocket`) passes through the stub untouched.
-        return await stub.fetch(request.js_object)
+        # Forward via the raw JS stub, not the SDK's fetcher wrapper: the
+        # wrapper routes through pyfetch, which puts an AbortController on the
+        # subrequest and aborts it when the Python response wrapper is
+        # garbage-collected — killing the proxied WebSocket mid-session
+        # (observed on the edge as `/_stcore/stream - Canceled` after the
+        # session had already started). The raw fetch hands the upgrade
+        # response (and its `webSocket`) back untouched.
+        raw_stub = getattr(stub, "_binding", stub)
+        return await raw_stub.fetch(request.js_object)

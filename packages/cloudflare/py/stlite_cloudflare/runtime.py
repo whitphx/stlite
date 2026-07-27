@@ -18,7 +18,7 @@ _init_task: asyncio.Task[AsgiApp] | None = None
 _lifespan_state: dict[str, Any] | None = None
 
 
-async def get_streamlit_asgi_app(env: Any) -> AsgiApp:
+async def get_streamlit_asgi_app(env: Any, *, mirror_media: bool = True) -> AsgiApp:
     # Concurrent cold-start requests (index HTML, health check, WebSocket
     # upgrade) must await one shared initialization: the init path suspends at
     # the lifespan startup, and a bare "already initialized?" check would let
@@ -27,7 +27,9 @@ async def get_streamlit_asgi_app(env: Any) -> AsgiApp:
     global _init_task
     task = _init_task
     if task is None:
-        task = asyncio.ensure_future(_create_streamlit_asgi_app(env))
+        task = asyncio.ensure_future(
+            _create_streamlit_asgi_app(env, mirror_media=mirror_media)
+        )
         _init_task = task
     try:
         return await task
@@ -40,7 +42,7 @@ async def get_streamlit_asgi_app(env: Any) -> AsgiApp:
         raise
 
 
-async def _create_streamlit_asgi_app(env: Any) -> AsgiApp:
+async def _create_streamlit_asgi_app(env: Any, *, mirror_media: bool) -> AsgiApp:
     # The heavy runtime ships as a static asset, not script bytes; it must be
     # installed onto sys.path before the stlite_lib/streamlit imports below.
     await ensure_packages(env)
@@ -86,5 +88,6 @@ async def _create_streamlit_asgi_app(env: Any) -> AsgiApp:
     _app, call_asgi_app, _lifespan_state = await start_resident_app(
         str(script_path), home_dir=str(home_dir)
     )
-    install_media_cache_mirror()
+    if mirror_media:
+        install_media_cache_mirror()
     return call_asgi_app

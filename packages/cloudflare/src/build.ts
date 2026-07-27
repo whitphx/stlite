@@ -36,10 +36,13 @@ export interface CloudflareBuildOptions {
    * runtime, instead of fanning out across independently-booting Worker
    * isolates. See stlite_cloudflare/durable.py for the trade-offs. */
   durableObject?: boolean;
-  /** Remove the dataframe stack (pandas, numpy, fastparquet/cramjam/fsspec,
-   * pytz, python-dateutil) and install import-satisfying stubs, roughly
-   * halving the script and its boot time. Apps using dataframes, built-in
-   * charts, or numeric data cannot run in a slim build. */
+  /** Packages to replace with import-satisfying stubs; anything they alone
+   * pulled into the runtime is garbage-collected too. Apps touching a mocked
+   * package fail at that point with an error naming the flag. */
+  mock?: string[];
+  /** Alias for `--mock pandas --mock numpy` — the tested combination for
+   * apps that never use dataframes, charts, or numeric data; roughly halves
+   * the script size and boot time. */
   slim?: boolean;
 }
 
@@ -56,6 +59,7 @@ export async function build({
   name,
   bundledRuntime = false,
   durableObject = false,
+  mock = [],
   slim = false,
 }: CloudflareBuildOptions): Promise<{ outDir: string }> {
   if (projectPath == null) {
@@ -114,7 +118,7 @@ export async function build({
     cacheDir,
     entrypoint,
     bundledRuntime,
-    slim,
+    mockPackages: [...new Set([...mock, ...(slim ? ["pandas", "numpy"] : [])])],
   });
 
   const outRel = path.relative(process.cwd(), outDir) || ".";

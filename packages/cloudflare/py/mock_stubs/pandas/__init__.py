@@ -1,4 +1,4 @@
-"""Import-satisfying stand-in for pandas in --slim builds.
+"""Import-satisfying stand-in for pandas for mocked builds.
 
 Same idea as the numpy stub next door: Streamlit imports pandas eagerly at
 boot, but a --slim app never touches dataframes, so classes exist for
@@ -31,6 +31,7 @@ __version__ = "0.0.0-stlite-slim-stub"
 
 def __getattr__(name):
     raise ModuleNotFoundError(
-        f"pandas.{name} is unavailable: this Worker was built with --slim, "
-        "which removes pandas. Rebuild without --slim to use it."
+        f"pandas.{name} is unavailable: this Worker was built with "
+        "--mock pandas (or its --slim alias). Rebuild without the flag "
+        "to use it."
     )

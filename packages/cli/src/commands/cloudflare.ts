@@ -8,6 +8,7 @@ interface CloudflareArgs {
   // builder's inferred type only carries the kebab-case keys.
   bundledRuntime?: boolean;
   durableObject?: boolean;
+  mock: string[];
   slim: boolean;
   requirements?: string;
   name?: string;
@@ -52,11 +53,18 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Route all traffic through a single Durable Object instance so every session shares one resident runtime",
       })
+      .option("mock", {
+        type: "string",
+        array: true,
+        default: [] as string[],
+        describe:
+          "Replace a package with an import stub and drop what it alone pulled into the runtime (repeatable)",
+      })
       .option("slim", {
         type: "boolean",
         default: false,
         describe:
-          "Remove the dataframe stack (pandas, numpy, and their deps) for apps that don't use it, roughly halving the script size and boot time",
+          "Alias for --mock pandas --mock numpy: the tested combination for apps without dataframes/charts",
       })
       .option("name", {
         type: "string",
@@ -86,6 +94,7 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         entrypoint: argv.entrypoint,
         bundledRuntime: argv.bundledRuntime,
         durableObject: argv.durableObject,
+        mock: argv.mock,
         slim: argv.slim,
         requirements: argv.requirements,
         name: argv.name,

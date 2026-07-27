@@ -36,15 +36,23 @@ limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships
 `--bundled-runtime` keeps everything in the script instead — no asset fetch
 or extraction at cold start.
 
-`--slim` removes the dataframe stack — pandas, numpy, the parquet
-serialization libraries (fastparquet, cramjam, fsspec), pytz, and
-python-dateutil — and installs import-satisfying stubs so Streamlit still
-boots. This roughly halves the script size and the cold-start time, and it is
-what makes `--bundled-runtime` fit under Cloudflare's current 10 MiB gzip
-script limit today. The trade-off: apps using `st.dataframe`, built-in charts,
-or numeric data cannot run in a slim build (they fail with an error naming the
-flag), so it suits text/widget/chat-style apps. The build refuses `--slim` if
-your own `requirements.txt` asks for a removed package.
+`--mock <package>` (repeatable) replaces a vendored package with an
+import-satisfying stub so Streamlit still boots without it, then
+garbage-collects whatever that package alone pulled into the runtime: dists
+whose dependency metadata requires a mocked package are removed as broken, and
+dists nothing can reach anymore are removed as orphans. App code touching a
+mocked package fails at that point with an error naming the flag, and the
+build refuses `--mock` for a package your own `requirements.txt` asks for.
+Hand-tuned stubs ship for pandas and numpy (whose import surface Streamlit
+exercises at boot); other packages get a generated raise-on-use stub, which
+works for anything Streamlit imports lazily.
+
+`--slim` is an alias for `--mock pandas --mock numpy` — the tested
+combination for apps that never use dataframes, charts, or numeric data
+(text/widget/chat-style apps). Mocking pandas cascades to the parquet
+serialization stack and pandas' own dependencies, roughly halving the script
+size and cold-start time; it is what makes `--bundled-runtime` fit under
+Cloudflare's current 10 MiB gzip script limit today.
 
 `--durable-object` routes all Streamlit traffic through a single
 [Durable Object](https://developers.cloudflare.com/durable-objects/) instance.
@@ -94,9 +102,3 @@ Streamlit and its runtime dependency tree are vendored automatically by the
 build, so they do not belong in your project. List only your app's own extra
 dependencies in a `requirements.txt` next to your app (each must have a
 Pyodide-compatible wheel), and rebuild.
-
-## Limitations
-
-HTTP responses are fully buffered in the Worker before being returned, so
-streaming responses are not supported and large media payloads count against
-the Worker isolate's memory limit.

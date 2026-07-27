@@ -20,9 +20,10 @@ export interface VendorOptions {
   /** Keep the whole runtime in the Worker script instead of loading it from
    * static assets at cold start. */
   bundledRuntime?: boolean;
-  /** Remove the dataframe stack (pandas, numpy, and their deps) and install
-   * import-satisfying stubs; see slim-runtime in vendor_python_modules.py. */
-  slim?: boolean;
+  /** Dists to replace with import-satisfying stubs; what they orphan is
+   * garbage-collected by metadata (see mock-packages in
+   * vendor_python_modules.py). */
+  mockPackages?: string[];
 }
 
 /**
@@ -41,7 +42,7 @@ export async function vendor({
   cacheDir,
   entrypoint = "streamlit_app.py",
   bundledRuntime = false,
-  slim = false,
+  mockPackages = [],
 }: VendorOptions): Promise<void> {
   const vendorDir = path.join(projectDir, "python_modules");
   await fs.mkdir(cacheDir, { recursive: true });
@@ -80,13 +81,14 @@ export async function vendor({
     { recursive: true },
   );
 
-  if (slim) {
+  if (mockPackages.length > 0) {
     await runVendorPythonModules(packageDir, projectDir, [
-      "slim-runtime",
+      "mock-packages",
       "--vendor-dir",
       vendorDir,
       "--pyproject",
       path.join(projectDir, "pyproject.toml"),
+      ...mockPackages.flatMap((name) => ["--mock", name]),
     ]);
   }
 

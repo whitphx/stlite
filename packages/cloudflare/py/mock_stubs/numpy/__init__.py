@@ -1,4 +1,4 @@
-"""Import-satisfying stand-in for numpy in --slim builds.
+"""Import-satisfying stand-in for numpy for mocked builds.
 
 Streamlit imports numpy eagerly at boot; this stub lets that import succeed
 without shipping the real package (~2.6 MiB gzip of the Worker script). The
@@ -36,6 +36,7 @@ __version__ = "0.0.0-stlite-slim-stub"
 
 def __getattr__(name):
     raise ModuleNotFoundError(
-        f"numpy.{name} is unavailable: this Worker was built with --slim, "
-        "which removes numpy. Rebuild without --slim to use it."
+        f"numpy.{name} is unavailable: this Worker was built with "
+        "--mock numpy (or its --slim alias). Rebuild without the flag "
+        "to use it."
     )

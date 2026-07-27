@@ -46,6 +46,7 @@ function parseBuildArgs(args) {
       "bundled-runtime": { type: "boolean", default: false },
       "durable-object": { type: "boolean", default: false },
       slim: { type: "boolean", default: false },
+      mock: { type: "string", multiple: true, default: [] },
     },
   });
   if (positionals.length === 0) {
@@ -82,9 +83,11 @@ Options:
                              Cloudflare's planned 64 MB-uncompressed script limit)
   --durable-object           Route all traffic through a single Durable Object
                              instance so every session shares one resident runtime
-  --slim                     Remove the dataframe stack (pandas, numpy, and their
-                             deps) for apps that don't use it, roughly halving the
-                             script size and boot time
+  --mock <package>           Replace a package with an import stub and drop what
+                             it alone pulled into the runtime (repeatable)
+  --slim                     Alias for --mock pandas --mock numpy: the tested
+                             combination for apps without dataframes/charts,
+                             roughly halving the script size and boot time
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

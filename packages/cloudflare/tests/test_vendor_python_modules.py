@@ -7,9 +7,9 @@ import pytest
 from vendor_python_modules import (
     _entry_matches_package,
     install_runtime,
+    mock_packages,
     pack_modules,
     print_wheel_requires,
-    slim_runtime,
     vendor_prebuilt,
 )
 
@@ -308,46 +308,97 @@ def _write_pyproject(tmp_path, dependencies):
     return pyproject
 
 
-def test_slim_runtime_swaps_the_dataframe_stack_for_stubs(tmp_path):
-    vendor_dir = tmp_path / "python_modules"
-    for entry in (
-        "pandas",
-        "numpy",
-        "cramjam",
-        "fastparquet",
-        "fsspec",
-        "pytz",
-        "dateutil",
-        "streamlit",
-        "pandas-2.3.3.dist-info",
-        "python_dateutil-2.9.0.post0.dist-info",
-    ):
-        (vendor_dir / entry).mkdir(parents=True)
-        (vendor_dir / entry / "marker.py").write_text("")
+def _make_dist(vendor_dir, dist, modules, requires=()):
+    dist_info = vendor_dir / f"{dist.replace('-', '_')}-1.0.dist-info"
+    dist_info.mkdir(parents=True, exist_ok=True)
+    metadata = [f"Name: {dist}"] + [f"Requires-Dist: {r}" for r in requires]
+    (dist_info / "METADATA").write_text("\n".join(metadata) + "\n")
+    record = []
+    for module in modules:
+        if module.endswith(".py"):
+            (vendor_dir / module).write_text("")
+            record.append(f"{module},,")
+        else:
+            (vendor_dir / module).mkdir(exist_ok=True)
+            (vendor_dir / module / "__init__.py").write_text("real")
+            record.append(f"{module}/__init__.py,,")
+    record.append(f"{dist_info.name}/METADATA,,")
+    (dist_info / "RECORD").write_text("\n".join(record) + "\n")
 
-    slim_runtime(vendor_dir, _write_pyproject(tmp_path, ["requests>=2"]))
+
+def _make_closure(vendor_dir):
+    _make_dist(vendor_dir, "streamlit", ["streamlit"], ["pandas", "numpy", "altair"])
+    _make_dist(vendor_dir, "pandas", ["pandas"], ["numpy", "pytz", "python-dateutil"])
+    _make_dist(vendor_dir, "numpy", ["numpy"])
+    _make_dist(vendor_dir, "pytz", ["pytz"])
+    _make_dist(vendor_dir, "python-dateutil", ["dateutil"], ["six"])
+    _make_dist(vendor_dir, "six", ["six.py"])
+    # A metadata-rootless dist (like the pyarrow shim's fastparquet): vendored
+    # deliberately, so it must survive unless the mock breaks it.
+    _make_dist(vendor_dir, "fastparquet", ["fastparquet"], ["pandas", "cramjam"])
+    _make_dist(vendor_dir, "cramjam", ["cramjam"])
+    _make_dist(vendor_dir, "altair", ["altair"])
+    _make_dist(vendor_dir, "bokeh", ["bokeh"])
+
+
+def test_mock_packages_stubs_targets_and_collects_broken_and_orphaned(tmp_path):
+    vendor_dir = tmp_path / "python_modules"
+    _make_closure(vendor_dir)
+
+    mock_packages(
+        vendor_dir, _write_pyproject(tmp_path, ["requests>=2"]), ["pandas", "numpy"]
+    )
 
     remaining = {entry.name for entry in vendor_dir.iterdir()}
-    assert "streamlit" in remaining
+    # Broken by the mock (fastparquet requires pandas) or orphaned once
+    # pandas' subtree lost its last in-edge.
     assert not remaining & {
-        "cramjam",
         "fastparquet",
-        "fsspec",
+        "cramjam",
         "pytz",
         "dateutil",
-        "pandas-2.3.3.dist-info",
-        "python_dateutil-2.9.0.post0.dist-info",
+        "six.py",
+        "fastparquet-1.0.dist-info",
+        "pandas-1.0.dist-info",
     }
-    # pandas/numpy are replaced by the import-satisfying stubs.
-    assert "slim" in (vendor_dir / "pandas" / "__init__.py").read_text()
-    assert "slim" in (vendor_dir / "numpy" / "__init__.py").read_text()
-    assert not (vendor_dir / "pandas" / "marker.py").exists()
+    # Kept: protected root, its surviving dep, and an unrelated rootless dist.
+    assert {"streamlit", "altair", "bokeh"} <= remaining
+    # The mocked dists are replaced by the hand-tuned stubs.
+    assert "stand-in" in (vendor_dir / "pandas" / "__init__.py").read_text()
+    assert "stand-in" in (vendor_dir / "numpy" / "__init__.py").read_text()
 
 
-def test_slim_runtime_rejects_requirements_that_need_removed_packages(tmp_path):
+def test_mock_packages_keeps_everything_reachable_without_mocks_breaking_it(
+    tmp_path,
+):
     vendor_dir = tmp_path / "python_modules"
-    vendor_dir.mkdir()
+    _make_closure(vendor_dir)
+
+    mock_packages(vendor_dir, _write_pyproject(tmp_path, []), ["altair"])
+
+    remaining = {entry.name for entry in vendor_dir.iterdir()}
+    # Only altair changes; pandas and the fastparquet chain are untouched.
+    assert {"pandas", "numpy", "fastparquet", "cramjam", "pytz"} <= remaining
+    generated = (vendor_dir / "altair" / "__init__.py").read_text()
+    assert "--mock altair" in generated
+    assert "real" not in generated
+
+
+def test_mock_packages_rejects_requirements_that_need_mocked_packages(tmp_path):
+    vendor_dir = tmp_path / "python_modules"
+    _make_closure(vendor_dir)
     pyproject = _write_pyproject(tmp_path, ["Pandas==2.3.3", "requests"])
 
     with pytest.raises(SystemExit, match="Pandas"):
-        slim_runtime(vendor_dir, pyproject)
+        mock_packages(vendor_dir, pyproject, ["pandas"])
+
+
+def test_mock_packages_rejects_the_runtime_and_unknown_names(tmp_path):
+    vendor_dir = tmp_path / "python_modules"
+    _make_closure(vendor_dir)
+    pyproject = _write_pyproject(tmp_path, [])
+
+    with pytest.raises(SystemExit, match="runtime itself"):
+        mock_packages(vendor_dir, pyproject, ["streamlit"])
+    with pytest.raises(SystemExit, match="not in the vendored runtime"):
+        mock_packages(vendor_dir, pyproject, ["left-pad"])

@@ -304,22 +304,30 @@ def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
             )
 
 
-# --slim removes the dataframe stack: Streamlit hard-requires pandas/numpy at
-# import time but apps that never touch dataframes, charts, or numeric data
-# don't need them at runtime, and together with the pyarrow-shim's parquet
-# stack (fastparquet/cramjam/fsspec) and pandas' own deps they dominate the
-# script size (~9 MiB gzip). Import-satisfying stubs from slim_stubs/ take
-# pandas' and numpy's place so Streamlit still boots.
-_SLIM_REMOVED_DISTS: dict[str, tuple[str, ...]] = {
-    "pandas": ("pandas",),
-    "numpy": ("numpy",),
-    "fastparquet": ("fastparquet",),
-    "cramjam": ("cramjam",),
-    "fsspec": ("fsspec",),
-    "pytz": ("pytz",),
-    "python-dateutil": ("dateutil",),
-}
-_SLIM_STUBS_DIR = Path(__file__).resolve().parent / "slim_stubs"
+# --mock removes user-named packages and installs import-satisfying stubs so
+# Streamlit still boots without them (e.g. `--mock pandas --mock numpy`, the
+# `--slim` alias, for apps that never touch dataframes). What the mock breaks
+# is then garbage-collected from the vendored closure by dependency metadata:
+# packages whose requirements include a removed package cannot function and go
+# too (fastparquet needs pandas), and packages no surviving root can reach are
+# orphans (pytz/dateutil once pandas is gone). Hand-tuned stubs live in
+# mock_stubs/ for the dists whose import surface Streamlit exercises; any
+# other mocked dist gets a generated raise-on-use stub.
+_MOCK_STUBS_DIR = Path(__file__).resolve().parent / "mock_stubs"
+# The runtime itself can never be mocked, and its dists (plus the app's own
+# requirements) anchor the reachability pass.
+_RUNTIME_ROOT_DISTS = {"streamlit", "stlite-lib", "workers-runtime-sdk"}
+
+_GENERATED_STUB_TEMPLATE = '''\
+"""Import-satisfying stand-in installed by --mock {dist}."""
+
+
+def __getattr__(name):
+    raise ModuleNotFoundError(
+        f"{module}.{{name}} is unavailable: this Worker was built with "
+        "--mock {dist}, which removed it. Rebuild without the flag to use it."
+    )
+'''
 
 
 def _requirement_name(requirement: str) -> str | None:
@@ -327,8 +335,54 @@ def _requirement_name(requirement: str) -> str | None:
     return match.group(1) if match else None
 
 
-def slim_runtime(vendor_dir: Path, pyproject_path: Path) -> None:
+def _dist_requires(dist_info: Path) -> set[str]:
+    metadata = email.parser.Parser().parsestr(
+        (dist_info / "METADATA").read_text(encoding="utf-8")
+    )
+    requires = set()
+    for requirement in metadata.get_all("Requires-Dist") or []:
+        if re.search(r"\bextra\s*==", requirement):
+            continue
+        # Non-extra environment markers (python_version etc.) are ignored:
+        # treating the dep as always-required errs toward keeping packages in
+        # the reachability pass.
+        if (name := _requirement_name(requirement)) is not None:
+            requires.add(_canonicalize(name))
+    return requires
+
+
+def _dist_name(dist_info: Path) -> str:
+    metadata = email.parser.Parser().parsestr(
+        (dist_info / "METADATA").read_text(encoding="utf-8")
+    )
+    return _canonicalize(metadata.get("Name") or dist_info.name.split("-")[0])
+
+
+def _dist_top_level(dist_info: Path) -> set[str]:
+    """Top-level python_modules entries owned by a dist, from its RECORD."""
+    top_level = set()
+    for line in (dist_info / "RECORD").read_text(encoding="utf-8").splitlines():
+        record_path = line.split(",")[0]
+        first = record_path.split("/")[0]
+        if (
+            not first
+            or first.startswith("..")
+            or first.endswith((".dist-info", ".egg-info", ".data"))
+        ):
+            continue
+        top_level.add(first)
+    return top_level
+
+
+def mock_packages(
+    vendor_dir: Path, pyproject_path: Path, mock_names: list[str]
+) -> None:
     import tomllib
+
+    mocked = {_canonicalize(name) for name in mock_names}
+    runtime_hits = sorted(mocked & _RUNTIME_ROOT_DISTS)
+    if runtime_hits:
+        sys.exit(f"--mock cannot remove the runtime itself: {', '.join(runtime_hits)}")
 
     with pyproject_path.open("rb") as f:
         dependencies = tomllib.load(f).get("project", {}).get("dependencies", [])
@@ -337,24 +391,105 @@ def slim_runtime(vendor_dir: Path, pyproject_path: Path) -> None:
             name
             for dep in dependencies
             if (name := _requirement_name(dep)) is not None
-            and _canonicalize(name) in _SLIM_REMOVED_DISTS
+            and _canonicalize(name) in mocked
         }
     )
     if conflicts:
         sys.exit(
-            f"--slim removes {', '.join(conflicts)}, but the app's requirements "
-            "ask for it. Drop the requirement or build without --slim."
+            f"--mock removes {', '.join(conflicts)}, but the app's requirements "
+            "ask for it. Drop the requirement or the --mock flag."
         )
 
-    for dist_name, module_names in _SLIM_REMOVED_DISTS.items():
-        _remove_entries(
-            vendor_dir,
-            lambda entry: (
-                entry in module_names or _entry_matches_package(entry, dist_name)
-            ),
+    dists: dict[str, dict] = {}
+    for dist_info in sorted(vendor_dir.glob("*.dist-info")):
+        name = _dist_name(dist_info)
+        dists[name] = {
+            "dist_info": dist_info,
+            "requires": _dist_requires(dist_info),
+            "top_level": _dist_top_level(dist_info),
+        }
+
+    unknown = sorted(mocked - set(dists))
+    if unknown:
+        sys.exit(
+            f"--mock names packages not in the vendored runtime: {', '.join(unknown)}"
         )
-    for stub in _SLIM_STUBS_DIR.iterdir():
-        shutil.copytree(stub, vendor_dir / stub.name)
+
+    requirement_names = {
+        _canonicalize(name)
+        for dep in dependencies
+        if (name := _requirement_name(dep)) is not None
+    }
+    protected = (_RUNTIME_ROOT_DISTS | requirement_names) & set(dists)
+
+    # Broken-dependency cascade: a dist requiring a removed dist cannot
+    # function (the mock is the user's assertion that nothing exercises that
+    # feature), so it goes too — protected roots excepted, since the stubs
+    # exist precisely to keep them booting.
+    removed = set(mocked)
+    changed = True
+    while changed:
+        changed = False
+        for name, info in dists.items():
+            if name in removed or name in protected:
+                continue
+            if info["requires"] & removed:
+                removed.add(name)
+                changed = True
+
+    # Orphan pass: anything no surviving root can reach. Dists nothing
+    # required in the original graph were vendored deliberately (e.g. the
+    # pyarrow shim's fastparquet has no metadata in-edge), so they count as
+    # roots when they survived the cascade.
+    required_by_someone = set()
+    for info in dists.values():
+        required_by_someone |= info["requires"] & set(dists)
+    sources = set(dists) - required_by_someone
+    reachable = set()
+    queue = list((protected | sources) - removed)
+    while queue:
+        name = queue.pop()
+        if name in reachable:
+            continue
+        reachable.add(name)
+        queue.extend(dists[name]["requires"] & set(dists) - removed - reachable)
+    removed |= set(dists) - reachable
+
+    # A top-level entry is deletable only when every dist claiming it is
+    # removed (namespace packages can be shared across dists).
+    surviving_top_level = set()
+    for name in set(dists) - removed:
+        surviving_top_level |= dists[name]["top_level"]
+    for name in sorted(removed):
+        info = dists[name]
+        for entry_name in sorted(info["top_level"] - surviving_top_level):
+            entry = vendor_dir / entry_name
+            if entry.is_dir() and not entry.is_symlink():
+                shutil.rmtree(entry)
+            elif entry.exists():
+                entry.unlink()
+        shutil.rmtree(info["dist_info"])
+
+    for name in sorted(mocked):
+        stub_source = _MOCK_STUBS_DIR / name
+        if stub_source.is_dir():
+            shutil.copytree(stub_source, vendor_dir / name)
+            continue
+        for module_name in sorted(dists[name]["top_level"]):
+            stub_text = _GENERATED_STUB_TEMPLATE.format(
+                dist=name, module=module_name.removesuffix(".py")
+            )
+            if module_name.endswith(".py"):
+                (vendor_dir / module_name).write_text(stub_text)
+            else:
+                stub_dir = vendor_dir / module_name
+                stub_dir.mkdir()
+                (stub_dir / "__init__.py").write_text(stub_text)
+
+    cascaded = sorted(removed - mocked)
+    print(f"Mocked (stubbed): {sorted(mocked)}")
+    if cascaded:
+        print(f"Removed broken/orphaned dependencies: {cascaded}")
 
 
 def print_wheel_requires(wheel_path: Path) -> None:
@@ -426,12 +561,13 @@ def main(argv: list[str] | None = None) -> None:
     pack.add_argument("--vendor-dir", type=Path, required=True)
     pack.add_argument("--dest-dir", type=Path, required=True)
 
-    slim = subparsers.add_parser(
-        "slim-runtime",
-        help="Remove the dataframe stack and install import-satisfying stubs.",
+    mock = subparsers.add_parser(
+        "mock-packages",
+        help="Replace named packages with import stubs and GC what they orphan.",
     )
-    slim.add_argument("--vendor-dir", type=Path, required=True)
-    slim.add_argument("--pyproject", type=Path, required=True)
+    mock.add_argument("--vendor-dir", type=Path, required=True)
+    mock.add_argument("--pyproject", type=Path, required=True)
+    mock.add_argument("--mock", action="append", required=True, metavar="NAME")
 
     args = parser.parse_args(argv)
     if args.command == "vendor-prebuilt":
@@ -440,8 +576,8 @@ def main(argv: list[str] | None = None) -> None:
         install_runtime(args.vendor_dir, args.wheels)
     elif args.command == "pack-modules":
         pack_modules(args.vendor_dir, args.dest_dir)
-    elif args.command == "slim-runtime":
-        slim_runtime(args.vendor_dir, args.pyproject)
+    elif args.command == "mock-packages":
+        mock_packages(args.vendor_dir, args.pyproject, args.mock)
     else:
         print_wheel_requires(args.wheel)
 

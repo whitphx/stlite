@@ -27659,6 +27659,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"stlite-cloudflare-sample-minimal@workspace:packages/cloudflare/samples/minimal":
+  version: 0.0.0-use.local
+  resolution: "stlite-cloudflare-sample-minimal@workspace:packages/cloudflare/samples/minimal"
+  dependencies:
+    "@stlite/cloudflare": "workspace:^"
+    wrangler: "npm:^4.105.0"
+  languageName: unknown
+  linkType: soft
+
 "stlite-desktop-sample-basic@workspace:packages/desktop/samples/basic":
   version: 0.0.0-use.local
   resolution: "stlite-desktop-sample-basic@workspace:packages/desktop/samples/basic"

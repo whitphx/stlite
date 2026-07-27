@@ -304,6 +304,59 @@ def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
             )
 
 
+# --slim removes the dataframe stack: Streamlit hard-requires pandas/numpy at
+# import time but apps that never touch dataframes, charts, or numeric data
+# don't need them at runtime, and together with the pyarrow-shim's parquet
+# stack (fastparquet/cramjam/fsspec) and pandas' own deps they dominate the
+# script size (~9 MiB gzip). Import-satisfying stubs from slim_stubs/ take
+# pandas' and numpy's place so Streamlit still boots.
+_SLIM_REMOVED_DISTS: dict[str, tuple[str, ...]] = {
+    "pandas": ("pandas",),
+    "numpy": ("numpy",),
+    "fastparquet": ("fastparquet",),
+    "cramjam": ("cramjam",),
+    "fsspec": ("fsspec",),
+    "pytz": ("pytz",),
+    "python-dateutil": ("dateutil",),
+}
+_SLIM_STUBS_DIR = Path(__file__).resolve().parent / "slim_stubs"
+
+
+def _requirement_name(requirement: str) -> str | None:
+    match = re.match(r"\s*([A-Za-z0-9][A-Za-z0-9._-]*)", requirement)
+    return match.group(1) if match else None
+
+
+def slim_runtime(vendor_dir: Path, pyproject_path: Path) -> None:
+    import tomllib
+
+    with pyproject_path.open("rb") as f:
+        dependencies = tomllib.load(f).get("project", {}).get("dependencies", [])
+    conflicts = sorted(
+        {
+            name
+            for dep in dependencies
+            if (name := _requirement_name(dep)) is not None
+            and _canonicalize(name) in _SLIM_REMOVED_DISTS
+        }
+    )
+    if conflicts:
+        sys.exit(
+            f"--slim removes {', '.join(conflicts)}, but the app's requirements "
+            "ask for it. Drop the requirement or build without --slim."
+        )
+
+    for dist_name, module_names in _SLIM_REMOVED_DISTS.items():
+        _remove_entries(
+            vendor_dir,
+            lambda entry: (
+                entry in module_names or _entry_matches_package(entry, dist_name)
+            ),
+        )
+    for stub in _SLIM_STUBS_DIR.iterdir():
+        shutil.copytree(stub, vendor_dir / stub.name)
+
+
 def print_wheel_requires(wheel_path: Path) -> None:
     """Print the wheel's core Requires-Dist entries, one per line.
 
@@ -373,6 +426,13 @@ def main(argv: list[str] | None = None) -> None:
     pack.add_argument("--vendor-dir", type=Path, required=True)
     pack.add_argument("--dest-dir", type=Path, required=True)
 
+    slim = subparsers.add_parser(
+        "slim-runtime",
+        help="Remove the dataframe stack and install import-satisfying stubs.",
+    )
+    slim.add_argument("--vendor-dir", type=Path, required=True)
+    slim.add_argument("--pyproject", type=Path, required=True)
+
     args = parser.parse_args(argv)
     if args.command == "vendor-prebuilt":
         vendor_prebuilt(args.vendor_dir, args.snapshot, args.wheel)
@@ -380,6 +440,8 @@ def main(argv: list[str] | None = None) -> None:
         install_runtime(args.vendor_dir, args.wheels)
     elif args.command == "pack-modules":
         pack_modules(args.vendor_dir, args.dest_dir)
+    elif args.command == "slim-runtime":
+        slim_runtime(args.vendor_dir, args.pyproject)
     else:
         print_wheel_requires(args.wheel)
 

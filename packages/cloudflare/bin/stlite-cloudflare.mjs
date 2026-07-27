@@ -45,6 +45,7 @@ function parseBuildArgs(args) {
       name: { type: "string" },
       "bundled-runtime": { type: "boolean", default: false },
       "durable-object": { type: "boolean", default: false },
+      slim: { type: "boolean", default: false },
     },
   });
   if (positionals.length === 0) {
@@ -81,6 +82,9 @@ Options:
                              Cloudflare's planned 64 MB-uncompressed script limit)
   --durable-object           Route all traffic through a single Durable Object
                              instance so every session shares one resident runtime
+  --slim                     Remove the dataframe stack (pandas, numpy, and their
+                             deps) for apps that don't use it, roughly halving the
+                             script size and boot time
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

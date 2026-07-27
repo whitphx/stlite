@@ -20,6 +20,9 @@ export interface VendorOptions {
   /** Keep the whole runtime in the Worker script instead of loading it from
    * static assets at cold start. */
   bundledRuntime?: boolean;
+  /** Remove the dataframe stack (pandas, numpy, and their deps) and install
+   * import-satisfying stubs; see slim-runtime in vendor_python_modules.py. */
+  slim?: boolean;
 }
 
 /**
@@ -38,6 +41,7 @@ export async function vendor({
   cacheDir,
   entrypoint = "streamlit_app.py",
   bundledRuntime = false,
+  slim = false,
 }: VendorOptions): Promise<void> {
   const vendorDir = path.join(projectDir, "python_modules");
   await fs.mkdir(cacheDir, { recursive: true });
@@ -75,6 +79,16 @@ export async function vendor({
     path.join(vendorDir, "stlite_cloudflare"),
     { recursive: true },
   );
+
+  if (slim) {
+    await runVendorPythonModules(packageDir, projectDir, [
+      "slim-runtime",
+      "--vendor-dir",
+      vendorDir,
+      "--pyproject",
+      path.join(projectDir, "pyproject.toml"),
+    ]);
+  }
 
   // The frontend is served by Cloudflare's static-assets layer (wrangler.jsonc
   // `assets`), not the Python Worker: static files don't count against the

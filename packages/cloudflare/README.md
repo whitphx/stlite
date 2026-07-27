@@ -36,6 +36,16 @@ limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships
 `--bundled-runtime` keeps everything in the script instead — no asset fetch
 or extraction at cold start.
 
+`--slim` removes the dataframe stack — pandas, numpy, the parquet
+serialization libraries (fastparquet, cramjam, fsspec), pytz, and
+python-dateutil — and installs import-satisfying stubs so Streamlit still
+boots. This roughly halves the script size and the cold-start time, and it is
+what makes `--bundled-runtime` fit under Cloudflare's current 10 MiB gzip
+script limit today. The trade-off: apps using `st.dataframe`, built-in charts,
+or numeric data cannot run in a slim build (they fail with an error naming the
+flag), so it suits text/widget/chat-style apps. The build refuses `--slim` if
+your own `requirements.txt` asks for a removed package.
+
 `--durable-object` routes all Streamlit traffic through a single
 [Durable Object](https://developers.cloudflare.com/durable-objects/) instance.
 Plain Workers fan requests out across isolates, each booting its own copy of

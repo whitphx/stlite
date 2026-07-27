@@ -9,6 +9,7 @@ from vendor_python_modules import (
     install_runtime,
     pack_modules,
     print_wheel_requires,
+    slim_runtime,
     vendor_prebuilt,
 )
 
@@ -298,3 +299,55 @@ def test_vendor_prebuilt_fails_on_missing_wheel(tmp_path):
 
     with pytest.raises(SystemExit, match="Missing Pyodide wheel"):
         vendor_prebuilt(vendor, snapshot, [("numpy", tmp_path / "nope.whl")])
+
+
+def _write_pyproject(tmp_path, dependencies):
+    pyproject = tmp_path / "pyproject.toml"
+    deps = ", ".join(f'"{d}"' for d in dependencies)
+    pyproject.write_text(f'[project]\nname = "x"\ndependencies = [{deps}]\n')
+    return pyproject
+
+
+def test_slim_runtime_swaps_the_dataframe_stack_for_stubs(tmp_path):
+    vendor_dir = tmp_path / "python_modules"
+    for entry in (
+        "pandas",
+        "numpy",
+        "cramjam",
+        "fastparquet",
+        "fsspec",
+        "pytz",
+        "dateutil",
+        "streamlit",
+        "pandas-2.3.3.dist-info",
+        "python_dateutil-2.9.0.post0.dist-info",
+    ):
+        (vendor_dir / entry).mkdir(parents=True)
+        (vendor_dir / entry / "marker.py").write_text("")
+
+    slim_runtime(vendor_dir, _write_pyproject(tmp_path, ["requests>=2"]))
+
+    remaining = {entry.name for entry in vendor_dir.iterdir()}
+    assert "streamlit" in remaining
+    assert not remaining & {
+        "cramjam",
+        "fastparquet",
+        "fsspec",
+        "pytz",
+        "dateutil",
+        "pandas-2.3.3.dist-info",
+        "python_dateutil-2.9.0.post0.dist-info",
+    }
+    # pandas/numpy are replaced by the import-satisfying stubs.
+    assert "slim" in (vendor_dir / "pandas" / "__init__.py").read_text()
+    assert "slim" in (vendor_dir / "numpy" / "__init__.py").read_text()
+    assert not (vendor_dir / "pandas" / "marker.py").exists()
+
+
+def test_slim_runtime_rejects_requirements_that_need_removed_packages(tmp_path):
+    vendor_dir = tmp_path / "python_modules"
+    vendor_dir.mkdir()
+    pyproject = _write_pyproject(tmp_path, ["Pandas==2.3.3", "requests"])
+
+    with pytest.raises(SystemExit, match="Pandas"):
+        slim_runtime(vendor_dir, pyproject)

@@ -36,6 +36,11 @@ export interface CloudflareBuildOptions {
    * runtime, instead of fanning out across independently-booting Worker
    * isolates. See stlite_cloudflare/durable.py for the trade-offs. */
   durableObject?: boolean;
+  /** Remove the dataframe stack (pandas, numpy, fastparquet/cramjam/fsspec,
+   * pytz, python-dateutil) and install import-satisfying stubs, roughly
+   * halving the script and its boot time. Apps using dataframes, built-in
+   * charts, or numeric data cannot run in a slim build. */
+  slim?: boolean;
 }
 
 /**
@@ -51,6 +56,7 @@ export async function build({
   name,
   bundledRuntime = false,
   durableObject = false,
+  slim = false,
 }: CloudflareBuildOptions): Promise<{ outDir: string }> {
   if (projectPath == null) {
     throw new Error("Missing <path> to the Streamlit project directory");
@@ -108,6 +114,7 @@ export async function build({
     cacheDir,
     entrypoint,
     bundledRuntime,
+    slim,
   });
 
   const outRel = path.relative(process.cwd(), outDir) || ".";

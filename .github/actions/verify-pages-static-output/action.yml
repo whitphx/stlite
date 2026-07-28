@@ -1,0 +1,23 @@
+name: Verify static Pages output
+description: rejects executable Cloudflare Pages output
+inputs:
+  directory:
+    required: true
+    description: Pages output directory
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      env:
+        DIRECTORY: ${{ inputs.directory }}
+      run: |
+        if [ ! -d "$DIRECTORY" ]; then
+          echo "Error: Pages output directory not found: $DIRECTORY" >&2
+          exit 1
+        fi
+
+        if [ -e "$DIRECTORY/_worker.js" ] || [ -L "$DIRECTORY/_worker.js" ]; then
+          echo "Error: Untrusted Pages output must not contain _worker.js." >&2
+          exit 1
+        fi

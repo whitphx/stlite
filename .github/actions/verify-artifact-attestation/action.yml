@@ -19,19 +19,22 @@ runs:
   steps:
     - shell: bash
       run: |
-        VERIFICATION_RESULT=$(gh attestation verify ${{ inputs.filepath }} \
-          --repo ${{ github.repository }} \
+        VERIFICATION_RESULT=$(gh attestation verify "$FILEPATH" \
+          --repo "$GITHUB_REPOSITORY" \
           --predicate-type https://slsa.dev/provenance/v1 \
           --format json)
         jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
-          grep -Fx '${{ inputs.expected-workflow-file }}' || {
+          grep -Fx -- "$EXPECTED_WORKFLOW_FILE" || {
             echo "Error: Attestation does not match expected workflow definition path" >&2
             exit 1
           }
         jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
-          grep -Fx '${{ inputs.expected-ref }}' || {
+          grep -Fx -- "$EXPECTED_REF" || {
             echo "Error: Attestation does not match expected workflow trigger ref" >&2
             exit 1
           }
       env:
+        FILEPATH: ${{ inputs.filepath }}
+        EXPECTED_WORKFLOW_FILE: ${{ inputs.expected-workflow-file }}
+        EXPECTED_REF: ${{ inputs.expected-ref }}
         GH_TOKEN: ${{ inputs.GH_TOKEN }}

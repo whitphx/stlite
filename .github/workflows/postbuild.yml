@@ -23,6 +23,8 @@ jobs:
   get-build-info:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     outputs:
       branch: ${{ steps.build-info.outputs.branch }}
       trigger-sha: ${{ steps.build-info.outputs.trigger-sha }}
@@ -37,6 +39,11 @@ jobs:
           script: |
             const run = context.payload.workflow_run;
             const repository = context.payload.repository;
+
+            if (!/^[0-9a-f]{40}$/.test(run.head_sha)) {
+              core.setFailed(`Malformed workflow run head SHA: ${run.head_sha}`);
+              return;
+            }
 
             if (run.event === "push") {
               if (run.head_branch !== repository.default_branch) {
@@ -57,21 +64,49 @@ jobs:
               return;
             }
 
-            const pullRequests = (run.pull_requests ?? []).filter(
-              (pullRequest) =>
-                pullRequest.base.repo.id === repository.id &&
-                pullRequest.base.ref === repository.default_branch &&
-                pullRequest.head.sha === run.head_sha,
-            );
-            if (pullRequests.length !== 1) {
-              core.setFailed("Could not identify exactly one triggering pull request.");
+            const isTriggeringPullRequest = (pullRequest) =>
+              pullRequest.base.repo.id === repository.id &&
+              pullRequest.base.ref === repository.default_branch &&
+              pullRequest.head.sha === run.head_sha;
+
+            let candidates = (run.pull_requests ?? []).filter(isTriggeringPullRequest);
+            if (candidates.length === 0) {
+              // `workflow_run.pull_requests` is always empty when the run came from a fork,
+              // so ask the API which pull requests the commit belongs to instead.
+              // https://github.com/actions/runner/issues/3444
+              const associated = await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: run.head_sha,
+                },
+              );
+              candidates = associated.filter(
+                (pullRequest) =>
+                  pullRequest.state === "open" && isTriggeringPullRequest(pullRequest),
+              );
+            }
+
+            if (candidates.length > 1) {
+              core.setFailed(
+                `Ambiguous triggering pull request: ${candidates.map((pullRequest) => pullRequest.number).join(", ")}`,
+              );
+              return;
+            }
+            if (candidates.length === 0) {
+              // The run has been superseded by a newer head; leave every output empty so
+              // the downstream jobs skip instead of deploying to an unidentified target.
+              core.notice(
+                `No open pull request has ${run.head_sha} as its head; skipping post-build deployments.`,
+              );
               return;
             }
 
-            const pullRequest = pullRequests[0];
+            const pullRequest = candidates[0];
             core.setOutput("branch", `pr-${pullRequest.number}`);
             core.setOutput("trigger-sha", run.head_sha);
-            core.setOutput("head-sha", pullRequest.head.sha);
+            core.setOutput("head-sha", run.head_sha);
             core.setOutput("pr-number", pullRequest.number.toString());
             core.setOutput("attestation-ref", `refs/pull/${pullRequest.number}/merge`);
 
@@ -89,16 +124,10 @@ jobs:
           TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const sha = process.env.HEAD_SHA;
-            if (!/^[0-9a-f]{40}$/.test(sha)) {
-              core.setFailed("Invalid pull request head SHA.");
-              return;
-            }
-
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              sha,
+              sha: process.env.HEAD_SHA,
               state: "pending",
               context: "post-build",
               description: "Post-build deployments are running",
@@ -432,6 +461,7 @@ jobs:
 
   e2e-browser-browserstack:
     needs: get-build-info
+    if: ${{ needs.get-build-info.outputs.branch != '' }}
 
     permissions:
       contents: read
@@ -515,7 +545,7 @@ jobs:
 
   deploy-browser-preview:
     needs: [get-build-info, e2e-browser-browserstack]
-    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
+    if: ${{ needs.get-build-info.outputs.branch != '' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -659,7 +689,7 @@ jobs:
 
   deploy-react-preview:
     needs: [get-build-info]
-    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
+    if: ${{ needs.get-build-info.outputs.branch != '' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -770,7 +800,7 @@ jobs:
 
   deploy-docs-preview:
     needs: [get-build-info]
-    if: ${{ needs.get-build-info.result == 'success' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
+    if: ${{ needs.get-build-info.outputs.branch != '' && ( needs.get-build-info.outputs.pr-number != '' || success() ) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -1009,7 +1039,7 @@ jobs:
         deploy-sharing,
         deploy-sharing-editor,
       ]
-    if: ${{ always() && needs.get-build-info.outputs.pr-number != '' }}
+    if: ${{ !cancelled() && needs.get-build-info.outputs.pr-number != '' }}
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -1029,33 +1059,31 @@ jobs:
           TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const sha = process.env.HEAD_SHA;
-            if (!/^[0-9a-f]{40}$/.test(sha)) {
-              core.setFailed("Invalid pull request head SHA.");
-              return;
-            }
-
-            const results = [
-              process.env.PENDING_STATUS_RESULT,
-              process.env.VISUALIZER_RESULT,
-              process.env.E2E_RESULT,
-              process.env.BROWSER_RESULT,
-              process.env.REACT_RESULT,
-              process.env.DOCS_RESULT,
-              process.env.SHARING_RESULT,
-              process.env.SHARING_EDITOR_RESULT,
-            ];
-            const succeeded = results.every((result) => result === "success");
+            const results = {
+              "status-pending": process.env.PENDING_STATUS_RESULT,
+              "visualizer-reports": process.env.VISUALIZER_RESULT,
+              "e2e-browserstack": process.env.E2E_RESULT,
+              "browser-preview": process.env.BROWSER_RESULT,
+              "react-preview": process.env.REACT_RESULT,
+              "docs-preview": process.env.DOCS_RESULT,
+              sharing: process.env.SHARING_RESULT,
+              "sharing-editor": process.env.SHARING_EDITOR_RESULT,
+            };
+            // A gated-off job reports `skipped`, which is not a deployment failure.
+            const failed = Object.entries(results)
+              .filter(([, result]) => result !== "success" && result !== "skipped")
+              .map(([name]) => name);
 
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              sha,
-              state: succeeded ? "success" : "failure",
+              sha: process.env.HEAD_SHA,
+              state: failed.length === 0 ? "success" : "failure",
               context: "post-build",
-              description: succeeded
-                ? "Post-build deployments succeeded"
-                : "One or more post-build jobs failed",
+              description:
+                failed.length === 0
+                  ? "Post-build deployments succeeded"
+                  : `Failed: ${failed.join(", ")}`.slice(0, 140),
               target_url: process.env.TARGET_URL,
             });
 

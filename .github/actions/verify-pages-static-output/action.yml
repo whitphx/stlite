@@ -17,7 +17,11 @@ runs:
           exit 1
         fi
 
-        if [ -e "$DIRECTORY/_worker.js" ] || [ -L "$DIRECTORY/_worker.js" ]; then
-          echo "Error: Untrusted Pages output must not contain _worker.js." >&2
-          exit 1
-        fi
+        # Both are entry points for Pages Functions, which would run with the
+        # project's bindings. https://developers.cloudflare.com/pages/functions/
+        for entrypoint in _worker.js functions; do
+          if [ -e "$DIRECTORY/$entrypoint" ] || [ -L "$DIRECTORY/$entrypoint" ]; then
+            echo "Error: Untrusted Pages output must not contain $entrypoint." >&2
+            exit 1
+          fi
+        done

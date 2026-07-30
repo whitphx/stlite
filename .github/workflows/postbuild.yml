@@ -185,10 +185,11 @@ jobs:
           cp -R "$RUNNER_TEMP/sample/python_modules" "$RUNNER_TEMP/deploy/python_modules"
           cp -R "$RUNNER_TEMP/sample/assets" "$RUNNER_TEMP/deploy/assets"
           # Trusted deployment configuration, generated from this workflow.
-          # Mirrors what `stlite-cloudflare build --plain-worker` emits for
-          # the hello sample (canonical source:
-          # packages/cloudflare/src/wrangler-config.ts) — update both
-          # together.
+          # Mirrors the deploy-relevant fields of what `stlite-cloudflare
+          # build --plain-worker` emits for the hello sample (canonical
+          # source: packages/cloudflare/src/wrangler-config.ts; the $schema
+          # pointer is omitted here since node_modules is not deployed) —
+          # update both together.
           cat > "$RUNNER_TEMP/deploy/wrangler.jsonc" <<'EOF'
           {
             "name": "stlite-cloudflare",

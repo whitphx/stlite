@@ -111,12 +111,33 @@ jobs:
     # Deploy the Cloudflare Worker sample that build-cloudflare packaged. This
     # runs here (not in the build workflow) because it needs the CLOUDFLARE_*
     # secrets, which only this trusted default-branch context has.
+    #
+    # Security model: the downloaded artifact is PR-controlled, so it is
+    # treated strictly as deployment DATA (files uploaded to Cloudflare, where
+    # they run inside the Worker sandbox) and never as executable local
+    # configuration. Concretely:
+    #   - Only an allowlist of data directories is copied out of the artifact
+    #     into a fresh deploy dir; the artifact's wrangler.jsonc, package.json,
+    #     and anything else that could drive local command execution (wrangler
+    #     `build.command`, npm lifecycle scripts) never enter it.
+    #   - wrangler.jsonc is generated here, from this default-branch workflow.
+    #   - Wrangler itself is installed, version-pinned, in a step that runs
+    #     BEFORE any Cloudflare credential is exposed.
+    #   - A validation step (also before credentials) fails the job if any
+    #     executable-config vector is present in the deploy dir.
+    # The same-repository PR restriction on previews is kept as
+    # defense-in-depth, not as the primary boundary. The CLOUDFLARE_API_TOKEN
+    # should be least-privilege (Workers Scripts edit on this account only),
+    # preferably on an account dedicated to previews.
     needs: get-build-info
     if: ${{ needs.get-build-info.outputs.branch }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+    env:
+      # Exact-pinned deploy tooling, controlled by this default-branch file.
+      WRANGLER_VERSION: 4.114.0
     steps:
       # The sample artifact only exists when the cloudflare package was built
       # (build-cloudflare runs on cloudflare changes / RUN_ALL_TESTS on main).
@@ -133,7 +154,7 @@ jobs:
             const has = data.artifacts.some((a) => a.name === "stlite-cloudflare-sample");
             core.setOutput("has-sample", has ? "true" : "");
 
-      - name: Download the built sample
+      - name: Download the built sample (untrusted data)
         if: steps.check.outputs.has-sample
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -142,36 +163,113 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Install pinned wrangler (no credentials exposed yet)
+        if: steps.check.outputs.has-sample
+        run: |
+          set -eux
+          mkdir -p "$RUNNER_TEMP/tooling"
+          cd "$RUNNER_TEMP/tooling"
+          npm init -y >/dev/null
+          npm install --no-fund --no-audit "wrangler@${WRANGLER_VERSION}"
+
+      - name: Assemble the deploy directory from allowlisted artifact data
+        if: steps.check.outputs.has-sample
+        run: |
+          set -eux
+          mkdir "$RUNNER_TEMP/deploy"
+          # Deployment data only: the Worker entry re-export, the vendored
+          # Python runtime, and the static assets. Everything else in the
+          # artifact — notably its wrangler.jsonc and package.json — stays
+          # out of the secrets-bearing context.
+          cp -R "$RUNNER_TEMP/sample/src" "$RUNNER_TEMP/deploy/src"
+          cp -R "$RUNNER_TEMP/sample/python_modules" "$RUNNER_TEMP/deploy/python_modules"
+          cp -R "$RUNNER_TEMP/sample/assets" "$RUNNER_TEMP/deploy/assets"
+          # Trusted deployment configuration, generated from this workflow.
+          # Mirrors what `stlite-cloudflare build --plain-worker` emits for
+          # the hello sample (canonical source:
+          # packages/cloudflare/src/wrangler-config.ts) — update both
+          # together.
+          cat > "$RUNNER_TEMP/deploy/wrangler.jsonc" <<'EOF'
+          {
+            "name": "stlite-cloudflare",
+            "main": "src/entry.py",
+            "compatibility_date": "2026-06-30",
+            "compatibility_flags": [
+              "python_workers",
+              "no_handle_cross_request_promise_resolution"
+            ],
+            "observability": { "enabled": true },
+            "limits": { "cpu_ms": 300000 },
+            "assets": {
+              "directory": "./assets",
+              "binding": "ASSETS",
+              "not_found_handling": "single-page-application",
+              "run_worker_first": [
+                "/_stcore/*",
+                "/media/*",
+                "/component/*",
+                "/app/static/*",
+                "/_stlite/*"
+              ]
+            }
+          }
+          EOF
+
+      - name: Validate no PR-controlled executable configuration is present
+        if: steps.check.outputs.has-sample
+        run: |
+          set -eux
+          cd "$RUNNER_TEMP/deploy"
+          # npm lifecycle-script vectors must not exist.
+          test ! -e package.json
+          test ! -e package-lock.json
+          test ! -e node_modules
+          test ! -e .npmrc
+          # Local Python tooling vectors must not exist.
+          test ! -e pyproject.toml
+          test ! -e .venv-workers
+          # The only wrangler config is the one this workflow just wrote, and
+          # it contains no `build` section that could run commands locally.
+          if grep -q '"build"' wrangler.jsonc; then
+            echo "wrangler.jsonc unexpectedly contains a build section" >&2
+            exit 1
+          fi
+          grep -q '"name": "stlite-cloudflare"' wrangler.jsonc
+
       # Every push to the default branch redeploys the live sample so it always
       # reflects the latest main.
       - name: Deploy the sample (production)
         if: ${{ steps.check.outputs.has-sample && ! needs.get-build-info.outputs.pr-number && needs.get-build-info.outputs.branch == github.event.repository.default_branch }}
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ${{ runner.temp }}/sample
-          command: deploy
+        working-directory: ${{ runner.temp }}/deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -eu
+          "$RUNNER_TEMP/tooling/node_modules/.bin/wrangler" deploy
 
-      # Same-repo PRs get a preview of every push. The `pr-N` alias created
-      # below is stable per PR, but wrangler-action only surfaces the
-      # version-specific URL (`deployment-url`), so the sticky PR comment is
-      # updated with a fresh URL on each push rather than pointing at the
-      # alias. Fork PRs are skipped: their untrusted code must not run with
-      # our secrets. Best-effort: `versions upload` needs the Worker to
-      # already exist, so previews only work after the first production
-      # deploy on main creates it — until then this fails, which must not
-      # fail the job.
+      # Same-repo PRs get a preview of every push (kept as defense-in-depth on
+      # top of the data-only artifact handling above). The `pr-N` alias is
+      # stable per PR, but only the version-specific URL is printed, so the
+      # sticky PR comment gets a fresh URL on each push. Best-effort:
+      # `versions upload` needs the Worker to already exist, so previews only
+      # work after the first production deploy on main creates it — until
+      # then this fails, which must not fail the job.
       - name: Upload a preview version of the sample
         id: preview
         continue-on-error: true
         if: ${{ steps.check.outputs.has-sample && needs.get-build-info.outputs.pr-number && github.event.workflow_run.head_repository.full_name == github.repository }}
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: ${{ runner.temp }}/sample
-          command: versions upload --preview-alias pr-${{ needs.get-build-info.outputs.pr-number }}
+        working-directory: ${{ runner.temp }}/deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PR_NUMBER: ${{ needs.get-build-info.outputs.pr-number }}
+        run: |
+          set -eu
+          "$RUNNER_TEMP/tooling/node_modules/.bin/wrangler" versions upload \
+            --preview-alias "pr-${PR_NUMBER}" | tee "$RUNNER_TEMP/versions-upload.log"
+          url=$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/versions-upload.log" | tail -1 || true)
+          echo "deployment-url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Comment the preview URL on the PR
         if: ${{ steps.preview.outputs.deployment-url != '' }}

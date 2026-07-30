@@ -53,6 +53,7 @@
   },
   "dependencies": {
     "cross-spawn": "^7.0.6",
+    "ignore": "^7.0.6",
     "pyodide": "0.29.3"
   },
   "devDependencies": {

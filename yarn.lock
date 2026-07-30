@@ -7932,6 +7932,7 @@ __metadata:
     "@types/node": "npm:^24.0.0"
     cross-spawn: "npm:^7.0.6"
     esbuild: "npm:^0.27.1"
+    ignore: "npm:^7.0.6"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     pyodide: "npm:0.29.3"
@@ -19234,6 +19235,13 @@ __metadata:
   version: 7.0.5
   resolution: "ignore@npm:7.0.5"
   checksum: 10c0/ae00db89fe873064a093b8999fe4cc284b13ef2a178636211842cceb650b9c3e390d3339191acb145d81ed5379d2074840cf0c33a20bdbd6f32821f79eb4ad5d
+  languageName: node
+  linkType: hard
+
+"ignore@npm:^7.0.6":
+  version: 7.0.6
+  resolution: "ignore@npm:7.0.6"
+  checksum: 10c0/fc01ef1d14efbe003439b60538726351e81483d1b6f55bdbb3a4465c6346d9481afad5b350dfbd604ddd7049618ef9093ff26dc147984aabc303c56ba53ea3b5
   languageName: node
   linkType: hard
 

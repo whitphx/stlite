@@ -96,6 +96,25 @@ no `bash`, `python`, `rsync`, or `tar` is required.
 It runs on macOS and Linux. On Windows, `pywrangler sync` can't complete yet (an
 upstream issue locating its Pyodide interpreter), so build under WSL for now.
 
+## What gets packaged
+
+The whole project directory is mirrored into the deployed app package,
+except:
+
+- always excluded (not configurable): `.git/`, `.env` / `.env.*` / `*.env`,
+  `.venv/`, `venv/`, `.direnv/`, `node_modules/`, `__pycache__/`,
+  `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.wrangler/`,
+  `.venv-workers/`, `.DS_Store`, plus the build's own output and cache
+  directories, and the two build inputs consumed by the scaffold
+  (`wrangler.jsonc`, `.stliteignore`)
+- anything matched by a `.stliteignore` file in the project root
+  (gitignore syntax); `.gitignore` is deliberately not applied, since
+  projects often gitignore data files their app needs at runtime
+
+The build prints a packaging summary, including any file of 5 MiB or more
+that made it into the package. Exclusions are name-based only — no
+content-type extension is excluded, so application data files always ship.
+
 ## Dependencies
 
 Streamlit and its runtime dependency tree are vendored automatically by the

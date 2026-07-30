@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { formatAppMirrorSummary, mirrorAppDir } from "./helpers/app-files.ts";
 import { injectFrontendConfig } from "./helpers/frontend-config.ts";
 import { exists, mirrorDir, singleWheel } from "./helpers/fsx.ts";
 import { runVendorPythonModules } from "./helpers/python.ts";
@@ -107,7 +108,11 @@ export async function vendor({
   // Vendor the app, then write the package marker + entrypoint marker (after the
   // mirror, which would otherwise delete them).
   const appVendorDir = path.join(vendorDir, "_stlite_cloudflare_app");
-  await mirrorDir(appDir, appVendorDir);
+  const appSummary = await mirrorAppDir(appDir, appVendorDir, [
+    projectDir,
+    cacheDir,
+  ]);
+  console.log(formatAppMirrorSummary(appSummary));
   await ensureFile(path.join(appVendorDir, "__init__.py"));
   await fs.writeFile(
     path.join(appVendorDir, "_stlite_entrypoint.py"),

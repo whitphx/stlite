@@ -66,13 +66,19 @@ pages' imports and all sessions' media share one 128 MB isolate, so
 memory-heavy apps that fit on plain Workers can exceed the limit here (the
 instance is reset and recovers, but the session that tripped it is lost).
 
-If `<path>` already contains a `wrangler.jsonc`, it is passed through unchanged so
-you keep control of routes, vars, and bindings; otherwise a minimal one is
-generated. Either way you own `main` and `compatibility_flags`. A custom config
-must keep the generated `assets` block (the frontend and the packed Python
-runtime are served from `./assets`, with the `ASSETS` binding and
-`run_worker_first` for Streamlit's server namespaces) — without it the Worker
-has no frontend and cannot load its runtime packages at startup.
+If `<path>` already contains a `wrangler.jsonc`, it is parsed (JSONC comments
+are fine, though not preserved in the output) and merged with the
+configuration the generated Worker requires. Your settings — routes, vars,
+extra bindings, `observability`, `limits`, `name` — are preserved; the
+settings the Worker cannot run (or cannot run safely) without are always
+enforced: `main`, the `python_workers` and
+`no_handle_cross_request_promise_resolution` compatibility flags, and the
+`assets` block (`./assets` directory, `ASSETS` binding, SPA
+`not_found_handling`, and `run_worker_first` for Streamlit's server
+namespaces plus `/_stlite/*`, which keeps the packed runtime and your app
+source from being served as public static files). A custom value that
+conflicts with a required setting fails the build with an error explaining
+what to change.
 
 ## Known limitations
 

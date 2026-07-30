@@ -7933,6 +7933,7 @@ __metadata:
     cross-spawn: "npm:^7.0.6"
     esbuild: "npm:^0.27.1"
     ignore: "npm:^7.0.6"
+    jsonc-parser: "npm:^3.3.1"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     pyodide: "npm:0.29.3"
@@ -20427,6 +20428,13 @@ __metadata:
   bin:
     json5: lib/cli.js
   checksum: 10c0/5a04eed94810fa55c5ea138b2f7a5c12b97c3750bc63d11e511dcecbfef758003861522a070c2272764ee0f4e3e323862f386945aeb5b85b87ee43f084ba586c
+  languageName: node
+  linkType: hard
+
+"jsonc-parser@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "jsonc-parser@npm:3.3.1"
+  checksum: 10c0/269c3ae0a0e4f907a914bf334306c384aabb9929bd8c99f909275ebd5c2d3bc70b9bcd119ad794f339dec9f24b6a4ee9cd5a8ab2e6435e730ad4075388fc2ab6
   languageName: node
   linkType: hard
 

@@ -6,6 +6,7 @@ import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
 import { resolveEntrypoint } from "./helpers/entrypoint.ts";
 import { exists } from "./helpers/fsx.ts";
 import { vendor } from "./vendor.ts";
+import { buildWranglerConfig } from "./wrangler-config.ts";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -146,14 +147,18 @@ async function scaffoldOutput({
       : 'from stlite_cloudflare.entry import Default\n\n__all__ = ["Default"]\n',
   );
 
-  // An existing wrangler.jsonc in the project is the user's own Worker config
-  // (routes, vars, bindings); pass it through untouched. Otherwise generate a
-  // minimal one. Either way the user owns `main`/`compatibility_flags`.
+  // An existing wrangler.jsonc in the project carries the user's own Worker
+  // settings (routes, vars, extra bindings); it is merged with — and
+  // validated against — the configuration the generated Worker requires,
+  // rather than passed through (see wrangler-config.ts).
   const srcWrangler = path.join(srcDir, "wrangler.jsonc");
-  const wrangler = (await exists(srcWrangler))
+  const customJsonc = (await exists(srcWrangler))
     ? await fs.readFile(srcWrangler, "utf8")
-    : defaultWranglerJsonc(workerName, durableObject);
-  await fs.writeFile(path.join(outDir, "wrangler.jsonc"), wrangler);
+    : undefined;
+  await fs.writeFile(
+    path.join(outDir, "wrangler.jsonc"),
+    buildWranglerConfig({ workerName, durableObject, customJsonc }),
+  );
 
   const dependencies = await readRequirements(srcDir, requirements);
   await fs.writeFile(
@@ -205,68 +210,6 @@ async function readRequirements(
   }
   const text = await fs.readFile(requirementsPath, "utf8");
   return validateRequirements(parseRequirementsTxt(text));
-}
-
-function defaultWranglerJsonc(
-  workerName: string,
-  durableObject: boolean,
-): string {
-  return `${JSON.stringify(
-    {
-      $schema: "node_modules/wrangler/config-schema.json",
-      name: workerName,
-      main: "src/entry.py",
-      compatibility_date: "2026-06-30",
-      // no_handle_cross_request_promise_resolution: the resident Streamlit
-      // runtime resolves promises across request contexts by design (the
-      // single-flight init awaited by concurrent requests, the retained
-      // lifespan task); workerd's default schedules those continuations onto
-      // the creating request's context and drops them once it's gone, which
-      // wedges later requests into hang-detection kills.
-      compatibility_flags: [
-        "python_workers",
-        "no_handle_cross_request_promise_resolution",
-      ],
-      observability: { enabled: true },
-      // Cold start (runtime extraction + Pyodide + Streamlit boot) needs far
-      // more CPU than the default budget; this requires the Workers Paid plan
-      // (the free plan's 10 ms CPU cap cannot boot Streamlit at all).
-      limits: { cpu_ms: 300000 },
-      // The frontend and the packed Python runtime are served from the assets
-      // layer (assets don't count against the Worker script-size limit);
-      // Streamlit page paths like /my_page serve the SPA index, while the
-      // namespaces Streamlit's own server owns — plus /_stlite, so the packed
-      // runtime (including the user's app source) is not directly
-      // downloadable — are routed to the Worker before asset matching. The
-      // ASSETS binding is how the Worker fetches the packed runtime at
-      // startup.
-      assets: {
-        directory: "./assets",
-        binding: "ASSETS",
-        not_found_handling: "single-page-application",
-        run_worker_first: [
-          "/_stcore/*",
-          "/media/*",
-          "/component/*",
-          "/app/static/*",
-          "/_stlite/*",
-        ],
-      },
-      // Route everything through one Durable Object instance so all requests
-      // share a single resident runtime (see stlite_cloudflare/durable.py).
-      // SQLite-backed classes are the only kind Python Workers support.
-      ...(durableObject
-        ? {
-            durable_objects: {
-              bindings: [{ name: "STLITE_SERVER", class_name: "StliteServer" }],
-            },
-            migrations: [{ tag: "v1", new_sqlite_classes: ["StliteServer"] }],
-          }
-        : {}),
-    },
-    null,
-    2,
-  )}\n`;
 }
 
 function pyproject(workerName: string, dependencies: string[]): string {

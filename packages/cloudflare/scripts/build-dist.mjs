@@ -28,6 +28,6 @@ await build({
   target: "node22",
   format: "esm",
   outfile: path.join(distDir, "index.js"),
-  external: ["pyodide", "cross-spawn"],
+  external: ["pyodide", "cross-spawn", "jsonc-parser", "ignore"],
   logLevel: "info",
 });

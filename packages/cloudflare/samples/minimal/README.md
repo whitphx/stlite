@@ -13,5 +13,6 @@ yarn build   # app/ -> dist/
 yarn dev     # build, then wrangler dev on dist/
 ```
 
-See `../hello` for the full-featured sample (dataframes, charts, media) that
+It runs in the default Durable Object mode, so sessions keep their state
+across WebSocket reconnects. See `../hello` for the full-featured sample (dataframes, charts, media) that
 uses the default runtime-as-assets build instead.

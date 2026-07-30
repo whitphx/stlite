@@ -44,7 +44,7 @@ function parseBuildArgs(args) {
       requirements: { type: "string" },
       name: { type: "string" },
       "bundled-runtime": { type: "boolean", default: false },
-      "durable-object": { type: "boolean", default: false },
+      "plain-worker": { type: "boolean", default: false },
       slim: { type: "boolean", default: false },
       mock: { type: "string", multiple: true, default: [] },
     },
@@ -59,10 +59,10 @@ function parseBuildArgs(args) {
   }
   const {
     "bundled-runtime": bundledRuntime,
-    "durable-object": durableObject,
+    "plain-worker": plainWorker,
     ...rest
   } = values;
-  return { path: positionals[0], ...rest, bundledRuntime, durableObject };
+  return { path: positionals[0], ...rest, bundledRuntime, plainWorker };
 }
 
 function printHelp() {
@@ -81,8 +81,11 @@ Options:
   --bundled-runtime          Keep the Python runtime in the Worker script instead of
                              loading it from static assets at cold start (requires
                              Cloudflare's planned 64 MB-uncompressed script limit)
-  --durable-object           Route all traffic through a single Durable Object
-                             instance so every session shares one resident runtime
+  --plain-worker             Run as a plain Worker instead of the default single
+                             Durable Object instance. Limited: only media is bridged
+                             across isolates — file uploads may fail and reconnects
+                             reset session state — but memory load spreads out,
+                             suiting read-only, memory-heavy apps
   --mock <package>           Replace a package with an import stub and drop what
                              it alone pulled into the runtime (repeatable)
   --slim                     Alias for --mock pandas --mock numpy: the tested

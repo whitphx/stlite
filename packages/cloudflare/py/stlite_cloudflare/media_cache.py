@@ -9,15 +9,14 @@ into the colo-local Cache API (shared across isolates in a data center) at
 registration time, and the entrypoint falls back to the cache when the local
 runtime misses.
 
-Known limits of this bridge: the Cache API is per-colo (a cross-colo fetch
-can still miss) and eviction is best-effort. The architecturally complete fix
-is Durable Objects — routing each app (or session) through a DO gives the
-resident Streamlit runtime a single addressable home, making in-memory media
-(and any future cross-request state) consistent by construction instead of
-mirrored. That restructures the entrypoint, wrangler config, and billing
-model, so it is deliberately left as future work; if media consistency needs
-grow beyond this bridge (e.g. cross-colo access or guaranteed retention),
-start there rather than extending the mirror.
+This bridge exists for the --plain-worker mode only, and it covers media
+only: the Cache API is per-colo (a cross-colo fetch can still miss),
+eviction is best-effort, and other session-bound state — file uploads, the
+session itself on reconnect — has no equivalent bridge (uploads are read
+through a synchronous API the async cache cannot back). That is why the
+build defaults to the Durable Object deployment (durable.py), where a single
+addressable instance makes all of this consistent by construction and the
+mirror is simply not installed.
 """
 
 import asyncio

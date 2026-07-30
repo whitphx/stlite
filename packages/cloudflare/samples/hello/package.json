@@ -4,7 +4,7 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "build": "stlite-cloudflare build ./app -o ./dist --name stlite-cloudflare",
+    "build": "stlite-cloudflare build ./app -o ./dist --name stlite-cloudflare --plain-worker",
     "dev": "yarn build && wrangler dev -c dist/wrangler.jsonc",
     "deploy": "yarn build && wrangler deploy -c dist/wrangler.jsonc",
     "start": "yarn dev",

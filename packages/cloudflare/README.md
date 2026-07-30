@@ -54,17 +54,30 @@ serialization stack and pandas' own dependencies, roughly halving the script
 size and cold-start time; it is what makes `--bundled-runtime` fit under
 Cloudflare's current 10 MiB gzip script limit today.
 
-`--durable-object` routes all Streamlit traffic through a single
+By default the Worker routes all Streamlit traffic through a single
 [Durable Object](https://developers.cloudflare.com/durable-objects/) instance.
-Plain Workers fan requests out across isolates, each booting its own copy of
-the runtime and holding its own session state; the Durable Object variant gives
-every request one shared resident runtime, so sessions survive WebSocket
-reconnects and one cold boot serves all visitors. Idle instances are still
-evicted, so the first request after a quiet period pays the cold boot either
-way. The flip side of the shared instance is a shared memory budget: all
-pages' imports and all sessions' media share one 128 MB isolate, so
-memory-heavy apps that fit on plain Workers can exceed the limit here (the
-instance is reset and recovers, but the session that tripped it is lost).
+Streamlit sessions have server-side state, and several HTTP endpoints
+(`/media/*` fetches, `/_stcore/upload_file/*` uploads) only work when they
+reach the same runtime that holds the session's WebSocket; the single
+instance guarantees that: uploads land in the runtime that reads them, media
+is served by the runtime that generated it, sessions survive WebSocket
+reconnects, and one cold boot serves all visitors. Idle instances are still
+evicted (the first request after a quiet period pays the cold boot), and the
+shared instance means a shared memory budget: all pages' imports and all
+sessions' media share one 128 MB isolate, so memory-heavy apps can exceed the
+limit there (the instance resets and recovers, but the session that tripped
+it is lost).
+
+`--plain-worker` opts out of the Durable Object and runs as a plain Worker,
+where Cloudflare fans requests across isolates that each boot their own copy
+of the runtime. This is a **limited mode**: only media is bridged between
+isolates (a colo-local Cache API mirror); `st.file_uploader` uploads can land
+on an isolate that isn't running the session and fail; and a WebSocket
+reconnect can land anywhere, starting a fresh session (widget state resets).
+In exchange, memory load spreads across isolates instead of concentrating in
+one 128 MB instance. Use it for read-only apps that don't take uploads —
+especially memory-heavy ones (the hello sample deploys this way for exactly
+that reason).
 
 If `<path>` already contains a `wrangler.jsonc`, it is parsed (JSONC comments
 are fine, though not preserved in the output) and merged with the

@@ -1061,7 +1061,7 @@ jobs:
           npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
           npx stlite-cloudflare build \
             "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/app" \
-            -o ./dist --name stlite-cloudflare
+            -o ./dist --name stlite-cloudflare --plain-worker
           test -f dist/python_modules/stlite_cloudflare/entry.py
           test ! -d dist/python_modules/streamlit
           grep -q "window.__streamlit" dist/assets/index.html

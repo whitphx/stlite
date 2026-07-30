@@ -65,6 +65,31 @@ async def test_router_forwards_the_raw_js_request_to_one_named_instance():
 
 
 @pytest.mark.asyncio
+async def test_all_session_bound_traffic_shares_one_instance():
+    """The Durable Object mode's session-consistency mechanism: the WebSocket
+    session, the HTTP requests whose state lives in the runtime serving it
+    (media, file uploads), and any reconnect all resolve to the same named
+    instance, so cross-isolate routing cannot separate a session from its
+    state."""
+    stub = _FakeStub()
+    namespace = _FakeNamespace(stub)
+    router = durable.Default(None, _FakeEnv(namespace))
+
+    session_bound_requests = [
+        _FakeRequest(),  # GET /_stcore/stream (WebSocket upgrade)
+        _FakeRequest(),  # GET /media/<file>
+        _FakeRequest(),  # PUT /_stcore/upload_file/<session>/<file>
+        _FakeRequest(),  # reconnect: second WebSocket upgrade
+    ]
+    for request in session_bound_requests:
+        await router.fetch(request)
+
+    assert namespace.requested_names == [durable._INSTANCE_NAME] * len(
+        session_bound_requests
+    )
+
+
+@pytest.mark.asyncio
 async def test_router_reports_a_missing_binding_instead_of_crashing():
     router = durable.Default(None, _FakeEnv())
 

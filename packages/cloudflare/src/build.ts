@@ -33,11 +33,14 @@ export interface CloudflareBuildOptions {
    * 64 MB-uncompressed script limit
    * (https://github.com/cloudflare/workers-py/issues/156). */
   bundledRuntime?: boolean;
-  /** Route all Streamlit traffic through a single Durable Object instance so
-   * every request (WebSocket sessions, media, health) shares one resident
-   * runtime, instead of fanning out across independently-booting Worker
-   * isolates. See stlite_cloudflare/durable.py for the trade-offs. */
-  durableObject?: boolean;
+  /** Opt out of the default Durable Object deployment and run as a plain
+   * Worker. Plain Workers fan requests across isolates, so only media is
+   * bridged between them (Cache API mirror): file uploads can land on an
+   * isolate that isn't running the session and fail, and a WebSocket
+   * reconnect resets session state. In exchange, memory load spreads across
+   * isolates instead of one 128 MB instance — suited to read-only,
+   * memory-heavy apps. See stlite_cloudflare/durable.py. */
+  plainWorker?: boolean;
   /** Packages to replace with import-satisfying stubs; anything they alone
    * pulled into the runtime is garbage-collected too. Apps touching a mocked
    * package fail at that point with an error naming the flag. */
@@ -60,7 +63,7 @@ export async function build({
   requirements,
   name,
   bundledRuntime = false,
-  durableObject = false,
+  plainWorker = false,
   mock = [],
   slim = false,
 }: CloudflareBuildOptions): Promise<{ outDir: string }> {
@@ -91,6 +94,8 @@ export async function build({
   }
 
   const workerName = toWorkerName(name ?? path.basename(srcDir));
+
+  const durableObject = !plainWorker;
 
   await fs.rm(outDir, { recursive: true, force: true });
   await fs.mkdir(outDir, { recursive: true });

@@ -7,7 +7,7 @@ interface CloudflareArgs {
   // yargs camelizes the kebab-case flags at runtime; optional because the
   // builder's inferred type only carries the kebab-case keys.
   bundledRuntime?: boolean;
-  durableObject?: boolean;
+  plainWorker?: boolean;
   mock: string[];
   slim: boolean;
   requirements?: string;
@@ -47,11 +47,11 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Keep the Python runtime in the Worker script instead of loading it from static assets at cold start",
       })
-      .option("durable-object", {
+      .option("plain-worker", {
         type: "boolean",
         default: false,
         describe:
-          "Route all traffic through a single Durable Object instance so every session shares one resident runtime",
+          "Run as a plain Worker instead of the default single Durable Object instance (limited: uploads and reconnects lose session affinity)",
       })
       .option("mock", {
         type: "string",
@@ -93,7 +93,7 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         out: argv.out,
         entrypoint: argv.entrypoint,
         bundledRuntime: argv.bundledRuntime,
-        durableObject: argv.durableObject,
+        plainWorker: argv.plainWorker,
         mock: argv.mock,
         slim: argv.slim,
         requirements: argv.requirements,

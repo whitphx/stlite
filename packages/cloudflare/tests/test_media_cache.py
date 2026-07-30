@@ -108,3 +108,25 @@ async def test_mirror_writes_registration_to_the_cache(
 @pytest.mark.asyncio
 async def test_serve_cached_media_misses_cleanly(fake_js_env):
     assert await media_cache.serve_cached_media("/media/nope.gif") is None
+
+
+@pytest.mark.asyncio
+async def test_media_bridges_between_isolates_in_plain_worker_mode(
+    fake_js_env, fake_storage_module, monkeypatch
+):
+    """--plain-worker cross-isolate simulation: the session's isolate registers
+    a media file, and a different isolate — whose own runtime has never seen
+    the file and answers 404 — serves it from the shared colo cache."""
+    # Isolate A: the session's runtime registers media (mirror installed).
+    media_cache.install_media_cache_mirror()
+    storage = fake_storage_module.MemoryMediaFileStorage()
+    storage.load_and_get_id(b"frame-bytes", "image/png", kind=None)
+    for _ in range(5):
+        await asyncio.sleep(0)
+
+    # Isolate B: fresh module state (no mirror installed, no in-memory file),
+    # sharing only the colo-local cache.
+    monkeypatch.setattr(media_cache, "_installed", False, raising=False)
+    served = await media_cache.serve_cached_media("/media/abc123.gif")
+    assert served is not None
+    assert served.body == b"frame-bytes"

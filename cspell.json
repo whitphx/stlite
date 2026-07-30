@@ -48,6 +48,7 @@
   "words": [
     // Stlite
     "stlite",
+    "stliteignore",
     "serverlessly",
     "sampleapps",
     // @stlite/cli

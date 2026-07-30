@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
+import { resolveEntrypoint } from "./helpers/entrypoint.ts";
 import { exists } from "./helpers/fsx.ts";
 import { vendor } from "./vendor.ts";
 
@@ -71,11 +72,7 @@ export async function build({
   if (srcStat == null || !srcStat.isDirectory()) {
     throw new Error(`Not a directory: ${srcDir}`);
   }
-  if (!(await exists(path.join(srcDir, entrypoint)))) {
-    throw new Error(
-      `Entrypoint not found: ${entrypoint} (looked in ${srcDir})`,
-    );
-  }
+  const normalizedEntrypoint = await resolveEntrypoint(srcDir, entrypoint);
 
   const outDir = path.resolve(process.cwd(), out);
   // The output gets `rm -rf`'d on each run, and vendor() mirrors the whole
@@ -116,7 +113,7 @@ export async function build({
     projectDir: outDir,
     appDir: srcDir,
     cacheDir,
-    entrypoint,
+    entrypoint: normalizedEntrypoint,
     bundledRuntime,
     mockPackages: [...new Set([...mock, ...(slim ? ["pandas", "numpy"] : [])])],
   });

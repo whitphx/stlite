@@ -48,7 +48,7 @@
     "check:lint": "oxlint bin frontend scripts src",
     "check:format": "oxfmt --check .",
     "test": "uv run --project . pytest",
-    "test:js": "node --test \"src/helpers/**/*.test.ts\"",
+    "test:js": "node --test \"src/**/*.test.ts\"",
     "pack:dry-run": "npm pack --dry-run"
   },
   "dependencies": {

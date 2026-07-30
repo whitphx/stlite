@@ -23,16 +23,17 @@ runs:
           --repo "$GITHUB_REPOSITORY" \
           --predicate-type https://slsa.dev/provenance/v1 \
           --format json)
-        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.path' <<< "$VERIFICATION_RESULT" | \
-          grep -Fx -- "$EXPECTED_WORKFLOW_FILE" || {
-            echo "Error: Attestation does not match expected workflow definition path" >&2
-            exit 1
-          }
-        jq -r '.[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow.ref' <<< "$VERIFICATION_RESULT" | \
-          grep -Fx -- "$EXPECTED_REF" || {
-            echo "Error: Attestation does not match expected workflow trigger ref" >&2
-            exit 1
-          }
+        # Both fields have to hold on the *same* statement: asserting them separately
+        # lets one attestation supply the path while another supplies the ref.
+        jq -e --arg path "$EXPECTED_WORKFLOW_FILE" --arg ref "$EXPECTED_REF" '
+          any(
+            .[].verificationResult.statement.predicate.buildDefinition.externalParameters.workflow;
+            .path == $path and .ref == $ref
+          )
+        ' <<< "$VERIFICATION_RESULT" > /dev/null || {
+          echo "Error: No attestation matches both the expected workflow definition path and trigger ref" >&2
+          exit 1
+        }
       env:
         FILEPATH: ${{ inputs.filepath }}
         EXPECTED_WORKFLOW_FILE: ${{ inputs.expected-workflow-file }}

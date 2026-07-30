@@ -1039,7 +1039,9 @@ jobs:
         deploy-sharing,
         deploy-sharing-editor,
       ]
-    if: ${{ !cancelled() && needs.get-build-info.outputs.pr-number != '' }}
+    # `always()`, not `!cancelled()`: the pending status is already published by
+    # this point, so a cancelled run still has to resolve it to a terminal state.
+    if: ${{ always() && needs.get-build-info.outputs.pr-number != '' }}
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -1073,17 +1075,25 @@ jobs:
             const failed = Object.entries(results)
               .filter(([, result]) => result !== "success" && result !== "skipped")
               .map(([name]) => name);
+            const cancelled = Object.values(results).includes("cancelled");
+
+            let state = "success";
+            let description = "Post-build deployments succeeded";
+            if (cancelled) {
+              state = "error";
+              description = "Post-build deployments were cancelled";
+            } else if (failed.length > 0) {
+              state = "failure";
+              description = `Failed: ${failed.join(", ")}`.slice(0, 140);
+            }
 
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha: process.env.HEAD_SHA,
-              state: failed.length === 0 ? "success" : "failure",
+              state,
               context: "post-build",
-              description:
-                failed.length === 0
-                  ? "Post-build deployments succeeded"
-                  : `Failed: ${failed.join(", ")}`.slice(0, 140),
+              description,
               target_url: process.env.TARGET_URL,
             });
 

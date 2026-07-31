@@ -1,8 +1,8 @@
 """ASGI WebSocket bridge for Cloudflare Workers.
 
 Kept convergent with workers-py's `asgi.process_websocket`, where several of
-this file's fixes have been upstreamed; improvements that emerge in upstream
-review are ported back here:
+this file's fixes have landed; improvements that emerge in upstream review
+are ported back here:
 https://github.com/cloudflare/workers-py/blob/main/packages/runtime-sdk/src/asgi.py
 """
 

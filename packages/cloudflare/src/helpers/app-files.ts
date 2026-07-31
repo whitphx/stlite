@@ -51,13 +51,19 @@ export async function mirrorAppDir(
   destDir: string,
   excludeDirs: string[] = [],
 ): Promise<AppMirrorSummary> {
-  const matcher = ignore().add(MANDATORY_EXCLUSIONS);
+  // Two independent matchers: a path is copied only when NEITHER excludes
+  // it. Feeding both rule sets into one matcher would let a later
+  // .stliteignore negation (e.g. `!.env`) re-include files the mandatory
+  // list guarantees are never packaged; kept separate, user negations only
+  // act within the user's own patterns.
+  const mandatoryMatcher = ignore().add(MANDATORY_EXCLUSIONS);
+  const userMatcher = ignore();
   const stliteignorePath = path.join(appDir, ".stliteignore");
   const stliteignore = await fs
     .readFile(stliteignorePath, "utf8")
     .catch(() => null);
   if (stliteignore != null) {
-    matcher.add(stliteignore);
+    userMatcher.add(stliteignore);
   }
   const resolvedExcludes = new Set(excludeDirs.map((dir) => path.resolve(dir)));
 
@@ -78,9 +84,11 @@ export async function mirrorAppDir(
     for (const entry of entries) {
       const rel = relDir === "" ? entry.name : `${relDir}/${entry.name}`;
       const src = path.join(appDir, relDir, entry.name);
+      const matchPath = entry.isDirectory() ? `${rel}/` : rel;
       if (
         resolvedExcludes.has(path.resolve(src)) ||
-        matcher.ignores(entry.isDirectory() ? `${rel}/` : rel)
+        mandatoryMatcher.ignores(matchPath) ||
+        userMatcher.ignores(matchPath)
       ) {
         summary.excludedCount += 1;
         continue;

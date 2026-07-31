@@ -123,3 +123,60 @@ describe("mirrorAppDir", () => {
     assert.equal(summary.largeFiles[0].relPath, "big.bin");
   });
 });
+
+describe("mirrorAppDir mandatory-exclusion independence", () => {
+  let root: string;
+
+  before(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), "stlite-appfiles-neg-"));
+  });
+
+  after(async () => {
+    await fs.rm(root, { recursive: true, force: true });
+  });
+
+  it("ignores .stliteignore negations targeting mandatory exclusions", async () => {
+    const appDir = path.join(root, "app");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".env": "SECRET=1",
+      ".env.local": "SECRET=2",
+      ".git/config": "[core]",
+      "node_modules/pkg/index.js": "",
+      "wrangler.jsonc": "{}",
+      ".stliteignore": [
+        "!.env",
+        "!.env.local",
+        "!.git/",
+        "!.git/config",
+        "!node_modules/",
+        "!wrangler.jsonc",
+        "!.stliteignore",
+        "",
+      ].join("\n"),
+    });
+
+    await mirrorAppDir(appDir, path.join(root, "dest"));
+
+    assert.deepEqual(await listFiles(path.join(root, "dest")), [
+      "streamlit_app.py",
+    ]);
+  });
+
+  it("keeps ordinary gitignore negation semantics for user patterns", async () => {
+    const appDir = path.join(root, "app2");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      "draft.md": "",
+      "keep.md": "",
+      ".stliteignore": "*.md\n!keep.md\n",
+    });
+
+    await mirrorAppDir(appDir, path.join(root, "dest2"));
+
+    assert.deepEqual(await listFiles(path.join(root, "dest2")), [
+      "keep.md",
+      "streamlit_app.py",
+    ]);
+  });
+});

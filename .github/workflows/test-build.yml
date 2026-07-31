@@ -1103,6 +1103,58 @@ jobs:
             exit 1
           }
 
+      # The default Durable Object deployment path gets its own standalone
+      # build (the hello build above uses --plain-worker, which is a distinct
+      # mode): the minimal sample built with default settings, verified
+      # structurally and by wrangler dry-run.
+      - name: Build the minimal sample in default Durable Object mode
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          # Reuse the wheel cache from the hello build (cache dirs are keyed
+          # by output dir basename).
+          cp -R .dist.stlite-cloudflare-cache .dist-do.stlite-cloudflare-cache
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
+            -o ./dist-do --name stlite-cloudflare-minimal
+          grep -q '"STLITE_SERVER"' dist-do/wrangler.jsonc
+          grep -q "StliteServer" dist-do/src/entry.py
+          cd dist-do && npx wrangler deploy --dry-run
+
+      # Boot the DO-mode Worker in local workerd: the health request goes
+      # through the router entrypoint into the STLITE_SERVER Durable Object
+      # instance, which cold-boots the packaged Streamlit runtime — the
+      # actual default request-routing path.
+      - name: Smoke-test the Durable Object mode in local workerd
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          (cd dist-do && npx wrangler dev --port 8788 >"$RUNNER_TEMP/wrangler-dev-do.log" 2>&1 &)
+          ok=""
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 5 -o /dev/null http://127.0.0.1:8788/_stcore/health; then
+              ok=1
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then
+            echo "::group::wrangler dev (DO) log"
+            cat "$RUNNER_TEMP/wrangler-dev-do.log"
+            echo "::endgroup::"
+            exit 1
+          fi
+          curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
+
+      # Every wrangler-config shape the merger supports (named environments,
+      # legacy migrations, exports style, external bindings, ...) validated
+      # against real wrangler.
+      - name: Dry-run the supported wrangler-config shapes
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          node "$GITHUB_WORKSPACE/packages/cloudflare/scripts/dryrun-config-matrix.mjs" dist-do
+
       # The dist built above is the sample postbuild deploys. Hidden files are
       # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
       # dirs pywrangler leaves in the output — wrangler doesn't need them.

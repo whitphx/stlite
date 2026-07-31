@@ -61,6 +61,28 @@ const shapes = {
     durableObject: true,
     customJsonc: `{ "assets": { "run_worker_first": true } }`,
   },
+  "do-env-exports": {
+    durableObject: true,
+    // Top level in exports style too: an environment cannot override with a
+    // different declaration style than it inherits.
+    customJsonc: `{ "exports": {}, "env": { "staging": { "exports": {
+      "Old": { "type": "durable-object", "state": "deleted" },
+    } } } }`,
+    envs: ["staging"],
+  },
+  "do-env-migrations": {
+    durableObject: true,
+    customJsonc: `{ "env": { "staging": { "migrations": [
+      { "tag": "v1", "new_sqlite_classes": ["StliteServer"] },
+    ] } } }`,
+    envs: ["staging"],
+  },
+  "do-exports-historical": {
+    durableObject: true,
+    customJsonc: `{ "exports": {
+      "Gone": { "type": "durable-object", "state": "transferred", "transferred_to": "other-worker" },
+    } }`,
+  },
 };
 
 const original = await fs.readFile(

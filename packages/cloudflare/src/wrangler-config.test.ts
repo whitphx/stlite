@@ -575,3 +575,153 @@ describe("Durable Object effective live-class validation", () => {
     );
   });
 });
+
+describe("environment-level Durable Object declarations", () => {
+  it("validates an environment exports override and completes it", () => {
+    // A live unsupported class in the override is rejected... (top level in
+    // exports style too, since cross-style overrides are invalid)
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {}, "env": { "staging": { "exports": {
+            "OtherClass": { "type": "durable-object", "storage": "sqlite" },
+          } } } }`,
+        }),
+      /env\.staging\.exports\.OtherClass.*cannot export it/,
+    );
+    // ...and a valid override gets its own StliteServer declaration, since
+    // it replaces the top level wholesale.
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "exports": {}, "env": { "staging": { "exports": {
+        "Old": { "type": "durable-object", "state": "deleted" },
+      } } } }`,
+    });
+    assert.deepEqual(config.env.staging.exports.StliteServer, {
+      type: "durable-object",
+      storage: "sqlite",
+    });
+  });
+
+  it("rejects an environment declaration style that differs from the top level", () => {
+    // The generated default declares top-level migrations, so an environment
+    // exports override would combine with the inherited migrations — which
+    // wrangler rejects as mutually exclusive.
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "env": { "staging": { "exports": {
+            "Old": { "type": "durable-object", "state": "deleted" },
+          } } } }`,
+        }),
+      /different style/,
+    );
+  });
+
+  it("validates an environment migrations override", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "env": { "staging": { "migrations": [
+            { "tag": "v1", "new_sqlite_classes": ["Widget"] },
+          ] } } }`,
+        }),
+      /env\.staging\.migrations.*leaves local class Widget live/,
+    );
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "env": { "staging": { "migrations": [
+        { "tag": "v1", "new_sqlite_classes": ["StliteServer"] },
+      ] } } }`,
+    });
+    assert.equal(config.env.staging.migrations.length, 1);
+  });
+
+  it("rejects simultaneous environment exports and migrations", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "env": { "staging": {
+            "exports": { "StliteServer": { "type": "durable-object", "storage": "sqlite" } },
+            "migrations": [{ "tag": "v1", "new_sqlite_classes": ["StliteServer"] }],
+          } } }`,
+        }),
+      /env\.staging\.exports.*mutually exclusive/,
+    );
+  });
+
+  it("leaves environments without declaration overrides to inherit", () => {
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "env": { "staging": { "vars": { "STAGE": "1" } } } }`,
+    });
+    assert.equal(config.env.staging.exports, undefined);
+    assert.equal(config.env.staging.migrations, undefined);
+    assert.equal(config.migrations.length, 1);
+  });
+});
+
+describe("expecting-transfer exports state", () => {
+  it("treats expecting-transfer as a live class and rejects it for others", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Remote": { "type": "durable-object", "state": "expecting-transfer", "storage": "sqlite", "transfer_from": "another-worker" },
+          } }`,
+        }),
+      /exports\.Remote.*live local Durable Object class \(state "expecting-transfer"\)/,
+    );
+  });
+
+  it("rejects expecting-transfer for StliteServer itself", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "StliteServer": { "type": "durable-object", "state": "expecting-transfer", "storage": "sqlite", "transfer_from": "another-worker" },
+          } }`,
+        }),
+      /cannot adopt a transferred namespace/,
+    );
+  });
+
+  it("validates state-specific required properties", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Old": { "type": "durable-object", "state": "renamed" },
+          } }`,
+        }),
+      /state "renamed" but no renamed_to/,
+    );
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Old": { "type": "durable-object", "state": "transferred" },
+          } }`,
+        }),
+      /state "transferred" but no transferred_to/,
+    );
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Old": { "type": "durable-object", "state": "vaporized" },
+          } }`,
+        }),
+      /not a known Durable Object state/,
+    );
+  });
+});

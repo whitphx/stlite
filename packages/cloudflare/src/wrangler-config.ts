@@ -188,7 +188,11 @@ function stringItems(value: unknown): string[] {
  * isn't live) so a contradictory history is reported instead of silently
  * resolved.
  */
-function replayMigrations(migrations: Obj[], conflicts: string[]): Set<string> {
+function replayMigrations(
+  migrations: Obj[],
+  conflicts: string[],
+  prefix = "",
+): Set<string> {
   const live = new Set<string>();
   for (const migration of migrations) {
     const tag =
@@ -196,7 +200,7 @@ function replayMigrations(migrations: Obj[], conflicts: string[]): Set<string> {
     const create = (cls: string) => {
       if (live.has(cls)) {
         conflicts.push(
-          `"migrations" tag ${JSON.stringify(tag)} creates class ${cls}, which is already live at that point.`,
+          `"${prefix}migrations" tag ${JSON.stringify(tag)} creates class ${cls}, which is already live at that point.`,
         );
       }
       live.add(cls);
@@ -226,12 +230,12 @@ function replayMigrations(migrations: Obj[], conflicts: string[]): Set<string> {
         }
         if (!live.has(from)) {
           conflicts.push(
-            `"migrations" tag ${JSON.stringify(tag)} renames class ${from}, which is not live at that point.`,
+            `"${prefix}migrations" tag ${JSON.stringify(tag)} renames class ${from}, which is not live at that point.`,
           );
         }
         if (live.has(to)) {
           conflicts.push(
-            `"migrations" tag ${JSON.stringify(tag)} renames ${from} to ${to}, which is already live.`,
+            `"${prefix}migrations" tag ${JSON.stringify(tag)} renames ${from} to ${to}, which is already live.`,
           );
         }
         live.delete(from);
@@ -241,7 +245,7 @@ function replayMigrations(migrations: Obj[], conflicts: string[]): Set<string> {
     for (const cls of stringItems(migration.deleted_classes)) {
       if (!live.has(cls)) {
         conflicts.push(
-          `"migrations" tag ${JSON.stringify(tag)} deletes class ${cls}, which is not live at that point.`,
+          `"${prefix}migrations" tag ${JSON.stringify(tag)} deletes class ${cls}, which is not live at that point.`,
         );
       }
       live.delete(cls);
@@ -263,11 +267,12 @@ function applyDurableObjectDeclaration(
   config: Obj,
   conflicts: string[],
   durableObject: boolean,
+  prefix = "",
 ): void {
   const exportsCfg = asObject(config.exports);
   if (exportsCfg != null && config.migrations != null) {
     conflicts.push(
-      `"exports" and "migrations" are mutually exclusive in wrangler configuration; keep only one Durable Object declaration style.`,
+      `"${prefix}exports" and "${prefix}migrations" are mutually exclusive in wrangler configuration; keep only one Durable Object declaration style.`,
     );
     return;
   }
@@ -280,32 +285,60 @@ function applyDurableObjectDeclaration(
         continue;
       }
       const state = decl.state ?? "created";
+      const knownStates = [
+        "created",
+        "deleted",
+        "renamed",
+        "transferred",
+        "expecting-transfer",
+      ];
+      if (!knownStates.includes(state as string)) {
+        conflicts.push(
+          `"${prefix}exports.${cls}.state" is ${JSON.stringify(state)}, which is not a known Durable Object state.`,
+        );
+        continue;
+      }
+      // "created" AND "expecting-transfer" are both LIVE classes (the latter
+      // is a live receiving-side class awaiting a namespace transfer).
+      const isLive = state === "created" || state === "expecting-transfer";
+      if (state === "renamed" && typeof decl.renamed_to !== "string") {
+        conflicts.push(
+          `"${prefix}exports.${cls}" has state "renamed" but no renamed_to target.`,
+        );
+      }
+      if (state === "transferred" && typeof decl.transferred_to !== "string") {
+        conflicts.push(
+          `"${prefix}exports.${cls}" has state "transferred" but no transferred_to target.`,
+        );
+      }
       if (cls === "StliteServer") {
         if (!durableObject) {
           conflicts.push(
-            `"exports.StliteServer" declares a live local Durable Object class, but a --plain-worker entry exports no Durable Object classes.`,
+            `"${prefix}exports.StliteServer" declares a live local Durable Object class, but a --plain-worker entry exports no Durable Object classes.`,
           );
         }
         if (decl.storage != null && decl.storage !== "sqlite") {
           conflicts.push(
-            `"exports.StliteServer.storage" must be "sqlite" (the generated Durable Object requires SQLite storage), got ${JSON.stringify(decl.storage)}.`,
+            `"${prefix}exports.StliteServer.storage" must be "sqlite" (the generated Durable Object requires SQLite storage), got ${JSON.stringify(decl.storage)}.`,
           );
         }
         if (state !== "created") {
+          // Includes "expecting-transfer": adopting another Worker's
+          // namespace as the generated StliteServer is not supported.
           conflicts.push(
-            `"exports.StliteServer.state" is ${JSON.stringify(state)}, but the generated Worker needs the class live.`,
+            `"${prefix}exports.StliteServer.state" is ${JSON.stringify(state)}, but the generated Worker needs the class live (and cannot adopt a transferred namespace).`,
           );
         }
         merged.StliteServer = { ...decl, storage: decl.storage ?? "sqlite" };
         continue;
       }
-      if (state === "created") {
+      if (isLive) {
         conflicts.push(
-          `"exports.${cls}" declares a live local Durable Object class, but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
+          `"${prefix}exports.${cls}" declares a live local Durable Object class (state ${JSON.stringify(state)}), but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
         );
       } else if (state === "renamed" && decl.renamed_to === "StliteServer") {
         conflicts.push(
-          `"exports.${cls}" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
+          `"${prefix}exports.${cls}" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
         );
       }
       // deleted / transferred / renamed-elsewhere entries are historical
@@ -327,7 +360,7 @@ function applyDurableObjectDeclaration(
     if (typeof tag === "string") {
       if (seenTags.has(tag)) {
         conflicts.push(
-          `"migrations" contains duplicate tag ${JSON.stringify(tag)}.`,
+          `"${prefix}migrations" contains duplicate tag ${JSON.stringify(tag)}.`,
         );
       }
       seenTags.add(tag);
@@ -339,7 +372,7 @@ function applyDurableObjectDeclaration(
       )
     ) {
       conflicts.push(
-        `"migrations" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
+        `"${prefix}migrations" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
       );
     }
     if (
@@ -347,12 +380,12 @@ function applyDurableObjectDeclaration(
       migration.new_classes.includes("StliteServer")
     ) {
       conflicts.push(
-        `"migrations" declares StliteServer via new_classes (key-value storage), but the generated Durable Object requires SQLite storage: move it to new_sqlite_classes.`,
+        `"${prefix}migrations" declares StliteServer via new_classes (key-value storage), but the generated Durable Object requires SQLite storage: move it to new_sqlite_classes.`,
       );
     }
   }
 
-  const live = replayMigrations(migrations, conflicts);
+  const live = replayMigrations(migrations, conflicts, prefix);
   if (durableObject) {
     if (
       Array.isArray(migrations) &&
@@ -366,7 +399,7 @@ function applyDurableObjectDeclaration(
       )
     ) {
       conflicts.push(
-        `"migrations" deletes or renames class StliteServer, which the generated Worker requires under that name.`,
+        `"${prefix}migrations" deletes or renames class StliteServer, which the generated Worker requires under that name.`,
       );
     }
     if (!live.has("StliteServer")) {
@@ -383,7 +416,7 @@ function applyDurableObjectDeclaration(
       continue;
     }
     conflicts.push(
-      `"migrations" history leaves local class ${cls} live, but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
+      `"${prefix}migrations" history leaves local class ${cls} live, but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
     );
   }
   if (migrations.length > 0 || durableObject) {
@@ -399,7 +432,13 @@ function applyWorkerSettings(
     durableObject,
     where,
     topLevel,
-  }: { durableObject: boolean; where: string; topLevel: boolean },
+    topDeclarationStyle,
+  }: {
+    durableObject: boolean;
+    where: string;
+    topLevel: boolean;
+    topDeclarationStyle?: "exports" | "migrations" | null;
+  },
 ): void {
   const prefix = where === "" ? "" : `${where}.`;
 
@@ -448,6 +487,25 @@ function applyWorkerSettings(
       durableObject,
     );
   }
+
+  // exports/migrations are inheritable, so an environment that overrides
+  // either replaces the validated top-level declaration wholesale — it gets
+  // the full validation-and-completion pass of its own. Without an override
+  // the environment inherits the top level, which was already processed.
+  // The override must keep the top level's declaration style: wrangler
+  // combines the environment's own declaration with whatever it inherits,
+  // and an inherited `migrations` plus an environment `exports` (or vice
+  // versa) is rejected as mutually exclusive.
+  if (!topLevel && (target.exports != null || target.migrations != null)) {
+    const envStyle = target.exports != null ? "exports" : "migrations";
+    if (topDeclarationStyle != null && envStyle !== topDeclarationStyle) {
+      conflicts.push(
+        `"${prefix}${envStyle}" overrides the top-level "${topDeclarationStyle}" declaration with a different style; wrangler treats the inherited ${topDeclarationStyle} plus the environment's ${envStyle} as mutually exclusive. Use ${topDeclarationStyle} in the environment too, or switch the top level to ${envStyle}.`,
+      );
+    } else {
+      applyDurableObjectDeclaration(target, conflicts, durableObject, prefix);
+    }
+  }
 }
 
 export function buildWranglerConfig({
@@ -490,10 +548,16 @@ export function buildWranglerConfig({
     where: "",
     topLevel: true,
   });
-  // The class declaration (exports or migrations) is top-level-only in
-  // wrangler configuration and covers every environment; in plain-Worker
-  // mode it must not leave any local class live.
+  // The class declaration (exports or migrations) covers every environment
+  // unless an environment overrides it; in plain-Worker mode it must not
+  // leave any local class live.
   applyDurableObjectDeclaration(config, conflicts, durableObject);
+  const topDeclarationStyle =
+    asObject(config.exports) != null
+      ? ("exports" as const)
+      : config.migrations != null
+        ? ("migrations" as const)
+        : null;
 
   const envs = asObject(config.env);
   if (envs != null) {
@@ -504,6 +568,7 @@ export function buildWranglerConfig({
         durableObject,
         where: `env.${envName}`,
         topLevel: false,
+        topDeclarationStyle,
       });
       mergedEnvs[envName] = env;
     }

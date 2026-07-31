@@ -319,7 +319,7 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
 
     await assert.rejects(
       mirrorAppDir(appDir, path.join(root, "dest")),
-      /secrets\.toml.*Cloudflare bindings.*wrangler secret put/s,
+      /secrets\.toml.*wrangler secret put.*st\.secrets/s,
     );
   });
 
@@ -334,6 +334,44 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
     await assert.rejects(
       mirrorAppDir(appDir, path.join(root, "dest2")),
       /must never be packaged/,
+    );
+  });
+
+  it("fails loudly on Cloudflare .dev.vars files, including via symlink target", async (t) => {
+    for (const name of [".dev.vars", ".dev.vars.staging"]) {
+      const appDir = path.join(root, `app-${name.replace(/[^a-z]/g, "")}`);
+      await writeTree(appDir, {
+        "streamlit_app.py": "",
+        [name]: "API_KEY=hunter2",
+      });
+
+      await assert.rejects(
+        mirrorAppDir(
+          appDir,
+          path.join(root, `dest-${name.replace(/[^a-z]/g, "")}`),
+        ),
+        /must never be packaged/,
+        `expected failure for ${name}`,
+      );
+    }
+
+    if (!symlinksAvailable) return t.skip();
+    // A symlink whose visible name is benign but whose target is an excluded
+    // .dev.vars variant is rejected by the target check even when the direct
+    // secret-file check is not what fires.
+    const appDir = path.join(root, "app-devvarslink");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      "nested/.dev.vars.production": "API_KEY=hunter2",
+    });
+    await fs.symlink(
+      path.join(appDir, "nested/.dev.vars.production"),
+      path.join(appDir, "config.txt"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-devvarslink")),
+      /config\.txt resolves to nested\/\.dev\.vars\.production.*excluded/,
     );
   });
 

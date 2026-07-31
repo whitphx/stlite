@@ -17,6 +17,8 @@ const MANDATORY_EXCLUSIONS = [
   // Conventional local credential files; narrow names only, never broad
   // content patterns, so legitimate app data cannot be swept up.
   ".streamlit/secrets.toml",
+  ".dev.vars",
+  ".dev.vars.*",
   ".netrc",
   ".aws/",
   ".venv/",
@@ -35,10 +37,22 @@ const MANDATORY_EXCLUSIONS = [
   "wrangler.jsonc",
 ];
 
-// Packaging this file would ship local credentials into the deployed Worker
-// and any CI artifact, and .gitignore is deliberately not consulted — so its
-// presence is a hard, loud error rather than a silent exclusion.
-const SECRETS_FILE = ".streamlit/secrets.toml";
+// Packaging these files would ship local credentials into the deployed
+// Worker and any CI artifact, and .gitignore is deliberately not consulted —
+// so their presence is a hard, loud error rather than a silent exclusion.
+// .dev.vars / .dev.vars.<environment> are Cloudflare's own local secret
+// files; .streamlit/secrets.toml is Streamlit's.
+const SECRET_FILE_NAMES = [".streamlit/secrets.toml", ".dev.vars"];
+
+async function findSecretFile(appDir: string): Promise<string | null> {
+  for (const name of SECRET_FILE_NAMES) {
+    if ((await fs.lstat(path.join(appDir, name)).catch(() => null)) != null) {
+      return name;
+    }
+  }
+  const topLevel = await fs.readdir(appDir).catch(() => []);
+  return topLevel.find((name) => name.startsWith(".dev.vars.")) ?? null;
+}
 
 const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024;
 
@@ -77,12 +91,10 @@ export async function mirrorAppDir(
   }
   const resolvedExcludes = new Set(excludeDirs.map((dir) => path.resolve(dir)));
 
-  const secretsStat = await fs
-    .lstat(path.join(appDir, SECRETS_FILE))
-    .catch(() => null);
-  if (secretsStat != null) {
+  const secretFile = await findSecretFile(appDir);
+  if (secretFile != null) {
     throw new Error(
-      `The project contains ${SECRETS_FILE}, which must never be packaged into the deployed Worker. Remove it from the project directory (or keep it outside the app path); supply production secrets through Cloudflare bindings instead — vars in wrangler.jsonc or encrypted secrets via \`wrangler secret put\`, both readable from the Worker's env.`,
+      `The project contains ${secretFile}, which must never be packaged into the deployed Worker. Remove it from the project directory (or keep it outside the app path). Supply sensitive values as encrypted secrets via \`wrangler secret put\` and plain configuration as vars in wrangler.jsonc; both surface to the app through st.secrets and stlite_cloudflare.get_env().`,
     );
   }
 

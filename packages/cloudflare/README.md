@@ -116,9 +116,11 @@ what to change. Specifics:
   name), and generated migration tags are made unique against yours.
   A Durable Object deployment can convert to `--plain-worker` by marking
   `StliteServer` deleted or transferred (tombstones are honored in both
-  declaration styles); live states are what plain mode rejects. Named
-  WorkerEntrypoint exports other than `Default` — and unknown export kinds —
-  are rejected, since the generated entry cannot provide them. Bindings to
+  declaration styles); live states are what plain mode rejects. WorkerEntrypoint exports other than the reserved `default` key — and
+  unknown export kinds — are rejected, since the generated entry provides
+  only the default entrypoint; each Durable Object lifecycle state is
+  validated as a discriminated union (required and forbidden fields,
+  nonempty and live rename targets). Bindings to
   another Worker's classes (`script_name`) are preserved; bindings to other
   local classes are rejected. Every supported shape is
   validated against `wrangler deploy --dry-run` in CI

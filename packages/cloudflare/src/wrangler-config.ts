@@ -288,11 +288,21 @@ function applyDurableObjectDeclaration(
         continue;
       }
       if (decl.type === "worker") {
-        // Named WorkerEntrypoint exports: the generated src/entry.py
-        // provides exactly one, `Default`.
-        if (cls !== "Default") {
+        // WorkerEntrypoint exports: the generated src/entry.py provides
+        // exactly one — the default entrypoint, whose reserved exports key
+        // is lowercase "default" (the Python class implementing it is named
+        // Default, but the configuration key does not follow the class
+        // name).
+        if (cls !== "default") {
           conflicts.push(
-            `"${prefix}exports.${cls}" declares a WorkerEntrypoint export, but the generated src/entry.py exports only Default${durableObject ? " (and the StliteServer Durable Object)" : ""}.`,
+            `"${prefix}exports.${cls}" declares a WorkerEntrypoint export, but the generated src/entry.py provides only the default entrypoint (exports key "default")${durableObject ? " and the StliteServer Durable Object" : ""}.`,
+          );
+        }
+        // Worker exports are always live; a state, when supplied, may only
+        // be "created".
+        if (decl.state != null && decl.state !== "created") {
+          conflicts.push(
+            `"${prefix}exports.${cls}.state" is ${JSON.stringify(decl.state)}, but a WorkerEntrypoint export is always live (only "created" is valid).`,
           );
         }
         continue;
@@ -320,15 +330,59 @@ function applyDurableObjectDeclaration(
       // "created" AND "expecting-transfer" are both LIVE classes (the latter
       // is a live receiving-side class awaiting a namespace transfer).
       const isLive = state === "created" || state === "expecting-transfer";
-      if (state === "renamed" && typeof decl.renamed_to !== "string") {
-        conflicts.push(
-          `"${prefix}exports.${cls}" has state "renamed" but no renamed_to target.`,
-        );
+      // Each lifecycle state is a discriminated-union variant with its own
+      // required and forbidden properties.
+      const stateSchema: Record<
+        string,
+        { required: string[]; forbidden: string[] }
+      > = {
+        created: {
+          required: [],
+          forbidden: ["renamed_to", "transferred_to", "transfer_from"],
+        },
+        deleted: {
+          required: [],
+          forbidden: [
+            "storage",
+            "renamed_to",
+            "transferred_to",
+            "transfer_from",
+          ],
+        },
+        renamed: {
+          required: ["renamed_to"],
+          forbidden: ["storage", "transferred_to", "transfer_from"],
+        },
+        transferred: {
+          required: ["transferred_to"],
+          forbidden: ["storage", "renamed_to", "transfer_from"],
+        },
+        "expecting-transfer": {
+          required: ["storage", "transfer_from"],
+          forbidden: ["renamed_to", "transferred_to"],
+        },
+      };
+      const schema = stateSchema[state as string];
+      for (const field of schema.required) {
+        const fieldValue = decl[field];
+        if (
+          fieldValue == null ||
+          (typeof fieldValue === "string" && fieldValue === "")
+        ) {
+          conflicts.push(
+            `"${prefix}exports.${cls}" has state ${JSON.stringify(state)}, which requires a nonempty ${field}.`,
+          );
+        }
       }
-      if (state === "transferred" && typeof decl.transferred_to !== "string") {
-        conflicts.push(
-          `"${prefix}exports.${cls}" has state "transferred" but no transferred_to target.`,
-        );
+      for (const field of schema.forbidden) {
+        if (decl[field] != null) {
+          conflicts.push(
+            `"${prefix}exports.${cls}" has state ${JSON.stringify(state)}, which forbids ${field}.`,
+          );
+        }
+      }
+      if (state === "renamed" && decl.renamed_to === cls) {
+        conflicts.push(`"${prefix}exports.${cls}" is renamed to itself.`);
       }
       if (cls === "StliteServer") {
         if (!durableObject) {
@@ -372,6 +426,32 @@ function applyDurableObjectDeclaration(
     }
     if (durableObject && asObject(merged.StliteServer) == null) {
       merged.StliteServer = { type: "durable-object", storage: "sqlite" };
+    }
+    // Rename targets must exist as live Durable Object entries in the same
+    // map — checked after completion so the generated StliteServer counts.
+    for (const [cls, rawDecl] of Object.entries(merged)) {
+      const decl = asObject(rawDecl);
+      if (
+        decl == null ||
+        decl.type !== "durable-object" ||
+        decl.state !== "renamed" ||
+        typeof decl.renamed_to !== "string" ||
+        decl.renamed_to === "" ||
+        decl.renamed_to === cls
+      ) {
+        continue;
+      }
+      const target = asObject(merged[decl.renamed_to]);
+      const targetState = target?.state ?? "created";
+      const targetLive =
+        target != null &&
+        target.type === "durable-object" &&
+        (targetState === "created" || targetState === "expecting-transfer");
+      if (!targetLive) {
+        conflicts.push(
+          `"${prefix}exports.${cls}" is renamed to ${JSON.stringify(decl.renamed_to)}, which is not a live Durable Object entry in the same exports map.`,
+        );
+      }
     }
     config.exports = merged;
     return;

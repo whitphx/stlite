@@ -692,55 +692,122 @@ describe("expecting-transfer exports state", () => {
     );
   });
 
-  it("validates state-specific required properties", () => {
+  it("validates each lifecycle state as a discriminated union", () => {
+    const rejected: [string, RegExp][] = [
+      [
+        `{ "type": "durable-object", "state": "renamed" }`,
+        /state "renamed", which requires a nonempty renamed_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "renamed", "renamed_to": "" }`,
+        /requires a nonempty renamed_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "renamed", "renamed_to": "Old" }`,
+        /renamed to itself/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "renamed", "renamed_to": "Ghost" }`,
+        /not a live Durable Object entry/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "transferred" }`,
+        /requires a nonempty transferred_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "deleted", "storage": "sqlite" }`,
+        /state "deleted", which forbids storage/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "transferred", "transferred_to": "x", "renamed_to": "y" }`,
+        /forbids renamed_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "vaporized" }`,
+        /not a known Durable Object state/,
+      ],
+    ];
+    for (const [decl, pattern] of rejected) {
+      assert.throws(
+        () =>
+          build({
+            durableObject: true,
+            customJsonc: `{ "exports": { "Old": ${decl} } }`,
+          }),
+        pattern,
+        `expected rejection for ${decl}`,
+      );
+    }
+
+    // No rename tombstone can be valid here at all: the target must be a
+    // live local entry, the only live class this target supports is
+    // StliteServer, and adopting its name is rejected separately.
     assert.throws(
       () =>
         build({
           durableObject: true,
           customJsonc: `{ "exports": {
-            "Old": { "type": "durable-object", "state": "renamed" },
+            "Old": { "type": "durable-object", "state": "renamed", "renamed_to": "StliteServer" },
           } }`,
         }),
-      /state "renamed" but no renamed_to/,
+      /must not adopt foreign Durable Object data/,
     );
+  });
+
+  it("rejects a plain-worker StliteServer rename tombstone", () => {
+    // deleted/transferred tombstones convert a DO deployment to plain mode,
+    // but a rename requires a live local target, which plain mode cannot
+    // export.
     assert.throws(
       () =>
         build({
-          durableObject: true,
           customJsonc: `{ "exports": {
-            "Old": { "type": "durable-object", "state": "transferred" },
+            "StliteServer": { "type": "durable-object", "state": "renamed", "renamed_to": "Other" },
           } }`,
         }),
-      /state "transferred" but no transferred_to/,
-    );
-    assert.throws(
-      () =>
-        build({
-          durableObject: true,
-          customJsonc: `{ "exports": {
-            "Old": { "type": "durable-object", "state": "vaporized" },
-          } }`,
-        }),
-      /not a known Durable Object state/,
+      /not a live Durable Object entry/,
     );
   });
 });
 
 describe("non-Durable-Object exports and DO-to-plain conversion", () => {
-  it("allows a Default worker export and rejects other named worker exports", () => {
+  it("allows the reserved lowercase default worker export only", () => {
     const config = build({
       durableObject: true,
-      customJsonc: `{ "exports": { "Default": { "type": "worker" } } }`,
+      customJsonc: `{ "exports": { "default": { "type": "worker" } } }`,
     });
-    assert.deepEqual(config.exports.Default, { type: "worker" });
+    assert.deepEqual(config.exports.default, { type: "worker" });
+
+    // The Python class implementing the default entrypoint is named Default,
+    // but the exports key stays lowercase; other named entrypoints don't
+    // exist in the generated module.
+    for (const name of ["Default", "Admin"]) {
+      assert.throws(
+        () =>
+          build({
+            durableObject: true,
+            customJsonc: `{ "exports": { ${JSON.stringify(name)}: { "type": "worker" } } }`,
+          }),
+        /provides only the default entrypoint/,
+        `expected rejection for ${name}`,
+      );
+    }
+  });
+
+  it("validates the worker export state field", () => {
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "exports": { "default": { "type": "worker", "state": "created" } } }`,
+    });
+    assert.equal(config.exports.default.state, "created");
 
     assert.throws(
       () =>
         build({
           durableObject: true,
-          customJsonc: `{ "exports": { "Admin": { "type": "worker" } } }`,
+          customJsonc: `{ "exports": { "default": { "type": "worker", "state": "deleted" } } }`,
         }),
-      /exports\.Admin.*exports only Default/,
+      /always live/,
     );
   });
 

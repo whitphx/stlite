@@ -725,3 +725,81 @@ describe("expecting-transfer exports state", () => {
     );
   });
 });
+
+describe("non-Durable-Object exports and DO-to-plain conversion", () => {
+  it("allows a Default worker export and rejects other named worker exports", () => {
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "exports": { "Default": { "type": "worker" } } }`,
+    });
+    assert.deepEqual(config.exports.Default, { type: "worker" });
+
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": { "Admin": { "type": "worker" } } }`,
+        }),
+      /exports\.Admin.*exports only Default/,
+    );
+  });
+
+  it("rejects unknown export kinds and invalid entries", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": { "Thing": { "type": "queue-consumer" } } }`,
+        }),
+      /not a supported export kind/,
+    );
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": { "Thing": "nope" } }`,
+        }),
+      /not a valid export declaration/,
+    );
+  });
+
+  it("permits a DO-to-plain conversion via an exports tombstone", () => {
+    const config = build({
+      customJsonc: `{ "exports": {
+        "StliteServer": { "type": "durable-object", "state": "deleted" },
+      } }`,
+    });
+    assert.equal(config.exports.StliteServer.state, "deleted");
+
+    const transferred = build({
+      customJsonc: `{ "exports": {
+        "StliteServer": { "type": "durable-object", "state": "transferred", "transferred_to": "other-worker" },
+      } }`,
+    });
+    assert.equal(transferred.exports.StliteServer.state, "transferred");
+
+    // Live states stay rejected in plain-worker mode.
+    for (const live of [
+      `{ "type": "durable-object", "storage": "sqlite" }`,
+      `{ "type": "durable-object", "state": "expecting-transfer", "storage": "sqlite", "transfer_from": "x" }`,
+    ]) {
+      assert.throws(
+        () =>
+          build({
+            customJsonc: `{ "exports": { "StliteServer": ${live} } }`,
+          }),
+        /plain-worker entry exports no Durable Object classes/,
+      );
+    }
+  });
+
+  it("permits a DO-to-plain conversion via legacy migrations", () => {
+    const config = build({
+      customJsonc: `{ "migrations": [
+        { "tag": "v1", "new_sqlite_classes": ["StliteServer"] },
+        { "tag": "v2", "deleted_classes": ["StliteServer"] },
+      ] }`,
+    });
+    assert.equal(config.migrations.length, 2);
+  });
+});

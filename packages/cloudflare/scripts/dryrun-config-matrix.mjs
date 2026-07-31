@@ -83,6 +83,16 @@ const shapes = {
       "Gone": { "type": "durable-object", "state": "transferred", "transferred_to": "other-worker" },
     } }`,
   },
+  "do-exports-default-worker": {
+    durableObject: true,
+    customJsonc: `{ "exports": { "Default": { "type": "worker" } } }`,
+  },
+  "plain-exports-tombstone": {
+    durableObject: false,
+    customJsonc: `{ "exports": {
+      "StliteServer": { "type": "durable-object", "state": "deleted" },
+    } }`,
+  },
 };
 
 const original = await fs.readFile(

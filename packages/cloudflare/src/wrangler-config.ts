@@ -281,7 +281,26 @@ function applyDurableObjectDeclaration(
     const merged = { ...exportsCfg };
     for (const [cls, rawDecl] of Object.entries(merged)) {
       const decl = asObject(rawDecl);
-      if (decl == null || decl.type !== "durable-object") {
+      if (decl == null) {
+        conflicts.push(
+          `"${prefix}exports.${cls}" is not a valid export declaration object.`,
+        );
+        continue;
+      }
+      if (decl.type === "worker") {
+        // Named WorkerEntrypoint exports: the generated src/entry.py
+        // provides exactly one, `Default`.
+        if (cls !== "Default") {
+          conflicts.push(
+            `"${prefix}exports.${cls}" declares a WorkerEntrypoint export, but the generated src/entry.py exports only Default${durableObject ? " (and the StliteServer Durable Object)" : ""}.`,
+          );
+        }
+        continue;
+      }
+      if (decl.type !== "durable-object") {
+        conflicts.push(
+          `"${prefix}exports.${cls}.type" is ${JSON.stringify(decl.type)}, which is not a supported export kind (durable-object or worker).`,
+        );
         continue;
       }
       const state = decl.state ?? "created";
@@ -313,9 +332,16 @@ function applyDurableObjectDeclaration(
       }
       if (cls === "StliteServer") {
         if (!durableObject) {
-          conflicts.push(
-            `"${prefix}exports.StliteServer" declares a live local Durable Object class, but a --plain-worker entry exports no Durable Object classes.`,
-          );
+          // Plain-Worker mode: the class cannot be live, but a deletion or
+          // transfer tombstone is exactly how a Durable Object deployment
+          // converts to --plain-worker — the history stays, the class ends
+          // not-live.
+          if (isLive) {
+            conflicts.push(
+              `"${prefix}exports.StliteServer" declares a live local Durable Object class, but a --plain-worker entry exports no Durable Object classes. To convert a Durable Object deployment, mark it deleted or transferred instead.`,
+            );
+          }
+          continue;
         }
         if (decl.storage != null && decl.storage !== "sqlite") {
           conflicts.push(

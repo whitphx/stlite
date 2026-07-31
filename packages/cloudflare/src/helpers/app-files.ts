@@ -14,6 +14,11 @@ const MANDATORY_EXCLUSIONS = [
   ".env",
   ".env.*",
   "*.env",
+  // Conventional local credential files; narrow names only, never broad
+  // content patterns, so legitimate app data cannot be swept up.
+  ".streamlit/secrets.toml",
+  ".netrc",
+  ".aws/",
   ".venv/",
   "venv/",
   ".direnv/",
@@ -29,6 +34,11 @@ const MANDATORY_EXCLUSIONS = [
   ".stliteignore",
   "wrangler.jsonc",
 ];
+
+// Packaging this file would ship local credentials into the deployed Worker
+// and any CI artifact, and .gitignore is deliberately not consulted — so its
+// presence is a hard, loud error rather than a silent exclusion.
+const SECRETS_FILE = ".streamlit/secrets.toml";
 
 const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024;
 
@@ -66,6 +76,15 @@ export async function mirrorAppDir(
     userMatcher.add(stliteignore);
   }
   const resolvedExcludes = new Set(excludeDirs.map((dir) => path.resolve(dir)));
+
+  const secretsStat = await fs
+    .lstat(path.join(appDir, SECRETS_FILE))
+    .catch(() => null);
+  if (secretsStat != null) {
+    throw new Error(
+      `The project contains ${SECRETS_FILE}, which must never be packaged into the deployed Worker. Remove it from the project directory (or keep it outside the app path); supply production secrets through Cloudflare bindings instead — vars in wrangler.jsonc or encrypted secrets via \`wrangler secret put\`, both readable from the Worker's env.`,
+    );
+  }
 
   await fs.rm(destDir, { recursive: true, force: true });
   await fs.mkdir(destDir, { recursive: true });
@@ -121,6 +140,27 @@ export async function mirrorAppDir(
         if (target.isDirectory()) {
           throw new Error(
             `Directory symlinks cannot be packaged: ${rel}. Copy the directory into the project instead.`,
+          );
+        }
+        if (!target.isFile()) {
+          throw new Error(
+            `Symlink does not resolve to a regular file: ${rel} -> ${realSrc}`,
+          );
+        }
+        // Exclusions apply to the resolved target too — otherwise a benign
+        // visible name could smuggle an excluded file's content into the
+        // package (e.g. public_config.toml -> .streamlit/secrets.toml).
+        const realRelPosix = realRel.split(path.sep).join("/");
+        const targetInExcludedDir = [...resolvedExcludes].some(
+          (dir) => realSrc === dir || realSrc.startsWith(dir + path.sep),
+        );
+        if (
+          targetInExcludedDir ||
+          mandatoryMatcher.ignores(realRelPosix) ||
+          userMatcher.ignores(realRelPosix)
+        ) {
+          throw new Error(
+            `Symlink ${rel} resolves to ${realRelPosix}, which is excluded from packaging; its content cannot be included under another name. Remove the symlink or point it at packageable content.`,
           );
         }
         await fs.copyFile(realSrc, path.join(destDir, rel));

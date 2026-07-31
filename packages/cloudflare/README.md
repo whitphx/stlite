@@ -141,11 +141,18 @@ The whole project directory is mirrored into the deployed app package,
 except:
 
 - always excluded (not configurable): `.git/`, `.env` / `.env.*` / `*.env`,
-  `.venv/`, `venv/`, `.direnv/`, `node_modules/`, `__pycache__/`,
-  `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.wrangler/`,
-  `.venv-workers/`, `.DS_Store`, plus the build's own output and cache
-  directories, and the two build inputs consumed by the scaffold
+  `.netrc`, `.aws/`, `.venv/`, `venv/`, `.direnv/`, `node_modules/`,
+  `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`,
+  `.wrangler/`, `.venv-workers/`, `.DS_Store`, plus the build's own output
+  and cache directories, and the two build inputs consumed by the scaffold
   (`wrangler.jsonc`, `.stliteignore`)
+- `.streamlit/secrets.toml` goes further: its presence **fails the build**
+  (loudly, so local credentials are never silently dropped or shipped) — a
+  `.stliteignore` negation cannot re-include it. Supply production secrets
+  through Cloudflare bindings instead: `vars` in `wrangler.jsonc`, or
+  encrypted secrets via `wrangler secret put`, both readable from the
+  Worker's `env`. Other `.streamlit/` config (e.g. `config.toml`) packages
+  normally.
 - anything matched by a `.stliteignore` file in the project root
   (gitignore syntax); `.gitignore` is deliberately not applied, since
   projects often gitignore data files their app needs at runtime
@@ -154,7 +161,9 @@ Symlinks never survive into the package: a file symlink whose target
 resolves inside the project is dereferenced into a regular file, while
 symlinks that resolve outside the project, broken symlinks, and directory
 symlinks fail the build (the Worker-side archive extraction rejects unsafe
-links, so they could never deploy anyway).
+links, so they could never deploy anyway). Exclusions apply to the resolved
+target as well as the visible path, so a symlink cannot smuggle an excluded
+file's content into the package under another name.
 
 The build prints a packaging summary, including any file of 5 MiB or more
 that made it into the package. Exclusions are name-based only — no

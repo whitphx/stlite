@@ -290,3 +290,132 @@ describe("mirrorAppDir symlink policy", () => {
     assert.deepEqual(await listFiles(dest), ["streamlit_app.py"]);
   });
 });
+
+describe("mirrorAppDir secrets and symlink-target exclusions", () => {
+  let root: string;
+  let symlinksAvailable = true;
+
+  before(async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), "stlite-appfiles-sec-"));
+    try {
+      await fs.writeFile(path.join(root, ".t"), "");
+      await fs.symlink(path.join(root, ".t"), path.join(root, ".probe"));
+    } catch {
+      symlinksAvailable = false;
+    }
+  });
+
+  after(async () => {
+    await fs.rm(root, { recursive: true, force: true });
+  });
+
+  it("fails loudly when .streamlit/secrets.toml exists", async () => {
+    const appDir = path.join(root, "app");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".streamlit/secrets.toml": 'password = "hunter2"',
+      ".streamlit/config.toml": "[theme]",
+    });
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest")),
+      /secrets\.toml.*Cloudflare bindings.*wrangler secret put/s,
+    );
+  });
+
+  it("fails even when .stliteignore tries to re-include the secrets file", async () => {
+    const appDir = path.join(root, "app2");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".streamlit/secrets.toml": 'password = "hunter2"',
+      ".stliteignore": "!.streamlit/secrets.toml\n",
+    });
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest2")),
+      /must never be packaged/,
+    );
+  });
+
+  it("keeps non-secret .streamlit config packageable", async () => {
+    const appDir = path.join(root, "app3");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".streamlit/config.toml": "[theme]",
+    });
+
+    const dest = path.join(root, "dest3");
+    await mirrorAppDir(appDir, dest);
+
+    assert.deepEqual(await listFiles(dest), [
+      ".streamlit/config.toml",
+      "streamlit_app.py",
+    ]);
+  });
+
+  it("rejects symlinks whose resolved target is excluded", async (t) => {
+    if (!symlinksAvailable) return t.skip();
+    const cases: [string, string][] = [
+      ["settings.py", ".env"],
+      ["git-config-copy", ".git/config"],
+      ["dependency.py", "node_modules/private-package/config.py"],
+    ];
+    for (const [linkName, targetRel] of cases) {
+      const appDir = path.join(root, `app-${linkName.replace(/[^a-z]/g, "")}`);
+      await writeTree(appDir, {
+        "streamlit_app.py": "",
+        [targetRel]: "secret-content",
+      });
+      await fs.symlink(
+        path.join(appDir, targetRel),
+        path.join(appDir, linkName),
+      );
+
+      await assert.rejects(
+        mirrorAppDir(
+          appDir,
+          path.join(root, `dest-${linkName.replace(/[^a-z]/g, "")}`),
+        ),
+        new RegExp(`${linkName}.*resolves to.*excluded`),
+        `expected target-exclusion rejection for ${linkName} -> ${targetRel}`,
+      );
+    }
+  });
+
+  it("rejects a symlink to the secrets file via the secrets check", async (t) => {
+    if (!symlinksAvailable) return t.skip();
+    const appDir = path.join(root, "app-secretlink");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".streamlit/secrets.toml": 'password = "hunter2"',
+    });
+    await fs.symlink(
+      path.join(appDir, ".streamlit/secrets.toml"),
+      path.join(appDir, "public_config.toml"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-secretlink")),
+      /must never be packaged/,
+    );
+  });
+
+  it("rejects a symlink to a file excluded by .stliteignore", async (t) => {
+    if (!symlinksAvailable) return t.skip();
+    const appDir = path.join(root, "app-userlink");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      "draft.md": "internal notes",
+      ".stliteignore": "*.md\n",
+    });
+    await fs.symlink(
+      path.join(appDir, "draft.md"),
+      path.join(appDir, "included.py"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-userlink")),
+      /included\.py resolves to draft\.md.*excluded/,
+    );
+  });
+});

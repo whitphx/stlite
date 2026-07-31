@@ -87,11 +87,31 @@ settings the Worker cannot run (or cannot run safely) without are always
 enforced: `main`, the `python_workers` and
 `no_handle_cross_request_promise_resolution` compatibility flags, and the
 `assets` block (`./assets` directory, `ASSETS` binding, SPA
-`not_found_handling`, and `run_worker_first` for Streamlit's server
+`not_found_handling`, and `run_worker_first` covering Streamlit's server
 namespaces plus `/_stlite/*`, which keeps the packed runtime and your app
 source from being served as public static files). A custom value that
 conflicts with a required setting fails the build with an error explaining
-what to change.
+what to change. Specifics:
+
+- `run_worker_first: true` is preserved (it is stronger than the required
+  route list); `false` is rejected; in arrays, your patterns are kept and
+  the required routes appended, but a `!` exception pattern that could
+  match a protected namespace is rejected — Cloudflare applies exceptions
+  over positive patterns regardless of order, so no positive entry could
+  win it back.
+- Named environments (`env.<name>`) get the same treatment: overrides of
+  `main`, `compatibility_flags`, or `assets` are validated and merged like
+  the top level, and — since bindings are not inherited — each environment
+  receives its own `STLITE_SERVER` Durable Object binding in the default
+  mode.
+- Durable Object declarations follow whichever style your config already
+  uses: wrangler's `exports` map or the legacy `migrations` array (never
+  both — they are mutually exclusive). `StliteServer` requires SQLite
+  storage, must not be deleted or renamed, and generated migration tags are
+  made unique against yours. Bindings to another Worker's classes
+  (`script_name`) are preserved; bindings to other local classes are
+  rejected, since the generated `src/entry.py` exports only `Default` (and
+  `StliteServer` in the default mode).
 
 ## Known limitations
 

@@ -1,3 +1,11 @@
+"""ASGI WebSocket bridge for Cloudflare Workers.
+
+Kept convergent with workers-py's `asgi.process_websocket`, where several of
+this file's fixes have been upstreamed; improvements that emerge in upstream
+review are ported back here:
+https://github.com/cloudflare/workers-py/blob/main/packages/runtime-sdk/src/asgi.py
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -56,6 +64,7 @@ class AsgiWebSocketSession:
         self._incoming.put_nowait({"type": "websocket.connect"})
         self._task.add_done_callback(self._reject_unfinished_handshake)
         self._task.add_done_callback(self._close_abandoned_socket)
+        self._task.add_done_callback(self._log_app_failure)
         return self._task
 
     async def wait_for_handshake(self) -> WebSocketHandshake:
@@ -140,7 +149,31 @@ class AsgiWebSocketSession:
         failed = not task.cancelled() and task.exception() is not None
         close = getattr(self._socket, "close", None)
         if callable(close):
-            close(1011 if failed else 1000, "")
+            try:
+                close(1011 if failed else 1000, "")
+            except Exception:
+                # The peer may already have closed the socket.
+                pass
+
+    def _log_app_failure(self, task: asyncio.Task[None]) -> None:
+        # Calling task.exception() also marks the failure retrieved, so a
+        # crash the runner never awaits (it only awaits the handshake) doesn't
+        # surface as asyncio's "Task exception was never retrieved".
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is None:
+            return
+        handshake = self._handshake
+        if (
+            handshake is not None
+            and handshake.done()
+            and not handshake.cancelled()
+            and handshake.exception() is error
+        ):
+            # The runner awaits the handshake and reports this failure itself.
+            return
+        _LOGGER.error("WebSocket ASGI app failed after the handshake", exc_info=error)
 
 
 def build_websocket_scope(parts: WebSocketScopeParts) -> dict[str, Any]:
@@ -196,6 +229,9 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
     endpoints = js.Object.values(pair)
     client = endpoints.at(0)
     server = endpoints.at(1)
+    # Binary frames otherwise arrive as Blob (observed under wrangler dev),
+    # which cannot be read synchronously in the message callback.
+    server.binaryType = "arraybuffer"
     scope = build_websocket_scope_from_request(request)
     session = AsgiWebSocketSession(app, server, scope)
     proxies: list[Any] = []
@@ -217,24 +253,6 @@ async def run_cloudflare_websocket_asgi(app: AsgiApp, request: Any) -> Any:
         data = event.data
         if isinstance(data, str):
             session.receive_text(data)
-        elif callable(getattr(data, "arrayBuffer", None)):
-            proxy_holder: dict[str, Any] = {}
-
-            def on_blob_buffer(buffer: Any) -> None:
-                try:
-                    session.receive_bytes(to_bytes(buffer))
-                finally:
-                    proxy = proxy_holder.get("proxy")
-                    if proxy in proxies:
-                        proxies.remove(proxy)
-                    destroy = getattr(proxy, "destroy", None)
-                    if callable(destroy):
-                        destroy()
-
-            proxy = create_proxy(on_blob_buffer)
-            proxy_holder["proxy"] = proxy
-            proxies.append(proxy)
-            data.arrayBuffer().then(proxy)
         else:
             session.receive_bytes(to_bytes(data))
 

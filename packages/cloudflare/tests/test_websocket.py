@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+import logging
+
 import pytest
 
 from stlite_cloudflare.websocket import (
@@ -189,6 +192,75 @@ async def test_asgi_websocket_session_closes_socket_when_app_returns_without_clo
     await session.start()
 
     assert socket.closed == (1000, "")
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_tolerates_close_failure_on_abandoned_socket(
+    caplog,
+):
+    class ClosedPeerSocket(FakeSocket):
+        def close(self, code=1000, reason=""):
+            super().close(code, reason)
+            raise RuntimeError("peer already closed")
+
+    async def returning_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send({"type": "websocket.accept"})
+
+    socket = ClosedPeerSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(returning_app, socket, scope)
+
+    with caplog.at_level(logging.ERROR):
+        await session.start()
+        # Let the task's done callbacks (and any loop error handling their
+        # failure would trigger) run.
+        await asyncio.sleep(0)
+
+    assert socket.closed == (1000, "")
+    assert not [r for r in caplog.records if r.name == "asyncio"]
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_logs_crash_after_client_disconnect(caplog):
+    async def crashing_after_disconnect_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        await send({"type": "websocket.accept"})
+        assert (await receive())["type"] == "websocket.disconnect"
+        raise RuntimeError("boom after disconnect")
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(crashing_after_disconnect_app, socket, scope)
+
+    task = session.start()
+    session.disconnect(1001)
+    with caplog.at_level(logging.ERROR, logger="stlite_cloudflare.websocket"):
+        with pytest.raises(RuntimeError, match="boom after disconnect"):
+            await task
+
+    assert any(
+        "failed after the handshake" in record.message for record in caplog.records
+    )
+
+
+@pytest.mark.asyncio
+async def test_asgi_websocket_session_does_not_double_log_handshake_failures(caplog):
+    async def crashing_before_accept_app(scope, receive, send):
+        assert (await receive())["type"] == "websocket.connect"
+        raise RuntimeError("boom before accept")
+
+    socket = FakeSocket()
+    scope = build_websocket_scope(WebSocketScopeParts(path="/_stcore/stream"))
+    session = AsgiWebSocketSession(crashing_before_accept_app, socket, scope)
+
+    session.start()
+    with caplog.at_level(logging.ERROR, logger="stlite_cloudflare.websocket"):
+        with pytest.raises(RuntimeError, match="boom before accept"):
+            await session.wait_for_handshake()
+
+    # The runner logs handshake failures itself when the await raises.
+    assert not caplog.records
 
 
 @pytest.mark.asyncio

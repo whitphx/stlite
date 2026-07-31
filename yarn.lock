@@ -7937,6 +7937,7 @@ __metadata:
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     pyodide: "npm:0.29.3"
+    smol-toml: "npm:^1.7.1"
     typescript: "npm:^5.9.3"
     wrangler: "npm:^4.105.0"
   bin:
@@ -27447,6 +27448,13 @@ __metadata:
   version: 1.6.1
   resolution: "smol-toml@npm:1.6.1"
   checksum: 10c0/511a78722f99c7616fdb46af708de3d7e81434b5a3d58061166da73f28bfc6cae4f0cd04683f60515b9c490cd10152fce72287c960b337419c0299cc1f0f2a22
+  languageName: node
+  linkType: hard
+
+"smol-toml@npm:^1.7.1":
+  version: 1.7.1
+  resolution: "smol-toml@npm:1.7.1"
+  checksum: 10c0/c2494e19e748578cf9f81f918dd66a548dfe5a0e581ab9f980d5420f2319c882c661a62d01d216a43f2db490faaccd2185bcdb6f2ba0658eb303eda9db871d76
   languageName: node
   linkType: hard
 

@@ -375,6 +375,62 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
     );
   });
 
+  it("rejects a custom secrets.files option however it is expressed", async () => {
+    const variants = [
+      `[secrets]\nfiles = ["credentials.toml"]\n`,
+      `[secrets]\nfiles = ["/outside/credentials.toml"]\n`,
+      `[secrets]\nfiles = ["secret-dir"]\n`,
+      `[secrets]\nfiles = []\n`,
+    ];
+    for (const [i, config] of variants.entries()) {
+      const appDir = path.join(root, `app-secrets-files-${i}`);
+      await writeTree(appDir, {
+        "streamlit_app.py": "",
+        ".streamlit/config.toml": config,
+        "credentials.toml": 'API_KEY = "secret"',
+      });
+
+      await assert.rejects(
+        mirrorAppDir(appDir, path.join(root, `dest-secrets-files-${i}`)),
+        /secrets\.files.*not supported.*wrangler secret put/s,
+        `expected rejection for variant ${i}`,
+      );
+    }
+  });
+
+  it("rejects secrets.files even when config.toml is a symlink", async (t) => {
+    if (!symlinksAvailable) return t.skip();
+    const appDir = path.join(root, "app-secrets-files-link");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      "elsewhere/config.toml": `[secrets]\nfiles = ["credentials.toml"]\n`,
+    });
+    await fs.mkdir(path.join(appDir, ".streamlit"), { recursive: true });
+    await fs.symlink(
+      path.join(appDir, "elsewhere/config.toml"),
+      path.join(appDir, ".streamlit/config.toml"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-secrets-files-link")),
+      /secrets\.files.*not supported/s,
+    );
+  });
+
+  it("rejects secrets.files regardless of .stliteignore negations", async () => {
+    const appDir = path.join(root, "app-secrets-files-neg");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".streamlit/config.toml": `[secrets]\nfiles = ["credentials.toml"]\n`,
+      ".stliteignore": "!.streamlit/config.toml\n",
+    });
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-secrets-files-neg")),
+      /secrets\.files.*not supported/s,
+    );
+  });
+
   it("keeps non-secret .streamlit config packageable", async () => {
     const appDir = path.join(root, "app3");
     await writeTree(appDir, {

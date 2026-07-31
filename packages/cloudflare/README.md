@@ -114,8 +114,13 @@ what to change. Specifics:
   `StliteServer` itself requires SQLite storage, must not be deleted or
   renamed (in either direction — another class cannot be renamed onto its
   name), and generated migration tags are made unique against yours.
-  Bindings to another Worker's classes (`script_name`) are preserved;
-  bindings to other local classes are rejected. Every supported shape is
+  A Durable Object deployment can convert to `--plain-worker` by marking
+  `StliteServer` deleted or transferred (tombstones are honored in both
+  declaration styles); live states are what plain mode rejects. Named
+  WorkerEntrypoint exports other than `Default` — and unknown export kinds —
+  are rejected, since the generated entry cannot provide them. Bindings to
+  another Worker's classes (`script_name`) are preserved; bindings to other
+  local classes are rejected. Every supported shape is
   validated against `wrangler deploy --dry-run` in CI
   (`scripts/dryrun-config-matrix.mjs`), and CI exercises both deployment
   modes end-to-end: the default Durable Object build boots in local
@@ -181,8 +186,11 @@ content-type extension is excluded, so application data files always ship.
 ## Secrets and configuration
 
 `.streamlit/secrets.toml` and Cloudflare's `.dev.vars*` files never deploy
-(their presence fails the build; see above). Instead, configuration flows
-from the Worker environment:
+(their presence fails the build; see above), and a custom `secrets.files`
+option in `.streamlit/config.toml` is rejected too — the packager cannot
+recognize arbitrarily-named secret files, so the option would smuggle them
+into the archive as ordinary app data. Instead, configuration flows from the
+Worker environment:
 
 - plain configuration: `vars` in your project's `wrangler.jsonc`
 - sensitive values: encrypted secrets via `wrangler secret put`

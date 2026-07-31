@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import ignore from "ignore";
+import { parse as parseToml } from "smol-toml";
 
 /**
  * Exclusions that always apply when packaging the user's project into the
@@ -54,6 +55,37 @@ async function findSecretFile(appDir: string): Promise<string | null> {
   return topLevel.find((name) => name.startsWith(".dev.vars.")) ?? null;
 }
 
+/**
+ * Streamlit's `secrets.files` config option points the runtime at arbitrary
+ * TOML secret files or directories, which the packager cannot classify as
+ * secrets by name — a configured `credentials.toml` would mirror into the
+ * archive like any app file. This deploy target replaces file-based secrets
+ * with the Worker environment entirely, so a custom `secrets.files` is
+ * rejected outright rather than resolved.
+ */
+async function rejectCustomSecretsFiles(appDir: string): Promise<void> {
+  const configText = await fs
+    .readFile(path.join(appDir, ".streamlit", "config.toml"), "utf8")
+    .catch(() => null);
+  if (configText == null) {
+    return;
+  }
+  let config: unknown;
+  try {
+    config = parseToml(configText);
+  } catch (error) {
+    throw new Error(
+      `.streamlit/config.toml could not be parsed as TOML: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  const secrets = (config as { secrets?: { files?: unknown } }).secrets;
+  if (secrets != null && "files" in secrets) {
+    throw new Error(
+      `.streamlit/config.toml sets secrets.files, which is not supported by this deploy target: the configured secret files would be packaged into the deployed Worker as ordinary app data. Remove the option and supply secrets through Cloudflare bindings instead (encrypted secrets via \`wrangler secret put\`, plain configuration as vars); both surface through st.secrets and stlite_cloudflare.get_env().`,
+    );
+  }
+}
+
 const LARGE_FILE_THRESHOLD = 5 * 1024 * 1024;
 
 export interface AppMirrorSummary {
@@ -91,6 +123,7 @@ export async function mirrorAppDir(
   }
   const resolvedExcludes = new Set(excludeDirs.map((dir) => path.resolve(dir)));
 
+  await rejectCustomSecretsFiles(appDir);
   const secretFile = await findSecretFile(appDir);
   if (secretFile != null) {
     throw new Error(

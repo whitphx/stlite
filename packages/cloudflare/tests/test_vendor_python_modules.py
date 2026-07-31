@@ -402,3 +402,27 @@ def test_mock_packages_rejects_the_runtime_and_unknown_names(tmp_path):
         mock_packages(vendor_dir, pyproject, ["streamlit"])
     with pytest.raises(SystemExit, match="not in the vendored runtime"):
         mock_packages(vendor_dir, pyproject, ["left-pad"])
+
+
+def test_pack_modules_archive_extracts_safely_with_data_filter(tmp_path):
+    """End-to-end packaging path: the app package tars, extracts under the
+    same "data" filter the Worker's loader uses, contains no link members,
+    and the entrypoint is a readable regular file afterwards."""
+    vendor_dir = tmp_path / "python_modules"
+    app_dir = vendor_dir / "_stlite_cloudflare_app"
+    app_dir.mkdir(parents=True)
+    (app_dir / "streamlit_app.py").write_text("import streamlit as st\n")
+    (app_dir / "__init__.py").write_text("")
+    dest_dir = tmp_path / "assets"
+
+    pack_modules(vendor_dir, dest_dir)
+
+    archive = dest_dir / "extracted-modules.tar.gz"
+    with tarfile.open(archive) as tar:
+        assert not any(m.issym() or m.islnk() for m in tar.getmembers())
+        extract_target = tmp_path / "extracted"
+        tar.extractall(extract_target, filter="data")
+
+    entrypoint = extract_target / "_stlite_cloudflare_app" / "streamlit_app.py"
+    assert entrypoint.is_file()
+    assert "streamlit" in entrypoint.read_text()

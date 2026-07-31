@@ -180,3 +180,107 @@ describe("mirrorAppDir mandatory-exclusion independence", () => {
     ]);
   });
 });
+
+describe("mirrorAppDir symlink policy", () => {
+  let root: string;
+  let outsideFile: string;
+  let outsideDir: string;
+
+  before(async (t) => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), "stlite-appfiles-sym-"));
+    outsideFile = path.join(root, "outside.txt");
+    await fs.writeFile(outsideFile, "outside");
+    outsideDir = path.join(root, "outside-dir");
+    await fs.mkdir(outsideDir);
+    try {
+      await fs.symlink(outsideFile, path.join(root, ".probe"));
+    } catch {
+      t.skip("symlinks unavailable on this platform");
+    }
+  });
+
+  after(async () => {
+    await fs.rm(root, { recursive: true, force: true });
+  });
+
+  it("dereferences relative and absolute in-project file symlinks", async () => {
+    const appDir = path.join(root, "app");
+    await writeTree(appDir, { "streamlit_app.py": "real content" });
+    await fs.symlink("streamlit_app.py", path.join(appDir, "relative.py"));
+    await fs.symlink(
+      path.join(appDir, "streamlit_app.py"),
+      path.join(appDir, "absolute.py"),
+    );
+
+    const dest = path.join(root, "dest");
+    await mirrorAppDir(appDir, dest);
+
+    for (const name of ["relative.py", "absolute.py"]) {
+      const stat = await fs.lstat(path.join(dest, name));
+      assert.ok(stat.isFile() && !stat.isSymbolicLink());
+      assert.equal(
+        await fs.readFile(path.join(dest, name), "utf8"),
+        "real content",
+      );
+    }
+  });
+
+  it("rejects a symlink resolving outside the project", async () => {
+    const appDir = path.join(root, "app2");
+    await writeTree(appDir, { "streamlit_app.py": "" });
+    await fs.symlink(outsideFile, path.join(appDir, "escape.txt"));
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest2")),
+      /resolves outside the project/,
+    );
+  });
+
+  it("rejects a broken symlink", async () => {
+    const appDir = path.join(root, "app3");
+    await writeTree(appDir, { "streamlit_app.py": "" });
+    await fs.symlink(
+      path.join(appDir, "missing.txt"),
+      path.join(appDir, "broken.txt"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest3")),
+      /Broken symlink/,
+    );
+  });
+
+  it("rejects directory symlinks, including ones escaping the project", async () => {
+    const appDir = path.join(root, "app4");
+    await writeTree(appDir, { "streamlit_app.py": "", "data/x.txt": "" });
+    await fs.symlink(outsideDir, path.join(appDir, "escape-dir"));
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest4")),
+      /Directory symlinks cannot be packaged|resolves outside the project/,
+    );
+
+    const appDir2 = path.join(root, "app5");
+    await writeTree(appDir2, { "streamlit_app.py": "", "data/x.txt": "" });
+    await fs.symlink(
+      path.join(appDir2, "data"),
+      path.join(appDir2, "data-link"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir2, path.join(root, "dest5")),
+      /Directory symlinks cannot be packaged/,
+    );
+  });
+
+  it("skips symlinks under excluded paths instead of failing", async () => {
+    const appDir = path.join(root, "app6");
+    await writeTree(appDir, { "streamlit_app.py": "", ".git/HEAD": "" });
+    await fs.symlink(outsideFile, path.join(appDir, ".git", "escape"));
+
+    const dest = path.join(root, "dest6");
+    await mirrorAppDir(appDir, dest);
+
+    assert.deepEqual(await listFiles(dest), ["streamlit_app.py"]);
+  });
+});

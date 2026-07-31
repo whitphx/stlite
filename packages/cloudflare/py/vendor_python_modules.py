@@ -274,6 +274,11 @@ def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
 
     extracted_dest = dest_dir / "extracted-modules.tar.gz"
     with tarfile.open(extracted_dest, "w:gz") as tar:
+        # The Worker extracts this archive with tarfile's "data" filter,
+        # which rejects unsafe links; the app mirror already dereferences
+        # symlinks, and following any stragglers here keeps the archive
+        # link-free by construction.
+        tar.dereference = True
         for entry in real_file_entries:
             tar.add(entry, arcname=entry.name)
 

@@ -130,6 +130,12 @@ except:
   (gitignore syntax); `.gitignore` is deliberately not applied, since
   projects often gitignore data files their app needs at runtime
 
+Symlinks never survive into the package: a file symlink whose target
+resolves inside the project is dereferenced into a regular file, while
+symlinks that resolve outside the project, broken symlinks, and directory
+symlinks fail the build (the Worker-side archive extraction rejects unsafe
+links, so they could never deploy anyway).
+
 The build prints a packaging summary, including any file of 5 MiB or more
 that made it into the package. Exclusions are name-based only — no
 content-type extension is excluded, so application data files always ship.

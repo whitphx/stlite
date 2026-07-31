@@ -98,11 +98,38 @@ export async function mirrorAppDir(
         await walk(rel);
         continue;
       }
-      if (!entry.isFile() && !entry.isSymbolicLink()) {
+      if (entry.isSymbolicLink()) {
+        // Symlinks never survive into the package: the Worker-side archive
+        // extraction (tarfile filter="data") rejects unsafe links, and a
+        // link named like an excluded directory would bypass the dir-pattern
+        // exclusions. Safe in-project file links are dereferenced into
+        // regular files below; everything else is a hard error.
+        const target = await fs.stat(src).catch(() => null);
+        if (target == null) {
+          throw new Error(`Broken symlink in the project: ${rel}`);
+        }
+        const [realSrc, realApp] = await Promise.all([
+          fs.realpath(src),
+          fs.realpath(appDir),
+        ]);
+        const realRel = path.relative(realApp, realSrc);
+        if (realRel.startsWith("..") || path.isAbsolute(realRel)) {
+          throw new Error(
+            `Symlink resolves outside the project and cannot be packaged: ${rel} -> ${realSrc}`,
+          );
+        }
+        if (target.isDirectory()) {
+          throw new Error(
+            `Directory symlinks cannot be packaged: ${rel}. Copy the directory into the project instead.`,
+          );
+        }
+        await fs.copyFile(realSrc, path.join(destDir, rel));
+      } else if (entry.isFile()) {
+        await fs.cp(src, path.join(destDir, rel));
+      } else {
         summary.excludedCount += 1;
         continue;
       }
-      await fs.cp(src, path.join(destDir, rel));
       const { size } = await fs.stat(path.join(destDir, rel));
       summary.fileCount += 1;
       summary.totalBytes += size;

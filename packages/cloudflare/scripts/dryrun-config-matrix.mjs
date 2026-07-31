@@ -3,13 +3,24 @@
 // the assets/python_modules the config references.
 //
 // Usage: node dryrun-config-matrix.mjs <built-dist-dir>
-// Resolves @stlite/cloudflare from the caller's node_modules (in the
-// monorepo, run after `yarn build`; standalone, after installing the tarball).
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { buildWranglerConfig } from "@stlite/cloudflare";
+import { pathToFileURL } from "node:url";
+
+// Resolve @stlite/cloudflare from the CURRENT WORKING DIRECTORY, not from
+// this script's own location (plain ESM imports resolve from the latter,
+// which in CI is the unbuilt monorepo checkout). In the monorepo run it
+// from packages/cloudflare after `yarn build`; standalone, from the project
+// that installed the tarball.
+const requireFromCwd = createRequire(
+  path.join(process.cwd(), "resolve-anchor.js"),
+);
+const { buildWranglerConfig } = await import(
+  pathToFileURL(requireFromCwd.resolve("@stlite/cloudflare")).href
+);
 
 const distDir = process.argv[2];
 if (!distDir) {

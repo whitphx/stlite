@@ -1145,6 +1145,16 @@ jobs:
             exit 1
           fi
           curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
+          # Real-browser smoke in DO mode (playwright was installed by the
+          # plain-worker smoke step above): renders over the WebSocket
+          # session and asserts the Worker-env var surfaced via st.secrets.
+          cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/scripts/browser-smoke.mjs" ./minimal-smoke.mjs
+          STLITE_CLOUDFLARE_URL=http://127.0.0.1:8788/ STLITE_SMOKE_TIMEOUT_MS=120000 node minimal-smoke.mjs || {
+            echo "::group::wrangler dev (DO) log"
+            cat "$RUNNER_TEMP/wrangler-dev-do.log"
+            echo "::endgroup::"
+            exit 1
+          }
 
       # Every wrangler-config shape the merger supports (named environments,
       # legacy migrations, exports style, external bindings, ...) validated

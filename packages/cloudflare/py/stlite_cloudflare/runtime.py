@@ -8,6 +8,7 @@ from typing import Any
 from stlite_cloudflare._asgi import AsgiApp
 from stlite_cloudflare.media_cache import install_media_cache_mirror
 from stlite_cloudflare.package_loader import ensure_packages
+from stlite_cloudflare.worker_env import install_worker_secrets
 
 _init_task: asyncio.Task[AsgiApp] | None = None
 # Holds the ASGI lifespan handshake state, whose ``_lifespan_task`` is the
@@ -77,6 +78,9 @@ async def _create_streamlit_asgi_app(env: Any, *, mirror_media: bool) -> AsgiApp
             "server.enableCORS": True,
         }
     )
+    # The app may read st.secrets at first script run; the Worker env's
+    # string values (vars + encrypted secrets) must be in place before then.
+    install_worker_secrets()
     logging.getLogger("stlite_lib").setLevel(logging.INFO)
     prepare(str(script_path), [])
 

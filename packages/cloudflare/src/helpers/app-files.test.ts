@@ -359,7 +359,7 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
     // A symlink whose visible name is benign but whose target is an excluded
     // .dev.vars variant is rejected by the target check even when the direct
     // secret-file check is not what fires.
-    const appDir = path.join(root, "app-devvarslink");
+    const appDir = path.join(root, "app-dev-vars-link");
     await writeTree(appDir, {
       "streamlit_app.py": "",
       "nested/.dev.vars.production": "API_KEY=hunter2",
@@ -370,7 +370,7 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
     );
 
     await assert.rejects(
-      mirrorAppDir(appDir, path.join(root, "dest-devvarslink")),
+      mirrorAppDir(appDir, path.join(root, "dest-dev-vars-link")),
       /config\.txt resolves to nested\/\.dev\.vars\.production.*excluded/,
     );
   });

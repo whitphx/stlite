@@ -27680,6 +27680,7 @@ __metadata:
   resolution: "stlite-cloudflare-sample-minimal@workspace:packages/cloudflare/samples/minimal"
   dependencies:
     "@stlite/cloudflare": "workspace:^"
+    playwright: "npm:^1.61.1"
     wrangler: "npm:^4.105.0"
   languageName: unknown
   linkType: soft

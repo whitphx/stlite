@@ -178,6 +178,27 @@ The build prints a packaging summary, including any file of 5 MiB or more
 that made it into the package. Exclusions are name-based only — no
 content-type extension is excluded, so application data files always ship.
 
+## Secrets and configuration
+
+`.streamlit/secrets.toml` and Cloudflare's `.dev.vars*` files never deploy
+(their presence fails the build; see above). Instead, configuration flows
+from the Worker environment:
+
+- plain configuration: `vars` in your project's `wrangler.jsonc`
+- sensitive values: encrypted secrets via `wrangler secret put`
+
+Both kinds surface to your app in two ways, identical in the Durable Object
+and plain-Worker modes:
+
+- **`st.secrets`** — every string-valued environment entry is merged into
+  Streamlit's secrets store before the app starts, so existing
+  `st.secrets["KEY"]` code works unchanged.
+- **`stlite_cloudflare.get_env()`** — the Worker environment object itself,
+  for non-string bindings (R2 buckets, KV namespaces, ...).
+
+The minimal sample demonstrates the bridge: its `wrangler.jsonc` sets an
+`APP_MESSAGE` var that the app reads through `st.secrets`.
+
 ## Dependencies
 
 Streamlit and its runtime dependency tree are vendored automatically by the

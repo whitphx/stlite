@@ -49,6 +49,8 @@
     // Stlite
     "stlite",
     "stliteignore",
+    "dryrun",
+    "packageable",
     "serverlessly",
     "sampleapps",
     // @stlite/cli

@@ -106,12 +106,21 @@ what to change. Specifics:
   mode.
 - Durable Object declarations follow whichever style your config already
   uses: wrangler's `exports` map or the legacy `migrations` array (never
-  both — they are mutually exclusive). `StliteServer` requires SQLite
-  storage, must not be deleted or renamed, and generated migration tags are
-  made unique against yours. Bindings to another Worker's classes
-  (`script_name`) are preserved; bindings to other local classes are
-  rejected, since the generated `src/entry.py` exports only `Default` (and
-  `StliteServer` in the default mode).
+  both — they are mutually exclusive). The declaration history is replayed
+  to its effective final state: entries for classes you later deleted or
+  transferred away are preserved as history, but the only local class that
+  may end up **live** is what the generated `src/entry.py` actually
+  exports — `StliteServer` in the default mode, none with `--plain-worker`.
+  `StliteServer` itself requires SQLite storage, must not be deleted or
+  renamed (in either direction — another class cannot be renamed onto its
+  name), and generated migration tags are made unique against yours.
+  Bindings to another Worker's classes (`script_name`) are preserved;
+  bindings to other local classes are rejected. Every supported shape is
+  validated against `wrangler deploy --dry-run` in CI
+  (`scripts/dryrun-config-matrix.mjs`), and CI exercises both deployment
+  modes end-to-end: the default Durable Object build boots in local
+  workerd through the `STLITE_SERVER` routing path, and the plain-Worker
+  build runs the real-browser smoke.
 
 ## Known limitations
 

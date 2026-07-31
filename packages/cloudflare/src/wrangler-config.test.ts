@@ -336,7 +336,7 @@ describe("Durable Object configuration", () => {
             { "tag": "v2", "deleted_classes": ["StliteServer"] },
           ] }`,
         }),
-      /deletes class StliteServer/,
+      /deletes or renames class StliteServer/,
     );
     assert.throws(
       () =>
@@ -347,18 +347,19 @@ describe("Durable Object configuration", () => {
             { "tag": "v2", "renamed_classes": [{ "from": "StliteServer", "to": "Other" }] },
           ] }`,
         }),
-      /renames class StliteServer/,
+      /deletes or renames class StliteServer/,
     );
   });
 
   it("generates a unique migration tag when stlite-v1 is taken", () => {
     const config = build({
       durableObject: true,
-      customJsonc: `{ "migrations": [{ "tag": "stlite-v1", "new_sqlite_classes": ["Ignored"] }] }`,
+      customJsonc: `{ "migrations": [
+        { "tag": "stlite-v1", "new_sqlite_classes": ["Historical"] },
+        { "tag": "cleanup", "deleted_classes": ["Historical"] },
+      ] }`,
     });
-    // "Ignored" is a declaration-only entry with no binding, so it does not
-    // trip the local-class validation; the point is the fresh tag.
-    assert.deepEqual(config.migrations[1], {
+    assert.deepEqual(config.migrations[2], {
       tag: "stlite-v2",
       new_sqlite_classes: ["StliteServer"],
     });
@@ -368,13 +369,15 @@ describe("Durable Object configuration", () => {
     const config = build({
       durableObject: true,
       customJsonc: `{ "exports": {
-        "Remote": { "type": "durable-object", "storage": "sqlite" },
+        "Historical": { "type": "durable-object", "state": "deleted" },
       } }`,
     });
     assert.deepEqual(config.exports.StliteServer, {
       type: "durable-object",
       storage: "sqlite",
     });
+    // Historical entries survive untouched.
+    assert.equal(config.exports.Historical.state, "deleted");
     assert.equal(config.migrations, undefined);
   });
 
@@ -423,5 +426,152 @@ describe("Durable Object configuration", () => {
         /mutually exclusive/,
       );
     }
+  });
+});
+
+describe("Durable Object effective live-class validation", () => {
+  it("rejects an unsupported class left live in migrations", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Widget"] }] }`,
+        }),
+      /leaves local class Widget live/,
+    );
+  });
+
+  it("accepts an unsupported class introduced and later deleted", () => {
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "migrations": [
+        { "tag": "v1", "new_sqlite_classes": ["Widget"] },
+        { "tag": "v2", "deleted_classes": ["Widget"] },
+      ] }`,
+    });
+    // History preserved, StliteServer appended with a fresh tag.
+    assert.equal(config.migrations.length, 3);
+  });
+
+  it("rejects renaming another class to StliteServer", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [
+            { "tag": "v1", "new_sqlite_classes": ["Old"] },
+            { "tag": "v2", "renamed_classes": [{ "from": "Old", "to": "StliteServer" }] },
+          ] }`,
+        }),
+      /renames another class to StliteServer/,
+    );
+  });
+
+  it("rejects recreation after deletion when it ends live", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [
+            { "tag": "v1", "new_classes": ["Widget"] },
+            { "tag": "v2", "deleted_classes": ["Widget"] },
+            { "tag": "v3", "new_sqlite_classes": ["Widget"] },
+          ] }`,
+        }),
+      /leaves local class Widget live/,
+    );
+  });
+
+  it("rejects contradictory transitions", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [
+            { "tag": "v1", "new_sqlite_classes": ["Widget"] },
+            { "tag": "v2", "new_sqlite_classes": ["Widget"] },
+          ] }`,
+        }),
+      /already live/,
+    );
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [{ "tag": "v1", "deleted_classes": ["Ghost"] }] }`,
+        }),
+      /not live at that point/,
+    );
+  });
+
+  it("counts transferred-in classes as live", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "migrations": [
+            { "tag": "v1", "transferred_classes": [
+              { "from": "Old", "from_script": "other", "to": "Imported" },
+            ] },
+          ] }`,
+        }),
+      /leaves local class Imported live/,
+    );
+  });
+
+  it("rejects plain-worker configs whose history leaves any class live", () => {
+    assert.throws(
+      () =>
+        build({
+          customJsonc: `{ "migrations": [{ "tag": "v1", "new_sqlite_classes": ["StliteServer"] }] }`,
+        }),
+      /leaves local class StliteServer live/,
+    );
+  });
+
+  it("rejects a live unsupported exports entry and accepts historical ones", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Remote": { "type": "durable-object", "storage": "sqlite" },
+          } }`,
+        }),
+      /exports\.Remote.*cannot export it/,
+    );
+    const config = build({
+      durableObject: true,
+      customJsonc: `{ "exports": {
+        "Gone": { "type": "durable-object", "state": "transferred", "transferred_to": "other-worker" },
+      } }`,
+    });
+    assert.equal(config.exports.Gone.state, "transferred");
+    assert.equal(config.exports.StliteServer.storage, "sqlite");
+  });
+
+  it("rejects an exports rename that adopts the StliteServer name", () => {
+    assert.throws(
+      () =>
+        build({
+          durableObject: true,
+          customJsonc: `{ "exports": {
+            "Old": { "type": "durable-object", "state": "renamed", "renamed_to": "StliteServer" },
+          } }`,
+        }),
+      /renames another class to StliteServer/,
+    );
+  });
+
+  it("rejects a live StliteServer exports entry in plain-worker mode", () => {
+    assert.throws(
+      () =>
+        build({
+          customJsonc: `{ "exports": {
+            "StliteServer": { "type": "durable-object", "storage": "sqlite" },
+          } }`,
+        }),
+      /plain-worker entry exports no Durable Object classes/,
+    );
   });
 });

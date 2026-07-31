@@ -8,6 +8,8 @@ import { exists } from "./helpers/fsx.ts";
 import { vendor } from "./vendor.ts";
 import { buildWranglerConfig } from "./wrangler-config.ts";
 
+export { buildWranglerConfig } from "./wrangler-config.ts";
+
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",

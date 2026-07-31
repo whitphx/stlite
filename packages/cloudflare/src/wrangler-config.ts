@@ -175,14 +175,95 @@ function mergeDurableObjectBindings(
   return durable;
 }
 
+function stringItems(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
 /**
- * Declare the StliteServer Durable Object class at the top level, honoring
- * whichever declaration style the user's config already committed to:
- * wrangler's `exports` map, or the legacy `migrations` array. The two are
- * mutually exclusive, so only the style already in use is extended and both
- * are never emitted together.
+ * Replay a legacy migration history and return the set of local Durable
+ * Object classes left live at the end. Transitions are checked for internal
+ * consistency (creating a live class, deleting or renaming a class that
+ * isn't live) so a contradictory history is reported instead of silently
+ * resolved.
  */
-function applyDurableObjectDeclaration(config: Obj, conflicts: string[]): void {
+function replayMigrations(migrations: Obj[], conflicts: string[]): Set<string> {
+  const live = new Set<string>();
+  for (const migration of migrations) {
+    const tag =
+      typeof migration.tag === "string" ? migration.tag : "(untagged)";
+    const create = (cls: string) => {
+      if (live.has(cls)) {
+        conflicts.push(
+          `"migrations" tag ${JSON.stringify(tag)} creates class ${cls}, which is already live at that point.`,
+        );
+      }
+      live.add(cls);
+    };
+    for (const cls of stringItems(migration.new_classes)) {
+      create(cls);
+    }
+    for (const cls of stringItems(migration.new_sqlite_classes)) {
+      create(cls);
+    }
+    if (Array.isArray(migration.transferred_classes)) {
+      // Legacy transfers move a class IN from another Worker; the received
+      // class becomes a live local class here.
+      for (const transfer of migration.transferred_classes) {
+        const to = asObject(transfer)?.to;
+        if (typeof to === "string") {
+          create(to);
+        }
+      }
+    }
+    if (Array.isArray(migration.renamed_classes)) {
+      for (const rename of migration.renamed_classes) {
+        const from = asObject(rename)?.from;
+        const to = asObject(rename)?.to;
+        if (typeof from !== "string" || typeof to !== "string") {
+          continue;
+        }
+        if (!live.has(from)) {
+          conflicts.push(
+            `"migrations" tag ${JSON.stringify(tag)} renames class ${from}, which is not live at that point.`,
+          );
+        }
+        if (live.has(to)) {
+          conflicts.push(
+            `"migrations" tag ${JSON.stringify(tag)} renames ${from} to ${to}, which is already live.`,
+          );
+        }
+        live.delete(from);
+        live.add(to);
+      }
+    }
+    for (const cls of stringItems(migration.deleted_classes)) {
+      if (!live.has(cls)) {
+        conflicts.push(
+          `"migrations" tag ${JSON.stringify(tag)} deletes class ${cls}, which is not live at that point.`,
+        );
+      }
+      live.delete(cls);
+    }
+  }
+  return live;
+}
+
+/**
+ * Validate the Durable Object class declarations and, in Durable Object
+ * mode, ensure StliteServer is declared. Both declaration styles — wrangler's
+ * `exports` map and the legacy `migrations` array (mutually exclusive) — are
+ * replayed to the EFFECTIVE final state: historical classes that were later
+ * deleted or transferred away may remain in the history, but the only class
+ * allowed to end up live is what the generated src/entry.py actually exports
+ * (StliteServer in Durable Object mode, none in plain-Worker mode).
+ */
+function applyDurableObjectDeclaration(
+  config: Obj,
+  conflicts: string[],
+  durableObject: boolean,
+): void {
   const exportsCfg = asObject(config.exports);
   if (exportsCfg != null && config.migrations != null) {
     conflicts.push(
@@ -193,28 +274,44 @@ function applyDurableObjectDeclaration(config: Obj, conflicts: string[]): void {
 
   if (exportsCfg != null) {
     const merged = { ...exportsCfg };
-    const existing = asObject(merged.StliteServer);
-    if (existing != null) {
-      if (existing.type !== "durable-object") {
+    for (const [cls, rawDecl] of Object.entries(merged)) {
+      const decl = asObject(rawDecl);
+      if (decl == null || decl.type !== "durable-object") {
+        continue;
+      }
+      const state = decl.state ?? "created";
+      if (cls === "StliteServer") {
+        if (!durableObject) {
+          conflicts.push(
+            `"exports.StliteServer" declares a live local Durable Object class, but a --plain-worker entry exports no Durable Object classes.`,
+          );
+        }
+        if (decl.storage != null && decl.storage !== "sqlite") {
+          conflicts.push(
+            `"exports.StliteServer.storage" must be "sqlite" (the generated Durable Object requires SQLite storage), got ${JSON.stringify(decl.storage)}.`,
+          );
+        }
+        if (state !== "created") {
+          conflicts.push(
+            `"exports.StliteServer.state" is ${JSON.stringify(state)}, but the generated Worker needs the class live.`,
+          );
+        }
+        merged.StliteServer = { ...decl, storage: decl.storage ?? "sqlite" };
+        continue;
+      }
+      if (state === "created") {
         conflicts.push(
-          `"exports.StliteServer.type" must be "durable-object", got ${JSON.stringify(existing.type)}.`,
+          `"exports.${cls}" declares a live local Durable Object class, but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
+        );
+      } else if (state === "renamed" && decl.renamed_to === "StliteServer") {
+        conflicts.push(
+          `"exports.${cls}" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
         );
       }
-      if (existing.storage != null && existing.storage !== "sqlite") {
-        conflicts.push(
-          `"exports.StliteServer.storage" must be "sqlite" (the generated Durable Object requires SQLite storage), got ${JSON.stringify(existing.storage)}.`,
-        );
-      }
-      if (existing.state != null && existing.state !== "created") {
-        conflicts.push(
-          `"exports.StliteServer.state" is ${JSON.stringify(existing.state)}, but the generated Worker needs the class live.`,
-        );
-      }
-      merged.StliteServer = {
-        ...existing,
-        storage: existing.storage ?? "sqlite",
-      };
-    } else {
+      // deleted / transferred / renamed-elsewhere entries are historical
+      // record-keeping and are preserved as-is.
+    }
+    if (durableObject && asObject(merged.StliteServer) == null) {
       merged.StliteServer = { type: "durable-object", storage: "sqlite" };
     }
     config.exports = merged;
@@ -236,47 +333,62 @@ function applyDurableObjectDeclaration(config: Obj, conflicts: string[]): void {
       seenTags.add(tag);
     }
     if (
-      Array.isArray(migration.deleted_classes) &&
-      migration.deleted_classes.includes("StliteServer")
-    ) {
-      conflicts.push(
-        `"migrations" deletes class StliteServer, which the generated Worker requires.`,
-      );
-    }
-    if (
       Array.isArray(migration.renamed_classes) &&
       migration.renamed_classes.some(
-        (rename) => asObject(rename)?.from === "StliteServer",
+        (rename) => asObject(rename)?.to === "StliteServer",
       )
     ) {
       conflicts.push(
-        `"migrations" renames class StliteServer, which the generated Worker requires under that name.`,
+        `"migrations" renames another class to StliteServer; the generated Worker's StliteServer must not adopt foreign Durable Object data.`,
+      );
+    }
+    if (
+      Array.isArray(migration.new_classes) &&
+      migration.new_classes.includes("StliteServer")
+    ) {
+      conflicts.push(
+        `"migrations" declares StliteServer via new_classes (key-value storage), but the generated Durable Object requires SQLite storage: move it to new_sqlite_classes.`,
       );
     }
   }
-  const declaredSqlite = migrations.some(
-    (migration) =>
-      Array.isArray(migration.new_sqlite_classes) &&
-      migration.new_sqlite_classes.includes("StliteServer"),
-  );
-  const declaredKv = migrations.some(
-    (migration) =>
-      Array.isArray(migration.new_classes) &&
-      migration.new_classes.includes("StliteServer"),
-  );
-  if (declaredKv) {
+
+  const live = replayMigrations(migrations, conflicts);
+  if (durableObject) {
+    if (
+      Array.isArray(migrations) &&
+      migrations.some(
+        (migration) =>
+          stringItems(migration.deleted_classes).includes("StliteServer") ||
+          (Array.isArray(migration.renamed_classes) &&
+            migration.renamed_classes.some(
+              (rename) => asObject(rename)?.from === "StliteServer",
+            )),
+      )
+    ) {
+      conflicts.push(
+        `"migrations" deletes or renames class StliteServer, which the generated Worker requires under that name.`,
+      );
+    }
+    if (!live.has("StliteServer")) {
+      let tag = "stlite-v1";
+      for (let i = 2; seenTags.has(tag); i += 1) {
+        tag = `stlite-v${i}`;
+      }
+      migrations.push({ tag, new_sqlite_classes: ["StliteServer"] });
+      live.add("StliteServer");
+    }
+  }
+  for (const cls of live) {
+    if (cls === "StliteServer" && durableObject) {
+      continue;
+    }
     conflicts.push(
-      `"migrations" declares StliteServer via new_classes (key-value storage), but the generated Durable Object requires SQLite storage: move it to new_sqlite_classes.`,
+      `"migrations" history leaves local class ${cls} live, but the generated src/entry.py cannot export it. Delete or transfer it, or serve it from another Worker (script_name binding).`,
     );
   }
-  if (!declaredSqlite && !declaredKv) {
-    let tag = "stlite-v1";
-    for (let i = 2; seenTags.has(tag); i += 1) {
-      tag = `stlite-v${i}`;
-    }
-    migrations.push({ tag, new_sqlite_classes: ["StliteServer"] });
+  if (migrations.length > 0 || durableObject) {
+    config.migrations = migrations;
   }
-  config.migrations = migrations;
 }
 
 /** Enforced on the top level and on every named environment. */
@@ -378,15 +490,10 @@ export function buildWranglerConfig({
     where: "",
     topLevel: true,
   });
-  if (durableObject) {
-    // The class declaration (exports or migrations) is top-level-only in
-    // wrangler configuration and covers every environment.
-    applyDurableObjectDeclaration(config, conflicts);
-  } else if (asObject(config.exports) != null && config.migrations != null) {
-    conflicts.push(
-      `"exports" and "migrations" are mutually exclusive in wrangler configuration; keep only one Durable Object declaration style.`,
-    );
-  }
+  // The class declaration (exports or migrations) is top-level-only in
+  // wrangler configuration and covers every environment; in plain-Worker
+  // mode it must not leave any local class live.
+  applyDurableObjectDeclaration(config, conflicts, durableObject);
 
   const envs = asObject(config.env);
   if (envs != null) {

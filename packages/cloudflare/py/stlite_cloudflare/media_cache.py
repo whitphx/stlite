@@ -30,6 +30,11 @@ _CACHE_NAME = "stlite-media"
 # synthetic origin so the key is independent of the request's real host.
 _SYNTHETIC_ORIGIN = "https://stlite-media.internal"
 
+# asyncio holds only a weak reference to a running task, so a fire-and-forget
+# cache write whose Task reference is dropped can be garbage-collected before
+# it lands. Keep a strong reference here until each write completes.
+_pending_cache_writes: set[asyncio.Future[Any]] = set()
+
 
 def install_media_cache_mirror() -> None:
     """Mirror every media-file registration into the Cache API.
@@ -56,10 +61,14 @@ def install_media_cache_mirror() -> None:
             url_path = self.get_url(file_id)
             # Fire-and-forget: registration is sync, the cache write is not,
             # and serving correctness only needs the write to land before the
-            # browser's fetch (which arrives via a network round trip).
-            asyncio.ensure_future(
+            # browser's fetch (which arrives via a network round trip). Retain
+            # the task until it finishes so the loop's weak reference can't let
+            # it be collected mid-flight.
+            task = asyncio.ensure_future(
                 _cache_put(url_path, media_file.content, media_file.mimetype)
             )
+            _pending_cache_writes.add(task)
+            task.add_done_callback(_pending_cache_writes.discard)
         except Exception:
             _LOGGER.exception("Failed to mirror media file %s", file_id)
         return file_id

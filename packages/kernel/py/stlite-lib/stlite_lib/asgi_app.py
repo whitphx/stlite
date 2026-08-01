@@ -13,14 +13,28 @@ WebSocket negotiation, session middleware, etc. live in upstream Streamlit.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    import asyncio
     from collections.abc import Awaitable, Callable, MutableMapping
 
     from streamlit.starlette import App
 
     AsgiMessage = MutableMapping[str, Any]
+
+
+@dataclass
+class LifespanState:
+    """Keeps the resident lifespan alive: asyncio holds only a weak reference
+    to tasks, so ``task`` (the suspended lifespan coroutine, which keeps
+    Streamlit's runtime context open) must be strongly referenced here, and
+    setting ``shutdown_event`` lets :func:`run_lifespan_shutdown` drive it to
+    completion."""
+
+    shutdown_event: asyncio.Event
+    task: asyncio.Task[None]
 
 
 def create_app(script_path: str) -> App:
@@ -39,12 +53,11 @@ def create_app(script_path: str) -> App:
     return App(script_path)
 
 
-async def run_lifespan_startup(app: App) -> dict[str, Any]:
+async def run_lifespan_startup(app: App) -> LifespanState:
     """Drive the ASGI lifespan startup handshake against ``app``.
 
-    Returns the state dict yielded by the lifespan context manager (Starlette
-    converts ``lifespan.startup.complete`` / ``.shutdown.complete`` events into
-    ``app.state``). The caller is responsible for invoking
+    Returns the :class:`LifespanState` keeping the now-resident lifespan
+    task alive. The caller is responsible for invoking
     :func:`run_lifespan_shutdown` when the app is torn down.
 
     Note that :func:`call_asgi` rebinds ``runtime_contextvar`` for every
@@ -67,8 +80,6 @@ async def run_lifespan_startup(app: App) -> dict[str, Any]:
             return {"type": "lifespan.startup"}
         await shutdown_requested.wait()
         return {"type": "lifespan.shutdown"}
-
-    state: dict[str, Any] = {}
 
     async def send(event: AsgiMessage) -> None:
         nonlocal startup_failure
@@ -131,19 +142,13 @@ async def run_lifespan_startup(app: App) -> dict[str, Any]:
         await lifespan_task
         raise RuntimeError("ASGI lifespan exited before reporting startup completion")
 
-    state["_shutdown_event"] = shutdown_requested
-    state["_lifespan_task"] = lifespan_task
-    return state
+    return LifespanState(shutdown_event=shutdown_requested, task=lifespan_task)
 
 
-async def run_lifespan_shutdown(lifespan_state: dict[str, Any]) -> None:
+async def run_lifespan_shutdown(lifespan_state: LifespanState) -> None:
     """Signal ``lifespan.shutdown`` and wait for the lifespan task to finish."""
-    shutdown_event = lifespan_state.get("_shutdown_event")
-    lifespan_task = lifespan_state.get("_lifespan_task")
-    if shutdown_event is None or lifespan_task is None:
-        return
-    shutdown_event.set()
-    await lifespan_task
+    lifespan_state.shutdown_event.set()
+    await lifespan_state.task
 
 
 def _bytesify(value: Any) -> Any:
@@ -249,7 +254,7 @@ def make_call_asgi(
 
 async def start_resident_app(
     script_path: str, home_dir: str | None = None
-) -> tuple[App, Callable[[Any, Any, Any], Awaitable[None]], dict[str, Any]]:
+) -> tuple[App, Callable[[Any, Any, Any], Awaitable[None]], LifespanState]:
     """Create the app, run one lifespan startup, and return
     ``(app, asgi_callable, lifespan_state)``.
 

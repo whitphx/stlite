@@ -20,9 +20,9 @@ def test_successful_startup_returns_state_and_shutdown_works():
 
     async def scenario():
         state = await run_lifespan_startup(app)
-        assert not state["_lifespan_task"].done()
+        assert not state.task.done()
         await run_lifespan_shutdown(state)
-        assert state["_lifespan_task"].done()
+        assert state.task.done()
 
     asyncio.run(scenario())
 
@@ -118,8 +118,8 @@ def test_failure_leaves_no_pending_lifespan_task():
         remaining = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         assert remaining == []
         state = await run_lifespan_startup(app)
-        assert not state["_lifespan_task"].done()
-        state["_shutdown_event"].set()
+        assert not state.task.done()
+        state.shutdown_event.set()
 
     asyncio.run(scenario())
     assert started == 2

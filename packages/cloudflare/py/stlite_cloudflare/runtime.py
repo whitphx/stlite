@@ -3,20 +3,25 @@ from __future__ import annotations
 import asyncio
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from stlite_cloudflare._asgi import AsgiApp
+
+if TYPE_CHECKING:
+    # stlite_lib only becomes importable after ensure_packages() installs the
+    # packaged runtime, so the type is import-guarded.
+    from stlite_lib.asgi_app import LifespanState
 from stlite_cloudflare.media_cache import install_media_cache_mirror
 from stlite_cloudflare.package_loader import ensure_packages
 from stlite_cloudflare.worker_env import install_worker_secrets
 
 _init_task: asyncio.Task[AsgiApp] | None = None
-# Holds the ASGI lifespan handshake state, whose ``_lifespan_task`` is the
-# suspended coroutine keeping Streamlit's runtime context open. asyncio only
-# holds a *weak* reference to a task, so without a strong reference here the
-# lifespan task gets garbage-collected mid-flight, the runtime tears down, and
-# session WebSockets receive BackMsgs with no runtime left to answer them.
-_lifespan_state: dict[str, Any] | None = None
+# Holds the LifespanState whose ``task`` is the suspended coroutine keeping
+# Streamlit's runtime context open. asyncio only holds a *weak* reference to a
+# task, so without a strong reference here the lifespan task gets
+# garbage-collected mid-flight, the runtime tears down, and session WebSockets
+# receive BackMsgs with no runtime left to answer them.
+_lifespan_state: LifespanState | None = None
 
 
 async def get_streamlit_asgi_app(env: Any, *, mirror_media: bool = True) -> AsgiApp:

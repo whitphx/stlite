@@ -85,7 +85,7 @@ const shapes = {
   },
   "do-exports-default-worker": {
     durableObject: true,
-    customJsonc: `{ "exports": { "default": { "type": "worker" } } }`,
+    customJsonc: `{ "exports": { "default": { "type": "worker", "cache": { "enabled": true } } } }`,
   },
   "plain-exports-tombstone": {
     durableObject: false,

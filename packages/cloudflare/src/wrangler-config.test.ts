@@ -696,11 +696,11 @@ describe("expecting-transfer exports state", () => {
     const rejected: [string, RegExp][] = [
       [
         `{ "type": "durable-object", "state": "renamed" }`,
-        /state "renamed", which requires a nonempty renamed_to/,
+        /state "renamed", which requires a nonempty string renamed_to/,
       ],
       [
         `{ "type": "durable-object", "state": "renamed", "renamed_to": "" }`,
-        /requires a nonempty renamed_to/,
+        /requires a nonempty string renamed_to/,
       ],
       [
         `{ "type": "durable-object", "state": "renamed", "renamed_to": "Old" }`,
@@ -712,19 +712,48 @@ describe("expecting-transfer exports state", () => {
       ],
       [
         `{ "type": "durable-object", "state": "transferred" }`,
-        /requires a nonempty transferred_to/,
+        /requires a nonempty string transferred_to/,
       ],
       [
         `{ "type": "durable-object", "state": "deleted", "storage": "sqlite" }`,
-        /state "deleted", which forbids storage/,
+        /storage" is not a valid property for state "deleted"/,
       ],
       [
         `{ "type": "durable-object", "state": "transferred", "transferred_to": "x", "renamed_to": "y" }`,
-        /forbids renamed_to/,
+        /renamed_to" is not a valid property for state "transferred"/,
       ],
       [
         `{ "type": "durable-object", "state": "vaporized" }`,
         /not a known Durable Object state/,
+      ],
+      // Field TYPES are enforced, not just presence.
+      [
+        `{ "type": "durable-object", "state": null }`,
+        /state" must be a string, got null/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "transferred", "transferred_to": 42 }`,
+        /requires a nonempty string transferred_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "renamed", "renamed_to": ["x"] }`,
+        /requires a nonempty string renamed_to/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "deleted", "storage": null }`,
+        /storage" is not a valid property for state "deleted"/,
+      ],
+      [
+        `{ "type": "durable-object", "storage": "s3" }`,
+        /storage" must be "sqlite" or "legacy-kv"/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "expecting-transfer", "storage": "sqlite", "transfer_from": true }`,
+        /requires a nonempty string transfer_from/,
+      ],
+      [
+        `{ "type": "durable-object", "state": "deleted", "note": "bye" }`,
+        /note" is not a valid property for state "deleted"/,
       ],
     ];
     for (const [decl, pattern] of rejected) {
@@ -794,21 +823,43 @@ describe("non-Durable-Object exports and DO-to-plain conversion", () => {
     }
   });
 
-  it("validates the worker export state field", () => {
+  it("enforces the exact worker export schema", () => {
+    // { type: "worker", cache?: { enabled: boolean } } — nothing else, not
+    // even a state.
     const config = build({
       durableObject: true,
-      customJsonc: `{ "exports": { "default": { "type": "worker", "state": "created" } } }`,
+      customJsonc: `{ "exports": { "default": { "type": "worker", "cache": { "enabled": true } } } }`,
     });
-    assert.equal(config.exports.default.state, "created");
+    assert.deepEqual(config.exports.default.cache, { enabled: true });
 
-    assert.throws(
-      () =>
-        build({
-          durableObject: true,
-          customJsonc: `{ "exports": { "default": { "type": "worker", "state": "deleted" } } }`,
-        }),
-      /always live/,
-    );
+    for (const [decl, pattern] of [
+      [
+        `{ "type": "worker", "state": "created" }`,
+        /not a valid WorkerEntrypoint export property/,
+      ],
+      [
+        `{ "type": "worker", "cache": { "enabled": "yes" } }`,
+        /cache" must be an object with a boolean "enabled"/,
+      ],
+      [
+        `{ "type": "worker", "cache": { "enabled": true, "ttl": 60 } }`,
+        /cache" must be an object with a boolean "enabled"/,
+      ],
+      [
+        `{ "type": "worker", "extra": 1 }`,
+        /not a valid WorkerEntrypoint export property/,
+      ],
+    ] as [string, RegExp][]) {
+      assert.throws(
+        () =>
+          build({
+            durableObject: true,
+            customJsonc: `{ "exports": { "default": ${decl} } }`,
+          }),
+        pattern,
+        `expected rejection for ${decl}`,
+      );
+    }
   });
 
   it("rejects unknown export kinds and invalid entries", () => {

@@ -298,12 +298,27 @@ function applyDurableObjectDeclaration(
             `"${prefix}exports.${cls}" declares a WorkerEntrypoint export, but the generated src/entry.py provides only the default entrypoint (exports key "default")${durableObject ? " and the StliteServer Durable Object" : ""}.`,
           );
         }
-        // Worker exports are always live; a state, when supplied, may only
-        // be "created".
-        if (decl.state != null && decl.state !== "created") {
-          conflicts.push(
-            `"${prefix}exports.${cls}.state" is ${JSON.stringify(decl.state)}, but a WorkerEntrypoint export is always live (only "created" is valid).`,
-          );
+        // Wrangler's WorkerEntrypoint export schema is exactly
+        // { type: "worker", cache?: { enabled: boolean } } — no state, no
+        // other properties.
+        for (const key of Object.keys(decl)) {
+          if (key !== "type" && key !== "cache") {
+            conflicts.push(
+              `"${prefix}exports.${cls}.${key}" is not a valid WorkerEntrypoint export property (only "cache" is).`,
+            );
+          }
+        }
+        if (Object.hasOwn(decl, "cache")) {
+          const cache = asObject(decl.cache);
+          if (
+            cache == null ||
+            typeof cache.enabled !== "boolean" ||
+            Object.keys(cache).some((key) => key !== "enabled")
+          ) {
+            conflicts.push(
+              `"${prefix}exports.${cls}.cache" must be an object with a boolean "enabled" and nothing else.`,
+            );
+          }
         }
         continue;
       }
@@ -313,7 +328,13 @@ function applyDurableObjectDeclaration(
         );
         continue;
       }
-      const state = decl.state ?? "created";
+      if (Object.hasOwn(decl, "state") && typeof decl.state !== "string") {
+        conflicts.push(
+          `"${prefix}exports.${cls}.state" must be a string, got ${JSON.stringify(decl.state)}.`,
+        );
+        continue;
+      }
+      const state = (decl.state as string | undefined) ?? "created";
       const knownStates = [
         "created",
         "deleted",
@@ -321,63 +342,59 @@ function applyDurableObjectDeclaration(
         "transferred",
         "expecting-transfer",
       ];
-      if (!knownStates.includes(state as string)) {
+      if (!knownStates.includes(state)) {
         conflicts.push(
           `"${prefix}exports.${cls}.state" is ${JSON.stringify(state)}, which is not a known Durable Object state.`,
         );
         continue;
       }
+      if (
+        Object.hasOwn(decl, "storage") &&
+        decl.storage !== "sqlite" &&
+        decl.storage !== "legacy-kv"
+      ) {
+        conflicts.push(
+          `"${prefix}exports.${cls}.storage" must be "sqlite" or "legacy-kv", got ${JSON.stringify(decl.storage)}.`,
+        );
+      }
       // "created" AND "expecting-transfer" are both LIVE classes (the latter
       // is a live receiving-side class awaiting a namespace transfer).
       const isLive = state === "created" || state === "expecting-transfer";
-      // Each lifecycle state is a discriminated-union variant with its own
-      // required and forbidden properties.
+      // Each lifecycle state is a discriminated-union variant with an exact
+      // property set: string targets must be nonempty strings, and any
+      // property outside the variant — even set to null — is rejected.
       const stateSchema: Record<
         string,
-        { required: string[]; forbidden: string[] }
+        { required: string[]; allowed: string[] }
       > = {
-        created: {
-          required: [],
-          forbidden: ["renamed_to", "transferred_to", "transfer_from"],
-        },
-        deleted: {
-          required: [],
-          forbidden: [
-            "storage",
-            "renamed_to",
-            "transferred_to",
-            "transfer_from",
-          ],
-        },
+        created: { required: [], allowed: ["type", "state", "storage"] },
+        deleted: { required: [], allowed: ["type", "state"] },
         renamed: {
           required: ["renamed_to"],
-          forbidden: ["storage", "transferred_to", "transfer_from"],
+          allowed: ["type", "state", "renamed_to"],
         },
         transferred: {
           required: ["transferred_to"],
-          forbidden: ["storage", "renamed_to", "transfer_from"],
+          allowed: ["type", "state", "transferred_to"],
         },
         "expecting-transfer": {
           required: ["storage", "transfer_from"],
-          forbidden: ["renamed_to", "transferred_to"],
+          allowed: ["type", "state", "storage", "transfer_from"],
         },
       };
-      const schema = stateSchema[state as string];
+      const schema = stateSchema[state];
       for (const field of schema.required) {
         const fieldValue = decl[field];
-        if (
-          fieldValue == null ||
-          (typeof fieldValue === "string" && fieldValue === "")
-        ) {
+        if (typeof fieldValue !== "string" || fieldValue === "") {
           conflicts.push(
-            `"${prefix}exports.${cls}" has state ${JSON.stringify(state)}, which requires a nonempty ${field}.`,
+            `"${prefix}exports.${cls}" has state ${JSON.stringify(state)}, which requires a nonempty string ${field}.`,
           );
         }
       }
-      for (const field of schema.forbidden) {
-        if (decl[field] != null) {
+      for (const key of Object.keys(decl)) {
+        if (!schema.allowed.includes(key)) {
           conflicts.push(
-            `"${prefix}exports.${cls}" has state ${JSON.stringify(state)}, which forbids ${field}.`,
+            `"${prefix}exports.${cls}.${key}" is not a valid property for state ${JSON.stringify(state)}.`,
           );
         }
       }

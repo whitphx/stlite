@@ -426,3 +426,21 @@ def test_pack_modules_archive_extracts_safely_with_data_filter(tmp_path):
     entrypoint = extract_target / "_stlite_cloudflare_app" / "streamlit_app.py"
     assert entrypoint.is_file()
     assert "streamlit" in entrypoint.read_text()
+
+
+def test_mock_rejects_a_dist_sharing_a_top_level_with_a_survivor(tmp_path):
+    """Mocking a dist that shares a namespace top-level (google/) with a
+    dist that stays installed must be rejected, not silently collide with or
+    clobber the survivor's files."""
+    vendor_dir = tmp_path / "python_modules"
+    _make_dist(vendor_dir, "streamlit", ["streamlit"], ["protobuf"])
+    _make_dist(vendor_dir, "protobuf", ["google"])
+    # google-cloud is a source (nothing requires it) so it survives, and it
+    # shares the top-level "google" namespace with the mocked protobuf.
+    _make_dist(vendor_dir, "google-cloud-storage", ["google"])
+
+    with pytest.raises(SystemExit, match="shares top-level.*google"):
+        mock_packages(vendor_dir, _write_pyproject(tmp_path, []), ["protobuf"])
+
+    # The survivor's real content is untouched.
+    assert (vendor_dir / "google" / "__init__.py").read_text() == "real"

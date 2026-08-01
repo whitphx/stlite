@@ -475,6 +475,22 @@ def mock_packages(
                 entry.unlink()
         shutil.rmtree(info["dist_info"])
 
+    # A mocked dist whose top-level entry is also provided by a surviving dist
+    # (a shared namespace package) cannot be safely stubbed: the removal pass
+    # keeps that entry for the survivor, so writing a stub over it would either
+    # collide (copytree/mkdir) or clobber the survivor's files. Reject rather
+    # than corrupt the package (a namespace-safe merge is out of scope).
+    for name in sorted(mocked):
+        shared = dists[name]["top_level"] & surviving_top_level
+        if shared:
+            sys.exit(
+                f"--mock {name} cannot be applied: it shares top-level "
+                f"{sorted(shared)} with a package that stays installed, so a "
+                f"stub would collide with or overwrite that package's files. "
+                f"Drop --mock {name}, or remove the dependency that keeps the "
+                f"other package."
+            )
+
     for name in sorted(mocked):
         stub_source = _MOCK_STUBS_DIR / name
         if stub_source.is_dir():

@@ -113,9 +113,17 @@ try {
     for (const envName of [undefined, ...(envs ?? [])]) {
       const args = ["wrangler", "deploy", "--dry-run"];
       if (envName) args.push("--env", envName);
-      const result = spawnSync("npx", args, { cwd: distDir, encoding: "utf8" });
+      const result = spawnSync("npx", args, {
+        cwd: distDir,
+        encoding: "utf8",
+        timeout: 5 * 60 * 1000,
+      });
       const label = envName ? `${name} --env ${envName}` : name;
-      if (result.status === 0) {
+      if (result.error != null) {
+        // The process could not be spawned or was killed (e.g. the timeout).
+        failed = true;
+        console.error(`${label}: ERROR\n${result.error.message}`);
+      } else if (result.status === 0) {
         console.log(`${label}: OK`);
       } else {
         failed = true;

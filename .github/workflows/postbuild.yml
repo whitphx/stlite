@@ -284,11 +284,17 @@ jobs:
             const issue_number = Number(process.env.PR_NUMBER);
             const marker = "<!-- stlite-cloudflare-preview -->";
             const body = `${marker}\n🚀 **Cloudflare Workers preview** of the stlite sample: ${url}\n\n_Updated with a fresh version URL on every push to this branch._`;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number,
-            });
+            // Paginate: a long-lived PR can accumulate more than the default
+            // first page of comments, and the sticky marker may be older.
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                per_page: 100,
+              },
+            );
             const existing = comments.find((c) => c.body.includes(marker));
             if (existing) {
               await github.rest.issues.updateComment({

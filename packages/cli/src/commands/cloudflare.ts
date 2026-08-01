@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import type { CommandModule } from "yargs";
 
 interface CloudflareArgs {
@@ -77,15 +78,20 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
   // it's missing. build() owns the input validation; this handler just maps the
   // CLI args onto it and applies the `stlite cloudflare:` error prefix.
   handler: async (argv) => {
-    let cloudflare: typeof import("@stlite/cloudflare");
+    // Distinguish "the optional package isn't installed" from "it's installed
+    // but failed to load" (e.g. a broken transitive dependency, which shares
+    // the ERR_MODULE_NOT_FOUND code): resolve it first — only a resolution
+    // failure means not-installed — then import outside that catch so a real
+    // load error surfaces as itself rather than a misleading install hint.
     try {
-      cloudflare = await import("@stlite/cloudflare");
+      createRequire(import.meta.url).resolve("@stlite/cloudflare");
     } catch {
       console.error(
         "stlite cloudflare: the Cloudflare target requires @stlite/cloudflare. Install it with `npm install @stlite/cloudflare`.",
       );
       process.exit(1);
     }
+    const cloudflare = await import("@stlite/cloudflare");
 
     try {
       await cloudflare.build({

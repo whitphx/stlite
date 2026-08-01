@@ -114,3 +114,45 @@ async def test_durable_object_delegates_to_the_shared_handler(monkeypatch):
     assert await server.fetch(request) == "handled"
     # The single-instance deployment has no cross-isolate media gap.
     assert seen["args"] == (env, request, False)
+
+
+class _FakeStubNoBinding:
+    """A stub lacking the SDK-internal `_binding` (simulates an SDK change)."""
+
+    def __init__(self):
+        self.fetched_with = None
+
+    async def fetch(self, request):
+        self.fetched_with = request
+        return "wrapper-response"
+
+
+def _request_with_headers(headers):
+    request = _FakeRequest()
+    request.headers = headers
+    return request
+
+
+@pytest.mark.asyncio
+async def test_router_hard_fails_websocket_when_binding_is_missing():
+    stub = _FakeStubNoBinding()
+    router = durable.Default(None, _FakeEnv(_FakeNamespace(stub)))
+    request = _request_with_headers({"upgrade": "websocket"})
+
+    response = await router.fetch(request)
+
+    assert response.status == 500
+    # A broken WebSocket is never forwarded.
+    assert stub.fetched_with is None
+
+
+@pytest.mark.asyncio
+async def test_router_falls_back_to_wrapper_for_http_when_binding_is_missing():
+    stub = _FakeStubNoBinding()
+    router = durable.Default(None, _FakeEnv(_FakeNamespace(stub)))
+    request = _request_with_headers({})  # no upgrade header -> plain HTTP
+
+    response = await router.fetch(request)
+
+    assert response == "wrapper-response"
+    assert stub.fetched_with is request.js_object

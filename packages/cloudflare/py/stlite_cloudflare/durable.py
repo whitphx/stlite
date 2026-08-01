@@ -34,6 +34,7 @@ import logging
 from workers import DurableObject, Response, WorkerEntrypoint
 
 from stlite_cloudflare.entry import handle_request
+from stlite_cloudflare.websocket import is_websocket_upgrade
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,5 +70,24 @@ class Default(WorkerEntrypoint):
         # (observed on the edge as `/_stcore/stream - Canceled` after the
         # session had already started). The raw fetch hands the upgrade
         # response (and its `webSocket`) back untouched.
-        raw_stub = getattr(stub, "_binding", stub)
+        raw_stub = getattr(stub, "_binding", None)
+        if raw_stub is None:
+            # The private `_binding` is a workers SDK internal we depend on to
+            # bypass the fetcher wrapper. If a future SDK drops it, don't
+            # silently regress to the wrapper — that path breaks proxied
+            # WebSockets — so fail the WebSocket route loudly (HTTP still
+            # works through the wrapper).
+            _LOGGER.error(
+                "Durable Object stub has no `_binding` (workers SDK internal "
+                "changed); the wrapped fetch cannot safely proxy WebSockets. "
+                "Update stlite_cloudflare.durable for the current SDK."
+            )
+            if is_websocket_upgrade(request):
+                return Response(
+                    "stlite-cloudflare cannot proxy this WebSocket session: the "
+                    "Durable Object stub's raw binding is unavailable.",
+                    status=500,
+                    headers={"content-type": "text/plain; charset=utf-8"},
+                )
+            raw_stub = stub
         return await raw_stub.fetch(request.js_object)

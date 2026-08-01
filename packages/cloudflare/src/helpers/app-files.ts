@@ -16,10 +16,9 @@ const MANDATORY_EXCLUSIONS = [
   ".env.*",
   "*.env",
   // Conventional local credential files; narrow names only, never broad
-  // content patterns, so legitimate app data cannot be swept up.
-  ".streamlit/secrets.toml",
-  ".dev.vars",
-  ".dev.vars.*",
+  // content patterns, so legitimate app data cannot be swept up. (The
+  // fail-loud credential files — Streamlit/Cloudflare secrets — are handled
+  // by CREDENTIAL_PATTERNS below, not silently excluded here.)
   ".netrc",
   ".aws/",
   ".venv/",
@@ -38,21 +37,26 @@ const MANDATORY_EXCLUSIONS = [
   "wrangler.jsonc",
 ];
 
-// Packaging these files would ship local credentials into the deployed
-// Worker and any CI artifact, and .gitignore is deliberately not consulted —
-// so their presence is a hard, loud error rather than a silent exclusion.
-// .dev.vars / .dev.vars.<environment> are Cloudflare's own local secret
-// files; .streamlit/secrets.toml is Streamlit's.
-const SECRET_FILE_NAMES = [".streamlit/secrets.toml", ".dev.vars"];
+// Files that would ship local credentials into the deployed Worker and any CI
+// artifact if packaged, and .gitignore is deliberately not consulted — so
+// their presence anywhere in the packaged tree is a hard, loud error rather
+// than a silent exclusion. `.streamlit/secrets.toml` is Streamlit's;
+// `.dev.vars` / `.dev.vars.<environment>` are Cloudflare's. The leading
+// `**/` matches at ANY depth (a bare `.streamlit/secrets.toml` pattern, with
+// its internal slash, would be anchored to the tree root and miss a nested
+// `subapp/.streamlit/secrets.toml`). This recursive check — applied to both a
+// file's own path and any symlink's resolved target during the mirror walk —
+// is the single source of truth for credential-file detection.
+const CREDENTIAL_PATTERNS = [
+  "**/.streamlit/secrets.toml",
+  "**/.dev.vars",
+  "**/.dev.vars.*",
+];
 
-async function findSecretFile(appDir: string): Promise<string | null> {
-  for (const name of SECRET_FILE_NAMES) {
-    if ((await fs.lstat(path.join(appDir, name)).catch(() => null)) != null) {
-      return name;
-    }
-  }
-  const topLevel = await fs.readdir(appDir).catch(() => []);
-  return topLevel.find((name) => name.startsWith(".dev.vars.")) ?? null;
+function credentialFileError(description: string): Error {
+  return new Error(
+    `The project contains a credential file (${description}), which must never be packaged into the deployed Worker. Remove it from the project directory (or keep it outside the app path). Supply sensitive values as encrypted secrets via \`wrangler secret put\` and plain configuration as vars in wrangler.jsonc; both surface to the app through st.secrets and stlite_cloudflare.get_env().`,
+  );
 }
 
 /**
@@ -113,6 +117,7 @@ export async function mirrorAppDir(
   // list guarantees are never packaged; kept separate, user negations only
   // act within the user's own patterns.
   const mandatoryMatcher = ignore().add(MANDATORY_EXCLUSIONS);
+  const credentialMatcher = ignore().add(CREDENTIAL_PATTERNS);
   const userMatcher = ignore();
   const stliteignorePath = path.join(appDir, ".stliteignore");
   const stliteignore = await fs
@@ -124,12 +129,6 @@ export async function mirrorAppDir(
   const resolvedExcludes = new Set(excludeDirs.map((dir) => path.resolve(dir)));
 
   await rejectCustomSecretsFiles(appDir);
-  const secretFile = await findSecretFile(appDir);
-  if (secretFile != null) {
-    throw new Error(
-      `The project contains ${secretFile}, which must never be packaged into the deployed Worker. Remove it from the project directory (or keep it outside the app path). Supply sensitive values as encrypted secrets via \`wrangler secret put\` and plain configuration as vars in wrangler.jsonc; both surface to the app through st.secrets and stlite_cloudflare.get_env().`,
-    );
-  }
 
   await fs.rm(destDir, { recursive: true, force: true });
   await fs.mkdir(destDir, { recursive: true });
@@ -149,6 +148,12 @@ export async function mirrorAppDir(
       const rel = relDir === "" ? entry.name : `${relDir}/${entry.name}`;
       const src = path.join(appDir, relDir, entry.name);
       const matchPath = entry.isDirectory() ? `${rel}/` : rel;
+      // Fail loudly on a credential file anywhere in the packaged tree.
+      // Excluded directories are never recursed into (below), so credential
+      // files inside e.g. node_modules never reach here.
+      if (credentialMatcher.ignores(rel)) {
+        throw credentialFileError(rel);
+      }
       if (
         resolvedExcludes.has(path.resolve(src)) ||
         mandatoryMatcher.ignores(matchPath) ||
@@ -194,8 +199,11 @@ export async function mirrorAppDir(
         }
         // Exclusions apply to the resolved target too — otherwise a benign
         // visible name could smuggle an excluded file's content into the
-        // package (e.g. public_config.toml -> .streamlit/secrets.toml).
+        // package (e.g. public_config.toml -> subapp/.streamlit/secrets.toml).
         const realRelPosix = realRel.split(path.sep).join("/");
+        if (credentialMatcher.ignores(realRelPosix)) {
+          throw credentialFileError(`${rel} -> ${realRelPosix}`);
+        }
         const targetInExcludedDir = [...resolvedExcludes].some(
           (dir) => realSrc === dir || realSrc.startsWith(dir + path.sep),
         );

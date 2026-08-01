@@ -356,9 +356,8 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
     }
 
     if (!symlinksAvailable) return t.skip();
-    // A symlink whose visible name is benign but whose target is an excluded
-    // .dev.vars variant is rejected by the target check even when the direct
-    // secret-file check is not what fires.
+    // A benignly-named symlink whose target is a nested .dev.vars variant is
+    // caught by the recursive credential check (on the resolved target).
     const appDir = path.join(root, "app-dev-vars-link");
     await writeTree(appDir, {
       "streamlit_app.py": "",
@@ -371,7 +370,41 @@ describe("mirrorAppDir secrets and symlink-target exclusions", () => {
 
     await assert.rejects(
       mirrorAppDir(appDir, path.join(root, "dest-dev-vars-link")),
-      /config\.txt resolves to nested\/\.dev\.vars\.production.*excluded/,
+      /\.dev\.vars\.production.*must never be packaged/s,
+    );
+  });
+
+  it("fails loudly on a nested .streamlit/secrets.toml (not just the root)", async () => {
+    const appDir = path.join(root, "app-nested-secrets");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      "subapp/.streamlit/secrets.toml": 'password = "hunter2"',
+    });
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-nested-secrets")),
+      /subapp\/\.streamlit\/secrets\.toml.*must never be packaged/s,
+    );
+  });
+
+  it("catches a benign symlink to a secrets file in an excluded dir (target-only path)", async (t) => {
+    if (!symlinksAvailable) return t.skip();
+    // The secrets file lives under an excluded dir (.venv), so the walk never
+    // visits it directly — only the symlink's resolved-target credential
+    // check can catch it, isolating that path.
+    const appDir = path.join(root, "app-excluded-secrets-link");
+    await writeTree(appDir, {
+      "streamlit_app.py": "",
+      ".venv/x/.streamlit/secrets.toml": 'password = "hunter2"',
+    });
+    await fs.symlink(
+      path.join(appDir, ".venv/x/.streamlit/secrets.toml"),
+      path.join(appDir, "config.txt"),
+    );
+
+    await assert.rejects(
+      mirrorAppDir(appDir, path.join(root, "dest-excluded-secrets-link")),
+      /config\.txt.*\.streamlit\/secrets\.toml.*must never be packaged/s,
     );
   });
 

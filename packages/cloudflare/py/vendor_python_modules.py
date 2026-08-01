@@ -12,6 +12,7 @@ outside py/stlite_cloudflare/, which gets vendored into every deployed Worker.
 """
 
 import argparse
+import csv
 import email.parser
 import re
 import shutil
@@ -366,9 +367,13 @@ def _dist_name(dist_info: Path) -> str:
 def _dist_top_level(dist_info: Path) -> set[str]:
     """Top-level python_modules entries owned by a dist, from its RECORD."""
     top_level = set()
-    for line in (dist_info / "RECORD").read_text(encoding="utf-8").splitlines():
-        record_path = line.split(",")[0]
-        first = record_path.split("/")[0]
+    # RECORD is CSV (a path with a comma is quoted), so parse it as such
+    # rather than splitting on the first comma.
+    record_text = (dist_info / "RECORD").read_text(encoding="utf-8")
+    for row in csv.reader(record_text.splitlines()):
+        if not row:
+            continue
+        first = row[0].split("/")[0]
         if (
             not first
             or first.startswith("..")

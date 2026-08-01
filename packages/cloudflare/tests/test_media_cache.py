@@ -112,7 +112,7 @@ async def test_serve_cached_media_misses_cleanly(fake_js_env):
 
 @pytest.mark.asyncio
 async def test_media_bridges_between_isolates_in_plain_worker_mode(
-    fake_js_env, fake_storage_module, monkeypatch
+    fake_js_env, fake_storage_module
 ):
     """--plain-worker cross-isolate simulation: the session's isolate registers
     a media file, and a different isolate — whose own runtime has never seen
@@ -124,9 +124,10 @@ async def test_media_bridges_between_isolates_in_plain_worker_mode(
     for _ in range(5):
         await asyncio.sleep(0)
 
-    # Isolate B: fresh module state (no mirror installed, no in-memory file),
-    # sharing only the colo-local cache.
-    monkeypatch.setattr(media_cache, "_installed", False, raising=False)
+    # Isolate B: serve_cached_media consults only the shared colo cache, never
+    # the local in-memory storage — so an isolate whose runtime never
+    # registered the file still serves it. That cache-only read is what this
+    # asserts.
     served = await media_cache.serve_cached_media("/media/abc123.gif")
     assert served is not None
     assert served.body == b"frame-bytes"

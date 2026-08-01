@@ -82,8 +82,8 @@ async function rejectCustomSecretsFiles(appDir: string): Promise<void> {
       `.streamlit/config.toml could not be parsed as TOML: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  const secrets = (config as { secrets?: { files?: unknown } }).secrets;
-  if (secrets != null && "files" in secrets) {
+  const secrets = (config as { secrets?: unknown }).secrets;
+  if (secrets != null && typeof secrets === "object" && "files" in secrets) {
     throw new Error(
       `.streamlit/config.toml sets secrets.files, which is not supported by this deploy target: the configured secret files would be packaged into the deployed Worker as ordinary app data. Remove the option and supply secrets through Cloudflare bindings instead (encrypted secrets via \`wrangler secret put\`, plain configuration as vars); both surface through st.secrets and stlite_cloudflare.get_env().`,
     );

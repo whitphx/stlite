@@ -403,7 +403,7 @@ async function bootstrapApp(
 
   console.debug("Booting up the Streamlit ASGI app");
   const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
-  const [streamlitApp, boundAsgiApp, lifespanState] =
+  const [rawAsgiApp, boundAsgiApp, lifespanState] =
     (await asgiModule.start_resident_app(
       canonicalEntrypoint,
       appId ? getAppHomeDir(appId) : undefined,
@@ -415,7 +415,7 @@ async function bootstrapApp(
   // Must run synchronously from JS (not awaited) so the set lands in
   // the shared module context, not a task-local one — which is why
   // start_resident_app leaves it to the caller.
-  asgiModule.bind_runtime_to_current_context(streamlitApp);
+  asgiModule.bind_runtime_to_current_context(rawAsgiApp);
   console.debug("Booted up the Streamlit ASGI app");
 
   return { boundAsgiApp, lifespanState };

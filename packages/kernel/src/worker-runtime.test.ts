@@ -320,6 +320,63 @@ suite("Worker integration test running an app", async () => {
   }
 });
 
+suite("pyarrow pre-install mock through the real worker boot", async () => {
+  beforeEach(() => {
+    vitest.resetModules();
+  });
+
+  afterEach(() => {
+    vitest.restoreAllMocks();
+  });
+
+  test(
+    "a user requirement on pyarrow resolves to the stlite stub, not the real wheel",
+    { timeout: 120 * 1000 },
+    async () => {
+      const { callStartWorkerEnv } = await mockStartWorkerEnv();
+      // worker-runtime registers the pyarrow shim as a micropip mock BEFORE
+      // installing requirements, so a user requirement pulling pyarrow must
+      // resolve to the stub instead of fetching the real (heavy,
+      // stlite-unsupported) wasm wheel. Exercised through the real boot: any
+      // reordering or dropped shim source in worker-runtime.ts fails here.
+      const pyodide = await callStartWorkerEnv({
+        entrypoint: "app.py",
+        files: {
+          "app.py": { data: "import streamlit as st\nst.write('ok')\n" },
+        },
+        requirements: ["pyarrow"],
+      });
+
+      // The real wheel (22.x) was never fetched or installed — metadata
+      // reports the mock's version.
+      const installedVersion = pyodide.runPython(
+        `__import__("importlib.metadata", fromlist=["version"]).version("pyarrow")`,
+      );
+      expect(installedVersion).toBe("0.0.1");
+
+      // `import pyarrow` resolves to the stub with no post-install step.
+      const result = pyodide.runPython(`
+import importlib, sys
+importlib.invalidate_caches()
+sys.modules.pop("pyarrow", None)
+import pyarrow
+
+raised = False
+try:
+    pyarrow.Table.from_pandas()
+except NotImplementedError:
+    raised = True
+
+[pyarrow.__version__, raised]
+`);
+      const [stubVersion, raised] = result.toJs() as [string, boolean];
+      result.destroy();
+      expect(stubVersion).toBe("0.0.1");
+      expect(raised).toBe(true);
+    },
+  );
+});
+
 suite(
   "Worker integration test running an app with multiple appId (SharedWorker scenario)",
   async () => {

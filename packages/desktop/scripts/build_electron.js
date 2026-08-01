@@ -27,6 +27,9 @@ const rawSuffixPlugin = {
     build.onLoad({ filter: /.*/, namespace: "raw-suffix" }, async (args) => ({
       contents: await fs.readFile(args.path, "utf8"),
       loader: "text",
+      // A custom namespace isn't tracked as a filesystem dependency on its
+      // own, so `--watch` would miss edits to the raw source without this.
+      watchFiles: [args.path],
     }));
   },
 };

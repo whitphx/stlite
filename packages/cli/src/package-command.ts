@@ -161,12 +161,19 @@ export function resolvePackageBuildDir(
   let pkgPath: string;
   try {
     pkgPath = fileURLToPath(import.meta.resolve(`${packageName}/package.json`));
-  } catch {
+  } catch (err) {
     // The target runtime packages are optional dependencies (they ship heavy
-    // per-target artifacts most users don't need); point at the install.
-    throw new Error(
-      `${packageName} is not installed. Install it with \`npm install ${packageName}\` to use this target.`,
-    );
+    // per-target artifacts most users don't need); a genuine not-found means
+    // it isn't installed, so point at the install. Any other resolution
+    // failure (e.g. the package restricts "exports" and doesn't expose
+    // ./package.json) means it IS installed — surface the real error instead
+    // of a misleading install hint.
+    if ((err as NodeJS.ErrnoException).code === "ERR_MODULE_NOT_FOUND") {
+      throw new Error(
+        `${packageName} is not installed. Install it with \`npm install ${packageName}\` to use this target.`,
+      );
+    }
+    throw err;
   }
   const buildDir = path.join(path.dirname(pkgPath), "build");
   if (!fs.existsSync(buildDir)) {

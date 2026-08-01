@@ -20,9 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 #     whereas Streamlit's runtime must start once and stay resident (see
 #     runtime.py's shared init + retained `_lifespan_state`); a new runtime per
 #     request loses all session state.
-#   - Its WebSocket bridge is text-only, but Streamlit's transport is binary
-#     protobuf (ForwardMsg), so we need the binary/handshake/close handling in
-#     websocket.py.
+#   - Its WebSocket bridge doesn't match Streamlit's binary-protobuf
+#     (ForwardMsg) transport and per-session handshake/close lifecycle, which
+#     websocket.py handles.
 #   - It returns the Worker Response directly, leaving nowhere to strip
 #     `accept-encoding` (avoids double-gzip; see adapter.py).
 #

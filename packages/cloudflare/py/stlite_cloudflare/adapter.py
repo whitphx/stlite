@@ -107,8 +107,24 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
     task = asyncio.create_task(run_app())
     task_proxy = create_proxy(task)
 
-    def on_task_done(_task: asyncio.Task[None]) -> None:
+    def on_task_done(task: asyncio.Task[None]) -> None:
         task_proxy.destroy()
+        # Resolve `result` from the task's real outcome so `await result`
+        # below never hangs. run_app's `except Exception` cannot catch a
+        # CancelledError (it is a BaseException), so a task cancelled from
+        # outside would otherwise leave `result` pending forever.
+        if result.done():
+            return
+        if task.cancelled():
+            # Check cancelled() before exception(): the latter raises on a
+            # cancelled task.
+            result.cancel()
+        elif task.exception() is not None:
+            result.set_exception(task.exception())
+        else:
+            result.set_exception(
+                RuntimeError("The ASGI app finished without producing a response")
+            )
 
     task.add_done_callback(on_task_done)
     # Keep the Worker alive while the app task streams past the return below.

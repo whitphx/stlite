@@ -245,6 +245,32 @@ async def test_run_http_asgi_raises_app_errors_before_response(fake_js_env):
 
 
 @pytest.mark.asyncio
+async def test_run_http_asgi_propagates_cancellation(fake_js_env):
+    # A CancelledError from the app task is a BaseException that run_app's
+    # `except Exception` cannot catch; the done callback must still resolve
+    # `result` so `await result` propagates the cancellation instead of
+    # hanging forever.
+    async def cancelled_app(scope, receive, send):
+        raise asyncio.CancelledError
+
+    request = FakeRequest(method="GET", url="https://example.com/", headers={})
+
+    with pytest.raises(asyncio.CancelledError):
+        await run_http_asgi(cancelled_app, request)
+
+
+@pytest.mark.asyncio
+async def test_run_http_asgi_reports_a_finished_app_without_response(fake_js_env):
+    async def silent_app(scope, receive, send):
+        return
+
+    request = FakeRequest(method="GET", url="https://example.com/", headers={})
+
+    with pytest.raises(RuntimeError, match="did not produce a response"):
+        await run_http_asgi(silent_app, request)
+
+
+@pytest.mark.asyncio
 async def test_run_http_asgi_calls_starlette_app(fake_js_env):
     async def homepage(request):
         body = await request.body()

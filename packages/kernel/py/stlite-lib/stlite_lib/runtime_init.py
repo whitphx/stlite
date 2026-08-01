@@ -105,6 +105,7 @@ def configure_streamlit(
     from stlite_lib.bootstrap import load_config_options
 
     streamlit_flag_options = {
+        # gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
         "browser.gatherUsageStats": False,
         **(streamlit_config or {}),
         # Fast reruns do not work well with the async script runner of stlite.

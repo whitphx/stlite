@@ -379,9 +379,10 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 }
 
 interface AsgiAppHandle {
-  /** ASGI callable bound to the App + per-app home_dir, suitable for
-   * dispatchHttp / AsgiWebSocketSession. */
-  asgiApp: AsgiApp;
+  /** ASGI callable wrapping the Streamlit App with the Stlite context
+   * bindings (runtime contextvar, per-app home_dir) applied per call;
+   * suitable for dispatchHttp / AsgiWebSocketSession. */
+  boundAsgiApp: AsgiApp;
   /** Opaque state returned by run_lifespan_startup; must be passed to
    * run_lifespan_shutdown when tearing down. */
   lifespanState: PyProxy;
@@ -402,10 +403,11 @@ async function bootstrapApp(
 
   console.debug("Booting up the Streamlit ASGI app");
   const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
-  const [rawApp, asgiApp, lifespanState] = (await asgiModule.start_resident_app(
-    canonicalEntrypoint,
-    appId ? getAppHomeDir(appId) : undefined,
-  )) as unknown as [PyProxy, AsgiApp, PyProxy];
+  const [streamlitApp, boundAsgiApp, lifespanState] =
+    (await asgiModule.start_resident_app(
+      canonicalEntrypoint,
+      appId ? getAppHomeDir(appId) : undefined,
+    )) as unknown as [PyProxy, AsgiApp, PyProxy];
   // Bind runtime_contextvar in the shared JS-call context so non-ASGI
   // paths (notably streamlit.testing.v1.AppTest, which the kernel test
   // suite uses) can reach the runtime via Runtime.get_instance(). ASGI
@@ -413,10 +415,10 @@ async function bootstrapApp(
   // Must run synchronously from JS (not awaited) so the set lands in
   // the shared module context, not a task-local one — which is why
   // start_resident_app leaves it to the caller.
-  asgiModule.bind_runtime_to_current_context(rawApp);
+  asgiModule.bind_runtime_to_current_context(streamlitApp);
   console.debug("Booted up the Streamlit ASGI app");
 
-  return { asgiApp, lifespanState };
+  return { boundAsgiApp, lifespanState };
 }
 
 async function shutdownApp(
@@ -510,9 +512,6 @@ export function startWorkerEnv(
     asgiApp: AsgiApp,
     request: InMessageHttpRequest["data"]["request"],
   ) {
-    // `request.path` keeps its wire encoding; buildHttpScope percent-decodes
-    // it exactly once, so decoding here as well would corrupt paths whose
-    // decoded form contains "%".
     if (httpCookieJar.needsXsrfWarmup(request)) {
       await warmUpXsrfCookie(asgiApp, request.path);
     }
@@ -665,7 +664,7 @@ export function startWorkerEnv(
             },
           });
           wsSession = new AsgiWebSocketSession(
-            appHandle.asgiApp,
+            appHandle.boundAsgiApp,
             scope,
             forwardWebsocketEventToClient,
           );
@@ -690,7 +689,7 @@ export function startWorkerEnv(
           console.debug("http:request", msg.data);
 
           const { request } = msg.data;
-          dispatchHttpWithCookies(appHandle.asgiApp, request)
+          dispatchHttpWithCookies(appHandle.boundAsgiApp, request)
             .then((response) => {
               reply({
                 type: "http:response",

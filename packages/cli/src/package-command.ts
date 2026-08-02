@@ -181,8 +181,7 @@ function findPackageJson(
 function readOwnManifest(): {
   name?: string;
   version?: string;
-  peerDependencies?: Record<string, string>;
-  optionalDependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
 } {
   return findPackageJson(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -232,9 +231,15 @@ export function resolveTargetPackage(packageName: string): {
   const version = manifest.version ?? "0.0.0";
 
   const own = readOwnManifest();
-  const range =
-    own.peerDependencies?.[packageName] ??
-    own.optionalDependencies?.[packageName];
+  // The supported range for each target is recorded in this CLI's
+  // devDependencies (rather than dependencies or peerDependencies) so that
+  // installing the CLI doesn't pull the heavy target artifacts, and a target's
+  // own release doesn't force a version bump of the CLI: changesets majors a
+  // package whose peerDependency moves. yarn still rewrites the `workspace:^`
+  // protocol to a real range (e.g. `^0.2.0`) at publish, so the check has teeth
+  // for installed users; inside the monorepo it stays `workspace:^`, which
+  // targetVersionSatisfies treats as always compatible.
+  const range = own.devDependencies?.[packageName];
   if (range != null && !targetVersionSatisfies(range, version)) {
     throw new Error(
       `${packageName}@${version} is not compatible with ${own.name}@${own.version}, which requires ${packageName}@${range}. ` +

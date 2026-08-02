@@ -7912,17 +7912,6 @@ __metadata:
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.1.3"
     yargs: "npm:^18.0.0"
-  peerDependencies:
-    "@stlite/browser": "workspace:^"
-    "@stlite/cloudflare": "workspace:^"
-    "@stlite/desktop": "workspace:^"
-  peerDependenciesMeta:
-    "@stlite/browser":
-      optional: true
-    "@stlite/cloudflare":
-      optional: true
-    "@stlite/desktop":
-      optional: true
   bin:
     stlite: ./dist/cli.js
   languageName: unknown

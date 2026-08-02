@@ -72,11 +72,12 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Worker name for a generated wrangler.jsonc (default: derived from <path>)",
       }),
-  // build() lives in @stlite/cloudflare — an optional dependency, since it ships
-  // heavy Worker runtime artifacts most `stlite` users don't need. Import it
-  // lazily so the CLI works without it, and point the user at the install when
-  // it's missing. build() owns the input validation; this handler just maps the
-  // CLI args onto it and applies the `stlite cloudflare:` error prefix.
+  // build() lives in @stlite/cloudflare, which ships heavy Worker runtime
+  // artifacts most `stlite` users don't need, so the CLI doesn't depend on it at
+  // runtime — install it separately for this command. Import it lazily so the
+  // CLI works without it, and point the user at the install when it's missing.
+  // build() owns the input validation; this handler just maps the CLI args onto
+  // it and applies the `stlite cloudflare:` error prefix.
   handler: async (argv) => {
     // Verify the optional target is installed AND version-compatible before
     // importing it. resolveTargetPackage only resolves (it doesn't load the

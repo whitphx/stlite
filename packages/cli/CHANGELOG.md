@@ -1,5 +1,13 @@
 # @stlite/cli
 
+## 0.1.2
+
+### Patch Changes
+
+- [#2077](https://github.com/whitphx/stlite/pull/2077) [`e72edf6`](https://github.com/whitphx/stlite/commit/e72edf6c155b27e4878e413b6c1f731734932b13) Thanks [@whitphx](https://github.com/whitphx)! - Load each target's runtime package (`@stlite/browser`, `@stlite/desktop`, `@stlite/cloudflare`) lazily instead of depending on them at runtime, so an install that omits a target still works for the others and the heavy per-target artifacts are not pulled in unless requested. Each command reports a clear "install …" message when its target's package is missing, and verifies the installed version satisfies the range this CLI supports — failing loudly and actionably instead of silently mishandling a drifted plugin interface.
+
+- [#2077](https://github.com/whitphx/stlite/pull/2077) [`e72edf6`](https://github.com/whitphx/stlite/commit/e72edf6c155b27e4878e413b6c1f731734932b13) Thanks [@whitphx](https://github.com/whitphx)! - Retry the micropip dependency-resolution step during packaging with exponential backoff, so a transient PyPI hiccup ("Can't find a pure Python 3 wheel for …") no longer fails the build.
+
 ## 0.1.1
 
 ### Patch Changes

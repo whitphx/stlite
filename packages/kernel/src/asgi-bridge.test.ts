@@ -1,6 +1,5 @@
 import type { PyodideInterface } from "pyodide";
 import { afterAll, beforeAll, expect, suite, test } from "vitest";
-import { mockPyArrow } from "./mock";
 import { initPyodide } from "./pyodide-loader";
 import {
   AsgiWebSocketSession,
@@ -17,6 +16,63 @@ import streamlit as st
 st.write("Hello from the ASGI spike!")
 `;
 
+test("dispatchHttp decodes scope.path and preserves raw_path", async () => {
+  const captured: { scope?: AsgiEvent } = {};
+  const app: AsgiApp = async (scope, receive, send) => {
+    captured.scope = scope;
+    await receive();
+    await send({ type: "http.response.start", status: 204, headers: [] });
+    await send({ type: "http.response.body", body: new Uint8Array() });
+  };
+
+  await dispatchHttp(app, {
+    method: "GET",
+    path: "/app/static/my%20image.png?x=1",
+    headers: {},
+    body: "",
+  });
+
+  expect(captured.scope).toBeDefined();
+  const scope = captured.scope;
+  if (scope === undefined) {
+    throw new Error("ASGI app was not called");
+  }
+  expect(scope.path).toBe("/app/static/my image.png");
+  expect(scope.raw_path).toEqual(
+    new TextEncoder().encode("/app/static/my%20image.png"),
+  );
+});
+
+test("buildWebSocketScope decodes scope.path and preserves raw_path", () => {
+  const scope = buildWebSocketScope({
+    path: "/app/static/my%20image.png?x=1",
+  });
+
+  expect(scope.path).toBe("/app/static/my image.png");
+  expect(scope.raw_path).toEqual(
+    new TextEncoder().encode("/app/static/my%20image.png"),
+  );
+});
+
+test("dispatchHttp passes malformed percent sequences through instead of throwing", async () => {
+  const captured: { scope?: AsgiEvent } = {};
+  const app: AsgiApp = async (scope, receive, send) => {
+    captured.scope = scope;
+    await receive();
+    await send({ type: "http.response.start", status: 204, headers: [] });
+    await send({ type: "http.response.body", body: new Uint8Array() });
+  };
+
+  await dispatchHttp(app, {
+    method: "GET",
+    path: "/app/static/100%.png",
+    headers: {},
+    body: "",
+  });
+
+  expect(captured.scope?.path).toBe("/app/static/100%.png");
+});
+
 suite("ASGI bridge spike", { timeout: 120 * 1000 }, () => {
   let pyodide: PyodideInterface;
   let asgiApp: AsgiApp;
@@ -27,8 +83,6 @@ suite("ASGI bridge spike", { timeout: 120 * 1000 }, () => {
 
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-
-    mockPyArrow(pyodide);
 
     const wheels = getWheelUrls();
     // Mirror worker-runtime.ts: pin protobuf >= 7.34.1 ahead of the

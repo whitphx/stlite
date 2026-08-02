@@ -35,6 +35,7 @@
     "@stlite/common": "workspace:^",
     "fs-extra": "^11.3.4",
     "glob": "^11.0.0",
+    "p-retry": "^8.0.0",
     "pyodide": "0.29.3"
   },
   "devDependencies": {

@@ -120,6 +120,7 @@ jobs:
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -154,6 +155,9 @@ jobs:
               - 'packages/app-packager/**/*'
             cli:
               - 'packages/cli/**/*'
+              - 'packages/app-packager/**/*'
+            cloudflare:
+              - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
 
   test-build-common:
@@ -475,6 +479,81 @@ jobs:
         # vitest auto-detects CI=true and runs once instead of watching, so
         # no explicit `--run` flag needed.
         run: yarn workspace @stlite/cli test
+
+  test-cloudflare:
+    needs: changes
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages/cloudflare
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      - name: Lint
+        run: |
+          yarn check:lint
+          yarn check:format
+          uv run --project . ruff check --output-format=github py tests
+          uv run --project . ruff format --check py tests
+
+      # The pytest suite covers the Worker runtime modules and the Python
+      # vendoring helper; it needs uv. The Node toolchain above is for the yarn
+      # lint/format/test:js steps.
+      - run: yarn test
+
+      # Cross-platform unit tests for the Node fs helpers (dir mirroring,
+      # wheel lookup). test-cloudflare-windows runs these same tests on Windows
+      # for cross-platform signal.
+      - run: yarn test:js
+
+  test-cloudflare-windows:
+    # The stlite-cloudflare build is cross-platform; this job is its Windows
+    # coverage. It runs only the Node fs-helper tests, not the full build, for
+    # the reason called out at the `yarn test:js` line below.
+    needs: changes
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: packages/cloudflare
+
+    steps:
+      # Submodules are needed only so the yarn workspace install can resolve all
+      # members (the streamlit frontend workspaces); the helper tests themselves
+      # don't touch the submodule.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/init-all
+        with:
+          node-version-file: ${{ env.node-version-file }}
+          protoc: false
+
+      # The end-to-end build can't be verified on Windows yet: its one required
+      # subprocess, `uv run pywrangler sync`, aborts there — pywrangler
+      # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
+      # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
+      # code, so until it's fixed the full build runs on Linux
+      # (verify-cloudflare-standalone) and these Node helper tests give the
+      # Windows signal for our fs helpers.
+      - run: yarn test:js
 
   build-browser:
     if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
@@ -872,6 +951,221 @@ jobs:
           input-path: packages/cli/package.tgz
           pr-number: ${{ needs.set-build-info.outputs.pr-number }}
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+
+  build-cloudflare:
+    # Unlike the always-built packages above, this build compiles the
+    # Cloudflare-variant Streamlit frontend and builds the pinned runtime
+    # wheels, so it only runs when the cloudflare package (or a dependency)
+    # changed; RUN_ALL_TESTS makes that always true on main, which is what the
+    # postbuild publish/deploy jobs rely on.
+    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
+    needs:
+      [set-build-info, changes, test-kernel, test-stlite-lib, test-cloudflare]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+
+      - name: Build @stlite/cloudflare
+        run: make cloudflare
+
+      - name: Package
+        working-directory: packages/cloudflare
+        run: yarn pack
+
+      - name: Upload the built tar ball as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: packages/cloudflare/package.tgz
+          name: stlite-cloudflare
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: packages/cloudflare/package.tgz
+        continue-on-error: true
+
+      - name: "Inform the package stats of @stlite/cloudflare"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: cloudflare
+          name: "@stlite/cloudflare"
+          input-path: packages/cloudflare/package.tgz
+          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
+          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+
+  verify-cloudflare-standalone:
+    # Build the hello demo from the PACKED TARBALL, outside the monorepo, the way
+    # a published-package user would (`npm i @stlite/cloudflare && stlite-
+    # cloudflare build`). This is both the merge gate — proving the published
+    # package builds the real demo end-to-end — and the producer of the artifact
+    # that postbuild deploys. Building it here, in this PR-triggered no-secrets
+    # context, is deliberate: postbuild only ever deploys the prebuilt artifact,
+    # never runs PR build code with the deploy secrets. The streamlit submodule
+    # isn't fetched; the tarball ships its own prebuilt frontend and wheels.
+    #
+    # ubuntu-only: Windows can't run the end-to-end build yet (see the pywrangler
+    # note in the test-cloudflare-windows job above). Our own build code is
+    # cross-platform and gets Windows coverage there via the helper tests.
+    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
+    needs: [set-build-info, changes, build-cloudflare]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: ${{ env.node-version-file }}
+
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
+        with:
+          enable-cache: true
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: stlite-cloudflare
+          path: ${{ runner.temp }}/pkg
+
+      - name: Build the hello sample from the packed tarball
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eux
+          mkdir -p standalone
+          cd standalone
+          npm init -y >/dev/null
+          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/app" \
+            -o ./dist --name stlite-cloudflare --plain-worker
+          test -f dist/python_modules/stlite_cloudflare/entry.py
+          test ! -d dist/python_modules/streamlit
+          grep -q "window.__streamlit" dist/assets/index.html
+          python3 -m zipfile -l dist/assets/_stlite/python-modules.zip | grep -q "streamlit/"
+          tar -tzf dist/assets/_stlite/extracted-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
+
+      # The script (python_modules incl. the native-extension packages that
+      # can't move to assets) must stay under Cloudflare's 10 MiB-gzip
+      # (10240 KiB) paid cap, and sits close to it; trip just below the hard
+      # cap so a crossing fails in CI instead of at deploy time.
+      - name: Validate the Worker bundle
+        working-directory: ${{ runner.temp }}/standalone/dist
+        run: |
+          set -eux
+          npx wrangler deploy --dry-run | tee dry-run.log
+          gzip_kib=$(grep -o 'gzip: [0-9.]*' dry-run.log | grep -o '[0-9.]*')
+          awk -v s="$gzip_kib" 'BEGIN { if (s+0 > 10200) { print "Script gzip " s " KiB exceeds the 10200 KiB budget (hard limit 10240)"; exit 1 } }'
+
+      # wrangler dev runs the Worker in local workerd — the same runtime as
+      # production — so this drives the packaged app end-to-end in a real
+      # browser: index HTML, static assets, health endpoints, and the
+      # Streamlit WebSocket session reaching CONNECTED.
+      - name: Smoke-test the Worker in a real browser
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          npm install "playwright@^1.61.1"
+          npx playwright install --with-deps chromium
+          cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/scripts/browser-smoke.mjs" .
+          (cd dist && npx wrangler dev --port 8787 >"$RUNNER_TEMP/wrangler-dev.log" 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf --max-time 5 -o /dev/null http://127.0.0.1:8787/_stcore/health && break
+            sleep 2
+          done
+          STLITE_SMOKE_TIMEOUT_MS=120000 node browser-smoke.mjs || {
+            echo "::group::wrangler dev log"
+            cat "$RUNNER_TEMP/wrangler-dev.log"
+            echo "::endgroup::"
+            exit 1
+          }
+
+      # The default Durable Object deployment path gets its own standalone
+      # build (the hello build above uses --plain-worker, which is a distinct
+      # mode): the minimal sample built with default settings, verified
+      # structurally and by wrangler dry-run.
+      - name: Build the minimal sample in default Durable Object mode
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          # Reuse the wheel cache from the hello build (cache dirs are keyed
+          # by output dir basename).
+          cp -R .dist.stlite-cloudflare-cache .dist-do.stlite-cloudflare-cache
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
+            -o ./dist-do --name stlite-cloudflare-minimal
+          grep -q '"STLITE_SERVER"' dist-do/wrangler.jsonc
+          grep -q "StliteServer" dist-do/src/entry.py
+          cd dist-do && npx wrangler deploy --dry-run
+
+      # Boot the DO-mode Worker in local workerd: the health request goes
+      # through the router entrypoint into the STLITE_SERVER Durable Object
+      # instance, which cold-boots the packaged Streamlit runtime — the
+      # actual default request-routing path.
+      - name: Smoke-test the Durable Object mode in local workerd
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          (cd dist-do && npx wrangler dev --port 8788 >"$RUNNER_TEMP/wrangler-dev-do.log" 2>&1 &)
+          ok=""
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 5 -o /dev/null http://127.0.0.1:8788/_stcore/health; then
+              ok=1
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then
+            echo "::group::wrangler dev (DO) log"
+            cat "$RUNNER_TEMP/wrangler-dev-do.log"
+            echo "::endgroup::"
+            exit 1
+          fi
+          curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
+          # Real-browser smoke in DO mode (playwright was installed by the
+          # plain-worker smoke step above): renders over the WebSocket
+          # session and asserts the Worker-env var surfaced via st.secrets.
+          cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/scripts/browser-smoke.mjs" ./minimal-smoke.mjs
+          STLITE_CLOUDFLARE_URL=http://127.0.0.1:8788/ STLITE_SMOKE_TIMEOUT_MS=120000 node minimal-smoke.mjs || {
+            echo "::group::wrangler dev (DO) log"
+            cat "$RUNNER_TEMP/wrangler-dev-do.log"
+            echo "::endgroup::"
+            exit 1
+          }
+
+      # Every wrangler-config shape the merger supports (named environments,
+      # legacy migrations, exports style, external bindings, ...) validated
+      # against real wrangler.
+      - name: Dry-run the supported wrangler-config shapes
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          node "$GITHUB_WORKSPACE/packages/cloudflare/scripts/dryrun-config-matrix.mjs" dist-do
+
+      # The dist built above is the sample postbuild deploys. Hidden files are
+      # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
+      # dirs pywrangler leaves in the output — wrangler doesn't need them.
+      - name: Upload the built sample as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: ${{ runner.temp }}/standalone/dist
+          name: stlite-cloudflare-sample
 
   build-docs:
     runs-on: ubuntu-latest

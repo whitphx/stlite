@@ -1,0 +1,72 @@
+{
+  "name": "@stlite/cloudflare",
+  "version": "0.1.0",
+  "description": "Deploy stlite-backed Streamlit apps to Cloudflare Python Workers.",
+  "keywords": [
+    "cloudflare",
+    "pyodide",
+    "stlite",
+    "streamlit",
+    "wasm",
+    "webassembly"
+  ],
+  "bugs": {
+    "url": "https://github.com/whitphx/stlite/issues"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Yuichiro Tachibana (Tsuchiya)",
+    "url": "https://www.whitphx.info/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whitphx/stlite.git",
+    "directory": "packages/cloudflare"
+  },
+  "bin": {
+    "stlite-cloudflare": "./bin/stlite-cloudflare.mjs"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "runtime",
+    "py/**/*.py",
+    "README.md"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/build.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build-dist.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "tsc",
+    "fix:lint": "oxlint --fix bin frontend scripts src",
+    "fix:format": "oxfmt .",
+    "check:lint": "oxlint bin frontend scripts src",
+    "check:format": "oxfmt --check .",
+    "test": "uv run --project . pytest",
+    "test:js": "node --test \"src/**/*.test.ts\"",
+    "pack:dry-run": "npm pack --dry-run"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.6",
+    "ignore": "^7.0.6",
+    "jsonc-parser": "^3.3.1",
+    "pyodide": "0.29.3",
+    "smol-toml": "^1.7.1"
+  },
+  "devDependencies": {
+    "@stlite/app-packager": "workspace:^",
+    "@stlite/common": "workspace:^",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.27.1",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.105.0"
+  }
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { fileURLToPath } from "node:url";
+import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { build, context } from "esbuild";
@@ -13,12 +14,33 @@ const __dirname = path.dirname(__filename);
 const watch = process.argv.includes("--watch");
 const production = process.env.NODE_ENV === "production";
 
+// esbuild has no equivalent of Vite's `?raw` suffix, which kernel's
+// worker-runtime uses to inline the pyarrow shim source. Resolve such imports
+// to the underlying file and load it as text.
+const rawSuffixPlugin = {
+  name: "raw-suffix",
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, (args) => ({
+      path: path.resolve(args.resolveDir, args.path.replace(/\?raw$/, "")),
+      namespace: "raw-suffix",
+    }));
+    build.onLoad({ filter: /.*/, namespace: "raw-suffix" }, async (args) => ({
+      contents: await fs.readFile(args.path, "utf8"),
+      loader: "text",
+      // A custom namespace isn't tracked as a filesystem dependency on its
+      // own, so `--watch` would miss edits to the raw source without this.
+      watchFiles: [args.path],
+    }));
+  },
+};
+
 const commonOptions = {
   bundle: true,
   minify: production,
   platform: "node",
   tsconfig: path.resolve(__dirname, "../electron/tsconfig.json"),
   outdir: path.resolve(__dirname, "../build/electron"),
+  plugins: [rawSuffixPlugin],
   external: ["electron", "electron-reload"],
   define: {
     ...(process.env.NODE_ENV != null

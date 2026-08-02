@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { StliteKernel } from "../kernel";
-import { useStliteKernel } from "@stlite/kernel/contexts";
+import { useStliteKernelIfAvailable } from "@stlite/kernel/contexts";
 import { parse } from "@tinyhttp/content-disposition";
 
 export function getFileNameFromContentDispositionHeader(
@@ -56,11 +56,25 @@ export function downloadFileFromStlite(
     });
 }
 
-export function useDownloadFileFromStlite() {
-  const stliteKernel = useStliteKernel();
+export function useDownloadFileFromStlite(): (
+  url: string,
+) => void | Promise<void> {
+  const stliteKernel = useStliteKernelIfAvailable();
 
   return useCallback(
     (url: string) => {
+      if (stliteKernel == null) {
+        // Server-backed app (no kernel): the URL is directly fetchable, so a
+        // transient download anchor does the job.
+        const anchor = document.createElement("a");
+        anchor.href = new URL(url, window.location.href).toString();
+        anchor.download = "";
+        anchor.style.display = "none";
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        return;
+      }
       return downloadFileFromStlite(stliteKernel, url);
     },
     [stliteKernel],

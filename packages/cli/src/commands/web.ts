@@ -25,10 +25,7 @@ export const webCommand: CommandModule<unknown, PackageCommandArgs> = {
     runPackageCommand(argv, "web", async (ctx) => {
       // Copy @stlite/browser's SPA bundle (stlite.js + stlite.css + .map files,
       // plus its bundled wheels under wheels/ that the runtime self-installs).
-      const browserBuildDir = resolvePackageBuildDir(
-        "@stlite/browser",
-        "browser",
-      );
+      const browserBuildDir = resolvePackageBuildDir("@stlite/browser");
       copyTreeFiltered(browserBuildDir, ctx.destDir, BROWSER_BUILD_SKIP);
 
       // Pass the same wheels @stlite/browser self-installs at runtime so the

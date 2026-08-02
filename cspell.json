@@ -48,6 +48,10 @@
   "words": [
     // Stlite
     "stlite",
+    "stliteignore",
+    "dryrun",
+    "smol",
+    "packageable",
     "serverlessly",
     "sampleapps",
     // @stlite/cli
@@ -55,6 +59,10 @@
     // Pyodide
     "pyodide",
     "micropip",
+    "pywrangler",
+    "workerd",
+    "dlopens",
+    "ghsa",
     "unvendored",
     "xbuildenv",
     "syncfs",
@@ -70,6 +78,7 @@
     "stmol",
     "embedcode",
     "geospatial",
+    "nbextension",
     "Scatterplot",
     "rideshare",
     "colorscale",

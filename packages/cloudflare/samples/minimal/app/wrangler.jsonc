@@ -1,0 +1,7 @@
+{
+  // Exercises the custom-config merge: user settings are preserved while the
+  // build enforces everything the Worker requires. APP_MESSAGE demonstrates
+  // the Worker-environment bridge — string vars (and encrypted secrets from
+  // `wrangler secret put`) surface to the app through st.secrets.
+  "vars": { "APP_MESSAGE": "Configured via Cloudflare vars" },
+}

@@ -35,3 +35,13 @@ export function useStliteKernel(): StliteKernel {
 
   return value.kernel;
 }
+
+/**
+ * The kernel if this tree is mounted under `<StliteKernelProvider />`, else
+ * null. A null kernel means the app is server-backed (e.g. the Cloudflare
+ * Workers frontend): callers fall back to upstream Streamlit behavior and
+ * leave URLs, downloads, and component iframes to the real HTTP server.
+ */
+export function useStliteKernelIfAvailable(): StliteKernel | null {
+  return useContext(StliteKernelContext)?.kernel ?? null;
+}

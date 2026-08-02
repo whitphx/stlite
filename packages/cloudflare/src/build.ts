@@ -1,0 +1,257 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import { parseRequirementsTxt, validateRequirements } from "@stlite/common";
+import { resolveEntrypoint } from "./helpers/entrypoint.ts";
+import { exists } from "./helpers/fsx.ts";
+import { vendor } from "./vendor.ts";
+import { buildWranglerConfig } from "./wrangler-config.ts";
+
+export { buildWranglerConfig } from "./wrangler-config.ts";
+
+const packageRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+
+// Wrangler is the only tool the generated project needs at deploy time; pin the
+// same range the package itself develops against.
+const WRANGLER_VERSION = "^4.105.0";
+
+export interface CloudflareBuildOptions {
+  /** Path to the Streamlit project directory. */
+  path: string;
+  /** Output directory (default `./dist`). */
+  out?: string;
+  /** Entry script relative to `path` (default `streamlit_app.py`). */
+  entrypoint?: string;
+  /** Path to a requirements.txt file (defaults to `<path>/requirements.txt`). */
+  requirements?: string;
+  /** Worker name for a generated wrangler.jsonc. */
+  name?: string;
+  /** Keep the whole Python runtime in the Worker script instead of loading
+   * it from static assets at cold start. Requires Cloudflare's planned
+   * 64 MB-uncompressed script limit
+   * (https://github.com/cloudflare/workers-py/issues/156). */
+  bundledRuntime?: boolean;
+  /** Opt out of the default Durable Object deployment and run as a plain
+   * Worker. Plain Workers fan requests across isolates, so only media is
+   * bridged between them (Cache API mirror): file uploads can land on an
+   * isolate that isn't running the session and fail, and a WebSocket
+   * reconnect resets session state. In exchange, memory load spreads across
+   * isolates instead of one 128 MB instance — suited to read-only,
+   * memory-heavy apps. See stlite_cloudflare/durable.py. */
+  plainWorker?: boolean;
+  /** Packages to replace with import-satisfying stubs; anything they alone
+   * pulled into the runtime is garbage-collected too. Apps touching a mocked
+   * package fail at that point with an error naming the flag. */
+  mock?: string[];
+  /** Alias for `--mock pandas --mock numpy` — the tested combination for
+   * apps that never use dataframes, charts, or numeric data; roughly halves
+   * the script size and boot time. */
+  slim?: boolean;
+}
+
+/**
+ * Package a Streamlit project into a deployable Cloudflare Python Workers
+ * directory. Shared by the `stlite-cloudflare` bin and `@stlite/cli`'s
+ * `stlite cloudflare` command, so both drive one implementation.
+ */
+export async function build({
+  path: projectPath,
+  out = "./dist",
+  entrypoint = "streamlit_app.py",
+  requirements,
+  name,
+  bundledRuntime = false,
+  plainWorker = false,
+  mock = [],
+  slim = false,
+}: CloudflareBuildOptions): Promise<{ outDir: string }> {
+  if (projectPath == null) {
+    throw new Error("Missing <path> to the Streamlit project directory");
+  }
+
+  const srcDir = path.resolve(process.cwd(), projectPath);
+  const srcStat = await fs.stat(srcDir).catch(() => null);
+  if (srcStat == null || !srcStat.isDirectory()) {
+    throw new Error(`Not a directory: ${srcDir}`);
+  }
+  const normalizedEntrypoint = await resolveEntrypoint(srcDir, entrypoint);
+
+  const outDir = path.resolve(process.cwd(), out);
+  // The output gets `rm -rf`'d on each run, and vendor() mirrors the whole
+  // project dir into the bundle. Refuse paths that would delete the source or
+  // get copied into itself: `-o .` (== srcDir), an ancestor of srcDir, or a
+  // directory nested inside srcDir.
+  if (
+    outDir === srcDir ||
+    srcDir.startsWith(outDir + path.sep) ||
+    outDir.startsWith(srcDir + path.sep)
+  ) {
+    throw new Error(
+      `Refusing to use ${outDir} as --out: it overlaps the project directory ${srcDir}. Pick a separate output directory outside it.`,
+    );
+  }
+
+  const workerName = toWorkerName(name ?? path.basename(srcDir));
+
+  const durableObject = !plainWorker;
+
+  await fs.rm(outDir, { recursive: true, force: true });
+  await fs.mkdir(outDir, { recursive: true });
+  await scaffoldOutput({
+    srcDir,
+    outDir,
+    workerName,
+    requirements,
+    durableObject,
+  });
+
+  // Caches (the multi-minute frontend build, the vendored Pyodide wheels) must
+  // outlive the wiped-every-run output dir, so they live in a sibling dir.
+  const cacheDir = path.join(
+    path.dirname(outDir),
+    `.${path.basename(outDir)}.stlite-cloudflare-cache`,
+  );
+
+  await vendor({
+    packageDir: packageRoot,
+    projectDir: outDir,
+    appDir: srcDir,
+    cacheDir,
+    entrypoint: normalizedEntrypoint,
+    bundledRuntime,
+    mockPackages: [...new Set([...mock, ...(slim ? ["pandas", "numpy"] : [])])],
+  });
+
+  const outRel = path.relative(process.cwd(), outDir) || ".";
+  console.log(`stlite-cloudflare: packaged → ${outDir}`);
+  console.log(`Deploy with: cd ${outRel} && npx wrangler deploy`);
+
+  return { outDir };
+}
+
+async function scaffoldOutput({
+  srcDir,
+  outDir,
+  workerName,
+  requirements,
+  durableObject,
+}: {
+  srcDir: string;
+  outDir: string;
+  workerName: string;
+  requirements?: string;
+  durableObject: boolean;
+}): Promise<void> {
+  await fs.mkdir(path.join(outDir, "src"), { recursive: true });
+  await fs.writeFile(
+    path.join(outDir, "src", "entry.py"),
+    durableObject
+      ? 'from stlite_cloudflare.durable import Default, StliteServer\n\n__all__ = ["Default", "StliteServer"]\n'
+      : 'from stlite_cloudflare.entry import Default\n\n__all__ = ["Default"]\n',
+  );
+
+  // An existing wrangler.jsonc in the project carries the user's own Worker
+  // settings (routes, vars, extra bindings); it is merged with — and
+  // validated against — the configuration the generated Worker requires,
+  // rather than passed through (see wrangler-config.ts).
+  const srcWrangler = path.join(srcDir, "wrangler.jsonc");
+  const customJsonc = (await exists(srcWrangler))
+    ? await fs.readFile(srcWrangler, "utf8")
+    : undefined;
+  await fs.writeFile(
+    path.join(outDir, "wrangler.jsonc"),
+    buildWranglerConfig({ workerName, durableObject, customJsonc }),
+  );
+
+  const dependencies = await readRequirements(srcDir, requirements);
+  await fs.writeFile(
+    path.join(outDir, "pyproject.toml"),
+    pyproject(workerName, dependencies),
+  );
+
+  // Wrangler resolves the project root from the nearest package.json, so the
+  // output needs its own for `wrangler deploy` to treat <out> as the project
+  // (rather than walking up to a parent package.json and missing this config).
+  await fs.writeFile(
+    path.join(outDir, "package.json"),
+    `${JSON.stringify(
+      {
+        name: workerName,
+        version: "0.1.0",
+        private: true,
+        devDependencies: { wrangler: WRANGLER_VERSION },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  await fs.writeFile(
+    path.join(outDir, ".gitignore"),
+    [
+      "/node_modules",
+      "/python_modules",
+      "/.venv-workers",
+      "/pylock.toml",
+      "",
+    ].join("\n"),
+  );
+}
+
+async function readRequirements(
+  srcDir: string,
+  explicit?: string,
+): Promise<string[]> {
+  const requirementsPath = explicit
+    ? path.resolve(process.cwd(), explicit)
+    : path.join(srcDir, "requirements.txt");
+  if (!(await exists(requirementsPath))) {
+    if (explicit) {
+      throw new Error(`Requirements file not found: ${requirementsPath}`);
+    }
+    return [];
+  }
+  const text = await fs.readFile(requirementsPath, "utf8");
+  return validateRequirements(parseRequirementsTxt(text));
+}
+
+function pyproject(workerName: string, dependencies: string[]): string {
+  const deps =
+    dependencies.length === 0
+      ? "[]"
+      : `[\n${dependencies.map((dep) => `  ${JSON.stringify(dep)},`).join("\n")}\n]`;
+  return `[project]
+name = ${JSON.stringify(workerName)}
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+# Streamlit and its runtime dependencies are vendored automatically by the
+# build; only your app's own extra dependencies are resolved from here.
+dependencies = ${deps}
+
+[dependency-groups]
+# pywrangler (workers-py) drives every build of this project; pin a major
+# range so an upstream breaking release can't take down user builds overnight
+# (same reasoning as the wrangler pin in the generated package.json).
+dev = ["workers-py>=1.15.0,<2"]
+
+[tool.uv]
+package = false
+`;
+}
+
+function toWorkerName(name: string): string {
+  // The name lands in wrangler.jsonc's "name", which Cloudflare restricts to
+  // lowercase alphanumerics and dashes ("." and "_" are rejected at deploy).
+  const normalized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    // The line above already collapsed every run of non-alphanumerics to a
+    // single dash, so at most one leading/trailing dash remains — trim it with
+    // a single-character pattern (avoids the polynomial backtracking of `-+`).
+    .replace(/^-|-$/g, "");
+  return normalized || "stlite-cloudflare-app";
+}

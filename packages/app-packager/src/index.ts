@@ -12,6 +12,7 @@ import { glob } from "glob";
 import { parseRequirementsTxt } from "@stlite/common";
 import { PrebuiltPackagesDataReader } from "./pyodide-packages.js";
 import { consoleLogger, type Logger } from "./logger.js";
+import pRetry from "p-retry";
 
 export { type Logger, consoleLogger } from "./logger.js";
 export { PrebuiltPackagesDataReader } from "./pyodide-packages.js";
@@ -81,6 +82,87 @@ export interface PackageAppOptions {
   logger?: Logger;
 }
 
+export interface VendorPrebuiltPackagesOptions {
+  destPyodideDir: string;
+  dependencies: string[];
+  localWheelPaths: string[];
+  pyodideSource?: string;
+  logger?: Logger;
+}
+
+export interface VendorPackageSnapshotOptions extends VendorPrebuiltPackagesOptions {
+  snapshotPath: string;
+}
+
+/**
+ * Loads Pyodide-in-Node with `packageCacheDir` pointed at `destPyodideDir`,
+ * installs the given dependencies (so any prebuilt packages they pull in get
+ * vendored to disk via Pyodide's Node-side caching mechanism — used here as
+ * the wheel file downloader), and returns the names of the prebuilt packages
+ * that were resolved from Pyodide's "default channel". Callers decide what to
+ * do with the vendored wheels (packageApp records them in prebuilt-packages.txt
+ * for runtime re-install; @stlite/cloudflare extracts them into the Worker
+ * bundle). This build-time vendoring avoids problems such as
+ * https://github.com/whitphx/stlite/issues/558.
+ */
+export async function vendorPrebuiltPackages(
+  opts: VendorPrebuiltPackagesOptions,
+): Promise<string[]> {
+  const logger = opts.logger ?? consoleLogger;
+  const pyodideSource = normalizePyodideSource(
+    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+  );
+
+  await fsPromises.mkdir(opts.destPyodideDir, { recursive: true });
+
+  if (opts.dependencies.length === 0 && opts.localWheelPaths.length === 0) {
+    return [];
+  }
+
+  const pyodide = await loadPyodide({
+    packageBaseUrl: pyodideSource,
+    packageCacheDir: opts.destPyodideDir,
+  });
+
+  await installPackages(pyodide, {
+    requirements: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    logger,
+  });
+
+  return Object.entries(pyodide.loadedPackages)
+    .filter(([, channel]) => channel === "default channel")
+    .map(([name]) => name);
+}
+
+export async function vendorPackageSnapshot(
+  opts: VendorPackageSnapshotOptions,
+): Promise<string[]> {
+  const logger = opts.logger ?? consoleLogger;
+  const pyodideSource = normalizePyodideSource(
+    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+  );
+  const usedPrebuiltPackages = await vendorPrebuiltPackages({
+    destPyodideDir: opts.destPyodideDir,
+    dependencies: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    pyodideSource,
+    logger,
+  });
+
+  await createSitePackagesSnapshot({
+    requirements: opts.dependencies,
+    localWheelPaths: opts.localWheelPaths,
+    usedPrebuiltPackages,
+    pyodideSource,
+    pyodideRuntimeDir: opts.destPyodideDir,
+    saveTo: opts.snapshotPath,
+    logger,
+  });
+
+  return usedPrebuiltPackages;
+}
+
 /**
  * Vendors a Streamlit project's Python dependencies into a destDir using
  * Pyodide-in-Node, copies the user's app files, and writes the
@@ -106,11 +188,11 @@ export async function packageApp(opts: PackageAppOptions): Promise<void> {
 
   await fsPromises.mkdir(opts.destDir, { recursive: true });
 
-  const usedPrebuiltPackages = await saveUsedPrebuiltPackages({
-    pyodideSource,
-    pyodideRuntimeDir,
-    requirements: opts.dependencies,
+  const usedPrebuiltPackages = await vendorPrebuiltPackages({
+    destPyodideDir: pyodideRuntimeDir,
+    dependencies: opts.dependencies,
     localWheelPaths: opts.localWheelPaths,
+    pyodideSource,
     logger,
   });
   logger.info(
@@ -164,49 +246,6 @@ export async function readRequirementsTxt(
   return parseRequirementsTxt(requirementsTxtData);
 }
 
-interface SaveUsedPrebuiltPackagesOptions {
-  pyodideSource: string;
-  pyodideRuntimeDir: string;
-  requirements: string[];
-  localWheelPaths: string[];
-  logger: Logger;
-}
-/**
- * Loads Pyodide-in-Node with `packageCacheDir` pointed at `pyodideRuntimeDir`,
- * installs the given requirements (so any prebuilt packages they pull in get
- * vendored to disk via Pyodide's Node-side caching mechanism — used here as
- * the wheel file downloader), and returns the names of the prebuilt packages
- * that were resolved from Pyodide's "default channel". The runtime reads the
- * resulting prebuilt-packages.txt and re-installs them from the vendored
- * files. This build-time-vendoring + runtime-reinstall strategy avoids
- * problems such as https://github.com/whitphx/stlite/issues/558.
- */
-async function saveUsedPrebuiltPackages(
-  options: SaveUsedPrebuiltPackagesOptions,
-): Promise<string[]> {
-  if (
-    options.requirements.length === 0 &&
-    options.localWheelPaths.length === 0
-  ) {
-    return [];
-  }
-
-  const pyodide = await loadPyodide({
-    packageBaseUrl: options.pyodideSource,
-    packageCacheDir: options.pyodideRuntimeDir,
-  });
-
-  await installPackages(pyodide, {
-    requirements: options.requirements,
-    localWheelPaths: options.localWheelPaths,
-    logger: options.logger,
-  });
-
-  return Object.entries(pyodide.loadedPackages)
-    .filter(([, channel]) => channel === "default channel")
-    .map(([name]) => name);
-}
-
 interface InstallPackagesOptions {
   requirements: string[];
   localWheelPaths: string[];
@@ -230,7 +269,26 @@ async function installPackages(
   }
 
   options.logger.info(`Install the packages: ${JSON.stringify(requirements)}`);
-  await micropip.install.callKwargs(requirements, { keep_going: true });
+  // micropip resolves pure-Python wheels from PyPI at build time, so a transient
+  // network hiccup surfaces as "Can't find a pure Python 3 wheel for ...". Retry
+  // with backoff so a flaky fetch doesn't fail the whole package build.
+  await pRetry(
+    () => micropip.install.callKwargs(requirements, { keep_going: true }),
+    {
+      retries: 2,
+      factor: 2,
+      minTimeout: 1000,
+      onFailedAttempt: ({ error, attemptNumber, retriesLeft, retryDelay }) => {
+        // p-retry also invokes this on the final attempt, right before
+        // rethrowing; a "retrying in 0ms" line there would be a lie.
+        if (retriesLeft === 0) return;
+        options.logger.warn(
+          `micropip install failed (attempt ${attemptNumber}, ${retriesLeft} left); ` +
+            `retrying in ${retryDelay}ms: ${error.message}`,
+        );
+      },
+    },
+  );
 }
 
 async function prepareLocalWheel(
@@ -271,7 +329,7 @@ async function createSitePackagesSnapshot(
   logger.info("Create the site-packages snapshot file...");
 
   // TODO: this is the second `loadPyodide()` call in `packageApp` — the first
-  // happens in `saveUsedPrebuiltPackages` to discover which prebuilt packages
+  // happens in `vendorPrebuiltPackages` to discover which prebuilt packages
   // get pulled in. Two interpreter starts cost several seconds. They are
   // intentionally separate today because the snapshot pass needs to install
   // *with* prebuilts mocked out (so their files don't end up in the tarball),

@@ -10,7 +10,8 @@ import {
 } from "./file";
 import { validateRequirements } from "@stlite/common";
 import { initPyodide } from "./pyodide-loader";
-import { mockPyArrow } from "./mock";
+// The pyarrow shim's single source of truth, inlined at bundle time (Vite `?raw`).
+import PYARROW_MOCK_SOURCE from "../py/stlite-lib/stlite_lib/_pyarrow_shim.py?raw";
 import {
   dispatchModuleAutoLoading,
   ModuleAutoLoadCallback,
@@ -170,10 +171,14 @@ async function loadPyodideAndPackages(
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
 
-  onProgress("Mocking some packages.");
-  console.debug("Mock pyarrow");
-  mockPyArrow(pyodide);
-  console.debug("Mocked pyarrow");
+  // Register the pyarrow shim with micropip BEFORE installing anything: this
+  // both blocks micropip from fetching the real (Stlite-unsupported) pyarrow
+  // wasm wheel if a user requirement pulls it in, and installs the stub so
+  // `import pyarrow` resolves to it (PYARROW_MOCK_SOURCE is _pyarrow_shim.py's
+  // source, imported above).
+  micropip.add_mock_package.callKwargs("pyarrow", "0.0.1", {
+    modules: pyodide.toPy({ pyarrow: PYARROW_MOCK_SOURCE }),
+  });
 
   // NOTE: Installing packages must be AFTER restoring the archives
   // because they may contain packages to be restored into the site-packages directory.
@@ -253,47 +258,25 @@ async function loadPyodideAndPackages(
     dispatchModuleAutoLoading(pyodide, onModuleAutoLoad, sources);
   }
 
-  // The following code is necessary to avoid errors like `NameError: name '_imp' is not defined`
-  // at importing installed packages.
-  await pyodide.runPythonAsync(`
-import importlib
-importlib.invalidate_caches()
-`);
+  // Freshly installed packages can fail to import (e.g. `NameError: name
+  // '_imp' is not defined`) until the import caches are invalidated. Use
+  // stdlib importlib, and before the first stlite_lib import: importing
+  // stlite_lib itself already pulls in installed packages (anyio etc.), so a
+  // stlite_lib-hosted guard would come too late for its own import.
+  pyodide.pyimport("importlib").invalidate_caches();
+
+  const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
 
   onProgress("Loading streamlit package.");
   console.debug("Loading the Streamlit package");
   // Importing the `streamlit` module takes most of the time,
   // so we first run this step independently for clearer logs and easy exec-time profiling.
   // For https://github.com/whitphx/stlite/issues/427
-  await pyodide.runPythonAsync(`
-import streamlit.runtime
-  `);
+  runtimeInit.preload_streamlit_runtime();
   console.debug("Loaded the Streamlit package");
 
   onProgress("Setting up the loggers.");
   console.debug("Setting the loggers");
-  // Fix the Streamlit's logger instantiating strategy, which violates the standard and is problematic for us.
-  // See https://github.com/streamlit/streamlit/issues/4742
-  await pyodide.runPythonAsync(`
-import logging
-import streamlit.logger
-
-streamlit.logger.get_logger = logging.getLogger
-streamlit.logger.setup_formatter = None
-streamlit.logger.update_formatter = lambda *a, **k: None
-streamlit.logger.set_log_level = lambda *a, **k: None
-
-for name in streamlit.logger._loggers.keys():
-    if name == "root":
-        name = "streamlit"
-    logger = logging.getLogger(name)
-    logger.propagate = True
-    logger.handlers.clear()
-    logger.setLevel(logging.NOTSET)
-
-streamlit.logger._loggers = {}
-`);
-  // Then configure the logger.
   const logCallback = (levelno: number, msg: string) => {
     if (levelno >= 40) {
       console.error(msg);
@@ -305,53 +288,22 @@ streamlit.logger._loggers = {}
       console.debug(msg);
     }
   };
-  const setupLoggers = pyodide.runPython(`
-def __setup_loggers__(streamlit_level, streamlit_message_format, callback):
-    class JsHandler(logging.Handler):
-        def emit(self, record):
-            msg = self.format(record)
-            callback(record.levelno, msg)
-
-
-    root_message_format = "%(levelname)s:%(name)s:%(message)s"
-
-    root_logger = logging.getLogger()
-    root_logger.handlers.clear()
-    root_formatter = logging.Formatter(root_message_format)
-    root_handler = JsHandler()
-    root_handler.setFormatter(root_formatter)
-    root_logger.addHandler(root_handler)
-    root_logger.setLevel(logging.DEBUG)
-
-    streamlit_logger = logging.getLogger("streamlit")
-    streamlit_logger.propagate = False
-    streamlit_logger.handlers.clear()
-    streamlit_formatter = logging.Formatter(streamlit_message_format)
-    streamlit_handler = JsHandler()
-    streamlit_handler.setFormatter(streamlit_formatter)
-    streamlit_logger.addHandler(streamlit_handler)
-    streamlit_logger.setLevel(streamlit_level.upper())
-
-__setup_loggers__`); // This last line evaluates to the function so it is returned from pyodide.runPython() to the JS side.
   const streamlitLogLevel = (
     streamlitConfig?.["logger.level"] ?? "INFO"
   ).toString();
   const streamlitLogMessageFormat =
     streamlitConfig?.["logger.messageFormat"] ?? "%(asctime)s %(message)s";
-  setupLoggers(streamlitLogLevel, streamlitLogMessageFormat, logCallback);
+  runtimeInit.disable_streamlit_logger_overrides();
+  runtimeInit.setup_streamlit_logging_with_callback(
+    streamlitLogLevel,
+    streamlitLogMessageFormat,
+    logCallback,
+  );
   console.debug("Set the loggers");
 
   onProgress("Mocking some Streamlit functions for the browser environment.");
   console.debug("Mocking some Streamlit functions");
-  // Disable caching. See https://github.com/whitphx/stlite/issues/495
-  await pyodide.runPythonAsync(`
-import streamlit
-
-def is_cacheable_msg(msg):
-  return False
-
-streamlit.runtime.runtime.is_cacheable_msg = is_cacheable_msg
-`);
+  runtimeInit.disable_runtime_message_cache();
   console.debug("Mocked some Streamlit functions");
 
   if (useIdbfs) {
@@ -397,15 +349,11 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 
   // The code below is based on streamlit.web.cli.main_run().
   console.debug("Setting up the Streamlit configuration");
-  const { load_config_options } = pyodide.pyimport("stlite_lib.bootstrap");
-  const streamlitFlagOptions = {
-    // gatherUsageStats is disabled as default, but can be enabled explicitly by setting it to true.
-    "browser.gatherUsageStats": false,
-    ...streamlitConfig,
-    "runner.fastReruns": false, // Fast reruns do not work well with the async script runner of stlite. See https://github.com/whitphx/stlite/pull/550#issuecomment-1505485865.
-  };
   const sharedWorkerMode = appId != null;
-  load_config_options(pyodide.toPy(streamlitFlagOptions), sharedWorkerMode);
+  runtimeInit.configure_streamlit(
+    pyodide.toPy(streamlitConfig ?? {}),
+    sharedWorkerMode,
+  );
   console.debug("Set up the Streamlit configuration");
 
   // Load Jedi if the language server is enabled.
@@ -431,9 +379,10 @@ __setup_script_finished_callback__`); // This last line evaluates to the functio
 }
 
 interface AsgiAppHandle {
-  /** ASGI callable bound to the App + per-app home_dir, suitable for
-   * dispatchHttp / AsgiWebSocketSession. */
-  asgiApp: AsgiApp;
+  /** ASGI callable wrapping the Streamlit App with the Stlite context
+   * bindings (runtime contextvar, per-app home_dir) applied per call;
+   * suitable for dispatchHttp / AsgiWebSocketSession. */
+  boundAsgiApp: AsgiApp;
   /** Opaque state returned by run_lifespan_startup; must be passed to
    * run_lifespan_shutdown when tearing down. */
   lifespanState: PyProxy;
@@ -454,27 +403,22 @@ async function bootstrapApp(
 
   console.debug("Booting up the Streamlit ASGI app");
   const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
-  const rawApp = asgiModule.create_app(canonicalEntrypoint);
-  const lifespanState = (await asgiModule.run_lifespan_startup(
-    rawApp,
-  )) as PyProxy;
+  const [rawAsgiApp, boundAsgiApp, lifespanState] =
+    (await asgiModule.start_resident_app(
+      canonicalEntrypoint,
+      appId ? getAppHomeDir(appId) : undefined,
+    )) as unknown as [PyProxy, AsgiApp, PyProxy];
   // Bind runtime_contextvar in the shared JS-call context so non-ASGI
   // paths (notably streamlit.testing.v1.AppTest, which the kernel test
   // suite uses) can reach the runtime via Runtime.get_instance(). ASGI
   // traffic doesn't depend on this — call_asgi rebinds per request.
   // Must run synchronously from JS (not awaited) so the set lands in
-  // the shared module context, not a task-local one.
-  asgiModule.bind_runtime_to_current_context(rawApp);
-  // make_call_asgi binds the App + home_dir into a single ASGI callable so
-  // the JS side doesn't have to re-supply them on every dispatch (one
-  // callable per app, reused across requests).
-  const asgiApp = asgiModule.make_call_asgi(
-    rawApp,
-    appId ? getAppHomeDir(appId) : undefined,
-  ) as unknown as AsgiApp;
+  // the shared module context, not a task-local one — which is why
+  // start_resident_app leaves it to the caller.
+  asgiModule.bind_runtime_to_current_context(rawAsgiApp);
   console.debug("Booted up the Streamlit ASGI app");
 
-  return { asgiApp, lifespanState };
+  return { boundAsgiApp, lifespanState };
 }
 
 async function shutdownApp(
@@ -568,16 +512,11 @@ export function startWorkerEnv(
     asgiApp: AsgiApp,
     request: InMessageHttpRequest["data"]["request"],
   ) {
-    const decodedRequest = {
-      ...request,
-      path: decodeURIComponent(request.path),
-    };
-
-    if (httpCookieJar.needsXsrfWarmup(decodedRequest)) {
-      await warmUpXsrfCookie(asgiApp, decodedRequest.path);
+    if (httpCookieJar.needsXsrfWarmup(request)) {
+      await warmUpXsrfCookie(asgiApp, request.path);
     }
 
-    const requestWithCookies = httpCookieJar.applyToRequest(decodedRequest);
+    const requestWithCookies = httpCookieJar.applyToRequest(request);
     const response = await dispatchHttp(asgiApp, requestWithCookies);
     httpCookieJar.storeFromResponse(response.headers);
     return response;
@@ -725,7 +664,7 @@ export function startWorkerEnv(
             },
           });
           wsSession = new AsgiWebSocketSession(
-            appHandle.asgiApp,
+            appHandle.boundAsgiApp,
             scope,
             forwardWebsocketEventToClient,
           );
@@ -750,7 +689,7 @@ export function startWorkerEnv(
           console.debug("http:request", msg.data);
 
           const { request } = msg.data;
-          dispatchHttpWithCookies(appHandle.asgiApp, request)
+          dispatchHttpWithCookies(appHandle.boundAsgiApp, request)
             .then((response) => {
               reply({
                 type: "http:response",

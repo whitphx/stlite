@@ -10,6 +10,7 @@
 
 - `make init` installs Yarn dependencies, provisions `.venv` via `uv`, and updates Streamlit submodules—run it after cloning.
 - Incremental builds rely on sentinels: `make browser`, `make desktop`, or `make sharing` traverse dependencies before running each package’s `yarn build`.
+- When architecting a new build target, make the `Makefile` its orchestrator: declare what it depends on as Make prerequisites rather than driving cross-workspace dependency builds from a package’s own npm/build scripts, so CI reduces to a single `make <name>` (see the `cloudflare` target). Follow nearby targets' conventions and pick whatever build strategy fits.
 - `make kernel-test` or `yarn workspace @stlite/kernel test` runs kernel tests. Using `make` ensures proper build order so it's preferred for cross-workspace changes.
 - Use Vite and Vitest directly inside each app workspace (for example `yarn workspace @stlite/browser start` or `yarn workspace @stlite/browser test`)
 - You don't need to modify the upstream `streamlit/frontend/app`, while other imported packages in `streamlit/frontend/` can be edited.

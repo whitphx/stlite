@@ -59,6 +59,19 @@ export type AsgiApp = (
   send: (event: AsgiEvent | PyProxy) => Promise<void>,
 ) => Promise<unknown> | PyProxy;
 
+/**
+ * Percent-decode a wire path for `scope["path"]`. Malformed sequences (e.g. a
+ * bare "%") are passed through verbatim, like Python's `urllib.parse.unquote`,
+ * so scope building never throws on bad client input.
+ */
+function decodeScopePath(pathname: string): string {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return pathname;
+  }
+}
+
 /** ASGI HTTP scope. */
 function buildHttpScope(request: HttpRequest): AsgiEvent {
   const url = new URL(request.path, "http://stlite.local");
@@ -75,7 +88,7 @@ function buildHttpScope(request: HttpRequest): AsgiEvent {
     http_version: HTTP_VERSION,
     method: request.method.toUpperCase(),
     scheme: "http",
-    path: url.pathname,
+    path: decodeScopePath(url.pathname),
     raw_path: new TextEncoder().encode(url.pathname),
     query_string: new TextEncoder().encode(url.search.replace(/^\?/, "")),
     root_path: "",
@@ -186,7 +199,7 @@ export function buildWebSocketScope(options: WebSocketScopeOptions): AsgiEvent {
     asgi: ASGI_VERSION,
     http_version: HTTP_VERSION,
     scheme: "ws",
-    path: url.pathname,
+    path: decodeScopePath(url.pathname),
     raw_path: new TextEncoder().encode(url.pathname),
     query_string: new TextEncoder().encode(url.search.replace(/^\?/, "")),
     root_path: "",

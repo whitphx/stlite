@@ -1,0 +1,6 @@
+/dist
+/.dist.stlite-cloudflare-cache
+/.wrangler
+
+__pycache__/
+*.py[cod]

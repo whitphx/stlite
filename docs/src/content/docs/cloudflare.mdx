@@ -17,11 +17,16 @@ Serving traffic needs the [Workers Paid plan](https://developers.cloudflare.com/
 
 ### 1. Write a Streamlit app
 
-A plain Streamlit project directory is all you need. Here is the [minimal sample](https://github.com/whitphx/stlite/tree/main/packages/cloudflare/samples/minimal):
+A plain Streamlit project directory is all you need, with no Cloudflare-specific code:
 
-import minimalApp from "../../../../packages/cloudflare/samples/minimal/app/streamlit_app.py?raw";
+```python
+# streamlit_app.py
+import streamlit as st
 
-<Code code={minimalApp} lang="python" title="streamlit_app.py" />
+st.title("My app")
+name = st.text_input("Your name", "world")
+st.write(f"Hello, {name}!")
+```
 
 List any extra Python dependencies in a `requirements.txt` next to it (each must have a Pyodide-compatible wheel). Streamlit and its own dependency tree are vendored automatically, so they don't belong there.
 

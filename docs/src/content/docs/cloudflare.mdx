@@ -1,0 +1,127 @@
+---
+title: "@stlite/cloudflare"
+description: Deploy a Streamlit app to Cloudflare Python Workers.
+---
+
+import { Code } from "@astrojs/starlight/components";
+
+`@stlite/cloudflare` packages a local Streamlit project into a directory that deploys to [Cloudflare Python Workers](https://developers.cloudflare.com/workers/languages/python/), running the Stlite-patched Streamlit runtime on [Pyodide](https://pyodide.org/). The build vendors your app's Pyodide-compatible dependency tree, overlays the Stlite runtime and a Cloudflare-variant Streamlit frontend, and emits a self-contained Worker directory. Deploying that directory is [Wrangler](https://developers.cloudflare.com/workers/wrangler/)'s job.
+
+Unlike [`@stlite/browser`](/browser/), where Python runs in the visitor's browser, here Python runs on Cloudflare's edge — the browser talks to a real Streamlit server over WebSocket, so the app behaves like server-hosted Streamlit while still needing no infrastructure of your own to manage.
+
+:::caution[Workers Paid plan required]
+Serving traffic needs the [Workers Paid plan](https://developers.cloudflare.com/workers/platform/pricing/): the free plan's 10 ms CPU budget can't boot Streamlit. The generated config raises the CPU limit accordingly, which is itself a paid-plan setting.
+:::
+
+## Quick Start
+
+### 1. Write a Streamlit app
+
+A plain Streamlit project directory is all you need. Here is the [minimal sample](https://github.com/whitphx/stlite/tree/main/packages/cloudflare/samples/minimal):
+
+import minimalApp from "../../../../packages/cloudflare/samples/minimal/app/streamlit_app.py?raw";
+
+<Code code={minimalApp} lang="python" title="streamlit_app.py" />
+
+List any extra Python dependencies in a `requirements.txt` next to it (each must have a Pyodide-compatible wheel). Streamlit and its own dependency tree are vendored automatically, so they don't belong there.
+
+### 2. Build
+
+```bash
+# Run on demand without install
+npx @stlite/cloudflare build ./my-app -o ./dist
+
+# Or install it first
+npm install @stlite/cloudflare
+npx stlite-cloudflare build ./my-app -o ./dist
+```
+
+This produces a deployable Worker directory at `./dist` (default) containing `wrangler.jsonc`, `src/entry.py`, a slim `python_modules/`, and `assets/` (the frontend plus the packed Python runtime, installed at cold start).
+
+:::note[Build prerequisites]
+The build needs [`uv`](https://docs.astral.sh/uv/) on your `PATH` (it drives `pywrangler` to resolve your dependencies for the Pyodide target) plus Node.js. It runs on macOS and Linux; on Windows, build under WSL for now, since `pywrangler sync` can't yet locate its Pyodide interpreter natively.
+:::
+
+### 3. Deploy
+
+```bash
+cd ./dist
+npx wrangler deploy     # or: npx wrangler dev  to preview locally
+```
+
+:::tip[Using it through `@stlite/cli`]
+If you already use [`@stlite/cli`](/cli/) for other targets, `stlite cloudflare <path>` runs the same build. It needs both packages installed (`@stlite/cloudflare` is an optional peer dependency of the CLI). The standalone `stlite-cloudflare` bin above needs only this one package.
+:::
+
+## Deployment modes
+
+By default the Worker routes all Streamlit traffic through a single [Durable Object](https://developers.cloudflare.com/durable-objects/) instance. Streamlit sessions hold server-side state, and several HTTP endpoints (`/media/*` fetches, `/_stcore/upload_file/*` uploads) only work when they reach the same runtime that holds the session's WebSocket. One instance guarantees that: uploads land in the runtime that reads them, media is served by the runtime that generated it, sessions survive WebSocket reconnects, and one cold boot serves all visitors.
+
+The trade-off is a shared memory budget: every page's imports and every session's media share one 128 MB isolate, so a memory-heavy app can exceed the limit there (the instance resets and recovers, but the session that tripped it is lost). Idle instances are still evicted, so the first request after a quiet period pays a cold boot.
+
+`--plain-worker` opts out of the Durable Object and runs as a plain Worker, spreading load across isolates that each boot their own copy of the runtime. This is a **limited mode**:
+
+- **Media** _can_ be bridged between isolates through a colo-local Cache API mirror.
+- **Uploads cannot.** `st.file_uploader` reads through a synchronous API that an async cache lookup can't back, so an upload landing on an isolate not running the session fails.
+- **WebSocket reconnects** can land on any isolate, starting a fresh session (widget state resets).
+
+This asymmetry is why the Durable Object is the default: media alone could be patched over, uploads can't. Use `--plain-worker` for read-only apps that don't take uploads, especially memory-heavy ones where spreading load across isolates matters more than session affinity.
+
+## Options
+
+| Option                  | Description                                                                                    |
+| :---------------------- | :--------------------------------------------------------------------------------------------- |
+| `-o, --out <dir>`       | Output directory (default `./dist`).                                                           |
+| `--entrypoint <name>`   | Entry script relative to `<path>` (default `streamlit_app.py`).                                |
+| `--requirements <file>` | A `requirements.txt` (default `<path>/requirements.txt` if present).                           |
+| `--name <name>`         | Worker name for a generated `wrangler.jsonc` (default: derived from `<path>`).                 |
+| `--plain-worker`        | Run as a plain Worker instead of the default Durable Object (see above).                       |
+| `--mock <package>`      | Replace a vendored package with an import stub and drop what it alone pulled in (repeatable).  |
+| `--slim`                | Alias for `--mock pandas --mock numpy` — for apps with no dataframes, charts, or numeric data. |
+| `--bundled-runtime`     | Keep the Python runtime in the script instead of loading it from assets at cold start.         |
+
+### Shrinking the app with `--mock` / `--slim`
+
+`--mock <package>` replaces a vendored package with an import-satisfying stub so Streamlit still boots without it, then garbage-collects whatever that package alone pulled into the runtime. App code that actually touches a mocked package fails at that point with an error naming the flag, and the build refuses to mock a package your own `requirements.txt` asks for. Hand-tuned stubs ship for `pandas` and `numpy` (whose import surface Streamlit exercises at boot); other packages get a generated raise-on-use stub, which works for anything Streamlit imports lazily.
+
+`--slim` bundles the tested `pandas` + `numpy` pair for text/widget/chat-style apps. Mocking `pandas` cascades to the parquet serialization stack and roughly halves the script size and cold-start time.
+
+### `--bundled-runtime`
+
+By default the heavy Python runtime ships as static assets that the Worker loads at cold start, keeping the script under Cloudflare's current size limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships ([cloudflare/workers-py#156](https://github.com/cloudflare/workers-py/issues/156)), `--bundled-runtime` keeps everything in the script instead, removing the asset fetch and extraction at cold start. Today it fits under the current gzip limit (10 MiB on the Workers Paid plan; 3 MiB on Free) only in combination with `--slim`.
+
+## Secrets and configuration
+
+`.streamlit/secrets.toml` never deploys: its presence **fails the build**, loudly, so local credentials are never silently dropped or shipped. Cloudflare's `.dev.vars*` files are rejected the same way, and a custom `secrets.files` option in `.streamlit/config.toml` is refused too (the packager can't recognize arbitrarily-named secret files, so the option would smuggle them into the archive as ordinary app data). Supply production configuration through the Worker environment instead:
+
+- **Plain configuration** — `vars` in your project's `wrangler.jsonc`.
+- **Sensitive values** — encrypted secrets via `wrangler secret put`.
+
+Both surface to your app in two ways, identical across deployment modes:
+
+- **`st.secrets`** — every string-valued environment entry is merged into Streamlit's secrets store before the app starts, so existing `st.secrets["KEY"]` code works unchanged.
+- **`stlite_cloudflare.get_env()`** — the Worker environment object itself, for non-string bindings (R2 buckets, KV namespaces, ...).
+
+The minimal sample's `wrangler.jsonc` demonstrates the bridge with an `APP_MESSAGE` var that its app reads through `st.secrets`:
+
+import minimalWrangler from "../../../../packages/cloudflare/samples/minimal/app/wrangler.jsonc?raw";
+
+<Code code={minimalWrangler} lang="json" title="wrangler.jsonc" />
+
+## Bringing your own `wrangler.jsonc`
+
+If `<path>` already contains a `wrangler.jsonc`, it is parsed (JSONC comments are fine, though not preserved in the output) and merged with the configuration the generated Worker requires. Your settings — routes, `vars`, extra bindings, `observability`, `limits`, `name` — are preserved. The settings the Worker can't run safely without are always enforced: `main`, the `python_workers` and `no_handle_cross_request_promise_resolution` compatibility flags, and the `assets` block (including the `run_worker_first` routes that keep the packed runtime and your app source from being served as public static files). A custom value that conflicts with a required setting fails the build with an error explaining what to change, rather than being silently overridden. Durable Object declarations follow whichever style your config uses (Wrangler's `exports` map or the legacy `migrations` array), and every supported shape is validated against `wrangler deploy --dry-run` in CI.
+
+## What gets packaged
+
+The whole project directory is mirrored into the deployed package, except:
+
+- **Always excluded** (not configurable): `.git/`, `.env` / `.env.*` / `*.env`, `.netrc`, `.aws/`, virtualenv and cache directories (`.venv/`, `node_modules/`, `__pycache__/`, `.pytest_cache/`, ...), `.wrangler/`, `.DS_Store`, the build's own output, and the two scaffold inputs (`wrangler.jsonc`, `.stliteignore`).
+- **Credential files** (`.streamlit/secrets.toml`, `.dev.vars*`): their presence **fails the build** (see [Secrets and configuration](#secrets-and-configuration)); a `.stliteignore` negation cannot re-include them.
+- **Anything matched by a `.stliteignore`** file in the project root (gitignore syntax). `.gitignore` is deliberately not applied, since projects often gitignore data files their app needs at runtime.
+
+Symlinks never survive into the package: a file symlink resolving inside the project is dereferenced into a regular file, while symlinks resolving outside the project, broken symlinks, and directory symlinks fail the build. Exclusions apply to a symlink's resolved target as well as its visible path, so a symlink can't smuggle an excluded file's content into the package under another name.
+
+## Known limitations
+
+The runtime is single-threaded: a very long synchronous compute burst in your script can starve the event loop that concurrently serves rendered media to the browser, and starved requests get canceled by the platform. Frame-loop pages generally work as-is; if yours drops frames, shrink the per-frame work or sleep longer between frames.

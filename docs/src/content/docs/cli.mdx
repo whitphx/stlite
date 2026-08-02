@@ -3,16 +3,17 @@ title: "@stlite/cli"
 description: Command-line tools for converting a local Streamlit project into a Stlite app.
 ---
 
-`@stlite/cli` (Node, on npm) and `stlite-cli` (Python, on PyPI) expose the same `stlite` bin with four conversion commands. The Node bin covers all four; the Python bin covers `share` and `html` (which produce byte-identical output to the Node bin) and is intended for users who don't have a Node toolchain.
+`@stlite/cli` (Node, on npm) and `stlite-cli` (Python, on PyPI) expose the same `stlite` bin with five conversion commands. The Node bin covers all five; the Python bin covers `share` and `html` (which produce byte-identical output to the Node bin) and is intended for users who don't have a Node toolchain.
 
-| Command                 | Output                                                                               | Node | Python |
-| ----------------------- | ------------------------------------------------------------------------------------ | ---- | ------ |
-| `stlite share <path>`   | URL hash for `share.stlite.net`                                                      | ✅   | ✅     |
-| `stlite html <path>`    | Single self-contained HTML file loading [`@stlite/browser`](/browser/) from JSDelivr | ✅   | ✅     |
-| `stlite web <path>`     | Multi-file Stlite web app directory (offline-capable, runs on any HTTP server)       | ✅   | —      |
-| `stlite desktop <path>` | Multi-file dir + `stlite-manifest.json` for [`@stlite/desktop`](/desktop/)           | ✅   | —      |
+| Command                    | Output                                                                               | Node | Python |
+| -------------------------- | ------------------------------------------------------------------------------------ | ---- | ------ |
+| `stlite share <path>`      | URL hash for `share.stlite.net`                                                      | ✅   | ✅     |
+| `stlite html <path>`       | Single self-contained HTML file loading [`@stlite/browser`](/browser/) from JSDelivr | ✅   | ✅     |
+| `stlite web <path>`        | Multi-file Stlite web app directory (offline-capable, runs on any HTTP server)       | ✅   | —      |
+| `stlite desktop <path>`    | Multi-file dir + `stlite-manifest.json` for [`@stlite/desktop`](/desktop/)           | ✅   | —      |
+| `stlite cloudflare <path>` | Deployable [Cloudflare Python Workers](/cloudflare/) directory                       | ✅   | —      |
 
-`web` and `desktop` are Node-only because they rely on Pyodide-in-Node to vendor Python dependencies — Pyodide doesn't ship a Python-runnable form of the same packaging logic.
+`web`, `desktop`, and `cloudflare` are Node-only because they vendor Python dependencies through a Node-driven build that the Python bin doesn't replicate (`cloudflare` additionally needs [`uv`](https://docs.astral.sh/uv/) on your `PATH`).
 
 ## Install
 
@@ -70,6 +71,17 @@ Package the project into a [Stlite Desktop](/desktop/) directory (multi-file art
 
 `stlite desktop` is the recommended replacement for `dump-stlite-desktop-artifacts`, which still ships in `@stlite/desktop` for one release with a deprecation warning at startup.
 
+### `stlite cloudflare <path>`
+
+Package the project into a deployable [Cloudflare Python Workers](/cloudflare/) directory that runs the Stlite-patched Streamlit runtime on Cloudflare's edge. The output is deployed with `wrangler deploy`. See the [`@stlite/cloudflare`](/cloudflare/) page for deployment modes, options, and secrets handling.
+
+```bash
+stlite cloudflare ./my-app -o ./dist
+cd ./dist && npx wrangler deploy
+```
+
+The `build()` implementation lives in the [`@stlite/cloudflare`](/cloudflare/) package, an optional peer dependency of the CLI, so install it alongside `@stlite/cli`. (`@stlite/cloudflare` also exposes its own `stlite-cloudflare build` bin, which needs only that one package.) The build needs `uv` on your `PATH`.
+
 ## Common options
 
 `share` and `html`:
@@ -89,3 +101,9 @@ Package the project into a [Stlite Desktop](/desktop/) directory (multi-file art
 - `-o, --out <dir>` (default `./build`)
 - `--pyodideSource <url>`
 - All other configuration (entrypoint, files glob, dependencies, `requirementsTxtFiles`, manifest fields like `embed`/`nodeJsWorker`/`idbfsMountpoints`/`nodefsMountpoints`/`appMenu`) is read from `package.json#stlite.desktop`.
+
+`cloudflare`:
+
+- `--entrypoint` (default `streamlit_app.py`), `--requirements` (same as above)
+- `-o, --out <dir>` (default `./dist`)
+- `--plain-worker`, `--mock <package>`, `--slim`, `--bundled-runtime`, `--name` — see the [`@stlite/cloudflare`](/cloudflare/#options) page.

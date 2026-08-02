@@ -154,10 +154,7 @@ function resolveRequirementsTxt(
  * directory, with a friendly error (pointing at the right `make` target) if
  * the build hasn't been produced yet.
  */
-export function resolvePackageBuildDir(
-  packageName: string,
-  makeTarget: string,
-): string {
+export function resolvePackageBuildDir(packageName: string): string {
   let pkgPath: string;
   try {
     pkgPath = fileURLToPath(import.meta.resolve(`${packageName}/package.json`));
@@ -178,7 +175,7 @@ export function resolvePackageBuildDir(
   const buildDir = path.join(path.dirname(pkgPath), "build");
   if (!fs.existsSync(buildDir)) {
     throw new Error(
-      `${packageName}'s build directory not found at ${buildDir}. Run \`make ${makeTarget}\` (or otherwise build ${packageName}) before packaging.`,
+      `${packageName}'s build directory was not found at ${buildDir}. Build ${packageName} before packaging.`,
     );
   }
   return buildDir;

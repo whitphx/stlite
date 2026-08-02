@@ -102,10 +102,7 @@ export const desktopCommand: CommandModule<unknown, DesktopArgs> = {
       fs.rmSync(destDir, { recursive: true, force: true });
       fs.mkdirSync(destDir, { recursive: true });
 
-      const desktopBuildDir = resolvePackageBuildDir(
-        "@stlite/desktop",
-        "desktop",
-      );
+      const desktopBuildDir = resolvePackageBuildDir("@stlite/desktop");
       copyTreeFiltered(desktopBuildDir, destDir);
 
       const desktopWheelPaths = collectWheelPaths(

@@ -142,6 +142,7 @@ jobs:
       react: ${{ steps.parse-packages.outputs.react }}
       desktop: ${{ steps.parse-packages.outputs.desktop }}
       cloudflare: ${{ steps.parse-packages.outputs.cloudflare }}
+      cli: ${{ steps.parse-packages.outputs.cli }}
     steps:
       - name: Download published packages info
         id: download-changesets-published-packages
@@ -161,16 +162,19 @@ jobs:
             echo "react=" >> $GITHUB_OUTPUT
             echo "desktop=" >> $GITHUB_OUTPUT
             echo "cloudflare=" >> $GITHUB_OUTPUT
+            echo "cli=" >> $GITHUB_OUTPUT
           else
             BROWSER_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/browser") | .version // ""')
             REACT_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/react") | .version // ""')
             DESKTOP_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/desktop") | .version // ""')
             CLOUDFLARE_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/cloudflare") | .version // ""')
+            CLI_VERSION=$(echo "$PACKAGES" | jq -r '.[] | select(.name == "@stlite/cli") | .version // ""')
 
             echo "browser=$BROWSER_VERSION" >> $GITHUB_OUTPUT
             echo "react=$REACT_VERSION" >> $GITHUB_OUTPUT
             echo "desktop=$DESKTOP_VERSION" >> $GITHUB_OUTPUT
             echo "cloudflare=$CLOUDFLARE_VERSION" >> $GITHUB_OUTPUT
+            echo "cli=$CLI_VERSION" >> $GITHUB_OUTPUT
           fi
 
   inform-package-stats:
@@ -1565,3 +1569,68 @@ jobs:
           files: ${{ runner.temp }}/stlite-cloudflare/package.tgz
           generate_release_notes: true
           tag_name: "@stlite/cloudflare@${{ needs.get-changesets-publish-targets.outputs.cloudflare }}"
+
+  publish-cli:
+    needs: [get-build-info, get-changesets-publish-targets]
+    if: ${{ needs.get-changesets-publish-targets.outputs.cli != '' }}
+
+    permissions:
+      contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
+      id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
+      attestations: read # Necessary for verifying artifact attestations
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout for local actions (`uses ./*`).
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          scope: "@stlite"
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: stlite-cli
+          path: ${{ runner.temp }}/stlite-cli
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify artifact contents
+        uses: ./.github/actions/verify-only-file
+        with:
+          directory: ${{ runner.temp }}/stlite-cli
+          filename: package.tgz
+
+      - name: Verify artifact attestation
+        uses: ./.github/actions/verify-artifact-attestation
+        with:
+          filepath: ${{ runner.temp }}/stlite-cli/package.tgz
+          expected-workflow-file: .github/workflows/test-build.yml
+          expected-ref: refs/heads/main
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Ensure npm 11.5.1 or later is installed for trusted publishing
+      - name: Update npm
+        # Incremental upgrade of npm through 11.10.0 is needed
+        # to avoid the error occurring when directly installing a later version of npm,
+        # as reported in https://github.com/npm/cli/issues/9151
+        run: |
+          npm install -g npm@~11.10.0
+          npm install -g npm@latest
+
+      - name: Publish validated package
+        run: npm publish ${{ runner.temp }}/stlite-cli/package.tgz --access public
+
+      - name: Create a new release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          files: ${{ runner.temp }}/stlite-cli/package.tgz
+          generate_release_notes: true
+          tag_name: "@stlite/cli@${{ needs.get-changesets-publish-targets.outputs.cli }}"

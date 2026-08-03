@@ -1,5 +1,11 @@
 # @stlite/cli
 
+## 0.1.3
+
+### Patch Changes
+
+- [#2086](https://github.com/whitphx/stlite/pull/2086) [`a90f9a9`](https://github.com/whitphx/stlite/commit/a90f9a9bacedcd9432e28c143a9c4c1ba071d95b) Thanks [@whitphx](https://github.com/whitphx)! - Set up the automated npm release pipeline for `@stlite/cli`.
+
 ## 0.1.2
 
 ### Patch Changes

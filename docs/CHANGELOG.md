@@ -1,5 +1,12 @@
 # docs
 
+## 0.0.23
+
+### Patch Changes
+
+- Updated dependencies [[`a90f9a9`](https://github.com/whitphx/stlite/commit/a90f9a9bacedcd9432e28c143a9c4c1ba071d95b)]:
+  - @stlite/cli@0.1.3
+
 ## 0.0.22
 
 ### Patch Changes

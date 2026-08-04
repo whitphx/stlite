@@ -1318,62 +1318,24 @@ jobs:
       contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read # Necessary for verifying artifact attestations
+      actions: read # Necessary for downloading the build artifact from the triggering workflow_run
 
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout for local actions (`uses ./*`).
+      # Checkout for the local composite actions (`uses: ./*`).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: ./.github/actions/publish-stlite-package
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          scope: "@stlite"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-browser
-          path: ${{ runner.temp }}/stlite-browser
-          run-id: ${{ github.event.workflow_run.id }}
+          package: browser
+          version: ${{ needs.get-changesets-publish-targets.outputs.browser }}
+          workflow-run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify artifact contents
-        uses: ./.github/actions/verify-only-file
-        with:
-          directory: ${{ runner.temp }}/stlite-browser
-          filename: package.tgz
-
-      - name: Verify artifact attestation
-        uses: ./.github/actions/verify-artifact-attestation
-        with:
-          filepath: ${{ runner.temp }}/stlite-browser/package.tgz
-          expected-workflow-file: .github/workflows/test-build.yml
-          expected-ref: refs/heads/main
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Ensure npm 11.5.1 or later is installed for trusted publishing
-      - name: Update npm
-        # Incremental upgrade of npm through 11.10.0 is needed
-        # to avoid the error occurring when directly installing a later version of npm,
-        # as reported in https://github.com/npm/cli/issues/9151
-        run: |
-          npm install -g npm@~11.10.0
-          npm install -g npm@latest
-
-      - name: Publish validated package
-        run: npm publish ${{ runner.temp }}/stlite-browser/package.tgz --access public
-
-      - name: Create a new release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          files: ${{ runner.temp }}/stlite-browser/package.tgz
-          generate_release_notes: true
-          tag_name: "@stlite/browser@${{ needs.get-changesets-publish-targets.outputs.browser }}"
 
   publish-react:
     needs: [get-build-info, get-changesets-publish-targets]
@@ -1383,62 +1345,24 @@ jobs:
       contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read # Necessary for verifying artifact attestations
+      actions: read # Necessary for downloading the build artifact from the triggering workflow_run
 
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout for local actions (`uses ./*`).
+      # Checkout for the local composite actions (`uses: ./*`).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: ./.github/actions/publish-stlite-package
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          scope: "@stlite"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-react
-          path: ${{ runner.temp }}/stlite-react
-          run-id: ${{ github.event.workflow_run.id }}
+          package: react
+          version: ${{ needs.get-changesets-publish-targets.outputs.react }}
+          workflow-run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify artifact contents
-        uses: ./.github/actions/verify-only-file
-        with:
-          directory: ${{ runner.temp }}/stlite-react
-          filename: package.tgz
-
-      - name: Verify artifact attestation
-        uses: ./.github/actions/verify-artifact-attestation
-        with:
-          filepath: ${{ runner.temp }}/stlite-react/package.tgz
-          expected-workflow-file: .github/workflows/test-build.yml
-          expected-ref: refs/heads/main
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Ensure npm 11.5.1 or later is installed for trusted publishing
-      - name: Update npm
-        # Incremental upgrade of npm through 11.10.0 is needed
-        # to avoid the error occurring when directly installing a later version of npm,
-        # as reported in https://github.com/npm/cli/issues/9151
-        run: |
-          npm install -g npm@~11.10.0
-          npm install -g npm@latest
-
-      - name: Publish validated package
-        run: npm publish ${{ runner.temp }}/stlite-react/package.tgz --access public
-
-      - name: Create a new release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          files: ${{ runner.temp }}/stlite-react/package.tgz
-          generate_release_notes: true
-          tag_name: "@stlite/react@${{ needs.get-changesets-publish-targets.outputs.react }}"
 
   publish-desktop:
     needs: [get-build-info, get-changesets-publish-targets]
@@ -1448,62 +1372,24 @@ jobs:
       contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read # Necessary for verifying artifact attestations
+      actions: read # Necessary for downloading the build artifact from the triggering workflow_run
 
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout for local actions (`uses ./*`).
+      # Checkout for the local composite actions (`uses: ./*`).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: ./.github/actions/publish-stlite-package
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          scope: "@stlite"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-desktop
-          path: ${{ runner.temp }}/stlite-desktop
-          run-id: ${{ github.event.workflow_run.id }}
+          package: desktop
+          version: ${{ needs.get-changesets-publish-targets.outputs.desktop }}
+          workflow-run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify artifact contents
-        uses: ./.github/actions/verify-only-file
-        with:
-          directory: ${{ runner.temp }}/stlite-desktop
-          filename: package.tgz
-
-      - name: Verify artifact attestation
-        uses: ./.github/actions/verify-artifact-attestation
-        with:
-          filepath: ${{ runner.temp }}/stlite-desktop/package.tgz
-          expected-workflow-file: .github/workflows/test-build.yml
-          expected-ref: refs/heads/main
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Ensure npm 11.5.1 or later is installed for trusted publishing
-      - name: Update npm
-        # Incremental upgrade of npm through 11.10.0 is needed
-        # to avoid the error occurring when directly installing a later version of npm,
-        # as reported in https://github.com/npm/cli/issues/9151
-        run: |
-          npm install -g npm@~11.10.0
-          npm install -g npm@latest
-
-      - name: Publish validated package
-        run: npm publish ${{ runner.temp }}/stlite-desktop/package.tgz --access public
-
-      - name: Create a new release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          files: ${{ runner.temp }}/stlite-desktop/package.tgz
-          generate_release_notes: true
-          tag_name: "@stlite/desktop@${{ needs.get-changesets-publish-targets.outputs.desktop }}"
 
   publish-cloudflare:
     needs: [get-build-info, get-changesets-publish-targets]
@@ -1513,62 +1399,24 @@ jobs:
       contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read # Necessary for verifying artifact attestations
+      actions: read # Necessary for downloading the build artifact from the triggering workflow_run
 
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout for local actions (`uses ./*`).
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Checkout for the local composite actions (`uses: ./*`).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: ./.github/actions/publish-stlite-package
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          scope: "@stlite"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-cloudflare
-          path: ${{ runner.temp }}/stlite-cloudflare
-          run-id: ${{ github.event.workflow_run.id }}
+          package: cloudflare
+          version: ${{ needs.get-changesets-publish-targets.outputs.cloudflare }}
+          workflow-run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify artifact contents
-        uses: ./.github/actions/verify-only-file
-        with:
-          directory: ${{ runner.temp }}/stlite-cloudflare
-          filename: package.tgz
-
-      - name: Verify artifact attestation
-        uses: ./.github/actions/verify-artifact-attestation
-        with:
-          filepath: ${{ runner.temp }}/stlite-cloudflare/package.tgz
-          expected-workflow-file: .github/workflows/test-build.yml
-          expected-ref: refs/heads/main
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Ensure npm 11.5.1 or later is installed for trusted publishing
-      - name: Update npm
-        # Incremental upgrade of npm through 11.10.0 is needed
-        # to avoid the error occurring when directly installing a later version of npm,
-        # as reported in https://github.com/npm/cli/issues/9151
-        run: |
-          npm install -g npm@~11.10.0
-          npm install -g npm@latest
-
-      - name: Publish validated package
-        run: npm publish ${{ runner.temp }}/stlite-cloudflare/package.tgz --access public
-
-      - name: Create a new release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          files: ${{ runner.temp }}/stlite-cloudflare/package.tgz
-          generate_release_notes: true
-          tag_name: "@stlite/cloudflare@${{ needs.get-changesets-publish-targets.outputs.cloudflare }}"
 
   publish-cli:
     needs: [get-build-info, get-changesets-publish-targets]
@@ -1578,59 +1426,21 @@ jobs:
       contents: write # Necessary for creating releases: https://github.com/softprops/action-gh-release#permissions
       id-token: write # Necessary for NPM trusted publishing: https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       attestations: read # Necessary for verifying artifact attestations
+      actions: read # Necessary for downloading the build artifact from the triggering workflow_run
 
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout for local actions (`uses ./*`).
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Checkout for the local composite actions (`uses: ./*`).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           sparse-checkout: .github
           sparse-checkout-cone-mode: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: ./.github/actions/publish-stlite-package
         with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          scope: "@stlite"
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: stlite-cli
-          path: ${{ runner.temp }}/stlite-cli
-          run-id: ${{ github.event.workflow_run.id }}
+          package: cli
+          version: ${{ needs.get-changesets-publish-targets.outputs.cli }}
+          workflow-run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify artifact contents
-        uses: ./.github/actions/verify-only-file
-        with:
-          directory: ${{ runner.temp }}/stlite-cli
-          filename: package.tgz
-
-      - name: Verify artifact attestation
-        uses: ./.github/actions/verify-artifact-attestation
-        with:
-          filepath: ${{ runner.temp }}/stlite-cli/package.tgz
-          expected-workflow-file: .github/workflows/test-build.yml
-          expected-ref: refs/heads/main
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Ensure npm 11.5.1 or later is installed for trusted publishing
-      - name: Update npm
-        # Incremental upgrade of npm through 11.10.0 is needed
-        # to avoid the error occurring when directly installing a later version of npm,
-        # as reported in https://github.com/npm/cli/issues/9151
-        run: |
-          npm install -g npm@~11.10.0
-          npm install -g npm@latest
-
-      - name: Publish validated package
-        run: npm publish ${{ runner.temp }}/stlite-cli/package.tgz --access public
-
-      - name: Create a new release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          files: ${{ runner.temp }}/stlite-cli/package.tgz
-          generate_release_notes: true
-          tag_name: "@stlite/cli@${{ needs.get-changesets-publish-targets.outputs.cli }}"

@@ -1001,3 +1001,33 @@ def test_convert_asyncio_run(test_input, expected):
     assert ast.dump(tree, indent=4) == ast.dump(
         ast.parse(expected, "test.py", "exec"), indent=4
     )
+
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        pytest.param(
+            """
+from transformers import pipeline
+
+classifier = pipeline("sentiment-analysis")
+
+result = classifier("We are very happy to show you the 🤗 Transformers library.")
+""",
+            """
+from transformers_js_py import pipeline
+
+classifier = await pipeline("sentiment-analysis")
+
+result = await classifier("We are very happy to show you the 🤗 Transformers library.")
+""",
+            id="transformers_pipeline",
+        ),
+    ],
+)
+def test_convert_transformers_js(test_input, expected):
+    tree = patch(test_input, "test.py")
+    assert ast.dump(tree, indent=4) == ast.dump(
+        ast.parse(expected, "test.py", "exec"), indent=4
+    )

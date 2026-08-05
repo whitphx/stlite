@@ -640,28 +640,6 @@ Image processing with OpenCV works on the client side.
 
 </details>
 
-## Sponsors
-
-### Streamlit (Snowflake)
-
-[<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img src="https://docs.snowflake.com/_images/logo-snowflake-sans-text.png" height="100" />](https://www.snowflake.com/)
-
-### TestMu AI
-
-[<picture><source media="(prefers-color-scheme: dark)" srcset="https://assets.testmuai.com/resources/images/logos/white-logo.png"><source media="(prefers-color-scheme: light)" srcset="https://assets.testmuai.com/resources/images/logos/black-logo.png"><img alt="TestMu AI logo" src="https://assets.testmuai.com/resources/images/logos/white-logo.png" height="85"></picture>](https://www.testmuai.com/?utm_medium=sponsor&utm_source=stlite)
-
-### Hal9
-
-[<img src="https://hal9.com/logo/hal9-square-black.png" height="50" >](https://hal9.com/)
-
-They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
-
-### RAKUDEJI Inc.
-
-[<img src="https://imagedelivery.net/uODi9j-67fGrJlC0UtMj5w/3c47faee-8dab-41fa-ded6-681bdc3e9500/desktop" height="50" >](https://rakudeji.com/)
-
-They are sponsoring me on [GitHub Sponsors](https://github.com/sponsors/whitphx)!
-
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)

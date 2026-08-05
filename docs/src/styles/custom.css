@@ -73,20 +73,9 @@
   width: auto;
 }
 
-.h-72 {
-  height: 72px;
-  width: auto;
-}
-
 .h-50 {
   height: 50px;
   width: auto;
-}
-
-/* Specific fix for Snowflake logo which is wide */
-img[alt="Snowflake"].h-100 {
-  /* Maintain aspect ratio but constrain height */
-  height: 100px;
 }
 
 /* Support links layout */

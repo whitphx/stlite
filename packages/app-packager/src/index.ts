@@ -17,7 +17,29 @@ import pRetry from "p-retry";
 export { type Logger, consoleLogger } from "./logger.js";
 export { PrebuiltPackagesDataReader } from "./pyodide-packages.js";
 
-export const DEFAULT_PYODIDE_SOURCE = `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`;
+export function pyodideSourceUrl(version: string): string {
+  return `https://cdn.jsdelivr.net/pyodide/v${version}/full/`;
+}
+
+export const DEFAULT_PYODIDE_SOURCE = pyodideSourceUrl(pyodideVersion);
+
+/**
+ * The slice of the `pyodide` npm package the vendoring path uses. Callers can
+ * pass their own module instead of the one this package depends on: the wheels
+ * vendored here are ABI-tagged for the interpreter that loads them, and not
+ * every consumer targets the same one. @stlite/cloudflare has to match the
+ * Pyodide inside Cloudflare's Worker Python runtime, which trails the version
+ * the browser worker runs.
+ */
+export interface PyodideModule {
+  loadPyodide: typeof loadPyodide;
+  version: string;
+}
+
+const bundledPyodideModule: PyodideModule = {
+  loadPyodide,
+  version: pyodideVersion,
+};
 
 /**
  * The Pyodide runtime files copied into a packaged artifact's `pyodide/` dir
@@ -25,7 +47,7 @@ export const DEFAULT_PYODIDE_SOURCE = `https://cdn.jsdelivr.net/pyodide/v${pyodi
  * Pyodide's `pyodide-core` release tarball ships under `pyodide/`.
  */
 const PYODIDE_RUNTIME_FILES = [
-  "pyodide.asm.js",
+  "pyodide.asm.mjs",
   "pyodide.asm.wasm",
   "pyodide.mjs",
   "python_stdlib.zip",
@@ -33,9 +55,8 @@ const PYODIDE_RUNTIME_FILES = [
 ] as const;
 
 /**
- * Copies Pyodide's runtime files (`pyodide.mjs`, `pyodide.asm.{js,wasm}`,
- * `python_stdlib.zip`, `pyodide-lock.json`) from the installed `pyodide` npm
- * package into `<destPyodideDir>`. The packaged HTML loads them via
+ * Copies Pyodide's runtime files from the installed `pyodide` npm package into
+ * `<destPyodideDir>`. The packaged HTML loads them via
  * `pyodideUrl: "./pyodide/pyodide.mjs"` so the artifact runs without
  * fetching from a CDN.
  */
@@ -87,6 +108,8 @@ export interface VendorPrebuiltPackagesOptions {
   dependencies: string[];
   localWheelPaths: string[];
   pyodideSource?: string;
+  /** Defaults to the `pyodide` this package depends on. */
+  pyodideModule?: PyodideModule;
   logger?: Logger;
 }
 
@@ -109,8 +132,9 @@ export async function vendorPrebuiltPackages(
   opts: VendorPrebuiltPackagesOptions,
 ): Promise<string[]> {
   const logger = opts.logger ?? consoleLogger;
+  const pyodideModule = opts.pyodideModule ?? bundledPyodideModule;
   const pyodideSource = normalizePyodideSource(
-    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+    opts.pyodideSource ?? pyodideSourceUrl(pyodideModule.version),
   );
 
   await fsPromises.mkdir(opts.destPyodideDir, { recursive: true });
@@ -119,7 +143,7 @@ export async function vendorPrebuiltPackages(
     return [];
   }
 
-  const pyodide = await loadPyodide({
+  const pyodide = await pyodideModule.loadPyodide({
     packageBaseUrl: pyodideSource,
     packageCacheDir: opts.destPyodideDir,
   });
@@ -139,14 +163,16 @@ export async function vendorPackageSnapshot(
   opts: VendorPackageSnapshotOptions,
 ): Promise<string[]> {
   const logger = opts.logger ?? consoleLogger;
+  const pyodideModule = opts.pyodideModule ?? bundledPyodideModule;
   const pyodideSource = normalizePyodideSource(
-    opts.pyodideSource ?? DEFAULT_PYODIDE_SOURCE,
+    opts.pyodideSource ?? pyodideSourceUrl(pyodideModule.version),
   );
   const usedPrebuiltPackages = await vendorPrebuiltPackages({
     destPyodideDir: opts.destPyodideDir,
     dependencies: opts.dependencies,
     localWheelPaths: opts.localWheelPaths,
     pyodideSource,
+    pyodideModule,
     logger,
   });
 
@@ -155,6 +181,7 @@ export async function vendorPackageSnapshot(
     localWheelPaths: opts.localWheelPaths,
     usedPrebuiltPackages,
     pyodideSource,
+    pyodideModule,
     pyodideRuntimeDir: opts.destPyodideDir,
     saveTo: opts.snapshotPath,
     logger,
@@ -214,6 +241,7 @@ export async function packageApp(opts: PackageAppOptions): Promise<void> {
       : opts.localWheelPaths,
     usedPrebuiltPackages,
     pyodideSource,
+    pyodideModule: bundledPyodideModule,
     pyodideRuntimeDir,
     saveTo: path.resolve(opts.destDir, "./site-packages-snapshot.tar.gz"),
     logger,
@@ -299,7 +327,7 @@ async function prepareLocalWheel(
   logger.debug(`Preparing the local wheel: ${localPath}`);
   const data = await fsPromises.readFile(localPath);
   // Stage in a path-derived sub-directory so wheels with the same basename
-  // (e.g. two `streamlit-1.x.y-cp313-none-any.whl` from different vendors)
+  // (e.g. two `streamlit-1.x.y-cp3xx-none-any.whl` from different vendors)
   // don't overwrite each other. The basename itself must stay unchanged
   // because micropip parses it as a PEP 427 wheel filename to derive the
   // package name + version.
@@ -319,6 +347,7 @@ interface CreateSitePackagesSnapshotOptions {
   usedPrebuiltPackages: string[];
   pyodideRuntimeDir: string;
   pyodideSource: string;
+  pyodideModule: PyodideModule;
   saveTo: string;
   logger: Logger;
 }
@@ -339,7 +368,7 @@ async function createSitePackagesSnapshot(
   // start-up time becomes the dominant CLI runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pyodide: PyodideInterface & { FS: any } = // XXX: `{ FS: any }` is a temporary workaround to fix the type error.
-    await loadPyodide({
+    await options.pyodideModule.loadPyodide({
       packageBaseUrl: options.pyodideSource,
       packageCacheDir: options.pyodideRuntimeDir,
     });

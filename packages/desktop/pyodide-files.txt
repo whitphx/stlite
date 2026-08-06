@@ -1,4 +1,4 @@
-pyodide/pyodide.asm.js
+pyodide/pyodide.asm.mjs
 pyodide/pyodide.asm.wasm
 pyodide/pyodide.mjs
 pyodide/python_stdlib.zip

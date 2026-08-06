@@ -1,10 +1,12 @@
 import path from "node:path";
 import {
   consoleLogger,
-  DEFAULT_PYODIDE_SOURCE,
   PrebuiltPackagesDataReader,
+  type PyodideModule,
+  pyodideSourceUrl,
   vendorPackageSnapshot,
 } from "@stlite/app-packager";
+import { loadPyodide, version as pyodideVersion } from "pyodide";
 import { singleWheel } from "./helpers/fsx.ts";
 import {
   outputVendorPythonModules,
@@ -63,8 +65,24 @@ export async function vendorPrebuiltPackages({
     "site-packages-snapshot.tar.gz",
   );
 
+  // The vendored wheels are ABI-tagged for the interpreter that executes them,
+  // so they come from the Pyodide this package pins rather than the one
+  // @stlite/app-packager defaults to (which tracks the browser worker).
+  // Cloudflare's stable Worker runtime is Python 3.13 — the `python_workers`
+  // flag plus this build's compatibility_date — so the pin stays on Pyodide's
+  // 0.29.x line. Bump it when Cloudflare promotes a newer Python out of
+  // experimental.
+  const pyodideModule: PyodideModule = {
+    // Two `pyodide` packages of different versions are in play here, and their
+    // `PyodideAPI` declarations are nominally distinct even across the surface
+    // @stlite/app-packager actually uses.
+    loadPyodide: loadPyodide as PyodideModule["loadPyodide"],
+    version: pyodideVersion,
+  };
+  const pyodideSource = pyodideSourceUrl(pyodideVersion);
+
   const prebuiltPackagesDataReader = new PrebuiltPackagesDataReader(
-    DEFAULT_PYODIDE_SOURCE,
+    pyodideSource,
     consoleLogger,
   );
 
@@ -76,7 +94,8 @@ export async function vendorPrebuiltPackages({
     destPyodideDir: pyodidePackageDir,
     dependencies,
     localWheelPaths: [],
-    pyodideSource: DEFAULT_PYODIDE_SOURCE,
+    pyodideSource,
+    pyodideModule,
     snapshotPath,
     logger: consoleLogger,
   });

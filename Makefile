@@ -45,9 +45,14 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get
 # compat range allows, and a fresh upstream Pyodide release can ship a
 # pyodide-lock schema that the frozen uv.lock can no longer parse.
 # Bump alongside the runtime Pyodide version: packages/kernel/package.json,
-# packages/desktop/package.json, packages/kernel/src/worker.ts (CDN URL),
-# packages/kernel/py/stlite-lib/pyproject.toml (pyodide-py).
-PYODIDE_VERSION := 0.29.3
+# packages/desktop/package.json, packages/cli/package.json,
+# packages/kernel/src/worker.ts (CDN URL),
+# packages/kernel/py/stlite-lib/pyproject.toml (pyodide-py), and
+# .python-version (must equal the Pyodide release's bundled Python).
+# packages/cloudflare/package.json is deliberately NOT in that list — it
+# tracks Cloudflare's Worker Python runtime instead
+# (see packages/cloudflare/src/vendor-prebuilt.ts).
+PYODIDE_VERSION := 314.0.3
 
 node_modules := $(BUILD_STATE_DIR)/node_modules/.built
 venv := $(BUILD_STATE_DIR)/venv/.built

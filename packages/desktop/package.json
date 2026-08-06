@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "fs-extra": "^11.3.4",
-    "pyodide": "0.29.3",
+    "pyodide": "314.0.3",
     "yargs": "^18.0.0"
   },
   "devDependencies": {

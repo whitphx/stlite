@@ -25,10 +25,10 @@ const stliteRuntimeExtraDependencies = [
   "toml>=0.10.1",
   "pydeck>=0.8.0b4,<1",
   // The Streamlit fork's regenerated proto code (protoc 7.x) raises a protobuf
-  // VersionError when loaded against the protobuf 6.31.1 that Pyodide bundles.
-  // Pinning a 7.x range makes the closure resolve the pure-Python wheel instead
-  // of Pyodide's bundled 6.x, so the vendored runtime matches the gencode. The
-  // browser worker does the same (packages/kernel/src/worker-runtime.ts).
+  // VersionError when loaded against the protobuf 6.31.1 that Pyodide's 0.29.x
+  // line bundles. Pinning a 7.x range makes the closure resolve the pure-Python
+  // wheel instead, so the vendored runtime matches the gencode. This pin can go
+  // once the Pyodide version below moves to a release bundling protobuf 7.
   // See https://protobuf.dev/support/cross-version-runtime-guarantee
   "protobuf>=7.34.1,<8",
 ];

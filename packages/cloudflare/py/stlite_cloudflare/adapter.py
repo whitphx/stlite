@@ -51,7 +51,7 @@ async def run_http_asgi(app: AsgiApp, request: Any) -> Any:
         return js.Response.new(
             response_body,
             status=status,
-            headers=_to_js_headers(headers),
+            headers=js.Headers.new(headers),
         )
 
     async def send(message: AsgiMessage) -> None:
@@ -196,15 +196,6 @@ def _decode_response_headers(
         (to_bytes(name).decode("latin-1"), to_bytes(value).decode("latin-1"))
         for name, value in headers
     ]
-
-
-def _to_js_headers(headers: list[tuple[str, str]]) -> Any:
-    # Headers.new(sequence-of-pairs) keeps repeated names (multiple
-    # Set-Cookie); a plain-object conversion would collapse them.
-    import js
-    from pyodide.ffi import to_js
-
-    return js.Headers.new(to_js(headers))
 
 
 def iter_header_pairs(headers: Any) -> Iterable[tuple[Any, Any]]:

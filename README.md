@@ -644,7 +644,7 @@ Image processing with OpenCV works on the client side.
 
 ### Streamlit (Snowflake)
 
-[<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img alt="Snowflake" src="https://docs.snowflake.com/images/favicon/apple-touch-icon.png" height="100" />](https://www.snowflake.com/)
+[<img alt="Streamlit" src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img alt="Snowflake" src="https://docs.snowflake.com/images/favicon/apple-touch-icon.png" height="100" />](https://www.snowflake.com/)
 
 ### TestMu AI
 

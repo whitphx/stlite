@@ -12,7 +12,7 @@
     "gen:favicon": "node scripts/generate-favicons.mjs"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.1",
+    "@astrojs/starlight": "^0.38.4",
     "@stlite/browser": "workspace:*",
     "@stlite/cli": "workspace:*",
     "@stlite/desktop": "workspace:*",

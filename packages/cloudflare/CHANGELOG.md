@@ -1,5 +1,11 @@
 # @stlite/cloudflare
 
+## 0.2.1
+
+### Patch Changes
+
+- [#2097](https://github.com/whitphx/stlite/pull/2097) [`da5e2a6`](https://github.com/whitphx/stlite/commit/da5e2a604c94dcf999e4123a736951dd2e454148) Thanks [@whitphx](https://github.com/whitphx)! - Construct the response `Headers` in the Cloudflare Workers adapter by passing the ASGI header pairs to `js.Headers.new()` directly, dropping the intermediate conversion. No behavior change.
+
 ## 0.2.0
 
 ### Minor Changes

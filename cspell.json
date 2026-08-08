@@ -58,6 +58,7 @@
     "betterproto",
     // Pyodide
     "pyodide",
+    "jspi",
     "micropip",
     "pywrangler",
     "workerd",

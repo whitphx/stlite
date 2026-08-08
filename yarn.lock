@@ -7862,7 +7862,7 @@ __metadata:
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     p-retry: "npm:^8.0.0"
-    pyodide: "npm:0.29.3"
+    pyodide: "npm:314.0.3"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -7907,7 +7907,7 @@ __metadata:
     fs-extra: "npm:^11.3.4"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
-    pyodide: "npm:0.29.3"
+    pyodide: "npm:314.0.3"
     semver: "npm:^7.8.5"
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.1.3"
@@ -7931,7 +7931,7 @@ __metadata:
     jsonc-parser: "npm:^3.3.1"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
-    pyodide: "npm:0.29.3"
+    pyodide: "npm:0.29.4"
     smol-toml: "npm:^1.7.1"
     typescript: "npm:^5.9.3"
     wrangler: "npm:^4.105.0"
@@ -7975,7 +7975,7 @@ __metadata:
     node-html-parser: "npm:^7.1.0"
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
-    pyodide: "npm:0.29.3"
+    pyodide: "npm:314.0.3"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     rimraf: "npm:^6.1.2"
@@ -8014,7 +8014,7 @@ __metadata:
     oxfmt: "npm:^0.45.0"
     oxlint: "npm:^1.60.0"
     path-browserify: "npm:^1.0.1"
-    pyodide: "npm:0.29.3"
+    pyodide: "npm:314.0.3"
     react: "npm:^18.2.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^8.0.7"
@@ -24870,13 +24870,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.29.3":
-  version: 0.29.3
-  resolution: "pyodide@npm:0.29.3"
+"pyodide@npm:0.29.4":
+  version: 0.29.4
+  resolution: "pyodide@npm:0.29.4"
   dependencies:
     "@types/emscripten": "npm:^1.41.4"
     ws: "npm:^8.5.0"
-  checksum: 10c0/4c8108e9af7cd8997812507a01c3dd48789ab58973bdef3ac5a336c38837e7495146195be7fb8b0798bcc3c4f79e98877efaf0672d18e088488512eefbf1d3ca
+  checksum: 10c0/46663db835971ca467672da4d95d47526ad31e23ea54e9cd3f8d8b27db15afa971b32e4832b920a8d139f70fc4f25db34349a2bb2f2f2758dc17893fc9962fb9
+  languageName: node
+  linkType: hard
+
+"pyodide@npm:314.0.3":
+  version: 314.0.3
+  resolution: "pyodide@npm:314.0.3"
+  dependencies:
+    "@types/emscripten": "npm:^1.41.4"
+    ws: "npm:^8.5.0"
+  checksum: 10c0/ba6789749fe03a17487987ac99db3709e16c5d3ddf220f184a10c2942d3686faa3282cd6c65fb95accdffa182c6bb15ad40b674c1b3053a72e732417f55c5fdb
   languageName: node
   linkType: hard
 

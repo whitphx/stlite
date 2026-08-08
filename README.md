@@ -640,6 +640,16 @@ Image processing with OpenCV works on the client side.
 
 </details>
 
+## Sponsors
+
+### Streamlit (Snowflake)
+
+[<img alt="Streamlit" src="https://streamlit.io/images/brand/streamlit-mark-color.png" height="100" />](https://streamlit.io/) [<img alt="Snowflake" src="https://docs.snowflake.com/images/favicon/apple-touch-icon.png" height="100" />](https://www.snowflake.com/)
+
+### TestMu AI
+
+[<picture><source media="(prefers-color-scheme: dark)" srcset="https://assets.testmuai.com/resources/images/logos/white-logo.png"><source media="(prefers-color-scheme: light)" srcset="https://assets.testmuai.com/resources/images/logos/black-logo.png"><img alt="TestMu AI logo" src="https://assets.testmuai.com/resources/images/logos/white-logo.png" height="85"></picture>](https://www.testmuai.com/?utm_medium=sponsor&utm_source=stlite)
+
 ## Support the project
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D2ERWFG)

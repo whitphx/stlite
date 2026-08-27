@@ -44,10 +44,6 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
           These styles are "global" in the traditional sense and may affect the host page.
          */}
         {!disableDocumentStyles && <Global styles={documentStyles} />}
-        {/*
-        Overlay portals mount on `document.body`, outside `stlite-root`, so
-        they need the app's text styles restated globally.
-       */}
         <Global styles={overlayPortalStyles(theme.emotion)} />
         <ClassNames>
           {({ css, cx }) => (

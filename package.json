@@ -26,10 +26,14 @@
     "typescript": "^5.9.2"
   },
   "resolutions": {
+    "@swc/plugin-emotion": "15.0.0",
     "@types/react": "18.3.4"
   },
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "yarn@4.13.0"
+  "packageManager": "yarn@4.13.0",
+  "//resolutions": {
+    "@swc/plugin-emotion": "Deleting streamlit/frontend/yarn.lock makes this workspace resolve newer Vite patches than upstream Streamlit pins, so the rolldown that loads this wasm plugin is newer than the one upstream tests against and refuses the release upstream declares. Each release of the plugin names the swc_core it was built against, and 15.0.0 is the first one our rolldown accepts: see https://github.com/swc-project/plugins/blob/main/packages/emotion/CHANGELOG.md. Drop this once upstream declares a release that already matches."
+  }
 }

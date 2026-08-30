@@ -90,6 +90,25 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
       `Calling \`require\` for "react" in an environment that doesn't expose
       the \`require\` function`. Only surfaces in a real browser, not in CI.
 
+    A second, separate failure mode comes from stlite deleting
+    `streamlit/frontend/yarn.lock` so the fork joins the parent workspace: every
+    dependency of `streamlit/frontend/*` is then resolved fresh, landing on
+    newer patch releases than the ones upstream's own lockfile pins and tests.
+    Nothing in `packages/*` has to change for this to bite. Symptom: a build or
+    typecheck failure inside `streamlit/frontend` that does not reproduce on the
+    upstream tag. Which repair applies depends on what the newer release broke:
+
+    - **The fork's own source no longer satisfies it.** A newer TypeScript
+      rejected two `@ts-expect-error` directives that a newer
+      `@microlink/react-json-view` had made unused. Fix these in the fork, as a
+      patch on the `stlite-<version>` branch; a pin would only defer the same
+      edit to the next rebase.
+    - **A prebuilt artifact no longer loads under it.** A newer Vite carried a
+      rolldown whose `swc_core` refused the `@swc/plugin-emotion` wasm plugin
+      upstream declares. There is nothing to edit here, so pin the package with
+      a `resolutions` entry in the root `package.json` and record the reason
+      under the `"//resolutions"` key.
+
     Rule of thumb: build-tool deps (`vite`, `vitest`, `typescript`, the
     various `vite-plugin-*`, and the `packageManager` Yarn pin) should match
     upstream only if the build chain stays green and a manual `yarn start`

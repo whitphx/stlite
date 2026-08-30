@@ -400,7 +400,7 @@ jobs:
   # The counterpart of `test-build-all-green` in `test-build.yml`, which
   # carries the rationale for both.
   e2e-all-green:
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     needs:
       [
         wait-for-build,

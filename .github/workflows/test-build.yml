@@ -1221,10 +1221,11 @@ jobs:
   # unrequired, and would break whenever a matrix job's generated name
   # changes.
   test-build-all-green:
-    # `always()`, not the `! failure()` the build jobs use: a skipped check
-    # reports as neutral to branch protection, so the gate has to run and
-    # fail rather than skip itself.
-    if: ${{ always() }}
+    # Not `always()`: that reports a failure for every run superseded by
+    # `cancel-in-progress`, which is every push to a PR. `!cancelled()` still
+    # runs the gate when a job above failed or skipped, which is the case
+    # that has to be caught.
+    if: ${{ !cancelled() }}
     needs:
       [
         set-build-info,

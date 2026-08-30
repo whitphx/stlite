@@ -109,18 +109,18 @@ jobs:
   changes: # See https://github.com/dorny/paths-filter#examples
     runs-on: ubuntu-latest
     outputs:
-      common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       stlite-lib: "true" # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
-      react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.gha == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -129,9 +129,23 @@ jobs:
         id: filter
         with:
           filters: |
-            gha:
+            # Files no single package owns, so a change to any of them turns
+            # on every per-package job below. The workspace-wide lockfiles are
+            # why this matters most: one bump can shift resolution for any
+            # package, not only the one whose manifest changed.
+            global:
               - '.github/workflows/**/*'
               - '.github/actions/**/*'
+              - 'Makefile'
+              - 'tsconfig.json'
+              - '.nvmrc'
+              - '.python-version'
+              - 'package.json'
+              - 'yarn.lock'
+              - '.yarnrc.yml'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - 'packages/tooling/**/*'
             common:
               - 'packages/common/**/*'
             kernel:
@@ -1199,3 +1213,63 @@ jobs:
         with:
           subject-path: docs/dist
         continue-on-error: true
+
+  # A single status check for branch protection to require. Requiring the
+  # jobs above by name instead would silently leave every newly added job
+  # unrequired, and would break whenever a matrix job's generated name
+  # changes.
+  test-build-all-green:
+    if: ${{ always() }}
+    needs:
+      [
+        set-build-info,
+        changesets,
+        changes,
+        test-build-common,
+        test-kernel,
+        test-stlite-lib,
+        test-browser,
+        test-react,
+        test-sharing,
+        test-sharing-editor,
+        test-sharing-common,
+        test-desktop,
+        test-cli,
+        test-cloudflare,
+        test-cloudflare-windows,
+        build-browser,
+        build-react,
+        build-sharing,
+        build-sharing-editor,
+        build-desktop,
+        build-cli,
+        build-cloudflare,
+        verify-cloudflare-standalone,
+        build-docs,
+      ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # `allowed-skips` lists the jobs that legitimately don't run on every
+      # event. A skip anywhere else (a `needs` typo, a job dropped from the
+      # graph) fails here instead of passing silently.
+      - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}
+          allowed-skips: >-
+            changesets,
+            test-build-common,
+            test-kernel,
+            test-stlite-lib,
+            test-browser,
+            test-react,
+            test-sharing,
+            test-sharing-editor,
+            test-sharing-common,
+            test-desktop,
+            test-cli,
+            test-cloudflare,
+            test-cloudflare-windows,
+            build-cloudflare,
+            verify-cloudflare-standalone

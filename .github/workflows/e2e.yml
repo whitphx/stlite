@@ -397,9 +397,8 @@ jobs:
         run: npm run app:dir
         working-directory: ${{ runner.temp }}/sample_app
 
-  # The counterpart of `test-build-all-green`. Naming these jobs individually
-  # would be especially brittle: the generated names of the sharded and
-  # per-OS matrix jobs above move whenever the matrix does.
+  # The counterpart of `test-build-all-green` in `test-build.yml`, which
+  # carries the rationale for both.
   e2e-all-green:
     if: ${{ always() }}
     needs:

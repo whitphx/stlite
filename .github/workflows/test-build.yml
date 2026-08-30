@@ -129,10 +129,9 @@ jobs:
         id: filter
         with:
           filters: |
-            # Files no single package owns, so a change to any of them turns
-            # on every per-package job below. The workspace-wide lockfiles are
-            # why this matters most: one bump can shift resolution for any
-            # package, not only the one whose manifest changed.
+            # The lockfiles are why this reaches past the obvious: a single
+            # bump can shift resolution for any package, not only the one
+            # whose manifest changed.
             global:
               - '.github/workflows/**/*'
               - '.github/actions/**/*'
@@ -143,6 +142,9 @@ jobs:
               - 'package.json'
               - 'yarn.lock'
               - '.yarnrc.yml'
+              - '.npmrc'
+              - '.oxlintrc.json'
+              - '.oxfmtrc.json'
               - 'pyproject.toml'
               - 'uv.lock'
               - 'packages/tooling/**/*'
@@ -1219,6 +1221,9 @@ jobs:
   # unrequired, and would break whenever a matrix job's generated name
   # changes.
   test-build-all-green:
+    # `always()`, not the `! failure()` the build jobs use: a skipped check
+    # reports as neutral to branch protection, so the gate has to run and
+    # fail rather than skip itself.
     if: ${{ always() }}
     needs:
       [
@@ -1251,9 +1256,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # `allowed-skips` lists the jobs that legitimately don't run on every
-      # event. A skip anywhere else (a `needs` typo, a job dropped from the
-      # graph) fails here instead of passing silently.
+      # A skip outside `allowed-skips` (a `needs` typo, a job dropped from
+      # the graph) fails here instead of passing silently.
       - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
         with:
           jobs: ${{ toJSON(needs) }}
@@ -1261,7 +1265,6 @@ jobs:
             changesets,
             test-build-common,
             test-kernel,
-            test-stlite-lib,
             test-browser,
             test-react,
             test-sharing,

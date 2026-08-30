@@ -23,7 +23,7 @@
     "lint-staged": "^16.2.7",
     "oxfmt": "^0.45.0",
     "oxlint": "^1.60.0",
-    "typescript": "^5.9.2"
+    "typescript": "^6.0.3"
   },
   "resolutions": {
     "@swc/plugin-emotion": "15.0.0",

@@ -35,3 +35,6 @@
 
 - Use the latest Node LTS version plus latest version of Yarn 4;
 - Wheel builds enforce Python/Pyodide parity—honor the Makefile guardrails and keep `packages/*/dist` or `.make` out of commits.
+- Keep the fixed dependency cooldowns enabled: Yarn's `npmMinimalAgeGate: "1w"`, uv's `exclude-newer = "1 week"`, and Dependabot's cooldowns. Do not use `--no-time-gate`, add cooldown exemptions, or relax these settings merely to make a dependency update pass.
+- Before adding or updating any third-party dependency, invoke the `scan-dependencies` skill to query the deps.dev GOSSIP/Findings API. Prefer the exact candidate version when known. Do not proceed on a `BLOCK` result; surface `CAUTION` or unknown-risk results to the user before proceeding.
+- Do not build a custom GOSSIP-aware resolver, registry proxy, or CI scanner. Keep the fixed cooldown as the package-manager enforcement mechanism until an official ecosystem integration is available.

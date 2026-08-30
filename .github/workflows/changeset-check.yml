@@ -12,6 +12,13 @@ on:
     branches: ["main"]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
+concurrency:
+  # Let the `labeled` run cancel the `opened` one still in flight. Without
+  # this, a PR labeled `skip-changeset` after it was opened keeps the first
+  # run's failure on the commit even though the bypass now applies.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions: {}
 
 env:

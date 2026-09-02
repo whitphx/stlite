@@ -122,11 +122,14 @@ The `@stlite/react` E2E suite uses Playwright's `toHaveScreenshot()` for visual 
 # 1. Build @stlite/react, which the demos bundle along with its wheels
 make react
 
-# 2. Build the demo pages and generate/update the snapshots in a Docker container
-#    (Linux-consistent rendering)
-cd packages/react/e2e-tests && yarn test:docker:update-snapshots
+# 2. e2e-tests sits outside the root workspaces and installs its own deps
+cd packages/react/e2e-tests && yarn install
 
-# 3. Commit the generated/updated .png files from snapshots/
+# 3. Build the demo pages on the host, then update the snapshots inside a
+#    Docker container (Linux-consistent rendering)
+yarn test:docker:update-snapshots
+
+# 4. Commit the generated/updated .png files from snapshots/
 ```
 
 - **Scripts**: `scripts/update-snapshots-linux.sh` calls `scripts/run-in-docker.sh --update-snapshots`, which runs Playwright inside `mcr.microsoft.com/playwright` Docker image.

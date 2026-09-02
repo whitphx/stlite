@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:demo": "vite build --config vite.demo.config.ts",
+    "build:demo": "NODE_OPTIONS=--max-old-space-size=6144 vite build --config vite.demo.config.ts",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",

@@ -107,7 +107,9 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
       rolldown whose `swc_core` refused the `@swc/plugin-emotion` wasm plugin
       upstream declares. There is nothing to edit here, so pin the package with
       a `resolutions` entry in the root `package.json` and record the reason
-      under the `"//resolutions"` key.
+      under the `"//resolutions"` key. Run `yarn install` before retrying the
+      build; the entry does not reach the dependency graph until the lockfile
+      is regenerated.
 
     Rule of thumb: build-tool deps (`vite`, `vitest`, `typescript`, the
     various `vite-plugin-*`, and the `packageManager` Yarn pin) should match

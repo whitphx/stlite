@@ -22,14 +22,19 @@ test.describe("Custom Element Stlite Browser Test", () => {
 
     // Click the selectbox to open the dropdown
     await selectbox.click();
+    // ArrowDown also opens it, in case the click did not register as a
+    // pointer open. On an already-open dropdown it only moves the highlight,
+    // which the selection below does not depend on.
+    await selectbox.press("ArrowDown");
 
     // Wait for the dropdown to appear
-    await expect(
-      page.locator('ul[data-testid="stSelectboxVirtualDropdown"]'),
-    ).toBeVisible();
+    const dropdown = page.getByTestId("stSelectboxVirtualDropdown");
+    await expect(dropdown).toBeVisible();
 
     // Select a different option
-    await page.locator('li:has-text("Mobile phone")').click();
+    await dropdown
+      .getByRole("option", { name: "Mobile phone", exact: true })
+      .click();
 
     // Check if the selection is updated
     await expect(

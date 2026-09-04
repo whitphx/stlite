@@ -22,8 +22,9 @@ test.describe("Custom Element Stlite Browser Test", () => {
 
     // Click the selectbox to open the dropdown
     await selectbox.click();
-    // The pointer-triggered open is not reliable across browsers,
-    // so ArrowDown backs it up. It is a no-op when the dropdown is already open.
+    // ArrowDown also opens it, in case the click did not register as a
+    // pointer open. On an already-open dropdown it only moves the highlight,
+    // which the selection below does not depend on.
     await selectbox.press("ArrowDown");
 
     // Wait for the dropdown to appear

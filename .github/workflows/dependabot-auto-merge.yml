@@ -1,0 +1,54 @@
+name: "Dependabot auto-merge"
+
+on:
+  pull_request_target:
+    branches: ["main"]
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    # Anyone can push a branch named to look like Dependabot's, so the author
+    # is what gates this job. Dependabot needs `pull_request_target` because
+    # on `pull_request` its token is read-only and cannot enable auto-merge.
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # No step checks out the head branch, and none should: under
+      # `pull_request_target` that would run the PR's own code alongside the
+      # write token above.
+      - uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        id: metadata
+
+      - name: Enable auto-merge
+        # CI builds every package and runs the E2E suites against those
+        # artifacts, which is the whole review for a development or Actions
+        # bump. A runtime dependency resolves on the user's machine instead,
+        # where that evidence does not reach, so those stay manual.
+        #
+        # Actions are matched by group rather than by ecosystem because
+        # Dependabot reports them as `direct:production`, the same value a
+        # runtime dependency carries. The group is defined in
+        # `.github/dependabot.yml`.
+        #
+        # `fetch-metadata` collapses a grouped PR to its riskiest member, so a
+        # group that picks up a production dependency or a major drops out of
+        # this condition instead of merging on the strength of the rest.
+        if: >-
+          ${{ steps.metadata.outputs.update-type != 'version-update:semver-major'
+          && (steps.metadata.outputs.dependency-group == 'github-actions'
+          || steps.metadata.outputs.dependency-type == 'direct:development') }}
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # `--auto` queues the merge behind the branch ruleset's required
+        # checks. A ruleset that requires none of them merges the PR the
+        # moment this runs, so the required contexts have to be in place
+        # before this workflow is.
+        run: gh pr merge --auto --squash "$PR_URL"

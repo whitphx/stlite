@@ -90,6 +90,26 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
       `Calling \`require\` for "react" in an environment that doesn't expose
       the \`require\` function`. Only surfaces in a real browser, not in CI.
 
+    A second, separate failure mode comes from stlite deleting
+    `streamlit/frontend/yarn.lock` so the fork joins the parent workspace: every
+    dependency of `streamlit/frontend/*` is then resolved fresh, landing on
+    newer patch releases than the ones upstream's own lockfile pins and tests.
+    Nothing in `packages/*` has to change for this to bite. Symptom: a build or
+    typecheck failure inside `streamlit/frontend` that does not reproduce on the
+    upstream tag. Which repair applies depends on what the newer release broke:
+    - **The fork's own source no longer satisfies it.** A newer TypeScript
+      rejected two `@ts-expect-error` directives that a newer
+      `@microlink/react-json-view` had made unused. Fix these in the fork, as a
+      patch on the `stlite-<version>` branch; a pin would only defer the same
+      edit to the next rebase.
+    - **A prebuilt artifact no longer loads under it.** A newer Vite carried a
+      rolldown whose `swc_core` refused the `@swc/plugin-emotion` wasm plugin
+      upstream declares. There is nothing to edit here, so pin the package with
+      a `resolutions` entry in the root `package.json` and record the reason
+      under the `"//resolutions"` key. Run `yarn install` before retrying the
+      build; the entry does not reach the dependency graph until the lockfile
+      is regenerated.
+
     Rule of thumb: build-tool deps (`vite`, `vitest`, `typescript`, the
     various `vite-plugin-*`, and the `packageManager` Yarn pin) should match
     upstream only if the build chain stays green and a manual `yarn start`
@@ -119,3 +139,21 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
 
     If errors surface, narrow the dep bump that caused it and either pin
     that one dep back or update the alignment skip-list above.
+
+14. When opening the stlite PR, link the submodule diff from the description,
+    so a reviewer can read the fork's customizations against the new upstream
+    release without cloning the submodule. Compare across forks, with the
+    upstream release tag as the base: that tag lives in `streamlit/streamlit`
+    and is not pushed to `whitphx/streamlit`, so a same-repo compare cannot
+    name it.
+
+    ```text
+    https://github.com/streamlit/streamlit/compare/$NEW_BASE_STREAMLIT_VERSION_TAG...whitphx:streamlit:$NEW_STLITE_BRANCH
+    ```
+
+    Open the link before submitting and confirm it shows only the
+    customization commits. The head side names a branch, and
+    `stlite-<version>` stays force-pushable until its release, so re-check the
+    link after any force-push: the branch tip has to keep matching the SHA the
+    submodule is pinned to (`git ls-tree HEAD streamlit`) or the reviewer
+    is reading a diff this PR does not merge.

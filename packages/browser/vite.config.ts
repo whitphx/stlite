@@ -51,8 +51,9 @@ export default defineConfig(({ mode }) => ({
       },
     }),
     dts({
-      rollupTypes: true,
-      bundledPackages: ["@stlite/react"],
+      bundleTypes: {
+        bundledPackages: ["@stlite/react"],
+      },
     }),
     libAssetsPlugin({
       include: /\.(eot|woff2?|ttf|wasm)$/i,

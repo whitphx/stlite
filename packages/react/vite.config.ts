@@ -42,13 +42,24 @@ export default defineConfig(({ mode }) => ({
       },
     }),
     dts({
-      rollupTypes: true,
-      bundledPackages: [
-        "@stlite/kernel",
-        "@streamlit/connection",
-        "@streamlit/protobuf",
-        "pyodide",
-      ],
+      bundleTypes: {
+        bundledPackages: [
+          "@stlite/kernel",
+          "@streamlit/connection",
+          "@streamlit/protobuf",
+          "pyodide",
+        ],
+      },
+      // The `~lib/*` and `@streamlit/lib` path mappings pull sources in from
+      // the submodule, which sits outside this package. Left to infer a root
+      // from this package alone, TypeScript rejects every one of those files
+      // with TS6059 and emits no declarations at all.
+      compilerOptions: {
+        rootDir: path.resolve(__dirname, "../.."),
+      },
+      // That wider root would otherwise nest the emitted declarations under
+      // `build/packages/react/src/`, where the bundle entry cannot find them.
+      entryRoot: path.resolve(__dirname, "src"),
     }),
     viteTsconfigPaths(),
     wasm(),

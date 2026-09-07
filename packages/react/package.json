@@ -68,6 +68,7 @@
   "devDependencies": {
     "@emotion/babel-plugin": "^11.13.5",
     "@laynezh/vite-plugin-lib-assets": "^2.1.3",
+    "@microsoft/api-extractor": "^7.59.0",
     "@stlite/common": "workspace:^",
     "@stlite/kernel": "workspace:^",
     "@stlite/tooling": "workspace:^",
@@ -86,13 +87,13 @@
     "react-toastify": "^11.0.2",
     "sass": "^1.90.0",
     "tsdown": "^0.16.6",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^7.1.5",
-    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-dts": "^5.0.3",
     "vite-plugin-static-copy": "^3.1.4",
     "vite-plugin-wasm": "^3.5.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.1.3"
+    "vitest": "^4.1.10"
   },
   "peerDependencies": {
     "react": "^18.2.0",
@@ -108,8 +109,8 @@
     "Dep pin: `vite` is deliberately held at ^7.1.5 (not ^8.x as upstream Streamlit uses).",
     "Vite 8 swaps Rollup + @rollup/plugin-commonjs for Rolldown, which preserves",
     "inner `require(\"react\")` calls in bundled CJS deps (React's jsx-dev-runtime,",
-    "baseui transitive deps via popper.js, react-webcam, @glideapps/glide-data-grid,",
-    "...) instead of interop'ing them to ESM imports of the externalized `react`.",
+    "react-webcam, @glideapps/glide-data-grid, ...) instead of interop'ing them",
+    "to ESM imports of the externalized `react`.",
     "The bundle then throws \"Calling `require` for 'react' in an environment that",
     "doesn't expose the `require` function\" at runtime in the browser.",
     "See https://rolldown.rs/in-depth/bundling-cjs#require-external-modules.",
@@ -124,13 +125,13 @@
     "try { ... } catch { return null }), so the error is swallowed and never",
     "surfaces in the console. Per the \"follow upstream as long as it works\"",
     "policy in .claude/skills/rebase-streamlit/SKILL.md, those packages stay",
-    "on vite ^8.0.7. If a future dep bump introduces another unguarded CJS",
+    "on vite ^8.2.1. If a future dep bump introduces another unguarded CJS",
     "`require` site there, revert that package the same way and add an entry",
     "to this comment.",
     "",
     "Follow-up: try bumping to vite ^8 again once Rolldown ships a CJS→ESM interop",
-    "pass equivalent to @rollup/plugin-commonjs (or once the upstream React/baseui",
-    "tree stops shipping CJS-only modules). `vite-tsconfig-paths` is held at ^5.x",
+    "pass equivalent to @rollup/plugin-commonjs (or once the upstream React tree",
+    "stops shipping CJS-only modules). `vite-tsconfig-paths` is held at ^5.x",
     "for the same reason — its 6.x line peers on vite 8."
   ]
 }

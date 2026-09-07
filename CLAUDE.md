@@ -119,21 +119,23 @@ Each E2E suite has a `playwright.config.ts` that defines HTTP servers, browser p
 The `@stlite/react` E2E suite uses Playwright's `toHaveScreenshot()` for visual regression testing. Snapshot baselines must be generated on Linux to match CI.
 
 ```bash
-cd packages/react/e2e-tests
+# 1. Build @stlite/react, which the demos bundle along with its wheels
+make react
 
-# 1. Build demo pages (must include any new demos added to vite.demo.config.ts)
-yarn build:demo
+# 2. e2e-tests sits outside the root workspaces and installs its own deps
+cd packages/react/e2e-tests && yarn install
 
-# 2. Generate/update snapshots in a Docker container (Linux-consistent rendering)
+# 3. Build the demo pages on the host, then update the snapshots inside a
+#    Docker container (Linux-consistent rendering)
 yarn test:docker:update-snapshots
 
-# 3. Commit the generated/updated .png files from snapshots/
+# 4. Commit the generated/updated .png files from snapshots/
 ```
 
 - **Scripts**: `scripts/update-snapshots-linux.sh` calls `scripts/run-in-docker.sh --update-snapshots`, which runs Playwright inside `mcr.microsoft.com/playwright` Docker image.
 - **Snapshot location**: `packages/react/e2e-tests/snapshots/`
 - **Demo build output**: `packages/react/e2e-tests/demo-dist/` (built from `vite.demo.config.ts`)
-- **When adding a new demo with screenshots**: Add it to `vite.demo.config.ts` rollup inputs, run `yarn build:demo`, then run `yarn test:docker:update-snapshots` to generate the baseline image.
+- **When adding a new demo with screenshots**: Add it to `vite.demo.config.ts` rollup inputs, then run `yarn test:docker:update-snapshots` to generate the baseline image.
 
 ## Critical Constraints
 

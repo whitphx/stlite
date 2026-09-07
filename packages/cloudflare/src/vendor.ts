@@ -18,8 +18,8 @@ export interface VendorOptions {
   cacheDir: string;
   /** App entry script name (default streamlit_app.py). */
   entrypoint?: string;
-  /** Keep the whole runtime in the Worker script instead of loading it from
-   * static assets at cold start. */
+  /** Keep the whole runtime in the Worker script (default), instead of
+   * loading it from static assets at cold start. */
   bundledRuntime?: boolean;
   /** Dists to replace with import-satisfying stubs; what they orphan is
    * garbage-collected by metadata (see mock-packages in
@@ -42,7 +42,7 @@ export async function vendor({
   appDir,
   cacheDir,
   entrypoint = "streamlit_app.py",
-  bundledRuntime = false,
+  bundledRuntime = true,
   mockPackages = [],
 }: VendorOptions): Promise<void> {
   const vendorDir = path.join(projectDir, "python_modules");
@@ -119,13 +119,12 @@ export async function vendor({
     `ENTRYPOINT = ${JSON.stringify(entrypoint)}\n`,
   );
 
-  // Move the heavy runtime (streamlit, stlite_lib, deps, the app) out of the
-  // Worker script and into static assets the Worker activates at cold start —
-  // script bytes are capped at 3/10 MiB gzip, which this closure exceeds by
-  // itself; assets are not. With bundledRuntime everything stays in the
-  // script (the boot loader detects this and skips the asset fetch), which
-  // needs Cloudflare's planned 64 MB-uncompressed limit:
-  // https://github.com/cloudflare/workers-py/issues/156
+  // Without bundledRuntime, the heavy runtime (streamlit, stlite_lib, deps,
+  // the app) moves out of the Worker script and into static assets the Worker
+  // activates at cold start. Cloudflare's 64 MiB uncompressed script limit
+  // fits the whole closure, so this is the opt-out rather than the default:
+  // what it buys is a smaller isolate footprint, since the packed libraries
+  // stay compressed and are read by zipimport.
   if (!bundledRuntime) {
     await runVendorPythonModules(packageDir, projectDir, [
       "pack-modules",

@@ -104,7 +104,7 @@ async def test_ensure_packages_activates_zip_and_extracts_app(
 async def test_ensure_packages_skips_fetching_for_bundled_runtimes(
     isolated_loader, monkeypatch
 ):
-    # --bundled-runtime builds ship streamlit inside the script; the loader
+    # Default (bundled) builds ship streamlit inside the script; the loader
     # detects it as importable and never touches the assets binding.
     import importlib.util
 

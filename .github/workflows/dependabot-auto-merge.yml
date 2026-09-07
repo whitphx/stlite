@@ -11,7 +11,14 @@ jobs:
     # Anyone can push a branch named to look like Dependabot's, so the author
     # is what gates this job. Dependabot needs `pull_request_target` because
     # on `pull_request` its token is read-only and cannot enable auto-merge.
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    #
+    # The commit count keeps a PR someone has already pushed to out of scope.
+    # `fetch-metadata` authenticates only the first commit of the branch, so
+    # without this a hand-written commit stacked on top would inherit
+    # Dependabot's signature and merge unreviewed.
+    if: >-
+      ${{ github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.event.pull_request.commits == 1 }}
 
     runs-on: ubuntu-latest
 
@@ -32,17 +39,16 @@ jobs:
         # bump. A runtime dependency resolves on the user's machine instead,
         # where that evidence does not reach, so those stay manual.
         #
-        # Actions are matched by group rather than by ecosystem because
-        # Dependabot reports them as `direct:production`, the same value a
-        # runtime dependency carries. The group is defined in
-        # `.github/dependabot.yml`.
+        # Actions are matched by ecosystem rather than by dependency type
+        # because Dependabot reports them as `direct:production`, the same
+        # value a runtime dependency carries.
         #
         # `fetch-metadata` collapses a grouped PR to its riskiest member, so a
         # group that picks up a production dependency or a major drops out of
         # this condition instead of merging on the strength of the rest.
         if: >-
           ${{ steps.metadata.outputs.update-type != 'version-update:semver-major'
-          && (steps.metadata.outputs.dependency-group == 'github-actions'
+          && (steps.metadata.outputs.package-ecosystem == 'github_actions'
           || steps.metadata.outputs.dependency-type == 'direct:development') }}
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}

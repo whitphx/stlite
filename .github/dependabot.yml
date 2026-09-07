@@ -7,7 +7,6 @@ updates:
     cooldown:
       default-days: 7
     groups:
-      # `dependabot-auto-merge.yml` keys on this group's name.
       github-actions:
         patterns: ["*"]
         update-types: ["minor", "patch"]

@@ -3,21 +3,50 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     cooldown:
       default-days: 7
+    groups:
+      # `dependabot-auto-merge.yml` keys on this group's name.
+      github-actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     cooldown:
       default-days: 7
+    groups:
+      # Production and development stay in separate groups because
+      # `dependabot/fetch-metadata` reports a group holding both as
+      # `direct:production`, which would keep every development bump in it
+      # from auto-merging.
+      #
+      # Majors match no group, so they arrive one PR at a time and are left
+      # for a human.
+      npm-production:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      npm-development:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
   - package-ecosystem: "pip"
     directory: "/packages/kernel/py/stlite-lib"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     cooldown:
       default-days: 7
+    groups:
+      pip-production:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      pip-development:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:

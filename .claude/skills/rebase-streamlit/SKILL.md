@@ -141,20 +141,20 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     If errors surface, narrow the dep bump that caused it and either pin
     that one dep back or update the alignment skip-list above.
 
-14. When opening the stlite PR, include a link to the submodule diff in the
-    description, so a reviewer can read the fork's customizations against the
-    new upstream release without cloning the submodule. Cross-fork compare
-    is the form to use, because the upstream release tag is not pushed to
-    `whitphx/streamlit`:
+14. When opening the stlite PR, link the submodule diff from the description,
+    so a reviewer can read the fork's customizations against the new upstream
+    release without cloning the submodule. Compare across forks, with the
+    upstream release tag as the base: that tag lives in `streamlit/streamlit`
+    and is not pushed to `whitphx/streamlit`, so a same-repo compare cannot
+    name it.
 
     ```
     https://github.com/streamlit/streamlit/compare/$NEW_BASE_STREAMLIT_VERSION_TAG...whitphx:streamlit:$NEW_STLITE_BRANCH
     ```
 
-    Check the link resolves before submitting. If GitHub rejects the tag,
-    the fork is missing that ref; fall back to a same-repo compare naming
-    the base by SHA (`git rev-parse $NEW_BASE_STREAMLIT_VERSION_TAG^{commit}`):
-
-    ```
-    https://github.com/whitphx/streamlit/compare/<base-sha>...$NEW_STLITE_BRANCH
-    ```
+    Open the link before submitting and confirm it shows only the
+    customization commits. The head side names a branch, and
+    `stlite-<version>` stays force-pushable until its release, so re-check the
+    link after any force-push: the branch tip has to keep matching the SHA the
+    submodule is pinned to (`git -C streamlit rev-parse HEAD`) or the reviewer
+    is reading a diff this PR does not merge.

@@ -396,3 +396,24 @@ jobs:
       - name: Check if electron-builder works
         run: npm run app:dir
         working-directory: ${{ runner.temp }}/sample_app
+
+  # The counterpart of `test-build-all-green` in `test-build.yml`, which
+  # carries the rationale for both.
+  e2e-all-green:
+    if: ${{ !cancelled() }}
+    needs:
+      [
+        wait-for-build,
+        e2e-browser,
+        merge-e2e-browser-reports,
+        e2e-react,
+        e2e-desktop,
+        e2e-desktop-cli,
+      ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
+        with:
+          jobs: ${{ toJSON(needs) }}

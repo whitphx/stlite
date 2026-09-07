@@ -147,7 +147,7 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     and is not pushed to `whitphx/streamlit`, so a same-repo compare cannot
     name it.
 
-    ```
+    ```text
     https://github.com/streamlit/streamlit/compare/$NEW_BASE_STREAMLIT_VERSION_TAG...whitphx:streamlit:$NEW_STLITE_BRANCH
     ```
 

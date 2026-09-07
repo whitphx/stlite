@@ -1079,6 +1079,7 @@ jobs:
           test -f dist/python_modules/stlite_cloudflare/entry.py
           test -d dist/python_modules/streamlit
           test -f dist/python_modules/_stlite_cloudflare_app/streamlit_app.py
+          test -f dist/python_modules/_stlite_cloudflare_app/agri.csv.gz
           grep -q "window.__streamlit" dist/assets/index.html
           test ! -d dist/assets/_stlite
 
@@ -1091,7 +1092,10 @@ jobs:
         run: |
           set -eux
           npx wrangler deploy --dry-run | tee dry-run.log
-          upload_kib=$(sed 's/\x1b\[[0-9;]*m//g' dry-run.log | grep -o 'Total Upload: [0-9.]*' | grep -o '[0-9.]*' | head -1)
+          # Matching the unit too keeps the budget honest: were wrangler to
+          # report MiB one day, the number alone would sail under the KiB
+          # threshold, so an unmatched line has to fail the guard below.
+          upload_kib=$(sed 's/\x1b\[[0-9;]*m//g' dry-run.log | grep -o 'Total Upload: [0-9.]* KiB' | grep -o '[0-9.]*' | head -1)
           test -n "$upload_kib"
           awk -v s="$upload_kib" 'BEGIN { if (s+0 > 61440) { print "Script upload " s " KiB exceeds the 61440 KiB budget (hard limit 65536)"; exit 1 } }'
 

@@ -97,7 +97,6 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     Nothing in `packages/*` has to change for this to bite. Symptom: a build or
     typecheck failure inside `streamlit/frontend` that does not reproduce on the
     upstream tag. Which repair applies depends on what the newer release broke:
-
     - **The fork's own source no longer satisfies it.** A newer TypeScript
       rejected two `@ts-expect-error` directives that a newer
       `@microlink/react-json-view` had made unused. Fix these in the fork, as a

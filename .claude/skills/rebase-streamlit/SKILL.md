@@ -155,5 +155,5 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     customization commits. The head side names a branch, and
     `stlite-<version>` stays force-pushable until its release, so re-check the
     link after any force-push: the branch tip has to keep matching the SHA the
-    submodule is pinned to (`git -C streamlit rev-parse HEAD`) or the reviewer
+    submodule is pinned to (`git ls-tree HEAD streamlit`) or the reviewer
     is reading a diff this PR does not merge.

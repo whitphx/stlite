@@ -19,7 +19,7 @@ npx wrangler deploy        # or: npx wrangler dev
 - `--requirements <file>` — a `requirements.txt` (default `<path>/requirements.txt` if present)
 - `--name <name>` — Worker name for a generated `wrangler.jsonc` (default: derived from `<path>`)
 
-The whole Python runtime ships inside the Worker script. That fits [Cloudflare's script limit](https://developers.cloudflare.com/workers/platform/limits/#worker-size), 64 MiB uncompressed on every plan since [September 2026](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/), with room to spare, and a cold start has nothing to fetch or unpack before the first `import streamlit`.
+By default the whole Python runtime ships inside the Worker script. That fits [Cloudflare's script limit](https://developers.cloudflare.com/workers/platform/limits/#worker-size), 64 MiB uncompressed on every plan since [September 2026](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/), with room to spare, and a cold start has nothing to fetch or unpack before the first `import streamlit`.
 
 `--asset-runtime` moves that runtime out of the script and into static assets the Worker installs at cold start, the way the build worked while the script limit was 3 MiB (Free) or 10 MiB (Paid) after gzip. The packed libraries then stay compressed in the isolate and are read through `zipimport` rather than occupying its in-memory filesystem, which can be worth the extra fetch and extraction for an app that runs close to the 128 MB isolate limit. `--bundled-runtime`, the flag that used to opt into today's default, is still accepted and does nothing.
 

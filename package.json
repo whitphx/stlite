@@ -12,7 +12,7 @@
   "scripts": {
     "prepare": "husky",
     "changeset": "changeset",
-    "changeset:release": "changeset tag",
+    "changeset:release": "changeset git-tag",
     "cspell": "cspell lint --no-progress --cache --config ./cspell.json ."
   },
   "devDependencies": {

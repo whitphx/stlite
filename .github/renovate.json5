@@ -1,0 +1,68 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  extends: [
+    "config:recommended",
+    // A quiet week costs no PRs, and a busy one costs one per group below
+    // rather than one per dependency.
+    "schedule:weekly",
+  ],
+
+  // The root `pyproject.toml` sets `exclude-newer = "1 week"`, so `uv lock`
+  // refuses to resolve a release younger than that. A shorter window here
+  // would open Python PRs whose lock step cannot succeed.
+  minimumReleaseAge: "7 days",
+
+  // `.python-version` has to match the Python that Pyodide ships, so it moves
+  // when Pyodide moves and never on a CPython release of its own. See the
+  // "Python Version" constraint in CLAUDE.md.
+  pyenv: {
+    enabled: false,
+  },
+
+  packageRules: [
+    {
+      // `requires-python` is the same pin expressed as a range, and it has to
+      // stay consistent across the uv workspace members.
+      matchDepTypes: ["requires-python"],
+      enabled: false,
+    },
+
+    // CI builds every package and runs the E2E suites against those
+    // artifacts, which is the whole review for a development or Actions bump.
+    // A runtime dependency resolves on the user's machine instead, where that
+    // evidence does not reach, so those groups stay manual.
+    {
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      groupName: "github-actions",
+      automerge: true,
+    },
+    {
+      matchManagers: ["npm"],
+      matchDepTypes: ["devDependencies"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "npm development dependencies",
+      automerge: true,
+    },
+    {
+      matchManagers: ["pep621"],
+      matchDepTypes: ["dependency-groups"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "python development dependencies",
+      automerge: true,
+    },
+    {
+      matchManagers: ["npm"],
+      matchDepTypes: ["dependencies"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "npm production dependencies",
+    },
+    {
+      matchManagers: ["pep621"],
+      matchDepTypes: ["project.dependencies"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "python production dependencies",
+    },
+  ],
+}

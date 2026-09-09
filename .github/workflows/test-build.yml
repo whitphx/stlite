@@ -625,7 +625,7 @@ jobs:
           name: stlite-browser
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: packages/browser/package.tgz
         # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -716,7 +716,7 @@ jobs:
           name: stlite-react
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: packages/react/package.tgz
         continue-on-error: true
@@ -898,7 +898,7 @@ jobs:
           name: stlite-desktop
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: packages/desktop/package.tgz
         # This step may fail when the PR is created by an external contributor and the CI is run in their scope.
@@ -953,7 +953,7 @@ jobs:
           name: stlite-cli
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: packages/cli/package.tgz
         continue-on-error: true
@@ -1009,7 +1009,7 @@ jobs:
           name: stlite-cloudflare
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: packages/cloudflare/package.tgz
         continue-on-error: true
@@ -1211,7 +1211,7 @@ jobs:
           name: stlite-docs
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: docs/dist
         continue-on-error: true

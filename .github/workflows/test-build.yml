@@ -62,7 +62,7 @@ jobs:
           # `fetch-depth: 0` is required to create tags for new releases by Changesets.
           fetch-depth: 0
           # `persist-credentials: false` is important not only for security reasons
-          # but also to ensure that `git push --follow-tags` run by the Changesets action in the later step
+          # but also to ensure that the tags the Changesets action pushes in the later step
           # don't use the default GITHUB_TOKEN, which doesn't trigger other workflows such as the release workflow.
           # Ref: https://github.com/orgs/community/discussions/26220
           persist-credentials: false
@@ -86,18 +86,17 @@ jobs:
         id: changesets
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
-          publish: npm run changeset:release
-        env:
-          # PRs created using `GITHUB_TOKEN` doesn't trigger CI workflows, so we need to use a PAT or app token.
+          publish-script: npm run changeset:release
+          # PRs and tags created using `GITHUB_TOKEN` don't trigger CI workflows, so we need to use a PAT or app token.
           # - The PAT should be fine-grained and its permissions are properly configured (R/W for Contents and Pull Requests).
           # - The app token should be generated using a GitHub App that has proper permissions (R/W for Contents and Pull Requests).
           # Ref: https://github.com/orgs/community/discussions/55906
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          # GITHUB_TOKEN: ${{ secrets.CHANGESETS_PAT }}
+          github-token: ${{ steps.generate-token.outputs.token }}
+          # github-token: ${{ secrets.CHANGESETS_PAT }}
 
       - name: Save published packages info
         if: steps.changesets.outputs.published == 'true'
-        run: echo '${{ steps.changesets.outputs.publishedPackages }}' > changesets-published-packages
+        run: echo '${{ steps.changesets.outputs.published-packages }}' > changesets-published-packages
 
       - name: Upload published packages info
         if: steps.changesets.outputs.published == 'true'

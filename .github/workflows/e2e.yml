@@ -151,8 +151,10 @@ jobs:
           retention-days: 1
 
   merge-e2e-browser-reports:
-    # Merge Playwright reports, even if some shards have failed
-    if: ${{ !cancelled() }}
+    # Merge Playwright reports, even if some shards have failed.
+    # When `wait-for-build` fails, `e2e-browser` is skipped whole and uploads
+    # no blob reports, so skip too rather than fail on a missing directory.
+    if: ${{ !cancelled() && needs.e2e-browser.result != 'skipped' }}
     needs: [e2e-browser]
 
     permissions:

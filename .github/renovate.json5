@@ -8,9 +8,18 @@
     "schedule:weekly",
   ],
 
-  // The root `pyproject.toml` sets `exclude-newer = "1 week"`, so `uv lock`
-  // refuses to resolve a release younger than that. A shorter window here
-  // would open Python PRs whose lock step cannot succeed.
+  // The root `package.json` declares workspaces under `streamlit/`, and
+  // `packages/react` and `packages/kernel` depend on them through
+  // `workspace:^`. Without the submodule those ranges do not resolve, the
+  // lockfile update fails, and the PR arrives with a stale `yarn.lock`.
+  // The `git-submodules` manager stays off, so the fork pin itself is never
+  // bumped.
+  cloneSubmodules: true,
+
+  // Carries over the `cooldown: default-days: 7` the Dependabot config
+  // applied to every ecosystem. The root `pyproject.toml` also sets
+  // `exclude-newer = "1 week"`, so a shorter window would open Python PRs
+  // whose `uv lock` step cannot succeed.
   minimumReleaseAge: "7 days",
 
   // `.python-version` has to match the Python that Pyodide ships, so it moves
@@ -20,11 +29,19 @@
     enabled: false,
   },
 
+  // Rules are applied in order and the last match wins, so the constraints
+  // that must survive live at the bottom.
   packageRules: [
     {
       // `requires-python` is the same pin expressed as a range, and it has to
       // stay consistent across the uv workspace members.
       matchDepTypes: ["requires-python"],
+      enabled: false,
+    },
+    {
+      // The root `package.json` pins these deliberately; see the
+      // `//resolutions` note next to them.
+      matchDepTypes: ["resolutions"],
       enabled: false,
     },
 
@@ -47,7 +64,7 @@
     },
     {
       matchManagers: ["pep621"],
-      matchDepTypes: ["dependency-groups"],
+      matchDepTypes: ["dependency-groups", "build-system.requires"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "python development dependencies",
       automerge: true,
@@ -63,6 +80,16 @@
       matchDepTypes: ["project.dependencies"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "python production dependencies",
+    },
+
+    // The Pyodide version also lives in `PYODIDE_VERSION` in the Makefile and
+    // in the CDN URL in `packages/kernel/src/worker.ts`, neither of which
+    // Renovate can see. Merging any one of these on its own would leave
+    // the tree inconsistent, so they move together and a person does the rest.
+    {
+      matchPackageNames: ["pyodide", "pyodide-py", "pyodide-build"],
+      groupName: "pyodide",
+      automerge: false,
     },
   ],
 }

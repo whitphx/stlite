@@ -1,7 +1,8 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
   "changelog": ["@changesets/changelog-github", { "repo": "whitphx/stlite" }],
   "commit": false,
+  "privatePackages": { "version": true, "tag": false },
   "fixed": [],
   "linked": [],
   "access": "restricted",

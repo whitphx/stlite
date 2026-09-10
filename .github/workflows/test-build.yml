@@ -62,8 +62,8 @@ jobs:
           # `fetch-depth: 0` is required to create tags for new releases by Changesets.
           fetch-depth: 0
           # `persist-credentials: false` keeps the checkout token out of the git config.
-          # The Changesets action pushes the release commit and tags through the GitHub API
-          # with the `github-token` below, so no git credentials are needed here.
+          # The Changesets action authenticates its own pushes with the `github-token` below,
+          # so no git credentials are needed here.
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -86,6 +86,13 @@ jobs:
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
           publish-script: npm run changeset:release
+          # Pushing through the GitHub API (the default) builds the release commit with
+          # `@changesets/ghcommit`, which stats every path `git diff` reports as changed.
+          # CI leaves tracked content in the `streamlit` submodule modified, so that path is
+          # a directory, and its executable bits fail the library's non-executable check:
+          # "Unexpected executable file at streamlit". The Git CLI stages with `git add .`,
+          # which skips a submodule whose recorded commit has not moved.
+          push-with-git-cli: true
           # PRs created using `GITHUB_TOKEN` don't trigger CI workflows, so we need to use a PAT or app token.
           # - The PAT should be fine-grained and its permissions are properly configured (R/W for Contents and Pull Requests).
           # - The app token should be generated using a GitHub App that has proper permissions (R/W for Contents and Pull Requests).

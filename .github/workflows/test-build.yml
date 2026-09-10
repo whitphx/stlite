@@ -86,9 +86,12 @@ jobs:
         uses: changesets/action@8488615a623b1b9c987934bb89eae8af6a946ac1 # v2.1.1
         with:
           publish-script: npm run changeset:release
-          # The action pushes through the GitHub API by default, and the Git tree API cannot
-          # represent the `streamlit` submodule's gitlink, so it rejects the release commit with
-          # "Unexpected executable file at streamlit". Push with the Git CLI instead.
+          # Pushing through the GitHub API (the default) builds the release commit with
+          # `@changesets/ghcommit`, which stats every path `git diff` reports as changed.
+          # CI leaves tracked content in the `streamlit` submodule modified, so that path is
+          # a directory, and its executable bits fail the library's non-executable check:
+          # "Unexpected executable file at streamlit". The Git CLI stages with `git add .`,
+          # which skips a submodule whose recorded commit has not moved.
           push-with-git-cli: true
           # PRs created using `GITHUB_TOKEN` don't trigger CI workflows, so we need to use a PAT or app token.
           # - The PAT should be fine-grained and its permissions are properly configured (R/W for Contents and Pull Requests).

@@ -16,7 +16,11 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es6",
+    // `arrowParseUtils.ts` in the submodule awaits the parquet-wasm
+    // initializer at the top level, which TypeScript only allows from
+    // es2017. Staying below es2022 keeps `useDefineForClassFields` off,
+    // so class-field semantics across the submodule sources do not move.
+    "target": "es2017",
     "types": ["vite/client", "vitest/globals"],
     // Set the `paths` same as `streamlit/frontend/app/tsconfig.json`, https://github.com/streamlit/streamlit/blob/1.44.1/frontend/app/tsconfig.json#L5-L9.
     "paths": {

@@ -157,12 +157,18 @@ jobs:
               - 'packages/common/**/*'
             kernel:
               - 'packages/kernel/**/*'
+              # A submodule shows up as its gitlink's own path, so the pattern
+              # has to be the bare path; `streamlit/**/*` never matches,
+              # because the contents live in another repository and are never
+              # listed.
+              - 'streamlit'
               # - '!packages/kernel/py/**/*'  # Not supported by paths-filter now: https://github.com/dorny/paths-filter/issues/106
             # stlite-lib:  # We run this job anytime. See above.
             #   - 'packages/kernel/py/stlite-lib/**/*'
             #   - 'streamlit/**/*'
             react:
               - 'packages/react/**/*'
+              - 'streamlit'
             browser:
               - 'packages/browser/**/*'
             sharing:
@@ -180,6 +186,7 @@ jobs:
             cloudflare:
               - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
+              - 'streamlit'
 
   test-build-common:
     needs: changes

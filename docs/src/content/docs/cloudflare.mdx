@@ -41,7 +41,7 @@ npm install @stlite/cloudflare
 npx stlite-cloudflare build ./my-app -o ./dist
 ```
 
-This produces a deployable Worker directory at `./dist` (default) containing `wrangler.jsonc`, `src/entry.py`, a slim `python_modules/`, and `assets/` (the frontend plus the packed Python runtime, installed at cold start).
+This produces a deployable Worker directory at `./dist` (default) containing `wrangler.jsonc`, `src/entry.py`, `python_modules/` (your app, the Stlite runtime, and the vendored Python dependency tree), and `assets/` (the Streamlit frontend).
 
 :::note[Build prerequisites]
 The build needs [`uv`](https://docs.astral.sh/uv/) on your `PATH` (it drives `pywrangler` to resolve your dependencies for the Pyodide target) plus Node.js. It runs on macOS and Linux; on Windows, build under WSL for now, since `pywrangler sync` can't yet locate its Pyodide interpreter natively.
@@ -83,7 +83,7 @@ This asymmetry is why the Durable Object is the default: media alone could be pa
 | `--plain-worker`        | Run as a plain Worker instead of the default Durable Object (see above).                       |
 | `--mock <package>`      | Replace a vendored package with an import stub and drop what it alone pulled in (repeatable).  |
 | `--slim`                | Alias for `--mock pandas --mock numpy` — for apps with no dataframes, charts, or numeric data. |
-| `--bundled-runtime`     | Keep the Python runtime in the script instead of loading it from assets at cold start.         |
+| `--asset-runtime`       | Ship the Python runtime as static assets instead of bundling it into the script (see below).   |
 
 ### Shrinking the app with `--mock` / `--slim`
 
@@ -91,9 +91,13 @@ This asymmetry is why the Durable Object is the default: media alone could be pa
 
 `--slim` bundles the tested `pandas` + `numpy` pair for text/widget/chat-style apps. Mocking `pandas` cascades to the parquet serialization stack and roughly halves the script size and cold-start time.
 
-### `--bundled-runtime`
+### Where the runtime ships: `--asset-runtime`
 
-By default the heavy Python runtime ships as static assets that the Worker loads at cold start, keeping the script under Cloudflare's current size limits. Once Cloudflare's planned 64 MB-uncompressed script limit ships ([cloudflare/workers-py#156](https://github.com/cloudflare/workers-py/issues/156)), `--bundled-runtime` keeps everything in the script instead, removing the asset fetch and extraction at cold start. Today it fits under the current gzip limit (10 MiB on the Workers Paid plan; 3 MiB on Free) only in combination with `--slim`.
+By default the whole Python runtime ships inside the Worker script. That fits [Cloudflare's script limit](https://developers.cloudflare.com/workers/platform/limits/#worker-size), 64 MiB uncompressed on every plan since [September 2026](https://developers.cloudflare.com/changelog/post/2026-09-04-increased-worker-size-limit/), with room to spare, and a cold start has nothing to fetch or unpack before the first `import streamlit`.
+
+`--asset-runtime` moves the runtime out of the script and into static assets the Worker installs at cold start, the way the build worked while the script limit was 3 MiB (Free) or 10 MiB (Paid) after gzip. The packed libraries then stay compressed in the isolate and are read through `zipimport` rather than occupying its in-memory filesystem, which can be worth the extra fetch and extraction for an app that runs close to the 128 MB isolate limit.
+
+`--bundled-runtime`, the flag that used to opt into today's default, is still accepted and does nothing.
 
 ## Secrets and configuration
 
@@ -115,7 +119,7 @@ import minimalWrangler from "../../../../packages/cloudflare/samples/minimal/app
 
 ## Bringing your own `wrangler.jsonc`
 
-If `<path>` already contains a `wrangler.jsonc`, it is parsed (JSONC comments are fine, though not preserved in the output) and merged with the configuration the generated Worker requires. Your settings — routes, `vars`, extra bindings, `observability`, `limits`, `name` — are preserved. The settings the Worker can't run safely without are always enforced: `main`, the `python_workers` and `no_handle_cross_request_promise_resolution` compatibility flags, and the `assets` block (including the `run_worker_first` routes that keep the packed runtime and your app source from being served as public static files). A custom value that conflicts with a required setting fails the build with an error explaining what to change, rather than being silently overridden. Durable Object declarations follow whichever style your config uses (Wrangler's `exports` map or the legacy `migrations` array), and every supported shape is validated against `wrangler deploy --dry-run` in CI.
+If `<path>` already contains a `wrangler.jsonc`, it is parsed (JSONC comments are fine, though not preserved in the output) and merged with the configuration the generated Worker requires. Your settings — routes, `vars`, extra bindings, `observability`, `limits`, `name` — are preserved. The settings the Worker can't run safely without are always enforced: `main`, the `python_workers` and `no_handle_cross_request_promise_resolution` compatibility flags, and the `assets` block (including the `run_worker_first` routes that keep an `--asset-runtime` build's packed runtime and app source from being served as public static files). A custom value that conflicts with a required setting fails the build with an error explaining what to change, rather than being silently overridden. Durable Object declarations follow whichever style your config uses (Wrangler's `exports` map or the legacy `migrations` array), and every supported shape is validated against `wrangler deploy --dry-run` in CI.
 
 ## What gets packaged
 

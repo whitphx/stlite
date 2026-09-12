@@ -22,8 +22,10 @@ const REQUIRED_ROUTES = [
   "/_stlite/*",
 ];
 // Namespace prefixes that must always reach the Worker: Streamlit's server
-// routes, and /_stlite/ so the packed runtime (including the user's app
-// source) is never served as a public static file.
+// routes, and /_stlite/ so an --asset-runtime build's packed runtime
+// (including the user's app source) is never served as a public static file.
+// The generated config is the same in both runtime modes, so switching modes
+// never rewrites it.
 const PROTECTED_PREFIXES = [
   "/_stcore/",
   "/media/",

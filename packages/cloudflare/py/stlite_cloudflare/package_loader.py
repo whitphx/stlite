@@ -1,15 +1,19 @@
 """Boot-time installer for the packaged Python runtime.
 
-The Worker script ships only ``stlite_cloudflare``, the workers SDK, and the
-native-extension packages that must live on a read-only filesystem; the pure
-Python runtime ships as static assets, because assets don't count against
-Cloudflare's Worker script-size limit. At cold start:
+``--asset-runtime`` builds keep the pure Python runtime out of the Worker
+script and ship it as static assets instead, leaving the script with only
+``stlite_cloudflare``, the workers SDK, and the native-extension packages that
+must live on a read-only filesystem. At cold start:
 
 - ``python-modules.zip`` (the libraries) goes onto sys.path as-is, imported
   via zipimport — the modules never occupy the in-memory filesystem and
   decompress per-import, keeping the isolate's memory footprint down.
 - ``extracted-modules.tar.gz`` (the user's app package plus anything
   zipimport can't serve, e.g. namespace packages) is extracted to real files.
+
+Default builds bundle the whole runtime into the script, which fits
+Cloudflare's 64 MiB uncompressed script limit, and this module then has
+nothing to do.
 """
 
 import asyncio
@@ -43,11 +47,9 @@ async def ensure_packages(env: Any) -> None:
     import tarfile
 
     if importlib.util.find_spec("streamlit") is not None:
-        # A --bundled-runtime build: the whole runtime already ships in the
-        # script's python_modules, so there is nothing to fetch. Bundling
-        # everything needs Cloudflare's planned 64 MB-uncompressed script
-        # limit (https://github.com/cloudflare/workers-py/issues/156); the
-        # asset-loading path below is the default until that ships.
+        # A default (bundled) build: the whole runtime already ships in the
+        # script's python_modules, so there is nothing to fetch. The
+        # asset-loading path below serves --asset-runtime builds.
         _installed = True
         return
 

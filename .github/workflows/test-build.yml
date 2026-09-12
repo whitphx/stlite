@@ -1077,22 +1077,27 @@ jobs:
             "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/app" \
             -o ./dist --name stlite-cloudflare --plain-worker
           test -f dist/python_modules/stlite_cloudflare/entry.py
-          test ! -d dist/python_modules/streamlit
+          test -d dist/python_modules/streamlit
+          test -f dist/python_modules/_stlite_cloudflare_app/streamlit_app.py
+          test -f dist/python_modules/_stlite_cloudflare_app/agri.csv.gz
           grep -q "window.__streamlit" dist/assets/index.html
-          python3 -m zipfile -l dist/assets/_stlite/python-modules.zip | grep -q "streamlit/"
-          tar -tzf dist/assets/_stlite/extracted-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
+          test ! -d dist/assets/_stlite
 
-      # The script (python_modules incl. the native-extension packages that
-      # can't move to assets) must stay under Cloudflare's 10 MiB-gzip
-      # (10240 KiB) paid cap, and sits close to it; trip just below the hard
-      # cap so a crossing fails in CI instead of at deploy time.
+      # The default build ships the whole runtime in the script, which
+      # Cloudflare caps at 64 MiB uncompressed (65536 KiB) on every plan. The
+      # packaged runtime sits far below that; budget below the hard cap so a
+      # regression that would break `wrangler deploy` fails here instead.
       - name: Validate the Worker bundle
         working-directory: ${{ runner.temp }}/standalone/dist
         run: |
           set -eux
           npx wrangler deploy --dry-run | tee dry-run.log
-          gzip_kib=$(grep -o 'gzip: [0-9.]*' dry-run.log | grep -o '[0-9.]*')
-          awk -v s="$gzip_kib" 'BEGIN { if (s+0 > 10200) { print "Script gzip " s " KiB exceeds the 10200 KiB budget (hard limit 10240)"; exit 1 } }'
+          # Matching the unit too keeps the budget honest: were wrangler to
+          # report MiB one day, the number alone would sail under the KiB
+          # threshold, so an unmatched line has to fail the guard below.
+          upload_kib=$(sed 's/\x1b\[[0-9;]*m//g' dry-run.log | grep -o 'Total Upload: [0-9.]* KiB' | grep -o '[0-9.]*' | head -1)
+          test -n "$upload_kib"
+          awk -v s="$upload_kib" 'BEGIN { if (s+0 > 61440) { print "Script upload " s " KiB exceeds the 61440 KiB budget (hard limit 65536)"; exit 1 } }'
 
       # wrangler dev runs the Worker in local workerd — the same runtime as
       # production — so this drives the packaged app end-to-end in a real
@@ -1169,6 +1174,39 @@ jobs:
             echo "::endgroup::"
             exit 1
           }
+
+      # --asset-runtime is the opt-out from the default bundled script: the
+      # runtime moves into static assets that package_loader.py fetches and
+      # unpacks at cold start. Build it once and boot it in local workerd, so
+      # that loader path keeps end-to-end coverage.
+      - name: Build and boot an --asset-runtime Worker
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          cp -R .dist.stlite-cloudflare-cache .dist-assets.stlite-cloudflare-cache
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
+            -o ./dist-assets --name stlite-cloudflare-assets \
+            --plain-worker --asset-runtime
+          test ! -d dist-assets/python_modules/streamlit
+          python3 -m zipfile -l dist-assets/assets/_stlite/python-modules.zip | grep -q "streamlit/"
+          tar -tzf dist-assets/assets/_stlite/extracted-modules.tar.gz | grep -q "_stlite_cloudflare_app/streamlit_app.py"
+          (cd dist-assets && npx wrangler deploy --dry-run)
+          (cd dist-assets && npx wrangler dev --port 8789 >"$RUNNER_TEMP/wrangler-dev-assets.log" 2>&1 &)
+          ok=""
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 5 -o /dev/null http://127.0.0.1:8789/_stcore/health; then
+              ok=1
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then
+            echo "::group::wrangler dev (--asset-runtime) log"
+            cat "$RUNNER_TEMP/wrangler-dev-assets.log"
+            echo "::endgroup::"
+            exit 1
+          fi
 
       # Every wrangler-config shape the merger supports (named environments,
       # legacy migrations, exports style, external bindings, ...) validated

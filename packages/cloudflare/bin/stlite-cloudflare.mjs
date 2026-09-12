@@ -43,6 +43,10 @@ function parseBuildArgs(args) {
       entrypoint: { type: "string", default: "streamlit_app.py" },
       requirements: { type: "string" },
       name: { type: "string" },
+      "asset-runtime": { type: "boolean", default: false },
+      // Bundling the runtime into the script is the default; the flag that
+      // used to opt into it stays accepted so existing build commands keep
+      // working.
       "bundled-runtime": { type: "boolean", default: false },
       "plain-worker": { type: "boolean", default: false },
       slim: { type: "boolean", default: false },
@@ -58,11 +62,22 @@ function parseBuildArgs(args) {
     );
   }
   const {
+    "asset-runtime": assetRuntime,
     "bundled-runtime": bundledRuntime,
     "plain-worker": plainWorker,
     ...rest
   } = values;
-  return { path: positionals[0], ...rest, bundledRuntime, plainWorker };
+  if (bundledRuntime) {
+    console.warn(
+      "stlite-cloudflare: --bundled-runtime is the default now; the flag can be dropped.",
+    );
+  }
+  return {
+    path: positionals[0],
+    ...rest,
+    bundledRuntime: !assetRuntime,
+    plainWorker,
+  };
 }
 
 function printHelp() {
@@ -78,9 +93,11 @@ Options:
   --entrypoint <name>        Entrypoint script, relative to <path> (default: streamlit_app.py)
   --requirements <file>      requirements.txt (default: <path>/requirements.txt if present)
   --name <name>              Worker name for a generated wrangler.jsonc (default: derived from <path>)
-  --bundled-runtime          Keep the Python runtime in the Worker script instead of
-                             loading it from static assets at cold start (requires
-                             Cloudflare's planned 64 MB-uncompressed script limit)
+  --asset-runtime            Ship the Python runtime as static assets the Worker
+                             installs at cold start, instead of bundling it into
+                             the script. Trades an asset fetch and extraction at
+                             cold start for a smaller isolate footprint: the
+                             libraries stay compressed and are read by zipimport
   --plain-worker             Run as a plain Worker instead of the default single
                              Durable Object instance. Limited: only media is bridged
                              across isolates — file uploads may fail and reconnects
@@ -91,6 +108,9 @@ Options:
   --slim                     Alias for --mock pandas --mock numpy: the tested
                              combination for apps without dataframes/charts,
                              roughly halving the script size and boot time
+
+Deprecated:
+  --bundled-runtime          No-op: bundling the runtime is the default
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

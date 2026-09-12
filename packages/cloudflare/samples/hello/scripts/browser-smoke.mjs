@@ -36,6 +36,16 @@ try {
   await page
     .getByText("to visualize a Pandas DataFrame", { exact: false })
     .waitFor();
+  // The subheader above the dataframe renders only after the page has read
+  // ./agri.csv.gz out of the packaged app, so it is what proves the app's
+  // data files survive into the deployed Worker. The demo's own `except`
+  // clause covers URLError only, so a failed read would surface as an
+  // uncaught exception rather than a missing element. Matching exactly keeps
+  // this off the same string in the source listing show_code() renders below
+  // it, where the highlighted literal carries its quotes.
+  await page
+    .getByText("Gross agricultural production ($B)", { exact: true })
+    .waitFor();
   await page.getByText("Mapping demo", { exact: true }).click();
   await page
     .getByText("to display geospatial data", { exact: false })

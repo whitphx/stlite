@@ -7,6 +7,7 @@ interface CloudflareArgs {
   entrypoint: string;
   // yargs camelizes the kebab-case flags at runtime; optional because the
   // builder's inferred type only carries the kebab-case keys.
+  assetRuntime?: boolean;
   bundledRuntime?: boolean;
   plainWorker?: boolean;
   mock: string[];
@@ -42,11 +43,17 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
         describe:
           "Path to a requirements.txt file (defaults to <path>/requirements.txt if present)",
       })
-      .option("bundled-runtime", {
+      .option("asset-runtime", {
         type: "boolean",
         default: false,
         describe:
-          "Keep the Python runtime in the Worker script instead of loading it from static assets at cold start",
+          "Ship the Python runtime as static assets the Worker installs at cold start, instead of bundling it into the script",
+      })
+      .option("bundled-runtime", {
+        type: "boolean",
+        default: false,
+        deprecated: true,
+        describe: "No-op: bundling the runtime is the default",
       })
       .option("plain-worker", {
         type: "boolean",
@@ -91,12 +98,18 @@ export const cloudflareCommand: CommandModule<unknown, CloudflareArgs> = {
     }
     const cloudflare = await import("@stlite/cloudflare");
 
+    if (argv.bundledRuntime) {
+      console.warn(
+        "stlite cloudflare: --bundled-runtime is the default now; the flag can be dropped.",
+      );
+    }
+
     try {
       await cloudflare.build({
         path: argv.path,
         out: argv.out,
         entrypoint: argv.entrypoint,
-        bundledRuntime: argv.bundledRuntime,
+        bundledRuntime: !argv.assetRuntime,
         plainWorker: argv.plainWorker,
         mock: argv.mock,
         slim: argv.slim,

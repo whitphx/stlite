@@ -30,10 +30,10 @@ export interface CloudflareBuildOptions {
   requirements?: string;
   /** Worker name for a generated wrangler.jsonc. */
   name?: string;
-  /** Keep the whole Python runtime in the Worker script instead of loading
-   * it from static assets at cold start. Requires Cloudflare's planned
-   * 64 MB-uncompressed script limit
-   * (https://github.com/cloudflare/workers-py/issues/156). */
+  /** Keep the whole Python runtime in the Worker script (default). Set it to
+   * false to ship the runtime as static assets the Worker installs at cold
+   * start instead, which keeps the libraries compressed in the isolate at the
+   * cost of that fetch and extraction. */
   bundledRuntime?: boolean;
   /** Opt out of the default Durable Object deployment and run as a plain
    * Worker. Plain Workers fan requests across isolates, so only media is
@@ -64,7 +64,7 @@ export async function build({
   entrypoint = "streamlit_app.py",
   requirements,
   name,
-  bundledRuntime = false,
+  bundledRuntime = true,
   plainWorker = false,
   mock = [],
   slim = false,

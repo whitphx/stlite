@@ -1,6 +1,6 @@
 {
   "name": "@stlite/cloudflare",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Deploy stlite-backed Streamlit apps to Cloudflare Python Workers.",
   "keywords": [
     "cloudflare",

@@ -1,5 +1,13 @@
 # @stlite/desktop
 
+## 0.102.1
+
+### Patch Changes
+
+- [#2124](https://github.com/whitphx/stlite/pull/2124) [`e805cae`](https://github.com/whitphx/stlite/commit/e805cae984bb372414bc3938c5109bf6a8aef840) Thanks [@whitphx](https://github.com/whitphx)! - Wait for `parquet-wasm` to finish instantiating before parsing a dataframe.
+  
+  Stlite parses Arrow payloads through `parquet-wasm`, whose reader throws until its WebAssembly module is instantiated. The initializer was started but never awaited, so an app that rendered a dataframe or an Arrow-backed chart before the 5.5 MB module finished loading took the page down with `Cannot read properties of undefined (reading '__wbindgen_add_to_stack_pointer')`. Bundling the Python runtime into the Cloudflare Worker script made that the common case rather than a rare one, because the app now boots without waiting on a runtime download first.
+
 ## 0.102.0
 
 ### Minor Changes

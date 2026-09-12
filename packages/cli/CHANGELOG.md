@@ -1,5 +1,15 @@
 # @stlite/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- [#2115](https://github.com/whitphx/stlite/pull/2115) [`5e87ca9`](https://github.com/whitphx/stlite/commit/5e87ca9062c3fdeb09893a192b3a21f063e21720) Thanks [@whitphx](https://github.com/whitphx)! - Bundle the Python runtime into the Worker script by default. Cloudflare now caps a script at 64 MiB uncompressed on every plan instead of 3 MiB (Free) or 10 MiB (Paid) after gzip, and the packaged runtime fits that with room to spare, so a cold start no longer fetches and unpacks the runtime from static assets before the first `import streamlit`.
+  
+  The previous layout is still available as `--asset-runtime`, which keeps the packed libraries compressed in the isolate and is worth the extra cold-start work for an app running close to the 128 MB isolate limit.
+
+- [#2123](https://github.com/whitphx/stlite/pull/2123) [`f7af537`](https://github.com/whitphx/stlite/commit/f7af537e00862cc6babebe9d33a04165c78077d2) Thanks [@whitphx](https://github.com/whitphx)! - Remove the `--bundled-runtime` flag. Bundling the Python runtime into the Worker script is the default, so the flag selected the behaviour you already get; `--asset-runtime` is the flag that changes it. Builds still passing `--bundled-runtime` now fail with an unknown-argument error instead of being silently ignored, and the fix is to drop it from the command.
+
 ## 0.2.0
 
 ### Minor Changes

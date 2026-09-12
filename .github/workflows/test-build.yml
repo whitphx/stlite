@@ -125,11 +125,29 @@ jobs:
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || steps.streamlit-submodule.outputs.changed == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # `paths-filter` diffs with `--ignore-submodules=all`, so none of the
+      # filters below can ever see a `streamlit` bump
+      # (https://github.com/dorny/paths-filter/issues/143). The Cloudflare jobs
+      # build the frontend out of that submodule, so they have to run when its
+      # gitlink moves; comparing it against the base branch is the only way to
+      # notice. Pushes to the default branch run everything anyway.
+      - name: Check whether the streamlit submodule moved
+        if: github.event_name == 'pull_request'
+        id: streamlit-submodule
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          if [ "$(git rev-parse "FETCH_HEAD:streamlit")" = "$(git rev-parse "HEAD:streamlit")" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:

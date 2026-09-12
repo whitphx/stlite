@@ -123,6 +123,7 @@
     // react-icons
     "Twotone",
     // Technology
+    "wbindgen",
     "FOUC",
     "TTFB",
     "WEBVTT",

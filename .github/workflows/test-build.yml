@@ -115,38 +115,38 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       common: ${{ steps.filter.outputs.common == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      kernel: ${{ steps.filter.outputs.kernel == 'true' || steps.filter.outputs.global == 'true' || steps.streamlit-submodule.outputs.moved == 'true' || env.RUN_ALL_TESTS == 'true' }}
       # stlite-lib: ${{ steps.filter.outputs.stlite-lib == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       stlite-lib: "true" # This step does not detect changes in the `streamlit` submodule that is needed to trigger the test-stlite-lib job (https://github.com/dorny/paths-filter/issues/143), so skip checking and make it always return true as a workaround.
-      react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      react: ${{ steps.filter.outputs.react == 'true' || steps.filter.outputs.global == 'true' || steps.streamlit-submodule.outputs.moved == 'true' || env.RUN_ALL_TESTS == 'true' }}
       browser: ${{ steps.filter.outputs.browser == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing: ${{ steps.filter.outputs.sharing == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-editor: ${{ steps.filter.outputs.sharing-editor == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       sharing-common: ${{ steps.filter.outputs.sharing-common == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
-      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || steps.streamlit-submodule.outputs.changed == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || steps.streamlit-submodule.outputs.moved == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # `paths-filter` diffs with `--ignore-submodules=all`, so none of the
-      # filters below can ever see a `streamlit` bump
-      # (https://github.com/dorny/paths-filter/issues/143). The Cloudflare jobs
-      # build the frontend out of that submodule, so they have to run when its
-      # gitlink moves; comparing it against the base branch is the only way to
-      # notice. Pushes to the default branch run everything anyway.
+          # Reach back to both parents of the pull request's merge commit, so
+          # the step below can read the gitlink on either side of the change.
+          fetch-depth: 2
+      # The jobs gated on `kernel`, `react` and `cloudflare` build or typecheck
+      # the `streamlit` submodule's sources, so a gitlink move has to reach
+      # them, and `paths-filter` cannot see one (see the `stlite-lib` note
+      # above). An unreadable gitlink on either side leaves the two strings
+      # unequal, which runs those jobs rather than skipping them.
       - name: Check whether the streamlit submodule moved
+        # Pushes to the default branch run everything anyway.
         if: github.event_name == 'pull_request'
         id: streamlit-submodule
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          git fetch --no-tags --depth=1 origin "$BASE_REF"
-          if [ "$(git rev-parse "FETCH_HEAD:streamlit")" = "$(git rev-parse "HEAD:streamlit")" ]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          if [ "$(git rev-parse 'HEAD^1:streamlit')" = "$(git rev-parse 'HEAD^2:streamlit')" ]; then
+            echo "moved=false" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "moved=true" >> "$GITHUB_OUTPUT"
           fi
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter

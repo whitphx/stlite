@@ -44,10 +44,6 @@ function parseBuildArgs(args) {
       requirements: { type: "string" },
       name: { type: "string" },
       "asset-runtime": { type: "boolean", default: false },
-      // Bundling the runtime into the script is the default; the flag that
-      // used to opt into it stays accepted so existing build commands keep
-      // working.
-      "bundled-runtime": { type: "boolean", default: false },
       "plain-worker": { type: "boolean", default: false },
       slim: { type: "boolean", default: false },
       mock: { type: "string", multiple: true, default: [] },
@@ -63,15 +59,9 @@ function parseBuildArgs(args) {
   }
   const {
     "asset-runtime": assetRuntime,
-    "bundled-runtime": bundledRuntime,
     "plain-worker": plainWorker,
     ...rest
   } = values;
-  if (bundledRuntime) {
-    console.warn(
-      "stlite-cloudflare: --bundled-runtime is the default now; the flag can be dropped.",
-    );
-  }
   return {
     path: positionals[0],
     ...rest,
@@ -108,9 +98,6 @@ Options:
   --slim                     Alias for --mock pandas --mock numpy: the tested
                              combination for apps without dataframes/charts,
                              roughly halving the script size and boot time
-
-Deprecated:
-  --bundled-runtime          No-op: bundling the runtime is the default
 
 Deploy the output with Wrangler:
   cd <out> && npx wrangler deploy

@@ -97,8 +97,6 @@ By default the whole Python runtime ships inside the Worker script. That fits [C
 
 `--asset-runtime` moves the runtime out of the script and into static assets the Worker installs at cold start, the way the build worked while the script limit was 3 MiB (Free) or 10 MiB (Paid) after gzip. The packed libraries then stay compressed in the isolate and are read through `zipimport` rather than occupying its in-memory filesystem, which can be worth the extra fetch and extraction for an app that runs close to the 128 MB isolate limit.
 
-`--bundled-runtime`, the flag that used to opt into today's default, is still accepted and does nothing.
-
 ## Secrets and configuration
 
 `.streamlit/secrets.toml` never deploys: its presence **fails the build**, loudly, so local credentials are never silently dropped or shipped. Cloudflare's `.dev.vars*` files are rejected the same way, and a custom `secrets.files` option in `.streamlit/config.toml` is refused too (the packager can't recognize arbitrarily-named secret files, so the option would smuggle them into the archive as ordinary app data). Supply production configuration through the Worker environment instead:

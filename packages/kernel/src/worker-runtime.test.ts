@@ -302,7 +302,9 @@ async def run_streamlit_test(entrypoint, home_dir = None):
 
         if __additionalAppTestCode__:
             bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-            await eval(bytecode)
+            result = eval(bytecode)  # A coroutine only when the code contains a top-level await
+            if asyncio.iscoroutine(result):
+                await result
 
     assert not at.exception, f"Exception occurred: {at.exception}"
     assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"

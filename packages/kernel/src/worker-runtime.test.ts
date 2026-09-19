@@ -215,6 +215,50 @@ assert read_data == uniq, "read_data == uniq; CWD should be reset to the per-app
     },
   },
   {
+    // A Python callback that JS invokes outside any asyncio task must be able to draw
+    // with the ScriptRunContext it attaches to the thread. Ref: https://github.com/whitphx/stlite/issues/2113
+    name: "Streamlit calls from a JS-invoked callback",
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        content: `
+import asyncio
+import threading
+
+import js
+import streamlit as st
+from pyodide.ffi import create_proxy
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+
+bar = st.progress(0)
+ctx = get_script_run_ctx()
+errors = []
+
+
+def on_tick():
+    try:
+        add_script_run_ctx(threading.current_thread(), ctx)
+        bar.progress(100)
+    except Exception as exc:
+        errors.append(repr(exc))
+
+
+proxy = create_proxy(on_tick)
+js.setTimeout(proxy, 0)  # Fires from the JS event loop, outside any Python task
+await asyncio.sleep(0.1)
+proxy.destroy()
+
+assert not errors, errors
+`,
+      },
+    },
+    additionalAppTestCode: `
+progress = at.get("progress")
+assert len(progress) == 1, f"len(progress) == 1, got {len(progress)}"
+assert progress[0].proto.value == 100, f"progress value should be 100, got {progress[0].proto.value}"
+`,
+  },
+  {
     // Checks if the Parquet serializer's auto-fixing of non-string column names works. Ref: https://github.com/whitphx/stlite/issues/978
     entrypoint: "layout.columns2.py",
     files: {
@@ -258,7 +302,9 @@ async def run_streamlit_test(entrypoint, home_dir = None):
 
         if __additionalAppTestCode__:
             bytecode = compile(__additionalAppTestCode__, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-            await eval(bytecode)
+            result = eval(bytecode)  # A coroutine only when the code contains a top-level await
+            if asyncio.iscoroutine(result):
+                await result
 
     assert not at.exception, f"Exception occurred: {at.exception}"
     assert len(w) == 0, f"Warning occurred: {w[0].message if w else None}"

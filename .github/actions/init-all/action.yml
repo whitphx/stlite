@@ -20,9 +20,16 @@ runs:
   using: "composite"
   steps:
     ## Set up Python
-    - name: Install the latest version of uv
+    - name: Install uv
       uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
       with:
+        # uv 0.12.14 and later refuse to resolve the `streamlit` submodule's
+        # dev lock: its `playwright==1.62.0` pin has no wheels for the
+        # Python 3.14 + emscripten split, which older uv tolerated.
+        # `make streamlit-proto` then fails before any test runs.
+        # Drop the pin once the fork's `tool.uv.environments` excludes
+        # emscripten or the exact playwright pin goes away.
+        version: "0.12.13"
         enable-cache: true
         cache-dependency-glob: |
           **/requirements*.txt

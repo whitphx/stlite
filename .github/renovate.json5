@@ -91,5 +91,14 @@
       groupName: "pyodide",
       automerge: false,
     },
+
+    // `astral-sh/setup-uv`'s `version` input is a uv release, which Renovate
+    // tracks as `astral-sh/uv`. The pin is deliberate; see the note in
+    // `.github/actions/init-all/action.yml`.
+    {
+      matchManagers: ["github-actions"],
+      matchDepNames: ["astral-sh/uv"],
+      enabled: false,
+    },
   ],
 }

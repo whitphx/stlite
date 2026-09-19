@@ -9,6 +9,8 @@ import { Code } from "@astrojs/starlight/components";
 
 Unlike [`@stlite/browser`](/browser/), where Python runs in the visitor's browser, here Python runs on Cloudflare's edge — the browser talks to a real Streamlit server over WebSocket, so the app behaves like server-hosted Streamlit while still needing no infrastructure of your own to manage.
 
+A live demo of the [`hello` sample](https://github.com/whitphx/stlite/tree/main/packages/cloudflare/samples/hello) built this way runs at [https://stlite-cloudflare.whitphx.workers.dev/](https://stlite-cloudflare.whitphx.workers.dev/).
+
 :::caution[Workers Paid plan required]
 Serving traffic needs the [Workers Paid plan](https://developers.cloudflare.com/workers/platform/pricing/): the free plan's 10 ms CPU budget can't boot Streamlit. The generated config raises the CPU limit accordingly, which is itself a paid-plan setting.
 :::

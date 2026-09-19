@@ -25,7 +25,8 @@ runs:
       with:
         # uv 0.12.14 and later refuse to resolve the `streamlit` submodule's dev lock:
         # its `playwright==1.62.0` pin has no wheels for the Python 3.14 + emscripten split,
-        # which older uv tolerated. `make streamlit-proto` then fails before any test runs.
+        # which older uv tolerated.
+        # `make streamlit-proto` then fails before any test runs.
         # Drop the pin once the fork excludes emscripten from `tool.uv.environments`
         # or drops the exact playwright pin.
         version: "0.12.13"

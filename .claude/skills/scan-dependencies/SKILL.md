@@ -125,8 +125,8 @@ Each finding has a `type` and a `risk`. Choose the most severe action:
 Notes:
 
 - `COOLDOWN` means the version is newer than the deps.dev cooldown. Pick an
-  older version or wait; never bypass the repository's Yarn/uv/Dependabot
-  cooldowns to adopt it.
+  older version or wait; never bypass the project's own cooldowns (package
+  manager age gates, Dependabot cooldowns) to adopt it.
 - `findings.recommendedVersions[]` lists lower-risk versions; suggest one when
   the result is `BLOCK` or `CAUTION`.
 

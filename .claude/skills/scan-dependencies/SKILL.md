@@ -116,11 +116,11 @@ Collect the findings that apply to it:
 
 Each finding has a `type` and a `risk`. Choose the most severe action:
 
-| Action    | When                                                                                                                                                                                                                                                           |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BLOCK`   | Any finding with `type: MALICIOUS`, or any finding with `risk: RISK_CRITICAL`.                                                                                                                                                                                 |
-| `CAUTION` | Any finding with `risk: RISK_HIGH` or `RISK_MEDIUM` (e.g. `VULNERABLE`); any `DEPRECATED`, `LOW_USAGE`, `COOLDOWN`, or `NOT_FOUND` finding, whatever its `risk`; any unrecognized `type` or `risk` (including `*_UNSPECIFIED`); or missing/incomplete results. |
-| `ALLOW`   | Only findings with `risk: RISK_LOW` or `RISK_INFORMATIONAL` whose `type` is not listed under `CAUTION` (e.g. `REMEDIATION`), or no findings at all.                                                                                                            |
+| Action    | When                                                                                                                                                                                                                                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BLOCK`   | Any finding with `type: MALICIOUS`, or any finding with `risk: RISK_CRITICAL`.                                                                                                                                                                                                                                                     |
+| `CAUTION` | Any other finding whose `type` is not `REMEDIATION` (e.g. `VULNERABLE`, `DEPRECATED`, `LOW_USAGE`, `COOLDOWN`, `NOT_FOUND`, or an unrecognized type), whatever its `risk`; any `REMEDIATION` finding with `risk: RISK_HIGH`, `RISK_MEDIUM`, or an unrecognized risk (including `RISK_UNSPECIFIED`); or missing/incomplete results. |
+| `ALLOW`   | No findings at all, or only `REMEDIATION` findings with `risk: RISK_LOW` or `RISK_INFORMATIONAL`.                                                                                                                                                                                                                                  |
 
 Notes:
 

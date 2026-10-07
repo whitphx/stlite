@@ -21,8 +21,8 @@ with a function that just invokes ``func(*args)`` and awaits the result.
 The same workaround is used in Gradio-Lite for the same reason.
 
 ``install()`` has to run before the first anyio offload, i.e. before the
-ASGI app serves a request. Only the Pyodide runtimes call it, since on host
-CPython the inline call would block the event loop instead.
+ASGI app serves a request. Call it only on Pyodide: on host CPython the
+inline call would block the event loop.
 """
 
 from __future__ import annotations

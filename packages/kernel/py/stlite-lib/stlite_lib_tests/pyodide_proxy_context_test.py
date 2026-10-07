@@ -1,5 +1,6 @@
 import asyncio
 import contextvars
+import copy
 import sys
 from types import ModuleType
 
@@ -102,6 +103,12 @@ def test_callable_object_keeps_its_attributes(factory):
     assert proxy.calls == 1
     proxy.reset()
     assert handler.calls == 0
+
+
+def test_copied_proxy_keeps_the_creation_context(factory):
+    proxy = make_in_script(factory, lambda: var.get())
+
+    assert run_outside_context(copy.copy(proxy)) == "from script"
 
 
 def test_non_callables_and_kwargs_pass_through(factory):

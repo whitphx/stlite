@@ -60,6 +60,10 @@ class _CallInSnapshot:
         return result
 
     def __getattr__(self, name: str) -> Any:
+        # ``copy`` and ``pickle`` probe a not-yet-initialized instance, where
+        # reading ``self._obj`` would land back here and recurse.
+        if name in ("_obj", "_snapshot"):
+            raise AttributeError(name)
         return getattr(self._obj, name)
 
 

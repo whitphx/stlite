@@ -266,6 +266,9 @@ async function loadPyodideAndPackages(
   pyodide.pyimport("importlib").invalidate_caches();
 
   const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");
+  // Before any app code (including the setup script) can import the patched
+  // helpers by name.
+  runtimeInit.install_pyodide_patches();
 
   onProgress("Loading streamlit package.");
   console.debug("Loading the Streamlit package");

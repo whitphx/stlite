@@ -19,9 +19,8 @@ def`` callbacks inherit it as well. A bare Python callable passed to a JS
 API without either helper is converted in Pyodide's C layer and is not
 covered.
 
-Installed at import time from ``stlite_lib/__init__.py``, before any app
-code can import the helpers by name. Gated on Pyodide so importing
-``stlite_lib`` on host CPython leaves ``pyodide.ffi`` alone.
+``install()`` has to run before any app code imports the helpers by name,
+since ``from pyodide.ffi import create_proxy`` binds the unwrapped function.
 """
 
 from __future__ import annotations
@@ -74,7 +73,15 @@ def wrap_proxy_factory(factory: Callable[..., Any]) -> Callable[..., Any]:
     return factory_in_context
 
 
-if sys.platform == "emscripten":
+_installed = False
+
+
+def install() -> None:
+    global _installed
+    # A retried runtime init calls this again; wrapping twice would nest snapshots.
+    if _installed:
+        return
+
     import pyodide.ffi
 
     pyodide.ffi.create_proxy = wrap_proxy_factory(pyodide.ffi.create_proxy)  # type: ignore[assignment]
@@ -86,3 +93,4 @@ if sys.platform == "emscripten":
     if wrappers is not None:
         wrappers.create_proxy = pyodide.ffi.create_proxy  # type: ignore[attr-defined]
         wrappers.create_once_callable = pyodide.ffi.create_once_callable  # type: ignore[attr-defined]
+    _installed = True

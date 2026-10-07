@@ -1,8 +1,11 @@
 import asyncio
 import contextvars
+import sys
+from types import ModuleType
 
 import pytest
 
+from stlite_lib import pyodide_proxy_context
 from stlite_lib.pyodide_proxy_context import wrap_proxy_factory
 
 var: contextvars.ContextVar[str | None] = contextvars.ContextVar("var", default=None)
@@ -108,3 +111,40 @@ def test_non_callables_and_kwargs_pass_through(factory):
     factory(lambda: None, capture_this=True)
 
     assert factory.__wrapped__.calls == [{"roundtrip": False}, {"capture_this": True}]
+
+
+@pytest.fixture
+def fake_pyodide_ffi(monkeypatch):
+    """A bare ``pyodide.ffi`` whose helpers hand back the callable, with ``wrappers`` already imported."""
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+    wrappers = ModuleType("pyodide.ffi.wrappers")
+    ffi.create_proxy = ffi.create_once_callable = lambda obj, /, **_: obj
+    wrappers.create_proxy = wrappers.create_once_callable = ffi.create_proxy
+    pyodide.ffi = ffi
+    ffi.wrappers = wrappers
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi.wrappers", wrappers)
+    monkeypatch.setattr(pyodide_proxy_context, "_installed", False)
+    return ffi
+
+
+def test_install_wraps_both_helpers_and_their_wrappers_bindings(fake_pyodide_ffi):
+    pyodide_proxy_context.install()
+
+    ffi = fake_pyodide_ffi
+    assert ffi.wrappers.create_proxy is ffi.create_proxy
+    assert ffi.wrappers.create_once_callable is ffi.create_once_callable
+    for helper in (ffi.create_proxy, ffi.create_once_callable):
+        proxy = make_in_script(helper, lambda: var.get())
+        assert run_outside_context(proxy) == "from script"
+
+
+def test_install_twice_wraps_once(fake_pyodide_ffi):
+    pyodide_proxy_context.install()
+    installed = fake_pyodide_ffi.create_proxy
+
+    pyodide_proxy_context.install()
+
+    assert fake_pyodide_ffi.create_proxy is installed

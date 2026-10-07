@@ -78,7 +78,8 @@ _installed = False
 
 def install() -> None:
     global _installed
-    # A retried runtime init calls this again; wrapping twice would nest snapshots.
+    # Every runtime init calls this: each app sharing a SharedWorker's Pyodide,
+    # and a retried Cloudflare init. Wrapping twice would nest snapshots.
     if _installed:
         return
 

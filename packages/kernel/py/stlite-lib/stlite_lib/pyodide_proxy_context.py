@@ -37,23 +37,23 @@ if TYPE_CHECKING:
 
 
 class _CallInSnapshot:
-    """Call ``callable_`` inside a copy of ``context``.
+    """Call ``callable_`` inside a copy of ``snapshot``.
 
     Attribute access falls through to ``callable_`` so a callable object handed
     to JS keeps exposing its own attributes and methods through the proxy.
     """
 
     def __init__(
-        self, callable_: Callable[..., Any], context: contextvars.Context
+        self, callable_: Callable[..., Any], snapshot: contextvars.Context
     ) -> None:
         self._callable = callable_
-        self._context = context
+        self._snapshot = snapshot
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         # A fresh copy per call: ``Context.run`` refuses to re-enter a Context
         # that is already running, which a callback firing from inside the
         # script, or from inside another callback, would otherwise trip over.
-        call_context = self._context.copy()
+        call_context = self._snapshot.copy()
         result = call_context.run(self._callable, *args, **kwargs)
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
@@ -65,7 +65,7 @@ class _CallInSnapshot:
         # ``copy.copy`` probes a not-yet-initialized instance for
         # ``__setstate__``, where reading ``self._callable`` would land back
         # here and recurse.
-        if name in ("_callable", "_context"):
+        if name in ("_callable", "_snapshot"):
             raise AttributeError(name)
         return getattr(self._callable, name)
 

@@ -4,10 +4,11 @@ from importlib import resources
 from types import ModuleType
 from typing import Any
 
-from stlite_lib import pyodide_proxy_context
+from stlite_lib import anyio_patch, pyodide_proxy_context
 
 
 def install_pyodide_patches() -> None:
+    anyio_patch.install()
     pyodide_proxy_context.install()
 
 

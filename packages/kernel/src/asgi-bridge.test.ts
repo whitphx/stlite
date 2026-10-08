@@ -93,6 +93,7 @@ suite("ASGI bridge spike", { timeout: 120 * 1000 }, () => {
       ["protobuf>=7.34.1,<8", wheels.streamlit, wheels.stliteLib],
       { keep_going: true },
     );
+    pyodide.pyimport("stlite_lib.runtime_init").install_pyodide_patches();
 
     pyodide.FS.writeFile("/spike_app.py", SPIKE_SCRIPT);
 

@@ -260,9 +260,9 @@ async function loadPyodideAndPackages(
 
   // Freshly installed packages can fail to import (e.g. `NameError: name
   // '_imp' is not defined`) until the import caches are invalidated. Use
-  // stdlib importlib, and before the first stlite_lib import: importing
-  // stlite_lib itself already pulls in installed packages (anyio etc.), so a
-  // stlite_lib-hosted guard would come too late for its own import.
+  // stdlib importlib, before the first stlite_lib import: stlite_lib is
+  // freshly installed too, so a stlite_lib-hosted guard would come too late
+  // for its own import.
   pyodide.pyimport("importlib").invalidate_caches();
 
   const runtimeInit = pyodide.pyimport("stlite_lib.runtime_init");

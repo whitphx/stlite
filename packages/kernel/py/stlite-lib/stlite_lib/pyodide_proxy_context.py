@@ -37,35 +37,37 @@ if TYPE_CHECKING:
 
 
 class _CallInSnapshot:
-    """Call ``obj`` inside a copy of the Context captured at construction.
+    """Call ``callable_`` inside a copy of ``context``.
 
-    Attribute access falls through to ``obj`` so a callable object handed to
-    JS keeps exposing its own attributes and methods through the proxy.
+    Attribute access falls through to ``callable_`` so a callable object handed
+    to JS keeps exposing its own attributes and methods through the proxy.
     """
 
-    def __init__(self, obj: Callable[..., Any]) -> None:
-        self._obj = obj
-        self._snapshot = contextvars.copy_context()
+    def __init__(
+        self, callable_: Callable[..., Any], context: contextvars.Context
+    ) -> None:
+        self._callable = callable_
+        self._context = context
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         # A fresh copy per call: ``Context.run`` refuses to re-enter a Context
         # that is already running, which a callback firing from inside the
         # script, or from inside another callback, would otherwise trip over.
-        context = self._snapshot.copy()
-        result = context.run(self._obj, *args, **kwargs)
+        call_context = self._context.copy()
+        result = call_context.run(self._callable, *args, **kwargs)
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
             # Context. Creating the task here keeps the snapshot.
-            return context.run(asyncio.ensure_future, result)
+            return call_context.run(asyncio.ensure_future, result)
         return result
 
     def __getattr__(self, name: str) -> Any:
         # ``copy.copy`` probes a not-yet-initialized instance for
-        # ``__setstate__``, where reading ``self._obj`` would land back here
-        # and recurse.
-        if name in ("_obj", "_snapshot"):
+        # ``__setstate__``, where reading ``self._callable`` would land back
+        # here and recurse.
+        if name in ("_callable", "_context"):
             raise AttributeError(name)
-        return getattr(self._obj, name)
+        return getattr(self._callable, name)
 
 
 def wrap_proxy_factory(factory: Callable[..., Any]) -> Callable[..., Any]:
@@ -73,7 +75,7 @@ def wrap_proxy_factory(factory: Callable[..., Any]) -> Callable[..., Any]:
     def factory_in_context(obj: Any, /, **kwargs: Any) -> Any:
         if not callable(obj):
             return factory(obj, **kwargs)
-        return factory(_CallInSnapshot(obj), **kwargs)
+        return factory(_CallInSnapshot(obj, contextvars.copy_context()), **kwargs)
 
     return factory_in_context
 

@@ -37,25 +37,25 @@ if TYPE_CHECKING:
 
 
 class _CallInSnapshot:
-    """Call ``callable_`` inside a copy of ``snapshot``.
+    """Call ``callable_`` inside a copy of ``context_snapshot``.
 
     Attribute access falls through to ``callable_`` so a callable object handed
     to JS keeps exposing its own attributes and methods through the proxy.
     """
 
-    _FIELDS = ("_callable", "_snapshot")
+    __slots__ = ("_callable", "_context_snapshot")
 
     def __init__(
-        self, callable_: Callable[..., Any], snapshot: contextvars.Context
+        self, callable_: Callable[..., Any], context_snapshot: contextvars.Context
     ) -> None:
         self._callable = callable_
-        self._snapshot = snapshot
+        self._context_snapshot = context_snapshot
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         # A fresh copy per call: ``Context.run`` refuses to re-enter a Context
         # that is already running, which a callback firing from inside the
         # script, or from inside another callback, would otherwise trip over.
-        call_context = self._snapshot.copy()
+        call_context = self._context_snapshot.copy()
         result = call_context.run(self._callable, *args, **kwargs)
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
@@ -67,26 +67,26 @@ class _CallInSnapshot:
         # ``copy.copy`` probes a not-yet-initialized instance for
         # ``__setstate__``, where reading ``self._callable`` would land back
         # here and recurse.
-        if name in self._FIELDS:
+        if name in self.__slots__:
             raise AttributeError(name)
         attribute = getattr(self._callable, name)
         # JS can call a method straight off the proxy (``proxy.method()``),
         # which never goes through ``__call__``. Only routines are wrapped,
         # so a class or other object stored as an attribute keeps its type.
         if inspect.isroutine(attribute):
-            return _CallInSnapshot(attribute, self._snapshot)
+            return _CallInSnapshot(attribute, self._context_snapshot)
         return attribute
 
     # Writes from JS land on this wrapper,
     # so pass them on to the callable object, whose own code reads them.
     def __setattr__(self, name: str, value: Any) -> None:
-        if name in self._FIELDS:
+        if name in self.__slots__:
             object.__setattr__(self, name, value)
         else:
             setattr(self._callable, name, value)
 
     def __delattr__(self, name: str) -> None:
-        if name in self._FIELDS:
+        if name in self.__slots__:
             object.__delattr__(self, name)
         else:
             delattr(self._callable, name)

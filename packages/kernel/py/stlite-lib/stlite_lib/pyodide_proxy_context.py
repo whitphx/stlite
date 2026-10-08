@@ -43,6 +43,8 @@ class _CallInSnapshot:
     to JS keeps exposing its own attributes and methods through the proxy.
     """
 
+    _FIELDS = ("_callable", "_snapshot")
+
     def __init__(
         self, callable_: Callable[..., Any], snapshot: contextvars.Context
     ) -> None:
@@ -65,9 +67,29 @@ class _CallInSnapshot:
         # ``copy.copy`` probes a not-yet-initialized instance for
         # ``__setstate__``, where reading ``self._callable`` would land back
         # here and recurse.
-        if name in ("_callable", "_snapshot"):
+        if name in self._FIELDS:
             raise AttributeError(name)
-        return getattr(self._callable, name)
+        attribute = getattr(self._callable, name)
+        # JS can call a method straight off the proxy (``proxy.method()``),
+        # which never goes through ``__call__``. Only bound methods are wrapped:
+        # a class stored as an attribute must stay usable with ``isinstance``.
+        if inspect.ismethod(attribute):
+            return _CallInSnapshot(attribute, self._snapshot)
+        return attribute
+
+    # Writes from JS land on this wrapper, so pass them on to the callable
+    # object, whose own code reads them.
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in self._FIELDS:
+            object.__setattr__(self, name, value)
+        else:
+            setattr(self._callable, name, value)
+
+    def __delattr__(self, name: str) -> None:
+        if name in self._FIELDS:
+            object.__delattr__(self, name)
+        else:
+            delattr(self._callable, name)
 
 
 def wrap_proxy_factory(factory: Callable[..., Any]) -> Callable[..., Any]:

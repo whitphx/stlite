@@ -105,6 +105,33 @@ def test_callable_object_keeps_its_attributes(factory):
     assert handler.calls == 0
 
 
+def test_methods_read_off_the_proxy_run_in_the_creation_context(factory):
+    class Handler:
+        def __call__(self):
+            pass
+
+        def method(self):
+            return var.get()
+
+    proxy = make_in_script(factory, Handler())
+
+    assert run_outside_context(lambda: proxy.method()) == "from script"
+
+
+def test_attribute_writes_reach_the_callable_object(factory):
+    class Handler:
+        def __call__(self):
+            pass
+
+    handler = Handler()
+    proxy = make_in_script(factory, handler)
+
+    proxy.label = "set through the proxy"
+    assert handler.label == "set through the proxy"
+    del proxy.label
+    assert not hasattr(handler, "label")
+
+
 def test_copied_proxy_keeps_the_creation_context(factory):
     proxy = make_in_script(factory, lambda: var.get())
 

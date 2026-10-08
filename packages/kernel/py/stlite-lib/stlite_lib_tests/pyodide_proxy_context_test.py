@@ -113,9 +113,14 @@ def test_methods_read_off_the_proxy_run_in_the_creation_context(factory):
         def method(self):
             return var.get()
 
+        @staticmethod
+        def static_method():
+            return var.get()
+
     proxy = make_in_script(factory, Handler())
 
     assert run_outside_context(lambda: proxy.method()) == "from script"
+    assert run_outside_context(lambda: proxy.static_method()) == "from script"
 
 
 def test_attribute_writes_reach_the_callable_object(factory):

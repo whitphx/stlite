@@ -71,14 +71,14 @@ class _CallInSnapshot:
             raise AttributeError(name)
         attribute = getattr(self._callable, name)
         # JS can call a method straight off the proxy (``proxy.method()``),
-        # which never goes through ``__call__``. Only bound methods are wrapped:
-        # a class stored as an attribute must stay usable with ``isinstance``.
-        if inspect.ismethod(attribute):
+        # which never goes through ``__call__``. Only routines are wrapped,
+        # so a class or other object stored as an attribute keeps its type.
+        if inspect.isroutine(attribute):
             return _CallInSnapshot(attribute, self._snapshot)
         return attribute
 
-    # Writes from JS land on this wrapper, so pass them on to the callable
-    # object, whose own code reads them.
+    # Writes from JS land on this wrapper,
+    # so pass them on to the callable object, whose own code reads them.
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self._FIELDS:
             object.__setattr__(self, name, value)

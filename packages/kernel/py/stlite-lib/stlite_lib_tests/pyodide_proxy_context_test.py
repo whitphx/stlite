@@ -1,0 +1,189 @@
+import asyncio
+import contextvars
+import copy
+import sys
+from types import ModuleType
+
+import pytest
+
+from stlite_lib import pyodide_proxy_context
+from stlite_lib.pyodide_proxy_context import wrap_proxy_factory
+
+var: contextvars.ContextVar[str | None] = contextvars.ContextVar("var", default=None)
+
+
+@pytest.fixture
+def factory():
+    """Stands in for ``create_proxy``: records its kwargs and hands back the callable."""
+    calls: list[dict] = []
+
+    def identity_factory(obj, /, **kwargs):
+        calls.append(kwargs)
+        return obj
+
+    identity_factory.calls = calls
+    return wrap_proxy_factory(identity_factory)
+
+
+def run_outside_context(fn, *args):
+    # A bare JS entry runs in the thread's root Context; an empty Context stands for it.
+    return contextvars.Context().run(fn, *args)
+
+
+def make_in_script(factory, callback):
+    def script():
+        var.set("from script")
+        return factory(callback)
+
+    return contextvars.copy_context().run(script)
+
+
+def test_sync_callback_runs_in_the_creation_context(factory):
+    proxy = make_in_script(factory, lambda: var.get())
+
+    assert run_outside_context(proxy) == "from script"
+
+
+def test_each_call_gets_its_own_copy_of_the_snapshot(factory):
+    def callback():
+        seen = var.get()
+        var.set("changed by callback")
+        return seen
+
+    proxy = make_in_script(factory, callback)
+
+    assert run_outside_context(proxy) == "from script"
+    assert run_outside_context(proxy) == "from script"
+
+
+def test_callback_can_be_reentered_from_inside_itself(factory):
+    proxy = None
+
+    def callback(depth):
+        if depth == 0:
+            return [var.get()]
+        return [var.get(), *proxy(depth - 1)]
+
+    proxy = make_in_script(factory, callback)
+
+    assert run_outside_context(proxy, 2) == ["from script"] * 3
+
+
+def test_async_callback_task_inherits_the_creation_context(factory):
+    async def callback():
+        await asyncio.sleep(0)
+        return var.get()
+
+    async def main():
+        proxy = make_in_script(factory, callback)
+        # Pyodide awaits whatever the callback returns; here that is the task the
+        # wrapper created inside the snapshot.
+        task = run_outside_context(proxy)
+        assert isinstance(task, asyncio.Task)
+        return await task
+
+    assert asyncio.run(main()) == "from script"
+
+
+def test_callable_object_keeps_its_attributes(factory):
+    class Handler:
+        calls = 0
+
+        def __call__(self):
+            self.calls += 1
+            return var.get()
+
+        def reset(self):
+            self.calls = 0
+
+    handler = Handler()
+    proxy = make_in_script(factory, handler)
+
+    assert run_outside_context(proxy) == "from script"
+    assert proxy.calls == 1
+    proxy.reset()
+    assert handler.calls == 0
+
+
+def test_methods_read_off_the_proxy_run_in_the_creation_context(factory):
+    class Handler:
+        def __call__(self):
+            pass
+
+        def method(self):
+            return var.get()
+
+        @staticmethod
+        def static_method():
+            return var.get()
+
+    proxy = make_in_script(factory, Handler())
+
+    assert run_outside_context(lambda: proxy.method()) == "from script"
+    assert run_outside_context(lambda: proxy.static_method()) == "from script"
+
+
+def test_attribute_writes_reach_the_callable_object(factory):
+    class Handler:
+        def __call__(self):
+            pass
+
+    handler = Handler()
+    proxy = make_in_script(factory, handler)
+
+    proxy.label = "set through the proxy"
+    assert handler.label == "set through the proxy"
+    del proxy.label
+    assert not hasattr(handler, "label")
+
+
+def test_copied_proxy_keeps_the_creation_context(factory):
+    proxy = make_in_script(factory, lambda: var.get())
+
+    assert run_outside_context(copy.copy(proxy)) == "from script"
+
+
+def test_non_callables_and_kwargs_pass_through(factory):
+    payload = {"a": 1}
+
+    assert factory(payload, roundtrip=False) is payload
+    factory(lambda: None, capture_this=True)
+
+    assert factory.__wrapped__.calls == [{"roundtrip": False}, {"capture_this": True}]
+
+
+@pytest.fixture
+def fake_pyodide_ffi(monkeypatch):
+    """A bare ``pyodide.ffi`` whose helpers hand back the callable, with ``wrappers`` already imported."""
+    pyodide = ModuleType("pyodide")
+    ffi = ModuleType("pyodide.ffi")
+    wrappers = ModuleType("pyodide.ffi.wrappers")
+    ffi.create_proxy = ffi.create_once_callable = lambda obj, /, **_: obj
+    wrappers.create_proxy = wrappers.create_once_callable = ffi.create_proxy
+    pyodide.ffi = ffi
+    ffi.wrappers = wrappers
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi", ffi)
+    monkeypatch.setitem(sys.modules, "pyodide.ffi.wrappers", wrappers)
+    monkeypatch.setattr(pyodide_proxy_context, "_installed", False)
+    return ffi
+
+
+def test_install_wraps_both_helpers_and_their_wrappers_bindings(fake_pyodide_ffi):
+    pyodide_proxy_context.install()
+
+    ffi = fake_pyodide_ffi
+    assert ffi.wrappers.create_proxy is ffi.create_proxy
+    assert ffi.wrappers.create_once_callable is ffi.create_once_callable
+    for helper in (ffi.create_proxy, ffi.create_once_callable):
+        proxy = make_in_script(helper, lambda: var.get())
+        assert run_outside_context(proxy) == "from script"
+
+
+def test_install_twice_wraps_once(fake_pyodide_ffi):
+    pyodide_proxy_context.install()
+    installed = fake_pyodide_ffi.create_proxy
+
+    pyodide_proxy_context.install()
+
+    assert fake_pyodide_ffi.create_proxy is installed

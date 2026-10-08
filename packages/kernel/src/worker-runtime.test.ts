@@ -215,38 +215,47 @@ assert read_data == uniq, "read_data == uniq; CWD should be reset to the per-app
     },
   },
   {
-    // A Python callback that JS invokes outside any asyncio task must be able to draw
-    // with the ScriptRunContext it attaches to the thread. Ref: https://github.com/whitphx/stlite/issues/2113
-    name: "Streamlit calls from a JS-invoked callback",
+    // Python callbacks that JS invokes outside any asyncio task draw into the script's session:
+    // stlite_lib runs a `create_proxy` callback in the Context captured when the proxy was created.
+    // Ref: https://github.com/whitphx/stlite/issues/2113
+    name: "Streamlit calls from JS-invoked callbacks",
     entrypoint: "app.py",
     files: {
       "app.py": {
         content: `
 import asyncio
-import threading
 
 import js
 import streamlit as st
 from pyodide.ffi import create_proxy
-from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 bar = st.progress(0)
-ctx = get_script_run_ctx()
+status = st.empty()
 errors = []
 
 
 def on_tick():
     try:
-        add_script_run_ctx(threading.current_thread(), ctx)
         bar.progress(100)
     except Exception as exc:
         errors.append(repr(exc))
 
 
-proxy = create_proxy(on_tick)
-js.setTimeout(proxy, 0)  # Fires from the JS event loop, outside any Python task
+async def on_done():
+    try:
+        await asyncio.sleep(0)
+        status.markdown("done")
+    except Exception as exc:
+        errors.append(repr(exc))
+
+
+tick = create_proxy(on_tick)
+done = create_proxy(on_done)
+js.setTimeout(tick, 0)  # Fires from the JS event loop, outside any Python task
+js.setTimeout(done, 0)
 await asyncio.sleep(0.1)
-proxy.destroy()
+tick.destroy()
+done.destroy()
 
 assert not errors, errors
 `,
@@ -256,6 +265,7 @@ assert not errors, errors
 progress = at.get("progress")
 assert len(progress) == 1, f"len(progress) == 1, got {len(progress)}"
 assert progress[0].proto.value == 100, f"progress value should be 100, got {progress[0].proto.value}"
+assert [m.value for m in at.markdown] == ["done"], f"markdown values: {[m.value for m in at.markdown]}"
 `,
   },
   {

@@ -4,6 +4,12 @@ from importlib import resources
 from types import ModuleType
 from typing import Any
 
+from stlite_lib import pyodide_proxy_context
+
+
+def install_pyodide_patches() -> None:
+    pyodide_proxy_context.install()
+
 
 def mock_pyarrow() -> None:
     # Install the pyarrow shim as the fake `pyarrow` module so `import pyarrow`
@@ -120,6 +126,7 @@ def initialize_streamlit_runtime(
     *,
     multi_runtime: bool = False,
 ) -> None:
+    install_pyodide_patches()
     mock_pyarrow()
     invalidate_import_caches()
     preload_streamlit_runtime()
@@ -138,6 +145,7 @@ __all__ = [
     "disable_runtime_message_cache",
     "disable_streamlit_logger_overrides",
     "initialize_streamlit_runtime",
+    "install_pyodide_patches",
     "invalidate_import_caches",
     "mock_pyarrow",
     "preload_streamlit_runtime",

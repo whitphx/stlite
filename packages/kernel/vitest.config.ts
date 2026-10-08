@@ -10,6 +10,9 @@ export default defineConfig(() => ({
   test: {
     environment: "jsdom", // We use jsdom because happy-dom does not work well with iframe.
     setupFiles: ["./setupTests.ts", "@vitest/web-worker"],
+    // Pyodide instances in different files share a non-atomic package cache.
+    // Serialize files to avoid reading another instance's partial downloads.
+    fileParallelism: false,
     hookTimeout: 60 * 1000,
     maxConcurrency: process.env.CI ? 3 : undefined,
   },

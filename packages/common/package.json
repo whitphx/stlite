@@ -27,8 +27,8 @@
     "check:format": "oxfmt --check ."
   },
   "devDependencies": {
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   }

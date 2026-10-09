@@ -1,7 +1,7 @@
 // Type definitions for https://www.npmjs.com/package/codedent, https://github.com/WebReflection/codedent
 
 declare module "codedent" {
-  declare const codedent: (
+  const codedent: (
     tpl: string | TemplateStringsArray,
     ...values: unknown[]
   ) => string;

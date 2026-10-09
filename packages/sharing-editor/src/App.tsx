@@ -117,11 +117,14 @@ function App() {
   } = useLoaderData() as AppLoaderData;
 
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
-  useEffect(() => {
-    // TODO: Derive this during render instead of syncing it in an effect.
-    // oxlint-disable-next-line react/set-state-in-effect
+  // Resetting in an effect would render the stale ID once more first.
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevInitialSampleAppId, setPrevInitialSampleAppId] =
+    useState(initialSampleAppId);
+  if (initialSampleAppId !== prevInitialSampleAppId) {
+    setPrevInitialSampleAppId(initialSampleAppId);
     setSampleAppId(initialSampleAppId);
-  }, [initialSampleAppId]);
+  }
 
   const onAppDataUpdate = useCallback((appData: AppData) => {
     const params = new URLSearchParams(window.location.search);

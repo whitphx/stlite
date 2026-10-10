@@ -101,6 +101,22 @@ CURRENT_BASE_STREAMLIT_VERSION_TAG=1.44.1
 git rebase --onto $NEW_BASE_STREAMLIT_VERSION_TAG $CURRENT_BASE_STREAMLIT_VERSION_TAG $NEW_STLITE_BRANCH
 ```
 
+## Update Pyodide
+
+### Re-verify known Pyodide issues
+
+#### Fatal error after repeated page switches with JSPI ([#1493](https://github.com/whitphx/stlite/issues/1493))
+
+In Chrome and Edge, where JSPI is on by default, a multipage app eventually crashes with `Pyodide has suffered a fatal error` and `RuntimeError: table index is out of bounds`, raised from `webloop.py` (`call_soon` / `call_later`). After the crash, the app stops updating.
+
+The cause is a stack leak in Pyodide's stack switching ([pyodide/pyodide#5702](https://github.com/pyodide/pyodide/issues/5702)), fixed by [pyodide/pyodide#6260](https://github.com/pyodide/pyodide/pull/6260) in 314.0.0. No 0.29.x release contains the fix.
+
+To check whether a new Pyodide version still crashes:
+
+1. Run the Stlite Sharing dev servers (see above) and open `http://localhost:5173/?sampleAppId=component_gallery` in Chrome.
+2. Switch pages from the sidebar about once every 7 seconds, for example `widget.button`, `widget.checkbox`, `text.markdown`, `text.title`, `widget.slider`, `widget.selectbox`, `text.header`, `widget.radio`, `widget.toggle`, `widget.text_input`.
+3. Watch the console. On Pyodide 0.29.3, the fatal error appears around the 9th switch.
+
 ## Update the sample apps in Stlite Sharing
 
 1. Clone or pull the latest `streamlit/docs` repository.

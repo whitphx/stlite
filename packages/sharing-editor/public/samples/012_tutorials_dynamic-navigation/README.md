@@ -1,7 +1,7 @@
 ## Streamlit Hello demo
 
 This sample app is a copy of the `tutorials/dynamic-navigation` demo.
-The source files were copied from https://github.com/streamlit/docs/tree/dff6f40ea4ec1c5d2f7052db30348945a93dc9db/python/api-examples-source
+The source files were copied from https://github.com/streamlit/docs/tree/4ed872d6d437a762ca608ccecfa3e026098b6fe6/python/api-examples-source
 
 ## License
 

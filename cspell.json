@@ -86,6 +86,7 @@
     "xlon",
     "agri",
     "selectslider",
+    "xsmall",
     // Python
     "coro",
     "bytesify",
@@ -135,6 +136,7 @@
     "Pixabay",
     "Udacity",
     "rubygems",
+    "accuweather",
     // Names
     "whitphx",
     "Yuichiro",
@@ -159,6 +161,8 @@
     "dorny",
     // misc
     "Heya",
-    "libvips"
+    "libvips",
+    "globex",
+    "initech"
   ]
 }

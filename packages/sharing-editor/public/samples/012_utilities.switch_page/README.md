@@ -1,7 +1,7 @@
 ## Streamlit Hello demo
 
 This sample app is a copy of the `utilities.switch_page` demo.
-The source files were copied from https://github.com/streamlit/docs/tree/4f1c7ce444b6c3e0a1bba473199c9ddb42ed6866/python/api-examples-source
+The source files were copied from https://github.com/streamlit/docs/tree/4ed872d6d437a762ca608ccecfa3e026098b6fe6/python/api-examples-source
 
 ## License
 

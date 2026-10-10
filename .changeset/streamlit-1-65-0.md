@@ -12,7 +12,7 @@ Rebase the Streamlit fork onto 1.65.0, picking up everything upstream shipped ac
 
 Streamlit 1.65 gives each session its own asyncio event loop. On Pyodide, creating that loop takes over the worker's running loop, so stlite reuses the worker's loop instead.
 
-Streamlit removed `add_rows()`. Keep the data yourself and redraw the chart into an `st.empty()` placeholder instead; the bundled Hello samples now do this.
+Streamlit removed `add_rows()`. Keep the data yourself and redraw the chart into an `st.empty()` placeholder instead, as [Streamlit's own plotting demo](https://github.com/streamlit/streamlit/blob/1.65.0/lib/streamlit/hello/plotting_demo.py) does.
 
 Streamlit removed the `mapbox.token` config option. Provide a Mapbox token through the `MAPBOX_API_KEY` environment variable or PyDeck's `api_keys` instead.
 

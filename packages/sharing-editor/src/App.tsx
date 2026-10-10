@@ -119,10 +119,12 @@ function App() {
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
   // Resetting in an effect would render the stale ID once more first.
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  const [prevInitialSampleAppId, setPrevInitialSampleAppId] =
-    useState(initialSampleAppId);
-  if (initialSampleAppId !== prevInitialSampleAppId) {
-    setPrevInitialSampleAppId(initialSampleAppId);
+  // Compare the loader result rather than the ID.
+  // Reselecting a sample after an edit loads the same ID again,
+  // and the reset still has to undo the `null` that the edit set.
+  const [prevInitialAppData, setPrevInitialAppData] = useState(initialAppData);
+  if (initialAppData !== prevInitialAppData) {
+    setPrevInitialAppData(initialAppData);
     setSampleAppId(initialSampleAppId);
   }
 

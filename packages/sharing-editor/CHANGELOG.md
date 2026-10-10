@@ -1,5 +1,15 @@
 # @stlite/sharing-editor
 
+## 0.90.8
+
+### Patch Changes
+
+- [#2142](https://github.com/whitphx/stlite/pull/2142) [`8135059`](https://github.com/whitphx/stlite/commit/813505995ba45b2c3b27b46fdb937b42ea6f9ff9) Thanks [@whitphx](https://github.com/whitphx)! - Remove the "Streamlit E2E scripts" sample. It was a copy of Streamlit 1.35.0's E2E test scripts, which Streamlit no longer ships, and some of its pages call APIs that Streamlit has since removed.
+
+- [#2137](https://github.com/whitphx/stlite/pull/2137) [`2ba4a5f`](https://github.com/whitphx/stlite/commit/2ba4a5f29b0df2a75014337cfbe136db159ecc09) Thanks [@whitphx](https://github.com/whitphx)! - Highlight the sample app in the menu again when it is reselected after editing it.
+
+- [#2138](https://github.com/whitphx/stlite/pull/2138) [`bfc7b1d`](https://github.com/whitphx/stlite/commit/bfc7b1dfe8ded9df23398723daeca4d41ff6e537) Thanks [@whitphx](https://github.com/whitphx)! - Update the Streamlit Hello sample to Streamlit 1.65.0's `streamlit hello`, and the Component Gallery and other samples copied from the Streamlit docs to their current versions. The Component Gallery gains pages for ECharts, Mermaid, skeletons, pagination, drawer dialogs and other recent elements, and its Bokeh page is gone because Streamlit removed `st.bokeh_chart`.
+
 ## 0.90.7
 
 ### Patch Changes

@@ -21,7 +21,7 @@ import pydeck as pdk
 from workers import fetch
 
 import streamlit as st
-from streamlit.hello.utils import show_code
+from utils import show_code
 
 
 async def mapping_demo() -> None:

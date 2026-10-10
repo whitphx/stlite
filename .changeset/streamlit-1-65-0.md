@@ -17,5 +17,3 @@ Streamlit removed `add_rows()`. Keep the data yourself and redraw the chart into
 Streamlit removed the `mapbox.token` config option. Provide a Mapbox token through the `MAPBOX_API_KEY` environment variable or PyDeck's `api_keys` instead.
 
 Shared frontend dependencies in `packages/*` follow upstream: `protobufjs` ^8.8.0, `vite-plugin-dts` ^5.1.1, `oxfmt` ^0.70.0, `oxlint` ^1.85.0. `vite` and `vitest` stay on their current releases until the newer ones clear the Yarn age gate.
-
-The bundled Streamlit wheel no longer includes `streamlit.testing` (`AppTest`), the `streamlit hello` demo, or Streamlit's agent skill files, none of which a browser app can use, so each app downloads less on startup.

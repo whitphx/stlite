@@ -18,7 +18,7 @@ import pandas as pd
 import pydeck as pdk
 
 import streamlit as st
-from streamlit.hello.utils import show_code
+from utils import show_code
 
 
 def mapping_demo() -> None:

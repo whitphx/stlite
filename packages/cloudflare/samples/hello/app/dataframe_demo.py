@@ -18,7 +18,7 @@ import altair as alt
 import pandas as pd
 
 import streamlit as st
-from streamlit.hello.utils import show_code
+from utils import show_code
 
 
 def data_frame_demo() -> None:

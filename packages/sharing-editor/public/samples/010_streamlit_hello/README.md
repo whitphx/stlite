@@ -4,6 +4,8 @@ This sample app is a copy of the `streamlit hello` demo.
 The source files have been copied from https://github.com/streamlit/streamlit/tree/1.51.0/lib/streamlit/hello with some modifications.
 `plotting_demo.py` comes from [1.65.0](https://github.com/streamlit/streamlit/blob/1.65.0/lib/streamlit/hello/plotting_demo.py) instead, because the 1.51.0 version calls `add_rows()`, which Streamlit 1.65 removed.
 
+- `*_demo.py`
+  - Import `show_code` from the sample's own `utils.py`, since the Stlite wheel does not ship `streamlit.hello`.
 - `animation_demo.py`
   - Added `time.sleep(1/30)` in the animation loop to allow event loop processing in the _Stlite_ environment.
 - `dataframe_demo.py` has been modified as follows.

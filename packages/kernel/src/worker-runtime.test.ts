@@ -280,6 +280,21 @@ assert [m.value for m in at.markdown] == ["done"], f"markdown values: {[m.value 
   },
 ];
 
+// The Streamlit wheel leaves out streamlit.testing, so mount it from the source tree.
+function mountAppTest(pyodide: PyodideInterface) {
+  const appTestDir: string = pyodide.runPython(
+    "import os, streamlit; os.path.join(os.path.dirname(streamlit.__file__), 'testing')",
+  );
+  if (!pyodide.FS.analyzePath(appTestDir).exists) {
+    pyodide.FS.mkdir(appTestDir);
+    pyodide.FS.mount(
+      pyodide.FS.filesystems.NODEFS,
+      { root: path.resolve("../../streamlit/lib/streamlit/testing") },
+      appTestDir,
+    );
+  }
+}
+
 async function runStreamlitTest(
   pyodide: PyodideInterface,
   entrypoint: string,
@@ -287,6 +302,7 @@ async function runStreamlitTest(
   runtimeHomeDir?: string,
 ) {
   pyodide.globals.set("__additionalAppTestCode__", additionalAppTestCode);
+  mountAppTest(pyodide);
 
   // The code above setting up the worker env is good enough to check if the worker is set up correctly,
   // but it doesn't check the error occurred inside the Streamlit app running in the worker.
@@ -597,6 +613,7 @@ st.image("test.png")
       });
 
       // Run the Streamlit app to register the media file in MemoryMediaFileStorage.
+      mountAppTest(pyodide!);
       const mediaUrl = await pyodide!.runPythonAsync(`
 import warnings
 from streamlit.testing.v1 import AppTest

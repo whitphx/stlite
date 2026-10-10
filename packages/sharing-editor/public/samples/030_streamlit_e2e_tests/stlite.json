@@ -1,4 +1,0 @@
-{
-  "title": "Streamlit E2E scripts",
-  "entrypoint": "streamlit_app.py"
-}

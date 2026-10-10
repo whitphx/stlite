@@ -8,4 +8,4 @@
 "@stlite/cloudflare": minor
 ---
 
-The bundled Streamlit wheel no longer includes `streamlit.testing` (`AppTest`), the `streamlit hello` demo package (`streamlit.hello`), or Streamlit's agent skill files, which shrinks the startup download by about 610 KB uncompressed. Apps that import `streamlit.testing` or `streamlit.hello` now fail with `ModuleNotFoundError`.
+The bundled Streamlit wheel no longer includes `streamlit.testing` (`AppTest`), the `streamlit hello` demo package (`streamlit.hello`), or Streamlit's agent skill files, which makes the wheel each app downloads at startup about 240 KB smaller (about 630 KB unpacked). Apps that import `streamlit.testing` or `streamlit.hello` now fail with `ModuleNotFoundError`.

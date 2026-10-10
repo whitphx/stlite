@@ -121,7 +121,7 @@ function App() {
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   // Compare the loader result rather than the ID.
   // Reselecting a sample after an edit loads the same ID again,
-  // and the reset still has to undo the edit's null.
+  // and the reset still has to undo the `null` that the edit set.
   const [prevInitialAppData, setPrevInitialAppData] = useState(initialAppData);
   if (initialAppData !== prevInitialAppData) {
     setPrevInitialAppData(initialAppData);

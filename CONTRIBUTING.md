@@ -109,7 +109,7 @@ git rebase --onto $NEW_BASE_STREAMLIT_VERSION_TAG $CURRENT_BASE_STREAMLIT_VERSIO
 
 In Chrome and Edge, where JSPI is on by default, a multipage app eventually crashes with `Pyodide has suffered a fatal error` and `RuntimeError: table index is out of bounds`, raised from `webloop.py` (`call_soon` / `call_later`). After the crash, the app stops updating.
 
-The cause is a stack leak in Pyodide's stack switching ([pyodide/pyodide#5702](https://github.com/pyodide/pyodide/issues/5702)), fixed by [pyodide/pyodide#6260](https://github.com/pyodide/pyodide/pull/6260) in 314.0.0. No 0.29.x release contains the fix, although the Pyodide changelog lists it under 0.29.4.
+The cause is a stack leak in Pyodide's stack switching ([pyodide/pyodide#5702](https://github.com/pyodide/pyodide/issues/5702)), fixed by [pyodide/pyodide#6260](https://github.com/pyodide/pyodide/pull/6260) in 314.0.0. No 0.29.x release contains the fix.
 
 To check whether a new Pyodide version still crashes:
 

@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2026)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from typing import Any
 import numpy as np
 
 import streamlit as st
-from streamlit.hello.utils import show_code
+from utils import show_code
 
 
 def animation_demo() -> None:
@@ -58,7 +58,7 @@ def animation_demo() -> None:
             n_matrix[m_matrix] = i
 
         # Update the image placeholder by calling the image() function on it.
-        image.image(1.0 - (n_matrix / n_matrix.max()), width='content')
+        image.image(1.0 - (n_matrix / np.max(n_matrix)), width="stretch")
 
         # NOTE: We need to sleep for a bit in a loop on Stlite, i.e. web browser environments.
         # This is because we're using a single-threaded event loop, and

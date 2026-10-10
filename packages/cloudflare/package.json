@@ -64,8 +64,8 @@
     "@types/cross-spawn": "^6.0.6",
     "@types/node": "^24.0.0",
     "esbuild": "^0.27.1",
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
     "typescript": "^6.0.3",
     "wrangler": "^4.105.0"
   }

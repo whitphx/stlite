@@ -72,7 +72,7 @@ streamlit-frontend-lib := $(BUILD_STATE_DIR)/streamlit-frontend-lib/.built
 
 # To avoid an error like "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory".
 # See https://github.com/actions/virtual-environments/issues/70#issuecomment-653886422
-export NODE_OPTIONS := "--max-old-space-size=6144"
+export NODE_OPTIONS := "--max-old-space-size=12288"
 
 export USE_CONSTRAINTS_FILE := false  # https://github.com/streamlit/streamlit/blob/1.27.0/.github/workflows/release.yml#L67-L68
 

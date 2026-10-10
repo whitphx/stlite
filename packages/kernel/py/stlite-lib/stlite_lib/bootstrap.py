@@ -48,13 +48,6 @@ def _fix_sys_argv(main_script_path: str, args: list[str]) -> None:
     sys.argv = [main_script_path] + list(args)
 
 
-def _fix_pydeck_mapbox_api_warning() -> None:
-    """Sets MAPBOX_API_KEY environment variable needed for
-    PyDeck otherwise it will throw an exception"""
-
-    os.environ["MAPBOX_API_KEY"] = config.get_option("mapbox.token")
-
-
 def load_config_options(flag_options: Dict[str, Any], multi_runtime=False) -> None:
     """Load config options from config.toml files, then overlay the ones set by
     flag_options.
@@ -206,4 +199,3 @@ def prepare(
     _fix_requests()
     _fix_pandas_categorical_pickle()
     _fix_sys_argv(main_script_path, args)
-    _fix_pydeck_mapbox_api_warning()

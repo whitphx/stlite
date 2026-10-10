@@ -38,7 +38,7 @@ See `CONTRIBUTING.md` for environment setup, dev workflows per package, and buil
 
 - **Always use Makefile targets** (`make browser`, `make kernel`, etc.) - they handle dependency ordering via sentinel files in `.make/`.
 - **Do NOT run `cd packages/X && yarn build` directly** - dependencies may not be built.
-- `NODE_OPTIONS="--max-old-space-size=6144"` is set in Makefile to prevent heap errors.
+- `NODE_OPTIONS="--max-old-space-size=12288"` is set in Makefile to prevent heap errors.
 
 ## Testing
 

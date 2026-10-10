@@ -118,6 +118,8 @@ function App() {
 
   const [sampleAppId, setSampleAppId] = useState(initialSampleAppId);
   useEffect(() => {
+    // TODO: Derive this during render instead of syncing it in an effect.
+    // oxlint-disable-next-line react/set-state-in-effect
     setSampleAppId(initialSampleAppId);
   }, [initialSampleAppId]);
 

@@ -26,6 +26,7 @@ $breakpoints: (
       @content;
     }
   } @else {
-    @error "Undefined breakpoint." + "The available breakpoints are #{map-keys($breakpoints)}";
+    @error "Undefined breakpoint." +
+      "The available breakpoints are #{map-keys($breakpoints)}";
   }
 }

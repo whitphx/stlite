@@ -1,5 +1,21 @@
 # @stlite/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- [#2138](https://github.com/whitphx/stlite/pull/2138) [`bfc7b1d`](https://github.com/whitphx/stlite/commit/bfc7b1dfe8ded9df23398723daeca4d41ff6e537) Thanks [@whitphx](https://github.com/whitphx)! - The bundled Streamlit wheel no longer includes `streamlit.testing` (`AppTest`), the `streamlit hello` demo package (`streamlit.hello`), or Streamlit's agent skill files, which makes the wheel each app downloads at startup about 240 KB smaller (about 630 KB unpacked). Apps that import `streamlit.testing` or `streamlit.hello` now fail with `ModuleNotFoundError`.
+
+- [#2135](https://github.com/whitphx/stlite/pull/2135) [`aa4d57c`](https://github.com/whitphx/stlite/commit/aa4d57cd72f92ca5540cf5dbfffe2e9c135e55bc) Thanks [@whitphx](https://github.com/whitphx)! - Rebase the Streamlit fork onto 1.65.0, picking up everything upstream shipped across 1.63 through 1.65.
+  
+  Streamlit 1.65 gives each session its own asyncio event loop. On Pyodide, creating that loop takes over the worker's running loop, so stlite reuses the worker's loop instead.
+  
+  Streamlit removed `add_rows()`. Keep the data yourself and redraw the chart into an `st.empty()` placeholder instead, as [Streamlit's own plotting demo](https://github.com/streamlit/streamlit/blob/1.65.0/lib/streamlit/hello/plotting_demo.py) does.
+  
+  Streamlit removed the `mapbox.token` config option. Provide a Mapbox token through the `MAPBOX_API_KEY` environment variable or PyDeck's `api_keys` instead.
+  
+  Shared frontend dependencies in `packages/*` follow upstream: `protobufjs` ^8.8.0, `vite-plugin-dts` ^5.1.1, `oxfmt` ^0.70.0, `oxlint` ^1.85.0. `vite` and `vitest` stay on their current releases until the newer ones clear the Yarn age gate.
+
 ## 0.3.0
 
 ### Minor Changes

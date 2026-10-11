@@ -93,6 +93,7 @@ SKIPPED_TESTS = {
     # so it blocks Stlite's script, Pyodide and wheels.
     "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe": "iframed_app CSP",
     "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe_with_new_tab_host_config": "iframed_app CSP",
+    "st_markdown_test.py::test_large_image_in_markdown": "https://github.com/whitphx/stlite/issues/2143",
 }
 
 

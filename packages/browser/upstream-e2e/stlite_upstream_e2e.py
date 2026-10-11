@@ -1,0 +1,174 @@
+"""Run Streamlit's `e2e_playwright` suite against `@stlite/browser`.
+
+Loaded as a pytest plugin, it swaps the conftest's `start_app_server` for
+a static server whose page mounts the test's script with Stlite.
+Run as a script, it is that static server.
+"""
+
+from __future__ import annotations
+
+import json
+import mimetypes
+import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit
+
+import pytest
+
+BROWSER_BUILD_DIR = Path(__file__).resolve().parents[1] / "build"
+
+HOST_PAGE = """<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/_stlite/stlite.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import {{ mount }} from "/_stlite/stlite.js";
+      mount({options}, document.getElementById("root"));
+    </script>
+  </body>
+</html>
+"""
+
+
+def _parse_config_value(value: str) -> Any:
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        return value
+
+
+def _streamlit_config(extra_args: list[str]) -> dict[str, Any]:
+    config: dict[str, Any] = {}
+    args = iter(extra_args)
+    for arg in args:
+        key = arg.removeprefix("--")
+        if "=" in key:
+            key, value = key.split("=", 1)
+        else:
+            value = next(args)
+        config[key] = _parse_config_value(value)
+    return config
+
+
+class _ModuleScopedContext:
+    # Each new context starts with an empty HTTP cache,
+    # so pytest-playwright's per-test context re-downloads Pyodide for every test.
+    @pytest.fixture(scope="module")
+    def context(self, browser: Any, browser_context_args: dict[str, Any]) -> Any:
+        context = browser.new_context(**browser_context_args)
+        yield context
+        context.close()
+
+    @pytest.fixture
+    def page(self, context: Any, request: pytest.FixtureRequest) -> Any:
+        # A shared context cannot take the per-test args this marker sets.
+        if request.node.get_closest_marker("browser_context_args"):
+            context = request.getfixturevalue("new_context")()
+        page = context.new_page()
+        yield page
+        page.close()
+
+
+SKIPPED_TESTS = {
+    # `iframed_app` sets a CSP that only allows Streamlit's server paths,
+    # so it blocks Stlite's script, Pyodide and wheels.
+    "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe": "iframed_app CSP",
+    "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe_with_new_tab_host_config": "iframed_app CSP",
+}
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    for item in items:
+        test_id = f"{item.path.name}::{item.name.split('[')[0]}"
+        if test_id in SKIPPED_TESTS:
+            item.add_marker(pytest.mark.skip(reason=SKIPPED_TESTS[test_id]))
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    # Registered here rather than at import, so these fixtures come after
+    # pytest-playwright's and override them.
+    config.pluginmanager.register(_ModuleScopedContext())
+
+
+def pytest_plugin_registered(plugin: object) -> None:
+    # A plugin's fixtures cannot override the conftest's `app_server`,
+    # so patch the function it calls instead.
+    if not getattr(plugin, "__name__", "").endswith("conftest"):
+        return
+    conftest: Any = plugin
+    if not hasattr(conftest, "start_app_server"):
+        return
+
+    def start_app_server(
+        app_port: int,
+        request_module: Any,
+        *,
+        extra_env: dict[str, str] | None = None,
+        extra_args: list[str] | None = None,
+    ) -> Any:
+        script = Path(conftest.resolve_test_to_script(request_module)).resolve()
+        config = {
+            "global.e2eTest": True,
+            "browser.gatherUsageStats": False,
+            **_streamlit_config(extra_args or []),
+        }
+        proc = conftest.AsyncSubprocess(
+            [sys.executable, __file__, str(app_port), str(script), json.dumps(config)],
+            cwd=".",
+        )
+        proc.start()
+        if not conftest.wait_for_app_server_to_start(app_port):
+            raise RuntimeError(proc.terminate())
+        return proc
+
+    conftest.start_app_server = start_app_server
+
+
+def serve(port: int, script: Path, config: dict[str, Any]) -> None:
+    app_dir = script.parent
+    options = {
+        "entrypoint": script.name,
+        "files": {script.name: {"url": f"/_app/{script.name}"}},
+        "streamlitConfig": config,
+    }
+    host_page = HOST_PAGE.format(options=json.dumps(options)).encode()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            path = urlsplit(self.path).path
+            if path == "/_stcore/health":
+                self._send(b"ok", "text/plain")
+            elif path.startswith("/_stlite/"):
+                self._send_file(BROWSER_BUILD_DIR, path.removeprefix("/_stlite/"))
+            elif path.startswith("/_app/"):
+                self._send_file(app_dir, path.removeprefix("/_app/"))
+            else:
+                # Multipage apps route every page path to the same host page.
+                self._send(host_page, "text/html")
+
+        def _send_file(self, root: Path, relative: str) -> None:
+            file = (root / relative).resolve()
+            if not file.is_relative_to(root) or not file.is_file():
+                self.send_error(404)
+                return
+            content_type = mimetypes.guess_type(file.name)[0]
+            self._send(file.read_bytes(), content_type or "application/octet-stream")
+
+        def _send(self, body: bytes, content_type: str) -> None:
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    ThreadingHTTPServer(("localhost", port), Handler).serve_forever()
+
+
+if __name__ == "__main__":
+    serve(int(sys.argv[1]), Path(sys.argv[2]), json.loads(sys.argv[3]))

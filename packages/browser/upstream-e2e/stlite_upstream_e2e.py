@@ -3,6 +3,15 @@
 Loaded as a pytest plugin, it swaps the conftest's `start_app_server` for
 a static server whose page mounts the test's script with Stlite.
 Run as a script, it is that static server.
+
+After `make browser`, run from `streamlit/` with upstream's E2E environment:
+
+    PYTHONPATH=../packages/browser/upstream-e2e .venv/bin/python -m pytest \
+        -p stlite_upstream_e2e e2e_playwright/st_button_test.py \
+        --browser chromium -n 4 --dist loadscope
+
+Only the test's own script is mounted, so modules whose app reads
+sibling files (multipage `pages/`, `static/` assets) don't work yet.
 """
 
 from __future__ import annotations
@@ -59,6 +68,7 @@ def _streamlit_config(extra_args: list[str]) -> dict[str, Any]:
 class _ModuleScopedContext:
     # Each new context starts with an empty HTTP cache,
     # so pytest-playwright's per-test context re-downloads Pyodide for every test.
+    # The cost is that its `--tracing` and `--video` options record nothing here.
     @pytest.fixture(scope="module")
     def context(self, browser: Any, browser_context_args: dict[str, Any]) -> Any:
         context = browser.new_context(**browser_context_args)
@@ -72,6 +82,9 @@ class _ModuleScopedContext:
             context = request.getfixturevalue("new_context")()
         page = context.new_page()
         yield page
+        # Streamlit keeps UI state such as the theme in web storage.
+        page.evaluate("localStorage.clear(); sessionStorage.clear()")
+        context.clear_cookies()
         page.close()
 
 
@@ -91,6 +104,9 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
+    # Without the build, every test fails with an opaque load timeout.
+    if not (BROWSER_BUILD_DIR / "stlite.js").is_file():
+        pytest.exit("Build `@stlite/browser` first with `make browser`.")
     # Registered here rather than at import, so these fixtures come after
     # pytest-playwright's and override them.
     config.pluginmanager.register(_ModuleScopedContext())
@@ -118,8 +134,14 @@ def pytest_plugin_registered(plugin: object) -> None:
             "browser.gatherUsageStats": False,
             **_streamlit_config(extra_args or []),
         }
+        options = {
+            "entrypoint": script.name,
+            "files": {script.name: {"url": f"/_app/{script.name}"}},
+            "streamlitConfig": config,
+            "env": extra_env or {},
+        }
         proc = conftest.AsyncSubprocess(
-            [sys.executable, __file__, str(app_port), str(script), json.dumps(config)],
+            [sys.executable, __file__, str(app_port), str(script), json.dumps(options)],
             cwd=".",
         )
         proc.start()
@@ -130,13 +152,8 @@ def pytest_plugin_registered(plugin: object) -> None:
     conftest.start_app_server = start_app_server
 
 
-def serve(port: int, script: Path, config: dict[str, Any]) -> None:
+def serve(port: int, script: Path, options: dict[str, Any]) -> None:
     app_dir = script.parent
-    options = {
-        "entrypoint": script.name,
-        "files": {script.name: {"url": f"/_app/{script.name}"}},
-        "streamlitConfig": config,
-    }
     host_page = HOST_PAGE.format(options=json.dumps(options)).encode()
 
     class Handler(BaseHTTPRequestHandler):
@@ -149,7 +166,7 @@ def serve(port: int, script: Path, config: dict[str, Any]) -> None:
             elif path.startswith("/_app/"):
                 self._send_file(app_dir, path.removeprefix("/_app/"))
             else:
-                # Multipage apps route every page path to the same host page.
+                # A page's URL path, too, has to load the app.
                 self._send(host_page, "text/html")
 
         def _send_file(self, root: Path, relative: str) -> None:

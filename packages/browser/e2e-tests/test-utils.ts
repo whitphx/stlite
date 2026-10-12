@@ -23,7 +23,18 @@ function urlOnlyHasPathAndQuery(url: string): boolean {
 export const test = base.extend<{
   expectNoDeadLinks: void;
 }>({
-  page: async ({ page, baseURL }, use) => {
+  page: async ({ page, baseURL }, use, testInfo) => {
+    // Keep the browser console so that a failure reports what the page and
+    // the kernel worker logged: the traces and screenshots only reach those
+    // who can download the CI artifacts.
+    const consoleLines: string[] = [];
+    page.on("console", (message) =>
+      consoleLines.push(`[${message.type()}] ${message.text()}`),
+    );
+    page.on("pageerror", (error) =>
+      consoleLines.push(`[pageerror] ${error.message}`),
+    );
+
     // Override page.goto to handle file: protocol correctly
     const originalGoto = page.goto.bind(page);
     page.goto = async (url, options) => {
@@ -43,6 +54,17 @@ export const test = base.extend<{
     await use(page);
 
     page.goto = originalGoto;
+
+    if (testInfo.status !== testInfo.expectedStatus) {
+      // Thrown rather than logged so that it shows up next to the test's
+      // own error in every reporter, including the blob reporter CI uses.
+      const lastLines = consoleLines
+        .slice(-50)
+        .map((line) => (line.length > 500 ? `${line.slice(0, 500)}…` : line));
+      throw new Error(
+        `Browser console output of the failed test (last ${lastLines.length} of ${consoleLines.length} lines):\n${lastLines.join("\n")}`,
+      );
+    }
   },
   expectNoDeadLinks: [
     async ({ page }, use) => {

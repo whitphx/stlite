@@ -399,7 +399,7 @@ jobs:
         run: npm run app:dir
         working-directory: ${{ runner.temp }}/sample_app
 
-  e2e-upstream:
+  e2e-browser-with-upstream:
     needs: wait-for-build
 
     permissions:
@@ -453,7 +453,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-upstream-results--attempt-${{ github.run_attempt }}
+          name: e2e-browser-with-upstream-results--attempt-${{ github.run_attempt }}
           path: streamlit/e2e_playwright/test-results
           retention-days: 14
 
@@ -469,7 +469,7 @@ jobs:
         e2e-react,
         e2e-desktop,
         e2e-desktop-cli,
-        e2e-upstream,
+        e2e-browser-with-upstream,
       ]
 
     runs-on: ubuntu-latest

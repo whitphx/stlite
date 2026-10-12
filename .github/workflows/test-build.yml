@@ -126,6 +126,7 @@ jobs:
       desktop: ${{ steps.filter.outputs.desktop == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cli: ${{ steps.filter.outputs.cli == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
       cloudflare: ${{ steps.filter.outputs.cloudflare == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
+      arrow-ipc-writer: ${{ steps.filter.outputs.arrow-ipc-writer == 'true' || steps.filter.outputs.global == 'true' || env.RUN_ALL_TESTS == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -187,6 +188,8 @@ jobs:
               - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
               - 'streamlit'
+            arrow-ipc-writer:
+              - 'packages/arrow-ipc-writer/**/*'
 
   test-build-common:
     needs: changes
@@ -507,6 +510,40 @@ jobs:
         # vitest auto-detects CI=true and runs once instead of watching, so
         # no explicit `--run` flag needed.
         run: yarn workspace @stlite/cli test
+
+  test-arrow-ipc-writer:
+    needs: changes
+    if: ${{ needs.changes.outputs.arrow-ipc-writer == 'true' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/init-all
+        with:
+          python-version-file: ${{ env.python-version-file }}
+          node-version-file: ${{ env.node-version-file }}
+
+      - name: Run Ruff
+        working-directory: packages/arrow-ipc-writer
+        run: |
+          uv run --package arrow-ipc-writer ruff check --output-format=github .
+          uv run --package arrow-ipc-writer ruff format --check .
+
+      - name: Run pyright
+        working-directory: packages/arrow-ipc-writer
+        run: uv run --package arrow-ipc-writer pyright
+
+      - name: Run pytest
+        working-directory: packages/arrow-ipc-writer
+        run: uv run --package arrow-ipc-writer pytest -v
+
+      # Pyodide ships pandas 2, while the workspace locks pandas 3.
+      - name: Run pytest with pandas 2
+        working-directory: packages/arrow-ipc-writer
+        run: uv run --package arrow-ipc-writer --with pandas==2.3.3 pytest -v
 
   test-cloudflare:
     needs: changes
@@ -1291,6 +1328,7 @@ jobs:
         test-sharing-common,
         test-desktop,
         test-cli,
+        test-arrow-ipc-writer,
         test-cloudflare,
         test-cloudflare-windows,
         build-browser,
@@ -1323,6 +1361,7 @@ jobs:
             test-sharing-common,
             test-desktop,
             test-cli,
+            test-arrow-ipc-writer,
             test-cloudflare,
             test-cloudflare-windows,
             build-cloudflare,

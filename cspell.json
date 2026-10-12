@@ -109,6 +109,9 @@
     "py3Dmol",
     "lsprotocol",
     "distplot",
+    "ascontiguousarray",
+    "scaleb",
+    "skipna",
     // Node/npm
     "oxlint",
     "oxlintrc",

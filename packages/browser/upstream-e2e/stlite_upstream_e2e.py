@@ -9,7 +9,6 @@ After `make browser`, run from `streamlit/` with upstream's E2E environment:
     PYTHONPATH=../packages/browser/upstream-e2e .venv/bin/python -m pytest \
         -p stlite_upstream_e2e e2e_playwright/st_button_test.py \
         --browser chromium -n 4 --dist loadscope
-
 """
 
 from __future__ import annotations

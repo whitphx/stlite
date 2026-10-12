@@ -41,12 +41,15 @@ st.write(123)
     });
 
     test("kernel.runPython() can use installed packages", async () => {
-      await kernel.install(["pytz==2025.2"]);
+      // pytz is already installed as a pandas dependency, so the pin must
+      // match the version Pyodide bundles: micropip refuses to switch an
+      // installed package to another version.
+      await kernel.install(["pytz==2026.1.post1"]);
       const result = await kernel.runPython(`
 import pytz
 pytz.__version__
       `);
-      expect(result).toBe("2025.2");
+      expect(result).toBe("2026.1.post1");
     });
 
     test("kernel.addMockPackage() can mock a package", async () => {

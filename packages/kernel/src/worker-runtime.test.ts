@@ -321,6 +321,11 @@ async def run_streamlit_test(entrypoint, home_dir = None):
     with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
         warnings.simplefilter("always")
         warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+        # Pyodide 314's pyodide-unix-timezones 1.0.0 wheel, a dependency of
+        # pyarrow, ships without its zoneinfo data, so importing pyarrow (and
+        # so pandas) always warns. Apps that use a dataframe now import it
+        # during the run instead of at boot.
+        warnings.filterwarnings("ignore", message=r"Couldn't install timezone db to /usr/share/zoneinfo", category=ImportWarning)
 
         if home_dir:
             home_dir_contextvar.set(home_dir)

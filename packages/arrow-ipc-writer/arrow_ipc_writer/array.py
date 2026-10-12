@@ -8,6 +8,7 @@ from typing import Sequence
 import numpy as np
 
 from . import types as t
+from .errors import ArrowCapacityError
 
 
 @dataclass
@@ -21,9 +22,6 @@ class Array:
     children: list[Array] = field(default_factory=list)
     # For dictionary-encoded arrays, the dictionary values.
     dictionary: Array | None = None
-
-    def __len__(self) -> int:
-        return self.length
 
 
 def _bitmap(bits: np.ndarray) -> bytes:
@@ -74,20 +72,17 @@ def binary_like_array(
     )
     offsets = np.zeros(length + 1, dtype=np.int64)
     np.cumsum(lengths, out=offsets[1:])
-    if not type_.large and offsets[-1] > np.iinfo(np.int32).max:
-        from .errors import ArrowCapacityError
-
+    if offsets[-1] > np.iinfo(np.int32).max:
         raise ArrowCapacityError(
             f"array cannot contain more than {np.iinfo(np.int32).max} bytes"
         )
-    offset_dtype = np.int64 if type_.large else np.int32
     bitmap, null_count = validity(valid, length)
     data = b"".join(v for v in values if v is not None)
     return Array(
         type_,
         length,
         null_count,
-        [bitmap, offsets.astype(offset_dtype).tobytes(), data],
+        [bitmap, offsets.astype(np.int32).tobytes(), data],
     )
 
 

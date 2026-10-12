@@ -1,8 +1,10 @@
 """A minimal FlatBuffers builder, enough to encode Arrow IPC metadata.
 
-It follows the reference implementations: the buffer is built back to front,
-so every child object (string, vector, table) is finished before the parent
-that points to it, and references are unsigned offsets that point forward.
+It is patterned after the FlatBuffers Python builder
+(https://github.com/google/flatbuffers/blob/master/python/flatbuffers/builder.py,
+Apache License 2.0): the buffer is built back to front, so every child object
+(string, vector, table) is finished before the parent that points to it, and
+references are unsigned offsets that point forward.
 """
 
 from __future__ import annotations
@@ -85,9 +87,13 @@ class Builder:
         self._vtable = [0] * num_fields
         self._object_start = self.offset()
 
+    def _current_vtable(self) -> list[int]:
+        if self._vtable is None:
+            raise RuntimeError("Fields can only be added between start/end_table")
+        return self._vtable
+
     def _slot(self, index: int) -> None:
-        assert self._vtable is not None
-        self._vtable[index] = self.offset()
+        self._current_vtable()[index] = self.offset()
 
     def add_scalar(self, index: int, fmt: str, value: object, default: object) -> None:
         if value == default:
@@ -102,12 +108,11 @@ class Builder:
         self._slot(index)
 
     def end_table(self) -> int:
-        assert self._vtable is not None
+        fields = self._current_vtable()
         # The table starts with a signed offset to its vtable, patched below.
         self._prepend_scalar("<i", 0)
         object_offset = self.offset()
 
-        fields = self._vtable
         while fields and fields[-1] == 0:
             fields = fields[:-1]
         entries = [object_offset - loc if loc else 0 for loc in fields]

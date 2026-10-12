@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from . import types as t
 from ._flatbuffers import Builder
 from .array import Array
+from .errors import ArrowNotImplementedError
 from .table import Table
 
 _CONTINUATION = b"\xff\xff\xff\xff"
@@ -39,8 +40,6 @@ _TYPE_TIMESTAMP = 10
 _TYPE_LIST = 12
 _TYPE_STRUCT = 13
 _TYPE_DURATION = 18
-_TYPE_LARGE_BINARY = 19
-_TYPE_LARGE_UTF8 = 20
 
 _TIME_UNIT = {"s": 0, "ms": 1, "us": 2, "ns": 3}
 _FLOAT_PRECISION = {16: 0, 32: 1, 64: 2}
@@ -81,15 +80,15 @@ def _type_table(b: Builder, type_: t.DataType) -> tuple[int, int]:
         return _TYPE_FLOATING_POINT, b.end_table()
     if isinstance(type_, t.StringType):
         b.start_table(0)
-        return (_TYPE_LARGE_UTF8 if type_.large else _TYPE_UTF8), b.end_table()
+        return _TYPE_UTF8, b.end_table()
     if isinstance(type_, t.BinaryType):
         b.start_table(0)
-        return (_TYPE_LARGE_BINARY if type_.large else _TYPE_BINARY), b.end_table()
-    if isinstance(type_, t.Decimal128Type):
+        return _TYPE_BINARY, b.end_table()
+    if isinstance(type_, t.DecimalType):
         b.start_table(3)
         b.add_scalar(0, "<i", type_.precision, 0)
         b.add_scalar(1, "<i", type_.scale, 0)
-        b.add_scalar(2, "<i", 128, 128)
+        b.add_scalar(2, "<i", type_.bit_width, 128)
         return _TYPE_DECIMAL, b.end_table()
     if isinstance(type_, t.Date32Type):
         b.start_table(1)
@@ -116,7 +115,7 @@ def _type_table(b: Builder, type_: t.DataType) -> tuple[int, int]:
     if isinstance(type_, t.StructType):
         b.start_table(0)
         return _TYPE_STRUCT, b.end_table()
-    raise NotImplementedError(f"Cannot encode type {type_}")
+    raise ArrowNotImplementedError(f"Cannot encode type {type_}")
 
 
 def _int_table(b: Builder, type_: t.IntType) -> int:
@@ -142,13 +141,10 @@ def _field(b: Builder, f: t.Field, ids: _DictionaryIds) -> int:
     type_ = f.type
     metadata: list[tuple[str | bytes, str | bytes]] = list(f.metadata)
 
-    if isinstance(type_, t.ExtensionType):
-        metadata += [
-            ("ARROW:extension:name", type_.name),
-            ("ARROW:extension:metadata", type_.serialized),
-        ]
-        type_ = type_.storage_type
-
+    # A dictionary-encoded field is written as its value type plus a
+    # DictionaryEncoding; an extension type, which may be such a value type
+    # (pd.cut gives dictionary<values=pandas.interval>), as its storage type
+    # plus the extension metadata.
     dictionary_off = None
     if isinstance(type_, t.DictionaryType):
         index_off = _int_table(b, type_.index_type)
@@ -158,6 +154,13 @@ def _field(b: Builder, f: t.Field, ids: _DictionaryIds) -> int:
         b.add_scalar(2, "<?", type_.ordered, False)
         dictionary_off = b.end_table()
         type_ = type_.value_type
+
+    if isinstance(type_, t.ExtensionType):
+        metadata += [
+            ("ARROW:extension:name", type_.name),
+            ("ARROW:extension:metadata", type_.serialized),
+        ]
+        type_ = type_.storage_type
 
     if isinstance(type_, t.ListType):
         child_fields = [type_.value_field]
@@ -226,14 +229,14 @@ def _collect(
 
 
 def _record_batch(
-    length: int, arrays: list[Array]
-) -> tuple[int, list[tuple[int, int]], list[bytes | None], list[Array]]:
+    arrays: list[Array],
+) -> tuple[list[tuple[int, int]], list[bytes | None], list[Array]]:
     nodes: list[tuple[int, int]] = []
     buffers: list[bytes | None] = []
     dictionaries: list[Array] = []
     for array in arrays:
         _collect(array, nodes, buffers, dictionaries)
-    return length, nodes, buffers, dictionaries
+    return nodes, buffers, dictionaries
 
 
 def _body(buffers: list[bytes | None]) -> tuple[list[tuple[int, int]], bytes]:
@@ -275,9 +278,9 @@ def _framed(metadata: bytes, body: bytes) -> bytes:
 
 
 def _dictionary_batch_message(dictionary_id: int, dictionary: Array) -> bytes:
-    _, nodes, buffers, nested = _record_batch(dictionary.length, [dictionary])
+    nodes, buffers, nested = _record_batch([dictionary])
     if nested:
-        raise NotImplementedError("Dictionaries of dictionary-encoded values")
+        raise ArrowNotImplementedError("Dictionaries of dictionary-encoded values")
     b = Builder()
     spans, body = _body(buffers)
     data_off = _record_batch_table(b, dictionary.length, nodes, spans)
@@ -299,7 +302,7 @@ def _record_batch_message(
 
 def write_stream(table: Table) -> bytes:
     """Serializes `table` in the Arrow IPC streaming format."""
-    _, nodes, buffers, dictionaries = _record_batch(table.num_rows, table.columns)
+    nodes, buffers, dictionaries = _record_batch(table.columns)
     parts = [_framed(_schema_message(table), b"")]
     # Dictionaries are collected depth-first, the order in which the schema
     # numbered them.

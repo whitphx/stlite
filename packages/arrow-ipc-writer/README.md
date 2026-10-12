@@ -7,9 +7,11 @@ The output aims to match `pyarrow.Table.from_pandas`. That covers:
 
 - the Arrow types it infers for each column and index level;
 - the `"pandas"` schema metadata, which Streamlit's frontend reads to restore the index and column types;
-- the exceptions it raises for columns it can't convert (`ArrowInvalid`, `ArrowTypeError`, `ArrowNotImplementedError`, `OverflowError`).
+- the exception class it raises for a column it can't convert (`ArrowInvalid`, `ArrowTypeError`, `ArrowNotImplementedError`, `OverflowError`, `TypeError`). Streamlit decides from the class whether to convert the column to strings and retry.
 
-The tests check this by reading each stream back with pyarrow and comparing it with what pyarrow builds from the same DataFrame.
+For `object` columns this means reproducing pyarrow's type inference, which depends on the order of the values: `["a", 1]` is a string column that fails on `1` with `ArrowTypeError`, while `[1, "a"]` is an int64 column that fails on `"a"` with `ArrowInvalid`.
+
+The tests check all of this by reading each stream back with pyarrow and comparing it with what pyarrow builds from the same DataFrame, or with the exception pyarrow raises.
 
 ```python
 import pandas as pd
@@ -30,8 +32,8 @@ data = dataframe_to_ipc(pd.DataFrame({"a": [1, 2, 3]}))
 | `datetime64[D]`, `datetime.date`                | date32                                                  |
 | `timedelta64`, `datetime.timedelta`             | duration                                                |
 | `datetime.time`                                 | time64[us]                                              |
-| `decimal.Decimal`                               | decimal128                                              |
-| `category`                                      | dictionary                                              |
+| `decimal.Decimal`                               | decimal128, or decimal256 above 38 digits               |
+| `category`, including `pd.cut`'s intervals      | dictionary                                              |
 | `interval`, `period`                            | the `pandas.interval` / `pandas.period` extension types |
 | lists, tuples, sets, numpy arrays               | list                                                    |
 | dicts                                           | struct                                                  |
@@ -51,4 +53,4 @@ uv run --package arrow-ipc-writer pyright
 uv run --package arrow-ipc-writer --with pandas==2.3.3 pytest
 ```
 
-`pandas_compat.py` is ported from pyarrow's module of the same name (Apache License 2.0).
+`pandas_compat.py` is ported from pyarrow's module of the same name (Apache License 2.0); see [NOTICE](NOTICE).

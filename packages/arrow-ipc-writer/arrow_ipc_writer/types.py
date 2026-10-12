@@ -52,18 +52,14 @@ class FloatType(DataType):
 
 @dataclass(frozen=True)
 class StringType(DataType):
-    large: bool = False
-
     def __str__(self) -> str:
-        return "large_string" if self.large else "string"
+        return "string"
 
 
 @dataclass(frozen=True)
 class BinaryType(DataType):
-    large: bool = False
-
     def __str__(self) -> str:
-        return "large_binary" if self.large else "binary"
+        return "binary"
 
 
 @dataclass(frozen=True)
@@ -100,12 +96,13 @@ class DurationType(DataType):
 
 
 @dataclass(frozen=True)
-class Decimal128Type(DataType):
+class DecimalType(DataType):
     precision: int
     scale: int
+    bit_width: int = 128  # 128 or 256
 
     def __str__(self) -> str:
-        return f"decimal128({self.precision}, {self.scale})"
+        return f"decimal{self.bit_width}({self.precision}, {self.scale})"
 
 
 @dataclass(frozen=True)
@@ -221,16 +218,8 @@ def string() -> StringType:
     return StringType()
 
 
-def large_string() -> StringType:
-    return StringType(large=True)
-
-
 def binary() -> BinaryType:
     return BinaryType()
-
-
-def large_binary() -> BinaryType:
-    return BinaryType(large=True)
 
 
 def date32() -> Date32Type:
@@ -249,8 +238,14 @@ def duration(unit: TimeUnit) -> DurationType:
     return DurationType(unit)
 
 
-def decimal128(precision: int, scale: int = 0) -> Decimal128Type:
-    return Decimal128Type(precision, scale)
+DECIMAL128_MAX_PRECISION = 38
+DECIMAL256_MAX_PRECISION = 76
+
+
+def decimal(precision: int, scale: int = 0) -> DecimalType:
+    """decimal128 when the precision fits it, decimal256 otherwise."""
+    bit_width = 128 if precision <= DECIMAL128_MAX_PRECISION else 256
+    return DecimalType(precision, scale, bit_width)
 
 
 def list_(value_type: DataType) -> ListType:

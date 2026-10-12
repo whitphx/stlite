@@ -27,6 +27,9 @@ def assert_matches_pyarrow(
 ) -> None:
     expected = pa.Table.from_pandas(df, preserve_index=preserve_index)
     actual = pa.ipc.open_stream(dataframe_to_ipc(df, preserve_index)).read_all()
+    # Catches malformed buffers (offsets, null counts, UTF-8) that reading
+    # alone lets through.
+    actual.validate(full=True)
 
     assert actual.schema.equals(expected.schema, check_metadata=False), (
         f"\n{actual.schema}\n!=\n{expected.schema}"
@@ -110,6 +113,10 @@ COLUMNS = {
     "decimal": [decimal.Decimal("1.23"), None, decimal.Decimal("-45.6")],
     "decimal_exponent": [decimal.Decimal("1E+3"), decimal.Decimal("0.001"), None],
     "decimal_and_int": pd.Series([decimal.Decimal("1"), 2, None], dtype=object),
+    "decimal_fractions": [decimal.Decimal("0.05"), decimal.Decimal("0.10"), None],
+    "decimal_widening": [decimal.Decimal("0.5"), decimal.Decimal("10"), None],
+    "decimal_nan": [decimal.Decimal("1.5"), decimal.Decimal("NaN"), None],
+    "decimal256": [decimal.Decimal("1" + "0" * 40), decimal.Decimal("-1.5"), None],
     "categorical": pd.Categorical(["x", "y", "x"]),
     "categorical_ordered_with_nan": pd.Categorical(
         ["x", "y", None], categories=["y", "x"], ordered=True
@@ -124,6 +131,14 @@ COLUMNS = {
     "period_with_nat": pd.PeriodIndex(["2024-01-01", None, "2024-01-03"], freq="D"),
     "list": [[1, 2], None, [3]],
     "list_of_numpy": [np.array([1, 2]), np.array([3]), np.array([], dtype=float)],
+    "list_of_numpy_datetimes": [
+        np.array(["2024-01-01T00:00:00.000000001", "NaT"], dtype="datetime64[ns]"),
+        None,
+        np.array([], dtype="datetime64[ns]"),
+    ],
+    "list_of_numpy_durations": [np.array([1, 2], dtype="timedelta64[ns]"), None, None],
+    "list_of_numpy_and_lists": [np.array([1], dtype=np.int32), [2], None],
+    "list_of_numpy_strings": [np.array(["a", "b"]), None, np.array(["c"])],
     "list_of_str": [["a", None], [], None],
     "tuple": [(1, 2), (3,), None],
     "set": [{1, 2}, {3}, None],
@@ -133,6 +148,11 @@ COLUMNS = {
     "all_none": [None, None, None],
     "int_and_float_objects": pd.Series([1, 2.5, None], dtype=object),
     "numpy_scalars_object": pd.Series([np.int32(1), np.int64(2), None], dtype=object),
+    "numpy_int32_scalars": pd.Series([np.int32(1), None, np.int32(3)], dtype=object),
+    "numpy_uint64_scalars": pd.Series([np.uint64(2**64 - 1), None, None], dtype=object),
+    "numpy_datetime_scalars": pd.Series(
+        [np.datetime64("2024-01-01T00:00:00.000000001"), None, None], dtype=object
+    ),
     "float_nan_object": pd.Series([1.0, float("nan"), None], dtype=object),
 }
 
@@ -205,24 +225,153 @@ def test_many_rows() -> None:
     assert_matches_pyarrow(df)
 
 
+@pytest.mark.parametrize(
+    "column",
+    [pd.cut([1, 5, 9], 3), pd.cut([1.0, np.nan, 9.0], [0, 5, 10])],
+    ids=["cut", "cut_with_nan"],
+)
+def test_dictionary_of_extension_type(column: pd.Categorical) -> None:
+    # pd.cut gives categories of pandas' interval extension type. pyarrow
+    # writes such a column, but can't read it back ("Ran out of field
+    # metadata"), so this compares our stream with pyarrow's own, both read
+    # with the extension type unregistered, which reads its storage instead.
+    from pandas.core.arrays.arrow.extension_types import ArrowIntervalType
+
+    df = pd.DataFrame({"c": column})
+    table = pa.Table.from_pandas(df)
+    sink = pa.BufferOutputStream()
+    with pa.ipc.new_stream(sink, table.schema) as writer:
+        writer.write_table(table)
+
+    pa.unregister_extension_type("pandas.interval")
+    try:
+        expected = pa.ipc.open_stream(sink.getvalue()).read_all()
+        actual = pa.ipc.open_stream(dataframe_to_ipc(df)).read_all()
+    finally:
+        pa.register_extension_type(ArrowIntervalType(pa.int64(), "right"))
+
+    actual.validate(full=True)
+    assert actual.schema.equals(expected.schema, check_metadata=False)
+    assert actual.schema.field("c").metadata == expected.schema.field("c").metadata
+    assert actual.equals(expected)
+    assert _pandas_metadata(actual) == _pandas_metadata(expected)
+
+
+_D = decimal.Decimal
+_DATE = datetime.date(2024, 1, 1)
+_DATETIME = datetime.datetime(2024, 1, 2, 3, 4)
+_UTC_DATETIME = datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc)
+
+# pyarrow infers the type of object values in order and stops at the first
+# value of most kinds, so whether these convert, and to what type or with
+# which error, depends on the order of their values.
+MIXED_OBJECTS = {
+    "str_int": ["a", 1],
+    "int_str": [1, "a"],
+    "str_bytes": ["a", b"b"],
+    "bytes_str": [b"b", "a"],
+    "str_float": ["a", 1.5],
+    "str_bool": ["a", True],
+    "bytes_int": [b"x", 1],
+    "int_float_str": [1, 2.5, "x"],
+    "int_str_float": [1, "x", 2.5],
+    "float_int": [1.5, 2],
+    "bool_int": [True, 1],
+    "int_bool": [1, True],
+    "bool_float": [True, 1.5],
+    "float_bool": [1.5, True],
+    "bool_str": [True, "a"],
+    "list_str": [[1], "a"],
+    "str_list": ["a", [1]],
+    "dict_int": [{"a": 1}, 1],
+    "int_dict": [1, {"a": 1}],
+    "decimal_int": [_D("1"), 2],
+    "int_decimal": [2, _D("1.5")],
+    "decimal_too_narrow_int": [_D("1"), 100],
+    "decimal_float": [_D("1"), 1.5],
+    "float_decimal": [1.5, _D("1")],
+    "decimal_str": [_D(1), "a"],
+    "str_decimal": ["a", _D(1)],
+    "decimal_bool": [_D(1), True],
+    "decimal_date": [_D(1), _DATE],
+    "decimal_infinity": [_D("Infinity")],
+    "date_datetime": [_DATE, _DATETIME],
+    "datetime_date": [_DATETIME, _DATE],
+    "date_int": [_DATE, 1],
+    "date_str": [_DATE, "a"],
+    "naive_aware": [_DATETIME, _UTC_DATETIME],
+    "aware_naive": [_UTC_DATETIME, _DATETIME],
+    "datetime_int": [_DATETIME, 1],
+    "datetime_float": [_DATETIME, 1.5],
+    "int_datetime": [1, _DATETIME],
+    "timedelta_int": [datetime.timedelta(1), 1],
+    "timedelta_datetime": [datetime.timedelta(1), _DATETIME],
+    "time_date": [datetime.time(1), _DATE],
+    "time_int": [datetime.time(1), 1],
+    "big_int_float": [2**60 + 1, 1.5],
+    "float_big_int": [1.5, 2**60 + 1],
+    "exact_int_float": [2**53, 1.5],
+    "int_overflow": [2**64, 1],
+    "unknown_object": [object()],
+    "str_unknown_object": ["a", object()],
+    "frozenset": [frozenset({1})],
+    "numpy_bool_int": [np.bool_(True), 1],
+    "numpy_int_bool": [np.int32(1), True],
+    "numpy_int_float": [np.int32(1), 2.5],
+    "numpy_int_str": [np.int32(1), "a"],
+    "str_numpy_int": ["a", np.int32(1)],
+    "float_numpy_bool": [1.5, np.bool_(True)],
+    "numpy_uint8_int8": [np.uint8(1), np.int8(2)],
+    "numpy_int32_float32": [np.int32(1), np.float32(2)],
+    "numpy_datetime_units": [np.datetime64("2024-01-01", "s"), np.datetime64(1, "ns")],
+    "numpy_datetime_python": [np.datetime64("2024-01-01", "s"), _DATETIME],
+    "uint64_max_int": [np.uint64(2**64 - 1), 1],
+    "lists_int_str": [[1], ["a"]],
+    "lists_str_int": [["a"], [1]],
+    "tuples_mixed": [(1, "a"), (2, "b"), None],
+    "dicts_int_str": [{"a": 1}, {"a": "x"}],
+    "dict_int_key": [{1: 2}],
+    "dict_bytes_key": [{b"a": 2}],
+    "empty_dict": [{}],
+    "empty_list": [[]],
+    "set": [{1, 2}],
+    "ndarray_2d": [np.array([[1, 2]])],
+    "ndarray_objects": [np.array([1, "a"], dtype=object)],
+    "lists_numpy_int8_int16": [np.array([1], dtype=np.int8), np.array([1], np.int16)],
+    "lists_numpy_int_float": [np.array([1], dtype=np.int32), np.array([1.5])],
+}
+
+
+@pytest.mark.parametrize("name", list(MIXED_OBJECTS))
+def test_mixed_object_column(name: str) -> None:
+    df = pd.DataFrame({"c": pd.Series(MIXED_OBJECTS[name], dtype=object)})
+    try:
+        pa.Table.from_pandas(df)
+    except Exception as e:
+        # Streamlit decides how to recover from the exception's type.
+        with pytest.raises(Exception) as actual:
+            dataframe_to_ipc(df)
+        assert type(actual.value).__name__ == type(e).__name__, actual.value
+    else:
+        assert_matches_pyarrow(df)
+
+
 ERROR_COLUMNS = {
-    "mixed_int_str": pd.Series([1, "a", 2.0], dtype=object),
-    "str_then_int": pd.Series(["a", 1], dtype=object),
-    "bool_and_int": pd.Series([True, 1], dtype=object),
-    "tuple_mixed": [(1, "a"), (2, "b"), None],
     "complex": np.array([1 + 2j, 3j]),
-    "unknown_object": pd.Series([object()], dtype=object),
-    "int_overflow": pd.Series([2**64, 1], dtype=object),
+    "interval_tz": pd.interval_range(
+        pd.Timestamp("2024-01-01", tz="UTC"), periods=2, freq="D"
+    ),
 }
 
 
 @pytest.mark.parametrize("name", list(ERROR_COLUMNS))
 def test_unconvertible_column(name: str) -> None:
     df = pd.DataFrame({name: ERROR_COLUMNS[name]})
-    with pytest.raises((pa.ArrowException, OverflowError, TypeError)):
+    with pytest.raises(Exception) as expected:
         pa.Table.from_pandas(df)
-    with pytest.raises((ArrowException, OverflowError, TypeError)):
+    with pytest.raises(Exception) as actual:
         dataframe_to_ipc(df)
+    assert type(actual.value).__name__ == type(expected.value).__name__
 
 
 @pytest.mark.parametrize(

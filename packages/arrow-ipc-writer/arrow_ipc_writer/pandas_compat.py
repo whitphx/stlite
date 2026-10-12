@@ -1,11 +1,28 @@
-# Ported from pyarrow's python/pyarrow/pandas_compat.py (Apache Arrow),
-# licensed to the Apache Software Foundation under the Apache License,
-# Version 2.0: https://github.com/apache/arrow/blob/main/LICENSE.txt
+# Ported from Apache Arrow's python/pyarrow/pandas_compat.py
+# https://github.com/apache/arrow/blob/apache-arrow-24.0.0/python/pyarrow/pandas_compat.py
+# Modified for arrow-ipc-writer: it builds this package's types and arrays
+# instead of pyarrow's, and keeps only what Table.from_pandas needs to build
+# a table and its "pandas" schema metadata, which Streamlit's frontend reads
+# to recover index columns and column types.
 #
-# The metadata logic is kept close to the original so that tables built here
-# carry the same "pandas" schema metadata `pyarrow.Table.from_pandas` writes,
-# which is what Streamlit's frontend reads to recover index columns and
-# column types.
+# The original license header follows.
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 """Converting a pandas DataFrame to a Table, with pyarrow's pandas metadata."""
 
@@ -40,9 +57,9 @@ def get_logical_type(arrow_type: t.DataType) -> str:
         return "date"
     if isinstance(arrow_type, t.Time64Type):
         return "time"
-    if isinstance(arrow_type, t.BinaryType) and not arrow_type.large:
+    if isinstance(arrow_type, t.BinaryType):
         return "bytes"
-    if isinstance(arrow_type, t.StringType) and not arrow_type.large:
+    if isinstance(arrow_type, t.StringType):
         return "unicode"
     if isinstance(arrow_type, t.DictionaryType):
         return "categorical"
@@ -50,7 +67,7 @@ def get_logical_type(arrow_type: t.DataType) -> str:
         return f"list[{get_logical_type(arrow_type.value_type)}]"
     if isinstance(arrow_type, t.TimestampType):
         return "datetimetz" if arrow_type.tz is not None else "datetime"
-    if isinstance(arrow_type, t.Decimal128Type):
+    if isinstance(arrow_type, t.DecimalType):
         return "decimal"
     return "object"
 
@@ -117,7 +134,7 @@ def get_column_metadata(
     logical_type = get_logical_type(arrow_type)
 
     string_dtype, extra_metadata = get_extension_dtype_info(column)
-    if isinstance(arrow_type, t.Decimal128Type):
+    if isinstance(arrow_type, t.DecimalType):
         extra_metadata = {
             "precision": arrow_type.precision,
             "scale": arrow_type.scale,

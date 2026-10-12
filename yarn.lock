@@ -8250,7 +8250,6 @@ __metadata:
     native-file-system-adapter: "npm:^3.0.1"
     node-emoji: "npm:^2.2.0"
     numbro: "npm:^2.5.0"
-    parquet-wasm: "npm:^0.6.0"
     plotly.js: "npm:^4.1.1"
     protobufjs: "npm:^8.8.0"
     query-string: "npm:^9.5.1"
@@ -22064,13 +22063,6 @@ __metadata:
   version: 3.1.8
   resolution: "parenthesis@npm:3.1.8"
   checksum: 10c0/1c0d5dd8b238b7c703db5ff1ca35f41952a7b2597c2e97cd0d32ab345179062611bc4f8a849787ed7f23508e91140d74fea7c0050b6978c56499f707ff54c99c
-  languageName: node
-  linkType: hard
-
-"parquet-wasm@npm:^0.6.0":
-  version: 0.6.1
-  resolution: "parquet-wasm@npm:0.6.1"
-  checksum: 10c0/dcade4b006ff86edca711dacf3c71997b4a86985384fc183119f73d5dae1d0c94d3e7fa5b48845845df5db97d3eb445d6c137f3459a5d9a66a3b9b3bc0474497
   languageName: node
   linkType: hard
 

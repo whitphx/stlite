@@ -85,10 +85,18 @@ def load_config_options(flag_options: Dict[str, Any], multi_runtime=False) -> No
     )
 
 
+def _pyarrow_is_stlite_stub() -> bool:
+    return getattr(sys.modules.get("pyarrow"), "__stlite_stub__", False)
+
+
 def _fix_altair():
     """Install custom finder and importer to patch Altair when it's imported.
-    The patch fixes an issue with Altair and the mocked pyarrow module of stlite.
+    The patch keeps Altair off the pyarrow stub that runtimes without pyarrow
+    install (see _pyarrow_shim.py), so it is only installed there; with the real
+    pyarrow, Altair uses it as it would anywhere else.
     """
+    if not _pyarrow_is_stlite_stub():
+        return
 
     # The original patch is https://github.com/whitphx/stlite/blob/v0.47.0/packages/kernel/py/stlite-server/stlite_server/bootstrap.py#L127-L144.  # noqa: E501
     # Since Streamlit 1.32.0, it lazy-loads the Altair module for performance reasons,

@@ -33,6 +33,18 @@ const stliteRuntimeExtraDependencies = [
   "protobuf>=7.34.1,<8",
 ];
 
+// The Streamlit fork's dependencies the Worker ships without. Pyodide's pyarrow
+// is ~43 MiB unpacked, beyond the Worker script limit, and loading it takes
+// ~48 MiB of the isolate's 128 MB of wasm memory, so the runtime installs
+// stlite_lib's stub in its place; resolving it here would only download a wheel
+// for install_runtime to delete again.
+const workerOmittedDependencies = new Set(["pyarrow"]);
+
+function requirementName(requirement: string): string | undefined {
+  const name = /^\s*([A-Za-z0-9][A-Za-z0-9._-]*)/.exec(requirement)?.[1];
+  return name?.toLowerCase().replace(/[-_.]+/g, "-");
+}
+
 export interface VendorPrebuiltPackagesOptions {
   /** The @stlite/cloudflare package root. */
   packageDir: string;
@@ -86,8 +98,14 @@ export async function vendorPrebuiltPackages({
     consoleLogger,
   );
 
+  const streamlitDependencies = (
+    await readStreamlitDependencies(packageDir, projectDir)
+  ).filter(
+    (requirement) =>
+      !workerOmittedDependencies.has(requirementName(requirement) ?? ""),
+  );
   const dependencies = [
-    ...(await readStreamlitDependencies(packageDir, projectDir)),
+    ...streamlitDependencies,
     ...stliteRuntimeExtraDependencies,
   ];
   const usedPrebuiltPackages = await vendorPackageSnapshot({

@@ -91,7 +91,7 @@ This asymmetry is why the Durable Object is the default: media alone could be pa
 
 `--mock <package>` replaces a vendored package with an import-satisfying stub so Streamlit still boots without it, then garbage-collects whatever that package alone pulled into the runtime. App code that actually touches a mocked package fails at that point with an error naming the flag, and the build refuses to mock a package your own `requirements.txt` asks for. Hand-tuned stubs ship for `pandas` and `numpy` (whose import surface Streamlit exercises at boot); other packages get a generated raise-on-use stub, which works for anything Streamlit imports lazily.
 
-`--slim` bundles the tested `pandas` + `numpy` pair for text/widget/chat-style apps. Mocking `pandas` cascades to the parquet serialization stack and roughly halves the script size and cold-start time.
+`--slim` bundles the tested `pandas` + `numpy` pair for text/widget/chat-style apps. Mocking `pandas` cascades to its own dependencies and roughly halves the script size and cold-start time.
 
 ### Where the runtime ships: `--asset-runtime`
 
@@ -132,5 +132,7 @@ The whole project directory is mirrored into the deployed package, except:
 Symlinks never survive into the package: a file symlink resolving inside the project is dereferenced into a regular file, while symlinks resolving outside the project, broken symlinks, and directory symlinks fail the build. Exclusions apply to a symlink's resolved target as well as its visible path, so a symlink can't smuggle an excluded file's content into the package under another name.
 
 ## Known limitations
+
+Elements that send data through Arrow are unavailable: `st.dataframe`, `st.data_editor`, `st.table`, `st.write` with a dataframe, and charts such as `st.line_chart`, `st.bar_chart`, `st.area_chart`, `st.scatter_chart`, `st.altair_chart` and `st.vega_lite_chart`. Streamlit serializes their data with pyarrow, and Pyodide's pyarrow does not fit a Worker: it is ~43 MiB unpacked, past the script limit, and loading it takes ~48 MiB of wasm memory out of the isolate's 128 MB. The Worker installs a stub in its place, so these elements raise an error that says so. Everything else works, including widgets that take their options from a dataframe column, and `st.map`.
 
 The runtime is single-threaded: a very long synchronous compute burst in your script can starve the event loop that concurrently serves rendered media to the browser, and starved requests get canceled by the platform. Frame-loop pages generally work as-is; if yours drops frames, shrink the per-frame work or sleep longer between frames.

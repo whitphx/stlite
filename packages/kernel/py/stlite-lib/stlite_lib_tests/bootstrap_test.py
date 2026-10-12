@@ -47,3 +47,37 @@ def test_load_config_options(patched_get_config_options):
             "logger.level": "error",
         },
     )
+
+
+def _altair_finders():
+    import sys
+
+    return [f for f in sys.meta_path if type(f).__name__ == "AltairCustomFinder"]
+
+
+def test_fix_altair_patches_altair_against_the_pyarrow_stub(monkeypatch):
+    import sys
+
+    from stlite_lib.runtime_init import mock_pyarrow
+
+    monkeypatch.setattr(sys, "meta_path", list(sys.meta_path))
+    monkeypatch.delitem(sys.modules, "pyarrow", raising=False)
+    mock_pyarrow()
+
+    bootstrap._fix_altair()
+
+    assert len(_altair_finders()) == 1
+
+
+def test_fix_altair_leaves_altair_alone_without_the_stub(monkeypatch):
+    import sys
+    import types
+
+    monkeypatch.setattr(sys, "meta_path", list(sys.meta_path))
+    # The browser runtime: pyarrow is either not imported yet or the real one.
+    monkeypatch.delitem(sys.modules, "pyarrow", raising=False)
+    bootstrap._fix_altair()
+    monkeypatch.setitem(sys.modules, "pyarrow", types.ModuleType("pyarrow"))
+    bootstrap._fix_altair()
+
+    assert _altair_finders() == []

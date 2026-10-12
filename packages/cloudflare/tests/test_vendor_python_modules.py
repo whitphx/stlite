@@ -95,22 +95,6 @@ def test_vendor_prebuilt_overlays_missing_and_extracts_wheels(tmp_path):
     assert not (vendor / "micropip").exists()
 
 
-def test_vendor_prebuilt_always_overlays_forced_packages(tmp_path):
-    vendor = tmp_path / "vendor"
-    (vendor / "cramjam").mkdir(parents=True)
-    (vendor / "cramjam" / "__init__.py").write_text("HOST-ARCH")
-
-    snapshot = _make_snapshot(tmp_path, {})
-    wheel = _make_wheel(
-        tmp_path / "cramjam-2.8-py3-none-any.whl",
-        {"cramjam/__init__.py": "PYODIDE"},
-    )
-
-    vendor_prebuilt(vendor, snapshot, [("cramjam", wheel)])
-
-    assert (vendor / "cramjam" / "__init__.py").read_text() == "PYODIDE"
-
-
 def test_vendor_prebuilt_ignores_record_paths_outside_site_packages(tmp_path):
     vendor = tmp_path / "vendor"
     vendor.mkdir()
@@ -185,9 +169,9 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     (vendor / "pydeck-0.9.3.data" / "data" / "share").mkdir(parents=True)
     (vendor / "altair").mkdir()
     (vendor / "altair" / "chart.js.map").write_text("M")
-    (vendor / "fastparquet").mkdir()
-    (vendor / "fastparquet" / "cencoding.c").write_text("C")
-    (vendor / "fastparquet" / "api.py").write_text("F")
+    (vendor / "PIL").mkdir()
+    (vendor / "PIL" / "_imaging.c").write_text("C")
+    (vendor / "PIL" / "Image.py").write_text("F")
     (vendor / "numpy_stub.pyi_holder").mkdir()
     (vendor / "numpy_stub.pyi_holder" / "core.pyi").write_text("T")
     (vendor / "streamlit").mkdir()
@@ -203,13 +187,13 @@ def test_install_runtime_prunes_worker_dead_weight(tmp_path):
     assert not (vendor / "pydeck-0.9.3.data").exists()
     assert not (vendor / "pydeck" / "nbextension" / "static").exists()
     assert not (vendor / "altair" / "chart.js.map").exists()
-    assert not (vendor / "fastparquet" / "cencoding.c").exists()
+    assert not (vendor / "PIL" / "_imaging.c").exists()
     assert not (vendor / "numpy_stub.pyi_holder" / "core.pyi").exists()
     # The packages themselves survive; only the dead payloads go. pydeck's
     # __init__ imports from .nbextension, so the module must remain.
     assert (vendor / "pydeck" / "nbextension" / "__init__.py").read_text() == "N"
     assert (vendor / "pydeck" / "bindings" / "deck.py").read_text() == "D"
-    assert (vendor / "fastparquet" / "api.py").read_text() == "F"
+    assert (vendor / "PIL" / "Image.py").read_text() == "F"
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
 
 
@@ -333,10 +317,11 @@ def _make_closure(vendor_dir):
     _make_dist(vendor_dir, "pytz", ["pytz"])
     _make_dist(vendor_dir, "python-dateutil", ["dateutil"], ["six"])
     _make_dist(vendor_dir, "six", ["six.py"])
-    # A metadata-rootless dist (like the pyarrow shim's fastparquet): vendored
+    # A metadata-rootless dist (like pydeck, which the Worker vendors for
+    # st.pydeck_chart though Streamlit doesn't declare it): vendored
     # deliberately, so it must survive unless the mock breaks it.
-    _make_dist(vendor_dir, "fastparquet", ["fastparquet"], ["pandas", "cramjam"])
-    _make_dist(vendor_dir, "cramjam", ["cramjam"])
+    _make_dist(vendor_dir, "pydeck", ["pydeck"], ["numpy", "jinja2"])
+    _make_dist(vendor_dir, "jinja2", ["jinja2"])
     _make_dist(vendor_dir, "altair", ["altair"])
     _make_dist(vendor_dir, "bokeh", ["bokeh"])
 
@@ -350,15 +335,15 @@ def test_mock_packages_stubs_targets_and_collects_broken_and_orphaned(tmp_path):
     )
 
     remaining = {entry.name for entry in vendor_dir.iterdir()}
-    # Broken by the mock (fastparquet requires pandas) or orphaned once
-    # pandas' subtree lost its last in-edge.
+    # Broken by the mock (pydeck requires numpy) or orphaned once the broken
+    # dists lost their last in-edge.
     assert not remaining & {
-        "fastparquet",
-        "cramjam",
+        "pydeck",
+        "jinja2",
         "pytz",
         "dateutil",
         "six.py",
-        "fastparquet-1.0.dist-info",
+        "pydeck-1.0.dist-info",
         "pandas-1.0.dist-info",
     }
     # Kept: protected root, its surviving dep, and an unrelated rootless dist.
@@ -377,8 +362,8 @@ def test_mock_packages_keeps_everything_reachable_without_mocks_breaking_it(
     mock_packages(vendor_dir, _write_pyproject(tmp_path, []), ["altair"])
 
     remaining = {entry.name for entry in vendor_dir.iterdir()}
-    # Only altair changes; pandas and the fastparquet chain are untouched.
-    assert {"pandas", "numpy", "fastparquet", "cramjam", "pytz"} <= remaining
+    # Only altair changes; pandas and the pydeck chain are untouched.
+    assert {"pandas", "numpy", "pydeck", "jinja2", "pytz"} <= remaining
     generated = (vendor_dir / "altair" / "__init__.py").read_text()
     assert "--mock altair" in generated
     assert "real" not in generated

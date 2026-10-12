@@ -23,13 +23,12 @@ try {
   await page.getByText("Welcome to Streamlit!").waitFor();
   await page.getByText("Select a demo from the sidebar").waitFor();
   await page.getByText("DataFrame demo", { exact: true }).waitFor();
-  await page.getByText("Plotting demo", { exact: true }).waitFor();
   await page.getByText("Mapping demo", { exact: true }).waitFor();
   await page.getByText("Animation demo", { exact: true }).waitFor();
 
   // Open pages whose scripts pull in extra dependency chains — a menu-only
   // check misses import-time breakage (native .so loading, pruned modules).
-  // DataFrame: numpy/pandas/altair. Mapping: pydeck. The waited-for fragments
+  // DataFrame: numpy/pandas. Mapping: pydeck. The waited-for fragments
   // are per-page (a shared prefix would match the previous page's still-
   // mounted text) and avoid `code`-rendered spans.
   await page.getByText("DataFrame demo", { exact: true }).click();
@@ -46,6 +45,20 @@ try {
   await page
     .getByText("Gross agricultural production ($B)", { exact: true })
     .waitFor();
+  // The table under the subheader is rendered with st.text (the Worker ships
+  // without pyarrow, so st.dataframe is unavailable). Its year header row
+  // appears nowhere else on the page, so seeing it proves the page ran past
+  // the subheader; and no exception element may be left on the page.
+  await page
+    .locator('[data-testid="stText"]')
+    .filter({ hasText: "1961" })
+    .waitFor();
+  const exceptionCount = await page
+    .locator('[data-testid="stException"]')
+    .count();
+  if (exceptionCount !== 0) {
+    throw new Error(`DataFrame demo rendered ${exceptionCount} exception(s)`);
+  }
   await page.getByText("Mapping demo", { exact: true }).click();
   await page
     .getByText("to display geospatial data", { exact: false })

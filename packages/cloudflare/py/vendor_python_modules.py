@@ -25,11 +25,10 @@ from pathlib import Path
 
 # micropip only serves the build-time dependency resolution; it must not ship.
 _BUILD_ONLY_PACKAGES = {"micropip"}
-# pywrangler vendors host-arch builds of these; the Pyodide wheels must win.
-_ALWAYS_OVERLAY_PACKAGES = {"cramjam", "fastparquet"}
 
-# stlite has no working pyarrow (the runtime shims it); any copy a user
-# dependency dragged in is ~100 MB of dead weight against the Worker size limit.
+# The Worker ships without pyarrow (the runtime installs stlite_lib's stub
+# instead); any copy a user dependency dragged in is dead weight against the
+# Worker size limit (~100 MB for a host-arch build).
 _PYARROW_ENTRIES = {"pyarrow", "pyarrow.libs"}
 _PYARROW_DIST_INFO = re.compile(r"^pyarrow-.*\.dist-info$")
 _RUNTIME_ENTRIES = {"stlite_cloudflare", "stlite_lib", "streamlit"}
@@ -164,10 +163,7 @@ def vendor_prebuilt(
         (name, wheel_path)
         for name, wheel_path in wheels
         if _canonicalize(name) not in _BUILD_ONLY_PACKAGES
-        and (
-            _canonicalize(name) in _ALWAYS_OVERLAY_PACKAGES
-            or not _has_package_artifact(vendor_entries, name)
-        )
+        and not _has_package_artifact(vendor_entries, name)
     ]
     for name, wheel_path in to_extract:
         if not wheel_path.is_file():
@@ -315,7 +311,7 @@ def pack_modules(vendor_dir: Path, dest_dir: Path) -> None:
 # `--slim` alias, for apps that never touch dataframes). What the mock breaks
 # is then garbage-collected from the vendored closure by dependency metadata:
 # packages whose requirements include a removed package cannot function and go
-# too (fastparquet needs pandas), and packages no surviving root can reach are
+# too, and packages no surviving root can reach are
 # orphans (pytz/dateutil once pandas is gone). Hand-tuned stubs live in
 # mock_stubs/ for the dists whose import surface Streamlit exercises; any
 # other mocked dist gets a generated raise-on-use stub.
@@ -448,9 +444,9 @@ def mock_packages(
                 changed = True
 
     # Orphan pass: anything no surviving root can reach. Dists nothing
-    # required in the original graph were vendored deliberately (e.g. the
-    # pyarrow shim's fastparquet has no metadata in-edge), so they count as
-    # roots when they survived the cascade.
+    # required in the original graph were vendored deliberately (e.g. toml,
+    # which Streamlit imports without declaring it), so they count as roots
+    # when they survived the cascade.
     required_by_someone = set()
     for info in dists.values():
         required_by_someone |= info["requires"] & set(dists)

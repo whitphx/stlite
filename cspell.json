@@ -110,6 +110,9 @@
     "lsprotocol",
     "distplot",
     "getfixturevalue",
+    "errisinstance",
+    "terminalreporter",
+    "xdist",
     // Node/npm
     "oxlint",
     "oxlintrc",

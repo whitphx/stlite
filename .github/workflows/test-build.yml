@@ -518,8 +518,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # `init-all` builds the venv with `make venv`, which needs the submodule.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:

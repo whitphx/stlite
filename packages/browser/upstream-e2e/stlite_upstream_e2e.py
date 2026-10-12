@@ -10,14 +10,13 @@ After `make browser`, run from `streamlit/` with upstream's E2E environment:
         -p stlite_upstream_e2e e2e_playwright/st_button_test.py \
         --browser chromium -n 4 --dist loadscope
 
-Only the test's own script is mounted, so modules whose app reads
-sibling files (multipage `pages/`, `static/` assets) don't work yet.
 """
 
 from __future__ import annotations
 
 import json
 import mimetypes
+import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -97,6 +96,29 @@ SKIPPED_TESTS = {
 }
 
 
+def _app_files(script: Path) -> dict[str, dict[str, str]]:
+    app_dir = script.parent
+    skipped_dirs = {"__snapshots__", "__pycache__", "test-results"}
+    # `static/` is most of the directory's size, so only apps naming it get it.
+    # `./app/static/` URLs don't count, since Stlite doesn't serve them (#2143).
+    if not re.search(r"(?<!app/)static", script.read_text()):
+        skipped_dirs.add("static")
+    files = {}
+    for path in app_dir.rglob("*"):
+        relative = path.relative_to(app_dir)
+        if (
+            not path.is_file()
+            or path.name.endswith("_test.py")
+            or not skipped_dirs.isdisjoint(relative.parts)
+            or any(
+                part.startswith(".") and part != ".streamlit" for part in relative.parts
+            )
+        ):
+            continue
+        files[relative.as_posix()] = {"url": f"/_app/{relative.as_posix()}"}
+    return files
+
+
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     for item in items:
         test_id = f"{item.path.name}::{item.name.split('[')[0]}"
@@ -171,7 +193,7 @@ def pytest_plugin_registered(plugin: object) -> None:
         }
         options = {
             "entrypoint": script.name,
-            "files": {script.name: {"url": f"/_app/{script.name}"}},
+            "files": _app_files(script),
             "streamlitConfig": config,
             "env": extra_env or {},
         }

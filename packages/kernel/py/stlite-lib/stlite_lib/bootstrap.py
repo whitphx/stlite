@@ -16,6 +16,7 @@
 # This module is reproduction of streamlit.web.bootstrap for the stlite runtime.
 # We picked up some code snippets necessary for the stlite runtime from that module.
 
+import importlib.metadata
 import logging
 import os
 import sys
@@ -154,6 +155,19 @@ def _fix_requests():
         pass
 
 
+def _pandas_needs_categorical_pickle_fix() -> bool:
+    # Only a version known to be 3 or later skips the fix. Without metadata
+    # (pandas missing, or shipped without its dist-info), fall through to the
+    # import, which returns early if pandas is absent; the patch itself is
+    # harmless on pandas 3.
+    try:
+        version = importlib.metadata.version("pandas")
+    except importlib.metadata.PackageNotFoundError:
+        return True
+    major = version.split(".", 1)[0]
+    return not (major.isdigit() and int(major) >= 3)
+
+
 def _fix_pandas_categorical_pickle():
     """Fix pandas Categorical pickle roundtrip on Pyodide.
 
@@ -165,11 +179,17 @@ def _fix_pandas_categorical_pickle():
     NDArrayBacked.__setstate__ only handles dicts and 3-element tuples, raising
     NotImplementedError.
 
-    Pyodide 314.x ships pandas 3, where the state is already well-formed and
-    the branch below never triggers. stlite still runs on 0.29.x under
-    @stlite/cloudflare, which is pinned to Cloudflare's Worker Python runtime,
-    so the patch stays until that pin moves off the 0.29.x line.
+    Pyodide 314.x ships pandas 3, where the state is already well-formed, so
+    the patch is skipped there by looking at the installed version rather than
+    importing pandas: the import would load pandas, and pyarrow with it, on
+    every boot, including for apps that never touch a dataframe. stlite still
+    runs on 0.29.x under @stlite/cloudflare, which is pinned to Cloudflare's
+    Worker Python runtime, so the patch stays until that pin moves off the
+    0.29.x line.
     """
+    if not _pandas_needs_categorical_pickle_fix():
+        return
+
     try:
         import numpy as np
         from pandas import Categorical, CategoricalDtype

@@ -27,13 +27,29 @@ export const test = base.extend<{
     // Keep the browser console so that a failure reports what the page and
     // the kernel worker logged: the traces and screenshots only reach those
     // who can download the CI artifacts.
+    // Each line carries the seconds since the test started, so a timeout
+    // shows which step of the boot took the time.
+    const startedAt = Date.now();
+    const elapsed = () => ((Date.now() - startedAt) / 1000).toFixed(1);
     const consoleLines: string[] = [];
-    page.on("console", (message) =>
-      consoleLines.push(`[${message.type()}] ${message.text()}`),
-    );
-    page.on("pageerror", (error) =>
-      consoleLines.push(`[pageerror] ${error.message}`),
-    );
+    let lastText: string | undefined;
+    let repeats = 0;
+    const record = (kind: string, text: string) => {
+      // Collapse runs of the same message (e.g. a warning per loaded wasm
+      // module) so they don't push the informative lines out of the report.
+      if (text === lastText) {
+        repeats++;
+        return;
+      }
+      if (repeats > 0) {
+        consoleLines.push(`  (repeated ${repeats} more times)`);
+      }
+      lastText = text;
+      repeats = 0;
+      consoleLines.push(`[${elapsed()}s ${kind}] ${text}`);
+    };
+    page.on("console", (message) => record(message.type(), message.text()));
+    page.on("pageerror", (error) => record("pageerror", error.message));
 
     // Override page.goto to handle file: protocol correctly
     const originalGoto = page.goto.bind(page);
@@ -56,6 +72,9 @@ export const test = base.extend<{
     page.goto = originalGoto;
 
     if (testInfo.status !== testInfo.expectedStatus) {
+      if (repeats > 0) {
+        consoleLines.push(`  (repeated ${repeats} more times)`);
+      }
       // Thrown rather than logged so that it shows up next to the test's
       // own error in every reporter, including the blob reporter CI uses.
       const lastLines = consoleLines

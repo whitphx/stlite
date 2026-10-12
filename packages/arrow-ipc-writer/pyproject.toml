@@ -3,7 +3,8 @@ name = "arrow-ipc-writer"
 version = "0.1.0"
 description = "A pure-Python Arrow IPC stream writer for pandas DataFrames, for runtimes without pyarrow"
 readme = "README.md"
-requires-python = ">=3.14"
+# @stlite/cloudflare, which this is for, runs Python 3.13.
+requires-python = ">=3.13"
 authors = [
   { name = "Yuichiro Tachibana (Tsuchiya)", email = "t.yic.yt@gmail.com" },
 ]
@@ -29,6 +30,8 @@ extend-select = ["I"]
 
 [tool.pyright]
 include = ["arrow_ipc_writer"]
+# The oldest Python it runs on: @stlite/cloudflare's runtime.
+pythonVersion = "3.13"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

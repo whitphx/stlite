@@ -49,8 +49,9 @@ In this directory:
 uv run --package arrow-ipc-writer pytest
 uv run --package arrow-ipc-writer ruff check . && uv run --package arrow-ipc-writer ruff format --check .
 uv run --package arrow-ipc-writer pyright
-# Pyodide ships pandas 2, while the workspace locks pandas 3.
-uv run --package arrow-ipc-writer --with pandas==2.3.3 pytest
+# On the Python, pandas and numpy versions of @stlite/cloudflare's runtime,
+# read from its Pyodide lockfile (needs `make node_modules`).
+scripts/test-on-cloudflare-runtime.sh
 ```
 
 `pandas_compat.py` is ported from pyarrow's module of the same name (Apache License 2.0); see [NOTICE](NOTICE).

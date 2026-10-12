@@ -95,7 +95,7 @@ def get_logical_type_from_numpy(pandas_collection: Any) -> str:
     dtype = pandas_collection.dtype
     try:
         return _NUMPY_LOGICAL_TYPES[dtype.type]
-    except KeyError, TypeError:
+    except (KeyError, TypeError):
         pass
     if str(dtype) == "datetime64[D]":
         return "date"

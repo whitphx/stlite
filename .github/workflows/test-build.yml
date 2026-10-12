@@ -542,10 +542,11 @@ jobs:
         working-directory: packages/arrow-ipc-writer
         run: uv run --package arrow-ipc-writer pytest -v
 
-      # Pyodide ships pandas 2, while the workspace locks pandas 3.
-      - name: Run pytest with pandas 2
+      # The writer is for @stlite/cloudflare, whose runtime (Pyodide 0.29.x)
+      # has older Python and pandas than the workspace locks.
+      - name: Run pytest on Cloudflare's runtime versions
         working-directory: packages/arrow-ipc-writer
-        run: uv run --package arrow-ipc-writer --with pandas==2.3.3 pytest -v
+        run: scripts/test-on-cloudflare-runtime.sh -v
 
   test-cloudflare:
     needs: changes

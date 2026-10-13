@@ -71,7 +71,13 @@ export const test = base.extend<{
 
     page.goto = originalGoto;
 
-    if (testInfo.status !== testInfo.expectedStatus) {
+    // Only for real failures: an interrupted test or an unexpected pass of a
+    // test.fail() also differs from its expected status, but has no error
+    // the console output would explain.
+    if (
+      testInfo.status !== testInfo.expectedStatus &&
+      (testInfo.status === "failed" || testInfo.status === "timedOut")
+    ) {
       if (repeats > 0) {
         consoleLines.push(`  (repeated ${repeats} more times)`);
       }

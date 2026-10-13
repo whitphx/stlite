@@ -11,6 +11,7 @@ import datetime
 import decimal
 import json
 import math
+from itertools import compress
 from typing import Any, Iterable, Sequence
 
 import numpy as np
@@ -114,7 +115,7 @@ def from_numpy(values: np.ndarray) -> a.Array:
         raise ArrowInvalid("only handle 1-dimensional arrays")
     kind = values.dtype.kind
     if kind == "O":
-        return from_objects(list(values))
+        return from_objects(values)
     type_ = _numpy_type(values.dtype)
     if kind == "b":
         return a.bool_array(values)
@@ -128,9 +129,8 @@ def from_numpy(values: np.ndarray) -> a.Array:
             days = values.view(np.int64).astype(np.int32)
             return a.primitive_array(type_, days, valid)
         return a.primitive_array(type_, values.view(np.int64), valid)
-    if kind == "U":
-        return a.binary_like_array(t.string(), [str(v).encode() for v in values])
-    return a.binary_like_array(t.binary(), [bytes(v) for v in values])
+    # tolist() gives str or bytes values for "U" or "S".
+    return _build(type_, values.tolist(), np.ones(len(values), dtype=np.bool_))
 
 
 def _unify_numpy(current: np.dtype | None, new: np.dtype) -> np.dtype:
@@ -367,6 +367,10 @@ def infer_type(values: Iterable[Any]) -> t.DataType:
 
 # Converting Python objects to a type
 
+# A column's values: a list, or a one-dimensional object ndarray as pandas
+# hands them over, which saves copying them into a list.
+Values = Sequence[Any] | np.ndarray
+
 
 def _conversion_error(value: Any, type_: t.DataType) -> ArrowInvalid:
     target = "boolean" if isinstance(type_, t.BoolType) else str(type_)
@@ -522,17 +526,57 @@ def _dict_item(value: dict[Any, Any], key: str) -> Any:
     return value.get(key.encode("utf-8"))
 
 
-def from_objects(values: Sequence[Any], type_: t.DataType | None = None) -> a.Array:
+def _valid_mask(values: Values) -> np.ndarray:
+    """~_is_null over `values`, in one pass in C: pd.isna treats the same
+    values as null (None, NaN, NaT, pd.NA and Decimal NaN)."""
+    if isinstance(values, np.ndarray) and values.dtype == object:
+        objects = values
+    else:
+        objects = np.fromiter(values, dtype=object, count=len(values))
+    return ~pd.isna(objects)
+
+
+def _encode_strings(
+    values: Values, valid: np.ndarray
+) -> tuple[np.ndarray, bytes, bool] | None:
+    """Offsets, data, and whether they were bytes, for values that are all
+    str or all bytes, encoded in bulk; None for anything else, which the
+    per-value path handles (and reports errors on) instead."""
+    present = list(compress(values, valid))
+    kinds = set(map(type, present))
+    if kinds <= {str}:
+        joined = "".join(present)
+        data = joined.encode("utf-8")
+        lengths = a.lengths_of(present)  # in characters
+        if len(data) != len(joined):
+            lengths = _utf8_lengths(data, lengths)
+        return a.value_offsets(lengths, valid), data, False
+    if kinds == {bytes}:
+        return a.value_offsets(a.lengths_of(present), valid), b"".join(present), True
+    return None
+
+
+def _utf8_lengths(data: bytes, char_lengths: np.ndarray) -> np.ndarray:
+    """Byte lengths of consecutive strings in `data`, UTF-8 encoded, from
+    their lengths in characters. Every character starts with a byte that
+    isn't a continuation byte (0b10xxxxxx), so the n-th such byte is where
+    the n-th character starts."""
+    buffer = np.frombuffer(data, dtype=np.uint8)
+    char_starts = np.append(np.flatnonzero((buffer & 0xC0) != 0x80), len(data))
+    char_offsets = np.zeros(len(char_lengths) + 1, dtype=np.int64)
+    np.cumsum(char_lengths, out=char_offsets[1:])
+    return np.diff(char_starts[char_offsets])
+
+
+def from_objects(values: Values, type_: t.DataType | None = None) -> a.Array:
     """An Arrow array from Python objects, inferring the type unless given."""
-    valid = np.fromiter(
-        (not _is_null(v) for v in values), dtype=np.bool_, count=len(values)
-    )
+    valid = _valid_mask(values)
     if type_ is None:
         type_ = infer_type(values)
     return _build(type_, values, valid)
 
 
-def _build(type_: t.DataType, values: Sequence[Any], valid: np.ndarray) -> a.Array:
+def _build(type_: t.DataType, values: Values, valid: np.ndarray) -> a.Array:
     """Converts the valid values in row order, so the first value that doesn't
     fit `type_` is the one that fails, as in pyarrow."""
     n = len(values)
@@ -557,6 +601,14 @@ def _build(type_: t.DataType, values: Sequence[Any], valid: np.ndarray) -> a.Arr
             type_, fill(lambda v: _to_float(v, type_), dtype), valid
         )
     if isinstance(type_, (t.StringType, t.BinaryType)):
+        # pyarrow's string builder takes bytes too, but then makes the whole
+        # array binary.
+        bulk = _encode_strings(values, valid)
+        if bulk is not None:
+            offsets, data, is_bytes = bulk
+            return a.binary_array(
+                t.binary() if is_bytes else type_, offsets, data, valid
+            )
         encoded: list[bytes | None] = []
         saw_bytes = False
         for value, ok in zip(values, valid):
@@ -566,8 +618,6 @@ def _build(type_: t.DataType, values: Sequence[Any], valid: np.ndarray) -> a.Arr
                 saw_bytes = saw_bytes or is_bytes
             else:
                 encoded.append(None)
-        # pyarrow's string builder takes bytes too, but then makes the whole
-        # array binary.
         return a.binary_like_array(t.binary() if saw_bytes else type_, encoded)
     if isinstance(type_, t.Date32Type):
         return a.primitive_array(type_, fill(_to_days, np.int32), valid)
@@ -654,7 +704,7 @@ def from_pandas(values: Any) -> a.Array:
         return a.extension_array(type_, storage)
     if isinstance(dtype, pd.StringDtype):
         objects = np.asarray(values.array.to_numpy(dtype=object, na_value=None))
-        return from_objects(list(objects), t.string())
+        return from_objects(objects, t.string())
     if _is_masked(dtype):
         array = values.array
         valid = ~np.asarray(array.isna())
@@ -668,7 +718,7 @@ def from_pandas(values: Any) -> a.Array:
     if isinstance(dtype, np.dtype):
         return from_numpy(np.asarray(values))
     # Other extension types (e.g. pyarrow-backed ones): go through objects.
-    return from_objects(list(values.array.to_numpy(dtype=object)))
+    return from_objects(np.asarray(values.array.to_numpy(dtype=object)))
 
 
 _MASKED_DTYPES = (

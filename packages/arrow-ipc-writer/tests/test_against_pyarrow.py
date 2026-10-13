@@ -56,6 +56,14 @@ COLUMNS = {
     "str_default": ["a", None, "c"],
     "string_python": pd.array(["a", None, "c"], dtype=pd.StringDtype("python")),
     "unicode_numpy": np.array(["a", "bc", ""]),
+    # Mixes 1-, 2-, 3- and 4-byte UTF-8, so byte lengths differ from
+    # character counts.
+    "str_non_ascii": ["café", None, "日本語🎈"],
+    "str_non_ascii_python": pd.array(
+        ["ü", None, "🎈x"], dtype=pd.StringDtype("python")
+    ),
+    "unicode_numpy_non_ascii": np.array(["é", "日本", ""]),
+    "str_empty_and_null": ["", None, ""],
     "bytes_object": [b"a", None, b"c"],
     "bytes_numpy": np.array([b"a", b"bc", b""]),
     "str_and_bytes": pd.Series(["a", b"b", None], dtype=object),
@@ -354,6 +362,28 @@ def test_mixed_object_column(name: str) -> None:
         assert type(actual.value).__name__ == type(e).__name__, actual.value
     else:
         assert_matches_pyarrow(df)
+
+
+def test_random_unicode_strings() -> None:
+    # Byte offsets of non-ASCII strings are worked out from the encoded
+    # data in bulk; random text with 1- to 4-byte characters, empty strings
+    # and nulls checks them against pyarrow's.
+    rng = np.random.default_rng(0)
+    codepoints = np.concatenate(
+        [
+            rng.integers(0x20, 0x7F, 1000),  # 1 byte
+            rng.integers(0xA0, 0x800, 1000),  # 2 bytes
+            rng.integers(0x800, 0xD800, 1000),  # 3 bytes
+            rng.integers(0x10000, 0x110000, 1000),  # 4 bytes
+        ]
+    )
+    values: list[str | None] = [
+        "".join(map(chr, rng.choice(codepoints, rng.integers(0, 8))))
+        for _ in range(5000)
+    ]
+    for i in rng.choice(len(values), 500, replace=False):
+        values[i] = None
+    assert_matches_pyarrow(pd.DataFrame({"s": pd.Series(values, dtype=object)}))
 
 
 ERROR_COLUMNS = {

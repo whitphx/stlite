@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Sequence, Sized
 
 import numpy as np
 
@@ -67,17 +67,39 @@ def binary_like_array(
     """A string or binary array from encoded values, `None` for nulls."""
     length = len(values)
     valid = np.fromiter((v is not None for v in values), dtype=np.bool_, count=length)
-    lengths = np.fromiter(
-        (len(v) if v is not None else 0 for v in values), dtype=np.int64, count=length
+    present = [v for v in values if v is not None]
+    return binary_array(
+        type_, value_offsets(lengths_of(present), valid), b"".join(present), valid
     )
-    offsets = np.zeros(length + 1, dtype=np.int64)
-    np.cumsum(lengths, out=offsets[1:])
+
+
+def lengths_of(values: Sequence[Sized]) -> np.ndarray:
+    return np.fromiter(map(len, values), dtype=np.int64, count=len(values))
+
+
+def value_offsets(lengths: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """Offsets of variable-size values laid end to end, given the valid
+    rows' lengths; null rows take no space."""
+    row_lengths = np.zeros(len(valid), dtype=np.int64)
+    row_lengths[valid] = lengths
+    offsets = np.zeros(len(valid) + 1, dtype=np.int64)
+    np.cumsum(row_lengths, out=offsets[1:])
+    return offsets
+
+
+def binary_array(
+    type_: t.StringType | t.BinaryType,
+    offsets: np.ndarray,
+    data: bytes,
+    valid: np.ndarray,
+) -> Array:
+    """A string or binary array from its offsets and concatenated data."""
     if offsets[-1] > np.iinfo(np.int32).max:
         raise ArrowCapacityError(
             f"array cannot contain more than {np.iinfo(np.int32).max} bytes"
         )
+    length = len(offsets) - 1
     bitmap, null_count = validity(valid, length)
-    data = b"".join(v for v in values if v is not None)
     return Array(
         type_,
         length,

@@ -91,7 +91,7 @@ This asymmetry is why the Durable Object is the default: media alone could be pa
 
 `--mock <package>` replaces a vendored package with an import-satisfying stub so Streamlit still boots without it, then garbage-collects whatever that package alone pulled into the runtime. App code that actually touches a mocked package fails at that point with an error naming the flag, and the build refuses to mock a package your own `requirements.txt` asks for. Hand-tuned stubs ship for `pandas` and `numpy` (whose import surface Streamlit exercises at boot); other packages get a generated raise-on-use stub, which works for anything Streamlit imports lazily.
 
-`--slim` bundles the tested `pandas` + `numpy` pair for text/widget/chat-style apps. Mocking `pandas` cascades to its own dependencies and roughly halves the script size and cold-start time.
+`--slim` is an alias for `--mock pandas --mock numpy`, the combination the stubs are tested in. It suits apps that never use dataframes, charts or numeric data, such as text, widget or chat apps. Mocking `pandas` also removes the packages only it pulled in (`python-dateutil`, `pytz` and `six`), which roughly halves the script size and cold-start time.
 
 ### Where the runtime ships: `--asset-runtime`
 

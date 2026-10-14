@@ -430,6 +430,9 @@ ipc = dataframe_util.convert_pandas_df_to_arrow_bytes(pd.DataFrame({"a": [1, 2]}
 # raises ArrowKeyError (see the note after the install in worker-runtime.ts).
 pa.Table.from_pandas(pd.DataFrame({"iv": pd.interval_range(0, 2)}))
 
+# What the assertions below check: pyarrow's version and stub marker show
+# whether the real pyarrow or stlite_lib's stub (_pyarrow_shim.py) was
+# imported, and the first 4 bytes show what Streamlit's serializer emitted.
 [pa.__version__, hasattr(pa, "__stlite_stub__"), ipc[:4] == b"\\xff\\xff\\xff\\xff"]
 `);
       const [version, isStub, isArrowIpcStream] = result.toJs() as [
@@ -438,6 +441,8 @@ pa.Table.from_pandas(pd.DataFrame({"iv": pd.interval_range(0, 2)}))
         boolean,
       ];
       result.destroy();
+      // The stub reports version 0.0.1 and sets `__stlite_stub__`; the real
+      // pyarrow from the Streamlit wheel's dependencies does neither.
       expect(version).not.toBe("0.0.1");
       expect(isStub).toBe(false);
       // Arrow IPC streams open with the 0xFFFFFFFF continuation marker.

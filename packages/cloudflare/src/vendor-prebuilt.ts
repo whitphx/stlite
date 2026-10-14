@@ -6,6 +6,7 @@ import {
   pyodideSourceUrl,
   vendorPackageSnapshot,
 } from "@stlite/app-packager";
+import { getPackageName, normalizePackageName } from "@stlite/common";
 import { loadPyodide, version as pyodideVersion } from "pyodide";
 import { singleWheel } from "./helpers/fsx.ts";
 import {
@@ -39,11 +40,6 @@ const stliteRuntimeExtraDependencies = [
 // stlite_lib's stub in its place; resolving it here would only download a wheel
 // for install_runtime to delete again.
 const workerOmittedDependencies = new Set(["pyarrow"]);
-
-function requirementName(requirement: string): string | undefined {
-  const name = /^\s*([A-Za-z0-9][A-Za-z0-9._-]*)/.exec(requirement)?.[1];
-  return name?.toLowerCase().replace(/[-_.]+/g, "-");
-}
 
 export interface VendorPrebuiltPackagesOptions {
   /** The @stlite/cloudflare package root. */
@@ -102,7 +98,9 @@ export async function vendorPrebuiltPackages({
     await readStreamlitDependencies(packageDir, projectDir)
   ).filter(
     (requirement) =>
-      !workerOmittedDependencies.has(requirementName(requirement) ?? ""),
+      !workerOmittedDependencies.has(
+        normalizePackageName(getPackageName(requirement)),
+      ),
   );
   const dependencies = [
     ...streamlitDependencies,

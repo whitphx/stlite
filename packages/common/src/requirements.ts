@@ -11,9 +11,14 @@ const RX_CHAR_FOLLOWING_NAME_WITHOUT_WSP = new RegExp(
     FIRST_CHAR_OF_URLSPEC
   }]`,
 );
-function getPackageName(req: string): string {
+export function getPackageName(req: string): string {
   const parts = req.split(RX_CHAR_FOLLOWING_NAME_WITHOUT_WSP);
   return parts[0].trim();
+}
+
+// Ref: https://packaging.python.org/en/latest/specifications/name-normalization/
+export function normalizePackageName(name: string): string {
+  return name.toLowerCase().replace(/[-_.]+/g, "-");
 }
 
 export function validateRequirements(requirements: string[]): string[] {

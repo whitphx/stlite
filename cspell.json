@@ -87,6 +87,7 @@
     "agri",
     "selectslider",
     "xsmall",
+    "iframed",
     // Python
     "coro",
     "bytesify",
@@ -112,6 +113,10 @@
     "ascontiguousarray",
     "scaleb",
     "skipna",
+    "getfixturevalue",
+    "errisinstance",
+    "terminalreporter",
+    "xdist",
     // Node/npm
     "oxlint",
     "oxlintrc",

@@ -87,6 +87,7 @@
     "agri",
     "selectslider",
     "xsmall",
+    "iframed",
     // Python
     "coro",
     "bytesify",
@@ -109,6 +110,10 @@
     "py3Dmol",
     "lsprotocol",
     "distplot",
+    "getfixturevalue",
+    "errisinstance",
+    "terminalreporter",
+    "xdist",
     // Node/npm
     "oxlint",
     "oxlintrc",

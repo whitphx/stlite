@@ -17,5 +17,5 @@ class ArrowNotImplementedError(NotImplementedError, ArrowException):
     pass
 
 
-class ArrowCapacityError(ArrowInvalid):
+class ArrowCapacityError(ArrowException):
     pass

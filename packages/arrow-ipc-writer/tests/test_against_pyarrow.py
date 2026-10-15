@@ -424,11 +424,20 @@ def test_unconvertible_numpy_array(values: np.ndarray) -> None:
 
 def test_errors_are_the_types_streamlit_catches() -> None:
     # Streamlit falls back to converting a column to strings on these exceptions.
-    from arrow_ipc_writer import ArrowInvalid, ArrowNotImplementedError, ArrowTypeError
+    from arrow_ipc_writer import (
+        ArrowCapacityError,
+        ArrowInvalid,
+        ArrowNotImplementedError,
+        ArrowTypeError,
+    )
 
     assert issubclass(ArrowInvalid, ValueError)
     assert issubclass(ArrowTypeError, TypeError)
     assert issubclass(ArrowNotImplementedError, NotImplementedError)
+    # pyarrow's capacity error is none of those, so Streamlit lets it propagate
+    # instead of retrying with the columns converted to strings.
+    assert not issubclass(ArrowCapacityError, ValueError)
+    assert not issubclass(pa.ArrowCapacityError, ValueError)
 
 
 def test_duplicate_column_names() -> None:

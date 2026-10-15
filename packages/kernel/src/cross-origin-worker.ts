@@ -8,15 +8,15 @@
 // be imported as the `Worker` alias into the file where the syntax is used to load the worker.
 // This technique was introduced at https://github.com/webpack/webpack/discussions/14648#discussioncomment-1589272
 
-const workerBlobUrlCache = new Map<string, string>();
+const workerWrapperUrlCache = new Map<string, string>();
 
-function getWorkerBlobUrl(url: URL, isModule = false): string {
+function getWorkerWrapperUrl(url: URL, isModule = false): string {
   const urlStr = url.toString();
   const cacheKey = `${isModule ? "module" : "classic"}:${urlStr}`;
 
-  const cached = workerBlobUrlCache.get(cacheKey);
+  const cached = workerWrapperUrlCache.get(cacheKey);
   if (cached) {
-    console.debug(`Using a cached worker blob URL for ${urlStr}`);
+    console.debug(`Using a cached worker wrapper URL for ${urlStr}`);
     return cached;
   }
 
@@ -24,11 +24,20 @@ function getWorkerBlobUrl(url: URL, isModule = false): string {
     ? `import "${urlStr}";`
     : `importScripts("${urlStr}");`;
 
+  if (isModule && isOpaqueOrigin()) {
+    // Chromium refuses to start a module worker from a blob: URL minted by an
+    // opaque-origin page (e.g. file://), so use a data: URL there. Its own
+    // opaque origin costs nothing: such pages have no IndexedDB to lose.
+    const workerDataUrl = `data:text/javascript,${encodeURIComponent(workerCode)}`;
+    workerWrapperUrlCache.set(cacheKey, workerDataUrl);
+    return workerDataUrl;
+  }
+
   const workerBlob = new Blob([workerCode], {
     type: isModule ? "text/javascript;type=module" : "text/javascript",
   });
   const workerBlobUrl = URL.createObjectURL(workerBlob);
-  workerBlobUrlCache.set(cacheKey, workerBlobUrl);
+  workerWrapperUrlCache.set(cacheKey, workerBlobUrl);
   return workerBlobUrl;
 }
 
@@ -104,13 +113,13 @@ export class CrossOriginWorkerMaker {
       // from data: URLs have an opaque origin, which blocks access to IndexedDB
       // (needed for IDBFS). The blob URL inherits the page's origin instead.
       console.debug(
-        `Loading a worker script via blob URL wrapper: ${url.protocol === "data:" ? "data: URL" : url}`,
+        `Loading a worker script via a wrapper URL: ${url.protocol === "data:" ? "data: URL" : url}`,
       );
-      const workerBlobUrl = getWorkerBlobUrl(
+      const workerWrapperUrl = getWorkerWrapperUrl(
         url,
         workerOptions.type === "module",
       );
-      this.worker = createWorker(workerBlobUrl, shared, workerOptions);
+      this.worker = createWorker(workerWrapperUrl, shared, workerOptions);
     }
   }
 }

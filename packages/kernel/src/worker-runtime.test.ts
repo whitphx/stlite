@@ -269,7 +269,7 @@ assert [m.value for m in at.markdown] == ["done"], f"markdown values: {[m.value 
 `,
   },
   {
-    // Checks if the Parquet serializer's auto-fixing of non-string column names works. Ref: https://github.com/whitphx/stlite/issues/978
+    // A dataframe with non-string column names, which the serializer must handle. Ref: https://github.com/whitphx/stlite/issues/978
     entrypoint: "layout.columns2.py",
     files: {
       "layout.columns2.py": path.resolve(
@@ -321,6 +321,11 @@ async def run_streamlit_test(entrypoint, home_dir = None):
     with warnings.catch_warnings(record=True) as w:  # Test warning messages. Ref: https://docs.python.org/3/library/warnings.html#testing-warnings
         warnings.simplefilter("always")
         warnings.filterwarnings("ignore", message=r"\\n?Pyarrow will become a required dependency of pandas in the next major release of pandas")  # Ignore PyArrow version warning from Pandas (https://github.com/pandas-dev/pandas/blob/v2.2.0/pandas/__init__.py#L221-L231)
+        # Pyodide 314's pyodide-unix-timezones 1.0.0 wheel, a dependency of
+        # pyarrow, ships without its zoneinfo data, so importing pyarrow (and
+        # so pandas) always warns. Apps that use a dataframe now import it
+        # during the run instead of at boot.
+        warnings.filterwarnings("ignore", message=r"Couldn't install timezone db to /usr/share/zoneinfo", category=ImportWarning)
 
         if home_dir:
             home_dir_contextvar.set(home_dir)
@@ -392,7 +397,7 @@ suite("Worker integration test running an app", async () => {
   }
 });
 
-suite("pyarrow pre-install mock through the real worker boot", async () => {
+suite("pyarrow through the real worker boot", async () => {
   beforeEach(() => {
     vitest.resetModules();
   });
@@ -402,49 +407,46 @@ suite("pyarrow pre-install mock through the real worker boot", async () => {
   });
 
   test(
-    "a user requirement on pyarrow resolves to the stlite stub, not the real wheel",
+    "the Streamlit wheel brings the real pyarrow, installed before pandas is first imported",
     { timeout: 120 * 1000 },
     async () => {
       const { callStartWorkerEnv } = await mockStartWorkerEnv();
-      // worker-runtime registers the pyarrow shim as a micropip mock BEFORE
-      // installing requirements, so a user requirement pulling pyarrow must
-      // resolve to the stub instead of fetching the real (heavy,
-      // stlite-unsupported) wasm wheel. Exercised through the real boot: any
-      // reordering or dropped shim source in worker-runtime.ts fails here.
       const pyodide = await callStartWorkerEnv({
         entrypoint: "app.py",
         files: {
           "app.py": { data: "import streamlit as st\nst.write('ok')\n" },
         },
-        requirements: ["pyarrow"],
       });
 
-      // The real wheel (22.x) was never fetched or installed — metadata
-      // reports the mock's version.
-      const installedVersion = pyodide.runPython(
-        `__import__("importlib.metadata", fromlist=["version"]).version("pyarrow")`,
-      );
-      expect(installedVersion).toBe("0.0.1");
-
-      // `import pyarrow` resolves to the stub with no post-install step.
       const result = pyodide.runPython(`
-import importlib, sys
-importlib.invalidate_caches()
-sys.modules.pop("pyarrow", None)
-import pyarrow
+import pandas as pd
+import pyarrow as pa
+from streamlit import dataframe_util
 
-raised = False
-try:
-    pyarrow.Table.from_pandas()
-except NotImplementedError:
-    raised = True
+ipc = dataframe_util.convert_pandas_df_to_arrow_bytes(pd.DataFrame({"a": [1, 2]}))
 
-[pyarrow.__version__, raised]
+# pandas registers its interval/period extension types against pyarrow only
+# if pyarrow was installed before pandas was first imported; otherwise this
+# raises ArrowKeyError (see the note after the install in worker-runtime.ts).
+pa.Table.from_pandas(pd.DataFrame({"iv": pd.interval_range(0, 2)}))
+
+# What the assertions below check: pyarrow's version and stub marker show
+# whether the real pyarrow or stlite_lib's stub (_pyarrow_shim.py) was
+# imported, and the first 4 bytes show what Streamlit's serializer emitted.
+[pa.__version__, hasattr(pa, "__stlite_stub__"), ipc[:4] == b"\\xff\\xff\\xff\\xff"]
 `);
-      const [stubVersion, raised] = result.toJs() as [string, boolean];
+      const [version, isStub, isArrowIpcStream] = result.toJs() as [
+        string,
+        boolean,
+        boolean,
+      ];
       result.destroy();
-      expect(stubVersion).toBe("0.0.1");
-      expect(raised).toBe(true);
+      // The stub reports version 0.0.1 and sets `__stlite_stub__`; the real
+      // pyarrow from the Streamlit wheel's dependencies does neither.
+      expect(version).not.toBe("0.0.1");
+      expect(isStub).toBe(false);
+      // Arrow IPC streams open with the 0xFFFFFFFF continuation marker.
+      expect(isArrowIpcStream).toBe(true);
     },
   );
 });

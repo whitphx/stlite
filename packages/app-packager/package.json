@@ -36,7 +36,7 @@
     "fs-extra": "^11.3.4",
     "glob": "^11.0.0",
     "p-retry": "^8.0.0",
-    "pyodide": "0.29.3"
+    "pyodide": "314.0.3"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

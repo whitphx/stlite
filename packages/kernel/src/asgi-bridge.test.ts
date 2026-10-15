@@ -1,4 +1,5 @@
 import type { PyodideInterface } from "pyodide";
+import type { PyCallable, PyProxy } from "pyodide/ffi";
 import { afterAll, beforeAll, expect, suite, test } from "vitest";
 import { initPyodide } from "./pyodide-loader";
 import {
@@ -275,6 +276,155 @@ BackMsg(rerun_script=ClientState()).SerializeToString()
     } finally {
       await asgiModule.run_lifespan_shutdown(lifespanA);
       await asgiModule.run_lifespan_shutdown(lifespanB);
+    }
+  });
+
+  test("Lazy dataframe: a row-chunk request is served over the WebSocket", async () => {
+    // A lazy dataframe's Delta carries only a source id; the grid then fetches
+    // rows with BackendOperationRequest chunk requests, answered on the
+    // session's own WebSocket. Serving one needs call_asgi's
+    // runtime_contextvar binding (the chunk handler finds its source manager
+    // through it), asyncio.to_thread on Pyodide's loop, and the real pyarrow
+    // to slice and serialize the rows. `lazy=True` makes 5,000 rows lazy; the
+    // automatic threshold is 150,000.
+    pyodide.FS.writeFile(
+      "/lazy_app.py",
+      [
+        "import pandas as pd",
+        "import streamlit as st",
+        'st.dataframe(pd.DataFrame({"a": range(5000)}), lazy=True)',
+        "",
+      ].join("\n"),
+    );
+    const asgiModule = pyodide.pyimport("stlite_lib.asgi_app");
+    const rawApp = asgiModule.create_app("/lazy_app.py");
+    const lifespan = await asgiModule.run_lifespan_startup(rawApp);
+
+    const pyHelpers = pyodide.runPython(`
+import pyarrow as pa
+from streamlit.proto.BackMsg_pb2 import (
+    BackMsg,
+    BackendOperationRequest,
+    DataframeChunkRequestPayload,
+)
+from streamlit.proto.ClientState_pb2 import ClientState
+from streamlit.proto.ForwardMsg_pb2 import ForwardMsg
+
+
+def inspect_forward_msg(data):
+    msg = ForwardMsg()
+    msg.ParseFromString(bytes(data.to_py()))
+    kind = msg.WhichOneof("type")
+    if kind == "new_session":
+        return ["session", msg.new_session.initialize.session_id]
+    if kind == "delta" and msg.delta.WhichOneof("type") == "new_element":
+        element = msg.delta.new_element
+        if element.WhichOneof("type") == "dataframe" and element.dataframe.HasField(
+            "lazy_data"
+        ):
+            return ["lazy", element.dataframe.lazy_data.source_id]
+    if kind == "backend_operation_response":
+        response = msg.backend_operation_response
+        if response.error_msg:
+            return ["chunk", response.request_id, response.error_msg, []]
+        ipc = response.dataframe_chunk.arrow_data.data
+        rows = pa.ipc.open_stream(ipc).read_all().column("a").to_pylist()
+        return ["chunk", response.request_id, "", rows]
+    return None
+
+
+def rerun_request():
+    return BackMsg(rerun_script=ClientState()).SerializeToString()
+
+
+def chunk_request(session_id, source_id):
+    return BackMsg(
+        backend_operation_request=BackendOperationRequest(
+            request_id="chunk-1",
+            session_id=session_id,
+            dataframe_chunk=DataframeChunkRequestPayload(
+                source_id=source_id, offset=1000, limit=100
+            ),
+        )
+    ).SerializeToString()
+
+
+[inspect_forward_msg, rerun_request, chunk_request]
+`);
+    const [inspectForwardMsg, rerunRequest, chunkRequest] = pyHelpers.toJs({
+      depth: 1,
+    }) as [PyCallable, PyCallable, PyCallable];
+    const toBytes = (proxy: PyProxy): Uint8Array => {
+      const bytes = proxy.toJs() as Uint8Array;
+      proxy.destroy();
+      return bytes;
+    };
+
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      let reject!: (err: Error) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      // Settled before it is awaited when the socket closes early.
+      promise.catch(() => {});
+      return { promise, resolve, reject };
+    }
+    let sessionId: string | undefined;
+    let sourceId: string | undefined;
+    const lazyRendered = deferred<void>();
+    const chunkServed = deferred<[string, string, number[]]>();
+
+    try {
+      const call: AsgiApp = (scope, receive, send) =>
+        asgiModule.call_asgi(rawApp, scope, receive, send);
+      const scope = buildWebSocketScope({
+        path: "/_stcore/stream",
+        headers: { host: "stlite.local", origin: "http://stlite.local" },
+      });
+      const session = new AsgiWebSocketSession(call, scope, (event) => {
+        if (event.type === "websocket.close") {
+          const err = new Error(
+            `WebSocket closed early (code=${event.code ?? "?"})`,
+          );
+          lazyRendered.reject(err);
+          chunkServed.reject(err);
+          return;
+        }
+        if (event.type !== "websocket.send" || !event.bytes) return;
+        const result = inspectForwardMsg(event.bytes);
+        if (result == null) return;
+        const [kind, ...rest] = result.toJs();
+        result.destroy();
+        if (kind === "session") sessionId = rest[0];
+        if (kind === "lazy") sourceId = rest[0];
+        if (kind === "chunk") {
+          chunkServed.resolve(rest as [string, string, number[]]);
+        }
+        if (sessionId && sourceId) lazyRendered.resolve();
+      });
+
+      await session.start();
+      session.postClientMessage(toBytes(rerunRequest()));
+      await lazyRendered.promise;
+
+      session.postClientMessage(toBytes(chunkRequest(sessionId, sourceId)));
+      const [requestId, errorMsg, rows] = await chunkServed.promise;
+
+      expect(requestId).toBe("chunk-1");
+      expect(errorMsg).toBe("");
+      expect(rows).toHaveLength(100);
+      expect(rows[0]).toBe(1000);
+      expect(rows[99]).toBe(1099);
+
+      await session.close();
+    } finally {
+      inspectForwardMsg.destroy();
+      rerunRequest.destroy();
+      chunkRequest.destroy();
+      pyHelpers.destroy();
+      await asgiModule.run_lifespan_shutdown(lifespan);
     }
   });
 });

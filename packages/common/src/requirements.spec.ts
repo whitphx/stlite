@@ -1,5 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { validateRequirements } from "./requirements";
+import {
+  getPackageName,
+  normalizePackageName,
+  validateRequirements,
+} from "./requirements";
+
+describe("getPackageName", () => {
+  it.each([
+    ["pyarrow", "pyarrow"],
+    ["pyarrow<26,>=7.0,!=25.0.0", "pyarrow"],
+    ["pyarrow (>=7.0)", "pyarrow"],
+    ["streamlit[extra]~=1.27.0", "streamlit"],
+    ['tzdata; python_version >= "3.9"', "tzdata"],
+    ["pkg @ https://example.com/pkg.whl", "pkg"],
+  ])("extracts the name from %j", (requirement, name) => {
+    expect(getPackageName(requirement)).toBe(name);
+  });
+});
+
+describe("normalizePackageName", () => {
+  it.each([
+    ["PyArrow", "pyarrow"],
+    ["typing_extensions", "typing-extensions"],
+    ["backports.tarfile", "backports-tarfile"],
+    ["a-_.b", "a-b"],
+  ])("normalizes %j to %j", (name, normalized) => {
+    expect(normalizePackageName(name)).toBe(normalized);
+  });
+});
 
 describe("validateRequirements", () => {
   const allowedRequirements = [

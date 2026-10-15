@@ -15,9 +15,8 @@ def install_pyodide_patches() -> None:
 def mock_pyarrow() -> None:
     # Install the pyarrow shim as the fake `pyarrow` module so `import pyarrow`
     # (and its re-imports/sub-imports) resolve to the stub. Used by the
-    # server-side runtime (Cloudflare); the browser worker instead registers the
-    # same shim with micropip before installing packages, importing
-    # _pyarrow_shim.py directly (see worker-runtime.ts).
+    # server-side runtime (Cloudflare), which ships without pyarrow; the browser
+    # worker installs the real pyarrow as a dependency of the Streamlit wheel.
     # importlib.resources (not Path(__file__)) so the shim is readable when
     # stlite_lib is imported from a zip (the Cloudflare Worker loads it via
     # zipimport).

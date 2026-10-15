@@ -16,6 +16,7 @@
 # This module is reproduction of streamlit.web.bootstrap for the stlite runtime.
 # We picked up some code snippets necessary for the stlite runtime from that module.
 
+import importlib.metadata
 import logging
 import os
 import sys
@@ -85,10 +86,18 @@ def load_config_options(flag_options: Dict[str, Any], multi_runtime=False) -> No
     )
 
 
+def _pyarrow_is_stlite_stub() -> bool:
+    return getattr(sys.modules.get("pyarrow"), "__stlite_stub__", False)
+
+
 def _fix_altair():
     """Install custom finder and importer to patch Altair when it's imported.
-    The patch fixes an issue with Altair and the mocked pyarrow module of stlite.
+    The patch keeps Altair off the pyarrow stub that runtimes without pyarrow
+    install (see _pyarrow_shim.py), so it is only installed there; with the real
+    pyarrow, Altair uses it as it would anywhere else.
     """
+    if not _pyarrow_is_stlite_stub():
+        return
 
     # The original patch is https://github.com/whitphx/stlite/blob/v0.47.0/packages/kernel/py/stlite-server/stlite_server/bootstrap.py#L127-L144.  # noqa: E501
     # Since Streamlit 1.32.0, it lazy-loads the Altair module for performance reasons,
@@ -146,21 +155,41 @@ def _fix_requests():
         pass
 
 
+def _pandas_needs_categorical_pickle_fix() -> bool:
+    # Only a version known to be 3 or later skips the fix. Without metadata
+    # (pandas missing, or shipped without its dist-info), fall through to the
+    # import, which returns early if pandas is absent; the patch itself is
+    # harmless on pandas 3.
+    try:
+        version = importlib.metadata.version("pandas")
+    except importlib.metadata.PackageNotFoundError:
+        return True
+    major = version.split(".", 1)[0]
+    return not (major.isdigit() and int(major) >= 3)
+
+
 def _fix_pandas_categorical_pickle():
     """Fix pandas Categorical pickle roundtrip on Pyodide.
 
-    Workaround for a bug in the pandas 2.3.3 wheel shipped with Pyodide 0.29.3.
-    That wheel was built with Cython 3.2.x, whose changed auto-pickle code
-    generation drops __getstate__ from the NDArrayBacked cdef class. Without
-    __getstate__, pickle falls back to __reduce_cython__ which produces a
-    2-element tuple state, but the manually-defined NDArrayBacked.__setstate__
-    only handles dicts and 3-element tuples, raising NotImplementedError.
+    Workaround for a bug in the pandas 2.3.3 wheel shipped with Pyodide's
+    0.29.x line. That wheel was built with Cython 3.2.x, whose changed
+    auto-pickle code generation drops __getstate__ from the NDArrayBacked cdef
+    class. Without __getstate__, pickle falls back to __reduce_cython__ which
+    produces a 2-element tuple state, but the manually-defined
+    NDArrayBacked.__setstate__ only handles dicts and 3-element tuples, raising
+    NotImplementedError.
 
-    The upstream pyodide-recipes repository has already updated to pandas 3
-    (https://github.com/pyodide/pyodide-recipes/pull/523), so this bug is
-    expected to be resolved in the next Pyodide release.
-    TODO: Remove this patch once we upgrade to a Pyodide version with pandas 3.
+    Pyodide 314.x ships pandas 3, where the state is already well-formed, so
+    the patch is skipped there by looking at the installed version rather than
+    importing pandas: the import would load pandas, and pyarrow with it, on
+    every boot, including for apps that never touch a dataframe. stlite still
+    runs on 0.29.x under @stlite/cloudflare, which is pinned to Cloudflare's
+    Worker Python runtime, so the patch stays until that pin moves off the
+    0.29.x line.
     """
+    if not _pandas_needs_categorical_pickle_fix():
+        return
+
     try:
         import numpy as np
         from pandas import Categorical, CategoricalDtype

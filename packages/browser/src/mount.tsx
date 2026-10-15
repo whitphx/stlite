@@ -9,11 +9,10 @@ import { wheelUrls } from "@stlite/react/vite-utils";
 import "@stlite/react/stlite.css";
 import { parseMountOptions, MountOptions } from "./options";
 
-const workerType =
-  // @ts-expect-error process.env.NODE_ENV is defined by Vite
-  process.env.NODE_ENV === "development"
-    ? "module" // Vite loads the worker scripts as ES modules without bundling at dev time, so we need to specify the type as "module" for the "import" statements in the worker script to work.
-    : "classic"; // type="classic" is needed for the cross-origin worker trick to work in the page loaded via `file://` scheme, so we use it for the production build.
+// Pyodide 314 refuses to load in a classic worker, so the worker is a module
+// worker in production too. On file:// pages, CrossOriginWorkerMaker starts it
+// from a data: URL instead of a blob: URL so that it still loads there.
+const workerType = "module";
 
 export function mount(
   options: MountOptions,

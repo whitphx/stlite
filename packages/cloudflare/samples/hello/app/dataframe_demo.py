@@ -14,7 +14,6 @@
 
 from urllib.error import URLError
 
-import altair as alt
 import pandas as pd
 
 import streamlit as st
@@ -40,22 +39,9 @@ def data_frame_demo() -> None:
             data = df.loc[countries]
             data /= 1000000.0
             st.subheader("Gross agricultural production ($B)")
-            st.dataframe(data.sort_index())
-
-            data = data.T.reset_index()
-            data = pd.melt(data, id_vars=["index"]).rename(
-                columns={"index": "year", "value": "Gross Agricultural Product ($B)"}
-            )
-            chart = (
-                alt.Chart(data)
-                .mark_area(opacity=0.3)
-                .encode(
-                    x="year:T",
-                    y=alt.Y("Gross Agricultural Product ($B):Q", stack=None),
-                    color="Region:N",
-                )
-            )
-            st.altair_chart(chart, width="stretch")
+            # Stlite: @stlite/cloudflare ships without pyarrow, so st.dataframe
+            # and Arrow-backed charts are unavailable; render the table as text.
+            st.text(data.sort_index().round(2).to_string())
     except URLError as e:
         st.error(f"This demo requires internet access. Connection error: {e.reason}")
 
@@ -64,9 +50,13 @@ st.set_page_config(page_title="DataFrame demo", page_icon=":material/table:")
 st.title("DataFrame demo")
 st.write(
     """
-    This demo shows how to use `st.dataframe` to visualize a Pandas DataFrame.
+    This demo shows how to visualize a Pandas DataFrame.
     Data courtesy of the [UN Data Explorer](http://data.un.org/Explorer.aspx).
     """
+)
+st.info(
+    "`@stlite/cloudflare` ships without pyarrow, so `st.dataframe` and "
+    "Arrow-backed charts are unavailable here; the data is shown as text."
 )
 data_frame_demo()
 show_code(data_frame_demo)

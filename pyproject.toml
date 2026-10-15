@@ -5,7 +5,7 @@ description = "Development environment for stlite"
 # The exact Python version is pinned in .python-version (must match Pyodide's
 # Python). This constraint must be narrow enough that all dev dependencies
 # resolve, and consistent across the uv workspace members.
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = []
 
 [dependency-groups]
@@ -13,7 +13,7 @@ dev = [
   # `pyodide xbuildenv install` which is automatically run by
   # `pyodide py-compile` uses `pip` to install packages.
   "pip",
-  "pyodide-build==0.30.7",
+  "pyodide-build==0.37.0",
 ]
 
 [tool.uv.workspace]

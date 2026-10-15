@@ -42,9 +42,6 @@ export default function vitePluginStliteReact(
           },
         },
         assetsInclude: ["**/*.whl"],
-        optimizeDeps: {
-          exclude: ["parquet-wasm"],
-        },
       };
     },
     outputOptions(outputOptions) {

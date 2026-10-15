@@ -1,0 +1,9 @@
+arrow_ipc_writer/pandas_compat.py is ported from Apache Arrow
+(https://github.com/apache/arrow), licensed under the Apache License 2.0,
+which carries the following notice:
+
+  Apache Arrow
+  Copyright 2016-2026 The Apache Software Foundation
+
+  This product includes software developed at
+  The Apache Software Foundation (http://www.apache.org/).

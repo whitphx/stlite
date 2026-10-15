@@ -1,5 +1,23 @@
 # @stlite/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- [#2094](https://github.com/whitphx/stlite/pull/2094) [`376466f`](https://github.com/whitphx/stlite/commit/376466f3e50d24b53954c7857ad9e7f55ce9b0f2) Thanks [@whitphx](https://github.com/whitphx)! - Serialize dataframes through pyarrow and Arrow IPC, as Streamlit does. Pyodide 314 bundles pyarrow, so the Parquet workaround Stlite used instead (fastparquet in Python, parquet-wasm in the frontend) is gone, and the Streamlit fork no longer patches anything Arrow-related.
+  
+  `st.dataframe`, `st.data_editor`, `st.table` and Arrow-backed charts now handle column types exactly as Streamlit does: interval and period columns, date and time objects, set and tuple values, and non-string column names keep their types instead of being converted to strings as the Parquet path did. Large dataframes are delivered lazily as in Streamlit (above 150,000 rows, or with `lazy=True`), which Stlite previously disabled. The frontend no longer loads the 5.5 MB parquet-wasm module; the Python runtime installs pyarrow (about 10 MB to download) instead. Booting an app no longer imports pandas, and pyarrow with it, unless the app itself does.
+  
+  `@stlite/cloudflare` no longer supports elements that send data through Arrow: `st.dataframe`, `st.data_editor`, `st.table`, `st.write` with a dataframe, and charts such as `st.line_chart` and `st.altair_chart`. pyarrow exceeds the Cloudflare Workers script size and memory limits, so the Worker installs a stub in its place that makes these elements raise an error explaining this. Every other element works as before, and the hello sample drops its Plotting demo and shows the DataFrame demo's table as text.
+
+- [#2094](https://github.com/whitphx/stlite/pull/2094) [`376466f`](https://github.com/whitphx/stlite/commit/376466f3e50d24b53954c7857ad9e7f55ce9b0f2) Thanks [@whitphx](https://github.com/whitphx)! - Upgrade the browser runtime from Pyodide 0.29.3 to 314.0.3, which moves apps from Python 3.13 to Python 3.14 and brings pandas 3, NumPy 2.4, protobuf 7, matplotlib 3.10, and Pillow 12. It also picks up the upstream fix for the JSPI-related crash that multipage apps hit after many Python async calls ([#1493](https://github.com/whitphx/stlite/issues/1493)).
+  
+  Packages you pin in `requirements.txt` must have wheels for the new interpreter, and code relying on pandas 2 behavior may need updating.
+  
+  Pyodide 314 no longer loads in classic web workers, so `@stlite/browser` now runs Python in a module worker in production builds too, as the other packages already did. Browsers without module worker support (such as Firefox before 114) can no longer run it. A `workerType: "classic"` passed to `@stlite/react`'s `createKernel()` no longer works.
+  
+  `@stlite/cloudflare` stays on Pyodide's 0.29.x line (0.29.3 → 0.29.4), since the wheels it vendors have to match the Python that Cloudflare's Worker runtime executes — 3.13 on the stable `python_workers` flag. To let the two lines move independently, `@stlite/app-packager`'s vendoring entry points take an optional `pyodideModule`, and `@stlite/cloudflare` passes its own.
+
 ## 0.4.0
 
 ### Minor Changes

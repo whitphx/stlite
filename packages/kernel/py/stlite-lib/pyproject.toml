@@ -33,10 +33,11 @@ extend-select = ["I"]
 
 [tool.pyright]
 include = ["stlite_lib"]
-extraPaths = ["../../../../streamlit/lib"]
+# arrow-ipc-writer backs the pyarrow shim; the Cloudflare runtime vendors it.
+extraPaths = ["../../../../streamlit/lib", "../../../arrow-ipc-writer"]
 
 [tool.pytest.ini_options]
-pythonpath = "../../../../streamlit/lib"
+pythonpath = ["../../../../streamlit/lib", "../../../arrow-ipc-writer"]
 testpaths = [
     "stlite_lib_tests",  # To import the `tests` module in the `streamlit/lib` directory, use a different name for a test directory.
 ]

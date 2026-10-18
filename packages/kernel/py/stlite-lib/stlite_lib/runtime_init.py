@@ -14,9 +14,10 @@ def install_pyodide_patches() -> None:
 
 def mock_pyarrow() -> None:
     # Install the pyarrow shim as the fake `pyarrow` module so `import pyarrow`
-    # (and its re-imports/sub-imports) resolve to the stub. Used by the
-    # server-side runtime (Cloudflare), which ships without pyarrow; the browser
-    # worker installs the real pyarrow as a dependency of the Streamlit wheel.
+    # (and its re-imports, and `import pyarrow.compute`) resolve to the
+    # stand-in. Used by the server-side runtime (Cloudflare), which ships
+    # without pyarrow; the browser worker installs the real pyarrow as a
+    # dependency of the Streamlit wheel.
     # importlib.resources (not Path(__file__)) so the shim is readable when
     # stlite_lib is imported from a zip (the Cloudflare Worker loads it via
     # zipimport).
@@ -24,6 +25,9 @@ def mock_pyarrow() -> None:
     module = ModuleType("pyarrow")
     exec(source, module.__dict__)
     sys.modules["pyarrow"] = module
+    # The shim's namespaces stand in for pyarrow's submodules; registering them
+    # lets `import pyarrow.compute` succeed although the shim isn't a package.
+    sys.modules.update(module.__dict__["_SUBMODULES"])
 
 
 def invalidate_import_caches() -> None:

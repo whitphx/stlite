@@ -107,16 +107,19 @@ def _missing_attribute(owner, name):
 
 
 class Schema:
-    # The arrow_ipc_writer object this wraps.
+    # The arrow_ipc_writer schema this wraps, and the writer table it is the
+    # schema of, if any.
     _schema: _Any
+    _table: _Any
 
     def __init__(self, *args, **kwargs):
         raise TypeError("Use pyarrow.schema() to create a Schema")
 
     @classmethod
-    def _wrap(cls, schema):
+    def _wrap(cls, schema, table=None):
         wrapped = cls.__new__(cls)
         wrapped._schema = schema
+        wrapped._table = table
         return wrapped
 
     def __getattr__(self, name):
@@ -124,18 +127,6 @@ class Schema:
 
     def __iter__(self):
         return iter(self._schema.fields)
-
-    def __len__(self):
-        return len(self._schema.fields)
-
-    def __getitem__(self, i):
-        return self._schema.fields[i]
-
-    def __eq__(self, other):
-        return isinstance(other, Schema) and self.equals(other, check_metadata=True)
-
-    def __hash__(self):
-        return hash(tuple(self._schema.fields))
 
     def __repr__(self):
         return "\n".join(str(field) for field in self._schema.fields)
@@ -146,20 +137,20 @@ class Schema:
         )
 
     def field(self, i):
-        if isinstance(i, str):
-            matches = [field for field in self._schema.fields if field.name == i]
-            if len(matches) != 1:
-                raise KeyError(f"No unique field named {i!r}")
-            return matches[0]
         return self._schema.fields[i]
+
+    def empty_table(self):
+        # Streamlit answers a lazy dataframe's out-of-range chunk request with
+        # one. The writer builds arrays from data, so this needs the table the
+        # schema came from.
+        if self._table is None:
+            raise _unavailable("Schema.empty_table of a schema made by schema()")
+        compute = _writer().compute
+        return Table._wrap(compute.slice_table(self._table, 0, 0))
 
     @property
     def names(self):
         return self._schema.names
-
-    @property
-    def types(self):
-        return [field.type for field in self._schema.fields]
 
     @property
     def metadata(self):
@@ -217,28 +208,13 @@ class Table:
     def __getattr__(self, name):
         raise _missing_attribute("Table", name)
 
-    def __len__(self):
-        return self._table.num_rows
-
     @property
     def schema(self):
-        return Schema._wrap(self._table.schema)
+        return Schema._wrap(self._table.schema, self._table)
 
     @property
     def num_rows(self):
         return self._table.num_rows
-
-    @property
-    def num_columns(self):
-        return len(self._table.columns)
-
-    @property
-    def shape(self):
-        return (self.num_rows, self.num_columns)
-
-    @property
-    def column_names(self):
-        return self._table.schema.names
 
     def slice(self, offset=0, length=None):
         compute = _writer().compute
@@ -254,13 +230,6 @@ class Table:
         if target_schema.equals(self.schema):
             return self
         raise _unavailable("Table.cast to a different schema")
-
-    def replace_schema_metadata(self, metadata=None):
-        writer = _writer()
-        new_schema = writer.Schema(self._table.schema.fields, _metadata(metadata))
-        return Table._wrap(
-            writer.Table(new_schema, self._table.columns, self._table.num_rows)
-        )
 
 
 class Array:
@@ -278,27 +247,11 @@ class Array:
         wrapped._array = array
         return wrapped
 
-    @classmethod
-    def from_pandas(cls, obj, mask=None, type=None):
-        if mask is not None or type is not None:
-            raise _unavailable("Array.from_pandas with a mask or type")
-        return array(obj, from_pandas=True)
-
     def __getattr__(self, name):
         raise _missing_attribute("Array", name)
 
-    def __len__(self):
-        return self._array.length
 
-    @property
-    def type(self):
-        return self._array.type
-
-    @property
-    def null_count(self):
-        return self._array.null_count
-
-
+# pandas' `is_pyarrow_array` checks values against it.
 class ChunkedArray:
     def __init__(self, *args, **kwargs):
         raise _unavailable("ChunkedArray")
@@ -367,13 +320,6 @@ class Buffer:
     def __init__(self, data):
         self._data = data
 
-    def __len__(self):
-        return len(self._data)
-
-    @property
-    def size(self):
-        return len(self._data)
-
     def to_pybytes(self):
         return self._data
 
@@ -396,21 +342,12 @@ class RecordBatchStreamWriter:
 
     def __init__(self, sink, schema):
         self._sink = sink
-        self._schema = schema
         self._tables = []
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc_info):
-        self.close()
 
     def write_table(self, table):
         if not isinstance(table, Table):
             raise TypeError(f"Expected a pyarrow.Table, got {type(table).__name__}")
         self._tables.append(table)
-
-    write = write_table
 
     def close(self):
         tables, self._tables = self._tables, []
@@ -427,56 +364,26 @@ def _predicate(name, test):
     return predicate
 
 
-def _never(name):
-    def predicate(t):
-        return False
-
-    predicate.__name__ = name
-    return predicate
-
-
+# The checks Streamlit makes on a field's type to configure its column.
 types = _ModuleType("pyarrow.types")
 for _name, _test in {
     "is_null": lambda w, t: isinstance(t, w.NullType),
     "is_boolean": lambda w, t: isinstance(t, w.BoolType),
     "is_integer": lambda w, t: isinstance(t, w.IntType),
-    "is_signed_integer": lambda w, t: isinstance(t, w.IntType) and t.signed,
-    "is_unsigned_integer": lambda w, t: isinstance(t, w.IntType) and not t.signed,
     "is_floating": lambda w, t: isinstance(t, w.FloatType),
     "is_decimal": lambda w, t: isinstance(t, w.DecimalType),
     "is_string": lambda w, t: isinstance(t, w.StringType),
-    "is_unicode": lambda w, t: isinstance(t, w.StringType),
     "is_binary": lambda w, t: isinstance(t, w.BinaryType),
     "is_date": lambda w, t: isinstance(t, w.Date32Type),
-    "is_date32": lambda w, t: isinstance(t, w.Date32Type),
     "is_time": lambda w, t: isinstance(t, w.Time64Type),
-    "is_time64": lambda w, t: isinstance(t, w.Time64Type),
     "is_timestamp": lambda w, t: isinstance(t, w.TimestampType),
     "is_duration": lambda w, t: isinstance(t, w.DurationType),
-    "is_temporal": lambda w, t: isinstance(
-        t, (w.Date32Type, w.Time64Type, w.TimestampType, w.DurationType)
-    ),
     "is_list": lambda w, t: isinstance(t, w.ListType),
     "is_struct": lambda w, t: isinstance(t, w.StructType),
-    "is_nested": lambda w, t: isinstance(t, (w.ListType, w.StructType)),
-    "is_dictionary": lambda w, t: isinstance(t, w.DictionaryType),
 }.items():
     setattr(types, _name, _predicate(_name, _test))
-# Types the writer never produces.
-for _name in (
-    "is_large_string",
-    "is_large_unicode",
-    "is_large_binary",
-    "is_large_list",
-    "is_fixed_size_list",
-    "is_fixed_size_binary",
-    "is_date64",
-    "is_time32",
-    "is_interval",
-    "is_map",
-    "is_union",
-):
-    setattr(types, _name, _never(_name))
+# The writer never produces large strings.
+types.is_large_string = lambda t: False  # type: ignore[attr-defined]
 types.__getattr__ = lambda name: _raise(_missing_attribute("types", name))  # type: ignore[attr-defined]
 
 

@@ -203,6 +203,10 @@ def lazy_chunks(st: Any) -> list[bytes | str]:
                 results.append(dataframe_util.convert_arrow_table_to_arrow_bytes(table))
             except Exception as e:
                 results.append(type(e).__name__)
+    # The server's answer to a chunk request past the last row.
+    results.append(
+        dataframe_util.convert_arrow_table_to_arrow_bytes(source.schema.empty_table())
+    )
     return results
 
 

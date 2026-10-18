@@ -187,6 +187,10 @@ jobs:
             cloudflare:
               - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
+              # The Worker vendors these, and serializes dataframes with them
+              # (stlite-lib's pyarrow stand-in, backed by arrow-ipc-writer).
+              - 'packages/kernel/py/stlite-lib/**/*'
+              - 'packages/arrow-ipc-writer/**/*'
               - 'streamlit'
             arrow-ipc-writer:
               - 'packages/arrow-ipc-writer/**/*'

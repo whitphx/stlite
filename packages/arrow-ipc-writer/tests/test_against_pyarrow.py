@@ -404,6 +404,17 @@ def test_unconvertible_column(name: str) -> None:
     assert type(actual.value).__name__ == type(expected.value).__name__
 
 
+def test_overflow_error_is_raised_as_is() -> None:
+    # Streamlit shows the message; pyarrow names the column only in its own
+    # error types' messages.
+    df = pd.DataFrame({"huge": pd.Series([2**70], dtype=object)})
+    with pytest.raises(OverflowError) as expected:
+        pa.Table.from_pandas(df)
+    with pytest.raises(OverflowError) as actual:
+        dataframe_to_ipc(df)
+    assert actual.value.args == expected.value.args
+
+
 @pytest.mark.parametrize(
     "values",
     [

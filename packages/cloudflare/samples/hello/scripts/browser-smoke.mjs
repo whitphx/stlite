@@ -59,10 +59,19 @@ try {
   // dataframe and the chart's data in its place. The grid's accessible table
   // carries the headers and cells the frontend decoded from that Arrow
   // stream, so a year column and a selected region in it prove the stream
-  // was read; and no exception element may be left on the page.
+  // was read; and no exception element may be left on the page. The grid
+  // draws on a canvas and renders that table as the canvas's fallback
+  // content, which is never laid out, so the locators include hidden
+  // elements and wait for the cells to be attached rather than visible.
   const dataframe = page.locator('[data-testid="stDataFrame"]');
-  await dataframe.getByRole("columnheader", { name: "1961" }).waitFor();
-  await dataframe.getByRole("gridcell", { name: "China" }).waitFor();
+  for (const [role, name] of [
+    ["columnheader", "1961"],
+    ["gridcell", "China"],
+  ]) {
+    await dataframe
+      .getByRole(role, { name, includeHidden: true })
+      .waitFor({ state: "attached" });
+  }
   await page
     .locator('[data-testid="stVegaLiteChart"]')
     .locator("canvas, svg")

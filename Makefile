@@ -69,6 +69,7 @@ kernel := $(BUILD_STATE_DIR)/kernel/.built
 cloudflare := $(BUILD_STATE_DIR)/cloudflare/.built
 cloudflare-frontend := $(BUILD_STATE_DIR)/cloudflare-frontend/.built
 stlite-lib-wheel := packages/kernel/py/stlite-lib/dist/stlite_lib-0.1.0-py3-none-any.whl
+arrow-ipc-writer-wheel := packages/arrow-ipc-writer/dist/arrow_ipc_writer-0.1.0-py3-none-any.whl
 cli-py-proto := $(BUILD_STATE_DIR)/cli-py-proto/.built
 cli-py-runtime-version := packages/cli/py/stlite_cli/_runtime_version.py
 streamlit_proto := streamlit/frontend/protobuf/proto.d.ts
@@ -254,7 +255,8 @@ $(cloudflare-frontend): $(shell \
 # `@stlite/cloudflare` ships prebuilt runtime artifacts so `stlite-cloudflare
 # build` runs without the monorepo: the esbuild-bundled build orchestration
 # (dist/) and runtime/ (the Cloudflare frontend plus the pinned
-# stlite-lib/Streamlit wheels; the wheel copied here is the plain py3 one —
+# stlite-lib/Streamlit wheels, and arrow-ipc-writer's, which backs the pyarrow
+# stand-in the Worker runs with; the wheel copied here is the plain py3 one —
 # workerd runs the .py sources, unlike the browser kernel's py-compiled wheel).
 .PHONY: cloudflare
 cloudflare: $(cloudflare)
@@ -262,12 +264,13 @@ $(cloudflare): $(shell \
 	find packages/cloudflare/src packages/cloudflare/scripts -type f ! -name "*.test.*"; \
 	find packages/cloudflare/py -type f -name "*.py"; \
 	find packages/cloudflare -maxdepth 1 -type f -name "package.json"; \
-) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(streamlit_wheel) $(streamlit_proto) $(cloudflare-frontend)
+) $(node_modules) $(app-packager) $(stlite-lib-wheel) $(arrow-ipc-writer-wheel) $(streamlit_wheel) $(streamlit_proto) $(cloudflare-frontend)
 	cd packages/cloudflare && yarn build
 	rm -rf packages/cloudflare/runtime
 	mkdir -p packages/cloudflare/runtime/frontend packages/cloudflare/runtime/wheels
 	cp -R packages/cloudflare/.frontend-build/. packages/cloudflare/runtime/frontend/
 	cp $(stlite-lib-wheel) packages/cloudflare/runtime/wheels/
+	cp $(arrow-ipc-writer-wheel) packages/cloudflare/runtime/wheels/
 	cp streamlit/lib/dist/$(STREAMLIT_WHEEL_FILE_NAME) packages/cloudflare/runtime/wheels/
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -319,6 +322,15 @@ $(stlite-lib-wheel): $(venv) uv.lock $(shell \
 	find packages/kernel/py/stlite-lib -maxdepth 1 -type f -name "pyproject.toml"; \
 )
 	uv build --package stlite-lib --out-dir packages/kernel/py/stlite-lib/dist
+	@touch $@
+
+.PHONY: arrow-ipc-writer-wheel
+arrow-ipc-writer-wheel: $(arrow-ipc-writer-wheel)
+$(arrow-ipc-writer-wheel): $(venv) uv.lock $(shell \
+	find packages/arrow-ipc-writer/arrow_ipc_writer -type f -name "*.py"; \
+	find packages/arrow-ipc-writer -maxdepth 1 -type f \( -name "pyproject.toml" -o -name "README.md" -o -name "NOTICE" \); \
+)
+	uv build --package arrow-ipc-writer --wheel --out-dir packages/arrow-ipc-writer/dist
 	@touch $@
 
 .PHONY: streamlit-proto

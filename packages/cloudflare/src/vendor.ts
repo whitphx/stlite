@@ -68,13 +68,15 @@ export async function vendor({
   await vendorPrebuiltPackages({ packageDir, projectDir, cacheDir });
 
   // Drop stray pyarrow copies and install the pinned fork wheels over whatever
-  // streamlit/stlite_lib pywrangler or the snapshot vendored.
+  // streamlit/stlite_lib pywrangler or the snapshot vendored, along with
+  // arrow-ipc-writer, which serializes dataframes in pyarrow's place.
   await runVendorPythonModules(packageDir, projectDir, [
     "install-runtime",
     "--vendor-dir",
     vendorDir,
     await singleWheel(wheelsDir, /^stlite_lib-.*-py3-none-any\.whl$/),
     await singleWheel(wheelsDir, /^streamlit-.*-py3-none-any\.whl$/),
+    await singleWheel(wheelsDir, /^arrow_ipc_writer-.*-py3-none-any\.whl$/),
   ]);
   await fs.cp(
     path.join(packageDir, "py", "stlite_cloudflare"),

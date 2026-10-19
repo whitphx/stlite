@@ -143,20 +143,38 @@ def test_install_runtime_replaces_runtime_and_drops_pyarrow(tmp_path):
         "streamlit",
         "streamlit-1.0.dist-info",
         "stlite_lib",
+        "arrow_ipc_writer",
+        "arrow_ipc_writer-0.0.1.dist-info",
         "pandas",
     ]:
         (vendor / entry).mkdir(parents=True)
 
-    wheel = _make_wheel(
-        tmp_path / "streamlit-1.57.0-py3-none-any.whl",
-        {"streamlit/__init__.py": "S"},
-    )
+    wheels = [
+        _make_wheel(
+            tmp_path / "streamlit-1.57.0-py3-none-any.whl",
+            {"streamlit/__init__.py": "S"},
+        ),
+        _make_wheel(
+            tmp_path / "arrow_ipc_writer-0.1.0-py3-none-any.whl",
+            {
+                "arrow_ipc_writer/__init__.py": "A",
+                "arrow_ipc_writer-0.1.0.dist-info/METADATA": "Name: arrow-ipc-writer",
+            },
+        ),
+    ]
 
-    install_runtime(vendor, [wheel])
+    install_runtime(vendor, wheels)
 
     remaining = sorted(p.name for p in vendor.iterdir())
-    assert remaining == ["pandas", "pyarrow_hotfix", "streamlit"]
+    assert remaining == [
+        "arrow_ipc_writer",
+        "arrow_ipc_writer-0.1.0.dist-info",
+        "pandas",
+        "pyarrow_hotfix",
+        "streamlit",
+    ]
     assert (vendor / "streamlit" / "__init__.py").read_text() == "S"
+    assert (vendor / "arrow_ipc_writer" / "__init__.py").read_text() == "A"
 
 
 def test_install_runtime_prunes_worker_dead_weight(tmp_path):
@@ -322,6 +340,10 @@ def _make_closure(vendor_dir):
     # deliberately, so it must survive unless the mock breaks it.
     _make_dist(vendor_dir, "pydeck", ["pydeck"], ["numpy", "jinja2"])
     _make_dist(vendor_dir, "jinja2", ["jinja2"])
+    # Rootless as well: nothing declares it, the pyarrow stand-in imports it.
+    _make_dist(
+        vendor_dir, "arrow-ipc-writer", ["arrow_ipc_writer"], ["numpy", "pandas>=2.3"]
+    )
     _make_dist(vendor_dir, "altair", ["altair"])
     _make_dist(vendor_dir, "bokeh", ["bokeh"])
 
@@ -340,6 +362,8 @@ def test_mock_packages_stubs_targets_and_collects_broken_and_orphaned(tmp_path):
     assert not remaining & {
         "pydeck",
         "jinja2",
+        # Serializes dataframes, which can't exist without pandas.
+        "arrow_ipc_writer",
         "pytz",
         "dateutil",
         "six.py",
@@ -363,7 +387,9 @@ def test_mock_packages_keeps_everything_reachable_without_mocks_breaking_it(
 
     remaining = {entry.name for entry in vendor_dir.iterdir()}
     # Only altair changes; pandas and the pydeck chain are untouched.
-    assert {"pandas", "numpy", "pydeck", "jinja2", "pytz"} <= remaining
+    assert {"pandas", "numpy", "pydeck", "jinja2", "pytz", "arrow_ipc_writer"} <= (
+        remaining
+    )
     generated = (vendor_dir / "altair" / "__init__.py").read_text()
     assert "--mock altair" in generated
     assert "real" not in generated

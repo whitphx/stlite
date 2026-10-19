@@ -33,6 +33,11 @@ def run() -> None:
                     icon=":material/table:",
                 ),
                 st.Page(
+                    dir_path / "plotting_demo.py",
+                    title="Plotting demo",
+                    icon=":material/show_chart:",
+                ),
+                st.Page(
                     dir_path / "mapping_demo.py",
                     title="Mapping demo",
                     icon=":material/public:",

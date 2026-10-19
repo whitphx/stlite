@@ -156,9 +156,10 @@ def _field(b: Builder, f: t.Field, ids: _DictionaryIds) -> int:
         type_ = type_.value_type
 
     if isinstance(type_, t.ExtensionType):
+        # In the order pyarrow writes them.
         metadata += [
-            ("ARROW:extension:name", type_.name),
             ("ARROW:extension:metadata", type_.serialized),
+            ("ARROW:extension:name", type_.name),
         ]
         type_ = type_.storage_type
 

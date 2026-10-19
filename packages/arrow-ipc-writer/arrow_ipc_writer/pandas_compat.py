@@ -40,7 +40,7 @@ from . import __version__
 from . import types as t
 from .array import Array
 from .convert import _tz_name, from_pandas
-from .errors import ArrowException
+from .errors import ArrowInvalid, ArrowNotImplementedError, ArrowTypeError
 from .table import Schema, Table
 
 
@@ -358,7 +358,9 @@ def table_from_pandas(df: Any, preserve_index: bool | None = None) -> Table:
     for col in columns_to_convert:
         try:
             arrays.append(from_pandas(col))
-        except (ArrowException, OverflowError, TypeError) as e:
+        except (ArrowInvalid, ArrowNotImplementedError, ArrowTypeError) as e:
+            # pyarrow names the column in the message of these, but not of
+            # other errors (OverflowError, TypeError), which it re-raises as is.
             e.args += (
                 f"Conversion failed for column {col.name} with type {col.dtype}",
             )

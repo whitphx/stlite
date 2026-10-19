@@ -37,8 +37,8 @@ const stliteRuntimeExtraDependencies = [
 // The Streamlit fork's dependencies the Worker ships without. Pyodide's pyarrow
 // is ~43 MiB unpacked, beyond the Worker script limit, and loading it takes
 // ~48 MiB of the isolate's 128 MB of wasm memory, so the runtime installs
-// stlite_lib's stub in its place; resolving it here would only download a wheel
-// for install_runtime to delete again.
+// stlite_lib's stand-in, backed by arrow-ipc-writer, in its place; resolving it
+// here would only download a wheel for install_runtime to delete again.
 const workerOmittedDependencies = new Set(["pyarrow"]);
 
 export interface VendorPrebuiltPackagesOptions {

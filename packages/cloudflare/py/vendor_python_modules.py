@@ -26,13 +26,15 @@ from pathlib import Path
 # micropip only serves the build-time dependency resolution; it must not ship.
 _BUILD_ONLY_PACKAGES = {"micropip"}
 
-# The Worker ships without pyarrow (the runtime installs stlite_lib's stub
-# instead); any copy a user dependency dragged in is dead weight against the
-# Worker size limit (~100 MB for a host-arch build).
+# The Worker ships without pyarrow (the runtime installs stlite_lib's stand-in
+# instead, backed by arrow_ipc_writer); any copy a user dependency dragged in
+# is dead weight against the Worker size limit (~100 MB for a host-arch build).
 _PYARROW_ENTRIES = {"pyarrow", "pyarrow.libs"}
 _PYARROW_DIST_INFO = re.compile(r"^pyarrow-.*\.dist-info$")
-_RUNTIME_ENTRIES = {"stlite_cloudflare", "stlite_lib", "streamlit"}
-_RUNTIME_DIST_INFO = re.compile(r"^(stlite_lib|streamlit)-.*\.dist-info$")
+_RUNTIME_ENTRIES = {"stlite_cloudflare", "stlite_lib", "streamlit", "arrow_ipc_writer"}
+_RUNTIME_DIST_INFO = re.compile(
+    r"^(stlite_lib|streamlit|arrow_ipc_writer)-.*\.dist-info$"
+)
 # Wheel `.data` payloads land as top-level `<name>-<ver>.data` dirs when
 # extracted raw; their scripts/ and data/ contents (e.g. pydeck's bundled
 # Jupyter notebook extension, twice ~23 MB) aren't importable in the Worker.
@@ -179,8 +181,8 @@ def install_runtime(vendor_dir: Path, wheels: list[Path]) -> None:
             entry in _PYARROW_ENTRIES or bool(_PYARROW_DIST_INFO.match(entry))
         ),
     )
-    # Replace whatever streamlit/stlite_lib pywrangler or the snapshot vendored
-    # with the pinned fork wheels passed in.
+    # Replace whatever streamlit/stlite_lib/arrow_ipc_writer pywrangler or the
+    # snapshot vendored with the pinned wheels passed in.
     _remove_entries(
         vendor_dir,
         lambda entry: (

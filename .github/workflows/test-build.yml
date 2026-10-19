@@ -187,6 +187,10 @@ jobs:
             cloudflare:
               - 'packages/cloudflare/**/*'
               - 'packages/app-packager/**/*'
+              # The Worker vendors these, and serializes dataframes with them
+              # (stlite-lib's pyarrow stand-in, backed by arrow-ipc-writer).
+              - 'packages/kernel/py/stlite-lib/**/*'
+              - 'packages/arrow-ipc-writer/**/*'
               - 'streamlit'
             arrow-ipc-writer:
               - 'packages/arrow-ipc-writer/**/*'
@@ -287,6 +291,12 @@ jobs:
           . .venv/bin/activate
           cd packages/kernel/py/stlite-lib
           uv run pytest -v
+
+      # The pyarrow shim is for @stlite/cloudflare, whose runtime (Pyodide
+      # 0.29.x) has older Python and pandas than the workspace locks.
+      - name: Run the pyarrow shim's tests on Cloudflare's runtime versions
+        working-directory: packages/kernel/py/stlite-lib
+        run: scripts/test-pyarrow-shim-on-cloudflare-runtime.sh -v
 
   test-browser:
     needs: changes

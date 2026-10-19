@@ -20,6 +20,10 @@ from arrow_ipc_writer import dataframe_to_ipc
 data = dataframe_to_ipc(pd.DataFrame({"a": [1, 2, 3]}))
 ```
 
+`arrow_ipc_writer.compute` selects and sorts a table's rows as pyarrow's `Table.take`, `Table.slice` and `pyarrow.compute.sort_indices` do, which Streamlit uses to serve large dataframes in sorted chunks.
+
+@stlite/cloudflare uses this package through the pyarrow stand-in in stlite-lib (`stlite_lib/_pyarrow_shim.py`), which Streamlit imports as `pyarrow` there.
+
 ## Supported types
 
 | pandas / Python                                 | Arrow                                                   |

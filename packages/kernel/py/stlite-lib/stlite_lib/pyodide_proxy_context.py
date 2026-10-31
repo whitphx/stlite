@@ -15,9 +15,11 @@ handed to JS to be called later (``pyodide.ffi.wrappers`` builds
 this module wraps both: the wrapper snapshots ``copy_context()`` when the
 proxy is created and runs each call inside a copy of that snapshot. A
 coroutine function's task is created inside the snapshot too, so ``async
-def`` callbacks inherit it as well. A bare Python callable passed to a JS
-API without either helper is converted in Pyodide's C layer and is not
-covered.
+def`` callbacks inherit it as well. A bare Python callable handed to JS
+without either helper, such as ``el.onclick = f``, is converted in Pyodide's
+C layer and is not covered. An upstream API that would cover it, and could
+replace this module, is discussed in
+https://github.com/pyodide/pyodide/issues/6492.
 
 ``install()`` has to run before any app code imports the helpers by name,
 since ``from pyodide.ffi import create_proxy`` binds the unwrapped function.
@@ -60,7 +62,7 @@ class _CallInSnapshot:
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
             # Context. Creating the task here keeps the snapshot.
-            return call_context.run(asyncio.ensure_future, result)
+            return asyncio.get_running_loop().create_task(result, context=call_context)
         return result
 
     def __getattr__(self, name: str) -> Any:

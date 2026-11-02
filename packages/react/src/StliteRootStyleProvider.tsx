@@ -10,7 +10,7 @@ import {
 } from "@emotion/react";
 
 import { ThemeConfig } from "@streamlit/lib";
-import { appStyles } from "./appStyles";
+import { appScopedStyles, appStyles } from "./appStyles";
 import { documentStyles } from "./documentStyles";
 import { overlayPortalStyles } from "./overlayPortalStyles";
 import { useUniqueId } from "./useUniqueId";
@@ -26,6 +26,8 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
   const { children, theme, styleNonce, disableDocumentStyles } = props;
 
   const uniqueId = useUniqueId();
+  // Unique per app, so apps with different themes on one page don't share it.
+  const rootClassName = `stlite-root-${uniqueId}`;
 
   const cache = useMemo(
     () =>
@@ -45,6 +47,7 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
          */}
         {!disableDocumentStyles && <Global styles={documentStyles} />}
         <Global styles={overlayPortalStyles(theme.emotion)} />
+        <Global styles={appScopedStyles(theme.emotion, `.${rootClassName}`)} />
         <ClassNames>
           {({ css, cx }) => (
             <div
@@ -56,6 +59,7 @@ export function RootStyleProvider(props: RootStyleProviderProps): ReactElement {
                   appStyles(theme.emotion),
                 ),
                 "stlite-root",
+                rootClassName,
               )}
             >
               {children}

@@ -14,9 +14,13 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // Override the base font-size value here.
   font-size: ${theme.fontSizes.baseFontSize}px;
 
-  *,
-  *::before,
-  *::after {
+  // Upstream applies the rules below to the whole document as element selectors,
+  // so a component's own class overrides them.
+  // Plain nesting would prefix them with the root's class and let them win instead.
+  // :where(&) scopes them to the root without adding to their specificity.
+  :where(&) *,
+  :where(&) *::before,
+  :where(&) *::after {
     box-sizing: border-box;
   }
 
@@ -46,7 +50,7 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // See https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
   // and https://developer.paciellogroup.com/blog/2018/03/focus-visible-and-backwards-compatibility/
 
-  [tabindex="-1"]:focus:not(:focus-visible) {
+  :where(&) [tabindex="-1"]:focus:not(:focus-visible) {
     outline: 0 !important;
   }
 
@@ -55,20 +59,20 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   //
   // Similarly, the top margin on <p>s get reset. However, we also reset the
   // bottom margin to use rem units instead of em.
-  p,
-  ol,
-  ul,
-  dl {
+  :where(&) p,
+  :where(&) ol,
+  :where(&) ul,
+  :where(&) dl {
     margin: 0 0 1rem 0;
     padding: 0;
     font-size: 1rem;
     font-weight: ${theme.fontWeights.normal};
   }
 
-  ol ol,
-  ul ul,
-  ol ul,
-  ul ol {
+  :where(&) ol ol,
+  :where(&) ul ul,
+  :where(&) ol ul,
+  :where(&) ul ol {
     margin-bottom: 0;
   }
 
@@ -77,7 +81,7 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // causes specificity issues in many other styles that are too complex to fix.
   // See https://github.com/twbs/bootstrap/issues/19402
 
-  a:not([href]):not([class]) {
+  :where(&) a:not([href]):not([class]) {
     &,
     &:hover {
       color: inherit;
@@ -87,18 +91,18 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
 
   // Images and content
 
-  img,
-  svg {
+  :where(&) img,
+  :where(&) svg {
     vertical-align: middle;
   }
 
   // 1. Remove the margin in Firefox and Safari
 
-  input,
-  button,
-  select,
-  optgroup,
-  textarea {
+  :where(&) input,
+  :where(&) button,
+  :where(&) select,
+  :where(&) optgroup,
+  :where(&) textarea {
     margin: 0; // 1
     font-family: inherit;
     line-height: inherit;
@@ -107,14 +111,14 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
 
   // Show the overflow in Edge
 
-  button,
-  input {
+  :where(&) button,
+  :where(&) input {
     overflow: visible;
   }
 
   // Set the cursor for all buttons or button-like elements
-  button,
-  [role="button"] {
+  :where(&) button,
+  :where(&) [role="button"] {
     &:not(:disabled) {
       cursor: pointer;
     }
@@ -125,10 +129,10 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // 2. Correct the inability to style clickable types in iOS and Safari.
   // 3. Opinionated: add "hand" cursor to non-disabled button elements.
 
-  button,
-  [type="button"], // 1
-  [type="reset"],
-  [type="submit"] {
+  :where(&) button,
+  :where(&) [type="button"], // 1
+  :where(&) [type="reset"],
+  :where(&) [type="submit"] {
     -webkit-appearance: button; // 2
   }
 
@@ -136,7 +140,7 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   //
   // Always hide an element with the hidden HTML attribute.
 
-  [hidden] {
+  :where(&) [hidden] {
     display: none !important;
   }
 
@@ -144,12 +148,12 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // container is hovered. (This is ignored in OSes that render overlay
   // scrollbars, which is exactly what we want.)
   @supports (scrollbar-color: transparent transparent) {
-    * {
+    :where(&) * {
       scrollbar-width: thin;
       scrollbar-color: transparent transparent;
     }
 
-    *:hover {
+    :where(&) *:hover {
       scrollbar-color: ${theme.colors.fadedText40} transparent;
     }
   }
@@ -157,19 +161,19 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
   // Safari doesn't support scrollbar colors so we style the scrollbar
   // using the old webkit-only properties.
   @supports not (scrollbar-color: transparent transparent) {
-    ::-webkit-scrollbar {
+    :where(&) ::-webkit-scrollbar {
       background: transparent;
       border-radius: ${theme.radii.full};
       height: 6px;
       width: 6px;
     }
 
-    ::-webkit-scrollbar:active {
+    :where(&) ::-webkit-scrollbar:active {
       background: ${theme.colors.fadedText10};
     }
 
-    :hover::-webkit-scrollbar-thumb:vertical,
-    :hover::-webkit-scrollbar-thumb:horizontal {
+    :where(&) :hover::-webkit-scrollbar-thumb:vertical,
+    :where(&) :hover::-webkit-scrollbar-thumb:horizontal {
       background: ${theme.colors.fadedText40};
       border-radius: ${theme.radii.full};
     }

@@ -141,7 +141,7 @@ yarn test:docker:update-snapshots
 
 ### Python Version
 
-**MUST match Pyodide**: Python version specified in `.python-version` and enforced by the Makefile must match the version used in the Pyodide runtime (e.g. Python 3.12 for Pyodide 0.28.0). This ensures compatibility of built wheels and prevents runtime errors.
+**Minor version MUST match Pyodide**: The minor version of the Python specified in `.python-version` must match the one bundled in the Pyodide runtime (e.g. Python 3.14 for Pyodide 314.x), and the Makefile enforces this. This ensures compatibility of built wheels and bytecode and prevents runtime errors. The patch version does not need to match Pyodide's; pin it to the latest CPython patch release of that minor to pick up security fixes.
 
 ### Pyodide Compatibility
 

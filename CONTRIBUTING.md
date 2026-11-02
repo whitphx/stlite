@@ -3,7 +3,7 @@
 ### Python requirement
 
 - Install [`uv`](https://docs.astral.sh/uv/).
-- Use the same Python version as the [currently used Pyodide runtime](./packages/kernel/src/worker.ts).
+- Use the Python version pinned in [`.python-version`](./.python-version). Its minor version matches the [currently used Pyodide runtime](./packages/kernel/src/worker.ts); its patch version is the latest CPython release of that minor. uv reads this file, so `make init` sets up the right interpreter.
 
 ### Initialize the development environment
 

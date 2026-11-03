@@ -195,6 +195,19 @@ jobs:
             arrow-ipc-writer:
               - 'packages/arrow-ipc-writer/**/*'
 
+  check-python-version:
+    # `.python-version` tracks the latest CPython patch release, but its minor
+    # has to match the Python bundled in Pyodide. This catches a mismatch in
+    # seconds (for example, a Pyodide bump to a new Python minor that leaves
+    # `.python-version` behind), before the builds below reach the same check
+    # in the Makefile's `streamlit-wheel` target.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: .github/scripts/check-python-version.sh
+
   test-build-common:
     needs: changes
     if: ${{ needs.changes.outputs.common == 'true' }}
@@ -1331,6 +1344,7 @@ jobs:
         set-build-info,
         changesets,
         changes,
+        check-python-version,
         test-build-common,
         test-kernel,
         test-stlite-lib,

@@ -84,6 +84,40 @@
       groupName: "pyodide",
       automerge: false,
     },
+    // `packages/cloudflare` pins Pyodide's 0.29.x line on purpose: it tracks
+    // the Python of Cloudflare's Worker runtime (3.13), not the browser
+    // runtime (see `packages/cloudflare/src/vendor-prebuilt.ts`). Patch
+    // releases within that line get their own PR, apart from the group
+    // above, and the jump to the browser's Pyodide line is left to a person.
+    {
+      matchFileNames: ["packages/cloudflare/package.json"],
+      matchPackageNames: ["pyodide"],
+      groupName: "pyodide for @stlite/cloudflare",
+    },
+    {
+      matchFileNames: ["packages/cloudflare/package.json"],
+      matchPackageNames: ["pyodide"],
+      matchUpdateTypes: ["major", "minor"],
+      enabled: false,
+    },
+
+    // The Streamlit fork requires Node.js 24 (`.nvmrc`), so the Node.js
+    // runtime and the devcontainer image stay at 24 or older.
+    {
+      matchDepNames: ["node"],
+      allowedVersions: "<25",
+    },
+    {
+      matchPackageNames: ["mcr.microsoft.com/devcontainers/javascript-node"],
+      allowedVersions: "/^(1[0-9]|2[0-4])-/",
+    },
+    // `@types/node` follows each package's minimum supported Node.js (its
+    // `engines` field), not the newest release, so its majors move by hand.
+    {
+      matchPackageNames: ["@types/node"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+    },
 
     // `.python-version` tracks the latest CPython patch release, for its
     // security fixes, but its minor has to match the Python that Pyodide

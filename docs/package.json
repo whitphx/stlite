@@ -16,7 +16,7 @@
     "@stlite/browser": "workspace:*",
     "@stlite/cli": "workspace:*",
     "@stlite/desktop": "workspace:*",
-    "astro": "^5.16.6",
+    "astro": "^7.0.0",
     "sharp": "^0.34.2"
   }
 }

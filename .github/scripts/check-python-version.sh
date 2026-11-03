@@ -3,8 +3,9 @@
 # one bundled in the Pyodide runtime that `@stlite/kernel` depends on.
 #
 # Only the minor version has to match: wheels are tagged `cp3XX` and bytecode
-# is compiled for that minor. The patch in `.python-version` tracks the latest
-# CPython release of that minor instead (see "Python Version" in CLAUDE.md).
+# is compiled for that minor. The patch in `.python-version` is not checked
+# here; Renovate keeps it at the latest CPython release of that minor (see
+# "Python Version" in CLAUDE.md).
 #
 # `pyodide-lock.json` records the bundled Python only up to the minor reliably
 # (Pyodide 314.x reports 3.14.0 while shipping 3.14.2), so the patch is

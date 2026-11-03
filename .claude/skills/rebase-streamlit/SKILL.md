@@ -146,10 +146,12 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     `packages/react/src/appStyles.test.ts` compares the copy with upstream
     declaration by declaration (`yarn workspace @stlite/react test appStyles`).
     If it fails after the rebase, port the declarations it lists:
-    element rules go in `appScopedStyles`, `body` rules on the root in
-    `appStyles`, and `html` rules in `documentStyles`. If it throws instead,
-    add the theme field upstream now reads to the test's theme stub, or
-    extend its CSS flattening for the new selector or at-rule shape.
+    element rules go in `appScopedStyles` under `:where()` like their
+    neighbors (only the `box-sizing` reset keeps the root class), `body`
+    rules on the root in `appStyles`, and `html` rules in `documentStyles`.
+    If it throws instead, add the theme field upstream now reads to the
+    test's theme stub, add a new document-level selector to the test's
+    `only()` mapping, or extend its CSS flattening for a new at-rule shape.
     Add an entry to the test's expected differences, with its reason,
     only when Stlite deliberately diverges.
 

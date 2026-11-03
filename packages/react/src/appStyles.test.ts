@@ -114,7 +114,6 @@ function unscope(selector: string): string {
   return selector.slice(SCOPES[scopeOf(selector)].length);
 }
 
-/** Maps each selector as given, failing on any the styles must not use. */
 function only(mapping: Record<string, string>): (selector: string) => string {
   return (selector) => {
     if (!(selector in mapping)) {
@@ -169,7 +168,7 @@ describe("appStyles", () => {
     const rootSpecific = declarations(
       compile(appScopedStyles(theme, ROOT)),
       scopeOf,
-    ).filter((entry) => entry.startsWith("root "));
+    ).filter((entry) => entry.split(" ").includes("root"));
 
     expect(new Set(rootSpecific)).toEqual(
       new Set(["root box-sizing:border-box"]),

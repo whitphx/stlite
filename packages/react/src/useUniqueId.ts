@@ -33,15 +33,12 @@ export function toAlphabeticString(num: number): string {
 export function generateUniqueId(length = 8): string {
   if (length <= 0) return "";
 
+  // The counter only separates ids within this module instance.
+  // A separately bundled copy of this package on the same page
+  // starts its own counter at 0, so the rest has to be random.
   const counterPart = toAlphabeticString(idCounter++);
-  const timePart = toAlphabeticString(Date.now());
-  const base = `${counterPart}${timePart}${randomChars(length)}`;
-
-  if (base.length >= length) {
-    return base.slice(0, length);
-  }
-
-  return `${base}${randomChars(length - base.length)}`;
+  const randomLength = Math.max(length - counterPart.length, 0);
+  return `${counterPart}${randomChars(randomLength)}`.slice(0, length);
 }
 
 export function useUniqueId(length = 8): string {

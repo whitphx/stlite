@@ -65,6 +65,17 @@ describe("useUniqueId", () => {
     expect(second).toMatch(/^[a-z]+$/);
   });
 
+  it("produces unique ids across separately loaded module instances", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+
+    vi.resetModules();
+    const first = (await import("./useUniqueId")).generateUniqueId(8);
+    vi.resetModules();
+    const second = (await import("./useUniqueId")).generateUniqueId(8);
+
+    expect(first).not.toBe(second);
+  });
+
   it("memoizes the id across renders", () => {
     const { result, rerender } = renderHook(() => useUniqueId());
 

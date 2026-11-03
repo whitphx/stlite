@@ -8,21 +8,44 @@ import { globalStyles as upstreamGlobalStyles } from "../../../streamlit/fronten
 import { appScopedStyles, appStyles } from "./appStyles";
 import { documentStyles } from "./documentStyles";
 
+/**
+ * Throws on a field the stub lacks. Emotion drops a declaration whose value is
+ * `undefined`, so an upstream addition reading a new field would vanish from
+ * the comparison instead of failing it.
+ */
+function strict<T extends object>(value: T, path: string): T {
+  return new Proxy(value, {
+    get(target, key) {
+      if (typeof key === "symbol") return Reflect.get(target, key);
+      if (!(key in target)) {
+        throw new Error(`The test theme has no ${path}.${key}; add it.`);
+      }
+      const field: unknown = Reflect.get(target, key);
+      return typeof field === "object" && field !== null
+        ? strict(field, `${path}.${key}`)
+        : field;
+    },
+  });
+}
+
 // Distinct values, so a declaration that reads the wrong theme field shows up.
-const theme = {
-  fontSizes: { baseFontSize: 17 },
-  genericFonts: { bodyFont: "body-font" },
-  fontWeights: { normal: 401 },
-  lineHeights: { base: 1.7 },
-  colors: {
-    bodyText: "#010101",
-    bgColor: "#020202",
-    black: "#030303",
-    fadedText10: "#040404",
-    fadedText40: "#050505",
+const theme = strict(
+  {
+    fontSizes: { baseFontSize: 17 },
+    genericFonts: { bodyFont: "body-font" },
+    fontWeights: { normal: 401 },
+    lineHeights: { base: 1.7 },
+    colors: {
+      bodyText: "#010101",
+      bgColor: "#020202",
+      black: "#030303",
+      fadedText10: "#040404",
+      fadedText40: "#050505",
+    },
+    radii: { full: "9999px" },
   },
-  radii: { full: "9999px" },
-} as unknown as EmotionTheme;
+  "theme",
+) as unknown as EmotionTheme;
 
 const ROOT = ".stlite-root-test";
 
@@ -78,22 +101,27 @@ function declarations(
   return entries.sort();
 }
 
-// Only these keep the root's class specificity; see appScopedStyles.
-const ROOT_SPECIFIC_SELECTORS = ["*", "*::before", "*::after"];
+const SCOPES = { where: `:where(${ROOT}) `, root: `${ROOT} ` };
+
+function scopeOf(selector: string): keyof typeof SCOPES {
+  for (const [scope, prefix] of Object.entries(SCOPES)) {
+    if (selector.startsWith(prefix)) return scope as keyof typeof SCOPES;
+  }
+  throw new Error(`Not scoped to the app root: ${selector}`);
+}
 
 function unscope(selector: string): string {
-  const wherePrefix = `:where(${ROOT}) `;
-  if (selector.startsWith(wherePrefix)) {
-    return selector.slice(wherePrefix.length);
-  }
-  const rest = selector.slice(`${ROOT} `.length);
-  if (
-    selector.startsWith(`${ROOT} `) &&
-    ROOT_SPECIFIC_SELECTORS.includes(rest)
-  ) {
-    return rest;
-  }
-  throw new Error(`Not scoped to the app root by :where(): ${selector}`);
+  return selector.slice(SCOPES[scopeOf(selector)].length);
+}
+
+/** Maps each selector as given, failing on any the styles must not use. */
+function only(mapping: Record<string, string>): (selector: string) => string {
+  return (selector) => {
+    if (!(selector in mapping)) {
+      throw new Error(`Unexpected selector: ${selector}`);
+    }
+    return mapping[selector];
+  };
 }
 
 describe("appStyles", () => {
@@ -101,9 +129,16 @@ describe("appStyles", () => {
     const upstream = declarations(compile(upstreamGlobalStyles(theme)));
     const stlite = [
       // The root element takes the place of upstream's `body`.
-      ...declarations(compile(appStyles(theme), ROOT), () => "body"),
+      ...declarations(
+        compile(appStyles(theme), ROOT),
+        only({ [ROOT]: "body" }),
+      ),
       ...declarations(compile(appScopedStyles(theme, ROOT)), unscope),
-      ...declarations(compile(documentStyles)),
+      // These style the host page's document, so they may touch nothing else.
+      ...declarations(
+        compile(documentStyles),
+        only({ html: "html", body: "body" }),
+      ),
     ].sort();
 
     expect({
@@ -126,5 +161,18 @@ describe("appStyles", () => {
         "html margin:0",
       ],
     });
+  });
+
+  // A widget's own class has to beat every reset but box-sizing;
+  // see appScopedStyles.
+  it("keeps only the box-sizing reset at the root's class specificity", () => {
+    const rootSpecific = declarations(
+      compile(appScopedStyles(theme, ROOT)),
+      scopeOf,
+    ).filter((entry) => entry.startsWith("root "));
+
+    expect(new Set(rootSpecific)).toEqual(
+      new Set(["root box-sizing:border-box"]),
+    );
   });
 });

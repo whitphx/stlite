@@ -39,7 +39,8 @@ export const appStyles = (theme: EmotionTheme): SerializedStyles => css`
  * Upstream's bare element selectors lose to a component's own class.
  * Nesting these under the app root's class would let them win instead,
  * and Emotion doesn't reliably expand `&` inside `:where()` in a selector list,
- * so these are global styles with the root wrapped in `:where()` explicitly.
+ * so these are global styles that wrap the root in `:where()` explicitly
+ * where element-level specificity matters.
  */
 export const appScopedStyles = (
   theme: EmotionTheme,
@@ -47,8 +48,9 @@ export const appScopedStyles = (
 ): SerializedStyles => {
   const root = `:where(${rootSelector})`;
   return css`
-    // Not wrapped in :where(), so a host page's element rule
-    // such as div { box-sizing: content-box } can't break the app's layout.
+    // Not wrapped in :where(),
+    // so a host page's element rule like div { box-sizing: content-box }
+    // can't break the app's layout.
     // A component's own class still wins, since these styles are inserted first.
     ${rootSelector} *,
     ${rootSelector} *::before,

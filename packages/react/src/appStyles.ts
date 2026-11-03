@@ -47,9 +47,12 @@ export const appScopedStyles = (
 ): SerializedStyles => {
   const root = `:where(${rootSelector})`;
   return css`
-    ${root} *,
-    ${root} *::before,
-    ${root} *::after {
+    // Not wrapped in :where(), so a host page's element rule
+    // such as div { box-sizing: content-box } can't break the app's layout.
+    // A component's own class still wins, since these styles are inserted first.
+    ${rootSelector} *,
+    ${rootSelector} *::before,
+    ${rootSelector} *::after {
       box-sizing: border-box;
     }
 

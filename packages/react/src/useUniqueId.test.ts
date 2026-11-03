@@ -54,8 +54,9 @@ describe("useUniqueId", () => {
   });
 
   it("produces unique ids even with identical randomness", () => {
-    vi.spyOn(Date, "now").mockReturnValue(1_000_000);
-    vi.spyOn(Math, "random").mockReturnValue(0);
+    vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(
+      (array) => array,
+    );
 
     const first = generateUniqueId(8);
     const second = generateUniqueId(8);

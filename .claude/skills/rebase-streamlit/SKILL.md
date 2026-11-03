@@ -140,7 +140,16 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     If errors surface, narrow the dep bump that caused it and either pin
     that one dep back or update the alignment skip-list above.
 
-14. When opening the stlite PR, link the submodule diff from the description,
+14. Port upstream changes to its global styles. `@stlite/react` keeps a
+    scoped copy of `streamlit/frontend/lib/src/theme/globalStyles.ts` in
+    `packages/react/src/appStyles.ts` and `documentStyles.ts`, and
+    `packages/react/src/appStyles.test.ts` compares the two. If the test
+    fails after the rebase, port the listed declarations into `appStyles.ts`
+    (element rules go in `appScopedStyles`, `body` rules on the root in
+    `appStyles`). Add an entry to the test's expected differences, with its
+    reason, only when Stlite deliberately diverges.
+
+15. When opening the stlite PR, link the submodule diff from the description,
     so a reviewer can read the fork's customizations against the new upstream
     release without cloning the submodule. Compare across forks, with the
     upstream release tag as the base: that tag lives in `streamlit/streamlit`

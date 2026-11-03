@@ -63,7 +63,7 @@
     "@stlite/common": "workspace:^",
     "@types/cross-spawn": "^6.0.6",
     "@types/node": "^24.0.0",
-    "esbuild": "^0.27.1",
+    "esbuild": "^0.28.0",
     "oxfmt": "^0.70.0",
     "oxlint": "^1.85.0",
     "typescript": "^6.0.3",

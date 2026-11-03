@@ -22,13 +22,6 @@
   // whose `uv lock` step cannot succeed.
   minimumReleaseAge: "7 days",
 
-  // The minor version in `.python-version` has to match the Python that
-  // Pyodide ships, so it moves when Pyodide moves and never on a CPython
-  // release of its own. See the "Python Version" constraint in CLAUDE.md.
-  pyenv: {
-    enabled: false,
-  },
-
   // Rules are applied in order and the last match wins, so the constraints
   // that must survive live at the bottom.
   packageRules: [
@@ -90,6 +83,24 @@
       matchPackageNames: ["pyodide", "pyodide-py", "pyodide-build"],
       groupName: "pyodide",
       automerge: false,
+    },
+
+    // `.python-version` tracks the latest CPython patch release, for its
+    // security fixes, but its minor has to match the Python that Pyodide
+    // ships, so it moves to a new minor only when Pyodide does, by hand.
+    // See the "Python Version" constraint in CLAUDE.md; the
+    // `check-python-version` CI job catches a mismatch.
+    // Not merged automatically: the patch release also compiles the bytecode
+    // shipped in the Streamlit wheel.
+    {
+      matchManagers: ["pyenv"],
+      matchUpdateTypes: ["patch"],
+      automerge: false,
+    },
+    {
+      matchManagers: ["pyenv"],
+      matchUpdateTypes: ["major", "minor"],
+      enabled: false,
     },
 
     // `astral-sh/setup-uv`'s `version` input is a uv release,

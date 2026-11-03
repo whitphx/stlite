@@ -22,9 +22,9 @@
   // whose `uv lock` step cannot succeed.
   minimumReleaseAge: "7 days",
 
-  // `.python-version` has to match the Python that Pyodide ships, so it moves
-  // when Pyodide moves and never on a CPython release of its own. See the
-  // "Python Version" constraint in CLAUDE.md.
+  // The minor version in `.python-version` has to match the Python that
+  // Pyodide ships, so it moves when Pyodide moves and never on a CPython
+  // release of its own. See the "Python Version" constraint in CLAUDE.md.
   pyenv: {
     enabled: false,
   },

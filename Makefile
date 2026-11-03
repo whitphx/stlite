@@ -48,7 +48,8 @@ STREAMLIT_COMPILED_WHEEL_FILE_NAME := $(shell yarn workspace @stlite/tooling get
 # packages/desktop/package.json, packages/cli/package.json,
 # packages/kernel/src/worker.ts (CDN URL),
 # packages/kernel/py/stlite-lib/pyproject.toml (pyodide-py), and
-# .python-version (must equal the Pyodide release's bundled Python).
+# .python-version (its minor version must equal the Pyodide release's bundled
+# Python; the patch tracks the latest CPython release of that minor).
 # packages/cloudflare/package.json is deliberately NOT in that list — it
 # tracks Cloudflare's Worker Python runtime instead
 # (see packages/cloudflare/src/vendor-prebuilt.ts).
@@ -343,8 +344,8 @@ $(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
 streamlit-wheel: $(streamlit_wheel)
 $(streamlit_wheel): $(venv) $(streamlit_proto) $(shell find streamlit/lib/streamlit -type f -name "*.py") streamlit/lib/pyproject.toml streamlit/lib/MANIFEST.in
 	PYODIDE_BUILD_VERSION=`uv run python -c "import pyodide_build; print(pyodide_build.__version__)"` && \
-	PYTHON_VERSION=`uv run python -c "import sys; print('.'.join(map(str, sys.version_info[:3])))"` && \
-	PYODIDE_PYTHON_VERSION=`uv run pyodide config get python_version` && \
+	PYTHON_VERSION=`uv run python -c "import sys; print('.'.join(map(str, sys.version_info[:2])))"` && \
+	PYODIDE_PYTHON_VERSION=`uv run pyodide config get python_version | cut -d. -f1,2` && \
 	if [ "$$PYTHON_VERSION" != "$$PYODIDE_PYTHON_VERSION" ]; then \
 		echo "Python version mismatch: Pyodide $$PYODIDE_BUILD_VERSION includes Python $$PYODIDE_PYTHON_VERSION, but $$PYTHON_VERSION" is installed for the development in this env; \
 		exit 1; \

@@ -62,10 +62,10 @@ class _CallInSnapshot:
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
             # Context. Creating the task here keeps the snapshot.
-            # Not ``create_task(context=...)``: that argument can get lost on
-            # the way to a task factory (Pyodide's WebLoop drops it before
-            # pyodide/pyodide#6525, and a factory can ignore it), so the task
-            # copies the snapshot as the current Context instead.
+            # Not ``create_task(context=...)``: a task factory can ignore that
+            # argument, and the task would then copy the Context current here,
+            # the root one. Created inside the snapshot, the task inherits it
+            # whether or not the factory passes ``context`` on.
             return call_context.run(asyncio.ensure_future, result)
         return result
 

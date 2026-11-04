@@ -59,6 +59,22 @@ runs:
           **/requirements*.txt
           **/uv.lock
       if: ${{ inputs.python-version-file }}
+    # `make venv` takes ~20s and needs nothing from the steps between here and
+    # "Set up Python packages", so on Linux it runs in the background while
+    # they restore node_modules. Passing the wheel file names on the command
+    # line skips their definitions in the Makefile, whose `$(shell yarn
+    # workspace @stlite/tooling ...)` needs node_modules and runs `uv run`
+    # against the environment this is creating. No other `make` may start
+    # until "Set up Python packages" has waited for this one.
+    - name: Start setting up Python packages
+      run: |
+        nohup bash -c '
+          make venv STREAMLIT_WHEEL_FILE_NAME= STREAMLIT_COMPILED_WHEEL_FILE_NAME= > "$RUNNER_TEMP/make-venv.log" 2>&1
+          echo $? > "$RUNNER_TEMP/make-venv.status.tmp"
+          mv "$RUNNER_TEMP/make-venv.status.tmp" "$RUNNER_TEMP/make-venv.status"
+        ' > /dev/null 2>&1 &
+      shell: bash
+      if: ${{ runner.os == 'Linux' && inputs.python-version-file }}
 
     ## Set up Node environment
     - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
@@ -151,7 +167,14 @@ runs:
       if: ${{ inputs.protoc == 'true' }}
 
     - name: Set up Python packages
-      run: make venv
+      run: |
+        if [ "$RUNNER_OS" != "Linux" ]; then
+          make venv
+          exit
+        fi
+        until [ -f "$RUNNER_TEMP/make-venv.status" ]; do sleep 1; done
+        cat "$RUNNER_TEMP/make-venv.log"
+        exit "$(cat "$RUNNER_TEMP/make-venv.status")"
       shell: bash
       if: ${{ inputs.python-version-file }}
 

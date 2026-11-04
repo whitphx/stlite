@@ -74,6 +74,8 @@ describe("useUniqueId", () => {
     vi.resetModules();
     const second = (await import("./useUniqueId")).generateUniqueId();
 
+    // Comparing two random ids rarely catches a shortened random part.
+    expect(first).toMatch(/^a[a-z]{7}$/);
     expect(first).not.toBe(second);
   });
 

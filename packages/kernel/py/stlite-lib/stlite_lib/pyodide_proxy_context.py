@@ -17,9 +17,15 @@ proxy is created and runs each call inside a copy of that snapshot. A
 coroutine function's task is created inside the snapshot too, so ``async
 def`` callbacks inherit it as well. A bare Python callable handed to JS
 without either helper, such as ``el.onclick = f``, is converted in Pyodide's
-C layer and is not covered. An upstream API that would cover it, and could
-replace this module, is discussed in
-https://github.com/pyodide/pyodide/issues/6492.
+C layer and is not covered.
+
+The proxy holds the wrapper, not the callable itself. So ``proxy.unwrap()``,
+and a ``roundtrip=False`` proxy passed back from JS, give Python the wrapper.
+Calls and attribute access still reach the callable, but ``is`` and
+``isinstance`` checks against it fail.
+
+An upstream API that would cover both gaps, and could replace this module, is
+discussed in https://github.com/pyodide/pyodide/issues/6492.
 
 ``install()`` has to run before any app code imports the helpers by name,
 since ``from pyodide.ffi import create_proxy`` binds the unwrapped function.

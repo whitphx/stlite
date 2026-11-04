@@ -15,42 +15,15 @@ env:
   python-version-file: ".python-version"
   node-version-file: ".nvmrc"
   RUN_ALL_TESTS: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+  # The build info the build jobs report the package stats under, and pick
+  # their build options by.
+  BUILD_BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+  BUILD_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  BUILD_PR_NUMBER: ${{ github.event.pull_request.number }}
 
 permissions: {}
 
 jobs:
-  set-build-info:
-    runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.pull-request.outputs.branch || steps.push.outputs.branch }}
-      head-sha: ${{ steps.pull-request.outputs.head-sha || steps.push.outputs.head-sha }}
-      pr-number: ${{ steps.pull-request.outputs.pr-number }}
-    steps:
-      - name: Save build info (pull_request)
-        if: github.event_name == 'pull_request'
-        id: pull-request
-        env:
-          BRANCH: ${{ github.event.pull_request.head.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          {
-            echo "branch=$BRANCH"
-            echo "head-sha=$HEAD_SHA"
-            echo "pr-number=$PR_NUMBER"
-          } >> "$GITHUB_OUTPUT"
-      - name: Save build info (push, branch)
-        if: github.event_name == 'push' && github.ref_type == 'branch'
-        id: push
-        env:
-          BRANCH: ${{ github.ref_name }}
-          HEAD_SHA: ${{ github.sha }}
-        run: |
-          {
-            echo "branch=$BRANCH"
-            echo "head-sha=$HEAD_SHA"
-          } >> "$GITHUB_OUTPUT"
-
   changesets:
     if: ${{ github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
@@ -130,6 +103,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Checks only that the minor version in `.python-version` matches the
+      # Python bundled in Pyodide; it does not check that the patch is the
+      # latest CPython release. Renovate's patch-only `pyenv` updates keep the
+      # patch current (see `.github/renovate.json5`), and failing here on every
+      # new CPython release would turn unrelated PRs red until that bump lands.
+      # This catches a minor mismatch in seconds (for example, a Pyodide bump to
+      # a new Python minor that leaves `.python-version` behind), before the
+      # builds below reach the same check in the Makefile's `streamlit-wheel`
+      # target. It runs in this job, which every other job waits for anyway,
+      # instead of taking a runner of its own.
+      - name: Check the Python version
+        run: .github/scripts/check-python-version.sh
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
@@ -194,50 +179,6 @@ jobs:
             arrow-ipc-writer:
               - 'packages/arrow-ipc-writer/**/*'
 
-  check-python-version:
-    # Checks only that the minor version in `.python-version` matches the
-    # Python bundled in Pyodide; it does not check that the patch is the
-    # latest CPython release. Renovate's patch-only `pyenv` updates keep the
-    # patch current (see `.github/renovate.json5`), and failing here on every
-    # new CPython release would turn unrelated PRs red until that bump lands.
-    # This catches a minor mismatch in seconds (for example, a Pyodide bump to
-    # a new Python minor that leaves `.python-version` behind), before the
-    # builds below reach the same check in the Makefile's `streamlit-wheel`
-    # target.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - run: .github/scripts/check-python-version.sh
-
-  test-build-common:
-    needs: changes
-    if: ${{ needs.changes.outputs.common == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: packages/common
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-          protoc: false
-
-      - name: Lint
-        run: |
-          yarn check:lint
-          yarn check:format
-      - run: yarn test
-      - run: yarn build
-
   test-kernel:
     needs: changes
     if: ${{ needs.changes.outputs.kernel == 'true' }}
@@ -265,9 +206,32 @@ jobs:
       - run: make kernel-test
         working-directory: .
 
-  test-stlite-lib:
+  # The lint and unit tests of every package except @stlite/kernel (whose
+  # suite boots Pyodide and runs for minutes on its own). Each package used to
+  # get a job of its own, which spent ~3 minutes on checkout and setup to run
+  # a few seconds of checks, and queued for a runner besides.
+  #
+  # Each step runs when its package (or a dependency) changed, and
+  # `!cancelled()` keeps the later packages' checks running after an earlier
+  # one fails, so a run still reports every failure. The steps that run with
+  # nothing built come first, then the ones that build their prerequisites,
+  # so that each package's checks run in the state their own job left them.
+  test:
     needs: changes
-    if: ${{ needs.changes.outputs.stlite-lib == 'true' }}
+    if: >-
+      ${{
+        needs.changes.outputs.common == 'true' ||
+        needs.changes.outputs.stlite-lib == 'true' ||
+        needs.changes.outputs.browser == 'true' ||
+        needs.changes.outputs.react == 'true' ||
+        needs.changes.outputs.sharing == 'true' ||
+        needs.changes.outputs.sharing-editor == 'true' ||
+        needs.changes.outputs.sharing-common == 'true' ||
+        needs.changes.outputs.desktop == 'true' ||
+        needs.changes.outputs.cli == 'true' ||
+        needs.changes.outputs.arrow-ipc-writer == 'true' ||
+        needs.changes.outputs.cloudflare == 'true'
+      }}
 
     runs-on: ubuntu-latest
 
@@ -280,344 +244,227 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
-      - name: Set up Streamlit and build proto
-        run: |
-          . .venv/bin/activate
-          make streamlit-proto
-
-      - name: Run Ruff
-        run: |
-          . .venv/bin/activate
-          cd packages/kernel/py/stlite-lib
-          uv run ruff check --output-format=github .
-          uv run ruff format . --check
-
-      - name: Run pyright
-        run: |
-          . .venv/bin/activate
-          cd packages/kernel/py/stlite-lib
-          uv run pyright
-
-      - name: Run pytest
-        shell: bash
-        run: |
-          . .venv/bin/activate
-          cd packages/kernel/py/stlite-lib
-          uv run pytest -v
-
-      # The pyarrow shim is for @stlite/cloudflare, whose runtime (Pyodide
-      # 0.29.x) has older Python and pandas than the workspace locks.
-      - name: Run the pyarrow shim's tests on Cloudflare's runtime versions
-        working-directory: packages/kernel/py/stlite-lib
-        run: scripts/test-pyarrow-shim-on-cloudflare-runtime.sh -v
-
-  test-browser:
-    needs: changes
-    if: ${{ needs.changes.outputs.browser == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
+      ## @stlite/browser
+      - name: "@stlite/browser: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.browser == 'true' }}
         working-directory: packages/browser
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Lint
         run: |
           yarn check:lint
           yarn check:format
-      - run: yarn test
+      - name: "@stlite/browser: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.browser == 'true' }}
+        working-directory: packages/browser
+        run: yarn test
 
-  test-react:
-    needs: changes
-    if: ${{ needs.changes.outputs.react == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
+      ## @stlite/react
+      - name: "@stlite/react: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.react == 'true' }}
         working-directory: packages/react
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Lint
         run: |
           yarn check:lint
           yarn check:format
-      - run: yarn test
+      - name: "@stlite/react: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.react == 'true' }}
+        working-directory: packages/react
+        run: yarn test
 
-  test-sharing:
-    needs: changes
-    if: ${{ needs.changes.outputs.sharing == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
+      ## @stlite/sharing
+      - name: "@stlite/sharing: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.sharing == 'true' }}
         working-directory: packages/sharing
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-          protoc: false
-
-      - name: Lint
         run: |
           yarn check:lint
           yarn check:format
-    # - run: yarn test
 
-  test-sharing-editor:
-    needs: changes
-    if: ${{ needs.changes.outputs.sharing-editor == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: packages/sharing-editor
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-
-      - run: make sharing-common
-        working-directory: .
-
-      - name: Lint
-        run: |
-          yarn check:lint
-          yarn check:format
-      - run: yarn test
-
-  test-sharing-common:
-    needs: changes
-    if: ${{ needs.changes.outputs.sharing-common == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: packages/sharing-common
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Lint
-        run: |
-          yarn check:lint
-          yarn check:format
-      - run: yarn build:proto
-      - run: yarn test
-
-  test-desktop:
-    needs: changes
-    if: ${{ needs.changes.outputs.desktop == 'true' }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest] # The desktop package contains OS-dependent file paths manipulations differing between POSIX and Windows.
-
-    runs-on: ${{ matrix.os }}
-
-    defaults:
-      run:
+      ## @stlite/desktop
+      # Also tested on Windows by test-windows: the package contains OS-dependent
+      # file path manipulations differing between POSIX and Windows.
+      - name: "@stlite/desktop: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.desktop == 'true' }}
         working-directory: packages/desktop
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-          protoc: false
-
-      - name: Lint
-        # Skip on non-Linux because `git checkout` on Windows converts LF -> CRLF
-        # (autocrlf default) and oxfmt 0.45.0 rejects `endOfLine: "auto"` (only
-        # `lf`/`crlf`/`cr` are accepted), so `yarn check:format` fails on every
-        # file. Lint/format correctness is platform-independent, so running on
-        # ubuntu-latest is sufficient. Revisit if oxfmt adds `"auto"` support.
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           yarn check:lint
           yarn check:format
-      - run: yarn test
+      - name: "@stlite/desktop: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.desktop == 'true' }}
+        working-directory: packages/desktop
+        run: yarn test
 
-  test-cli:
-    needs: changes
-    if: ${{ needs.changes.outputs.cli == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-
-      # Generate `_proto/models.py` and `_runtime_version.py` first — pyright
-      # follows imports through them, and the parity test exec's both bins
-      # which import them at runtime. The JS bundle (`make cli`) is also
-      # needed for the parity test, so build it here in one shot.
-      - name: Build cli + Python proto + Python runtime-version
-        run: |
-          . .venv/bin/activate
-          make cli cli-py-proto cli-py-runtime-version
-
-      - name: Lint (TS)
-        run: |
-          yarn workspace @stlite/cli check:lint
-          yarn workspace @stlite/cli check:format
-
-      - name: Lint (Python)
-        run: |
-          . .venv/bin/activate
-          uv run --project packages/cli/py ruff check packages/cli/py
-          uv run --project packages/cli/py ruff format --check packages/cli/py
-
-      - name: Pyright (Python)
-        run: |
-          . .venv/bin/activate
-          uv run --project packages/cli/py pyright packages/cli/py
-
-      - name: Pytest (Python)
-        run: |
-          . .venv/bin/activate
-          uv run --project packages/cli/py pytest packages/cli/py/tests
-
-      - name: Vitest (TS, includes cross-runtime parity)
-        # vitest auto-detects CI=true and runs once instead of watching, so
-        # no explicit `--run` flag needed.
-        run: yarn workspace @stlite/cli test
-
-  test-arrow-ipc-writer:
-    needs: changes
-    if: ${{ needs.changes.outputs.arrow-ipc-writer == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    steps:
-      # `init-all` builds the venv with `make venv`, which needs the submodule.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Run Ruff
+      ## arrow-ipc-writer
+      - name: "arrow-ipc-writer: Ruff"
+        if: ${{ !cancelled() && needs.changes.outputs.arrow-ipc-writer == 'true' }}
         working-directory: packages/arrow-ipc-writer
         run: |
           uv run --package arrow-ipc-writer ruff check --output-format=github .
           uv run --package arrow-ipc-writer ruff format --check .
-
-      - name: Run pyright
+      - name: "arrow-ipc-writer: Pyright"
+        if: ${{ !cancelled() && needs.changes.outputs.arrow-ipc-writer == 'true' }}
         working-directory: packages/arrow-ipc-writer
         run: uv run --package arrow-ipc-writer pyright
-
-      - name: Run pytest
+      - name: "arrow-ipc-writer: Pytest"
+        if: ${{ !cancelled() && needs.changes.outputs.arrow-ipc-writer == 'true' }}
         working-directory: packages/arrow-ipc-writer
         run: uv run --package arrow-ipc-writer pytest -v
-
       # The writer is for @stlite/cloudflare, whose runtime (Pyodide 0.29.x)
       # has older Python and pandas than the workspace locks.
-      - name: Run pytest on Cloudflare's runtime versions
+      - name: "arrow-ipc-writer: Pytest on Cloudflare's runtime versions"
+        if: ${{ !cancelled() && needs.changes.outputs.arrow-ipc-writer == 'true' }}
         working-directory: packages/arrow-ipc-writer
         run: scripts/test-on-cloudflare-runtime.sh -v
 
-  test-cloudflare:
-    needs: changes
-    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
+      ## @stlite/cloudflare
+      - name: "@stlite/cloudflare: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.cloudflare == 'true' }}
         working-directory: packages/cloudflare
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-          protoc: false
-
-      - name: Lint
         run: |
           yarn check:lint
           yarn check:format
           uv run --project . ruff check --output-format=github py tests
           uv run --project . ruff format --check py tests
-
       # The pytest suite covers the Worker runtime modules and the Python
-      # vendoring helper; it needs uv. The Node toolchain above is for the yarn
-      # lint/format/test:js steps.
-      - run: yarn test
-
+      # vendoring helper; it needs uv.
+      - name: "@stlite/cloudflare: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.cloudflare == 'true' }}
+        working-directory: packages/cloudflare
+        run: yarn test
       # Cross-platform unit tests for the Node fs helpers (dir mirroring,
-      # wheel lookup). test-cloudflare-windows runs these same tests on Windows
-      # for cross-platform signal.
-      - run: yarn test:js
+      # wheel lookup). test-windows runs these same tests on Windows for
+      # cross-platform signal.
+      - name: "@stlite/cloudflare: Test (JS)"
+        if: ${{ !cancelled() && needs.changes.outputs.cloudflare == 'true' }}
+        working-directory: packages/cloudflare
+        run: yarn test:js
 
-  test-cloudflare-windows:
-    # The stlite-cloudflare build is cross-platform; this job is its Windows
-    # coverage. It runs only the Node fs-helper tests, not the full build, for
-    # the reason called out at the `yarn test:js` line below.
+      ## stlite-lib
+      - name: "stlite-lib: Set up Streamlit and build proto"
+        id: stlite-lib-proto
+        if: ${{ !cancelled() && needs.changes.outputs.stlite-lib == 'true' }}
+        run: |
+          . .venv/bin/activate
+          make streamlit-proto
+      - name: "stlite-lib: Ruff"
+        if: ${{ !cancelled() && steps.stlite-lib-proto.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run ruff check --output-format=github .
+          uv run ruff format . --check
+      - name: "stlite-lib: Pyright"
+        if: ${{ !cancelled() && steps.stlite-lib-proto.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run pyright
+      - name: "stlite-lib: Pytest"
+        if: ${{ !cancelled() && steps.stlite-lib-proto.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          cd packages/kernel/py/stlite-lib
+          uv run pytest -v
+      # The pyarrow shim is for @stlite/cloudflare, whose runtime (Pyodide
+      # 0.29.x) has older Python and pandas than the workspace locks.
+      - name: "stlite-lib: Run the pyarrow shim's tests on Cloudflare's runtime versions"
+        if: ${{ !cancelled() && steps.stlite-lib-proto.outcome == 'success' }}
+        working-directory: packages/kernel/py/stlite-lib
+        run: scripts/test-pyarrow-shim-on-cloudflare-runtime.sh -v
+
+      ## @stlite/common
+      - name: "@stlite/common: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.common == 'true' }}
+        working-directory: packages/common
+        run: |
+          yarn check:lint
+          yarn check:format
+      - name: "@stlite/common: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.common == 'true' }}
+        working-directory: packages/common
+        run: yarn test
+      - name: "@stlite/common: Build"
+        if: ${{ !cancelled() && needs.changes.outputs.common == 'true' }}
+        working-directory: packages/common
+        run: yarn build
+
+      ## @stlite/sharing-common
+      - name: "@stlite/sharing-common: Lint"
+        if: ${{ !cancelled() && needs.changes.outputs.sharing-common == 'true' }}
+        working-directory: packages/sharing-common
+        run: |
+          yarn check:lint
+          yarn check:format
+      - name: "@stlite/sharing-common: Build proto"
+        id: sharing-common-proto
+        if: ${{ !cancelled() && needs.changes.outputs.sharing-common == 'true' }}
+        working-directory: packages/sharing-common
+        run: yarn build:proto
+      - name: "@stlite/sharing-common: Test"
+        if: ${{ !cancelled() && steps.sharing-common-proto.outcome == 'success' }}
+        working-directory: packages/sharing-common
+        run: yarn test
+
+      ## @stlite/sharing-editor
+      - name: "@stlite/sharing-editor: Build @stlite/sharing-common"
+        id: sharing-editor-deps
+        if: ${{ !cancelled() && needs.changes.outputs.sharing-editor == 'true' }}
+        run: make sharing-common
+      - name: "@stlite/sharing-editor: Lint"
+        if: ${{ !cancelled() && steps.sharing-editor-deps.outcome == 'success' }}
+        working-directory: packages/sharing-editor
+        run: |
+          yarn check:lint
+          yarn check:format
+      - name: "@stlite/sharing-editor: Test"
+        if: ${{ !cancelled() && steps.sharing-editor-deps.outcome == 'success' }}
+        working-directory: packages/sharing-editor
+        run: yarn test
+
+      ## @stlite/cli
+      # Generate `_proto/models.py` and `_runtime_version.py` first — pyright
+      # follows imports through them, and the parity test exec's both bins
+      # which import them at runtime. The JS bundle (`make cli`) is also
+      # needed for the parity test, so build it here in one shot.
+      - name: "@stlite/cli: Build cli + Python proto + Python runtime-version"
+        id: cli-build
+        if: ${{ !cancelled() && needs.changes.outputs.cli == 'true' }}
+        run: |
+          . .venv/bin/activate
+          make cli cli-py-proto cli-py-runtime-version
+      - name: "@stlite/cli: Lint (TS)"
+        if: ${{ !cancelled() && steps.cli-build.outcome == 'success' }}
+        run: |
+          yarn workspace @stlite/cli check:lint
+          yarn workspace @stlite/cli check:format
+      - name: "@stlite/cli: Lint (Python)"
+        if: ${{ !cancelled() && steps.cli-build.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py ruff check packages/cli/py
+          uv run --project packages/cli/py ruff format --check packages/cli/py
+      - name: "@stlite/cli: Pyright (Python)"
+        if: ${{ !cancelled() && steps.cli-build.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py pyright packages/cli/py
+      - name: "@stlite/cli: Pytest (Python)"
+        if: ${{ !cancelled() && steps.cli-build.outcome == 'success' }}
+        run: |
+          . .venv/bin/activate
+          uv run --project packages/cli/py pytest packages/cli/py/tests
+      - name: "@stlite/cli: Vitest (TS, includes cross-runtime parity)"
+        # vitest auto-detects CI=true and runs once instead of watching, so
+        # no explicit `--run` flag needed.
+        if: ${{ !cancelled() && steps.cli-build.outcome == 'success' }}
+        run: yarn workspace @stlite/cli test
+
+  test-windows:
     needs: changes
-    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+    if: ${{ needs.changes.outputs.desktop == 'true' || needs.changes.outputs.cloudflare == 'true' }}
 
     runs-on: windows-latest
 
-    defaults:
-      run:
-        working-directory: packages/cloudflare
-
     steps:
       # Submodules are needed only so the yarn workspace install can resolve all
-      # members (the streamlit frontend workspaces); the helper tests themselves
-      # don't touch the submodule.
+      # members (the streamlit frontend workspaces); the tests themselves don't
+      # touch the submodule.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -627,17 +474,34 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
           protoc: false
 
-      # The end-to-end build can't be verified on Windows yet: its one required
-      # subprocess, `uv run pywrangler sync`, aborts there — pywrangler
-      # (Cloudflare's workers-py) fails to locate its pyodide-venv interpreter at
-      # `.venv-workers\pyodide-venv\Scripts\python.exe`. That's upstream, not our
-      # code, so until it's fixed the full build runs on Linux
-      # (verify-cloudflare-standalone) and these Node helper tests give the
-      # Windows signal for our fs helpers.
-      - run: yarn test:js
+      # @stlite/desktop contains OS-dependent file path manipulations differing
+      # between POSIX and Windows.
+      # Lint is skipped here because `git checkout` on Windows converts LF ->
+      # CRLF (autocrlf default) and oxfmt 0.45.0 rejects `endOfLine: "auto"`
+      # (only `lf`/`crlf`/`cr` are accepted), so `yarn check:format` fails on
+      # every file. Lint/format correctness is platform-independent, so the
+      # `test` job's run on Linux is sufficient. Revisit if oxfmt adds `"auto"`
+      # support.
+      - name: "@stlite/desktop: Test"
+        if: ${{ !cancelled() && needs.changes.outputs.desktop == 'true' }}
+        working-directory: packages/desktop
+        run: yarn test
+
+      # The stlite-cloudflare build is cross-platform; this is its Windows
+      # coverage. It runs only the Node fs-helper tests, not the full build:
+      # the end-to-end build can't be verified on Windows yet, because its one
+      # required subprocess, `uv run pywrangler sync`, aborts there —
+      # pywrangler (Cloudflare's workers-py) fails to locate its pyodide-venv
+      # interpreter at `.venv-workers\pyodide-venv\Scripts\python.exe`. That's
+      # upstream, not our code, so until it's fixed the full build runs on
+      # Linux (verify-cloudflare-standalone) and these Node helper tests give
+      # the Windows signal for our fs helpers.
+      - name: "@stlite/cloudflare: Test (JS)"
+        if: ${{ !cancelled() && needs.changes.outputs.cloudflare == 'true' }}
+        working-directory: packages/cloudflare
+        run: yarn test:js
 
   build-browser:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -696,8 +560,8 @@ jobs:
           key: browser
           name: "@stlite/browser"
           input-path: packages/browser/package.tgz
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
       # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
       - name: Get the built wheel file path
@@ -716,8 +580,8 @@ jobs:
           key: stlite-lib-wheel
           name: "stlite-lib wheel (built as a part of @stlite/browser)"
           input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
       - name: "Inform the package stats of streamlit wheel"
         uses: ./.github/actions/set-package-stats
         continue-on-error: true
@@ -725,11 +589,10 @@ jobs:
           key: streamlit-wheel
           name: "streamlit wheel (built as a part of @stlite/browser)"
           input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-react:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -775,11 +638,10 @@ jobs:
           key: react
           name: "@stlite/react"
           input-path: packages/react/package.tgz
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-sharing:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -797,10 +659,10 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
       ## Build and upload @stlite/sharing
       - name: Set EDITOR_APP_ORIGIN (preview)
-        if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
+        if: ${{ env.BUILD_BRANCH != github.event.repository.default_branch }}
         run: echo "EDITOR_APP_ORIGIN_REGEX=^https://[a-z0-9-]+\.stlite-sharing-editor\.pages\.dev$" >> $GITHUB_ENV
       - name: Set EDITOR_APP_ORIGIN (main branch)
-        if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
+        if: ${{ env.BUILD_BRANCH == github.event.repository.default_branch }}
         run: echo "EDITOR_APP_ORIGIN=https://edit.share.stlite.net" >> $GITHUB_ENV
       - name: Build @stlite/sharing
         run: |
@@ -827,11 +689,10 @@ jobs:
           key: sharing
           name: "stlite sharing"
           input-path: packages/sharing/build
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-sharing-editor:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -847,10 +708,10 @@ jobs:
           node-version-file: ${{ env.node-version-file }}
 
       - name: Set build option envvar for the preview build
-        if: ${{ needs.set-build-info.outputs.branch != github.event.repository.default_branch }}
+        if: ${{ env.BUILD_BRANCH != github.event.repository.default_branch }}
         run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
       - name: Set SHARING_APP_URL (main branch)
-        if: ${{ needs.set-build-info.outputs.branch == github.event.repository.default_branch }}
+        if: ${{ env.BUILD_BRANCH == github.event.repository.default_branch }}
         run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
       - run: make sharing-editor
 
@@ -874,11 +735,10 @@ jobs:
           key: sharing-editor
           name: "stlite sharing editor"
           input-path: packages/sharing-editor/dist
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-desktop:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -934,11 +794,10 @@ jobs:
           key: desktop
           name: "@stlite/desktop"
           input-path: packages/desktop/package.tgz
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-cli:
-    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -984,8 +843,8 @@ jobs:
           key: cli
           name: "@stlite/cli"
           input-path: packages/cli/package.tgz
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-cloudflare:
     # Unlike the always-built packages above, this build compiles the
@@ -994,7 +853,7 @@ jobs:
     # changed; RUN_ALL_TESTS makes that always true on main, which is what the
     # postbuild publish/deploy jobs rely on.
     if: ${{ needs.changes.outputs.cloudflare == 'true' }}
-    needs: [set-build-info, changes]
+    needs: changes
 
     runs-on: ubuntu-latest
 
@@ -1038,8 +897,8 @@ jobs:
           key: cloudflare
           name: "@stlite/cloudflare"
           input-path: packages/cloudflare/package.tgz
-          pr-number: ${{ needs.set-build-info.outputs.pr-number }}
-          sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   verify-cloudflare-standalone:
     # Build the hello demo from the PACKED TARBALL, outside the monorepo, the way
@@ -1055,7 +914,7 @@ jobs:
     # note in the test-cloudflare-windows job above). Our own build code is
     # cross-platform and gets Windows coverage there via the helper tests.
     if: ${{ needs.changes.outputs.cloudflare == 'true' }}
-    needs: [set-build-info, changes, build-cloudflare]
+    needs: [changes, build-cloudflare]
 
     runs-on: ubuntu-latest
 
@@ -1282,23 +1141,11 @@ jobs:
     if: ${{ !cancelled() }}
     needs:
       [
-        set-build-info,
         changesets,
         changes,
-        check-python-version,
-        test-build-common,
         test-kernel,
-        test-stlite-lib,
-        test-browser,
-        test-react,
-        test-sharing,
-        test-sharing-editor,
-        test-sharing-common,
-        test-desktop,
-        test-cli,
-        test-arrow-ipc-writer,
-        test-cloudflare,
-        test-cloudflare-windows,
+        test,
+        test-windows,
         build-browser,
         build-react,
         build-sharing,
@@ -1320,17 +1167,8 @@ jobs:
           jobs: ${{ toJSON(needs) }}
           allowed-skips: >-
             changesets,
-            test-build-common,
             test-kernel,
-            test-browser,
-            test-react,
-            test-sharing,
-            test-sharing-editor,
-            test-sharing-common,
-            test-desktop,
-            test-cli,
-            test-arrow-ipc-writer,
-            test-cloudflare,
-            test-cloudflare-windows,
+            test,
+            test-windows,
             build-cloudflare,
             verify-cloudflare-standalone

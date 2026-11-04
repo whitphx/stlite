@@ -243,6 +243,9 @@ jobs:
         with:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
+          # This job saves the dependency caches every other job restores.
+          # It runs on every push, and isn't on the critical path.
+          save-caches: true
 
       ## @stlite/browser
       - name: "@stlite/browser: Lint"

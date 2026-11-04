@@ -32,9 +32,9 @@ export function toAlphabeticString(num: number): string {
 
 // The counter only separates ids within this module instance.
 // A separately bundled copy of this package on the same page
-// starts its own counter at 0, so a random part follows it.
-// Neither is cut to a fixed total length,
-// which would eventually drop the random part and then repeat ids.
+// starts its own counter at 0, so random characters follow it.
+// The id is not cut to a fixed length.
+// A cut would eventually drop the random part and then repeat ids.
 export function generateUniqueId(): string {
   return `${toAlphabeticString(idCounter++)}${randomChars(7)}`;
 }

@@ -134,8 +134,8 @@ describe("appStyles", () => {
       ),
       ...declarations(compile(appScopedStyles(theme, ROOT)), unscope),
       // These style the host page's document, so they may touch nothing else.
-      // Its body isn't labelled `body`, or the document's resets
-      // would stand in for ones missing from the app root.
+      // The document's body gets its own label,
+      // so its resets can't stand in for ones missing from the app root.
       ...declarations(
         compile(documentStyles),
         only({ html: "html", body: "document-body" }),

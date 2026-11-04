@@ -103,18 +103,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # Checks only that the minor version in `.python-version` matches the
-      # Python bundled in Pyodide; it does not check that the patch is the
-      # latest CPython release. Renovate's patch-only `pyenv` updates keep the
-      # patch current (see `.github/renovate.json5`), and failing here on every
-      # new CPython release would turn unrelated PRs red until that bump lands.
-      # This catches a minor mismatch in seconds (for example, a Pyodide bump to
-      # a new Python minor that leaves `.python-version` behind), before the
-      # builds below reach the same check in the Makefile's `streamlit-wheel`
-      # target. It runs in this job, which every other job waits for anyway,
-      # instead of taking a runner of its own.
-      - name: Check the Python version
-        run: .github/scripts/check-python-version.sh
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
@@ -245,7 +233,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Checks only that the minor version in `.python-version` matches the
+      # Python bundled in Pyodide; it does not check that the patch is the
+      # latest CPython release. Renovate's patch-only `pyenv` updates keep the
+      # patch current (see `.github/renovate.json5`), and failing here on every
+      # new CPython release would turn unrelated PRs red until that bump lands.
+      # This catches a minor mismatch in seconds (for example, a Pyodide bump to
+      # a new Python minor that leaves `.python-version` behind), before the
+      # builds below reach the same check in the Makefile's `streamlit-wheel`
+      # target. It runs first in this job, which always runs, instead of
+      # taking a runner of its own; `!cancelled()` on the steps below keeps
+      # every package's checks reporting when it fails.
+      - name: Check the Python version
+        run: .github/scripts/check-python-version.sh
+
       - uses: ./.github/actions/init-all
+        if: ${{ !cancelled() }}
         with:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}

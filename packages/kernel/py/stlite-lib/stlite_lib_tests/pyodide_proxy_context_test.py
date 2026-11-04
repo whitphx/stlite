@@ -93,7 +93,7 @@ def test_async_callback_task_inherits_the_creation_context_with_a_task_factory(
         return var.get()
 
     async def main():
-        # Pyodide's WebLoop calls a task factory without the ``context`` argument.
+        # A factory that ignores the ``context`` argument.
         asyncio.get_running_loop().set_task_factory(
             lambda loop, coro, **_: asyncio.Task(coro, loop=loop)
         )

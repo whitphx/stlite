@@ -30,20 +30,15 @@ export function toAlphabeticString(num: number): string {
   return chars.join("");
 }
 
-export function generateUniqueId(length = 8): string {
-  if (length <= 0) return "";
-
-  const counterPart = toAlphabeticString(idCounter++);
-  const timePart = toAlphabeticString(Date.now());
-  const base = `${counterPart}${timePart}${randomChars(length)}`;
-
-  if (base.length >= length) {
-    return base.slice(0, length);
-  }
-
-  return `${base}${randomChars(length - base.length)}`;
+// The counter only separates ids within this module instance.
+// A separately bundled copy of this package on the same page
+// starts its own counter at 0, so random characters follow it.
+// The id is not cut to a fixed length.
+// A cut would eventually drop the random part and then repeat ids.
+export function generateUniqueId(): string {
+  return `${toAlphabeticString(idCounter++)}${randomChars(7)}`;
 }
 
-export function useUniqueId(length = 8): string {
-  return useMemo(() => generateUniqueId(length), [length]);
+export function useUniqueId(): string {
+  return useMemo(() => generateUniqueId(), []);
 }

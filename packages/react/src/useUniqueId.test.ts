@@ -54,15 +54,29 @@ describe("useUniqueId", () => {
   });
 
   it("produces unique ids even with identical randomness", () => {
-    vi.spyOn(Date, "now").mockReturnValue(1_000_000);
-    vi.spyOn(Math, "random").mockReturnValue(0);
+    vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(
+      (array) => array,
+    );
 
-    const first = generateUniqueId(8);
-    const second = generateUniqueId(8);
+    const first = generateUniqueId();
+    const second = generateUniqueId();
 
     expect(first).not.toBe(second);
     expect(first).toMatch(/^[a-z]+$/);
     expect(second).toMatch(/^[a-z]+$/);
+  });
+
+  it("produces unique ids across separately loaded module instances", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
+
+    vi.resetModules();
+    const first = (await import("./useUniqueId")).generateUniqueId();
+    vi.resetModules();
+    const second = (await import("./useUniqueId")).generateUniqueId();
+
+    // Comparing two random ids rarely catches a shortened random part.
+    expect(first).toMatch(/^a[a-z]{7}$/);
+    expect(first).not.toBe(second);
   });
 
   it("memoizes the id across renders", () => {
@@ -72,17 +86,5 @@ describe("useUniqueId", () => {
     rerender();
 
     expect(result.current).toBe(firstId);
-  });
-
-  it("regenerates when the requested length changes", () => {
-    const { result, rerender } = renderHook(
-      ({ length }) => useUniqueId(length),
-      { initialProps: { length: 3 } },
-    );
-
-    rerender({ length: 4 });
-
-    expect(result.current).toHaveLength(4);
-    expect(result.current).not.toBe("aaa");
   });
 });

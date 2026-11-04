@@ -119,6 +119,11 @@ runs:
           streamlit/frontend/*/node_modules
           docs/node_modules
         key: ${{ runner.os }}-node-modules-${{ steps.node-version.outputs.version }}-${{ hashFiles('yarn.lock', '.yarnrc.yml', 'package.json', 'packages/*/package.json', 'packages/desktop/samples/*/package.json', 'packages/cloudflare/samples/*/package.json', 'streamlit/frontend/package.json', 'streamlit/frontend/*/package.json', 'docs/package.json') }}
+        # Without a snapshot for these manifests, the latest one for another
+        # set: `yarn install` below then changes only what differs, as it does
+        # in a developer's checkout (a dependency bump: ~10s instead of ~1 min).
+        restore-keys: |
+          ${{ runner.os }}-node-modules-${{ steps.node-version.outputs.version }}-
       if: ${{ runner.os == 'Linux' && inputs.node-version-file && inputs.install-node-modules == 'true' }}
     - name: Mark node_modules as installed
       run: |

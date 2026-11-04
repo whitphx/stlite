@@ -21,10 +21,11 @@ C layer and is not covered.
 
 The proxy holds the wrapper, not the callable itself. So ``proxy.unwrap()``,
 and a ``roundtrip=False`` proxy passed back from JS, give Python the wrapper.
-Calls and attribute access still reach the callable, but ``is`` and
-``isinstance`` checks against it fail.
+Calls and most attribute access still reach the callable, but the wrapper
+compares and hashes as itself: ``is``, ``==``, ``isinstance`` and dict or set
+lookups against the original fail.
 
-An upstream API that would cover both gaps, and could replace this module, is
+An upstream API that could close both gaps, and replace this module, is being
 discussed in https://github.com/pyodide/pyodide/issues/6492.
 
 ``install()`` has to run before any app code imports the helpers by name,

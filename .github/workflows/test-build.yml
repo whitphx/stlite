@@ -1035,14 +1035,17 @@ jobs:
           npm init -y >/dev/null
           npm install "${{ runner.temp }}/pkg/package.tgz" wrangler $PLAYWRIGHT
 
-      # Chromium and its system packages (apt) take 15s to 2 minutes to
-      # install, depending on the mirror. They install in the background while
-      # the lane builds its sample; the smoke test waits for them.
+      # Chromium installs in the background while the lane builds its sample;
+      # the smoke test waits for it. Without `--with-deps`: the runner image
+      # already has every library Chromium needs, and the rest is fonts from
+      # apt, which the smoke tests don't look at and which a slow mirror has
+      # taken five minutes to deliver. A library missing from a future image
+      # fails Chromium's launch, not silently.
       - name: Start installing Playwright's Chromium
         if: ${{ matrix.lane == 'plain-worker' || matrix.lane == 'durable-object' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
-          nohup bash -c 'npx playwright install --with-deps chromium > "$RUNNER_TEMP/playwright-install.log" 2>&1; echo $? > "$RUNNER_TEMP/playwright-install.status.tmp"; mv "$RUNNER_TEMP/playwright-install.status.tmp" "$RUNNER_TEMP/playwright-install.status"' > /dev/null 2>&1 &
+          nohup bash -c 'npx playwright install chromium > "$RUNNER_TEMP/playwright-install.log" 2>&1; echo $? > "$RUNNER_TEMP/playwright-install.status.tmp"; mv "$RUNNER_TEMP/playwright-install.status.tmp" "$RUNNER_TEMP/playwright-install.status"' > /dev/null 2>&1 &
 
       - name: Build the hello sample from the packed tarball
         if: ${{ matrix.lane == 'plain-worker' }}

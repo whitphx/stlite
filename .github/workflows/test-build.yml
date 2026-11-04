@@ -995,9 +995,10 @@ jobs:
           - plain-worker
           # The default deployment mode, booted in a real browser.
           - durable-object
-          # The wrangler-config shapes the merger supports, and the
-          # --asset-runtime opt-out.
-          - configs-and-asset-runtime
+          # The wrangler-config shapes the merger supports.
+          - configs
+          # The --asset-runtime opt-out.
+          - asset-runtime
 
     name: verify-cloudflare-standalone (${{ matrix.lane }})
 
@@ -1153,7 +1154,7 @@ jobs:
       # The same Durable Object build as the durable-object lane's: the
       # wrangler-config shapes below are dry-run against it.
       - name: Build the minimal sample in default Durable Object mode (for the config shapes)
-        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
+        if: ${{ matrix.lane == 'configs' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
@@ -1168,7 +1169,7 @@ jobs:
       # legacy migrations, exports style, external bindings, ...) validated
       # against real wrangler.
       - name: Dry-run the supported wrangler-config shapes
-        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
+        if: ${{ matrix.lane == 'configs' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
@@ -1179,7 +1180,7 @@ jobs:
       # unpacks at cold start. Build it once and boot it in local workerd, so
       # that loader path keeps end-to-end coverage.
       - name: Build and boot an --asset-runtime Worker
-        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
+        if: ${{ matrix.lane == 'asset-runtime' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux

@@ -173,14 +173,18 @@ jobs:
 
     # The suite boots Pyodide in each test file, one file at a time (see
     # packages/kernel/vitest.config.ts), and src/worker-runtime.test.ts takes
-    # three quarters of its 2.5-4 minutes. That file and the rest run in
-    # parallel jobs, each with the same per-file serialization.
+    # three quarters of its 2.5-4 minutes, running its tests one by one. That
+    # file runs in two jobs, split by suite name, and the other files in a
+    # third. The second pattern is the first one negated, so between them the
+    # two jobs run every test in the file, including any suite added later.
     strategy:
       fail-fast: false
       matrix:
         include:
-          - files: worker-runtime
-            vitest-args: src/worker-runtime.test.ts
+          - files: worker-runtime-1
+            vitest-args: src/worker-runtime.test.ts -t '^(Worker integration test running an app with multiple appId|Worker language server test) '
+          - files: worker-runtime-2
+            vitest-args: src/worker-runtime.test.ts -t '^(?!(Worker integration test running an app with multiple appId|Worker language server test) )'
           - files: others
             vitest-args: --exclude src/worker-runtime.test.ts
 

@@ -134,9 +134,11 @@ describe("appStyles", () => {
       ),
       ...declarations(compile(appScopedStyles(theme, ROOT)), unscope),
       // These style the host page's document, so they may touch nothing else.
+      // Its body isn't labelled `body`, or the document's resets
+      // would stand in for ones missing from the app root.
       ...declarations(
         compile(documentStyles),
-        only({ html: "html", body: "body" }),
+        only({ html: "html", body: "document-body" }),
       ),
     ].sort();
 
@@ -155,7 +157,8 @@ describe("appStyles", () => {
         // The other half of the html font-size move above.
         "body font-size:17px",
         // documentStyles makes the document fill the viewport with no margin.
-        "body height:100%",
+        "document-body height:100%",
+        "document-body margin:0",
         "html height:100%",
         "html margin:0",
       ],
@@ -167,11 +170,15 @@ describe("appStyles", () => {
   it("keeps only the box-sizing reset at the root's class specificity", () => {
     const rootSpecific = declarations(
       compile(appScopedStyles(theme, ROOT)),
-      scopeOf,
-    ).filter((entry) => entry.split(" ").includes("root"));
-
-    expect(new Set(rootSpecific)).toEqual(
-      new Set(["root box-sizing:border-box"]),
+      (selector) => `${scopeOf(selector)}:${unscope(selector)}`,
+    ).filter((entry) =>
+      entry.split(" ").some((part) => part.startsWith("root:")),
     );
+
+    expect(rootSpecific).toEqual([
+      "root:* box-sizing:border-box",
+      "root:*::after box-sizing:border-box",
+      "root:*::before box-sizing:border-box",
+    ]);
   });
 });

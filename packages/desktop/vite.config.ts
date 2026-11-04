@@ -10,6 +10,12 @@ export default defineConfig(({ mode }) => ({
   base: "/",
   plugins: [
     react({
+      // `@stlite/react` is a workspace package, so its prebuilt bundle resolves to
+      // packages/react/build/, not under the node_modules/ the default `exclude`
+      // skips. Babel would re-parse and reprint that whole bundle, for about half
+      // a minute of this build, without changing what the code does: the Emotion
+      // plugin already ran when @stlite/react was built.
+      exclude: [/\/node_modules\//, /\/packages\/react\/build\//],
       //   jsxImportSource: "@emotion/react",
       //   plugins: [["@swc/plugin-emotion", {}]],
       babel: {

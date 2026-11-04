@@ -1023,7 +1023,13 @@ jobs:
         with:
           enable-cache: true
 
+      # The download takes seconds, but the action has once stayed running
+      # for three minutes after logging that it had finished. A download cut
+      # short by the timeout leaves no tarball, or a truncated one, and the
+      # install below fails on it.
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        timeout-minutes: 1
+        continue-on-error: true
         with:
           name: stlite-cloudflare
           path: ${{ runner.temp }}/pkg

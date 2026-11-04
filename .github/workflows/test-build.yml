@@ -171,6 +171,21 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.kernel == 'true' }}
 
+    # The suite boots Pyodide in each test file, one file at a time (see
+    # packages/kernel/vitest.config.ts), and src/worker-runtime.test.ts takes
+    # three quarters of its 2.5-4 minutes. That file and the rest run in
+    # parallel jobs, each with the same per-file serialization.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - files: worker-runtime
+            vitest-args: src/worker-runtime.test.ts
+          - files: others
+            vitest-args: --exclude src/worker-runtime.test.ts
+
+    name: test-kernel (${{ matrix.files }})
+
     runs-on: ubuntu-latest
 
     defaults:
@@ -191,14 +206,24 @@ jobs:
       - uses: ./.github/actions/react-build-cache
         with:
           step: restore
+      # The cache also holds @stlite/kernel's own build, which `make
+      # kernel-test` doesn't build, and vitest would collect the compiled
+      # *.spec.js files in its dist/ as tests of their own.
+      - name: Remove @stlite/kernel's restored build
+        run: rm -rf dist ./*.tsbuildinfo
 
       - name: Lint
+        if: ${{ matrix.files == 'others' }}
         run: |
           yarn check:lint
           yarn check:format
 
-      - run: make kernel-test
+      # What `make kernel-test` runs, with the matrix's share of the files.
+      - name: Build the wheels and @stlite/common the tests load
+        run: make common stlite-lib-wheel streamlit-wheel
         working-directory: .
+      - name: Test
+        run: yarn test ${{ matrix.vitest-args }}
 
   # The lint and unit tests of every package except @stlite/kernel (whose
   # suite boots Pyodide and runs for minutes on its own). Each package used to

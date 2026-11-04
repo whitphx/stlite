@@ -124,6 +124,7 @@
     "oxlintrc",
     "oxfmt",
     "oxfmtrc",
+    "lintstagedrc",
     "baseui",
     "codedent",
     "toastify",

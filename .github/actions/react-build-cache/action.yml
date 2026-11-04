@@ -108,7 +108,11 @@ runs:
           \( -name node_modules -o -name .git -o -path ./.venv \) -prune \
           -o \( -type f -o -type l \) -newer "$REACT_BUILD_CACHE_MARKER" -print \
           | sort > "$RUNNER_TEMP/react-build.files"
-        echo "Archiving $(wc -l < "$RUNNER_TEMP/react-build.files") files"
+        echo "Archiving $(wc -l < "$RUNNER_TEMP/react-build.files") files, by directory:"
+        # Two levels deep (three under packages/ and the submodule), so an
+        # unexpected entry, such as a virtualenv, stands out in the log.
+        awk -F/ '{ d = ($2 == "packages" || $2 == "streamlit") ? $2"/"$3"/"$4 : $2"/"$3; n[d]++ } END { for (d in n) printf "%7d  %s\n", n[d], d }' \
+          "$RUNNER_TEMP/react-build.files" | sort -k2
         tar -cf "$REACT_BUILD_CACHE_ARCHIVE" -T "$RUNNER_TEMP/react-build.files"
         ls -l "$REACT_BUILD_CACHE_ARCHIVE"
 

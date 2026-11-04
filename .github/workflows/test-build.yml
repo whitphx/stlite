@@ -603,35 +603,6 @@ jobs:
           pr-number: ${{ env.BUILD_PR_NUMBER }}
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
-      # Also get stats of the built wheel files of stlite-lib and streamlit in this job.
-      - name: Get the built wheel file path
-        id: get-wheel-file-path
-        run: |
-          pushd packages/kernel/py/stlite-lib/dist
-          echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
-          popd
-          pushd packages/kernel/py/streamlit/lib/dist
-          echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
-          popd
-      - name: "Inform the package stats of stlite-lib wheel"
-        uses: ./.github/actions/set-package-stats
-        continue-on-error: true
-        with:
-          key: stlite-lib-wheel
-          name: "stlite-lib wheel (built as a part of @stlite/browser)"
-          input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
-          pr-number: ${{ env.BUILD_PR_NUMBER }}
-          sticky-id: ${{ env.BUILD_HEAD_SHA }}
-      - name: "Inform the package stats of streamlit wheel"
-        uses: ./.github/actions/set-package-stats
-        continue-on-error: true
-        with:
-          key: streamlit-wheel
-          name: "streamlit wheel (built as a part of @stlite/browser)"
-          input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
-          pr-number: ${{ env.BUILD_PR_NUMBER }}
-          sticky-id: ${{ env.BUILD_HEAD_SHA }}
-
   build-react:
     runs-on: ubuntu-latest
 
@@ -686,6 +657,37 @@ jobs:
           key: react
           name: "@stlite/react"
           input-path: packages/react/package.tgz
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
+
+      # Also get stats of the built wheel files of stlite-lib and streamlit in
+      # this job: @stlite/react bundles the same wheels the other packages do,
+      # and this job finishes well before the ones that build on @stlite/react.
+      - name: Get the built wheel file path
+        id: get-wheel-file-path
+        run: |
+          pushd packages/kernel/py/stlite-lib/dist
+          echo "STLITE_LIB_WHEEL_FILEPATH=$(find $(pwd) -name "stlite_lib-*-py3-none-any.whl" -print -quit)" >> $GITHUB_OUTPUT
+          popd
+          pushd packages/kernel/py/streamlit/lib/dist
+          echo "STREAMLIT_WHEEL_FILEPATH=$(find $(pwd) -name "streamlit-*.whl" -print -quit)" >> $GITHUB_OUTPUT
+          popd
+      - name: "Inform the package stats of stlite-lib wheel"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: stlite-lib-wheel
+          name: "stlite-lib wheel (built as a part of @stlite/react)"
+          input-path: ${{ steps.get-wheel-file-path.outputs.STLITE_LIB_WHEEL_FILEPATH }}
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
+      - name: "Inform the package stats of streamlit wheel"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: streamlit-wheel
+          name: "streamlit wheel (built as a part of @stlite/react)"
+          input-path: ${{ steps.get-wheel-file-path.outputs.STREAMLIT_WHEEL_FILEPATH }}
           pr-number: ${{ env.BUILD_PR_NUMBER }}
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 

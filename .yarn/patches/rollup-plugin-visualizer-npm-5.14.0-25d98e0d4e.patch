@@ -1,0 +1,32 @@
+diff --git a/dist/plugin/index.js b/dist/plugin/index.js
+index cbac456309032373a79a3209a5f80fa720157afa..863c5e4b1415854b53728214839d537131c08440 100644
+--- a/dist/plugin/index.js
++++ b/dist/plugin/index.js
+@@ -73,6 +73,16 @@ const visualizer = (opts = {}) => {
+             }
+             const roots = [];
+             const mapper = new module_mapper_1.ModuleMapper(projectRoot);
++            // Patched for Stlite: measure every chunk's modules at once, so the
++            // compressions of all chunks share the thread pool instead of the
++            // loop below waiting for each chunk's largest module in turn. The
++            // trees are still built one chunk at a time, in the same order, so
++            // the report is unchanged.
++            const precomputedModules = new Map(await Promise.all(Object.entries(outputBundle)
++                .filter(([, bundle]) => bundle.type === "chunk" && !opts.sourcemap)
++                .map(async ([bundleId, bundle]) => [bundleId, await Promise.all(Object.entries(bundle.modules)
++                    .filter(([id]) => filter(bundleId, id))
++                    .map(([id, { renderedLength, code }]) => getModuleLengths({ id, renderedLength, code }), false))])));
+             // collect trees
+             for (const [bundleId, bundle] of Object.entries(outputBundle)) {
+                 if (bundle.type !== "chunk")
+@@ -91,9 +101,7 @@ const visualizer = (opts = {}) => {
+                     tree = (0, data_1.buildTree)(bundleId, moduleRenderInfo, mapper);
+                 }
+                 else {
+-                    const modules = await Promise.all(Object.entries(bundle.modules)
+-                        .filter(([id]) => filter(bundleId, id))
+-                        .map(([id, { renderedLength, code }]) => getModuleLengths({ id, renderedLength, code }), false));
++                    const modules = precomputedModules.get(bundleId);
+                     tree = (0, data_1.buildTree)(bundleId, modules, mapper);
+                 }
+                 if (tree.children.length === 0) {

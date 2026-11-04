@@ -1024,12 +1024,25 @@ jobs:
 
       - name: Install the packed tarball
         working-directory: ${{ runner.temp }}
+        env:
+          # The lanes that smoke-test in a real browser install Playwright with
+          # the rest, before anything runs from node_modules.
+          PLAYWRIGHT: ${{ (matrix.lane == 'plain-worker' || matrix.lane == 'durable-object') && 'playwright@^1.61.1' || '' }}
         run: |
           set -eux
           mkdir -p standalone
           cd standalone
           npm init -y >/dev/null
-          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
+          npm install "${{ runner.temp }}/pkg/package.tgz" wrangler $PLAYWRIGHT
+
+      # Chromium and its system packages (apt) take 15s to 2 minutes to
+      # install, depending on the mirror. They install in the background while
+      # the lane builds its sample; the smoke test waits for them.
+      - name: Start installing Playwright's Chromium
+        if: ${{ matrix.lane == 'plain-worker' || matrix.lane == 'durable-object' }}
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          nohup bash -c 'npx playwright install --with-deps chromium > "$RUNNER_TEMP/playwright-install.log" 2>&1; echo $? > "$RUNNER_TEMP/playwright-install.status.tmp"; mv "$RUNNER_TEMP/playwright-install.status.tmp" "$RUNNER_TEMP/playwright-install.status"' > /dev/null 2>&1 &
 
       - name: Build the hello sample from the packed tarball
         if: ${{ matrix.lane == 'plain-worker' }}
@@ -1073,8 +1086,11 @@ jobs:
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
-          npm install "playwright@^1.61.1"
-          npx playwright install --with-deps chromium
+          { set +x; } 2>/dev/null
+          until [ -f "$RUNNER_TEMP/playwright-install.status" ]; do sleep 2; done
+          set -x
+          cat "$RUNNER_TEMP/playwright-install.log"
+          test "$(cat "$RUNNER_TEMP/playwright-install.status")" = 0
           cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/scripts/browser-smoke.mjs" .
           (cd dist && npx wrangler dev --port 8787 >"$RUNNER_TEMP/wrangler-dev.log" 2>&1 &)
           for i in $(seq 1 60); do
@@ -1141,8 +1157,11 @@ jobs:
           curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
           # Real-browser smoke in DO mode: renders over the WebSocket
           # session and asserts the Worker-env var surfaced via st.secrets.
-          npm install "playwright@^1.61.1"
-          npx playwright install --with-deps chromium
+          { set +x; } 2>/dev/null
+          until [ -f "$RUNNER_TEMP/playwright-install.status" ]; do sleep 2; done
+          set -x
+          cat "$RUNNER_TEMP/playwright-install.log"
+          test "$(cat "$RUNNER_TEMP/playwright-install.status")" = 0
           cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/scripts/browser-smoke.mjs" ./minimal-smoke.mjs
           STLITE_CLOUDFLARE_URL=http://127.0.0.1:8788/ STLITE_SMOKE_TIMEOUT_MS=120000 node minimal-smoke.mjs || {
             echo "::group::wrangler dev (DO) log"

@@ -58,7 +58,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           # `fetch-depth: 0` is required to create tags for new releases by Changesets.
           fetch-depth: 0
           # `persist-credentials: false` keeps the checkout token out of the git config.
@@ -225,7 +224,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -253,7 +251,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -277,7 +274,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -328,7 +324,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -354,7 +349,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -380,7 +374,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -407,7 +400,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -435,7 +427,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -466,7 +457,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -495,7 +485,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -548,7 +537,6 @@ jobs:
       # `init-all` builds the venv with `make venv`, which needs the submodule.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -588,7 +576,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -633,7 +620,6 @@ jobs:
       # don't touch the submodule.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -651,15 +637,7 @@ jobs:
       - run: yarn test:js
 
   build-browser:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs:
-      [
-        set-build-info,
-        test-kernel,
-        test-stlite-lib,
-        test-build-common,
-        test-browser,
-      ]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -671,7 +649,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -752,15 +729,7 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-react:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed.
-    needs:
-      [
-        set-build-info,
-        test-kernel,
-        test-stlite-lib,
-        test-build-common,
-        test-react,
-      ]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -772,7 +741,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -811,15 +779,7 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-sharing:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs:
-      [
-        set-build-info,
-        test-kernel,
-        test-stlite-lib,
-        test-sharing-common,
-        test-sharing,
-      ]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -829,7 +789,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
 
       - uses: ./.github/actions/init-all
@@ -872,14 +831,7 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-sharing-editor:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs:
-      [
-        set-build-info,
-        test-build-common,
-        test-sharing-editor,
-        test-sharing-common,
-      ]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -889,7 +841,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -927,15 +878,7 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-desktop:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed: https://qiita.com/abetomo/items/d9ede7dbeeb24f723fc5#%E8%A8%AD%E5%AE%9A%E4%BE%8B4
-    needs:
-      [
-        set-build-info,
-        test-build-common,
-        test-kernel,
-        test-stlite-lib,
-        test-desktop,
-      ]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -947,7 +890,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -996,8 +938,7 @@ jobs:
           sticky-id: ${{ needs.set-build-info.outputs.head-sha }}
 
   build-cli:
-    if: ${{ ! failure() }} # This job should run even if the depending jobs are skipped, but not when those jobs failed.
-    needs: [set-build-info, test-build-common, test-cli]
+    needs: set-build-info
 
     runs-on: ubuntu-latest
 
@@ -1009,7 +950,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -1053,9 +993,8 @@ jobs:
     # wheels, so it only runs when the cloudflare package (or a dependency)
     # changed; RUN_ALL_TESTS makes that always true on main, which is what the
     # postbuild publish/deploy jobs rely on.
-    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
-    needs:
-      [set-build-info, changes, test-kernel, test-stlite-lib, test-cloudflare]
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
+    needs: [set-build-info, changes]
 
     runs-on: ubuntu-latest
 
@@ -1067,7 +1006,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
@@ -1116,7 +1054,7 @@ jobs:
     # ubuntu-only: Windows can't run the end-to-end build yet (see the pywrangler
     # note in the test-cloudflare-windows job above). Our own build code is
     # cross-platform and gets Windows coverage there via the helper tests.
-    if: ${{ ! failure() && needs.changes.outputs.cloudflare == 'true' }}
+    if: ${{ needs.changes.outputs.cloudflare == 'true' }}
     needs: [set-build-info, changes, build-cloudflare]
 
     runs-on: ubuntu-latest
@@ -1311,7 +1249,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          submodules: true
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:

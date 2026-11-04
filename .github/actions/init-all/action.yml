@@ -15,10 +15,19 @@ inputs:
     description: "Whether to install protoc"
     required: false
     default: "true"
+  streamlit-submodule:
+    description: 'Whether to check out the `streamlit` submodule. Check out the superproject without `submodules:`; this step does it much faster.'
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
   steps:
+    - name: Check out the streamlit submodule
+      run: .github/scripts/fetch-streamlit-submodule.sh
+      shell: bash
+      if: ${{ inputs.streamlit-submodule == 'true' }}
+
     ## Set up Python
     # The interpreter comes from `actions/setup-python`, not from uv, because
     # the uv pinned below predates the latest CPython patch releases that

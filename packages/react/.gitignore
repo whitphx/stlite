@@ -10,6 +10,7 @@
 
 # production
 /build
+/build-types
 /vite-plugin/dist
 
 # misc

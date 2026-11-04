@@ -53,7 +53,10 @@
   "scripts": {
     "start": "vite",
     "build": "run-p 'build:*'",
-    "build:lib": "tsc --noEmit && vite build",
+    "build:lib": "run-p 'build:lib:*' && node scripts/merge-declarations.mjs",
+    "build:lib:typecheck": "tsc --noEmit",
+    "build:lib:js": "vite build -c vite.js.config.ts",
+    "build:lib:types": "vite build -c vite.types.config.ts",
     "build:vite-plugin": "cd vite-plugin && tsdown",
     "test": "vitest",
     "test:e2e": "yarn --cwd e2e-tests test",

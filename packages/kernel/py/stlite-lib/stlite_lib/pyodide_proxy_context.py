@@ -15,9 +15,18 @@ handed to JS to be called later (``pyodide.ffi.wrappers`` builds
 this module wraps both: the wrapper snapshots ``copy_context()`` when the
 proxy is created and runs each call inside a copy of that snapshot. A
 coroutine function's task is created inside the snapshot too, so ``async
-def`` callbacks inherit it as well. A bare Python callable passed to a JS
-API without either helper is converted in Pyodide's C layer and is not
-covered.
+def`` callbacks inherit it as well. A bare Python callable handed to JS
+without either helper, such as ``el.onclick = f``, is converted in Pyodide's
+C layer and is not covered.
+
+The proxy holds the wrapper, not the callable itself. So ``proxy.unwrap()``,
+and a ``roundtrip=False`` proxy passed back from JS, give Python the wrapper.
+Calls and most attribute access still reach the callable, but the wrapper
+compares and hashes as itself: ``is``, ``==``, ``isinstance`` and dict or set
+lookups against the original fail.
+
+An upstream API that could close both gaps, and replace this module, is being
+discussed in https://github.com/pyodide/pyodide/issues/6492.
 
 ``install()`` has to run before any app code imports the helpers by name,
 since ``from pyodide.ffi import create_proxy`` binds the unwrapped function.
@@ -60,6 +69,10 @@ class _CallInSnapshot:
         if inspect.iscoroutine(result):
             # Pyodide would schedule the coroutine itself, from the root
             # Context. Creating the task here keeps the snapshot.
+            # Not ``create_task(context=...)``: a task factory can ignore that
+            # argument, and the task would then copy the Context current here,
+            # the root one. Created inside the snapshot, the task inherits it
+            # whether or not the factory passes ``context`` on.
             return call_context.run(asyncio.ensure_future, result)
         return result
 

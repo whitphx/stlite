@@ -140,7 +140,22 @@ Rebase the stlite customization branch onto a new upstream Streamlit release.
     If errors surface, narrow the dep bump that caused it and either pin
     that one dep back or update the alignment skip-list above.
 
-14. When opening the stlite PR, link the submodule diff from the description,
+14. Port changes to upstream's global styles. `@stlite/react` keeps a
+    scoped copy of `streamlit/frontend/lib/src/theme/globalStyles.ts` in
+    `packages/react/src/appStyles.ts` and `documentStyles.ts`, and
+    `packages/react/src/appStyles.test.ts` compares the copy with upstream
+    declaration by declaration (`yarn workspace @stlite/react test appStyles`).
+    If it fails after the rebase, port the declarations it lists:
+    element rules go in `appScopedStyles` under `:where()` like their
+    neighbors (only the `box-sizing` reset keeps the root class), `body`
+    rules on the root in `appStyles`, and `html` rules in `documentStyles`.
+    If it throws instead, add the theme field upstream now reads to the
+    test's theme stub, add a new document-level selector to the test's
+    `only()` mapping, or extend its CSS flattening for a new at-rule shape.
+    Add an entry to the test's expected differences, with its reason,
+    only when Stlite deliberately diverges.
+
+15. When opening the stlite PR, link the submodule diff from the description,
     so a reviewer can read the fork's customizations against the new upstream
     release without cloning the submodule. Compare across forks, with the
     upstream release tag as the base: that tag lives in `streamlit/streamlit`

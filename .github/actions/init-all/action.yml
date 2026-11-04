@@ -16,7 +16,7 @@ inputs:
     required: false
     default: "true"
   streamlit-submodule:
-    description: 'Whether to check out the `streamlit` submodule. Check out the superproject without `submodules:`; this step does it much faster.'
+    description: "Whether to check out the `streamlit` submodule. Check out the superproject without `submodules:`; this step does it much faster."
     required: false
     default: "true"
   save-caches:

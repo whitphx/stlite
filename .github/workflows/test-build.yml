@@ -511,7 +511,6 @@ jobs:
         run: yarn test:js
 
   build-browser:
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -606,7 +605,6 @@ jobs:
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-react:
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -664,7 +662,6 @@ jobs:
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-sharing:
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -756,11 +753,6 @@ jobs:
           subject-path: docs/dist
         continue-on-error: true
 
-  # A single status check for branch protection to require. Requiring the
-  # jobs above by name instead would silently leave every newly added job
-  # unrequired, and would break whenever a matrix job's generated name
-  # changes.
-
       ## @stlite/cli
       - name: Build @stlite/cli
         run: |
@@ -827,7 +819,6 @@ jobs:
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
   build-desktop:
-
     runs-on: ubuntu-latest
 
     permissions:
@@ -1188,6 +1179,10 @@ jobs:
             exit 1
           fi
 
+  # A single status check for branch protection to require. Requiring the
+  # jobs above by name instead would silently leave every newly added job
+  # unrequired, and would break whenever a matrix job's generated name
+  # changes.
   test-build-all-green:
     # Not `always()`: that reports a failure for every run superseded by
     # `cancel-in-progress`, which is every push to a PR. `!cancelled()` still

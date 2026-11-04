@@ -522,6 +522,10 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
+      - uses: ./.github/actions/react-build-cache
+        with:
+          step: restore
+
       # PUBLIC_URL here is set as a relative path, which is possible to the trick introduced at https://github.com/whitphx/stlite/pull/143.
       - name: Set PUBLIC_URL
         run: echo "PUBLIC_URL=." >> $GITHUB_ENV
@@ -613,10 +617,19 @@ jobs:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
+      - uses: ./.github/actions/react-build-cache
+        with:
+          step: restore
+
       - name: Build @stlite/react
         run: |
           . .venv/bin/activate
           make react
+
+      # The other jobs that build on @stlite/react restore this.
+      - uses: ./.github/actions/react-build-cache
+        with:
+          step: save
 
       - name: Package
         working-directory: packages/react
@@ -660,6 +673,10 @@ jobs:
         with:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
+
+      - uses: ./.github/actions/react-build-cache
+        with:
+          step: restore
       ## Build and upload @stlite/sharing
       - name: Set EDITOR_APP_ORIGIN (preview)
         if: ${{ env.BUILD_BRANCH != github.event.repository.default_branch }}
@@ -820,6 +837,10 @@ jobs:
         with:
           python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
+
+      - uses: ./.github/actions/react-build-cache
+        with:
+          step: restore
 
       - name: Build @stlite/desktop
         run: |

@@ -334,9 +334,15 @@ $(arrow-ipc-writer-wheel): $(venv) uv.lock $(shell \
 	uv build --package arrow-ipc-writer --wheel --out-dir packages/arrow-ipc-writer/dist
 	@touch $@
 
+# The fork's `protobuf` target runs its `frontend-init` (another `yarn install`
+# of this repository) when streamlit/frontend/node_modules is missing. That
+# directory never exists here: streamlit/frontend is one of this repository's
+# workspaces, installed by $(node_modules) with its dependencies hoisted to the
+# root. Creating it skips the second install.
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
-$(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
+$(streamlit_proto): $(venv) $(node_modules) streamlit/proto/streamlit/proto/*.proto
+	mkdir -p streamlit/frontend/node_modules
 	. $(VENV_PATH)/bin/activate && \
 	$(MAKE) -C streamlit protobuf
 

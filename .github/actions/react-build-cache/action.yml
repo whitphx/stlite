@@ -103,9 +103,11 @@ runs:
       run: |
         set -euo pipefail
         # Everything the build wrote, in both this repository and the
-        # submodule, but not the dependencies the init step installed.
+        # submodule, but not the dependencies: those the init step installed,
+        # and the environment `uv run` makes for the submodule's project when
+        # the build generates the protobufs.
         find . \
-          \( -name node_modules -o -name .git -o -path ./.venv \) -prune \
+          \( -name node_modules -o -name .git -o -path ./.venv -o -path ./streamlit/.venv \) -prune \
           -o \( -type f -o -type l \) -newer "$REACT_BUILD_CACHE_MARKER" -print \
           | sort > "$RUNNER_TEMP/react-build.files"
         echo "Archiving $(wc -l < "$RUNNER_TEMP/react-build.files") files, by directory:"

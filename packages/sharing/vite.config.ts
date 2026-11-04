@@ -5,9 +5,13 @@ import { visualizer } from "rollup-plugin-visualizer";
 import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
+import viteInputSourcemaps from "@stlite/tooling/vite-input-sourcemaps";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    // What the Babel pass excluded below used to do for that prebuilt code
+    // besides reprinting it: carry its own sourcemap into this build's.
+    viteInputSourcemaps(/\/packages\/react\/build\//),
     react({
       // `@stlite/react` is a workspace package, so its prebuilt bundle resolves to
       // packages/react/build/, not under the node_modules/ the default `exclude`

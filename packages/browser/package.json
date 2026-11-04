@@ -56,6 +56,7 @@
     "@microsoft/api-extractor": "^7.59.0",
     "@stlite/common": "workspace:^",
     "@stlite/react": "workspace:^",
+    "@stlite/tooling": "workspace:^",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^5.1.1",

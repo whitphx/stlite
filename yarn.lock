@@ -8147,6 +8147,7 @@ __metadata:
     "@microsoft/api-extractor": "npm:^7.59.0"
     "@stlite/common": "workspace:^"
     "@stlite/react": "workspace:^"
+    "@stlite/tooling": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
@@ -8397,6 +8398,7 @@ __metadata:
   dependencies:
     "@stlite/react": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
+    "@stlite/tooling": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"

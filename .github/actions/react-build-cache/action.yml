@@ -28,13 +28,17 @@ runs:
         # The key is every tracked file @stlite/react's build can read, the
         # Streamlit submodule's commit, and the tools that build it. The other
         # packages' sources are left out, but not their manifests: any
-        # package.json can change how the dependencies are hoisted.
+        # package.json can change how the dependencies are hoisted. So is
+        # .github: the tool versions the CI files pin are in the key as the
+        # versions themselves, below. The runner image's version is not, as
+        # runners allocated at the same time can run different ones, and the
+        # build doesn't use what changes between them.
         hash=$(
           {
             git ls-files --stage -- . \
               ':(exclude).changeset' \
               ':(exclude).claude' \
-              ':(exclude).github/workflows' \
+              ':(exclude).github' \
               ':(exclude)docs' \
               ':(exclude)packages/app-packager' \
               ':(exclude)packages/arrow-ipc-writer' \
@@ -46,14 +50,14 @@ runs:
               ':(exclude)packages/sharing-common' \
               ':(exclude)packages/sharing-editor'
             git ls-files --stage -- ':(glob)**/package.json'
-            echo "$ImageOS $ImageVersion"
+            echo "$ImageOS"
             node --version
             python --version
             uv --version
             protoc --version
           } | sha256sum | cut -d' ' -f1
         )
-        echo "REACT_BUILD_CACHE_KEY=react-build-v1-${RUNNER_OS}-${hash}" >> "$GITHUB_ENV"
+        echo "REACT_BUILD_CACHE_KEY=react-build-v2-${RUNNER_OS}-${hash}" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_ARCHIVE=${RUNNER_TEMP}/react-build.tar" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_MARKER=${RUNNER_TEMP}/react-build.marker" >> "$GITHUB_ENV"
 

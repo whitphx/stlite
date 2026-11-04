@@ -58,8 +58,8 @@ describe("useUniqueId", () => {
       (array) => array,
     );
 
-    const first = generateUniqueId(8);
-    const second = generateUniqueId(8);
+    const first = generateUniqueId();
+    const second = generateUniqueId();
 
     expect(first).not.toBe(second);
     expect(first).toMatch(/^[a-z]+$/);
@@ -70,9 +70,9 @@ describe("useUniqueId", () => {
     vi.spyOn(Date, "now").mockReturnValue(1_800_000_000_000);
 
     vi.resetModules();
-    const first = (await import("./useUniqueId")).generateUniqueId(8);
+    const first = (await import("./useUniqueId")).generateUniqueId();
     vi.resetModules();
-    const second = (await import("./useUniqueId")).generateUniqueId(8);
+    const second = (await import("./useUniqueId")).generateUniqueId();
 
     expect(first).not.toBe(second);
   });
@@ -84,17 +84,5 @@ describe("useUniqueId", () => {
     rerender();
 
     expect(result.current).toBe(firstId);
-  });
-
-  it("regenerates when the requested length changes", () => {
-    const { result, rerender } = renderHook(
-      ({ length }) => useUniqueId(length),
-      { initialProps: { length: 3 } },
-    );
-
-    rerender({ length: 4 });
-
-    expect(result.current).toHaveLength(4);
-    expect(result.current).not.toBe("aaa");
   });
 });

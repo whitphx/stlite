@@ -82,9 +82,11 @@ runs:
     # ~75s to restore Yarn's cache and install from it. Linux only: Yarn links
     # the workspaces with junctions on Windows, which the cache's tar
     # doesn't restore.
-    - name: Get the Node.js version
+    # The major version only: .nvmrc names one, and each runner image carries
+    # its own patch release of it, so the jobs of one run differ there.
+    - name: Get the Node.js major version
       id: node-version
-      run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+      run: echo "version=$(node -p 'process.versions.node.split(".")[0]')" >> "$GITHUB_OUTPUT"
       shell: bash
       if: ${{ runner.os == 'Linux' && inputs.node-version-file && inputs.install-node-modules == 'true' }}
     - name: Restore node_modules

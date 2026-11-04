@@ -51,7 +51,9 @@ runs:
               ':(exclude)packages/sharing-editor'
             git ls-files --stage -- ':(glob)**/package.json'
             echo "$ImageOS"
-            node --version
+            # The major version only, as .nvmrc names: each runner image
+            # carries its own patch release of it.
+            node -p 'process.versions.node.split(".")[0]'
             python --version
             uv --version
             protoc --version

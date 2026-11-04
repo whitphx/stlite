@@ -927,10 +927,27 @@ jobs:
     # isn't fetched; the tarball ships its own prebuilt frontend and wheels.
     #
     # ubuntu-only: Windows can't run the end-to-end build yet (see the pywrangler
-    # note in the test-cloudflare-windows job above). Our own build code is
+    # note in the test-windows job above). Our own build code is
     # cross-platform and gets Windows coverage there via the helper tests.
+    #
+    # The scenarios run in parallel lanes: run one after another, they took
+    # ~3.5 minutes. Each lane installs the tarball the same way.
     if: ${{ needs.changes.outputs.cloudflare == 'true' }}
     needs: [changes, build-cloudflare]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        lane:
+          # The hello sample as a plain Worker; postbuild deploys its build.
+          - plain-worker
+          # The default deployment mode, booted in a real browser.
+          - durable-object
+          # The wrangler-config shapes the merger supports, and the
+          # --asset-runtime opt-out.
+          - configs-and-asset-runtime
+
+    name: verify-cloudflare-standalone (${{ matrix.lane }})
 
     runs-on: ubuntu-latest
 
@@ -952,7 +969,7 @@ jobs:
           name: stlite-cloudflare
           path: ${{ runner.temp }}/pkg
 
-      - name: Build the hello sample from the packed tarball
+      - name: Install the packed tarball
         working-directory: ${{ runner.temp }}
         run: |
           set -eux
@@ -960,6 +977,13 @@ jobs:
           cd standalone
           npm init -y >/dev/null
           npm install "${{ runner.temp }}/pkg/package.tgz" wrangler
+
+      - name: Build the hello sample from the packed tarball
+        if: ${{ matrix.lane == 'plain-worker' }}
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eux
+          cd standalone
           npx stlite-cloudflare build \
             "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/app" \
             -o ./dist --name stlite-cloudflare --plain-worker
@@ -975,6 +999,7 @@ jobs:
       # packaged runtime sits far below that; budget below the hard cap so a
       # regression that would break `wrangler deploy` fails here instead.
       - name: Validate the Worker bundle
+        if: ${{ matrix.lane == 'plain-worker' }}
         working-directory: ${{ runner.temp }}/standalone/dist
         run: |
           set -eux
@@ -991,6 +1016,7 @@ jobs:
       # browser: index HTML, static assets, health endpoints, and the
       # Streamlit WebSocket session reaching CONNECTED.
       - name: Smoke-test the Worker in a real browser
+        if: ${{ matrix.lane == 'plain-worker' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
@@ -1009,17 +1035,25 @@ jobs:
             exit 1
           }
 
+      # The dist built above is the sample postbuild deploys. Hidden files are
+      # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
+      # dirs pywrangler leaves in the output — wrangler doesn't need them.
+      - name: Upload the built sample as an artifact
+        if: ${{ matrix.lane == 'plain-worker' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: ${{ runner.temp }}/standalone/dist
+          name: stlite-cloudflare-sample
+
       # The default Durable Object deployment path gets its own standalone
       # build (the hello build above uses --plain-worker, which is a distinct
       # mode): the minimal sample built with default settings, verified
       # structurally and by wrangler dry-run.
       - name: Build the minimal sample in default Durable Object mode
+        if: ${{ matrix.lane == 'durable-object' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
-          # Reuse the wheel cache from the hello build (cache dirs are keyed
-          # by output dir basename).
-          cp -R .dist.stlite-cloudflare-cache .dist-do.stlite-cloudflare-cache
           npx stlite-cloudflare build \
             "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
             -o ./dist-do --name stlite-cloudflare-minimal
@@ -1032,6 +1066,7 @@ jobs:
       # instance, which cold-boots the packaged Streamlit runtime — the
       # actual default request-routing path.
       - name: Smoke-test the Durable Object mode in local workerd
+        if: ${{ matrix.lane == 'durable-object' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
@@ -1051,9 +1086,10 @@ jobs:
             exit 1
           fi
           curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
-          # Real-browser smoke in DO mode (playwright was installed by the
-          # plain-worker smoke step above): renders over the WebSocket
+          # Real-browser smoke in DO mode: renders over the WebSocket
           # session and asserts the Worker-env var surfaced via st.secrets.
+          npm install "playwright@^1.61.1"
+          npx playwright install --with-deps chromium
           cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/scripts/browser-smoke.mjs" ./minimal-smoke.mjs
           STLITE_CLOUDFLARE_URL=http://127.0.0.1:8788/ STLITE_SMOKE_TIMEOUT_MS=120000 node minimal-smoke.mjs || {
             echo "::group::wrangler dev (DO) log"
@@ -1062,15 +1098,39 @@ jobs:
             exit 1
           }
 
+      # The same Durable Object build as the durable-object lane's: the
+      # wrangler-config shapes below are dry-run against it.
+      - name: Build the minimal sample in default Durable Object mode (for the config shapes)
+        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          npx stlite-cloudflare build \
+            "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
+            -o ./dist-do --name stlite-cloudflare-minimal
+          grep -q '"STLITE_SERVER"' dist-do/wrangler.jsonc
+          grep -q "StliteServer" dist-do/src/entry.py
+          cd dist-do && npx wrangler deploy --dry-run
+
+      # Every wrangler-config shape the merger supports (named environments,
+      # legacy migrations, exports style, external bindings, ...) validated
+      # against real wrangler.
+      - name: Dry-run the supported wrangler-config shapes
+        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
+        working-directory: ${{ runner.temp }}/standalone
+        run: |
+          set -eux
+          node "$GITHUB_WORKSPACE/packages/cloudflare/scripts/dryrun-config-matrix.mjs" dist-do
+
       # --asset-runtime is the opt-out from the default bundled script: the
       # runtime moves into static assets that package_loader.py fetches and
       # unpacks at cold start. Build it once and boot it in local workerd, so
       # that loader path keeps end-to-end coverage.
       - name: Build and boot an --asset-runtime Worker
+        if: ${{ matrix.lane == 'configs-and-asset-runtime' }}
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
-          cp -R .dist.stlite-cloudflare-cache .dist-assets.stlite-cloudflare-cache
           npx stlite-cloudflare build \
             "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/app" \
             -o ./dist-assets --name stlite-cloudflare-assets \
@@ -1094,24 +1154,6 @@ jobs:
             echo "::endgroup::"
             exit 1
           fi
-
-      # Every wrangler-config shape the merger supports (named environments,
-      # legacy migrations, exports style, external bindings, ...) validated
-      # against real wrangler.
-      - name: Dry-run the supported wrangler-config shapes
-        working-directory: ${{ runner.temp }}/standalone
-        run: |
-          set -eux
-          node "$GITHUB_WORKSPACE/packages/cloudflare/scripts/dryrun-config-matrix.mjs" dist-do
-
-      # The dist built above is the sample postbuild deploys. Hidden files are
-      # excluded by default, dropping the build-only .venv/.venv-workers/.wrangler
-      # dirs pywrangler leaves in the output — wrangler doesn't need them.
-      - name: Upload the built sample as an artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          path: ${{ runner.temp }}/standalone/dist
-          name: stlite-cloudflare-sample
 
   test-build-all-green:
     # Not `always()`: that reports a failure for every run superseded by

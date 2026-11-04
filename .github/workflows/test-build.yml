@@ -692,12 +692,17 @@ jobs:
           pr-number: ${{ env.BUILD_PR_NUMBER }}
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
-  build-sharing-editor:
-
+  # The builds that take seconds each, in one job so that they share one
+  # checkout and setup and one runner. @stlite/sharing-editor goes last:
+  # its build options are set in $GITHUB_ENV, which would leak into the
+  # builds after it.
+  build-docs-cli-sharing-editor:
     runs-on: ubuntu-latest
 
     permissions:
       pull-requests: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -705,15 +710,72 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/init-all
         with:
+          python-version-file: ${{ env.python-version-file }}
           node-version-file: ${{ env.node-version-file }}
 
+      ## docs
+      - name: Build docs
+        run: yarn build
+        working-directory: docs
+
+      - name: Upload the built docs as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: docs/dist
+          name: stlite-docs
+
+      - name: Generate artifact attestation (docs)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: docs/dist
+        continue-on-error: true
+
+  # A single status check for branch protection to require. Requiring the
+  # jobs above by name instead would silently leave every newly added job
+  # unrequired, and would break whenever a matrix job's generated name
+  # changes.
+
+      ## @stlite/cli
+      - name: Build @stlite/cli
+        run: |
+          . .venv/bin/activate
+          make cli
+
+      - name: Package @stlite/cli
+        working-directory: packages/cli
+        run: yarn pack
+
+      - name: Upload the built @stlite/cli tar ball as an artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: packages/cli/package.tgz
+          name: stlite-cli
+
+      - name: Generate artifact attestation (@stlite/cli)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: packages/cli/package.tgz
+        continue-on-error: true
+
+      - name: "Inform the package stats of @stlite/cli"
+        uses: ./.github/actions/set-package-stats
+        continue-on-error: true
+        with:
+          key: cli
+          name: "@stlite/cli"
+          input-path: packages/cli/package.tgz
+          pr-number: ${{ env.BUILD_PR_NUMBER }}
+          sticky-id: ${{ env.BUILD_HEAD_SHA }}
+
+      ## @stlite/sharing-editor
       - name: Set build option envvar for the preview build
         if: ${{ env.BUILD_BRANCH != github.event.repository.default_branch }}
         run: echo "RESOLVE_SHARING_APP_URL_RUNTIME_FROM_EXTERNAL_FILE=true" >> $GITHUB_ENV
       - name: Set SHARING_APP_URL (main branch)
         if: ${{ env.BUILD_BRANCH == github.event.repository.default_branch }}
         run: echo "SHARING_APP_URL=https://share.stlite.net/" >> $GITHUB_ENV
-      - run: make sharing-editor
+      - name: Build @stlite/sharing-editor
+        run: make sharing-editor
 
       - name: Upload bundle visualizer report (@stlite/sharing-editor)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -722,13 +784,13 @@ jobs:
           name: visualizer-sharing-editor
           if-no-files-found: error
 
-      - name: Upload the built directory as an artifact
+      - name: Upload the built @stlite/sharing-editor as an artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           path: packages/sharing-editor/dist
           name: stlite-sharing-editor
 
-      - name: "Inform the package stats"
+      - name: "Inform the package stats of @stlite/sharing-editor"
         uses: ./.github/actions/set-package-stats
         continue-on-error: true
         with:
@@ -794,55 +856,6 @@ jobs:
           key: desktop
           name: "@stlite/desktop"
           input-path: packages/desktop/package.tgz
-          pr-number: ${{ env.BUILD_PR_NUMBER }}
-          sticky-id: ${{ env.BUILD_HEAD_SHA }}
-
-  build-cli:
-
-    runs-on: ubuntu-latest
-
-    permissions:
-      pull-requests: write
-      id-token: write
-      attestations: write
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          python-version-file: ${{ env.python-version-file }}
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Build @stlite/cli
-        run: |
-          . .venv/bin/activate
-          make cli
-
-      - name: Package
-        working-directory: packages/cli
-        run: yarn pack
-
-      - name: Upload the built tar ball as an artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          path: packages/cli/package.tgz
-          name: stlite-cli
-
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-path: packages/cli/package.tgz
-        continue-on-error: true
-
-      - name: "Inform the package stats of @stlite/cli"
-        uses: ./.github/actions/set-package-stats
-        continue-on-error: true
-        with:
-          key: cli
-          name: "@stlite/cli"
-          input-path: packages/cli/package.tgz
           pr-number: ${{ env.BUILD_PR_NUMBER }}
           sticky-id: ${{ env.BUILD_HEAD_SHA }}
 
@@ -1097,42 +1110,6 @@ jobs:
           path: ${{ runner.temp }}/standalone/dist
           name: stlite-cloudflare-sample
 
-  build-docs:
-    runs-on: ubuntu-latest
-
-    permissions:
-      pull-requests: write
-      id-token: write
-      attestations: write
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/init-all
-        with:
-          node-version-file: ${{ env.node-version-file }}
-
-      - name: Build docs
-        run: yarn build
-        working-directory: docs
-
-      - name: Upload the built directory as an artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          path: docs/dist
-          name: stlite-docs
-
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-path: docs/dist
-        continue-on-error: true
-
-  # A single status check for branch protection to require. Requiring the
-  # jobs above by name instead would silently leave every newly added job
-  # unrequired, and would break whenever a matrix job's generated name
-  # changes.
   test-build-all-green:
     # Not `always()`: that reports a failure for every run superseded by
     # `cancel-in-progress`, which is every push to a PR. `!cancelled()` still
@@ -1149,12 +1126,10 @@ jobs:
         build-browser,
         build-react,
         build-sharing,
-        build-sharing-editor,
+        build-docs-cli-sharing-editor,
         build-desktop,
-        build-cli,
         build-cloudflare,
         verify-cloudflare-standalone,
-        build-docs,
       ]
 
     runs-on: ubuntu-latest

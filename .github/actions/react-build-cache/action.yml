@@ -32,13 +32,23 @@ runs:
         # .github: the tool versions the CI files pin are in the key as the
         # versions themselves, below. The runner image's version is not, as
         # runners allocated at the same time can run different ones, and the
-        # build doesn't use what changes between them.
+        # build doesn't use what changes between them. Nor are the root's
+        # documents and linter configurations, which no build step reads.
         hash=$(
           {
             git ls-files --stage -- . \
               ':(exclude).changeset' \
               ':(exclude).claude' \
               ':(exclude).github' \
+              ':(exclude).lintstagedrc.json' \
+              ':(exclude).oxfmtrc.json' \
+              ':(exclude).oxlintrc.json' \
+              ':(exclude)AGENTS.md' \
+              ':(exclude)CHANGELOG.md' \
+              ':(exclude)CLAUDE.md' \
+              ':(exclude)CONTRIBUTING.md' \
+              ':(exclude)README.md' \
+              ':(exclude)cspell.json' \
               ':(exclude)docs' \
               ':(exclude)packages/app-packager' \
               ':(exclude)packages/arrow-ipc-writer' \

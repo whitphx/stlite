@@ -177,8 +177,18 @@ runs:
           make venv
           exit
         fi
-        until [ -f "$RUNNER_TEMP/make-venv.status" ]; do sleep 1; done
+        # The status file is written when `make venv` exits; if the background
+        # shell itself died (e.g. killed for memory) it never is, so give up
+        # after 15 minutes rather than hang until the job's limit.
+        for _ in $(seq 900); do
+          [ -f "$RUNNER_TEMP/make-venv.status" ] && break
+          sleep 1
+        done
         cat "$RUNNER_TEMP/make-venv.log"
+        if [ ! -f "$RUNNER_TEMP/make-venv.status" ]; then
+          echo "::error::make venv, started in the background, never finished"
+          exit 1
+        fi
         exit "$(cat "$RUNNER_TEMP/make-venv.status")"
       shell: bash
       if: ${{ inputs.python-version-file }}

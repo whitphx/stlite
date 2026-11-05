@@ -159,6 +159,7 @@ browser: $(browser)
 $(browser): $(shell \
 	find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/browser -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	echo packages/tooling/src/vite-input-sourcemaps.js; \
 ) $(node_modules) $(common) $(react)
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
@@ -170,6 +171,7 @@ $(sharing): $(shell \
 	find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/sharing/public -type f; \
 	find packages/sharing -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	echo packages/tooling/src/vite-input-sourcemaps.js; \
 ) $(node_modules) $(sharing-common) $(react)
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
@@ -225,6 +227,7 @@ $(desktop): $(shell \
 	find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/desktop/electron -type f -name "*.ts"; \
 	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	echo packages/tooling/src/vite-input-sourcemaps.js; \
 ) $(node_modules) $(common) $(react) $(app-packager)
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)

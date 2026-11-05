@@ -12,7 +12,7 @@ description: >-
   A hit is extracted with one fresh mtime on every file, which is newer than
   the checkout, so Make sees those targets as up to date. Whatever does not
   line up (a missing file, a source newer than its output) Make rebuilds as
-  usual, so a bad entry costs a rebuild, never a stale build.
+  usual, so a mismatched file costs a rebuild, never a stale build.
 inputs:
   step:
     description: '"restore" or "save"'
@@ -30,10 +30,16 @@ runs:
         # packages' sources are left out, but not their manifests: any
         # package.json can change how the dependencies are hoisted. So is
         # .github: the tool versions the CI files pin are in the key as the
-        # versions themselves, below. The runner image's version is not, as
-        # runners allocated at the same time can run different ones, and the
-        # build doesn't use what changes between them. Nor are the root's
-        # documents and linter configurations, which no build step reads.
+        # versions themselves, below.
+        # Bump the key's version along with any other change to .github
+        # that alters the build: an environment variable the build reads,
+        # how the jobs run `make react`,
+        # or the submodule's sparse checkout patterns.
+        # The runner image's version is not in the key either,
+        # as runners allocated at the same time can run different ones,
+        # and the build doesn't use what changes between them.
+        # Nor are the root's documents and linter configurations,
+        # which no build step reads.
         hash=$(
           {
             git ls-files --stage -- . \

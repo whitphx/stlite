@@ -55,9 +55,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ steps.decide.outputs.run == 'true' }}
         with:
-          # Submodules are needed because `yarn install` resolves workspaces
-          # that live inside the `streamlit/` submodule.
-          submodules: true
+          # Without `submodules:`: init-all below checks out the `streamlit/`
+          # submodule, whose workspaces `yarn install` resolves.
           # `fetch-depth: 0` is required so `changeset status --since` can diff against the base branch.
           fetch-depth: 0
           persist-credentials: false

@@ -27,7 +27,10 @@ url=$(git config --file .gitmodules "submodule.$path.url")
 
 git submodule init "$path"
 
-rm -rf "$path"
+# Start from scratch even if the submodule is already checked out (e.g. by
+# `actions/checkout` with `submodules: true`): its git directory under
+# .git/modules would make `absorbgitdirs` below fail.
+rm -rf "$path" ".git/modules/$path"
 mkdir -p "$path"
 git -C "$path" init --quiet
 git -C "$path" remote add origin "$url"

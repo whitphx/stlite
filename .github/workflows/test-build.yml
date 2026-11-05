@@ -1101,9 +1101,12 @@ jobs:
         working-directory: ${{ runner.temp }}/standalone
         run: |
           set -eux
-          { set +x; } 2>/dev/null
-          until [ -f "$RUNNER_TEMP/playwright-install.status" ]; do sleep 2; done
-          set -x
+          # Bounded, so that a background install that dies
+          # before writing its status fails this step
+          # instead of holding the job until it times out.
+          # The missing status file then fails the `test` below.
+          timeout 15m bash -c "until [ -f '$RUNNER_TEMP/playwright-install.status' ]; do sleep 2; done" ||
+            echo "::error::The Playwright install did not finish within 15 minutes."
           cat "$RUNNER_TEMP/playwright-install.log"
           test "$(cat "$RUNNER_TEMP/playwright-install.status")" = 0
           cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/hello/scripts/browser-smoke.mjs" .
@@ -1172,9 +1175,8 @@ jobs:
           curl -sf http://127.0.0.1:8788/ | grep -q "window.__streamlit"
           # Real-browser smoke in DO mode: renders over the WebSocket
           # session and asserts the Worker-env var surfaced via st.secrets.
-          { set +x; } 2>/dev/null
-          until [ -f "$RUNNER_TEMP/playwright-install.status" ]; do sleep 2; done
-          set -x
+          timeout 15m bash -c "until [ -f '$RUNNER_TEMP/playwright-install.status' ]; do sleep 2; done" ||
+            echo "::error::The Playwright install did not finish within 15 minutes."
           cat "$RUNNER_TEMP/playwright-install.log"
           test "$(cat "$RUNNER_TEMP/playwright-install.status")" = 0
           cp "$GITHUB_WORKSPACE/packages/cloudflare/samples/minimal/scripts/browser-smoke.mjs" ./minimal-smoke.mjs

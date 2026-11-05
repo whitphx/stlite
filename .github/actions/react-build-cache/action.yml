@@ -96,7 +96,11 @@ runs:
         tar -xf "$REACT_BUILD_CACHE_ARCHIVE"
         # One mtime for every file, so that no restored target looks older
         # than another restored target it is built from.
-        now=$(date +%s)
+        # With nanoseconds, not whole seconds:
+        # a stamp truncated to the second can be older
+        # than the marker `make node_modules` just touched,
+        # and Make would then rebuild everything built on it.
+        now=$(date +%s.%N)
         tar -tf "$REACT_BUILD_CACHE_ARCHIVE" | grep -v '/$' | tr '\n' '\0' | xargs -0 touch -h -d "@$now"
         if make -q .make/react/.built; then
           echo "@stlite/react and everything it is built from are up to date."

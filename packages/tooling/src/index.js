@@ -24,7 +24,8 @@ function getAbiTag(runtime) {
     // https://github.com/mirror/make/blob/4.4/NEWS#L74-L79
     // Under `make -q` or `make -n`, that `make` would then run in the same mode
     // and print none of the values `pyodide config get` reads.
-    // Drop this once pyodide-build stops handing MAKEFLAGS to that `make`.
+    // Drop this once a pyodide-build release ships the fix proposed in
+    // https://github.com/pyodide/pyodide-build/pull/447
     const { MAKEFLAGS, ...env } = process.env;
     const pyodidePythonVersion = execSync(
       // Looks like `uvx` doesn't respect the `.python-version` file, so we need to pass the version manually. Ref: https://github.com/astral-sh/uv/issues/8206#issuecomment-2793478986

@@ -147,7 +147,8 @@ react: $(react)
 $(react): $(shell \
 	find packages/react/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/react/vite-plugin/src -type f -name "*.ts"; \
-	find packages/react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
+	find packages/react/scripts -type f; \
+	find packages/react -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite*.config.ts" \); \
 ) $(node_modules) $(kernel) $(common) $(streamlit-frontend-lib)
 	cd packages/react && yarn build
 	@mkdir -p $(dir $@)
@@ -158,7 +159,7 @@ browser: $(browser)
 $(browser): $(shell \
 	find packages/browser/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/browser -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(common) $(react)
+) $(node_modules) $(common) $(react) packages/tooling/src/vite-input-sourcemaps.js
 	cd packages/browser && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -169,7 +170,7 @@ $(sharing): $(shell \
 	find packages/sharing/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/sharing/public -type f; \
 	find packages/sharing -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(sharing-common) $(react)
+) $(node_modules) $(sharing-common) $(react) packages/tooling/src/vite-input-sourcemaps.js
 	cd packages/sharing && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -224,7 +225,7 @@ $(desktop): $(shell \
 	find packages/desktop/src -type f \( -name "*.ts" -o -name "*.tsx" \); \
 	find packages/desktop/electron -type f -name "*.ts"; \
 	find packages/desktop -maxdepth 1 -type f \( -name "package.json" -o -name "tsconfig*.json" -o -name "vite.config.ts" \); \
-) $(node_modules) $(common) $(react) $(app-packager)
+) $(node_modules) $(common) $(react) $(app-packager) packages/tooling/src/vite-input-sourcemaps.js
 	cd packages/desktop && yarn build
 	@mkdir -p $(dir $@)
 	@touch $@
@@ -334,9 +335,15 @@ $(arrow-ipc-writer-wheel): $(venv) uv.lock $(shell \
 	uv build --package arrow-ipc-writer --wheel --out-dir packages/arrow-ipc-writer/dist
 	@touch $@
 
+# The fork's `protobuf` target runs its `frontend-init` (another `yarn install`
+# of this repository) when streamlit/frontend/node_modules is missing. That
+# directory never exists here: streamlit/frontend is one of this repository's
+# workspaces, installed by $(node_modules) with its dependencies hoisted to the
+# root. Creating it skips the second install.
 .PHONY: streamlit-proto
 streamlit-proto: $(streamlit_proto)
-$(streamlit_proto): $(venv) streamlit/proto/streamlit/proto/*.proto
+$(streamlit_proto): $(venv) $(node_modules) streamlit/proto/streamlit/proto/*.proto
+	mkdir -p streamlit/frontend/node_modules
 	. $(VENV_PATH)/bin/activate && \
 	$(MAKE) -C streamlit protobuf
 
@@ -379,7 +386,7 @@ streamlit-frontend-lib: $(streamlit-frontend-lib)
 $(streamlit-frontend-lib): $(node_modules) $(streamlit_proto) $(shell find streamlit/frontend/connection streamlit/frontend/utils streamlit/frontend/component-v2-lib \
   -type f ! -path '*/dist/*' \
   \( -name '*.ts' -o -name '*.tsx' -o -name 'package.json' -o -name 'tsconfig.json' \))
-	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils,@streamlit/component-v2-lib}' --topological run build
+	yarn workspaces foreach --recursive --from '{@streamlit/connection,@streamlit/utils,@streamlit/component-v2-lib}' --topological --parallel run build
 	@mkdir -p $(dir $@)
 	@touch $@
 

@@ -123,7 +123,8 @@
     // security fixes, but its minor has to match the Python that Pyodide
     // ships, so it moves to a new minor only when Pyodide does, by hand.
     // See the "Python Version" constraint in CLAUDE.md; the
-    // `check-python-version` CI job catches a mismatch.
+    // "Check the Python version" step of the `test` CI job catches a
+    // mismatch.
     // Not merged automatically: the patch release also compiles the bytecode
     // shipped in the Streamlit wheel.
     {

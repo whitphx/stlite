@@ -21,6 +21,7 @@
     "web-vitals": "^5.2.0"
   },
   "devDependencies": {
+    "@stlite/tooling": "workspace:^",
     "@vitejs/plugin-react": "^5.1.1",
     "cross-env": "^10.1.0",
     "oxfmt": "^0.70.0",

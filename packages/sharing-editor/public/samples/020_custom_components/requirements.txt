@@ -1,4 +1,4 @@
-stmol==0.0.7
+stmol==0.0.9
 streamlit-aggrid==0.3.4
 streamlit-agraph
 streamlit-cropper

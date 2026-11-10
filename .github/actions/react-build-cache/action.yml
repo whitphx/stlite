@@ -12,7 +12,12 @@ description: >-
   A hit is extracted with one fresh mtime on every file, which is newer than
   the checkout, so Make sees those targets as up to date. Whatever does not
   line up (a missing file, a source newer than its output) Make rebuilds as
-  usual, so a mismatched file costs a rebuild, never a stale build.
+  usual.
+
+  What Make can't catch is a build made from other sources:
+  a fresh checkout gives every source the same new mtime, changed or not.
+  Only the exact key can,
+  so the restore has no `restore-keys` fallback to an earlier build.
 inputs:
   step:
     description: '"restore" or "save"'

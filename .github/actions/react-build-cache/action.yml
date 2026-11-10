@@ -31,15 +31,20 @@ runs:
       shell: bash
       run: |
         # The key is every tracked file @stlite/react's build can read, the
-        # Streamlit submodule's commit, and the tools that build it. The other
-        # packages' sources are left out, but not their manifests: any
-        # package.json can change how the dependencies are hoisted. So is
-        # .github: the tool versions the CI files pin are in the key as the
-        # versions themselves, below.
-        # Bump the key's version along with any other change to .github
-        # that alters the build: an environment variable the build reads,
-        # how the jobs run `make react`,
-        # or the submodule's sparse checkout patterns.
+        # Streamlit submodule's commit, and the tools that build it.
+        # Left out are the packages that build on @stlite/react,
+        # which can't also be its inputs, but not their manifests:
+        # any package.json can change how the dependencies are hoisted.
+        # Every other package is in, even one the build doesn't read today,
+        # so that the build starting to read it can't go unnoticed.
+        # Of .github, all the composite actions and scripts are in the key:
+        # some set up and run the build, and any of them can start to.
+        # The workflows are not: most of their changes don't reach the build,
+        # and the tool versions they pin are in the key
+        # as the versions themselves, below.
+        # Bump the key's version along with a workflow change that does alter
+        # the build: an environment variable the build reads,
+        # or how the jobs run `make react`.
         # The runner image's version is not in the key either,
         # as runners allocated at the same time can run different ones,
         # and the build doesn't use what changes between them.
@@ -61,16 +66,11 @@ runs:
               ':(exclude)README.md' \
               ':(exclude)cspell.json' \
               ':(exclude)docs' \
-              ':(exclude)packages/app-packager' \
-              ':(exclude)packages/arrow-ipc-writer' \
               ':(exclude)packages/browser' \
-              ':(exclude)packages/cli' \
-              ':(exclude)packages/cloudflare' \
               ':(exclude)packages/desktop' \
-              ':(exclude)packages/sharing' \
-              ':(exclude)packages/sharing-common' \
-              ':(exclude)packages/sharing-editor'
+              ':(exclude)packages/sharing'
             git ls-files --stage -- ':(glob)**/package.json'
+            git ls-files --stage -- .github/actions .github/scripts
             echo "$ImageOS"
             # The major version only, as .nvmrc names: each runner image
             # carries its own patch release of it.

@@ -18,6 +18,12 @@ description: >-
   a fresh checkout gives every source the same new mtime, changed or not.
   Only the exact key can,
   so the restore has no `restore-keys` fallback to an earlier build.
+
+  On the default branch, whose builds are published and deployed,
+  the restore only looks the key up, and every job builds from scratch.
+  An input the key misses can then mislead a pull request's run,
+  but never reach what the default branch ships.
+  The job that saves still saves a build whose key isn't cached yet.
 inputs:
   step:
     description: '"restore" or "save"'
@@ -83,6 +89,11 @@ runs:
         echo "REACT_BUILD_CACHE_KEY=react-build-v2-${RUNNER_OS}-${hash}" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_ARCHIVE=${RUNNER_TEMP}/react-build.tar" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_MARKER=${RUNNER_TEMP}/react-build.marker" >> "$GITHUB_ENV"
+        if [ "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+          echo "REACT_BUILD_CACHE_LOOKUP_ONLY=true" >> "$GITHUB_ENV"
+        fi
+      env:
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
 
     - name: Restore the cache
       id: restore
@@ -91,13 +102,13 @@ runs:
       with:
         path: ${{ env.REACT_BUILD_CACHE_ARCHIVE }}
         key: ${{ env.REACT_BUILD_CACHE_KEY }}
+        lookup-only: ${{ env.REACT_BUILD_CACHE_LOOKUP_ONLY == 'true' }}
 
     - name: Extract the restored build
-      if: ${{ inputs.step == 'restore' && steps.restore.outputs.cache-hit == 'true' }}
+      if: ${{ inputs.step == 'restore' && steps.restore.outputs.cache-hit == 'true' && env.REACT_BUILD_CACHE_LOOKUP_ONLY != 'true' }}
       shell: bash
       run: |
         set -euo pipefail
-        echo "REACT_BUILD_CACHE_HIT=true" >> "$GITHUB_ENV"
         tar -xf "$REACT_BUILD_CACHE_ARCHIVE"
         # One mtime for every file, so that no restored target looks older
         # than another restored target it is built from.
@@ -119,11 +130,12 @@ runs:
       run: |
         # `step: save` archives every file the build wrote after this.
         touch "$REACT_BUILD_CACHE_MARKER"
+        echo "REACT_BUILD_CACHE_SAVE=true" >> "$GITHUB_ENV"
         sleep 1
 
     - name: Archive the build
       id: archive
-      if: ${{ inputs.step == 'save' && env.REACT_BUILD_CACHE_HIT != 'true' }}
+      if: ${{ inputs.step == 'save' && env.REACT_BUILD_CACHE_SAVE == 'true' }}
       shell: bash
       run: |
         set -euo pipefail

@@ -3,26 +3,31 @@ description: >-
   Restore or save what `make react` builds (@stlite/react and everything it is
   built from: @stlite/common, @stlite/kernel, the stlite-lib and Streamlit
   wheels, the Streamlit protobufs and frontend libraries), so the jobs that
-  build on @stlite/react skip its ~3-minute build when nothing it is built
-  from changed.
+  build on @stlite/react skip what of its ~3-minute build their change
+  didn't touch.
 
   Run it with `step: restore` after init-all and before any `make`, and, in
   the one job that saves it, with `step: save` right after `make react`.
 
-  A hit is extracted with one fresh mtime on every file, which is newer than
-  the checkout, so Make sees those targets as up to date. Whatever does not
-  line up (a missing file, a source newer than its output) Make rebuilds as
-  usual.
+  A build made from exactly the checkout's inputs is extracted with one fresh
+  mtime on every file, which is newer than the checkout, so Make sees those
+  targets as up to date.
 
-  What Make can't catch is a build made from other sources:
-  a fresh checkout gives every source the same new mtime, changed or not.
-  Only the exact key can,
-  so the restore has no `restore-keys` fallback to an earlier build.
+  Failing that, on a pull request, the latest build made with the same tools,
+  dependencies and Makefile is restored, if Make can be told what it lacks.
+  Make judges by mtime, and a fresh checkout gives every source the same one,
+  changed or not, so each build carries a manifest of its inputs' blob hashes,
+  and .github/scripts/react-build-cache.py compares it with the checkout's.
+  When every input that changed is one Make declares as a prerequisite, the
+  build is extracted, those inputs are touched newer than it, and Make
+  rebuilds what is built from them. When any other input changed (a Streamlit
+  frontend source @stlite/react compiles, which no rule lists) or one was
+  removed, nothing is extracted and the job builds from scratch.
 
   On the default branch, whose builds are published and deployed,
-  the restore only looks the key up, and every job builds from scratch.
-  An input the key misses can then mislead a pull request's run,
-  but never reach what the default branch ships.
+  the restore only looks the exact key up, and every job builds from scratch.
+  An input the key or the manifest misses can then mislead a pull request's
+  run, but never reach what the default branch ships.
   The job that saves still saves a build whose key isn't cached yet.
 inputs:
   step:
@@ -36,47 +41,30 @@ runs:
       if: ${{ inputs.step == 'restore' }}
       shell: bash
       run: |
-        # The key is every tracked file @stlite/react's build can read, the
-        # Streamlit submodule's commit, and the tools that build it.
-        # Left out are the packages that build on @stlite/react,
-        # which can't also be its inputs, but not their manifests:
-        # any package.json can change how the dependencies are hoisted.
-        # Every other package is in, even one the build doesn't read today,
-        # so that the build starting to read it can't go unnoticed.
-        # Of .github, all the composite actions and scripts are in the key:
-        # some set up and run the build, and any of them can start to.
-        # The workflows are not: most of their changes don't reach the build,
-        # and the tool versions they pin are in the key
-        # as the versions themselves, below.
-        # Bump the key's version along with a workflow change that does alter
-        # the build: an environment variable the build reads,
+        # Not `set -e` for the prefix: a job without protoc hashes the
+        # empty output of the failing `protoc --version`, consistently.
+        # The key's prefix is what Make can't see: the tools that build,
+        # the dependencies the init step installed (any package.json can
+        # change how they are hoisted), the Python environment `make venv`
+        # made, the Makefile's own recipes, and the composite actions and
+        # scripts, which set up and run the build. A restored build must
+        # match all of it.
+        # The workflows are not in it: most of their changes don't reach the
+        # build, and the tool versions they pin are in it as the versions
+        # themselves. Bump the key's version along with a workflow change
+        # that does alter the build: an environment variable the build reads,
         # or how the jobs run `make react`.
-        # The runner image's version is not in the key either,
+        # The runner image's version is not in it either,
         # as runners allocated at the same time can run different ones,
         # and the build doesn't use what changes between them.
-        # Nor are the root's documents and linter configurations,
-        # which no build step reads.
-        hash=$(
+        prefix=$(
           {
-            git ls-files --stage -- . \
-              ':(exclude).changeset' \
-              ':(exclude).claude' \
-              ':(exclude).github' \
-              ':(exclude).lintstagedrc.json' \
-              ':(exclude).oxfmtrc.json' \
-              ':(exclude).oxlintrc.json' \
-              ':(exclude)AGENTS.md' \
-              ':(exclude)CHANGELOG.md' \
-              ':(exclude)CLAUDE.md' \
-              ':(exclude)CONTRIBUTING.md' \
-              ':(exclude)README.md' \
-              ':(exclude)cspell.json' \
-              ':(exclude)docs' \
-              ':(exclude)packages/browser' \
-              ':(exclude)packages/desktop' \
-              ':(exclude)packages/sharing'
-            git ls-files --stage -- ':(glob)**/package.json'
-            git ls-files --stage -- .github/actions .github/scripts
+            git ls-files --stage -- Makefile yarn.lock .yarnrc.yml .yarn/patches \
+              ':(glob)**/package.json' .python-version pyproject.toml uv.lock \
+              packages/kernel/py/stlite-lib/pyproject.toml \
+              .github/actions .github/scripts
+            git -C streamlit ls-files --stage -- ':(glob)**/package.json' \
+              yarn.lock pyproject.toml lib/pyproject.toml
             echo "$ImageOS"
             # The major version only, as .nvmrc names: each runner image
             # carries its own patch release of it.
@@ -84,9 +72,13 @@ runs:
             python --version
             uv --version
             protoc --version
-          } | sha256sum | cut -d' ' -f1
+          } | sha256sum | cut -c1-16
         )
-        echo "REACT_BUILD_CACHE_KEY=react-build-v2-${RUNNER_OS}-${hash}" >> "$GITHUB_ENV"
+        # The rest of the key is every input file, the submodule's one by one.
+        python .github/scripts/react-build-cache.py inputs > "$RUNNER_TEMP/react-build.inputs" || exit 1
+        inputs=$(sha256sum < "$RUNNER_TEMP/react-build.inputs" | cut -d' ' -f1)
+        echo "REACT_BUILD_CACHE_PREFIX=react-build-v3-${RUNNER_OS}-${prefix}-" >> "$GITHUB_ENV"
+        echo "REACT_BUILD_CACHE_KEY=react-build-v3-${RUNNER_OS}-${prefix}-${inputs}" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_ARCHIVE=${RUNNER_TEMP}/react-build.tar" >> "$GITHUB_ENV"
         echo "REACT_BUILD_CACHE_MARKER=${RUNNER_TEMP}/react-build.marker" >> "$GITHUB_ENV"
         if [ "$GITHUB_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
@@ -102,14 +94,32 @@ runs:
       with:
         path: ${{ env.REACT_BUILD_CACHE_ARCHIVE }}
         key: ${{ env.REACT_BUILD_CACHE_KEY }}
+        restore-keys: ${{ env.REACT_BUILD_CACHE_LOOKUP_ONLY != 'true' && env.REACT_BUILD_CACHE_PREFIX || '' }}
         lookup-only: ${{ env.REACT_BUILD_CACHE_LOOKUP_ONLY == 'true' }}
 
     - name: Extract the restored build
-      if: ${{ inputs.step == 'restore' && steps.restore.outputs.cache-hit == 'true' && env.REACT_BUILD_CACHE_LOOKUP_ONLY != 'true' }}
+      id: extract
+      if: ${{ inputs.step == 'restore' && steps.restore.outputs.cache-matched-key != '' && env.REACT_BUILD_CACHE_LOOKUP_ONLY != 'true' }}
       shell: bash
+      env:
+        EXACT: ${{ steps.restore.outputs.cache-hit == 'true' }}
+        MATCHED_KEY: ${{ steps.restore.outputs.cache-matched-key }}
       run: |
         set -euo pipefail
+        manifest=.make/react-build-cache/inputs
+        if [ "$EXACT" != true ]; then
+          echo "Restoring $MATCHED_KEY, an earlier build, if Make can tell what it lacks."
+          tar -xOf "$REACT_BUILD_CACHE_ARCHIVE" "$manifest" > "$RUNNER_TEMP/react-build.restored-inputs"
+          make -pq .make/react/.built > "$RUNNER_TEMP/react-build.make-db" 2>/dev/null || true
+          if ! python .github/scripts/react-build-cache.py plan \
+              "$RUNNER_TEMP/react-build.restored-inputs" "$RUNNER_TEMP/react-build.inputs" \
+              "$RUNNER_TEMP/react-build.make-db" > "$RUNNER_TEMP/react-build.changed"; then
+            echo "Building from scratch instead."
+            exit 0
+          fi
+        fi
         tar -xf "$REACT_BUILD_CACHE_ARCHIVE"
+        tar -tf "$REACT_BUILD_CACHE_ARCHIVE" | grep -v '/$' > "$RUNNER_TEMP/react-build.restored"
         # One mtime for every file, so that no restored target looks older
         # than another restored target it is built from.
         # With nanoseconds, not whole seconds:
@@ -117,18 +127,30 @@ runs:
         # than the marker `make node_modules` just touched,
         # and Make would then rebuild everything built on it.
         now=$(date +%s.%N)
-        tar -tf "$REACT_BUILD_CACHE_ARCHIVE" | grep -v '/$' | tr '\n' '\0' | xargs -0 touch -h -d "@$now"
-        if make -q .make/react/.built; then
-          echo "@stlite/react and everything it is built from are up to date."
-        else
-          echo "::warning::The restored @stlite/react build is not up to date; make will rebuild what it needs."
+        tr '\n' '\0' < "$RUNNER_TEMP/react-build.restored" | xargs -0 touch -h -d "@$now"
+        echo "restored=true" >> "$GITHUB_OUTPUT"
+        if [ "$EXACT" = true ]; then
+          if make -q .make/react/.built; then
+            echo "@stlite/react and everything it is built from are up to date."
+          else
+            echo "::warning::The restored @stlite/react build is not up to date; make will rebuild what it needs."
+          fi
+          exit 0
         fi
+        # The inputs that changed since the earlier build, a second newer
+        # than it, so that Make rebuilds what is built from them.
+        later="$(( ${now%.*} + 1 )).${now#*.}"
+        echo "Inputs changed since that build, which Make will rebuild from:"
+        sed 's/^/  /' "$RUNNER_TEMP/react-build.changed"
+        tr '\n' '\0' < "$RUNNER_TEMP/react-build.changed" | xargs -0 -r touch -d "@$later"
+        echo "REACT_BUILD_CACHE_PARTIAL=true" >> "$GITHUB_ENV"
 
     - name: Mark the start of the build
       if: ${{ inputs.step == 'restore' && steps.restore.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
-        # `step: save` archives every file the build wrote after this.
+        # `step: save` archives every file the build wrote after this,
+        # with what a partial restore extracted.
         touch "$REACT_BUILD_CACHE_MARKER"
         echo "REACT_BUILD_CACHE_SAVE=true" >> "$GITHUB_ENV"
         sleep 1
@@ -142,15 +164,32 @@ runs:
         # Everything the build wrote, in both this repository and the
         # submodule, but not the dependencies: those the init step installed,
         # and the environment `uv run` makes for the submodule's project when
-        # the build generates the protobufs.
-        find . \
-          \( -name node_modules -o -name .git -o -path ./.venv -o -path ./streamlit/.venv \) -prune \
-          -o \( -type f -o -type l \) -newer "$REACT_BUILD_CACHE_MARKER" -print \
-          | sort > "$RUNNER_TEMP/react-build.files"
+        # the build generates the protobufs. With it, what a partial restore
+        # extracted and the build didn't rewrite.
+        # Never a tracked file: touching the changed inputs made them newer
+        # than the marker, and restoring one would undo the checkout.
+        {
+          find . \
+            \( -name node_modules -o -name .git -o -path ./.venv -o -path ./streamlit/.venv \) -prune \
+            -o \( -type f -o -type l \) -newer "$REACT_BUILD_CACHE_MARKER" -print \
+            | sed 's#^\./##'
+          if [ "${REACT_BUILD_CACHE_PARTIAL:-}" = true ]; then
+            while IFS= read -r f; do
+              if [ -e "$f" ] || [ -L "$f" ]; then echo "$f"; fi
+            done < "$RUNNER_TEMP/react-build.restored"
+          fi
+        } | sort -u > "$RUNNER_TEMP/react-build.candidates"
+        python .github/scripts/react-build-cache.py tracked | sort -u > "$RUNNER_TEMP/react-build.tracked"
+        comm -23 "$RUNNER_TEMP/react-build.candidates" "$RUNNER_TEMP/react-build.tracked" \
+          | grep -vx '.make/react-build-cache/inputs' > "$RUNNER_TEMP/react-build.files" || true
+        # The inputs this build was made from, for a later partial restore.
+        mkdir -p .make/react-build-cache
+        cp "$RUNNER_TEMP/react-build.inputs" .make/react-build-cache/inputs
+        echo .make/react-build-cache/inputs >> "$RUNNER_TEMP/react-build.files"
         echo "Archiving $(wc -l < "$RUNNER_TEMP/react-build.files") files, by directory:"
         # Two levels deep (three under packages/ and the submodule), so an
         # unexpected entry, such as a virtualenv, stands out in the log.
-        awk -F/ '{ d = ($2 == "packages" || $2 == "streamlit") ? $2"/"$3"/"$4 : $2"/"$3; n[d]++ } END { for (d in n) printf "%7d  %s\n", n[d], d }' \
+        awk -F/ '{ d = ($1 == "packages" || $1 == "streamlit") ? $1"/"$2"/"$3 : $1"/"$2; n[d]++ } END { for (d in n) printf "%7d  %s\n", n[d], d }' \
           "$RUNNER_TEMP/react-build.files" | sort -k2
         tar -cf "$REACT_BUILD_CACHE_ARCHIVE" -T "$RUNNER_TEMP/react-build.files"
         ls -l "$REACT_BUILD_CACHE_ARCHIVE"

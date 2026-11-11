@@ -8147,6 +8147,7 @@ __metadata:
     "@microsoft/api-extractor": "npm:^7.59.0"
     "@stlite/common": "workspace:^"
     "@stlite/react": "workspace:^"
+    "@stlite/tooling": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
@@ -8397,6 +8398,7 @@ __metadata:
   dependencies:
     "@stlite/react": "workspace:^"
     "@stlite/sharing-common": "workspace:^"
+    "@stlite/tooling": "workspace:^"
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-react": "npm:^5.1.1"
@@ -24862,7 +24864,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-visualizer@npm:^5.12.0":
+"rollup-plugin-visualizer@npm:5.14.0":
   version: 5.14.0
   resolution: "rollup-plugin-visualizer@npm:5.14.0"
   dependencies:
@@ -24881,6 +24883,28 @@ __metadata:
   bin:
     rollup-plugin-visualizer: dist/bin/cli.js
   checksum: 10c0/ec6ca9ed125bce9994ba49a340bda730661d8e8dc5c5dc014dc757185182e1eda49c6708f990cb059095e71a3741a5248f1e6ba0ced7056020692888e06b1ddf
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-visualizer@patch:rollup-plugin-visualizer@npm%3A5.14.0#~/.yarn/patches/rollup-plugin-visualizer-npm-5.14.0-25d98e0d4e.patch":
+  version: 5.14.0
+  resolution: "rollup-plugin-visualizer@patch:rollup-plugin-visualizer@npm%3A5.14.0#~/.yarn/patches/rollup-plugin-visualizer-npm-5.14.0-25d98e0d4e.patch::version=5.14.0&hash=f603c3"
+  dependencies:
+    open: "npm:^8.4.0"
+    picomatch: "npm:^4.0.2"
+    source-map: "npm:^0.7.4"
+    yargs: "npm:^17.5.1"
+  peerDependencies:
+    rolldown: 1.x
+    rollup: 2.x || 3.x || 4.x
+  peerDependenciesMeta:
+    rolldown:
+      optional: true
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 10c0/a9bfb75a58125bb7aa6f55e0871efaeda523b026b184e0a3118e76f565ddd4917fd55f930b693cc4c51c149f8a75a2cfb6858a25d34548d194d428aa130cc594
   languageName: node
   linkType: hard
 

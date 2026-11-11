@@ -124,6 +124,7 @@
     "oxlintrc",
     "oxfmt",
     "oxfmtrc",
+    "lintstagedrc",
     "baseui",
     "codedent",
     "toastify",
@@ -141,6 +142,9 @@
     "mstile",
     "gztar",
     "Segoe",
+    "superproject",
+    "absorbgitdirs",
+    "nohup",
     // Services
     "kofi",
     "Pixabay",

@@ -141,7 +141,7 @@ yarn test:docker:update-snapshots
 
 ### Python Version
 
-**Minor version MUST match Pyodide**: The minor version of the Python specified in `.python-version` must match the one bundled in the Pyodide runtime (e.g. Python 3.14 for Pyodide 314.x), and the Makefile enforces this. This ensures compatibility of built wheels and bytecode and prevents runtime errors. The patch version does not need to match Pyodide's; pin it to the latest CPython patch release of that minor to pick up security fixes. Renovate opens patch-only PRs for `.python-version`, and the `check-python-version` CI job (`.github/scripts/check-python-version.sh`) fails when its minor diverges from the Pyodide release in `packages/kernel/package.json`. When Pyodide moves to a new Python minor, bump `.python-version` to that minor in the same PR.
+**Minor version MUST match Pyodide**: The minor version of the Python specified in `.python-version` must match the one bundled in the Pyodide runtime (e.g. Python 3.14 for Pyodide 314.x), and the Makefile enforces this. This ensures compatibility of built wheels and bytecode and prevents runtime errors. The patch version does not need to match Pyodide's; pin it to the latest CPython patch release of that minor to pick up security fixes. Renovate opens patch-only PRs for `.python-version`, and the `test` CI job's Python version check (`.github/scripts/check-python-version.sh`) fails when its minor diverges from the Pyodide release in `packages/kernel/package.json`. When Pyodide moves to a new Python minor, bump `.python-version` to that minor in the same PR.
 
 ### Pyodide Compatibility
 

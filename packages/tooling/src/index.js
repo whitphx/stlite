@@ -17,12 +17,23 @@ function getAbiTag(runtime) {
   if (runtime === "py") {
     return "py3-none-any";
   } else if (runtime === "cp") {
+    // `pyodide config get` runs `make -f Makefile.envs` with our environment:
+    // https://github.com/pyodide/pyodide-build/blob/cd83fadd67dd3e9586d1dff6aafae282911f8bc3/pyodide_build/config.py#L146-L156
+    // The root Makefile reaches here from a `$(shell ...)`,
+    // and GNU Make 4.4 and later export MAKEFLAGS to it:
+    // https://github.com/mirror/make/blob/4.4/NEWS#L74-L79
+    // Under `make -q` or `make -n`, that `make` would then run in the same mode
+    // and print none of the values `pyodide config get` reads.
+    // Drop this once a pyodide-build release ships the fix proposed in
+    // https://github.com/pyodide/pyodide-build/pull/447
+    const { MAKEFLAGS, ...env } = process.env;
     const pyodidePythonVersion = execSync(
       // Looks like `uvx` doesn't respect the `.python-version` file, so we need to pass the version manually. Ref: https://github.com/astral-sh/uv/issues/8206#issuecomment-2793478986
       "uvx -p $(cat .python-version) --from pyodide-cli --with pyodide-build pyodide config get python_version",
       {
         cwd: __project_root,
         encoding: "utf8",
+        env,
       },
     ).trim();
 

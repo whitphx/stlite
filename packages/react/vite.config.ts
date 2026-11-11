@@ -35,6 +35,15 @@ export default defineConfig(({ mode }) => ({
   base: "./",
   plugins: [
     react({
+      // The `@streamlit/*` workspace packages below resolve outside the
+      // node_modules/ the default `exclude` skips, but they are generated or
+      // already-built code with nothing for the Emotion plugin to transform:
+      // Babel would only re-parse and reprint them, the protobuf bindings
+      // among them.
+      exclude: [
+        /\/node_modules\//,
+        /\/streamlit\/frontend\/(protobuf|connection\/dist|utils\/dist|component-v2-lib\/dist)\//,
+      ],
       // jsxImportSource: "@emotion/react",
       // plugins: [["@swc/plugin-emotion", {}]],
       babel: {

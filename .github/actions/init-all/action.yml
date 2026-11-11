@@ -15,10 +15,26 @@ inputs:
     description: "Whether to install protoc"
     required: false
     default: "true"
+  streamlit-submodule:
+    description: "Whether to check out the `streamlit` submodule. Check out the superproject without `submodules:`; this step does it much faster."
+    required: false
+    default: "true"
+  save-caches:
+    description: >-
+      Whether to save the dependency caches (uv's and node_modules) when they
+      missed. Only one job per run needs to: they all set up the same
+      dependencies, and saving takes 10-60 seconds.
+    required: false
+    default: "false"
 
 runs:
   using: "composite"
   steps:
+    - name: Check out the streamlit submodule
+      run: .github/scripts/fetch-streamlit-submodule.sh
+      shell: bash
+      if: ${{ inputs.streamlit-submodule == 'true' }}
+
     ## Set up Python
     # The interpreter comes from `actions/setup-python`, not from uv, because
     # the uv pinned below predates the latest CPython patch releases that
@@ -38,10 +54,27 @@ runs:
         # or drops the exact playwright pin.
         version: "0.12.13"
         enable-cache: true
+        save-cache: ${{ inputs.save-caches == 'true' }}
         cache-dependency-glob: |
           **/requirements*.txt
           **/uv.lock
       if: ${{ inputs.python-version-file }}
+    # `make venv` takes ~20s and needs nothing from the steps between here and
+    # "Set up Python packages", so on Linux it runs in the background while
+    # they restore node_modules. Passing the wheel file names on the command
+    # line skips their definitions in the Makefile, whose `$(shell yarn
+    # workspace @stlite/tooling ...)` needs node_modules and runs `uv run`
+    # against the environment this is creating. No other `make` may start
+    # until "Set up Python packages" has waited for this one.
+    - name: Start setting up Python packages
+      run: |
+        nohup bash -c '
+          make venv STREAMLIT_WHEEL_FILE_NAME= STREAMLIT_COMPILED_WHEEL_FILE_NAME= > "$RUNNER_TEMP/make-venv.log" 2>&1
+          echo $? > "$RUNNER_TEMP/make-venv.status.tmp"
+          mv "$RUNNER_TEMP/make-venv.status.tmp" "$RUNNER_TEMP/make-venv.status"
+        ' > /dev/null 2>&1 &
+      shell: bash
+      if: ${{ runner.os == 'Linux' && inputs.python-version-file }}
 
     ## Set up Node environment
     - name: Remove classic Yarn on Windows so that it does not conflict with Corepack.
@@ -57,12 +90,54 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
       if: ${{ inputs.node-version-file }}
 
+    # A snapshot of every workspace's node_modules, taken right after
+    # `yarn install` and before anything is built. With the same lockfile,
+    # manifests and Node.js, it is what `yarn install` would produce (the
+    # install scripts, e.g. Electron's binary download, write inside
+    # node_modules), so a hit skips the install: ~15s to restore instead of
+    # ~75s to restore Yarn's cache and install from it. Linux only: Yarn links
+    # the workspaces with junctions on Windows, which the cache's tar
+    # doesn't restore.
+    # The major version only: .nvmrc names one, and each runner image carries
+    # its own patch release of it, so the jobs of one run differ there.
+    - name: Get the Node.js major version
+      id: node-version
+      run: echo "version=$(node -p 'process.versions.node.split(".")[0]')" >> "$GITHUB_OUTPUT"
+      shell: bash
+      if: ${{ runner.os == 'Linux' && inputs.node-version-file && inputs.install-node-modules == 'true' }}
+    - name: Restore node_modules
+      id: node-modules-cache
+      uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      with:
+        path: |
+          .yarn/install-state.gz
+          node_modules
+          packages/*/node_modules
+          packages/desktop/samples/*/node_modules
+          packages/cloudflare/samples/*/node_modules
+          streamlit/frontend/node_modules
+          streamlit/frontend/*/node_modules
+          docs/node_modules
+        key: ${{ runner.os }}-node-modules-${{ steps.node-version.outputs.version }}-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/**', 'package.json', 'packages/*/package.json', 'packages/desktop/samples/*/package.json', 'packages/cloudflare/samples/*/package.json', 'streamlit/frontend/package.json', 'streamlit/frontend/*/package.json', 'docs/package.json') }}
+        # Without a snapshot for these manifests, the latest one for another
+        # set: `yarn install` below then changes only what differs, as it does
+        # in a developer's checkout (a dependency bump: ~10s instead of ~1 min).
+        restore-keys: |
+          ${{ runner.os }}-node-modules-${{ steps.node-version.outputs.version }}-
+      if: ${{ runner.os == 'Linux' && inputs.node-version-file && inputs.install-node-modules == 'true' }}
+    - name: Mark node_modules as installed
+      run: |
+        mkdir -p .make/node_modules
+        touch .make/node_modules/.built
+      shell: bash
+      if: ${{ steps.node-modules-cache.outputs.cache-hit == 'true' }}
+
     # `actions/setup-node`'s cache option doesn't work well with corepack.
     - name: Get Yarn cache directory path
       id: yarn-cache-path
       run: echo "path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
-      if: ${{ inputs.node-version-file }}
+      if: ${{ inputs.node-version-file && steps.node-modules-cache.outputs.cache-hit != 'true' }}
     - name: Cache Yarn global dependencies
       uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
@@ -70,7 +145,7 @@ runs:
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-yarn-
-      if: ${{ inputs.node-version-file }}
+      if: ${{ inputs.node-version-file && steps.node-modules-cache.outputs.cache-hit != 'true' }}
 
     # We require protoc >= 3.20, but Ubuntu 22.04 - the OS that these Github
     # Actions are running as of 2024.06.04 - doesn't have recent versions
@@ -97,7 +172,24 @@ runs:
       if: ${{ inputs.protoc == 'true' }}
 
     - name: Set up Python packages
-      run: make venv
+      run: |
+        if [ "$RUNNER_OS" != "Linux" ]; then
+          make venv
+          exit
+        fi
+        # The status file is written when `make venv` exits; if the background
+        # shell itself died (e.g. killed for memory) it never is, so give up
+        # after 15 minutes rather than hang until the job's limit.
+        for _ in $(seq 900); do
+          [ -f "$RUNNER_TEMP/make-venv.status" ] && break
+          sleep 1
+        done
+        cat "$RUNNER_TEMP/make-venv.log"
+        if [ ! -f "$RUNNER_TEMP/make-venv.status" ]; then
+          echo "::error::make venv, started in the background, never finished"
+          exit 1
+        fi
+        exit "$(cat "$RUNNER_TEMP/make-venv.status")"
       shell: bash
       if: ${{ inputs.python-version-file }}
 
@@ -105,3 +197,17 @@ runs:
       run: make node_modules
       shell: bash
       if: ${{ inputs.node-version-file && inputs.install-node-modules == 'true' }}
+    - name: Save node_modules
+      uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      with:
+        path: |
+          .yarn/install-state.gz
+          node_modules
+          packages/*/node_modules
+          packages/desktop/samples/*/node_modules
+          packages/cloudflare/samples/*/node_modules
+          streamlit/frontend/node_modules
+          streamlit/frontend/*/node_modules
+          docs/node_modules
+        key: ${{ steps.node-modules-cache.outputs.cache-primary-key }}
+      if: ${{ inputs.save-caches == 'true' && steps.node-modules-cache.outcome == 'success' && steps.node-modules-cache.outputs.cache-hit != 'true' }}

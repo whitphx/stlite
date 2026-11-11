@@ -8,7 +8,7 @@ In a fresh monorepo checkout they don't exist yet; run `make cloudflare` first t
 
 ## Release artifacts
 
-`make cloudflare` assembles the `runtime/` artifacts (the built frontend and the stlite-lib/Streamlit wheels) that the bundled mode ships; the Streamlit dependency list is read from the shipped wheel's own METADATA at build time rather than from a separate snapshot. The intent is that a publishable release contains everything needed to build a Worker without the Stlite repository or its `streamlit` submodule; `verify-cloudflare-standalone` in CI proves that by building from the packed tarball alone (Linux only — the full build can't run on Windows yet, see below; `test-cloudflare-windows` instead exercises the Node fs helpers there).
+`make cloudflare` assembles the `runtime/` artifacts (the built frontend and the stlite-lib/Streamlit wheels) that the bundled mode ships; the Streamlit dependency list is read from the shipped wheel's own METADATA at build time rather than from a separate snapshot. The intent is that a publishable release contains everything needed to build a Worker without the Stlite repository or its `streamlit` submodule; `verify-cloudflare-standalone` in CI proves that by building from the packed tarball alone (Linux only — the full build can't run on Windows yet, see below; the `test-windows` job instead runs the Node fs-helper tests there).
 
 ## Tests
 

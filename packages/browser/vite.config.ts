@@ -8,6 +8,7 @@ import stliteReactPlugin from "@stlite/react/vite-plugin";
 
 import path from "node:path";
 import fs from "node:fs";
+import viteInputSourcemaps from "@stlite/tooling/vite-input-sourcemaps";
 
 // Plugin to serve demos with placeholder substitution in dev mode
 function demoPlaceholderPlugin(): Plugin {
@@ -43,7 +44,16 @@ function demoPlaceholderPlugin(): Plugin {
 export default defineConfig(({ mode }) => ({
   base: "./",
   plugins: [
+    // What the Babel pass excluded below used to do for that prebuilt code
+    // besides reprinting it: carry its own sourcemap into this build's.
+    viteInputSourcemaps(/\/packages\/react\/build\//),
     react({
+      // `@stlite/react` is a workspace package, so its prebuilt bundle resolves to
+      // packages/react/build/, not under the node_modules/ the default `exclude`
+      // skips. Babel would re-parse and reprint that whole bundle, for about half
+      // a minute of this build, without changing what the code does: the Emotion
+      // plugin already ran when @stlite/react was built.
+      exclude: [/\/node_modules\//, /\/packages\/react\/build\//],
       // jsxImportSource: "@emotion/react",
       // plugins: [["@swc/plugin-emotion", {}]],
       babel: {

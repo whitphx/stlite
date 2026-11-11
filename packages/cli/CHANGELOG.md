@@ -1,5 +1,11 @@
 # @stlite/cli
 
+## 0.5.2
+
+### Patch Changes
+
+- [#2170](https://github.com/whitphx/stlite/pull/2170) [`8a33e48`](https://github.com/whitphx/stlite/commit/8a33e481cd02e10d3cf1870624de065c7bf391f4) Thanks [@whitphx](https://github.com/whitphx)! - Stop re-running Babel over already-built code when bundling: `@stlite/react`'s prebuilt bundle in `@stlite/browser`, `@stlite/desktop` and `@stlite/sharing`, and the generated protobuf bindings and built `@streamlit/*` libraries in `@stlite/react`. The bundled code behaves the same; it differs only in formatting, and its sourcemaps still lead to the original sources, with slightly coarser mappings.
+
 ## 0.5.1
 
 ### Patch Changes

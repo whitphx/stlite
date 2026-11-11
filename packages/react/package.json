@@ -1,6 +1,6 @@
 {
   "name": "@stlite/react",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "Stlite React library",
   "keywords": [
     "pyodide",

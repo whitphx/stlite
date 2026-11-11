@@ -1,5 +1,13 @@
 # @stlite/browser
 
+## 1.12.1
+
+### Patch Changes
+
+- [#2154](https://github.com/whitphx/stlite/pull/2154) [`4ae6c39`](https://github.com/whitphx/stlite/commit/4ae6c39408837cdc50c3063acf256d30b6f7f796) Thanks [@whitphx](https://github.com/whitphx)! - Fix inputs, buttons and other elements rendering with the app's base font size and margins instead of their own, since the app root's reset styles overrode the widgets' styles.
+
+- [#2157](https://github.com/whitphx/stlite/pull/2157) [`8fdce38`](https://github.com/whitphx/stlite/commit/8fdce3890e406758eef0e602890d92ddb838b164) Thanks [@whitphx](https://github.com/whitphx)! - Fix two separately bundled Stlite apps mounted on the same page around the same time getting the same internal style id.
+
 ## 1.12.0
 
 ### Minor Changes

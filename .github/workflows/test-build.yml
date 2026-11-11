@@ -1022,6 +1022,10 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
+          # Every lane computes the same cache key, so only one can save it.
+          # The others' saves fail with "Unable to reserve cache".
+          # https://github.com/astral-sh/setup-uv/blob/20cfd1bf945f4377ade1205e4dbc17946fc9a30d/docs/caching.md#save-cache
+          save-cache: ${{ matrix.lane == 'plain-worker' }}
 
       # The download takes seconds, but the action has once stayed running
       # for three minutes after logging that it had finished. A download cut

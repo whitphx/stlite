@@ -14624,7 +14624,7 @@ __metadata:
     "@stlite/cli": "workspace:*"
     "@stlite/desktop": "workspace:*"
     astro: "npm:^7.4.1"
-    sharp: "npm:^0.34.2"
+    sharp: "npm:^0.35.0"
   languageName: unknown
   linkType: soft
 
@@ -25304,7 +25304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:0.34.5, sharp@npm:^0.34.2":
+"sharp@npm:0.34.5":
   version: 0.34.5
   resolution: "sharp@npm:0.34.5"
   dependencies:
@@ -25388,7 +25388,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:^0.35.4":
+"sharp@npm:^0.35.0, sharp@npm:^0.35.4":
   version: 0.35.5
   resolution: "sharp@npm:0.35.5"
   dependencies:

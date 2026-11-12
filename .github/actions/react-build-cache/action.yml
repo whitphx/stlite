@@ -16,13 +16,15 @@ description: >-
   Failing that, on a pull request, the latest build made with the same tools,
   dependencies and Makefile is restored, if Make can be told what it lacks.
   Make judges by mtime, and a fresh checkout gives every source the same one,
-  changed or not, so each build carries a manifest of its inputs' blob hashes,
-  and .github/scripts/react-build-cache.py compares it with the checkout's.
+  changed or not, so each build carries a manifest of its inputs' modes and
+  blob hashes, and .github/scripts/react-build-cache.py compares it with the
+  checkout's.
   When every input that changed is one Make declares as a prerequisite, the
   build is extracted, those inputs are touched newer than it, and Make
   rebuilds what is built from them. When any other input changed (a Streamlit
-  frontend source @stlite/react compiles, which no rule lists) or one was
-  removed, nothing is extracted and the job builds from scratch.
+  frontend source @stlite/react compiles, which no rule lists), one was
+  removed, or the build holds a file the checkout now tracks, nothing is
+  extracted and the job builds from scratch.
 
   On the default branch, whose builds are published and deployed,
   the restore only looks the exact key up, and every job builds from scratch.
@@ -107,8 +109,21 @@ runs:
       run: |
         set -euo pipefail
         manifest=.make/react-build-cache/inputs
+        tar -tf "$REACT_BUILD_CACHE_ARCHIVE" | grep -v '/$' > "$RUNNER_TEMP/react-build.restored"
         if [ "$EXACT" != true ]; then
           echo "Restoring $MATCHED_KEY, an earlier build, if Make can tell what it lacks."
+          # The archive leaves out what its own checkout tracked, but this
+          # checkout can track a file that build generated, and extracting
+          # would overwrite it.
+          python .github/scripts/react-build-cache.py tracked | sort -u > "$RUNNER_TEMP/react-build.tracked"
+          sort -u "$RUNNER_TEMP/react-build.restored" \
+            | comm -12 - "$RUNNER_TEMP/react-build.tracked" > "$RUNNER_TEMP/react-build.overlap"
+          if [ -s "$RUNNER_TEMP/react-build.overlap" ]; then
+            echo "That build holds files this checkout tracks:"
+            sed 's/^/  /' "$RUNNER_TEMP/react-build.overlap"
+            echo "Building from scratch instead."
+            exit 0
+          fi
           tar -xOf "$REACT_BUILD_CACHE_ARCHIVE" "$manifest" > "$RUNNER_TEMP/react-build.restored-inputs"
           make -pq .make/react/.built > "$RUNNER_TEMP/react-build.make-db" 2>/dev/null || true
           if ! python .github/scripts/react-build-cache.py plan \
@@ -119,7 +134,6 @@ runs:
           fi
         fi
         tar -xf "$REACT_BUILD_CACHE_ARCHIVE"
-        tar -tf "$REACT_BUILD_CACHE_ARCHIVE" | grep -v '/$' > "$RUNNER_TEMP/react-build.restored"
         # One mtime for every file, so that no restored target looks older
         # than another restored target it is built from.
         # With nanoseconds, not whole seconds:

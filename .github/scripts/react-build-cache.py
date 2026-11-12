@@ -6,14 +6,16 @@ for a checkout whose inputs differ from the ones it was built from, as long as
 Make can tell which of its targets that difference makes stale. Make judges by
 mtime, and a fresh checkout gives every file the same one, so this script does
 the judging by content: each cached build carries a manifest of its inputs'
-git blob hashes, and `plan` compares it with the checkout's.
+git modes and blob hashes, and `plan` compares it with the checkout's.
 
 Subcommands:
 
   inputs
-      Print the manifest of the checkout's inputs: one "<blob> <path>" line per
-      tracked file @stlite/react's build can read, the Streamlit submodule's
-      files listed one by one.
+      Print the manifest of the checkout's inputs: one "<mode> <blob> <path>"
+      line per tracked file @stlite/react's build can read, the Streamlit
+      submodule's files listed one by one. The mode is in it because a change
+      of it alone (a file made executable, or a symlink replaced by a file
+      holding its target's path) keeps the blob.
 
   tracked
       Print every tracked path, the submodule's included, one per line.
@@ -87,11 +89,11 @@ def inputs():
         if mode == "160000":
             # The submodule's commit: its files are listed below instead.
             continue
-        lines.append((path, blob))
-    for _mode, blob, path in ls_files(cwd=SUBMODULE):
-        lines.append((f"{SUBMODULE}/{path}", blob))
-    for path, blob in sorted(lines):
-        print(blob, path)
+        lines.append((path, mode, blob))
+    for mode, blob, path in ls_files(cwd=SUBMODULE):
+        lines.append((f"{SUBMODULE}/{path}", mode, blob))
+    for path, mode, blob in sorted(lines):
+        print(mode, blob, path)
 
 
 def tracked():
@@ -106,8 +108,8 @@ def read_manifest(path):
     manifest = {}
     with open(path) as f:
         for line in f:
-            blob, name = line.rstrip("\n").split(" ", 1)
-            manifest[name] = blob
+            mode, blob, name = line.rstrip("\n").split(" ", 2)
+            manifest[name] = (mode, blob)
     return manifest
 
 
@@ -150,7 +152,7 @@ def plan(old_path, new_path, database):
     old = read_manifest(old_path)
     new = read_manifest(new_path)
     removed = sorted(set(old) - set(new))
-    changed = sorted(p for p, blob in new.items() if old.get(p) != blob)
+    changed = sorted(p for p, entry in new.items() if old.get(p) != entry)
 
     def fail(reason, paths):
         shown = "\n".join(f"  {p}" for p in paths[:20])

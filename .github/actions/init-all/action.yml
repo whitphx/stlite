@@ -21,9 +21,10 @@ inputs:
     default: "true"
   save-caches:
     description: >-
-      Whether to save the dependency caches (uv's and node_modules) when they
-      missed. Only one job per run needs to: they all set up the same
-      dependencies, and saving takes 10-60 seconds.
+      Whether to save the dependency caches (uv's, Yarn's and node_modules)
+      when they missed. Only one job per run and OS needs to: they all set up
+      the same dependencies, and saving takes 10-60 seconds. Two jobs saving
+      the same new key race, and the loser leaves a warning on the run.
     required: false
     default: "false"
 
@@ -138,8 +139,9 @@ runs:
       run: echo "path=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       shell: bash
       if: ${{ inputs.node-version-file && steps.node-modules-cache.outputs.cache-hit != 'true' }}
-    - name: Cache Yarn global dependencies
-      uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+    - name: Restore Yarn global dependencies
+      id: yarn-cache
+      uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:
         path: ${{ steps.yarn-cache-path.outputs.path }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -197,6 +199,12 @@ runs:
       run: make node_modules
       shell: bash
       if: ${{ inputs.node-version-file && inputs.install-node-modules == 'true' }}
+    - name: Save Yarn global dependencies
+      uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+      with:
+        path: ${{ steps.yarn-cache-path.outputs.path }}
+        key: ${{ steps.yarn-cache.outputs.cache-primary-key }}
+      if: ${{ inputs.save-caches == 'true' && steps.yarn-cache.outcome == 'success' && steps.yarn-cache.outputs.cache-hit != 'true' }}
     - name: Save node_modules
       uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
       with:

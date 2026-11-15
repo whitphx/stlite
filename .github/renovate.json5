@@ -118,6 +118,19 @@
       matchUpdateTypes: ["major"],
       enabled: false,
     },
+    // `@stlite/react` stays on Vite 7 until its bundle works on Rolldown;
+    // see the `//` note in `packages/react/package.json`.
+    // Its E2E project stays with it:
+    // the `@vitejs/plugin-react` it uses peers on Vite 7 or older.
+    {
+      matchFileNames: [
+        "packages/react/package.json",
+        "packages/react/e2e-tests/package.json",
+      ],
+      matchPackageNames: ["vite", "vite-tsconfig-paths"],
+      matchUpdateTypes: ["major"],
+      enabled: false,
+    },
 
     // `.python-version` tracks the latest CPython patch release, for its
     // security fixes, but its minor has to match the Python that Pyodide

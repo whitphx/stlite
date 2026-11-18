@@ -202,9 +202,9 @@ async def call_asgi(
 
     * ``streamlit.runtime.runtime_contextvar`` to the App's runtime
       instance. The Streamlit script runner and several runtime helpers
-      fetch it via ``Runtime.get_instance()``; without this binding the
+      read it through ``Runtime.instance()``; without this binding the
       script execution task spawned during request handling raises
-      ``Exception: Runtime instance not created yet``.
+      ``RuntimeError: Runtime hasn't been created!``.
     * ``stlite_lib.server.task_context.home_dir_contextvar`` (when
       ``home_dir`` is provided) so the SharedWorker multi-app CWD
       machinery (DirectorySyncCoroutineProxy) restores the correct
@@ -280,7 +280,7 @@ def bind_runtime_to_current_context(app: App) -> None:
 
     Most ASGI traffic goes through :func:`call_asgi`, which binds the
     contextvar per-call inside its own asyncio task. But some non-ASGI
-    paths reach for ``Runtime.get_instance()`` outside any call_asgi
+    paths reach for ``Runtime.instance()`` outside any call_asgi
     invocation — most notably ``streamlit.testing.v1.AppTest``'s script
     runner, which is used by stlite's kernel tests. Those run in tasks
     that inherit the *shared module context* current at task-creation

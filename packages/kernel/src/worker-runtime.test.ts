@@ -269,6 +269,25 @@ assert [m.value for m in at.markdown] == ["done"], f"markdown values: {[m.value 
 `,
   },
   {
+    // Ref: https://github.com/whitphx/stlite/issues/2178
+    name: "Custom components v2",
+    entrypoint: "app.py",
+    files: {
+      "app.py": {
+        content: `
+import streamlit as st
+
+probe = st.components.v2.component(
+    "probe",
+    html='<span id="greet"></span>',
+    js="export default function() {}",
+)
+probe(data={"greeting": "hello"}, key="probe")
+`,
+      },
+    },
+  },
+  {
     // A dataframe with non-string column names, which the serializer must handle. Ref: https://github.com/whitphx/stlite/issues/978
     entrypoint: "layout.columns2.py",
     files: {

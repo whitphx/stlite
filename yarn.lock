@@ -98,9 +98,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-android-arm64@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-android-arm64@npm:0.5.3"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-darwin-arm64@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-darwin-arm64@npm:0.5.2"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@astrojs/compiler-binding-darwin-arm64@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-darwin-arm64@npm:0.5.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -112,9 +126,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-darwin-x64@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-darwin-x64@npm:0.5.3"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-linux-arm64-gnu@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-linux-arm64-gnu@npm:0.5.2"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@astrojs/compiler-binding-linux-arm64-gnu@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-linux-arm64-gnu@npm:0.5.3"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -126,6 +154,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-linux-arm64-musl@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-linux-arm64-musl@npm:0.5.3"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-linux-x64-gnu@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-linux-x64-gnu@npm:0.5.2"
@@ -133,9 +168,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-linux-x64-gnu@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-linux-x64-gnu@npm:0.5.3"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-linux-x64-musl@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-linux-x64-musl@npm:0.5.2"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@astrojs/compiler-binding-linux-x64-musl@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-linux-x64-musl@npm:0.5.3"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -151,6 +200,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-wasm32-wasi@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-wasm32-wasi@npm:0.5.3"
+  dependencies:
+    "@emnapi/core": "npm:1.11.3"
+    "@emnapi/runtime": "npm:1.11.3"
+    "@napi-rs/wasm-runtime": "npm:^1.2.7"
+  conditions: cpu=wasm32
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-win32-arm64-msvc@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-win32-arm64-msvc@npm:0.5.2"
@@ -158,9 +218,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding-win32-arm64-msvc@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-win32-arm64-msvc@npm:0.5.3"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-binding-win32-x64-msvc@npm:0.5.2":
   version: 0.5.2
   resolution: "@astrojs/compiler-binding-win32-x64-msvc@npm:0.5.2"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@astrojs/compiler-binding-win32-x64-msvc@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding-win32-x64-msvc@npm:0.5.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -204,12 +278,60 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@astrojs/compiler-binding@npm:0.5.3":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-binding@npm:0.5.3"
+  dependencies:
+    "@astrojs/compiler-binding-android-arm64": "npm:0.5.3"
+    "@astrojs/compiler-binding-darwin-arm64": "npm:0.5.3"
+    "@astrojs/compiler-binding-darwin-x64": "npm:0.5.3"
+    "@astrojs/compiler-binding-linux-arm64-gnu": "npm:0.5.3"
+    "@astrojs/compiler-binding-linux-arm64-musl": "npm:0.5.3"
+    "@astrojs/compiler-binding-linux-x64-gnu": "npm:0.5.3"
+    "@astrojs/compiler-binding-linux-x64-musl": "npm:0.5.3"
+    "@astrojs/compiler-binding-wasm32-wasi": "npm:0.5.3"
+    "@astrojs/compiler-binding-win32-arm64-msvc": "npm:0.5.3"
+    "@astrojs/compiler-binding-win32-x64-msvc": "npm:0.5.3"
+  dependenciesMeta:
+    "@astrojs/compiler-binding-android-arm64":
+      optional: true
+    "@astrojs/compiler-binding-darwin-arm64":
+      optional: true
+    "@astrojs/compiler-binding-darwin-x64":
+      optional: true
+    "@astrojs/compiler-binding-linux-arm64-gnu":
+      optional: true
+    "@astrojs/compiler-binding-linux-arm64-musl":
+      optional: true
+    "@astrojs/compiler-binding-linux-x64-gnu":
+      optional: true
+    "@astrojs/compiler-binding-linux-x64-musl":
+      optional: true
+    "@astrojs/compiler-binding-wasm32-wasi":
+      optional: true
+    "@astrojs/compiler-binding-win32-arm64-msvc":
+      optional: true
+    "@astrojs/compiler-binding-win32-x64-msvc":
+      optional: true
+  checksum: 10c0/2c987cbb8b06da4157f0f0eb867f5b614d74218ceac9434d0a8f2de293b8d8f9270951c68f01c06cca3c617ae023bf3cd2e0a7c3f15c45e63c69e7e6a8a6fd6f
+  languageName: node
+  linkType: hard
+
 "@astrojs/compiler-rs@npm:^0.5.1":
   version: 0.5.2
   resolution: "@astrojs/compiler-rs@npm:0.5.2"
   dependencies:
     "@astrojs/compiler-binding": "npm:0.5.2"
   checksum: 10c0/d58e608c6724a23d1446285270f9934766a959b8866a886f6fb3c7c5486e5dc3ec5dd38b86ef3622b1822dc04d44448cacacb03bdafe831525da5b0b7e021653
+  languageName: node
+  linkType: hard
+
+"@astrojs/compiler-rs@npm:^0.5.2":
+  version: 0.5.3
+  resolution: "@astrojs/compiler-rs@npm:0.5.3"
+  dependencies:
+    "@astrojs/compiler-binding": "npm:0.5.3"
+  checksum: 10c0/7d84a0bf670e5492bf5817df5ea04b276e4fced5bbf6febe9bfa0b9c28c22843013358f282978bd7918cdc9c2d5d8c2c4991a0226ef421a0567cebf28e80543b
   languageName: node
   linkType: hard
 
@@ -226,6 +348,22 @@ __metadata:
     unified: "npm:^11.0.5"
     yaml: "npm:^2.9.1"
   checksum: 10c0/c0c930ef9b48d8d16da63b83da0e9c3c2b47b5c1821aa8067fde7eba4cfd55423743dbeb3f8455d9e1708389ed85047a01a5de334e6ecc7f75f8382deaddd9c8
+  languageName: node
+  linkType: hard
+
+"@astrojs/internal-helpers@npm:^0.13.2":
+  version: 0.13.2
+  resolution: "@astrojs/internal-helpers@npm:0.13.2"
+  dependencies:
+    "@types/hast": "npm:^3.0.5"
+    "@types/mdast": "npm:^4.0.4"
+    picomatch: "npm:^4.0.7"
+    retext-smartypants: "npm:^6.2.0"
+    shiki: "npm:^4.6.0"
+    smol-toml: "npm:^1.9.1"
+    unified: "npm:^11.0.5"
+    yaml: "npm:^2.9.1"
+  checksum: 10c0/7a6f33e44eff31dd6c69212d5c7877d19c37d918d719a355e87186775748ba240eb92095468b6ff60a98dd3f84d9dec261d6745537c1c4df646b420d27814521
   languageName: node
   linkType: hard
 
@@ -259,18 +397,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@astrojs/markdown-satteri@npm:0.4.4":
-  version: 0.4.4
-  resolution: "@astrojs/markdown-satteri@npm:0.4.4"
-  dependencies:
-    "@astrojs/internal-helpers": "npm:0.13.0"
-    "@astrojs/prism": "npm:4.1.0"
-    github-slugger: "npm:^2.0.0"
-    satteri: "npm:^0.10.5"
-  checksum: 10c0/882ba227280459da9a0a898849b2a839633fb1512e5e4ca6c1e20dc2a3359c4b46b5130dbd22a884c77ce892079ed806ad4f7fe9e51b778da6a86ed2c0d2cc20
-  languageName: node
-  linkType: hard
-
 "@astrojs/markdown-satteri@npm:0.4.5, @astrojs/markdown-satteri@npm:^0.4.0":
   version: 0.4.5
   resolution: "@astrojs/markdown-satteri@npm:0.4.5"
@@ -280,6 +406,18 @@ __metadata:
     github-slugger: "npm:^2.0.0"
     satteri: "npm:^0.10.5"
   checksum: 10c0/13363b13239ba959f406bbf6dd9601f5c01e4642213a51d7c0184edf255465b78b7dbb4e86800ab92e4aa2c51d4f0d2e5c9f8d69ee28960ec110529ad8f09c5c
+  languageName: node
+  linkType: hard
+
+"@astrojs/markdown-satteri@npm:^0.4.10":
+  version: 0.4.10
+  resolution: "@astrojs/markdown-satteri@npm:0.4.10"
+  dependencies:
+    "@astrojs/internal-helpers": "npm:^0.13.2"
+    "@astrojs/prism": "npm:^4.1.2"
+    github-slugger: "npm:^2.0.0"
+    satteri: "npm:^0.11.6"
+  checksum: 10c0/0f4ec491d40fde052db1e39e0d77022d981091644e32cbaa5458055edad48810755be902e57ac14a46b445bd4a6f7f980d2ade05e6e917c05b988a290d3ca8fd
   languageName: node
   linkType: hard
 
@@ -316,6 +454,25 @@ __metadata:
   dependencies:
     prismjs: "npm:^1.30.0"
   checksum: 10c0/21bdf54704b5e0cba740e58211a1ba63b9f2443a9a327912d1406c38e11874689210b45d764d82bf10fedf0d5b1892631b93b9377da6b0172b2520d35f994e72
+  languageName: node
+  linkType: hard
+
+"@astrojs/prism@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "@astrojs/prism@npm:4.1.2"
+  dependencies:
+    prismjs: "npm:^1.30.0"
+  checksum: 10c0/33e971156932ce536dfb967c7c8488eb770914e1ccbb84ad01f2866424959918ae8e15f2585a8e6cc58f0eeda6f0f8bcf324eeb9ef73b9119919547cdf1cb24b
+  languageName: node
+  linkType: hard
+
+"@astrojs/runtime@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@astrojs/runtime@npm:0.1.1"
+  dependencies:
+    "@oslojs/encoding": "npm:^1.1.0"
+    clsx: "npm:^2.1.1"
+  checksum: 10c0/087aa330cdc8b4d07f6e39ba06d2cbb5f11ad0d267940019f1434dc792b9fc971dc7ff49f02a6c78f85feaa2db7c9d1fae2f8bd455348f5f0b2e2e40c764d9d4
   languageName: node
   linkType: hard
 
@@ -371,15 +528,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@astrojs/telemetry@npm:3.4.0":
-  version: 3.4.0
-  resolution: "@astrojs/telemetry@npm:3.4.0"
+"@astrojs/telemetry@npm:^3.4.2":
+  version: 3.4.2
+  resolution: "@astrojs/telemetry@npm:3.4.2"
   dependencies:
     ci-info: "npm:^4.4.0"
     dset: "npm:^3.1.4"
     is-docker: "npm:^4.0.0"
     package-manager-detector: "npm:^1.9.0"
-  checksum: 10c0/761fc79d737fa3d4b14e0a0c7169e18b7da3a00a36ced9cd6d14933c2f7c28489d00db71231fb9ad04e25708743b425971b15f3bd9858869d93ec72c92134732
+  checksum: 10c0/9749675090a4387541a33d8b3203787b05d98cf4ee8dacd8b89478802a55498a4c469542940c23c2febd17e3db5892994e08501bfbfb40d76353168c91dc0171
+  languageName: node
+  linkType: hard
+
+"@astrojs/vite-plugin-astro@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "@astrojs/vite-plugin-astro@npm:0.1.3"
+  dependencies:
+    "@astrojs/compiler-rs": "npm:^0.5.1"
+    "@astrojs/internal-helpers": "npm:^0.13.2"
+    "@astrojs/runtime": "npm:^0.1.1"
+    common-ancestor-path: "npm:^2.0.0"
+    devalue: "npm:^6.0.2"
+    magic-string: "npm:^1.4.2"
+    rolldown: "npm:~1.2.16"
+    smol-toml: "npm:^1.9.0"
+    zod: "npm:^4.6.5"
+  peerDependencies:
+    vite: ^8.3.3
+  checksum: 10c0/80f08298247678d0353822c2ae3722a4f19e10ef9c9ad8468201b50b683901d16b23d44043a85071cdc6e100d5ae6cb240246b2cc475eab94d088ecd9b37e5c4
   languageName: node
   linkType: hard
 
@@ -980,9 +1156,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-android-arm64@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-android-arm64@npm:0.11.7"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-darwin-arm64@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-darwin-arm64@npm:0.10.5"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@bruits/satteri-darwin-arm64@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-darwin-arm64@npm:0.11.7"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -994,9 +1184,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-darwin-x64@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-darwin-x64@npm:0.11.7"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@bruits/satteri-freebsd-x64@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-freebsd-x64@npm:0.11.7"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-linux-arm64-gnu@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-linux-arm64-gnu@npm:0.10.5"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@bruits/satteri-linux-arm64-gnu@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-linux-arm64-gnu@npm:0.11.7"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -1008,6 +1219,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-linux-arm64-musl@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-linux-arm64-musl@npm:0.11.7"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-linux-x64-gnu@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-linux-x64-gnu@npm:0.10.5"
@@ -1015,9 +1233,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-linux-x64-gnu@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-linux-x64-gnu@npm:0.11.7"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-linux-x64-musl@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-linux-x64-musl@npm:0.10.5"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@bruits/satteri-linux-x64-musl@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-linux-x64-musl@npm:0.11.7"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -1033,6 +1265,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-wasm32-wasi@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-wasm32-wasi@npm:0.11.7"
+  dependencies:
+    "@emnapi/core": "npm:1.11.1"
+    "@emnapi/runtime": "npm:1.11.1"
+    "@napi-rs/wasm-runtime": "npm:^1.2.7"
+  conditions: cpu=wasm32
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-win32-arm64-msvc@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-win32-arm64-msvc@npm:0.10.5"
@@ -1040,9 +1283,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bruits/satteri-win32-arm64-msvc@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-win32-arm64-msvc@npm:0.11.7"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
 "@bruits/satteri-win32-x64-msvc@npm:0.10.5":
   version: 0.10.5
   resolution: "@bruits/satteri-win32-x64-msvc@npm:0.10.5"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@bruits/satteri-win32-x64-msvc@npm:0.11.7":
+  version: 0.11.7
+  resolution: "@bruits/satteri-win32-x64-msvc@npm:0.11.7"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -5896,6 +6153,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@napi-rs/wasm-runtime@npm:^1.2.7":
+  version: 1.2.7
+  resolution: "@napi-rs/wasm-runtime@npm:1.2.7"
+  dependencies:
+    "@tybys/wasm-util": "npm:^0.10.3"
+  peerDependencies:
+    "@emnapi/core": ^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3
+    "@emnapi/runtime": ^1.7.1 || 2.0.0-beta.2 || 2.0.0-beta.3
+  checksum: 10c0/aab492b488fd86563eacda3fe356db68d273d11ec0e999793445d964dc7bbbf9e9a4b80f9c2e243d084393ee53434e668ac1e7308deb44b87b9c18926667a801
+  languageName: node
+  linkType: hard
+
 "@nodable/entities@npm:^3.0.0":
   version: 3.0.0
   resolution: "@nodable/entities@npm:3.0.0"
@@ -6209,13 +6478,6 @@ __metadata:
   version: 0.99.0
   resolution: "@oxc-project/runtime@npm:0.99.0"
   checksum: 10c0/97f59263239a5500fca46f58e36667374c704b8243921d4e4fe79959b1e2e32efed3004cde73fe93c7d8b01eabf981c272b57fb66b6dc24f3c2aa9f14bbae384
-  languageName: node
-  linkType: hard
-
-"@oxc-project/types@npm:=0.155.0":
-  version: 0.155.0
-  resolution: "@oxc-project/types@npm:0.155.0"
-  checksum: 10c0/07227fb2c2e03b07453129f2407b49b165eadaa679a34dad68e0b0526420506cea223431807983413f6968053de873c13b05d3978a9a43cabb3999ca97ba2ec5
   languageName: node
   linkType: hard
 
@@ -7051,13 +7313,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-android-arm-eabi@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-android-arm-eabi@npm:1.2.15"
-  conditions: os=android & cpu=arm
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-android-arm-eabi@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-android-arm-eabi@npm:1.2.19"
@@ -7068,13 +7323,6 @@ __metadata:
 "@rolldown/binding-android-arm64@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-android-arm64@npm:1.0.0-beta.52"
-  conditions: os=android & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-android-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-android-arm64@npm:1.2.15"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
@@ -7093,13 +7341,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-darwin-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-darwin-arm64@npm:1.2.15"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-darwin-arm64@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-darwin-arm64@npm:1.2.19"
@@ -7110,13 +7351,6 @@ __metadata:
 "@rolldown/binding-darwin-x64@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-darwin-x64@npm:1.0.0-beta.52"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-darwin-x64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-darwin-x64@npm:1.2.15"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -7135,13 +7369,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-freebsd-x64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-freebsd-x64@npm:1.2.15"
-  conditions: os=freebsd & cpu=x64
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-freebsd-x64@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-freebsd-x64@npm:1.2.19"
@@ -7152,13 +7379,6 @@ __metadata:
 "@rolldown/binding-linux-arm-gnueabihf@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-linux-arm-gnueabihf@npm:1.0.0-beta.52"
-  conditions: os=linux & cpu=arm
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-linux-arm-gnueabihf@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm-gnueabihf@npm:1.2.15"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -7177,13 +7397,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-arm64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm64-gnu@npm:1.2.15"
-  conditions: os=linux & cpu=arm64 & libc=glibc
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-linux-arm64-gnu@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-linux-arm64-gnu@npm:1.2.19"
@@ -7198,13 +7411,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-arm64-musl@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm64-musl@npm:1.2.15"
-  conditions: os=linux & cpu=arm64 & libc=musl
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-linux-arm64-musl@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-linux-arm64-musl@npm:1.2.19"
@@ -7212,24 +7418,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-ppc64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-ppc64-gnu@npm:1.2.15"
-  conditions: os=linux & cpu=ppc64 & libc=glibc
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-linux-ppc64-gnu@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-linux-ppc64-gnu@npm:1.2.19"
   conditions: os=linux & cpu=ppc64 & libc=glibc
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-linux-s390x-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-s390x-gnu@npm:1.2.15"
-  conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
 
@@ -7243,13 +7435,6 @@ __metadata:
 "@rolldown/binding-linux-x64-gnu@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-linux-x64-gnu@npm:1.0.0-beta.52"
-  conditions: os=linux & cpu=x64 & libc=glibc
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-linux-x64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-x64-gnu@npm:1.2.15"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -7268,13 +7453,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-x64-musl@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-x64-musl@npm:1.2.15"
-  conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-linux-x64-musl@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-linux-x64-musl@npm:1.2.19"
@@ -7285,13 +7463,6 @@ __metadata:
 "@rolldown/binding-openharmony-arm64@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-openharmony-arm64@npm:1.0.0-beta.52"
-  conditions: os=openharmony & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-openharmony-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-openharmony-arm64@npm:1.2.15"
   conditions: os=openharmony & cpu=arm64
   languageName: node
   linkType: hard
@@ -7330,13 +7501,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-win32-arm64-msvc@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-win32-arm64-msvc@npm:1.2.15"
-  conditions: os=win32 & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@rolldown/binding-win32-arm64-msvc@npm:1.2.19":
   version: 1.2.19
   resolution: "@rolldown/binding-win32-arm64-msvc@npm:1.2.19"
@@ -7354,13 +7518,6 @@ __metadata:
 "@rolldown/binding-win32-x64-msvc@npm:1.0.0-beta.52":
   version: 1.0.0-beta.52
   resolution: "@rolldown/binding-win32-x64-msvc@npm:1.0.0-beta.52"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@rolldown/binding-win32-x64-msvc@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-win32-x64-msvc@npm:1.2.15"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -7773,6 +7930,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@shikijs/core@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/core@npm:4.6.0"
+  dependencies:
+    "@shikijs/primitive": "npm:4.6.0"
+    "@shikijs/types": "npm:4.6.0"
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+    "@types/hast": "npm:^3.0.5"
+    hast-util-to-html: "npm:^9.0.6"
+  checksum: 10c0/05ad087be9c6f8e6448352642397372939f58369465ec8befa6ea2bee382eaf181ded1e8c4b7b1bd406facdd3ad1afb858a74bbed099c9f7ff1afdeff95f7268
+  languageName: node
+  linkType: hard
+
 "@shikijs/engine-javascript@npm:4.5.0":
   version: 4.5.0
   resolution: "@shikijs/engine-javascript@npm:4.5.0"
@@ -7781,6 +7951,17 @@ __metadata:
     "@shikijs/vscode-textmate": "npm:^10.0.2"
     oniguruma-to-es: "npm:^4.3.6"
   checksum: 10c0/a0ab77786102424313ca86d0ee1a4997b76b728fd2dc37d672ef5bc25f034fb41163081f0f82c2b7dead7d51d0040717150b6f74f3c469e7543863463de44609
+  languageName: node
+  linkType: hard
+
+"@shikijs/engine-javascript@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/engine-javascript@npm:4.6.0"
+  dependencies:
+    "@shikijs/types": "npm:4.6.0"
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+    oniguruma-to-es: "npm:^4.3.6"
+  checksum: 10c0/87cb9baea21d7f6ee30fe8e3589047270299d7c19babd025605e0b83776329c3589ea1c004ebd2a4258890de82a612edc2603f36084103be6585c85eef4b7b63
   languageName: node
   linkType: hard
 
@@ -7794,12 +7975,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@shikijs/engine-oniguruma@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/engine-oniguruma@npm:4.6.0"
+  dependencies:
+    "@shikijs/types": "npm:4.6.0"
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+  checksum: 10c0/b9b007809b0a2d417076c20f27c025c5d1d090da41c35046ff5384b97b656b15b0f118b00b5cf63bd0a0ab218d516366c04ad8ff4eb181410d4bfb1df16cf00c
+  languageName: node
+  linkType: hard
+
 "@shikijs/langs@npm:4.5.0":
   version: 4.5.0
   resolution: "@shikijs/langs@npm:4.5.0"
   dependencies:
     "@shikijs/types": "npm:4.5.0"
   checksum: 10c0/ea7282d2b4eff871c187d79bffd3abc3c1409f55c66483891bcae2b020e2f7658da555d7ef52f4b43333e950ad123bf71c0615109dbf734e4a367a0462afe5a2
+  languageName: node
+  linkType: hard
+
+"@shikijs/langs@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/langs@npm:4.6.0"
+  dependencies:
+    "@shikijs/types": "npm:4.6.0"
+  checksum: 10c0/e4d4fa74d0158db5409b4eab5dfa4d8a1c0a22c8eac2d493bbf6c8ae07d387ad8d9e132c26054dcffc305c43f0882ae94c3aa45dd75d343b88e00ca76091f119
   languageName: node
   linkType: hard
 
@@ -7814,12 +8014,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@shikijs/primitive@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/primitive@npm:4.6.0"
+  dependencies:
+    "@shikijs/types": "npm:4.6.0"
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+    "@types/hast": "npm:^3.0.5"
+  checksum: 10c0/58a1d6d4fa6987998d160c15315f2be0079a76029c8f901ed7d769e45f627ee6cada00e0afd1b934d8cf9358407c76838bcde2f226036e539295f62b03dea25a
+  languageName: node
+  linkType: hard
+
 "@shikijs/themes@npm:4.5.0":
   version: 4.5.0
   resolution: "@shikijs/themes@npm:4.5.0"
   dependencies:
     "@shikijs/types": "npm:4.5.0"
   checksum: 10c0/c60b6e26f4f2dd7dc0f706e81a0d3369f2711a6d4859054b5bd01396e865602d3a941b9132e6ecd234ceb5e67dd615a1a344f6d7f6398b3cdedb21b1aa821221
+  languageName: node
+  linkType: hard
+
+"@shikijs/themes@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/themes@npm:4.6.0"
+  dependencies:
+    "@shikijs/types": "npm:4.6.0"
+  checksum: 10c0/045a0e5eddaa6fa0ac57fed0386aaaa4270e4bdbc699b534b62c201adc99382a274d7c036c7774b09cac4fc230062c99f37984a878f0f27e9b7fc8fc3c30b142
   languageName: node
   linkType: hard
 
@@ -7833,10 +8053,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@shikijs/types@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@shikijs/types@npm:4.6.0"
+  dependencies:
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+    "@types/hast": "npm:^3.0.5"
+  checksum: 10c0/617e791af9605695d219766b3c9fe50cadcd05bcf0a42204d8d50bf2d2181264be9ca422789124fe803cfa84605d7af8e49dc8c334143da99465d9d0e61ba404
+  languageName: node
+  linkType: hard
+
 "@shikijs/vscode-textmate@npm:^10.0.2":
   version: 10.0.2
   resolution: "@shikijs/vscode-textmate@npm:10.0.2"
   checksum: 10c0/36b682d691088ec244de292dc8f91b808f95c89466af421cf84cbab92230f03c8348649c14b3251991b10ce632b0c715e416e992dd5f28ff3221dc2693fd9462
+  languageName: node
+  linkType: hard
+
+"@shikijs/vscode-textmate@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "@shikijs/vscode-textmate@npm:10.1.0"
+  checksum: 10c0/a8ae5abac1c675fdeeb6f699637e87fcf227d8d94b93a3ed6d6041b19aaa0b6851b6d5530a35742654de57eb8c2963d03532886f0a136da10c137992a7c2c27c
   languageName: node
   linkType: hard
 
@@ -11568,13 +11805,15 @@ __metadata:
   linkType: hard
 
 "astro@npm:^7.4.1":
-  version: 7.4.1
-  resolution: "astro@npm:7.4.1"
+  version: 7.4.12
+  resolution: "astro@npm:7.4.12"
   dependencies:
-    "@astrojs/compiler-rs": "npm:^0.5.1"
-    "@astrojs/internal-helpers": "npm:0.13.0"
-    "@astrojs/markdown-satteri": "npm:0.4.4"
-    "@astrojs/telemetry": "npm:3.4.0"
+    "@astrojs/compiler-rs": "npm:^0.5.2"
+    "@astrojs/internal-helpers": "npm:^0.13.2"
+    "@astrojs/markdown-satteri": "npm:^0.4.10"
+    "@astrojs/runtime": "npm:^0.1.1"
+    "@astrojs/telemetry": "npm:^3.4.2"
+    "@astrojs/vite-plugin-astro": "npm:^0.1.3"
     "@capsizecss/unpack": "npm:^4.0.1"
     "@clack/prompts": "npm:^1.8.1"
     "@oslojs/encoding": "npm:^1.1.0"
@@ -11582,13 +11821,11 @@ __metadata:
     aria-query: "npm:^5.3.2"
     axobject-query: "npm:^4.1.0"
     ci-info: "npm:^4.4.0"
-    clsx: "npm:^2.1.1"
-    common-ancestor-path: "npm:^2.0.0"
-    cookie: "npm:^2.0.1"
-    devalue: "npm:^6.0.2"
+    cookie: "npm:^2.0.2"
+    devalue: "npm:^6.0.3"
     diff: "npm:^9.0.0"
     dset: "npm:^3.1.4"
-    es-module-lexer: "npm:^3.0.3"
+    es-module-lexer: "npm:^3.0.4"
     flattie: "npm:^1.1.1"
     fontace: "npm:~0.4.1"
     get-tsconfig: "npm:5.0.0-beta.6"
@@ -11596,34 +11833,34 @@ __metadata:
     html-escaper: "npm:3.0.3"
     http-cache-semantics: "npm:^4.3.0"
     jsonc-parser: "npm:^3.3.1"
-    magic-string: "npm:^1.4.3"
+    magic-string: "npm:^1.4.5"
     magicast: "npm:^0.5.5"
+    mri: "npm:^1.2.0"
     mrmime: "npm:^2.0.1"
     neotraverse: "npm:^1.0.1"
     obug: "npm:^3.0.0"
     p-limit: "npm:^7.3.3"
-    p-queue: "npm:^9.3.5"
+    p-queue: "npm:^10.0.0"
     package-manager-detector: "npm:^1.9.0"
     piccolore: "npm:^0.1.3"
     picomatch: "npm:^4.0.7"
-    rolldown: "npm:^1.2.13"
+    rolldown: "npm:~1.2.16"
     sharp: "npm:^0.35.4"
-    shiki: "npm:^4.5.0"
+    shiki: "npm:^4.6.0"
     smol-toml: "npm:^1.9.1"
     svgo: "npm:^4.1.0"
     tinyclip: "npm:^1.0.3"
     tinyexec: "npm:^1.3.1"
     tinyglobby: "npm:^0.2.17"
-    tinyps: "npm:^0.5.0"
+    tinyps: "npm:^0.5.1"
     ultrahtml: "npm:^1.7.0"
     unifont: "npm:^1.0.3"
-    unstorage: "npm:^1.17.5"
+    unstorage: "npm:^1.17.6"
     verkit: "npm:^0.5.0"
-    vite: "npm:^8.3.4"
+    vite: "npm:^8.3.6"
     vitefu: "npm:^1.1.3"
     xxhash-wasm: "npm:^1.1.0"
-    yargs-parser: "npm:^22.0.0"
-    zod: "npm:^4.6.6"
+    zod: "npm:^4.6.7"
   peerDependencies:
     "@astrojs/markdown-remark": ^7.3.0
   dependenciesMeta:
@@ -11634,7 +11871,7 @@ __metadata:
       optional: true
   bin:
     astro: ./bin/astro.mjs
-  checksum: 10c0/05820fd69be8189fad2af9f4638584f58566943885bf0c025275568bdcf56f8133ec6b85ee75c1527c780cd46bfc354d656fb49371990ed1b528532d8fc1332d
+  checksum: 10c0/3e58db1bedc62ccec0bde337eb28986dfbc8b929f7582ee9ade942671f135180ce97da22a07606b2058f39ec44773f33b6cd388ea9d8e0c4c7d85a16c85331fe
   languageName: node
   linkType: hard
 
@@ -12971,10 +13208,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "cookie@npm:2.0.1"
-  checksum: 10c0/dcf3bd6ec9d0f4f32be7575e23242866cb53be55fc3d4cf36215638596661cec1327a3b4ca286ba15eba8f2abd443e422b8c5f708af4ea9f75b4d3dedc67ee4c
+"cookie@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "cookie@npm:2.0.2"
+  checksum: 10c0/66d33eaa2371c25ead26065d8f753d5e0a87e6cfcd7cc975c86dcd83b6ac961608be49302874d9c95b353275d4c289e32842770e4feb6ac5a7fdad0a65e2816e
   languageName: node
   linkType: hard
 
@@ -14282,7 +14519,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"devalue@npm:^6.0.2":
+"devalue@npm:^6.0.2, devalue@npm:^6.0.3":
   version: 6.0.3
   resolution: "devalue@npm:6.0.3"
   checksum: 10c0/c553d95469ea5d28211456991dc308bd09947ea47b39583e47d16073621f2ea5d09c1390eb8cfcf1757097ba83327d7dae652b6804e0625693430677c193f03f
@@ -14899,7 +15136,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-module-lexer@npm:^3.0.3":
+"es-module-lexer@npm:^3.0.3, es-module-lexer@npm:^3.0.4":
   version: 3.0.4
   resolution: "es-module-lexer@npm:3.0.4"
   checksum: 10c0/6e89027c3ce2e78c577bee234d3cf9e41035b6622cc2d399bffda322556f09735a864b3c7729da8528c96ec8cf00d93d7d418cdedb6765e9e4d228954fbfde3d
@@ -15829,13 +16066,6 @@ __metadata:
   version: 5.0.1
   resolution: "eventemitter3@npm:5.0.1"
   checksum: 10c0/4ba5c00c506e6c786b4d6262cfbce90ddc14c10d4667e5c83ae993c9de88aa856033994dd2b35b83e8dc1170e224e66a319fa80adc4c32adcd2379bbc75da814
-  languageName: node
-  linkType: hard
-
-"eventemitter3@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "eventemitter3@npm:5.0.4"
-  checksum: 10c0/575b8cac8d709e1473da46f8f15ef311b57ff7609445a7c71af5cd42598583eee6f098fa7a593e30f27e94b8865642baa0689e8fa97c016f742abdb3b1bf6d9a
   languageName: node
   linkType: hard
 
@@ -17447,6 +17677,25 @@ __metadata:
     stringify-entities: "npm:^4.0.0"
     zwitch: "npm:^2.0.4"
   checksum: 10c0/b7a08c30bab4371fc9b4a620965c40b270e5ae7a8e94cf885f43b21705179e28c8e43b39c72885d1647965fb3738654e6962eb8b58b0c2a84271655b4d748836
+  languageName: node
+  linkType: hard
+
+"hast-util-to-html@npm:^9.0.6":
+  version: 9.0.6
+  resolution: "hast-util-to-html@npm:9.0.6"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+    "@types/unist": "npm:^3.0.0"
+    ccount: "npm:^2.0.0"
+    comma-separated-tokens: "npm:^2.0.0"
+    hast-util-whitespace: "npm:^3.0.0"
+    html-void-elements: "npm:^3.0.0"
+    mdast-util-to-hast: "npm:^13.0.0"
+    property-information: "npm:^7.0.0"
+    space-separated-tokens: "npm:^2.0.0"
+    stringify-entities: "npm:^4.0.0"
+    zwitch: "npm:^2.0.4"
+  checksum: 10c0/db4b75240a594457f7bffeb630f8413fce5aa4ba2b8dd8a1e8926cb5a9f731b5c64e99ca43d47c335a2fb0ad10532790499ae980b24a4b5f4bc34208fcd39a4d
   languageName: node
   linkType: hard
 
@@ -19402,7 +19651,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"magic-string@npm:^1.4.3":
+"magic-string@npm:^1.4.2, magic-string@npm:^1.4.5":
   version: 1.4.5
   resolution: "magic-string@npm:1.4.5"
   dependencies:
@@ -20925,6 +21174,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mri@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "mri@npm:1.2.0"
+  checksum: 10c0/a3d32379c2554cf7351db6237ddc18dc9e54e4214953f3da105b97dc3babe0deb3ffe99cf409b38ea47cc29f9430561ba6b53b24ab8f9ce97a4b50409e4a50e7
+  languageName: node
+  linkType: hard
+
 "mrmime@npm:^1.0.1":
   version: 1.0.1
   resolution: "mrmime@npm:1.0.1"
@@ -21860,13 +22116,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-queue@npm:^9.3.5":
-  version: 9.3.5
-  resolution: "p-queue@npm:9.3.5"
-  dependencies:
-    eventemitter3: "npm:^5.0.4"
-    p-timeout: "npm:^7.0.0"
-  checksum: 10c0/44652095edcf36e44bafda8fd6bb6be2d96e1fc05982f0f26afd768e0b07e228dc206b07b3c303771494cecfd28e5797f8e8771c9d5db280561e031fbfcb57a5
+"p-queue@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "p-queue@npm:10.0.0"
+  checksum: 10c0/a46466547fa5fc684adaf611e92b769706eda6d51d72254fad2bd337054f4c910a1088567720b7af05efbe0888d7cf74ddd82e667fe7a55fdb6dc41de192a3c0
   languageName: node
   linkType: hard
 
@@ -21876,13 +22129,6 @@ __metadata:
   dependencies:
     is-network-error: "npm:^1.3.0"
   checksum: 10c0/81a788f35888c3cdb36f97286577c8ba57ccd8e9347db3c6ded79b3e12e2838bcda733753e0c0bdaac77d4620ddfc7e230d3c9a4bcf2fda3a12ea57bcf9443d1
-  languageName: node
-  linkType: hard
-
-"p-timeout@npm:^7.0.0":
-  version: 7.0.2
-  resolution: "p-timeout@npm:7.0.2"
-  checksum: 10c0/26595bbda27361a15231a82d8d3ef4f277bb3e9647aaa4a554b90012d03d22aaf28165b60afffe9425fb1326bd40b93f145d76eb23adb6b76d07d5f5d4c7964a
   languageName: node
   linkType: hard
 
@@ -24244,65 +24490,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rolldown@npm:^1.2.13":
-  version: 1.2.15
-  resolution: "rolldown@npm:1.2.15"
-  dependencies:
-    "@oxc-project/types": "npm:=0.155.0"
-    "@rolldown/binding-android-arm-eabi": "npm:1.2.15"
-    "@rolldown/binding-android-arm64": "npm:1.2.15"
-    "@rolldown/binding-darwin-arm64": "npm:1.2.15"
-    "@rolldown/binding-darwin-x64": "npm:1.2.15"
-    "@rolldown/binding-freebsd-x64": "npm:1.2.15"
-    "@rolldown/binding-linux-arm-gnueabihf": "npm:1.2.15"
-    "@rolldown/binding-linux-arm64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-arm64-musl": "npm:1.2.15"
-    "@rolldown/binding-linux-ppc64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-s390x-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-x64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-x64-musl": "npm:1.2.15"
-    "@rolldown/binding-openharmony-arm64": "npm:1.2.15"
-    "@rolldown/binding-win32-arm64-msvc": "npm:1.2.15"
-    "@rolldown/binding-win32-x64-msvc": "npm:1.2.15"
-    "@rolldown/pluginutils": "npm:^1.0.0"
-  dependenciesMeta:
-    "@rolldown/binding-android-arm-eabi":
-      optional: true
-    "@rolldown/binding-android-arm64":
-      optional: true
-    "@rolldown/binding-darwin-arm64":
-      optional: true
-    "@rolldown/binding-darwin-x64":
-      optional: true
-    "@rolldown/binding-freebsd-x64":
-      optional: true
-    "@rolldown/binding-linux-arm-gnueabihf":
-      optional: true
-    "@rolldown/binding-linux-arm64-gnu":
-      optional: true
-    "@rolldown/binding-linux-arm64-musl":
-      optional: true
-    "@rolldown/binding-linux-ppc64-gnu":
-      optional: true
-    "@rolldown/binding-linux-s390x-gnu":
-      optional: true
-    "@rolldown/binding-linux-x64-gnu":
-      optional: true
-    "@rolldown/binding-linux-x64-musl":
-      optional: true
-    "@rolldown/binding-openharmony-arm64":
-      optional: true
-    "@rolldown/binding-win32-arm64-msvc":
-      optional: true
-    "@rolldown/binding-win32-x64-msvc":
-      optional: true
-  bin:
-    rolldown: ./bin/cli.mjs
-  checksum: 10c0/084cbdcc222e534c9aff90e77488cdeb6a685a20a34e6e3ba77c3b8646723cea2f090f05522f452ed51217cce68b7aa67df8661b49b4ac0227a5edfcb0383b68
-  languageName: node
-  linkType: hard
-
-"rolldown@npm:~1.2.18":
+"rolldown@npm:~1.2.16, rolldown@npm:~1.2.18":
   version: 1.2.19
   resolution: "rolldown@npm:1.2.19"
   dependencies:
@@ -24646,6 +24834,52 @@ __metadata:
     "@bruits/satteri-win32-x64-msvc":
       optional: true
   checksum: 10c0/e1a9f6f9784c8ea79be59ddb803403999521632ef57a595579e1e310646172c9661a0ce41c2667ed9b82a55d697dd192f6470e9a6ee348d5b207172d89d0cba3
+  languageName: node
+  linkType: hard
+
+"satteri@npm:^0.11.6":
+  version: 0.11.7
+  resolution: "satteri@npm:0.11.7"
+  dependencies:
+    "@bruits/satteri-android-arm64": "npm:0.11.7"
+    "@bruits/satteri-darwin-arm64": "npm:0.11.7"
+    "@bruits/satteri-darwin-x64": "npm:0.11.7"
+    "@bruits/satteri-freebsd-x64": "npm:0.11.7"
+    "@bruits/satteri-linux-arm64-gnu": "npm:0.11.7"
+    "@bruits/satteri-linux-arm64-musl": "npm:0.11.7"
+    "@bruits/satteri-linux-x64-gnu": "npm:0.11.7"
+    "@bruits/satteri-linux-x64-musl": "npm:0.11.7"
+    "@bruits/satteri-wasm32-wasi": "npm:0.11.7"
+    "@bruits/satteri-win32-arm64-msvc": "npm:0.11.7"
+    "@bruits/satteri-win32-x64-msvc": "npm:0.11.7"
+    "@types/estree-jsx": "npm:^1.0.5"
+    "@types/hast": "npm:^3.0.5"
+    "@types/mdast": "npm:^4.0.4"
+    "@types/unist": "npm:^3.0.3"
+  dependenciesMeta:
+    "@bruits/satteri-android-arm64":
+      optional: true
+    "@bruits/satteri-darwin-arm64":
+      optional: true
+    "@bruits/satteri-darwin-x64":
+      optional: true
+    "@bruits/satteri-freebsd-x64":
+      optional: true
+    "@bruits/satteri-linux-arm64-gnu":
+      optional: true
+    "@bruits/satteri-linux-arm64-musl":
+      optional: true
+    "@bruits/satteri-linux-x64-gnu":
+      optional: true
+    "@bruits/satteri-linux-x64-musl":
+      optional: true
+    "@bruits/satteri-wasm32-wasi":
+      optional: true
+    "@bruits/satteri-win32-arm64-msvc":
+      optional: true
+    "@bruits/satteri-win32-x64-msvc":
+      optional: true
+  checksum: 10c0/eea9370fde970b93f672a0a8408f3cd772e1a69e02b33aa31e742378fd2891eb71cc3441fc10cadd3ed8717d27e32b497a20919f091e0a4e69b1a2c29ba22c0a
   languageName: node
   linkType: hard
 
@@ -25020,6 +25254,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"shiki@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "shiki@npm:4.6.0"
+  dependencies:
+    "@shikijs/core": "npm:4.6.0"
+    "@shikijs/engine-javascript": "npm:4.6.0"
+    "@shikijs/engine-oniguruma": "npm:4.6.0"
+    "@shikijs/langs": "npm:4.6.0"
+    "@shikijs/themes": "npm:4.6.0"
+    "@shikijs/types": "npm:4.6.0"
+    "@shikijs/vscode-textmate": "npm:^10.1.0"
+    "@types/hast": "npm:^3.0.5"
+  checksum: 10c0/955818f2cc02fc2a615ac2d2599d61291794fe32be0ec35442ebe582e3fb2a7634e3b32df7a0b15debb8bb1f3cab5b2be6fec369ecc33f3cf22cfff4f405a142
+  languageName: node
+  linkType: hard
+
 "siginfo@npm:^2.0.0":
   version: 2.0.0
   resolution: "siginfo@npm:2.0.0"
@@ -25128,7 +25378,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smol-toml@npm:^1.6.0, smol-toml@npm:^1.7.1, smol-toml@npm:^1.8.0, smol-toml@npm:^1.9.1":
+"smol-toml@npm:^1.6.0, smol-toml@npm:^1.7.1, smol-toml@npm:^1.8.0, smol-toml@npm:^1.9.0, smol-toml@npm:^1.9.1":
   version: 1.9.1
   resolution: "smol-toml@npm:1.9.1"
   checksum: 10c0/8acccf7bbc063f29405f58f5014ab39bf4eb9d7f0e000e5e3f140f7d4d6ead5696681a7c15260d1f2910213012c0af43b31a05bf94f704b0bdf39989fba08c02
@@ -26037,10 +26287,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyps@npm:^0.5.0":
-  version: 0.5.1
-  resolution: "tinyps@npm:0.5.1"
-  checksum: 10c0/5ff1f8c77bf74e75565ed4a017795371f27d3d0a5c6dd076078ea993253c1314ed13d43a6005b4e30aa446443003431478d3d0c5051fbe5b34ee047907ed7611
+"tinyps@npm:^0.5.1":
+  version: 0.5.2
+  resolution: "tinyps@npm:0.5.2"
+  checksum: 10c0/ff93a6117c37163f2be6d6c7a27f51306161025770008ff3c6734258debf42c2dc94fa53a3e9fecf5b0b44b444b05f6556710698925355854f6f5c22e278c877
   languageName: node
   linkType: hard
 
@@ -27197,7 +27447,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unstorage@npm:^1.17.5":
+"unstorage@npm:^1.17.6":
   version: 1.17.6
   resolution: "unstorage@npm:1.17.6"
   dependencies:
@@ -28030,7 +28280,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.2.1, vite@npm:^8.3.1, vite@npm:^8.3.4":
+"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.2.1, vite@npm:^8.3.1, vite@npm:^8.3.6":
   version: 8.3.8
   resolution: "vite@npm:8.3.8"
   dependencies:
@@ -29085,7 +29335,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.3.6, zod@npm:^4.6.6":
+"zod@npm:^4.3.6, zod@npm:^4.6.5, zod@npm:^4.6.7":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b

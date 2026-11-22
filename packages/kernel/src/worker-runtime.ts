@@ -399,7 +399,7 @@ async function bootstrapApp(
     )) as unknown as [PyProxy, AsgiApp, PyProxy];
   // Bind runtime_contextvar in the shared JS-call context so non-ASGI
   // paths (notably streamlit.testing.v1.AppTest, which the kernel test
-  // suite uses) can reach the runtime via Runtime.get_instance(). ASGI
+  // suite uses) can reach the runtime via Runtime.instance(). ASGI
   // traffic doesn't depend on this — call_asgi rebinds per request.
   // Must run synchronously from JS (not awaited) so the set lands in
   // the shared module context, not a task-local one — which is why

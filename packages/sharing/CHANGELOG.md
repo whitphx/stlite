@@ -1,5 +1,13 @@
 # @stlite/sharing
 
+## 0.101.3
+
+### Patch Changes
+
+- [#2180](https://github.com/whitphx/stlite/pull/2180) [`fe2dfbd`](https://github.com/whitphx/stlite/commit/fe2dfbd9a19040b8c2e5ade7a05cdc5cb6e91e5e) Thanks [@whitphx](https://github.com/whitphx)! - Let Custom Components v2 (`st.components.v2.component`) run in Stlite. Creating or mounting one failed with `AttributeError: type object 'Runtime' has no attribute 'exists'`, and so did third-party code that calls `Runtime.instance()` or `Runtime.exists()`.
+- Updated dependencies [[`fe2dfbd`](https://github.com/whitphx/stlite/commit/fe2dfbd9a19040b8c2e5ade7a05cdc5cb6e91e5e)]:
+  - @stlite/react@1.11.3
+
 ## 0.101.2
 
 ### Patch Changes

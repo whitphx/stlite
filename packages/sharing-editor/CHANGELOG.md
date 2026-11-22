@@ -1,5 +1,13 @@
 # @stlite/sharing-editor
 
+## 0.90.9
+
+### Patch Changes
+
+- [#2182](https://github.com/whitphx/stlite/pull/2182) [`2212766`](https://github.com/whitphx/stlite/commit/22127665bb2eea7b1a75ed5b765ef67372c58f56) Thanks [@whitphx](https://github.com/whitphx)! - Add a "components v2" page to the Custom Components sample, with a star-rating component defined inline through `st.components.v2.component`.
+
+- [#2183](https://github.com/whitphx/stlite/pull/2183) [`5f53c62`](https://github.com/whitphx/stlite/commit/5f53c620705886d75090244863562a7bfddbd924) Thanks [@whitphx](https://github.com/whitphx)! - Fix the Custom Components sample, which failed to install its requirements: it is back on `stmol` 0.0.7, because later versions pin `ipywidgets==7.6.3`, whose Jupyter server dependencies (`tornado`, `pyzmq`) have no Pyodide wheels.
+
 ## 0.90.8
 
 ### Patch Changes

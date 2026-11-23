@@ -8222,7 +8222,7 @@ __metadata:
     jsonc-parser: "npm:^3.3.1"
     oxfmt: "npm:^0.70.0"
     oxlint: "npm:^1.85.0"
-    pyodide: "npm:0.29.4"
+    pyodide: "npm:0.29.5"
     smol-toml: "npm:^1.7.1"
     typescript: "npm:^6.0.3"
     wrangler: "npm:^4.105.0"
@@ -23057,13 +23057,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pyodide@npm:0.29.4":
-  version: 0.29.4
-  resolution: "pyodide@npm:0.29.4"
+"pyodide@npm:0.29.5":
+  version: 0.29.5
+  resolution: "pyodide@npm:0.29.5"
   dependencies:
     "@types/emscripten": "npm:^1.41.4"
     ws: "npm:^8.5.0"
-  checksum: 10c0/46663db835971ca467672da4d95d47526ad31e23ea54e9cd3f8d8b27db15afa971b32e4832b920a8d139f70fc4f25db34349a2bb2f2f2758dc17893fc9962fb9
+  checksum: 10c0/377cf0f3afb27c226f059cc0abc48fa5737fafc19432f3e14087cc956554b5819185632a04403db85d2cd9ff81e457354ecdf6f6275a379af858425021d00b29
   languageName: node
   linkType: hard
 

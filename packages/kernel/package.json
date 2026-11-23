@@ -72,7 +72,7 @@
     "@types/react": "^18.2.0",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/web-worker": "^4.1.0",
-    "oxfmt": "^0.70.0",
+    "oxfmt": "^0.78.0",
     "oxlint": "^1.85.0",
     "pyodide": "314.0.3",
     "typescript": "^6.0.3",

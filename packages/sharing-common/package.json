@@ -35,7 +35,7 @@
     "chokidar-cli": "^3.0.0",
     "jsdom": "^25.0.1",
     "npm-run-all2": "^8.0.4",
-    "oxfmt": "^0.70.0",
+    "oxfmt": "^0.78.0",
     "oxlint": "^1.85.0",
     "ts-proto": "^2.11.6",
     "typescript": "^6.0.3",

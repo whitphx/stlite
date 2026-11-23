@@ -67,7 +67,7 @@
     "esbuild": "^0.28.0",
     "glob": "^14.0.0",
     "node-html-parser": "^7.1.0",
-    "oxfmt": "^0.70.0",
+    "oxfmt": "^0.78.0",
     "oxlint": "^1.85.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

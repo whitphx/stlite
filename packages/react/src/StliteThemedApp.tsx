@@ -8,6 +8,7 @@ import { PortalProvider, WindowDimensionsProvider } from "@streamlit/lib";
 import AppWithScreencast from "@streamlit/app/src/App";
 
 import { useThemeManager } from "@streamlit/app/src/util/useThemeManager";
+import { HelmetProvider } from "react-helmet-async";
 import { RootStyleProvider } from "./StliteRootStyleProvider";
 
 export interface ThemedAppProps {
@@ -31,26 +32,32 @@ const ThemedApp = ({
   const [themeManager, fontFaces, fontSources] = useThemeManager();
   const { activeTheme } = themeManager;
 
+  // Upstream wraps <ThemedApp> in a <HelmetProvider> in its index.tsx entry
+  // point, which Stlite does not use. FontSources renders a <Helmet> to inject
+  // the stylesheets of theme fonts given with a URL (e.g. "Inter:https://..."),
+  // and it crashes without a provider, so provide one here.
   return (
-    <RootStyleProvider
-      theme={activeTheme}
-      styleNonce={styleNonce}
-      disableDocumentStyles={disableDocumentStyles}
-    >
-      <WindowDimensionsProvider>
-        {/* The data grid requires one root level portal element for rendering cell overlays */}
-        <PortalProvider>
-          {fontFaces.length > 0 && (
-            <FontFaceDeclaration fontFaces={fontFaces} />
-          )}
-          {fontSources && <FontSources fontSources={fontSources} />}
-          <AppWithScreencast
-            theme={themeManager}
-            streamlitExecutionStartedAt={streamlitExecutionStartedAt}
-          />
-        </PortalProvider>
-      </WindowDimensionsProvider>
-    </RootStyleProvider>
+    <HelmetProvider>
+      <RootStyleProvider
+        theme={activeTheme}
+        styleNonce={styleNonce}
+        disableDocumentStyles={disableDocumentStyles}
+      >
+        <WindowDimensionsProvider>
+          {/* The data grid requires one root level portal element for rendering cell overlays */}
+          <PortalProvider>
+            {fontFaces.length > 0 && (
+              <FontFaceDeclaration fontFaces={fontFaces} />
+            )}
+            {fontSources && <FontSources fontSources={fontSources} />}
+            <AppWithScreencast
+              theme={themeManager}
+              streamlitExecutionStartedAt={streamlitExecutionStartedAt}
+            />
+          </PortalProvider>
+        </WindowDimensionsProvider>
+      </RootStyleProvider>
+    </HelmetProvider>
   );
 };
 

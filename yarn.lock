@@ -8335,6 +8335,7 @@ __metadata:
     oxlint: "npm:^1.85.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-helmet-async: "npm:^3.0.0"
     react-toastify: "npm:^11.0.2"
     sass: "npm:^1.90.0"
     tsdown: "npm:^0.16.6"

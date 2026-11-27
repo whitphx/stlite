@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Theme Font</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          entrypoint: "app.py",
+          files: {
+            "app.py": `
+import streamlit as st
+
+st.title("Stlite Browser Theme Font Test")
+st.write("This text is rendered with the Inter font.")
+`,
+          },
+          streamlitConfig: {
+            // A font given with a stylesheet URL, "<family>:<url>".
+            "theme.font":
+              "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap",
+          },
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

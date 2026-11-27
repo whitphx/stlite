@@ -5,6 +5,29 @@ import { useStliteKernelIfAvailable } from "@stlite/kernel/contexts";
 // Ref: https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/connection/src/DefaultStreamlitEndpoints.ts#L47
 const MEDIA_ENDPOINT = "/media";
 
+// Files under `static/` next to the main script, served at `./app/static/`
+// when `server.enableStaticServing` is on.
+// Ref: https://docs.streamlit.io/develop/concepts/configuration/serving-static-files
+const APP_STATIC_URL_PATTERN = /^(?:\.?\/)?app\/static\//;
+
+/**
+ * Returns the path to request from the Stlite kernel if `rawUrl` points to a
+ * resource the Streamlit server serves, or `null` if the browser can fetch
+ * `rawUrl` as is.
+ */
+export function getStliteServedPath(rawUrl: string): string | null {
+  if (rawUrl.startsWith(MEDIA_ENDPOINT)) {
+    return rawUrl;
+  }
+  if (APP_STATIC_URL_PATTERN.test(rawUrl)) {
+    // Relative to the page, these resolve to `<page dir>/app/static/...`
+    // on a Streamlit server, so they all mean `/app/static/...` here.
+    // The fragment is never sent to a server.
+    return "/" + rawUrl.replace(/^\.?\//, "").split("#", 1)[0];
+  }
+  return null;
+}
+
 function resolveStliteObjectUrl(
   kernel: StliteKernel,
   path: string,
@@ -31,10 +54,11 @@ function resolveStliteObjectUrlIfNeeded(
   kernel: StliteKernel,
   rawUrl: string,
 ): Promise<string> {
-  if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
+  const path = getStliteServedPath(rawUrl);
+  if (path == null) {
     return Promise.resolve(rawUrl);
   }
-  return resolveStliteObjectUrl(kernel, rawUrl);
+  return resolveStliteObjectUrl(kernel, path);
 }
 
 export function resolveLogo<T extends { image: string; iconImage: string }>(
@@ -93,28 +117,46 @@ export function useStliteResolvedLogo<
  * if it points to an in-memory file
  * by downloading the data from the stlite kernel.
  */
-export function useStliteMediaObjectUrl(rawUrl: string): string {
+export function useStliteMediaObjectUrl(rawUrl: string): string;
+export function useStliteMediaObjectUrl(
+  rawUrl: string | undefined,
+): string | undefined;
+export function useStliteMediaObjectUrl(
+  rawUrl: string | undefined,
+): string | undefined {
   const kernel = useStliteKernelIfAvailable();
 
-  const [url, setUrl] = useState(rawUrl);
+  // Keyed by the raw URL it was resolved from, so a stale object URL is
+  // never returned for a new `rawUrl`.
+  const [resolved, setResolved] = useState<{
+    rawUrl: string;
+    url: string;
+  } | null>(null);
   useEffect(() => {
-    if (kernel == null) {
+    if (kernel == null || rawUrl == null) {
       return;
     }
 
-    if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
+    const path = getStliteServedPath(rawUrl);
+    if (path == null) {
       return;
     }
 
     let released = false;
     const resolvedUrls: string[] = [];
-    resolveStliteObjectUrl(kernel, rawUrl).then((resolvedUrl) => {
-      if (released) {
-        return;
-      }
-      resolvedUrls.push(resolvedUrl);
-      setUrl(resolvedUrl);
-    });
+    resolveStliteObjectUrl(kernel, path).then(
+      (resolvedUrl) => {
+        if (released) {
+          URL.revokeObjectURL(resolvedUrl);
+          return;
+        }
+        resolvedUrls.push(resolvedUrl);
+        setResolved({ rawUrl, url: resolvedUrl });
+      },
+      (error) => {
+        console.warn(`Failed to load ${rawUrl}`, error);
+      },
+    );
 
     return () => {
       released = true;
@@ -125,7 +167,10 @@ export function useStliteMediaObjectUrl(rawUrl: string): string {
   }, [kernel, rawUrl]);
 
   // Server-backed app (no kernel): the media URL is directly fetchable.
-  return kernel == null ? rawUrl : url;
+  // Until resolved, the raw URL is returned as before.
+  return kernel != null && resolved != null && resolved.rawUrl === rawUrl
+    ? resolved.url
+    : rawUrl;
 }
 
 /**
@@ -141,7 +186,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
       if (obj.url == null) {
         return true;
       }
-      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
+      if (getStliteServedPath(obj.url) == null) {
         return true;
       }
 
@@ -166,11 +211,12 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
         return obj;
       }
 
-      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
+      const path = getStliteServedPath(obj.url);
+      if (path == null) {
         return obj;
       }
 
-      return resolveStliteObjectUrl(kernel, obj.url).then((resolvedUrl) => {
+      return resolveStliteObjectUrl(kernel, path).then((resolvedUrl) => {
         if (released) {
           return obj;
         }

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import mimetypes
-import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -91,7 +90,6 @@ SKIPPED_TESTS = {
     # so it blocks Stlite's script, Pyodide and wheels.
     "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe": "iframed_app CSP",
     "st_dataframe_interactions_test.py::test_csv_download_button_in_iframe_with_new_tab_host_config": "iframed_app CSP",
-    "st_markdown_test.py::test_large_image_in_markdown": "https://github.com/whitphx/stlite/issues/2143",
 }
 
 
@@ -99,8 +97,7 @@ def _app_files(script: Path) -> dict[str, dict[str, str]]:
     app_dir = script.parent
     skipped_dirs = {"__snapshots__", "__pycache__", "test-results"}
     # `static/` is most of the directory's size, so only apps naming it get it.
-    # `./app/static/` URLs don't count, since Stlite doesn't serve them (#2143).
-    if not re.search(r"(?<!app/)static", script.read_text()):
+    if "static" not in script.read_text():
         skipped_dirs.add("static")
     files = {}
     for path in app_dir.rglob("*"):
@@ -188,6 +185,8 @@ def pytest_plugin_registered(plugin: object) -> None:
         config = {
             "global.e2eTest": True,
             "browser.gatherUsageStats": False,
+            # Upstream's `start_app_server` passes this to every app.
+            "server.enableStaticServing": True,
             **_streamlit_config(extra_args or []),
         }
         options = {

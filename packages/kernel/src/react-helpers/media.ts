@@ -5,9 +5,50 @@ import { useStliteKernelIfAvailable } from "@stlite/kernel/contexts";
 // Ref: https://github.com/streamlit/streamlit/blob/f18f346254049f3b3c09e7a291192ffe4bb8c0f9/frontend/connection/src/DefaultStreamlitEndpoints.ts#L47
 const MEDIA_ENDPOINT = "/media";
 
+// Files under `static/` next to the main script, served at `./app/static/`
+// when `server.enableStaticServing` is on.
+// Ref: https://docs.streamlit.io/develop/concepts/configuration/serving-static-files
+const APP_STATIC_URL_PATTERN = /^(?:\.?\/)?app\/static\//;
+
+// Splits `url` into the part before `#` and the fragment, including `#`.
+function splitFragment(url: string): [string, string] {
+  const index = url.indexOf("#");
+  return index < 0 ? [url, ""] : [url.slice(0, index), url.slice(index)];
+}
+
+/**
+ * Returns the path to request from the Stlite kernel if `rawUrl` points to a
+ * resource the Streamlit server serves, or `null` if the browser can fetch
+ * `rawUrl` as is. The fragment is never sent to a server, so it is dropped.
+ */
+export function getStliteServedPath(rawUrl: string): string | null {
+  const [url] = splitFragment(rawUrl);
+  if (url.startsWith(MEDIA_ENDPOINT)) {
+    return url;
+  }
+  if (APP_STATIC_URL_PATTERN.test(url)) {
+    // Relative to the page, these resolve to `<page dir>/app/static/...`
+    // on a Streamlit server, so they all mean `/app/static/...` here.
+    return "/" + url.replace(/^\.?\//, "");
+  }
+  return null;
+}
+
+// Resolved URLs carry the raw URL's fragment, so strip it to get the object
+// URL back. A URL that isn't an object URL is ignored.
+function revokeObjectUrl(url: string): void {
+  URL.revokeObjectURL(splitFragment(url)[0]);
+}
+
+/**
+ * Fetches `path` from the Stlite kernel into an object URL, with the
+ * fragment of `rawUrl` appended (e.g. an SVG view or a PDF page).
+ * Revoke it with `revokeObjectUrl()`.
+ */
 function resolveStliteObjectUrl(
   kernel: StliteKernel,
   path: string,
+  rawUrl: string,
 ): Promise<string> {
   return kernel
     .sendHttpRequest({
@@ -23,18 +64,24 @@ function resolveStliteObjectUrl(
 
       const type = headers.get("Content-Type");
       const blob = new Blob([body], type ? { type } : undefined);
-      return URL.createObjectURL(blob);
+      return URL.createObjectURL(blob) + splitFragment(rawUrl)[1];
     });
 }
 
+// Falls back to `rawUrl` if it can't be resolved, so the logo shows a broken
+// image as it would on a Streamlit server missing the file.
 function resolveStliteObjectUrlIfNeeded(
   kernel: StliteKernel,
   rawUrl: string,
 ): Promise<string> {
-  if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
+  const path = getStliteServedPath(rawUrl);
+  if (path == null) {
     return Promise.resolve(rawUrl);
   }
-  return resolveStliteObjectUrl(kernel, rawUrl);
+  return resolveStliteObjectUrl(kernel, path, rawUrl).catch((error) => {
+    console.warn(`Failed to load ${rawUrl}`, error);
+    return rawUrl;
+  });
 }
 
 export function resolveLogo<T extends { image: string; iconImage: string }>(
@@ -69,6 +116,8 @@ export function useStliteResolvedLogo<
 
     resolveLogo(kernel, logo).then((resolvedLogo) => {
       if (released) {
+        revokeObjectUrl(resolvedLogo.image);
+        revokeObjectUrl(resolvedLogo.iconImage);
         return;
       }
       resolvedUrls.push(resolvedLogo.image);
@@ -77,9 +126,7 @@ export function useStliteResolvedLogo<
     });
 
     return () => {
-      resolvedUrls.forEach((objectUrl) => {
-        URL.revokeObjectURL(objectUrl);
-      });
+      resolvedUrls.forEach(revokeObjectUrl);
       released = true;
     };
   }, [kernel, logo]);
@@ -93,39 +140,63 @@ export function useStliteResolvedLogo<
  * if it points to an in-memory file
  * by downloading the data from the stlite kernel.
  */
-export function useStliteMediaObjectUrl(rawUrl: string): string {
+export function useStliteMediaObjectUrl(rawUrl: string): string;
+export function useStliteMediaObjectUrl(
+  rawUrl: string | undefined,
+): string | undefined;
+export function useStliteMediaObjectUrl(
+  rawUrl: string | undefined,
+): string | undefined {
   const kernel = useStliteKernelIfAvailable();
 
-  const [url, setUrl] = useState(rawUrl);
+  // Cleared when the effect cleanup revokes its object URL. Keyed by the
+  // kernel and raw URL it was resolved from too, since a render with new
+  // ones comes before that cleanup.
+  const [resolved, setResolved] = useState<{
+    kernel: StliteKernel;
+    rawUrl: string;
+    url: string;
+  } | null>(null);
   useEffect(() => {
-    if (kernel == null) {
+    if (kernel == null || rawUrl == null) {
       return;
     }
 
-    if (!rawUrl.startsWith(MEDIA_ENDPOINT)) {
+    const path = getStliteServedPath(rawUrl);
+    if (path == null) {
       return;
     }
 
     let released = false;
     const resolvedUrls: string[] = [];
-    resolveStliteObjectUrl(kernel, rawUrl).then((resolvedUrl) => {
-      if (released) {
-        return;
-      }
-      resolvedUrls.push(resolvedUrl);
-      setUrl(resolvedUrl);
-    });
+    resolveStliteObjectUrl(kernel, path, rawUrl).then(
+      (resolvedUrl) => {
+        if (released) {
+          revokeObjectUrl(resolvedUrl);
+          return;
+        }
+        resolvedUrls.push(resolvedUrl);
+        setResolved({ kernel, rawUrl, url: resolvedUrl });
+      },
+      (error) => {
+        console.warn(`Failed to load ${rawUrl}`, error);
+      },
+    );
 
     return () => {
       released = true;
-      resolvedUrls.forEach((objectUrl) => {
-        URL.revokeObjectURL(objectUrl);
-      });
+      resolvedUrls.forEach(revokeObjectUrl);
+      setResolved(null);
     };
   }, [kernel, rawUrl]);
 
   // Server-backed app (no kernel): the media URL is directly fetchable.
-  return kernel == null ? rawUrl : url;
+  // Until resolved, the raw URL is returned.
+  return kernel != null &&
+    resolved?.kernel === kernel &&
+    resolved.rawUrl === rawUrl
+    ? resolved.url
+    : rawUrl;
 }
 
 /**
@@ -141,7 +212,7 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
       if (obj.url == null) {
         return true;
       }
-      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
+      if (getStliteServedPath(obj.url) == null) {
         return true;
       }
 
@@ -161,39 +232,50 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
     let released = false;
 
     const resolvedUrls: string[] = [];
-    const promises = inputMediaObjects.map((obj) => {
-      if (obj.url == null) {
-        return obj;
-      }
-
-      if (!obj.url.startsWith(MEDIA_ENDPOINT)) {
-        return obj;
-      }
-
-      return resolveStliteObjectUrl(kernel, obj.url).then((resolvedUrl) => {
-        if (released) {
-          return obj;
+    // Each result is wrapped, since `Promise.all()` would type a bare `T` as
+    // `Awaited<T>`. `null` is an object that failed to load.
+    const promises = inputMediaObjects.map(
+      (obj): Promise<{ obj: T } | null> => {
+        const rawUrl = obj.url;
+        if (rawUrl == null) {
+          return Promise.resolve({ obj });
         }
-        resolvedUrls.push(resolvedUrl);
-        return {
-          ...obj,
-          url: resolvedUrl,
-        };
-      });
-    });
 
-    Promise.all(promises).then((overriddenMediaObjects) => {
+        const path = getStliteServedPath(rawUrl);
+        if (path == null) {
+          return Promise.resolve({ obj });
+        }
+
+        return resolveStliteObjectUrl(kernel, path, rawUrl).then(
+          (resolvedUrl) => {
+            if (released) {
+              revokeObjectUrl(resolvedUrl);
+              return { obj };
+            }
+            resolvedUrls.push(resolvedUrl);
+            return { obj: { ...obj, url: resolvedUrl } };
+          },
+          (error) => {
+            // Left out, as while unresolved, so that the others still show.
+            console.warn(`Failed to load ${rawUrl}`, error);
+            return null;
+          },
+        );
+      },
+    );
+
+    Promise.all(promises).then((results) => {
       if (released) {
         return;
       }
-      setMediaObjects(overriddenMediaObjects);
+      setMediaObjects(
+        results.flatMap((result) => (result == null ? [] : [result.obj])),
+      );
     });
 
     return () => {
       released = true;
-      resolvedUrls.forEach((objectUrl) => {
-        URL.revokeObjectURL(objectUrl);
-      });
+      resolvedUrls.forEach(revokeObjectUrl);
     };
   }, [kernel, inputMediaObjects]);
 

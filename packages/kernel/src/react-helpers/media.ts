@@ -266,17 +266,17 @@ export function useStliteResolvedFontFaces<T extends { url?: string | null }>(
       return promise;
     };
 
-    Promise.all(
-      inputFontFaces.map(async (fontFace): Promise<T | null> => {
-        const path =
-          fontFace.url == null ? null : getStliteStaticFilePath(fontFace.url);
-        if (path == null) {
-          return fontFace;
-        }
-        const resolvedUrl = await resolveUrl(path);
-        return resolvedUrl == null ? null : { ...fontFace, url: resolvedUrl };
-      }),
-    ).then((resolvedFontFaces) => {
+    const promises = inputFontFaces.map((fontFace): Promise<T | null> => {
+      const path =
+        fontFace.url == null ? null : getStliteStaticFilePath(fontFace.url);
+      if (path == null) {
+        return Promise.resolve(fontFace);
+      }
+      return resolveUrl(path).then((resolvedUrl) =>
+        resolvedUrl == null ? null : { ...fontFace, url: resolvedUrl },
+      );
+    });
+    Promise.all(promises).then((resolvedFontFaces: (T | null)[]) => {
       if (released) {
         return;
       }

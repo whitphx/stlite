@@ -87,6 +87,7 @@
     "oxlint": "^1.85.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-helmet-async": "^3.0.0",
     "react-toastify": "^11.0.2",
     "sass": "^1.90.0",
     "tsdown": "^0.16.6",

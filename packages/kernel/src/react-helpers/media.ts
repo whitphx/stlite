@@ -201,3 +201,101 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
   // nothing needs resolving (or filtering out while unresolved).
   return kernel == null ? inputMediaObjects : mediaObjects;
 }
+
+// Ref: the `app/static/{path:path}` route of Streamlit's server, enabled by `server.enableStaticServing`.
+const STATIC_ENDPOINT = "/app/static/";
+
+/**
+ * Returns the kernel request path of a URL pointing to a file served by
+ * Streamlit's static file serving (e.g. `app/static/font.woff2`,
+ * `./app/static/font.woff2` or `/app/static/font.woff2`), or null otherwise.
+ * Such URLs are resolved against the Streamlit server in upstream, which
+ * doesn't exist in Stlite, so the files must be fetched from the kernel.
+ */
+export function getStliteStaticFilePath(url: string): string | null {
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(url) || url.startsWith("//")) {
+    // Absolute URLs (e.g. https:, data:, blob:) are directly fetchable.
+    return null;
+  }
+  const path = "/" + url.replace(/^(\.\/|\/)+/, "");
+  return path.startsWith(STATIC_ENDPOINT) ? path : null;
+}
+
+/**
+ * Takes the `theme.fontFaces` entries and overrides the URL of each one
+ * pointing to a static file (`app/static/...`) with an object URL of the
+ * file data loaded from the Stlite kernel.
+ * Entries whose URLs are not resolved yet, or failed to be, are excluded.
+ */
+export function useStliteResolvedFontFaces<T extends { url?: string | null }>(
+  inputFontFaces: T[],
+): T[] {
+  const kernel = useStliteKernelIfAvailable();
+
+  const [fontFaces, setFontFaces] = useState<T[]>(() =>
+    inputFontFaces.filter(
+      (fontFace) =>
+        fontFace.url == null || getStliteStaticFilePath(fontFace.url) == null,
+    ),
+  );
+
+  useEffect(() => {
+    if (kernel == null) {
+      return;
+    }
+
+    let released = false;
+    const resolvedUrls: string[] = [];
+    // Multiple entries may share one file, e.g. for different unicode ranges.
+    const resolvingUrls = new Map<string, Promise<string | null>>();
+    const resolveUrl = (path: string): Promise<string | null> => {
+      let promise = resolvingUrls.get(path);
+      if (promise == null) {
+        promise = resolveStliteObjectUrl(kernel, path).then(
+          (resolvedUrl) => {
+            resolvedUrls.push(resolvedUrl);
+            return resolvedUrl;
+          },
+          (error) => {
+            console.error(`Failed to load the font file at ${path}:`, error);
+            return null;
+          },
+        );
+        resolvingUrls.set(path, promise);
+      }
+      return promise;
+    };
+
+    Promise.all(
+      inputFontFaces.map(async (fontFace): Promise<T | null> => {
+        const path =
+          fontFace.url == null ? null : getStliteStaticFilePath(fontFace.url);
+        if (path == null) {
+          return fontFace;
+        }
+        const resolvedUrl = await resolveUrl(path);
+        return resolvedUrl == null ? null : { ...fontFace, url: resolvedUrl };
+      }),
+    ).then((resolvedFontFaces) => {
+      if (released) {
+        return;
+      }
+      setFontFaces(
+        resolvedFontFaces.filter((fontFace): fontFace is T => fontFace != null),
+      );
+    });
+
+    return () => {
+      released = true;
+      // Revoke after the pending requests settle so late ones don't leak.
+      Promise.all(resolvingUrls.values()).then(() => {
+        resolvedUrls.forEach((objectUrl) => {
+          URL.revokeObjectURL(objectUrl);
+        });
+      });
+    };
+  }, [kernel, inputFontFaces]);
+
+  // Server-backed app (no kernel): the static file URLs are directly fetchable.
+  return kernel == null ? inputFontFaces : fontFaces;
+}

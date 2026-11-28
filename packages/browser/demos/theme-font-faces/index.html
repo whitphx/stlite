@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Stlite Demo - Theme Font Faces</title>
+    <link rel="stylesheet" href="{{STLITE_CSS_URL}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "{{STLITE_JS_URL}}";
+      mount(
+        {
+          entrypoint: "app.py",
+          files: {
+            "app.py": `
+import streamlit as st
+
+st.title("Stlite Browser Theme Font Faces Test")
+st.write("This text is rendered with the font file hosted with the app.")
+`,
+            // Files in the "static" directory next to the entrypoint are
+            // served at "app/static/..." with \`server.enableStaticServing\`.
+            "static/Inter-Medium.woff2": {
+              url: "https://cdn.jsdelivr.net/npm/@fontsource/inter@5.2.8/files/inter-latin-500-normal.woff2",
+            },
+          },
+          streamlitConfig: {
+            "server.enableStaticServing": true,
+            // The same as the following in config.toml:
+            // [[theme.fontFaces]]
+            // family = "InterHosted"
+            // url = "app/static/Inter-Medium.woff2"
+            // style = "normal"
+            // weight = 500
+            "theme.fontFaces": [
+              {
+                family: "InterHosted",
+                url: "app/static/Inter-Medium.woff2",
+                style: "normal",
+                weight: 500,
+              },
+            ],
+            "theme.font": "InterHosted",
+          },
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

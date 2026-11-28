@@ -121,6 +121,8 @@ export interface StliteKernelOptions {
    * These values can be configured through this property as key-value pairs.
    * The keys are the same as the ones passed to the `streamlit run` shell command as `--` options (flags).
    * For example, `--logger.level info` is passed as `{ "logger.level": "info" }`.
+   * Options that are arrays of tables in `config.toml`, such as `theme.fontFaces`,
+   * take an array of objects, e.g. `{ "theme.fontFaces": [{ family: "Inter", url: "app/static/Inter.woff2" }] }`.
    */
   streamlitConfig?: StreamlitConfig;
 

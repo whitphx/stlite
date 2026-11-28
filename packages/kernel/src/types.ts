@@ -7,6 +7,17 @@ export type PyodideConvertiblePrimitive =
   | null
   | undefined; // Ref: https://pyodide.org/en/stable/usage/type-conversions.html#javascript-to-python
 
+/**
+ * A value that `pyodide.toPy()` deep-converts to a plain Python value:
+ * a primitive, a list (from an array) or a dict (from a plain object).
+ * Used for config options whose values are not scalars,
+ * e.g. `theme.fontFaces`, an array of tables in `config.toml`.
+ */
+export type PyodideConvertibleValue =
+  | PyodideConvertiblePrimitive
+  | PyodideConvertibleValue[]
+  | { [key: string]: PyodideConvertibleValue };
+
 export interface HttpRequest {
   method: "GET" | "PUT" | "DELETE";
   path: string;
@@ -40,7 +51,7 @@ export interface PyodideArchiveUrl {
   options?: Parameters<PyodideInterface["unpackArchive"]>[2];
 }
 export interface StreamlitConfig {
-  [key: string]: PyodideConvertiblePrimitive;
+  [key: string]: PyodideConvertibleValue;
 }
 export interface MicropipInstallOptions {
   keep_going?: boolean;
@@ -329,14 +340,31 @@ export function isPyodideConvertiblePrimitive(
     value === undefined
   );
 }
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value == null) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+export function isPyodideConvertibleValue(
+  value: unknown,
+): value is PyodideConvertibleValue {
+  if (isPyodideConvertiblePrimitive(value)) {
+    return true;
+  }
+  if (Array.isArray(value)) {
+    return value.every(isPyodideConvertibleValue);
+  }
+  if (isPlainObject(value)) {
+    return Object.values(value).every(isPyodideConvertibleValue);
+  }
+  return false;
+}
 export function isStreamlitConfig(value: unknown): value is StreamlitConfig {
   return (
-    typeof value === "object" &&
-    value != null &&
-    Object.entries(value).every(
-      ([key, value]) =>
-        typeof key === "string" && isPyodideConvertiblePrimitive(value),
-    )
+    isPlainObject(value) &&
+    Object.values(value).every(isPyodideConvertibleValue)
   );
 }
 export function assertStreamlitConfig(

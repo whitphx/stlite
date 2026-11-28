@@ -18,6 +18,7 @@ import sharedWorkerHtml from '../../../../packages/browser/demos/shared-worker/i
 import multiAppHtml from '../../../../packages/browser/demos/multi-app/index.html?raw';
 import multiAppSharedWorkerHtml from '../../../../packages/browser/demos/multi-app-shared-worker/index.html?raw';
 import idbfsHtml from '../../../../packages/browser/demos/idbfs/index.html?raw';
+import themeFontFacesHtml from '../../../../packages/browser/demos/theme-font-faces/index.html?raw';
 
 {/* Helper to replace placeholders with CDN URLs */}
 export const cdnBase = `https://cdn.jsdelivr.net/npm/@stlite/browser@${pkg.version}/build`;
@@ -108,6 +109,20 @@ To reduce memory consumption when running multiple Stlite apps, enable `SharedWo
 SharedWorker does not work in some environments like Chrome for Android. Stlite will fall back to standard Workers in these cases.
 :::
 
+### Streamlit Configuration and Custom Fonts
+
+Pass [Streamlit's configuration options](https://docs.streamlit.io/develop/api-reference/configuration/config.toml) with `streamlitConfig`, using the dotted option names as keys (e.g. `"theme.primaryColor"`). Options that are arrays of tables in `config.toml`, such as `[[theme.fontFaces]]`, take an array of objects.
+
+To use a font file hosted with the app, put it in the `static` directory next to the entrypoint, enable `server.enableStaticServing`, and refer to it as `app/static/<file>` in `theme.fontFaces`:
+
+<Code
+  code={toCdn(themeFontFacesHtml)}
+  lang="html"
+  title="theme-font-faces.html"
+/>
+
+A font can also be loaded from a URL directly, e.g. `url: "https://example.com/font.woff2"` in `theme.fontFaces`, or a stylesheet like `"theme.font": "Inter:https://fonts.googleapis.com/css2?family=Inter&display=swap"`.
+
 ## API Reference
 
 ### `mount(options, container)`
@@ -142,7 +157,7 @@ Configuration object for `mount()`.
 | `entrypoint`       | `string`                      | The file path of the main script (e.g., `"streamlit_app.py"`). Required if `files` is an object.                      |
 | `files`            | `Record<string, FileContent>` | An object mapping file paths to their content. Content can be a string, `Uint8Array`, or an object `{ url: string }`. |
 | `requirements`     | `string[]`                    | A list of Python packages to install at startup.                                                                      |
-| `streamlitConfig`  | `Record<string, any>`         | Streamlit configuration options (e.g., `{ "client.toolbarMode": "viewer" }`).                                         |
+| `streamlitConfig`  | `Record<string, any>`         | Streamlit configuration options (e.g., `{ "client.toolbarMode": "viewer" }`). See above for array options.            |
 | `archives`         | `ArchiveObject[]`             | List of archive files (e.g., zip) to download and unpack.                                                             |
 | `pyodideUrl`       | `string`                      | Custom URL for the Pyodide interpreter.                                                                               |
 | `sharedWorker`     | `boolean`                     | Whether to use a SharedWorker.                                                                                        |

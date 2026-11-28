@@ -9,6 +9,7 @@ import AppWithScreencast from "@streamlit/app/src/App";
 
 import { useThemeManager } from "@streamlit/app/src/util/useThemeManager";
 import { HelmetProvider } from "react-helmet-async";
+import { useStliteResolvedFontFaces } from "@stlite/kernel/react";
 import { RootStyleProvider } from "./StliteRootStyleProvider";
 
 export interface ThemedAppProps {
@@ -29,7 +30,11 @@ const ThemedApp = ({
   streamlitExecutionStartedAt,
   disableDocumentStyles,
 }: ThemedAppProps): JSX.Element => {
-  const [themeManager, fontFaces, fontSources] = useThemeManager();
+  const [themeManager, rawFontFaces, fontSources] = useThemeManager();
+  // Stlite: font files served with `server.enableStaticServing`
+  // (`app/static/...`) are not fetchable by the browser as there is no
+  // Streamlit server, so load them from the kernel as object URLs.
+  const fontFaces = useStliteResolvedFontFaces(rawFontFaces);
   const { activeTheme } = themeManager;
 
   // Upstream wraps <ThemedApp> in a <HelmetProvider> in its index.tsx entry

@@ -232,43 +232,44 @@ export function useStliteMediaObjects<T extends { url?: string | null }>(
     let released = false;
 
     const resolvedUrls: string[] = [];
-    const promises = inputMediaObjects.map((obj): T | Promise<T | null> => {
-      const rawUrl = obj.url;
-      if (rawUrl == null) {
-        return obj;
-      }
+    // Each result is wrapped, since `Promise.all()` would type a bare `T` as
+    // `Awaited<T>`. `null` is an object that failed to load.
+    const promises = inputMediaObjects.map(
+      (obj): Promise<{ obj: T } | null> => {
+        const rawUrl = obj.url;
+        if (rawUrl == null) {
+          return Promise.resolve({ obj });
+        }
 
-      const path = getStliteServedPath(rawUrl);
-      if (path == null) {
-        return obj;
-      }
+        const path = getStliteServedPath(rawUrl);
+        if (path == null) {
+          return Promise.resolve({ obj });
+        }
 
-      return resolveStliteObjectUrl(kernel, path, rawUrl).then(
-        (resolvedUrl) => {
-          if (released) {
-            revokeObjectUrl(resolvedUrl);
-            return obj;
-          }
-          resolvedUrls.push(resolvedUrl);
-          return {
-            ...obj,
-            url: resolvedUrl,
-          };
-        },
-        (error) => {
-          // Left out, as while unresolved, so that the others still show.
-          console.warn(`Failed to load ${rawUrl}`, error);
-          return null;
-        },
-      );
-    });
+        return resolveStliteObjectUrl(kernel, path, rawUrl).then(
+          (resolvedUrl) => {
+            if (released) {
+              revokeObjectUrl(resolvedUrl);
+              return { obj };
+            }
+            resolvedUrls.push(resolvedUrl);
+            return { obj: { ...obj, url: resolvedUrl } };
+          },
+          (error) => {
+            // Left out, as while unresolved, so that the others still show.
+            console.warn(`Failed to load ${rawUrl}`, error);
+            return null;
+          },
+        );
+      },
+    );
 
-    Promise.all(promises).then((overriddenMediaObjects) => {
+    Promise.all(promises).then((results) => {
       if (released) {
         return;
       }
       setMediaObjects(
-        overriddenMediaObjects.filter((obj): obj is T => obj != null),
+        results.flatMap((result) => (result == null ? [] : [result.obj])),
       );
     });
 

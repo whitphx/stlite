@@ -164,4 +164,28 @@ describe("media hooks", () => {
     await act(async () => finishRequest());
     await waitFor(() => expect(result.current).toBe("blob:test/2"));
   });
+
+  it("doesn't return an object URL revoked when the raw URL comes back", async () => {
+    let gate: Promise<void> = Promise.resolve();
+    const kernel = createKernel({ "/app/static/a.svg": "<svg/>" }, () => gate);
+    const { result, rerender } = renderHook(
+      ({ rawUrl }: { rawUrl: string | undefined }) =>
+        useStliteMediaObjectUrl(rawUrl),
+      {
+        wrapper: wrapperFor(kernel),
+        initialProps: { rawUrl: "./app/static/a.svg" as string | undefined },
+      },
+    );
+    await waitFor(() => expect(result.current).toBe("blob:test/1"));
+
+    rerender({ rawUrl: undefined });
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:test/1");
+
+    let finishRequest = () => {};
+    gate = new Promise<void>((resolve) => (finishRequest = resolve));
+    rerender({ rawUrl: "./app/static/a.svg" });
+    expect(result.current).toBe("./app/static/a.svg");
+    await act(async () => finishRequest());
+    await waitFor(() => expect(result.current).toBe("blob:test/2"));
+  });
 });

@@ -149,8 +149,9 @@ export function useStliteMediaObjectUrl(
 ): string | undefined {
   const kernel = useStliteKernelIfAvailable();
 
-  // Keyed by the kernel and raw URL it was resolved from, so an object URL
-  // that the effect cleanup has revoked is never returned for new ones.
+  // Cleared when the effect cleanup revokes its object URL. Keyed by the
+  // kernel and raw URL it was resolved from too, since a render with new
+  // ones comes before that cleanup.
   const [resolved, setResolved] = useState<{
     kernel: StliteKernel;
     rawUrl: string;
@@ -185,6 +186,7 @@ export function useStliteMediaObjectUrl(
     return () => {
       released = true;
       resolvedUrls.forEach(revokeObjectUrl);
+      setResolved(null);
     };
   }, [kernel, rawUrl]);
 

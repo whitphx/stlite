@@ -27,6 +27,12 @@ vi.mock(
   }),
 );
 
+// The kernel's React helpers import the built @streamlit/connection package;
+// the font face resolution itself is tested in @stlite/kernel.
+vi.mock("@stlite/kernel/react", () => ({
+  useStliteResolvedFontFaces: <T,>(fontFaces: T[]) => fontFaces,
+}));
+
 vi.mock("./StliteRootStyleProvider", () => ({
   RootStyleProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));

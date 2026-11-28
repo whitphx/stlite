@@ -1,5 +1,15 @@
 # @stlite/browser
 
+## 1.13.0
+
+### Minor Changes
+
+- [#2189](https://github.com/whitphx/stlite/pull/2189) [`dee307c`](https://github.com/whitphx/stlite/commit/dee307cb6018a9f33e1216700f4679170d86e158) Thanks [@whitphx](https://github.com/whitphx)! - Support Streamlit's static file serving. With `server.enableStaticServing` on, files in the `static/` folder next to the main script now load from `./app/static/<path>` URLs in Markdown images, videos and audio (e.g. `st.markdown("![logo](./app/static/logo.png)")`) and from `/app/static/<path>` passed to `st.image`, `st.audio`, `st.video` and `st.logo`.
+
+### Patch Changes
+
+- [#2188](https://github.com/whitphx/stlite/pull/2188) [`bcaec8e`](https://github.com/whitphx/stlite/commit/bcaec8ed93212b8870189d8c13d0c439e20e9b6e) Thanks [@whitphx](https://github.com/whitphx)! - Fix the app crashing before it renders when a theme font is given with a stylesheet URL, e.g. `"theme.font": "Inter:https://fonts.googleapis.com/css2?family=Inter"`. The font stylesheet is now loaded as with `streamlit run`.
+
 ## 1.12.3
 
 ### Patch Changes
